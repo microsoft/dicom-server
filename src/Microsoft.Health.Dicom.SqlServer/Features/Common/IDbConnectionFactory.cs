@@ -4,27 +4,29 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Health.Dicom.Core.Features.Common
+namespace Microsoft.Health.Dicom.SqlServer.Features.Common
 {
     /// <summary>
-    /// Represents a factory that returns store implementations.
+    /// Represents a factory for creating connections for a database, like SQL.
     /// </summary>
-    public interface IStoreFactory<T>
+    // TODO: Move to shared componenets
+    public interface IDbConnectionFactory
     {
         /// <summary>
-        /// Asynchronously fetches the store.
+        /// Asynchronously retrieves a connection.
         /// </summary>
         /// <param name="cancellationToken">
         /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
         /// </param>
         /// <returns>
         /// A task representing the asychronous operation. The value of its <see cref="Task{TResult}.Result"/>
-        /// property contains the desired store instance.
+        /// property contains the <see cref="DbConnection"/>.
         /// </returns>
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-        Task<T> GetInstanceAsync(CancellationToken cancellationToken = default);
+        Task<DbConnection> GetConnectionAsync(CancellationToken cancellationToken = default);
     }
 }

@@ -12,6 +12,7 @@ using EnsureThat;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -28,20 +29,20 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     /// </summary>
     public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixture>
     {
-        private readonly IIndexDataStore _indexDataStore;
+        private readonly IStoreFactory<IIndexDataStore> _indexDataStoreFactory;
         private readonly IIndexDataStoreTestHelper _testHelper;
         private readonly DateTimeOffset _startDateTime = Clock.UtcNow;
-        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
+        private readonly IStoreFactory<IExtendedQueryTagStore> _extendedQueryTagStoreFactory;
 
         public IndexDataStoreTests(SqlDataStoreTestsFixture fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
-            EnsureArg.IsNotNull(fixture.IndexDataStore, nameof(fixture.IndexDataStore));
-            EnsureArg.IsNotNull(fixture.TestHelper, nameof(fixture.IndexDataStore));
-            EnsureArg.IsNotNull(fixture.ExtendedQueryTagStore, nameof(fixture.ExtendedQueryTagStore));
-            _indexDataStore = fixture.IndexDataStore;
+            EnsureArg.IsNotNull(fixture.IndexDataStoreFactory, nameof(fixture.IndexDataStoreFactory));
+            EnsureArg.IsNotNull(fixture.TestHelper, nameof(fixture.TestHelper));
+            EnsureArg.IsNotNull(fixture.ExtendedQueryTagStoreFactory, nameof(fixture.ExtendedQueryTagStoreFactory));
+            _indexDataStoreFactory = fixture.IndexDataStoreFactory;
             _testHelper = fixture.TestHelper;
-            _extendedQueryTagStore = fixture.ExtendedQueryTagStore;
+            _extendedQueryTagStoreFactory = fixture.ExtendedQueryTagStoreFactory;
         }
 
         [Fact]
@@ -58,7 +59,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             string accessionNumber = dataset.GetString(DicomTag.AccessionNumber);
             string modality = dataset.GetString(DicomTag.Modality);
 
-            long version = await _indexDataStore.CreateInstanceIndexAsync(dataset);
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
+            long version = await indexDataStore.CreateInstanceIndexAsync(dataset);
 
             IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
 
@@ -119,7 +121,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             dataset.AddOrUpdate(DicomTag.Modality, conflictModality);
             dataset.AddOrUpdate(DicomTag.SOPInstanceUID, newInstance);
 
-            await _indexDataStore.CreateInstanceIndexAsync(dataset);
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
+            await indexDataStore.CreateInstanceIndexAsync(dataset);
 
             IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
             IReadOnlyList<SeriesMetadata> seriesMetadataEntries = await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid);
@@ -134,12 +137,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenAnExistingDicomInstance_WhenDeletedByInstanceId_ThenItShouldBeRemovedAndAddedToDeletedInstanceTable()
         {
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
+
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
-            Instance instance = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            Instance instance = await CreateIndexAndVerifyInstance(indexDataStore, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+            await indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
             Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
             Assert.Empty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
@@ -151,15 +156,17 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenAnExistingDicomInstance_WhenDeletedByInstanceId_AdditionalInstancesShouldBeMaintained()
         {
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
+
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
-            Instance instance = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            Instance instance = await CreateIndexAndVerifyInstance(indexDataStore, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
             string sopInstanceUid2 = TestUidGenerator.Generate();
-            await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
+            await CreateIndexAndVerifyInstance(indexDataStore, studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
 
-            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+            await indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
             Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
             Assert.NotEmpty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid2));
@@ -172,16 +179,18 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenAnExistingDicomInstance_WhenDeletedByInstanceId_AdditionalSeriesShouldBeMaintained()
         {
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
+
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
-            Instance instance1 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            Instance instance1 = await CreateIndexAndVerifyInstance(indexDataStore, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
             string sopInstanceUid2 = TestUidGenerator.Generate();
             string seriesInstanceUid2 = TestUidGenerator.Generate();
-            await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid2, sopInstanceUid2);
+            await CreateIndexAndVerifyInstance(indexDataStore, studyInstanceUid, seriesInstanceUid2, sopInstanceUid2);
 
-            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+            await indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
             Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
             Assert.NotEmpty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid2, sopInstanceUid2));
@@ -195,12 +204,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenAnExistingDicomInstance_WhenDeletedBySeriesId_ThenItShouldBeRemovedAndAddedToDeletedInstanceTable()
         {
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
+
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
-            Instance instance = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            Instance instance = await CreateIndexAndVerifyInstance(indexDataStore, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-            await _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, Clock.UtcNow);
+            await indexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, Clock.UtcNow);
 
             Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
             Assert.Empty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
@@ -212,15 +223,17 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenMultipleDicomInstance_WhenDeletedBySeriesId_ThenItemsBeRemovedAndAddedToDeletedInstanceTable()
         {
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
+
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
-            Instance instance1 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            Instance instance1 = await CreateIndexAndVerifyInstance(indexDataStore, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
             string sopInstanceUid2 = TestUidGenerator.Generate();
-            Instance instance2 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
+            Instance instance2 = await CreateIndexAndVerifyInstance(indexDataStore, studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
 
-            await _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, Clock.UtcNow);
+            await indexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, Clock.UtcNow);
 
             Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
             Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid2));
@@ -236,16 +249,18 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenAnExistingDicomInstance_WhenDeletedBySeriesId_AdditionalSeriesShouldBeMaintained()
         {
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
+
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
-            Instance instance = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            Instance instance = await CreateIndexAndVerifyInstance(indexDataStore, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
             string sopInstanceUid2 = TestUidGenerator.Generate();
             string seriesInstanceUid2 = TestUidGenerator.Generate();
-            await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid2, sopInstanceUid2);
+            await CreateIndexAndVerifyInstance(indexDataStore, studyInstanceUid, seriesInstanceUid2, sopInstanceUid2);
 
-            await _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, Clock.UtcNow);
+            await indexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, Clock.UtcNow);
 
             Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
             Assert.NotEmpty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid2, sopInstanceUid2));
@@ -259,12 +274,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenAnExistingDicomInstance_WhenDeletedByStudyId_ThenItShouldBeRemovedAndAddedToDeletedInstanceTable()
         {
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
+
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
-            Instance instance = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            Instance instance = await CreateIndexAndVerifyInstance(indexDataStore, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-            await _indexDataStore.DeleteStudyIndexAsync(studyInstanceUid, Clock.UtcNow);
+            await indexDataStore.DeleteStudyIndexAsync(studyInstanceUid, Clock.UtcNow);
 
             Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
             Assert.Empty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
@@ -276,15 +293,17 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenMultipleDicomInstance_WhenDeletedByStudyInstanceUid_ThenItemsBeRemovedAndAddedToDeletedInstanceTable()
         {
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
+
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
-            Instance instance1 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            Instance instance1 = await CreateIndexAndVerifyInstance(indexDataStore, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
             string sopInstanceUid2 = TestUidGenerator.Generate();
-            Instance instance2 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
+            Instance instance2 = await CreateIndexAndVerifyInstance(indexDataStore, studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
 
-            await _indexDataStore.DeleteStudyIndexAsync(studyInstanceUid, Clock.UtcNow);
+            await indexDataStore.DeleteStudyIndexAsync(studyInstanceUid, Clock.UtcNow);
 
             Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
             Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid2));
@@ -300,31 +319,36 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenANonExistentInstance_WhenDeletedBySopInstanceUid_ThenExceptionThrown()
         {
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
+
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
-            await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            await CreateIndexAndVerifyInstance(indexDataStore, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-            await Assert.ThrowsAsync<InstanceNotFoundException>(async () => await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate(), Clock.UtcNow));
-            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+            await Assert.ThrowsAsync<InstanceNotFoundException>(async () => await indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate(), Clock.UtcNow));
+            await indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
         }
 
         [Fact]
         public async Task GivenANonExistentSeries_WhenDeletedBySeriesInstanceUid_ThenExceptionThrown()
         {
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
+
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
-            await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            await CreateIndexAndVerifyInstance(indexDataStore, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-            await Assert.ThrowsAsync<SeriesNotFoundException>(async () => await _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, TestUidGenerator.Generate(), Clock.UtcNow));
-            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+            await Assert.ThrowsAsync<SeriesNotFoundException>(async () => await indexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, TestUidGenerator.Generate(), Clock.UtcNow));
+            await indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
         }
 
         [Fact]
         public async Task GivenANonExistentStudy_WhenDeletedByStudyInstanceUid_ThenExceptionThrown()
         {
-            await Assert.ThrowsAsync<StudyNotFoundException>(async () => await _indexDataStore.DeleteStudyIndexAsync(TestUidGenerator.Generate(), Clock.UtcNow));
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
+            await Assert.ThrowsAsync<StudyNotFoundException>(async () => await indexDataStore.DeleteStudyIndexAsync(TestUidGenerator.Generate(), Clock.UtcNow));
         }
 
         [Fact]
@@ -336,9 +360,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
-            await _indexDataStore.CreateInstanceIndexAsync(dataset);
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
+            await indexDataStore.CreateInstanceIndexAsync(dataset);
 
-            await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.CreateInstanceIndexAsync(dataset));
+            await Assert.ThrowsAsync<PendingInstanceException>(() => indexDataStore.CreateInstanceIndexAsync(dataset));
         }
 
         [Fact]
@@ -350,12 +375,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
-            long version = await _indexDataStore.CreateInstanceIndexAsync(dataset);
-            await _indexDataStore.UpdateInstanceIndexStatusAsync(
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
+            long version = await indexDataStore.CreateInstanceIndexAsync(dataset);
+            await indexDataStore.UpdateInstanceIndexStatusAsync(
                 dataset.ToVersionedInstanceIdentifier(version),
                 IndexStatus.Created);
 
-            await Assert.ThrowsAsync<InstanceAlreadyExistsException>(() => _indexDataStore.CreateInstanceIndexAsync(dataset));
+            await Assert.ThrowsAsync<InstanceAlreadyExistsException>(() => indexDataStore.CreateInstanceIndexAsync(dataset));
         }
 
         [Fact]
@@ -367,7 +393,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
-            long version = await _indexDataStore.CreateInstanceIndexAsync(dataset);
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
+            long version = await indexDataStore.CreateInstanceIndexAsync(dataset);
 
             Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version);
 
@@ -378,7 +405,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             // Make sure there is delay between.
             await Task.Delay(50);
 
-            await _indexDataStore.UpdateInstanceIndexStatusAsync(
+            await indexDataStore.UpdateInstanceIndexStatusAsync(
                 new VersionedInstanceIdentifier(
                     studyInstanceUid,
                     seriesInstanceUid,
@@ -406,7 +433,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
-            long version = await _indexDataStore.CreateInstanceIndexAsync(dataset);
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
+            long version = await indexDataStore.CreateInstanceIndexAsync(dataset);
 
             VersionedInstanceIdentifier versionedInstanceIdentifier = new VersionedInstanceIdentifier(
                     studyInstanceUid,
@@ -414,10 +442,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     sopInstanceUid,
                     version);
 
-            await _indexDataStore.DeleteInstanceIndexAsync(versionedInstanceIdentifier);
+            await indexDataStore.DeleteInstanceIndexAsync(versionedInstanceIdentifier);
 
             await Assert.ThrowsAsync<InstanceNotFoundException>(
-                () => _indexDataStore.UpdateInstanceIndexStatusAsync(versionedInstanceIdentifier, IndexStatus.Created));
+                () => indexDataStore.UpdateInstanceIndexStatusAsync(versionedInstanceIdentifier, IndexStatus.Created));
 
             Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
         }
@@ -425,16 +453,18 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenADeletedDicomInstance_WhenIncrementingRetryCount_NewRetryCountShouldBeReturned()
         {
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
+
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
-            Instance instance1 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            Instance instance1 = await CreateIndexAndVerifyInstance(indexDataStore, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+            await indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
             DeletedInstance deletedEntry = (await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid)).First();
             var versionedDicomInstanceIdentifier = new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, deletedEntry.Watermark);
-            var retryCount = await _indexDataStore.IncrementDeletedInstanceRetryAsync(versionedDicomInstanceIdentifier, Clock.UtcNow);
+            var retryCount = await indexDataStore.IncrementDeletedInstanceRetryAsync(versionedDicomInstanceIdentifier, Clock.UtcNow);
             Assert.Equal(1, retryCount);
         }
 
@@ -442,7 +472,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public async Task GivenNoDeletedInstances_NumMatchRetryCountShouldBe0()
         {
             await _testHelper.ClearDeletedInstanceTable();
-            var numMatchRetryCount = await _indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(0);
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
+            var numMatchRetryCount = await indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(0);
             Assert.Equal(0, numMatchRetryCount);
         }
 
@@ -450,20 +481,21 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public async Task GivenFewDeletedInstances_NumMatchRetryCountShouldBeCorrect()
         {
             await _testHelper.ClearDeletedInstanceTable();
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
 
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
-            Instance instance1 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            Instance instance1 = await CreateIndexAndVerifyInstance(indexDataStore, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+            await indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
             string sopInstanceUid2 = TestUidGenerator.Generate();
-            Instance instance2 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
+            Instance instance2 = await CreateIndexAndVerifyInstance(indexDataStore, studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
 
-            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid2, Clock.UtcNow);
+            await indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid2, Clock.UtcNow);
 
-            var numMatchRetryCount = await _indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(0);
+            var numMatchRetryCount = await indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(0);
             Assert.Equal(2, numMatchRetryCount);
         }
 
@@ -472,7 +504,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             await _testHelper.ClearDeletedInstanceTable();
 
-            Assert.InRange(await _indexDataStore.GetOldestDeletedAsync(), Clock.UtcNow.AddSeconds(-1), Clock.UtcNow.AddSeconds(1));
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
+            Assert.InRange(await indexDataStore.GetOldestDeletedAsync(), Clock.UtcNow.AddSeconds(-1), Clock.UtcNow.AddSeconds(1));
         }
 
         [Fact]
@@ -481,22 +514,23 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _testHelper.ClearDeletedInstanceTable();
 
             DateTimeOffset start = Clock.UtcNow;
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
 
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
-            Instance instance1 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            Instance instance1 = await CreateIndexAndVerifyInstance(indexDataStore, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+            await indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
             string sopInstanceUid2 = TestUidGenerator.Generate();
-            Instance instance2 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
+            Instance instance2 = await CreateIndexAndVerifyInstance(indexDataStore, studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
 
             await Task.Delay(5000);
 
-            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid2, Clock.UtcNow);
+            await indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid2, Clock.UtcNow);
 
-            Assert.InRange(await _indexDataStore.GetOldestDeletedAsync(), start.AddSeconds(-1), start.AddSeconds(1));
+            Assert.InRange(await indexDataStore.GetOldestDeletedAsync(), start.AddSeconds(-1), start.AddSeconds(1));
         }
 
         private static void ValidateStudyMetadata(
@@ -577,10 +611,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             return dataset;
         }
 
-        private async Task<Instance> CreateIndexAndVerifyInstance(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+        private async Task<Instance> CreateIndexAndVerifyInstance(IIndexDataStore indexDataStore, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
             DicomDataset dataset = CreateTestDicomDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-            long version = await _indexDataStore.CreateInstanceIndexAsync(dataset);
+            long version = await indexDataStore.CreateInstanceIndexAsync(dataset);
             Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version);
             Assert.Equal(sopInstanceUid, instance.SopInstanceUid);
             return instance;

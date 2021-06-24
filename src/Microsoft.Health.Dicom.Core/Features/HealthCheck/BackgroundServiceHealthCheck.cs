@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Core.Features.HealthCheck
 {
     public class BackgroundServiceHealthCheck : IHealthCheck
     {
-        private readonly IIndexDataStore _indexDataStore;
+        private readonly IStoreFactory<IIndexDataStore> _indexDataStoreFactory;
         private readonly DeletedInstanceCleanupConfiguration _deletedInstanceCleanupConfiguration;
         private readonly TelemetryClient _telemetryClient;
         private readonly BackgroundServiceHealthCheckCache _backgroundServiceHealthCheckCache;
@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Core.Features.HealthCheck
             EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
             EnsureArg.IsNotNull(backgroundServiceHealthCheckCache, nameof(backgroundServiceHealthCheckCache));
 
-            _indexDataStore = indexDataStoreFactory.GetInstance();
+            _indexDataStoreFactory = indexDataStoreFactory;
             _deletedInstanceCleanupConfiguration = deletedInstanceCleanupConfiguration.Value;
             _telemetryClient = telemetryClient;
             _backgroundServiceHealthCheckCache = backgroundServiceHealthCheckCache;
@@ -42,9 +42,10 @@ namespace Microsoft.Health.Dicom.Core.Features.HealthCheck
 
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
-            Task<DateTimeOffset> oldestWaitingToBeDeleated = _backgroundServiceHealthCheckCache.GetOrAddOldestTimeAsync(_indexDataStore.GetOldestDeletedAsync, cancellationToken);
+            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync(cancellationToken);
+            Task<DateTimeOffset> oldestWaitingToBeDeleated = _backgroundServiceHealthCheckCache.GetOrAddOldestTimeAsync(indexDataStore.GetOldestDeletedAsync, cancellationToken);
             Task<int> numReachedMaxedRetry = _backgroundServiceHealthCheckCache.GetOrAddNumExhaustedDeletionAttemptsAsync(
-                t => _indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(_deletedInstanceCleanupConfiguration.MaxRetries, t),
+                t => indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(_deletedInstanceCleanupConfiguration.MaxRetries, t),
                 cancellationToken);
 
             _telemetryClient.GetMetric("Oldest-Requested-Deletion").TrackValue((await oldestWaitingToBeDeleated).ToUnixTimeSeconds());
