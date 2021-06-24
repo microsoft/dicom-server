@@ -159,12 +159,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var tags = await extendedQueryTagStore.GetExtendedQueryTagsAsync();
             foreach (var tag in tags)
             {
-                await extendedQueryTagStore.DeleteExtendedQueryTagAsync(tag.Path, tag.VR);
+                await extendedQueryTagStore.DeleteExtendedQueryTagAsync(tag.Path, tag.VR, force: true);
             }
         }
 
 
-        private Task AddExtendedQueryTagsAsync(IExtendedQueryTagStore extendedQueryTagStore, IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxAllowedCount = 128, CancellationToken cancellationToken = default)
+        private Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(IExtendedQueryTagStore extendedQueryTagStore, IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxAllowedCount = 128, CancellationToken cancellationToken = default)
         {
             return extendedQueryTagStore.AddExtendedQueryTagsAsync(extendedQueryTagEntries, maxAllowedCount, cancellationToken);
         }

@@ -72,7 +72,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             var input = new AddExtendedQueryTagEntry[] { entry };
             string expectedOperationId = Guid.NewGuid().ToString();
             _extendedQueryTagStore
-                .UpsertExtendedQueryTagsAsync(
+                .AddExtendedQueryTagsAsync(
                     Arg.Is<IReadOnlyCollection<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
                     Arg.Is(128),
                     Arg.Is(_tokenSource.Token))
@@ -89,7 +89,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             _extendedQueryTagEntryValidator.Received(1).ValidateExtendedQueryTags(input);
             await _extendedQueryTagStore
                 .Received(1)
-                .UpsertExtendedQueryTagsAsync(
+                .AddExtendedQueryTagsAsync(
                     Arg.Is<IReadOnlyCollection<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
                     Arg.Is(128),
                     Arg.Is(_tokenSource.Token));

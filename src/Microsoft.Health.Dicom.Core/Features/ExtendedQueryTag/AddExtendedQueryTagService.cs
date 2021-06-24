@@ -44,12 +44,13 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         public async Task<AddExtendedQueryTagResponse> AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags, CancellationToken cancellationToken = default)
         {
             _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(extendedQueryTags);
-            List<AddExtendedQueryTagEntry> normalized = extendedQueryTags
+            var normalized = extendedQueryTags
                 .Select(item => item.Normalize())
                 .ToList();
 
+            // TODO: Handle tags that have already been added
             IExtendedQueryTagStore extendedQueryTagStore = await _extendedQueryTagStoreFactory.GetInstanceAsync(cancellationToken);
-            IReadOnlyList<int> keys = await extendedQueryTagStore.UpsertExtendedQueryTagsAsync(normalized, _maxAllowedCount, cancellationToken);
+            IReadOnlyList<int> keys = await extendedQueryTagStore.AddExtendedQueryTagsAsync(normalized, _maxAllowedCount, cancellationToken);
             return new AddExtendedQueryTagResponse(await _client.StartQueryTagIndex(keys, cancellationToken));
         }
     }

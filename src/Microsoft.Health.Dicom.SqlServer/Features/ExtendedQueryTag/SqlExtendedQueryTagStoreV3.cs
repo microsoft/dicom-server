@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         public override SchemaVersion Version => SchemaVersion.V3;
 
-        public override async Task AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxAllowedCount, CancellationToken cancellationToken)
+        public override async Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxAllowedCount, CancellationToken cancellationToken)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
@@ -42,6 +42,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 try
                 {
                     await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
+                    var allTags = (await GetExtendedQueryTagsAsync(path: null, cancellationToken: cancellationToken))
+                        .ToDictionary(x => x.Path, x => x.Key);
+
+                    return extendedQueryTagEntries
+                        .Select(x => allTags[x.Path])
+                        .ToList();
                 }
                 catch (SqlException ex)
                 {

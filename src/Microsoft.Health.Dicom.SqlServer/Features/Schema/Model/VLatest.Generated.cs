@@ -36,7 +36,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static IncrementDeletedInstanceRetryProcedure IncrementDeletedInstanceRetry = new IncrementDeletedInstanceRetryProcedure();
         internal readonly static RetrieveDeletedInstanceProcedure RetrieveDeletedInstance = new RetrieveDeletedInstanceProcedure();
         internal readonly static UpdateInstanceStatusProcedure UpdateInstanceStatus = new UpdateInstanceStatusProcedure();
-        internal readonly static UpsertExtendedQueryTagsProcedure UpsertExtendedQueryTags = new UpsertExtendedQueryTagsProcedure();
 
         internal class ChangeFeedTable : Table
         {
@@ -408,13 +407,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
             private readonly ParameterDefinition<System.String> _tagPath = new ParameterDefinition<System.String>("@tagPath", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.Byte> _dataType = new ParameterDefinition<System.Byte>("@dataType", global::System.Data.SqlDbType.TinyInt, false);
+            private readonly ParameterDefinition<System.Nullable<System.Boolean>> _force = new ParameterDefinition<System.Nullable<System.Boolean>>("@force", global::System.Data.SqlDbType.Bit, true);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath, System.Byte dataType)
+            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath, System.Byte dataType, System.Nullable<System.Boolean> force)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.DeleteExtendedQueryTag";
                 _tagPath.AddParameter(command.Parameters, tagPath);
                 _dataType.AddParameter(command.Parameters, dataType);
+                _force.AddParameter(command.Parameters, force);
             }
         }
 
@@ -575,54 +576,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _watermark.AddParameter(command.Parameters, watermark);
                 _status.AddParameter(command.Parameters, status);
             }
-        }
-
-        internal class UpsertExtendedQueryTagsProcedure : StoredProcedure
-        {
-            internal UpsertExtendedQueryTagsProcedure() : base("dbo.UpsertExtendedQueryTags")
-            {
-            }
-
-            private readonly AddExtendedQueryTagsInputTableTypeV1TableValuedParameterDefinition _extendedQueryTags = new AddExtendedQueryTagsInputTableTypeV1TableValuedParameterDefinition("@extendedQueryTags");
-            private readonly ParameterDefinition<System.Int32> _maxAllowedCount = new ParameterDefinition<System.Int32>("@maxAllowedCount", global::System.Data.SqlDbType.Int, false);
-
-            public void PopulateCommand(SqlCommandWrapper command, global::System.Collections.Generic.IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> extendedQueryTags, System.Int32 maxAllowedCount)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.UpsertExtendedQueryTags";
-                _extendedQueryTags.AddParameter(command.Parameters, extendedQueryTags);
-                _maxAllowedCount.AddParameter(command.Parameters, maxAllowedCount);
-            }
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 maxAllowedCount, UpsertExtendedQueryTagsTableValuedParameters tableValuedParameters)
-            {
-                PopulateCommand(command, maxAllowedCount: maxAllowedCount, extendedQueryTags: tableValuedParameters.ExtendedQueryTags);
-            }
-        }
-
-        internal class UpsertExtendedQueryTagsTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, UpsertExtendedQueryTagsTableValuedParameters>
-        {
-            public UpsertExtendedQueryTagsTvpGenerator(ITableValuedParameterRowGenerator<TInput, AddExtendedQueryTagsInputTableTypeV1Row> AddExtendedQueryTagsInputTableTypeV1RowGenerator)
-            {
-                this.AddExtendedQueryTagsInputTableTypeV1RowGenerator = AddExtendedQueryTagsInputTableTypeV1RowGenerator;
-            }
-
-            private readonly ITableValuedParameterRowGenerator<TInput, AddExtendedQueryTagsInputTableTypeV1Row> AddExtendedQueryTagsInputTableTypeV1RowGenerator;
-
-            public UpsertExtendedQueryTagsTableValuedParameters Generate(TInput input)
-            {
-                return new UpsertExtendedQueryTagsTableValuedParameters(AddExtendedQueryTagsInputTableTypeV1RowGenerator.GenerateRows(input));
-            }
-        }
-
-        internal struct UpsertExtendedQueryTagsTableValuedParameters
-        {
-            internal UpsertExtendedQueryTagsTableValuedParameters(global::System.Collections.Generic.IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> ExtendedQueryTags)
-            {
-                this.ExtendedQueryTags = ExtendedQueryTags;
-            }
-
-            internal global::System.Collections.Generic.IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> ExtendedQueryTags { get; }
         }
     }
 }

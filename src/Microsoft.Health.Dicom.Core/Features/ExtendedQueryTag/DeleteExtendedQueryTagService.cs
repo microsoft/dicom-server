@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
             if (extendedQueryTagEntries.Count > 0)
             {
-                await extendedQueryTagStore.DeleteExtendedQueryTagAsync(normalizedPath, extendedQueryTagEntries[0].VR, cancellationToken);
+                await extendedQueryTagStore.DeleteExtendedQueryTagAsync(normalizedPath, extendedQueryTagEntries[0].VR, false, cancellationToken);
             }
             else
             {
