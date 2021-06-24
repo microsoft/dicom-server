@@ -26,7 +26,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
         public IIndexDataStore GetInstance()
         {
-            return _indexDataStores.First(store => (int)store.Version == _schemaInformation.Current.Value);
+            int currentVersion = _schemaInformation.Current == null ? 0 : _schemaInformation.Current.Value;
+            return _indexDataStores.FirstOrDefault(store => (int)store.Version == currentVersion);
         }
     }
 }
