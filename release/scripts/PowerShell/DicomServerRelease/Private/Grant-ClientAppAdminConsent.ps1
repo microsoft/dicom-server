@@ -27,7 +27,7 @@ function Grant-ClientAppAdminConsent {
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNull()]
-        [pscredential]$RoleId
+        [string]$RoleId
     )
 
     Set-StrictMode -Version Latest
