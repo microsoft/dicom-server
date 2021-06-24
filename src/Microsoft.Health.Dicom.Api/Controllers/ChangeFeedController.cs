@@ -19,6 +19,7 @@ using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
+    [ApiVersion("1.0-prerelease")]
     [QueryModelStateValidator]
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
     public class ChangeFeedController : Controller
@@ -39,6 +40,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(JsonResult), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [VersionedRoute(KnownRoutes.ChangeFeed)]
         [Route(KnownRoutes.ChangeFeed)]
         [AuditEventType(AuditEventSubType.ChangeFeed)]
         public async Task<IActionResult> GetChangeFeed([FromQuery] long offset = 0, [FromQuery] int limit = 10, [FromQuery] bool includeMetadata = true)
@@ -58,6 +60,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(ChangeFeedEntry), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [VersionedRoute(KnownRoutes.ChangeFeedLatest)]
         [Route(KnownRoutes.ChangeFeedLatest)]
         [AuditEventType(AuditEventSubType.ChangeFeed)]
         public async Task<IActionResult> GetChangeFeedLatest([FromQuery] bool includeMetadata = true)

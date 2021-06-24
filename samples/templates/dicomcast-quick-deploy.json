@@ -89,7 +89,7 @@
                 "enableExport":{"value": false}, 
                 "enableConvertData":{"value": false},   
                 "enableReindex":{"value": false},   
-                "sqlSchemaAutomaticUpdatesEnabled":{"value": true}    
+                "sqlSchemaAutomaticUpdatesEnabled":{"value": "auto"}    
                 }
             }
         },

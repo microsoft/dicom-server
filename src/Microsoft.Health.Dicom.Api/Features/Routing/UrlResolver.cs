@@ -59,9 +59,10 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         public Uri ResolveRetrieveStudyUri(string studyInstanceUid)
         {
             EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
+            var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey("version");
 
             return RouteUri(
-                KnownRouteNames.RetrieveStudy,
+                hasVersion ? KnownRouteNames.VersionedRetrieveStudy : KnownRouteNames.RetrieveStudy,
                 new RouteValueDictionary
                 {
                     { KnownActionParameterNames.StudyInstanceUid, studyInstanceUid },
@@ -72,9 +73,10 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         public Uri ResolveRetrieveInstanceUri(InstanceIdentifier instanceIdentifier)
         {
             EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
+            var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey("version");
 
             return RouteUri(
-                KnownRouteNames.RetrieveInstance,
+                hasVersion ? KnownRouteNames.VersionedRetrieveInstance : KnownRouteNames.RetrieveInstance,
                 new RouteValueDictionary
                 {
                     { KnownActionParameterNames.StudyInstanceUid, instanceIdentifier.StudyInstanceUid },

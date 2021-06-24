@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Common components, such as controllers, for Microsoft's DICOMweb APIs using ASP.NET Core.</Description>
@@ -16,12 +16,13 @@
     <PackageReference Include="MediatR" Version="9.0.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.17.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="$(SdkPackageVersion)" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.0.0" />
     <PackageReference Include="Microsoft.Health.Abstractions" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Api" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Core" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.11.1" />
-    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.1.1" />
+    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.1.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Scrutor" Version="3.3.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.11.1" />
