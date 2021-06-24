@@ -5,7 +5,6 @@
 
 using System.Collections.Generic;
 using System.Data;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,60 +32,39 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         public override async Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxAllowedCount, CancellationToken cancellationToken)
         {
-            using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
-            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
-
-            IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> rows = extendedQueryTagEntries.Select(ToAddExtendedQueryTagsInputTableTypeV1Row);
-            VLatest.AddExtendedQueryTags.PopulateCommand(sqlCommandWrapper, maxAllowedCount, new VLatest.AddExtendedQueryTagsTableValuedParameters(rows));
-
-            try
-            {
-                var keys = new List<int>();
-                using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken);
-                while (await reader.ReadAsync(cancellationToken))
-                {
-                    keys.Add(reader.ReadRow(VLatest.ExtendedQueryTagString.TagKey));
-                }
-
-                return keys;
-            }
-            catch (SqlException ex)
-            {
-                throw ex.Number switch
-                {
-                    SqlErrorCodes.Conflict => ex.State == 1
-                        ? new ExtendedQueryTagsExceedsMaxAllowedCountException(maxAllowedCount)
-                        : new ExtendedQueryTagsAlreadyExistsException(),
-                    _ => new DataStoreException(ex),
-                };
-            }
-        }
-
-        public override async Task DeleteExtendedQueryTagAsync(string tagPath, string vr, bool force = false, CancellationToken cancellationToken = default)
-        {
             using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.DeleteExtendedQueryTag.PopulateCommand(
-                    sqlCommandWrapper,
-                    tagPath,
-                    (byte)ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[vr],
-                    force);
+                IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> rows = extendedQueryTagEntries.Select(ToAddExtendedQueryTagsInputTableTypeV1Row);
+
+                V3.AddExtendedQueryTags.PopulateCommand(sqlCommandWrapper, maxAllowedCount, new V3.AddExtendedQueryTagsTableValuedParameters(rows));
 
                 try
                 {
                     await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
+                    var allTags = (await GetExtendedQueryTagsAsync(path: null, cancellationToken: cancellationToken))
+                        .ToDictionary(x => x.Path, x => x.Key);
+
+                    return extendedQueryTagEntries
+                        .Select(x => allTags[x.Path])
+                        .ToList();
                 }
                 catch (SqlException ex)
                 {
                     switch (ex.Number)
                     {
-                        case SqlErrorCodes.NotFound:
-                            throw new ExtendedQueryTagNotFoundException(
-                                string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.ExtendedQueryTagNotFound, tagPath));
-                        case SqlErrorCodes.PreconditionFailed:
-                            throw new ExtendedQueryTagBusyException(
-                                string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.ExtendedQueryTagIsBusy, tagPath));
+                        case SqlErrorCodes.Conflict:
+                        {
+                            if (ex.State == 1)
+                            {
+                                throw new ExtendedQueryTagsExceedsMaxAllowedCountException(maxAllowedCount);
+                            }
+                            else
+                            {
+                                throw new ExtendedQueryTagsAlreadyExistsException();
+                            }
+                        }
+
                         default:
                             throw new DataStoreException(ex);
                     }
