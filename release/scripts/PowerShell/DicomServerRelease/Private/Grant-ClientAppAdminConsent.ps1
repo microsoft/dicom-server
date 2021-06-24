@@ -15,7 +15,7 @@ function Grant-ClientAppAdminConsent {
     param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string]$ClientAppServicePrincipalObjectId,
+        [string]$ClientAppServicePrincipalObjectId
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNull()]
@@ -32,7 +32,7 @@ function Grant-ClientAppAdminConsent {
 
     Set-StrictMode -Version Latest
 
-    Write-Host "Granting admin consent for app: $ClientAppServicePrincipalObjectId, for role $RoleId"
+    Write-Host "Granting admin consent for app: $ClientAppServicePrincipalObjectId and role: $RoleId"
 
     # There currently is no documented or supported way of programatically
     # granting admin consent. So for now we resort to a hack. 
@@ -57,8 +57,8 @@ function Grant-ClientAppAdminConsent {
     $url = "https://graph.microsoft.com/v1.0/servicePrincipals/$ApiAppServicePrincipalObjectId/appRoleAssignedTo"
     
     $consentbody = @{
-        principalId = $ClientAppServicePrincipalObjectId,
-        resourceId  = $ApiAppServicePrincipalObjectId,
+        principalId = $ClientAppServicePrincipalObjectId
+        resourceId  = $ApiAppServicePrincipalObjectId
         appRoleId   = $RoleId
     }
 
