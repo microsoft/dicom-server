@@ -49,7 +49,7 @@ function Grant-ClientAppAdminConsent {
         'x-ms-client-request-id' = [guid]::NewGuid()
     }
 
-    $url = "https://graph.microsoft.com/v1.0/servicePrincipals/$appServicePrincipalObjectId/appRoleAssignedTo"
+    $url = "https://graph.microsoft.com/v1.0/servicePrincipals/$apiAppServicePrincipalObjectId/appRoleAssignedTo"
     
     $consentbody = @{
         principalId = $appServicePrincipalObjectId
