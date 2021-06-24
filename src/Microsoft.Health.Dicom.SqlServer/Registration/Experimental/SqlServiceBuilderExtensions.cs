@@ -3,14 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
-using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed;
+using Microsoft.Health.Dicom.SqlServer.Features.Common;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Query;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
@@ -18,61 +17,32 @@ using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Store;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.Health.SqlServer.Api.Registration;
-using Microsoft.Health.SqlServer.Configs;
 using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Registration;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class DicomServerBuilderSqlServerRegistrationExtensions
+    public static class SqlServiceBuilderExtensions
     {
-        public static IDicomServerBuilder AddSqlServer(
-            this IDicomServerBuilder dicomServerBuilder,
-            IConfiguration configurationRoot,
-            Action<SqlServerDataStoreConfiguration> configureAction = null)
+        public static ISqlServiceBuilder AddIndexDataStores(this ISqlServiceBuilder builder)
         {
-            EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder));
-            IServiceCollection services = dicomServerBuilder.Services;
-
-            services.AddSqlServerBase<SchemaVersion>(configurationRoot);
-            services.AddSqlServerApi();
-
-            var config = new SqlServerDataStoreConfiguration();
-            configurationRoot?.GetSection("SqlServer").Bind(config);
-
-            services.Add(provider =>
-                {
-                    configureAction?.Invoke(config);
-                    return config;
-                })
-                .Singleton()
-                .AsSelf();
-
-            services.Add(provider => new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max))
-                .Singleton()
-                .AsSelf();
-
-            services.Add<BackgroundSchemaVersionResolver>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
+            IServiceCollection services = EnsureArg.IsNotNull(builder?.Services, nameof(builder));
 
             services.Add<SqlIndexDataStoreV1>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
             services.Add<SqlIndexDataStoreV2>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
             services.Add<SqlIndexDataStoreV3>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
-            services.Add<SqlIndexDataStoreV4>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
+
             services.Add<SqlStoreFactory<ISqlIndexDataStore, IIndexDataStore>>()
                 .Scoped()
                 .AsSelf()
@@ -83,43 +53,108 @@ namespace Microsoft.Extensions.DependencyInjection
             // so we need to register here. Need to some more investigation to see how we might be able to do this.
             services.Decorate<ISqlIndexDataStore, SqlLoggingIndexDataStore>();
 
-            services.Add<SqlQueryStore>()
+            return builder;
+        }
+
+        public static ISqlServiceBuilder AddQueryStore(this ISqlServiceBuilder builder)
+        {
+            EnsureArg.IsNotNull(builder?.Services, nameof(builder))
+                .Add<SqlQueryStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<SqlInstanceStore>()
+            return builder;
+        }
+
+        public static ISqlServiceBuilder AddInstanceStore(this ISqlServiceBuilder builder)
+        {
+            EnsureArg.IsNotNull(builder?.Services, nameof(builder))
+                .Add<SqlInstanceStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<SqlChangeFeedStore>()
+            return builder;
+        }
+
+        public static ISqlServiceBuilder AddChangeFeedStore(this ISqlServiceBuilder builder)
+        {
+            EnsureArg.IsNotNull(builder?.Services, nameof(builder))
+                .Add<SqlChangeFeedStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
+            return builder;
+        }
+
+        public static ISqlServiceBuilder AddExtendedQueryTagStores(this ISqlServiceBuilder builder)
+        {
+            IServiceCollection services = EnsureArg.IsNotNull(builder?.Services, nameof(builder));
 
             services.Add<SqlExtendedQueryTagStoreV1>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
             services.Add<SqlExtendedQueryTagStoreV2>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
             services.Add<SqlExtendedQueryTagStoreV3>()
-              .Scoped()
-              .AsSelf()
-              .AsImplementedInterfaces();
-            services.Add<SqlExtendedQueryTagStoreV4>()
-              .Scoped()
-              .AsSelf()
-              .AsImplementedInterfaces();
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
             services.Add<SqlStoreFactory<ISqlExtendedQueryTagStore, IExtendedQueryTagStore>>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            return dicomServerBuilder;
+            return builder;
+        }
+
+        public static ISqlServiceBuilder AddBackgroundSchemaVersionResolution(
+            this ISqlServiceBuilder builder,
+            IConfiguration configRoot) // TODO: Use the configuration object
+        {
+            IServiceCollection services = EnsureArg.IsNotNull(builder?.Services, nameof(builder));
+
+            services.AddSqlServerBase<SchemaVersion>(configRoot);
+
+            services.Add(provider => new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max))
+                .Singleton()
+                .AsSelf();
+
+            services.Add<BackgroundSchemaVersionResolver>()
+                .Singleton()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            return builder;
+        }
+
+        public static ISqlServiceBuilder AddForegroundSchemaVersionResolution(this ISqlServiceBuilder builder)
+        {
+            IServiceCollection services = EnsureArg.IsNotNull(builder?.Services, nameof(builder));
+
+            services.Add<SqlDbConnectionFactory>()
+                .Singleton()
+                .AsImplementedInterfaces();
+
+            services.Add<SqlSchemaVersionResolver>()
+                .Singleton()
+                .AsImplementedInterfaces();
+
+            return builder;
+        }
+
+        public static ISqlServiceBuilder AddSqlServerApi(this ISqlServiceBuilder builder)
+        {
+            EnsureArg.IsNotNull(builder?.Services, nameof(builder)).AddSqlServerApi();
+            return builder;
         }
     }
 }
