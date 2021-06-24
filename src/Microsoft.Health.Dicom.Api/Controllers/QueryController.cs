@@ -24,6 +24,7 @@ using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
+    [ApiVersion("1.0-prerelease")]
     [QueryModelStateValidator]
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
     public class QueryController : Controller
@@ -45,6 +46,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [VersionedRoute(KnownRoutes.QueryAllStudiesRoute)]
         [Route(KnownRoutes.QueryAllStudiesRoute)]
         [AuditEventType(AuditEventSubType.Query)]
         public async Task<IActionResult> QueryForStudyAsync()
@@ -64,6 +66,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [VersionedRoute(KnownRoutes.QueryAllSeriesRoute)]
         [Route(KnownRoutes.QueryAllSeriesRoute)]
         [AuditEventType(AuditEventSubType.Query)]
         public async Task<IActionResult> QueryForSeriesAsync()
@@ -83,6 +86,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [VersionedRoute(KnownRoutes.QuerySeriesInStudyRoute)]
         [Route(KnownRoutes.QuerySeriesInStudyRoute)]
         [AuditEventType(AuditEventSubType.Query)]
         public async Task<IActionResult> QueryForSeriesInStudyAsync(string studyInstanceUid)
@@ -103,6 +107,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [VersionedRoute(KnownRoutes.QueryAllInstancesRoute)]
         [Route(KnownRoutes.QueryAllInstancesRoute)]
         [AuditEventType(AuditEventSubType.Query)]
         public async Task<IActionResult> QueryForInstancesAsync()
@@ -122,6 +127,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [VersionedRoute(KnownRoutes.QueryInstancesInStudyRoute)]
         [Route(KnownRoutes.QueryInstancesInStudyRoute)]
         [AuditEventType(AuditEventSubType.Query)]
         public async Task<IActionResult> QueryForInstancesInStudyAsync(string studyInstanceUid)
@@ -142,6 +148,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [VersionedRoute(KnownRoutes.QueryInstancesInSeriesRoute)]
         [Route(KnownRoutes.QueryInstancesInSeriesRoute)]
         [AuditEventType(AuditEventSubType.Query)]
         public async Task<IActionResult> QueryForInstancesInSeriesAsync(string studyInstanceUid, string seriesInstanceUid)

@@ -9,13 +9,15 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <HealthcareSharedPackageVersion>2.1.37</HealthcareSharedPackageVersion>
+    <HealthcareSharedPackageVersion>2.1.40</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
     <LangVersion>Latest</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Product>Microsoft Health</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <SdkPackageVersion>5.0.0</SdkPackageVersion>
+    <FhirServerPackageVersion>2.0.55</FhirServerPackageVersion>
+    <Hl7FhirPackageVersion>3.3.0</Hl7FhirPackageVersion>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
