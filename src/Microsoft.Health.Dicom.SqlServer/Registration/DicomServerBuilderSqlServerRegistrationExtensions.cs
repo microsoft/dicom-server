@@ -99,25 +99,25 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsImplementedInterfaces();
 
             services.Add<SqlExtendedQueryTagStoreV1>()
-              .Scoped()
-              .AsSelf()
-              .AsImplementedInterfaces();
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
             services.Add<SqlExtendedQueryTagStoreV2>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
             services.Add<SqlExtendedQueryTagStoreV3>()
-              .Scoped()
-              .AsSelf()
-              .AsImplementedInterfaces();
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
             services.Add<SqlExtendedQueryTagStoreV4>()
-              .Scoped()
-              .AsSelf()
-              .AsImplementedInterfaces();
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
             services.Add<SqlStoreFactory<ISqlExtendedQueryTagStore, IExtendedQueryTagStore>>()
-              .Scoped()
-              .AsSelf()
-              .AsImplementedInterfaces();
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
 
             return dicomServerBuilder;
         }
