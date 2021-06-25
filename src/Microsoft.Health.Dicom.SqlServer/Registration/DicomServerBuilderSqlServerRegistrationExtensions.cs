@@ -17,50 +17,29 @@ using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Store;
 using Microsoft.Health.Extensions.DependencyInjection;
-using Microsoft.Health.SqlServer;
 using Microsoft.Health.SqlServer.Api.Registration;
 using Microsoft.Health.SqlServer.Configs;
-using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Schema;
-using Microsoft.Health.SqlServer.Features.Storage;
 using Microsoft.Health.SqlServer.Registration;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DicomServerBuilderSqlServerRegistrationExtensions
     {
-        public static IDicomServerBuilder AddSqlForWebServer(
-           this IDicomServerBuilder builder,
-           IConfiguration configurationRoot,
-           Action<SqlServerDataStoreConfiguration> configureAction = null)
-        {
-            EnsureArg.IsNotNull(builder, nameof(builder));
-            IServiceCollection services = builder.Services;
-            builder.Services.AddSqlServerBase<SchemaVersion>(configurationRoot)
-                .AddSqlServerApi()
-                .AddSqlServerCommon(configurationRoot, configureAction);
-            return builder;
-        }
-
-        public static IDicomServerBuilder AddSqlForAzureFunction(
-          this IDicomServerBuilder builder,
-          IConfiguration configurationRoot,
-          Action<SqlServerDataStoreConfiguration> configureAction = null)
-        {
-            EnsureArg.IsNotNull(builder, nameof(builder));
-            IServiceCollection services = builder.Services;
-            builder.Services.AddSqlServerFundation()
-                .AddSqlServerCommon(configurationRoot, configureAction);
-            return builder;
-        }
-
-        private static IServiceCollection AddSqlServerCommon(
-            this IServiceCollection services,
+        public static IDicomServerBuilder AddSqlServer(
+            this IDicomServerBuilder dicomServerBuilder,
             IConfiguration configurationRoot,
-            Action<SqlServerDataStoreConfiguration> configureAction)
+            Action<SqlServerDataStoreConfiguration> configureAction = null)
         {
+            EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder));
+            IServiceCollection services = dicomServerBuilder.Services;
+
+            services.AddSqlServerBase<SchemaVersion>(configurationRoot);
+            services.AddSqlServerApi();
+
             var config = new SqlServerDataStoreConfiguration();
             configurationRoot?.GetSection("SqlServer").Bind(config);
+
             services.Add(provider =>
             {
                 configureAction?.Invoke(config);
@@ -131,38 +110,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
 
-            return services;
-        }
-
-        private static IServiceCollection AddSqlServerFundation(
-           this IServiceCollection services)
-        {
-            // TODO: consider moving these logic into healthcare-shared-components (https://github.com/microsoft/healthcare-shared-components/)
-            // once code becomes solid (e.g: merging back to main branch).                 
-            services.Add<SqlTransactionHandler>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<SqlConnectionWrapperFactory>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            // TODO:  Use RetrySqlCommandWrapperFactory instead when moving to healthcare-shared-components 
-            services.Add<SqlCommandWrapperFactory>()
-                .Singleton()
-                .AsSelf();
-
-            services.AddSingleton<ISqlConnectionStringProvider, DefaultSqlConnectionStringProvider>();
-
-            services.AddSingleton<ISqlConnectionFactory, DefaultSqlConnectionFactory>();
-
-            return services;
+            return dicomServerBuilder;
         }
     }
 }
