@@ -17,6 +17,31 @@ namespace Microsoft.Health.Dicom.Functions
         private const string AzureFunctionsJobHostSection = "AzureFunctionsJobHost";
         public override void Configure(IFunctionsHostBuilder builder)
         {
+            if (builder == null)
+                throw new ArgumentNullException(nameof(builder));
+
+            IConfiguration config = builder.GetContext().Configuration.GetSection(AzureFunctionsJobHost.SectionName);
+
+            builder.Services
+                .AddOptions<IndexingConfiguration>()
+                .Configure<IConfiguration>((sectionObj, config) => config
+                    .GetSection(AzureFunctionsJobHost.SectionName)
+                    .GetSection(IndexingConfiguration.SectionName)
+                    .Bind(sectionObj));
+
+            builder.Services
+                .AddSqlServer(config)
+                .AddForegroundSchemaVersionResolution()
+                .AddExtendedQueryTagStores();
+
+            builder.Services
+                .AddAzureBlobServiceClient(config)
+                .AddMetadataStore();
+
+            builder.Services
+                .AddMvcCore()
+                .AddNewtonsoftJson(x => x.SerializerSettings.Converters
+                    .Add(new StringEnumConverter()));
             EnsureArg.IsNotNull(builder, nameof(builder));
             IConfiguration configuration = builder.GetContext().Configuration?.GetSection(AzureFunctionsJobHostSection);
             builder.Services.AddDicomFunctions(configuration)

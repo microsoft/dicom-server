@@ -239,5 +239,14 @@ namespace Microsoft.Health.DicomCast.Core {
                 return ResourceManager.GetString("TransactionFailed", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type name &apos;{0}&apos; is not a recognized resource type..
+        /// </summary>
+        internal static string UnknownResourceType {
+            get {
+                return ResourceManager.GetString("UnknownResourceType", resourceCulture);
+            }
+        }
     }
 }

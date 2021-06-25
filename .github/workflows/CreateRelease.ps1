@@ -6,19 +6,6 @@ New-Item ./log.txt -ItemType File -Force
 
 $apiVersion = "api-version=6.0"
 
-# Releases are only created every other week even though the action occurs every week.
-# Identify if this is the second week of a sprint.
-$currentDate = (get-date).ToUniversalTime().Date
-$firstRun = (get-date -Date "11/04/2020 00:00:00Z").ToUniversalTime().date
-$weeksSince = [math]::floor(($currentDate - $firstRun).TotalDays / 7)
-$shouldRelease = ($weeksSince % 2) -eq 0
-
-if($shouldRelease) {
-    "We're not releasing this week, one week left!"
-    log "We're not releasing this week, one week left!"
-    exit
-}
-
 # Set basis to call AzureDevOps' Rest API as necessary.
 [Net.ServicePointManager]::SecurityProtocol =  [Net.SecurityProtocolType]::Tls12
 $azureDevOpsAuthenicationHeader = @{Authorization = 'Basic ' + [Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes(":${env:AZUREDEVOPS_PAT}")) }

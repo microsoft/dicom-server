@@ -29,6 +29,7 @@ using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
+    [ApiVersion("1.0-prerelease")]
     [QueryModelStateValidator]
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
     public class RetrieveController : Controller
@@ -51,6 +52,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
+        [VersionedRoute(KnownRoutes.StudyRoute, Name = KnownRouteNames.VersionedRetrieveStudy)]
         [Route(KnownRoutes.StudyRoute, Name = KnownRouteNames.RetrieveStudy)]
         [AuditEventType(AuditEventSubType.Retrieve)]
         public async Task<IActionResult> GetStudyAsync(string studyInstanceUid)
@@ -69,6 +71,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType((int)HttpStatusCode.NotModified)]
         [HttpGet]
+        [VersionedRoute(KnownRoutes.StudyMetadataRoute)]
         [Route(KnownRoutes.StudyMetadataRoute)]
         [AuditEventType(AuditEventSubType.RetrieveMetadata)]
         public async Task<IActionResult> GetStudyMetadataAsync([FromHeader(Name = IfNoneMatch)] string ifNoneMatch, string studyInstanceUid)
@@ -85,6 +88,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
+        [VersionedRoute(KnownRoutes.SeriesRoute)]
         [Route(KnownRoutes.SeriesRoute)]
         [AuditEventType(AuditEventSubType.Retrieve)]
         public async Task<IActionResult> GetSeriesAsync(
@@ -106,6 +110,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType((int)HttpStatusCode.NotModified)]
         [HttpGet]
+        [VersionedRoute(KnownRoutes.SeriesMetadataRoute)]
         [Route(KnownRoutes.SeriesMetadataRoute)]
         [AuditEventType(AuditEventSubType.RetrieveMetadata)]
         public async Task<IActionResult> GetSeriesMetadataAsync([FromHeader(Name = IfNoneMatch)] string ifNoneMatch, string studyInstanceUid, string seriesInstanceUid)
@@ -123,6 +128,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
+        [VersionedRoute(KnownRoutes.InstanceRoute, Name = KnownRouteNames.VersionedRetrieveInstance)]
         [Route(KnownRoutes.InstanceRoute, Name = KnownRouteNames.RetrieveInstance)]
         [AuditEventType(AuditEventSubType.Retrieve)]
         public async Task<IActionResult> GetInstanceAsync(
@@ -148,6 +154,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType((int)HttpStatusCode.NotModified)]
         [HttpGet]
+        [VersionedRoute(KnownRoutes.InstanceMetadataRoute)]
         [Route(KnownRoutes.InstanceMetadataRoute)]
         [AuditEventType(AuditEventSubType.RetrieveMetadata)]
         public async Task<IActionResult> GetInstanceMetadataAsync(
@@ -170,6 +177,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
+        [VersionedRoute(KnownRoutes.FrameRoute)]
         [Route(KnownRoutes.FrameRoute)]
         [AuditEventType(AuditEventSubType.Retrieve)]
         public async Task<IActionResult> GetFramesAsync(
