@@ -47,10 +47,10 @@ namespace Microsoft.Health.Dicom.Functions
             new ServiceModule(new FeatureConfiguration { EnableExtendedQueryTags = true }).Load(builder.Services);
 
             builder.Services
-                .AddOptions<PurgeOrchestrationInstancesHistoryConfiguration>()
+                .AddOptions<OrchestrationHistoryConfiguration>()
                 .Configure<IConfiguration>((sectionObj, config) => config
                     .GetSection(AzureFunctionsJobHost.SectionName)
-                    .GetSection(PurgeOrchestrationInstancesHistoryConfiguration.SectionName)
+                    .GetSection(OrchestrationHistoryConfiguration.SectionName)
                     .Bind(sectionObj));
 
             builder.Services

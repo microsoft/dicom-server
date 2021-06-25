@@ -24,6 +24,6 @@ namespace Microsoft.Health.Dicom.Functions.Management
         public string PurgeFrequency { get; set; }
 
         public const string PurgeFrequencyVariable =
-            "%" + Startup.HostSectionName + ":" + SectionName + ":" + nameof(PurgeFrequency) + "%";
+            "%" + AzureFunctionsJobHost.SectionName + ":" + SectionName + ":" + nameof(PurgeFrequency) + "%";
     }
 }
