@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Utilities for managing a metadata store for use within Microsoft's DICOMweb APIs.</Description>
@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Core" Version="1.15.0" />
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.9.0" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.9.1" />
     <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="fo-dicom" Version="4.0.7" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(SdkPackageVersion)" />
