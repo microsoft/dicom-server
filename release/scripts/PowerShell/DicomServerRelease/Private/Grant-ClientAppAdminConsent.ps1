@@ -38,11 +38,12 @@ function Grant-ClientAppAdminConsent {
         grant_type = "password"
         username   = $TenantAdminCredential.GetNetworkCredential().UserName
         password   = $TenantAdminCredential.GetNetworkCredential().Password
-        resource   = "74658136-14ec-4630-ad9b-26e160ff0fc6" 
+        resource   = "a3efc889-f1b7-4532-9e01-91e32d1039f4" # MS graph service principle
         client_id  = "1950a258-227b-4e31-a9cf-717495945fc2" # Microsoft Azure PowerShell
     }
     
-    $tokenResponse = Invoke-RestMethod (Get-AzureADTokenEndpoint) -Method POST -Body $body -ContentType 'application/x-www-form-urlencoded'
+    $tokenResponse = Invoke-RestMethod (Get-
+    ) -Method POST -Body $body -ContentType 'application/x-www-form-urlencoded'
     
     $header = @{
         'Authorization'          = 'Bearer ' + $tokenResponse.access_token
