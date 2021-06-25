@@ -8,10 +8,10 @@
       }
     }
   },
-  "indexing": {
-    "add": {
-      "batchSize": 1000,
-      "parallelBatches": 10
+  "DicomFunctions": {
+    "Reindex": {
+      "BatchSize": 2,
+      "ParallelBatches": 2
     }
   },
   "BlobStore": {

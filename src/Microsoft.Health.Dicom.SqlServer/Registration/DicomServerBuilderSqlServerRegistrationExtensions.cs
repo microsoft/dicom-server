@@ -41,10 +41,10 @@ namespace Microsoft.Extensions.DependencyInjection
             configurationRoot?.GetSection("SqlServer").Bind(config);
 
             services.Add(provider =>
-                {
-                    configureAction?.Invoke(config);
-                    return config;
-                })
+            {
+                configureAction?.Invoke(config);
+                return config;
+            })
                 .Singleton()
                 .AsSelf();
 
