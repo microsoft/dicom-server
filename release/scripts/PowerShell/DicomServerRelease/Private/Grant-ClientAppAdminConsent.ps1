@@ -42,8 +42,7 @@ function Grant-ClientAppAdminConsent {
         client_id  = "1950a258-227b-4e31-a9cf-717495945fc2" # Microsoft Azure PowerShell
     }
     
-    $tokenResponse = Invoke-RestMethod (Get-
-    ) -Method POST -Body $body -ContentType 'application/x-www-form-urlencoded'
+    $tokenResponse = Invoke-RestMethod (Get-AzureADTokenEndpoint) -Method POST -Body $body -ContentType 'application/x-www-form-urlencoded'
     
     $header = @{
         'Authorization'          = 'Bearer ' + $tokenResponse.access_token
