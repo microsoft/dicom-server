@@ -12,7 +12,11 @@ services:
       - sql
       - azurite
   azurite:
-    image: mcr.microsoft.com/azure-storage/azurite
+    image: mcr.microsoft.com/azure-storage/azurite:3.13.0@sha256:349f106b240c5fd5ecb146c3aa121c531c8a1080badb762099d886703bc39fa0
+    # ports:
+    #   - "10001:10001"
+    #   - "10000:10000"
+    #   - "10002:10002"
   sql:
     build:
       context: ./..
@@ -25,3 +29,5 @@ services:
       interval: 10s
       timeout: 10s
       retries: 6
+    # ports:
+    #   - "1433:1433"
