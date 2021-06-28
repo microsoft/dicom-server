@@ -18,8 +18,6 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
     public partial class ReindexDurableFunctionTests
     {
         private readonly ReindexOperationConfiguration _reindexConfig;
-        private readonly IReindexStore _reindexStore;
-        private readonly ReindexConfiguration _reindexConfig;
         private readonly IReindexStateStore _reindexStore;
         private readonly IInstanceReindexer _instanceReindexer;
         private readonly IAddExtendedQueryTagService _addExtendedQueryTagService;
@@ -32,8 +30,6 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         public ReindexDurableFunctionTests()
         {
             _reindexConfig = new ReindexOperationConfiguration();
-            _reindexStore = Substitute.For<IReindexStore>();
-            _reindexConfig = new ReindexConfiguration();
             _reindexStore = Substitute.For<IReindexStateStore>();
             _instanceReindexer = Substitute.For<IInstanceReindexer>();
             _addExtendedQueryTagService = Substitute.For<IAddExtendedQueryTagService>();

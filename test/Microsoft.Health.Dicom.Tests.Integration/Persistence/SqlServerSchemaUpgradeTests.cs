@@ -49,7 +49,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             await snapshotFixture.InitializeAsync(forceIncrementalSchemaUpgrade: false);
             await snapshotFixture.SchemaUpgradeRunner.ApplySchemaAsync(schemaVersion, applyFullSchemaSnapshot: false, CancellationToken.None);
-            await snapshotFixture.SchemaUpgradeRunner.ApplySchemaAsync(schemaVersion, applyFullSchemaSnapshot: false, CancellationToken.None);
 
             // cleanup if succeeds
             await snapshotFixture.DisposeAsync();
