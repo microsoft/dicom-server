@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [BodyModelStateValidator]
-        [ProducesResponseType(typeof(JsonResult), (int)HttpStatusCode.Accepted)]
+        [ProducesResponseType(typeof(AddExtendedQueryTagResponse), (int)HttpStatusCode.Accepted)]
         [HttpPost]
         [VersionedRoute(KnownRoutes.ExtendedQueryTagRoute)]
         [Route(KnownRoutes.ExtendedQueryTagRoute)]
@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
                (int)HttpStatusCode.Accepted, response);
         }
 
-        [ProducesResponseType(typeof(JsonResult), (int)HttpStatusCode.NoContent)]
+        [ProducesResponseType(typeof(DeleteExtendedQueryTagResponse), (int)HttpStatusCode.NoContent)]
         [HttpDelete]
         [VersionedRoute(KnownRoutes.DeleteExtendedQueryTagRoute)]
         [Route(KnownRoutes.DeleteExtendedQueryTagRoute)]
@@ -83,7 +83,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// Returns Bad Request if given path can't be parsed. Returns Not Found if given path doesn't map to a stored
         /// extended query tag or if no extended query tags are stored. Returns OK with a JSON body of all tags in other cases.
         /// </returns>
-        [ProducesResponseType(typeof(JsonResult), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IEnumerable<GetExtendedQueryTagEntry>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [HttpGet]
         [VersionedRoute(KnownRoutes.ExtendedQueryTagRoute)]
@@ -108,7 +108,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// Returns Bad Request if given path can't be parsed. Returns Not Found if given path doesn't map to a stored
         /// extended query tag. Returns OK with a JSON body of requested tag in other cases.
         /// </returns>
-        [ProducesResponseType(typeof(JsonResult), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(GetExtendedQueryTagEntry), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [HttpGet]
