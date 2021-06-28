@@ -38,8 +38,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         [HttpDelete]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [VersionedRoute(KnownRoutes.StudyRoute)]
         [Route(KnownRoutes.StudyRoute)]
         [AuditEventType(AuditEventSubType.Delete)]
@@ -55,8 +55,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         [HttpDelete]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [VersionedRoute(KnownRoutes.SeriesRoute)]
         [Route(KnownRoutes.SeriesRoute)]
         [AuditEventType(AuditEventSubType.Delete)]
@@ -72,8 +72,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         [HttpDelete]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [VersionedRoute(KnownRoutes.InstanceRoute)]
         [Route(KnownRoutes.InstanceRoute)]
         [AuditEventType(AuditEventSubType.Delete)]

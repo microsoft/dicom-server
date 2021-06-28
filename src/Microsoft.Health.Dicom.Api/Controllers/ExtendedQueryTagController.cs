@@ -84,7 +84,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// extended query tag or if no extended query tags are stored. Returns OK with a JSON body of all tags in other cases.
         /// </returns>
         [ProducesResponseType(typeof(IEnumerable<GetExtendedQueryTagEntry>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
         [HttpGet]
         [VersionedRoute(KnownRoutes.ExtendedQueryTagRoute)]
         [Route(KnownRoutes.ExtendedQueryTagRoute)]
@@ -109,8 +109,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// extended query tag. Returns OK with a JSON body of requested tag in other cases.
         /// </returns>
         [ProducesResponseType(typeof(GetExtendedQueryTagEntry), (int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
         [HttpGet]
         [VersionedRoute(KnownRoutes.GetExtendedQueryTagRoute)]
         [Route(KnownRoutes.GetExtendedQueryTagRoute)]
