@@ -24,6 +24,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 await sqlConnection.OpenAsync();
+                SqlConnection.ClearAllPools();
                 using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
                 {
                     // Delete from ReindexState table

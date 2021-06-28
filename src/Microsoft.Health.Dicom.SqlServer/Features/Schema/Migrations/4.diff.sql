@@ -1,74 +1,53 @@
-/***************************************************************************************/
--- STORED PROCEDURE
---     AddExtendedQueryTags
---
--- DESCRIPTION
---    Add a list of extended query tags.
---
--- PARAMETERS
---     @extendedQueryTags
---         * The extended query tag list
---     @maxCount
---         * The max allowed extended query tag count
-/***************************************************************************************/
-ALTER PROCEDURE dbo.AddExtendedQueryTags (
-    @extendedQueryTags dbo.AddExtendedQueryTagsInputTableType_1 READONLY,
-    @initStatus TINYINT,  --- 0 - Adding, 1 - Ready, 2 - Deleting
-    @maxAllowedCount INT
-)
-AS
 
-    SET NOCOUNT     ON
-    SET XACT_ABORT  ON
+/*************************************************************
+Wrapping up in a transaction except CREATE FULLTEXT INDEX which is non-transactional script. Since there are no slow scripts(all the statements i.e. CREATE TABLE/INDEX/STORED PROC and ALTER STORED PROC are faster) so keeping all in one transaction.
+Guidelines to create migration scripts - https://github.com/microsoft/healthcare-shared-components/tree/master/src/Microsoft.Health.SqlServer/SqlSchemaScriptsGuidelines.md
+**************************************************************/
+SET XACT_ABORT ON
+BEGIN TRANSACTION
 
-    BEGIN TRANSACTION
-        -- Check if total count exceed @maxCount
-        -- HOLDLOCK to prevent adding queryTags from other transactions at same time.
-        IF ((SELECT COUNT(*) FROM dbo.ExtendedQueryTag WITH(HOLDLOCK)) + (SELECT COUNT(*) FROM @extendedQueryTags)) > @maxAllowedCount 
-             THROW 50409, 'extended query tags exceed max allowed count', 1 
-        
-        -- Check if tag with same path already exist
-        SELECT TagKey 
-        FROM dbo.ExtendedQueryTag WITH(HOLDLOCK) 
-        INNER JOIN @extendedQueryTags input 
-        ON input.TagPath = dbo.ExtendedQueryTag.TagPath 
-	    
-        IF @@ROWCOUNT <> 0
-            THROW 50409, 'extended query tag(s) already exist', 2 
-
-        -- add to extended query tag table with status 1(Ready)
-        INSERT INTO dbo.ExtendedQueryTag 
-            (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus)
-        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, @initStatus FROM @extendedQueryTags
-        
-    COMMIT TRANSACTION
-GO
 /*************************************************************
     Reindex State Table. 
     Reindex state on each extended query tag.
 **************************************************************/
-CREATE TABLE dbo.ReindexState (
-    TagKey                  INT                  NOT NULL,
-    OperationId             VARCHAR(40)          NULL,
-    ReindexStatus           TINYINT              NOT NULL, -- 0: Processing, 1: Paused, 2: Completed
-    StartWatermark          BIGINT               NULL, 
-    EndWatermark            BIGINT               NULL, 
-) WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.tables
+    WHERE name = 'ReindexState')
+BEGIN
+    CREATE TABLE dbo.ReindexState (
+        TagKey                  INT                  NOT NULL,
+        OperationId             VARCHAR(40)          NULL,
+        ReindexStatus           TINYINT              NOT NULL, -- 0: Processing, 1: Paused, 2: Completed
+        StartWatermark          BIGINT               NULL, 
+        EndWatermark            BIGINT               NULL, 
+    ) WITH (DATA_COMPRESSION = PAGE)
+END
+GO
 
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_ReindexState' AND object_id = OBJECT_ID('dbo.ReindexState'))
+BEGIN
 -- One tag should have and only have one entry.
-CREATE UNIQUE CLUSTERED INDEX IXC_ReindexState on dbo.ReindexState
-(
-    TagKey
-)
+    CREATE UNIQUE CLUSTERED INDEX IXC_ReindexState on dbo.ReindexState
+    (
+        TagKey
+    )    
+END
 GO
 
 /*************************************************************
     Table valued parameter to provide tag keys to PrepareReindexing
 *************************************************************/
-CREATE TYPE  dbo.PrepareReindexingTableType_1 AS TABLE
-(
-    TagKey                     INT -- TagKey
-)
+IF TYPE_ID(N'dbo.PrepareReindexingTableType_1') IS NULL
+BEGIN
+    CREATE TYPE  dbo.PrepareReindexingTableType_1 AS TABLE
+    (
+        TagKey                     INT -- TagKey
+    )
+END
 GO
 
 /***************************************************************************************/
@@ -84,7 +63,7 @@ GO
 --     @@operationId
 --         * The operation id
 /***************************************************************************************/
-CREATE PROCEDURE dbo.PrepareReindexing(
+CREATE OR ALTER PROCEDURE dbo.PrepareReindexing(
     @tagKeys dbo.PrepareReindexingTableType_1 READONLY,
     @operationId VARCHAR(40)
 )
@@ -137,4 +116,53 @@ AS
         ON      E.TagKey = R.TagKey
     
     COMMIT TRANSACTION
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     AddExtendedQueryTags
+--
+-- DESCRIPTION
+--    Add a list of extended query tags.
+--
+-- PARAMETERS
+--     @extendedQueryTags
+--         * The extended query tag list
+--     @maxCount
+--         * The max allowed extended query tag count
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTags (
+    @extendedQueryTags dbo.AddExtendedQueryTagsInputTableType_1 READONLY,
+    @initStatus TINYINT,  --- 0 - Adding, 1 - Ready, 2 - Deleting
+    @maxAllowedCount INT
+)
+AS
+
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    BEGIN TRANSACTION
+        -- Check if total count exceed @maxCount
+        -- HOLDLOCK to prevent adding queryTags from other transactions at same time.
+        IF ((SELECT COUNT(*) FROM dbo.ExtendedQueryTag WITH(HOLDLOCK)) + (SELECT COUNT(*) FROM @extendedQueryTags)) > @maxAllowedCount 
+             THROW 50409, 'extended query tags exceed max allowed count', 1 
+        
+        -- Check if tag with same path already exist
+        SELECT TagKey 
+        FROM dbo.ExtendedQueryTag WITH(HOLDLOCK) 
+        INNER JOIN @extendedQueryTags input 
+        ON input.TagPath = dbo.ExtendedQueryTag.TagPath 
+	    
+        IF @@ROWCOUNT <> 0
+            THROW 50409, 'extended query tag(s) already exist', 2 
+
+        -- add to extended query tag table with status 1(Ready)
+        INSERT INTO dbo.ExtendedQueryTag 
+            (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus)
+        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, @initStatus FROM @extendedQueryTags
+        
+    COMMIT TRANSACTION
+GO
+
+COMMIT TRANSACTION
 GO
