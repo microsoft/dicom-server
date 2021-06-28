@@ -71,17 +71,17 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var schemaManagerDataStore = new SchemaManagerDataStore(sqlConnectionFactory);
 
-            var schemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, baseScriptProvider, NullLogger<SchemaUpgradeRunner>.Instance, sqlConnectionFactory, schemaManagerDataStore);
+            SchemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, baseScriptProvider, NullLogger<SchemaUpgradeRunner>.Instance, sqlConnectionFactory, schemaManagerDataStore);
 
-            var schemaInformation = new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max);
+            SchemaInformation = new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max);
 
-            _schemaInitializer = new SchemaInitializer(config, schemaUpgradeRunner, schemaInformation, sqlConnectionFactory, sqlConnectionStringProvider, mediator, NullLogger<SchemaInitializer>.Instance);
+            _schemaInitializer = new SchemaInitializer(config, SchemaUpgradeRunner, SchemaInformation, sqlConnectionFactory, sqlConnectionStringProvider, mediator, NullLogger<SchemaInitializer>.Instance);
 
             SqlTransactionHandler = new SqlTransactionHandler();
 
             SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(SqlTransactionHandler, new SqlCommandWrapperFactory(), sqlConnectionFactory);
 
-            var schemaResolver = new BackgroundSchemaVersionResolver(schemaInformation);
+            var schemaResolver = new BackgroundSchemaVersionResolver(SchemaInformation);
 
             IndexDataStoreFactory = new SqlStoreFactory<ISqlIndexDataStore, IIndexDataStore>(
                 schemaResolver,
@@ -123,6 +123,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public IStoreFactory<IIndexDataStore> IndexDataStoreFactory { get; }
 
+        public SchemaUpgradeRunner SchemaUpgradeRunner { get; }
+
         public string TestConnectionString { get; }
 
         public IInstanceStore InstanceStore { get; }
@@ -136,6 +138,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public IReindexStateStoreTestHelper ReindexStateStoreTestHelper { get; }
 
         public IExtendedQueryTagStoreTestHelper ExtendedQueryTagStoreTestHelper { get; }
+
+        public SchemaInformation SchemaInformation { get; set; }
 
         public static string GenerateDatabaseName(string prefix = "DICOMINTEGRATIONTEST_")
         {

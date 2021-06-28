@@ -32,13 +32,14 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         {
             EnsureArg.IsNotNull(context, nameof(context));
             logger = context.CreateReplaySafeLogger(logger);
+            await context.CallActivityAsync(nameof(FetchSchemaVersionAsync), null);
             var input = context.GetInput<IReadOnlyList<AddExtendedQueryTagEntry>>();
-            var storeEntires = await context.CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+            var storeEntries = await context.CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                 nameof(AddTagsAsync),
                 input);
             ReindexOperation reindexOperation = await context.CallActivityAsync<ReindexOperation>(
                 nameof(PrepareReindexingTagsAsync),
-                new PrepareReindexingTagsInput { OperationId = context.InstanceId, TagKeys = storeEntires.Select(x => x.Key).ToList() });
+                new PrepareReindexingTagsInput { OperationId = context.InstanceId, TagKeys = storeEntries.Select(x => x.Key).ToList() });
             await context.CallSubOrchestratorAsync(nameof(ReindexTagsAsync), input: reindexOperation);
         }
 

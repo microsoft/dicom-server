@@ -13,15 +13,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
     /// <summary>
     /// Represents an Reindexer which reindexes DICOM instance.
     /// </summary>
-    public interface IInstanceReindexer
+    public class InstanceReindexer : IInstanceReindexer
     {
-        /// <summary>
-        /// Reindex DICOM instance of watermark on extended query tags.
-        /// </summary>
-        /// <param name="entries">Extended query tag store entries.</param>
-        /// <param name="watermark">The watermark to DICOM instance.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The task.</returns>
-        Task ReindexInstanceAsync(IReadOnlyList<ExtendedQueryTagStoreEntry> entries, long watermark, CancellationToken cancellationToken = default);
+        public Task ReindexInstanceAsync(IReadOnlyList<ExtendedQueryTagStoreEntry> entries, long watermark, CancellationToken cancellationToken = default)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

@@ -3,7 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.SqlServer.Features.Schema;
+using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.SqlServer.Dac.Compare;
 using Xunit;
 
@@ -34,5 +39,22 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await snapshotFixture.DisposeAsync();
             await diffFixture.DisposeAsync();
         }
+
+        [Theory]
+        [MemberData(nameof(SchemaDiffVersions))]
+        public async Task GivenASchemaVersion_WhenApplyingDiffTwice_ShouldSucceed(int schemaVersion)
+        {
+            SqlDataStoreTestsFixture snapshotFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("SNAPSHOT"));
+            snapshotFixture.SchemaInformation = new SchemaInformation(SchemaVersionConstants.Min, schemaVersion - 1);
+
+            await snapshotFixture.InitializeAsync(forceIncrementalSchemaUpgrade: false);
+            await snapshotFixture.SchemaUpgradeRunner.ApplySchemaAsync(schemaVersion, applyFullSchemaSnapshot: false, CancellationToken.None);
+            await snapshotFixture.SchemaUpgradeRunner.ApplySchemaAsync(schemaVersion, applyFullSchemaSnapshot: false, CancellationToken.None);
+
+            // cleanup if succeeds
+            await snapshotFixture.DisposeAsync();
+        }
+
+        public static IEnumerable<object[]> SchemaDiffVersions = new List<object[]>(Enumerable.Range(start: SchemaVersionConstants.Min + 1, count: SchemaVersionConstants.Max - SchemaVersionConstants.Min).Select(x => new object[] { x }));
     }
 }
