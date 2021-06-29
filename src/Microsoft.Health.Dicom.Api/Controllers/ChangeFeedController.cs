@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -37,7 +38,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(JsonResult), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IEnumerable<ChangeFeedEntry>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [VersionedRoute(KnownRoutes.ChangeFeed)]
