@@ -12,7 +12,6 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
@@ -102,7 +101,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     new SqlExtendedQueryTagStoreV3(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV3>.Instance)
                 });
 
-            SqlIndexDataStoreTestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
+            TestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
         }
 
         public SqlDataStoreTestsFixture()
@@ -124,13 +123,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public IStoreFactory<IExtendedQueryTagStore> ExtendedQueryTagStoreFactory { get; }
 
-        public IReindexStore ReindexStateStore { get; }
-
-        public SqlIndexDataStoreTestHelper SqlIndexDataStoreTestHelper { get; }
-
-        public IReindexStateStoreTestHelper ReindexStateStoreTestHelper { get; }
-
-        public IExtendedQueryTagStoreTestHelper ExtendedQueryTagStoreTestHelper { get; }
+        public SqlIndexDataStoreTestHelper TestHelper { get; }
 
         public SchemaInformation SchemaInformation { get; set; }
 
@@ -187,7 +180,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             {
                 await sqlConnection.OpenAsync();
                 SqlConnection.ClearAllPools();
-                await using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+                using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandTimeout = 600;
                     sqlCommand.CommandText = $"DROP DATABASE IF EXISTS {_databaseName}";

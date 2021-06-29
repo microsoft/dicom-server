@@ -5,6 +5,9 @@
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
+    /// <summary>
+    /// Watermark range
+    /// </summary>
     public class WatermarkRange
     {
         public WatermarkRange(long start, long end)
@@ -13,7 +16,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             End = end;
         }
 
+        /// <summary>
+        /// Gets or sets inclusive start watermark.
+        /// </summary>
         public long Start { get; set; }
+
+        /// <summary>
+        /// Gets or sets inclusive end watermark.
+        /// </summary>
         public long End { get; set; }
     }
 }

@@ -21,7 +21,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// <summary>
         /// The activity to complete reindex.
         /// </summary>
-        /// <param name="tagKeys"></param>
+        /// <param name="tagKeys">the tag keys.</param>
         /// <param name="log">The log.</param>
         /// <returns>The task.</returns>
         [FunctionName(nameof(CompleteReindexingTagsAsync))]
@@ -38,9 +38,9 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         }
 
         /// <summary>
-        ///  The activity to start reindex.
+        ///  The activity to get reindex watermark range.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="context">The context.</param>
         /// <param name="log">The log.</param>
         /// <returns>The reindex operation.</returns>
         [FunctionName(nameof(GetReindexWatermarkRangeAsync))]
@@ -56,9 +56,9 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         }
 
         /// <summary>
-        ///  The activity to start reindex.
+        ///  The activity to get tag store entires.
         /// </summary>
-        /// <param name="tagKeys"></param>
+        /// <param name="tagKeys">The tag keys.</param>
         /// <param name="log">The log.</param>
         /// <returns>The reindex operation.</returns>
         [FunctionName(nameof(GetTagStoreEntriesAsync))]
@@ -100,7 +100,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         }
 
         /// <summary>
-        /// Fetch schema version.
+        /// Update schema version.
         /// </summary>
         /// <param name="context">The durable activity context.</param>
         /// <param name="log">The log</param>

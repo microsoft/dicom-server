@@ -4,7 +4,7 @@
     <Description>SQL Server extensions and utilities used by Microsoft's DICOMweb APIs.</Description>
     <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="fo-dicom" Version="4.0.7" />

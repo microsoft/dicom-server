@@ -21,7 +21,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
     public partial class ReindexDurableFunction
     {
         /// <summary>
-        ///  The orchestration function to add extended query tags.
+        ///  The orchestration function to reindex tags.
         /// </summary>
         /// <param name="context">The context.</param>
         /// <param name="logger">The logger.</param>

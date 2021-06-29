@@ -103,9 +103,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsSelf()
                 .AsImplementedInterfaces();
             services.Add<SqlExtendedQueryTagStoreV3>()
-              .Scoped()
-              .AsSelf()
-              .AsImplementedInterfaces();
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
             services.Add<SqlStoreFactory<ISqlExtendedQueryTagStore, IExtendedQueryTagStore>>()
                 .Scoped()
                 .AsSelf()

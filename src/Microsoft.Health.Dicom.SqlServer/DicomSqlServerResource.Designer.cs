@@ -79,15 +79,6 @@ namespace Microsoft.Health.Dicom.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to One or more extended query tags are being processed..
-        /// </summary>
-        internal static string ExtendedQueryTagsAreBusy {
-            get {
-                return ResourceManager.GetString("ExtendedQueryTagsAreBusy", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot carry out the SQL datastore operation because the SQL schema needs to be upgraded..
         /// </summary>
         internal static string SchemaVersionNeedsToBeUpgraded {
