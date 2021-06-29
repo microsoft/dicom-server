@@ -41,6 +41,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Features\Indexing\" />
     <Folder Include="Features\Schema\Model\" />
   </ItemGroup>
 

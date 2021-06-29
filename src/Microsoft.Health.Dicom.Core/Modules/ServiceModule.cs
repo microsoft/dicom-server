@@ -11,6 +11,7 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.HealthCheck;
+using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
@@ -179,6 +180,11 @@ namespace Microsoft.Health.Dicom.Core.Modules
                      .Scoped()
                      .AsSelf()
                      .AsImplementedInterfaces();
+
+                services.Add<InstanceReindexer>()
+                    .Scoped()
+                    .AsSelf()
+                    .AsImplementedInterfaces();
             }
         }
     }

@@ -6,13 +6,14 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace Microsoft.Health.Dicom.Functions.Indexing.Configuration
+namespace Microsoft.Health.Dicom.Core.Configs
 {
     /// <summary>
     /// Represents the configuration for a "reindex" function.
     /// </summary>
-    public class ReindexConfiguration
+    public class ReindexOperationConfiguration
     {
+        public const string SectionName = "Reindex";
         /// <summary>
         /// Gets or sets the number of DICOM instances processed a single worker node.
         /// </summary>
@@ -33,11 +34,5 @@ namespace Microsoft.Health.Dicom.Functions.Indexing.Configuration
         [Range(1, int.MaxValue)]
         public int MaxParallelBatches { get; set; } = 2;
 
-        ///// <summary>
-        ///// Gets or sets the maximum error percentage for a query tag before automatically pausing
-        ///// its re-indexing.
-        ///// </summary>
-        //[Range(0d, 1d)]
-        //public double MaxErrorPercentage { get; set; } = 1;
     }
 }
