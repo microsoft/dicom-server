@@ -15,6 +15,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Operations;
+using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using NSubstitute;
@@ -28,6 +29,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         private readonly IDicomOperationsClient _client;
         private readonly IExtendedQueryTagEntryValidator _extendedQueryTagEntryValidator;
         private readonly AddExtendedQueryTagService _extendedQueryTagService;
+        private readonly IUrlResolver _urlResolver;
         private readonly CancellationTokenSource _tokenSource;
 
         public AddExtendedQueryTagServiceTests()
@@ -36,10 +38,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
 
             _client = Substitute.For<IDicomOperationsClient>();
             _extendedQueryTagEntryValidator = Substitute.For<IExtendedQueryTagEntryValidator>();
+            _urlResolver = Substitute.For<IUrlResolver>();
             _extendedQueryTagService = new AddExtendedQueryTagService(
                 storeFactory,
                 _client,
                 _extendedQueryTagEntryValidator,
+                _urlResolver,
                 Options.Create(new ExtendedQueryTagConfiguration { MaxAllowedCount = 128 }));
 
             _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
@@ -71,6 +75,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
 
             var input = new AddExtendedQueryTagEntry[] { entry };
             string expectedOperationId = Guid.NewGuid().ToString();
+            Uri expectedHref = new Uri("https://dicom.contoso.io/unit/test/Operations/" + expectedOperationId, UriKind.Absolute);
             _extendedQueryTagStore
                 .AddExtendedQueryTagsAsync(
                     Arg.Is<IReadOnlyCollection<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
@@ -82,9 +87,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
                     Arg.Is<IReadOnlyCollection<int>>(x => x.Single() == 7),
                     Arg.Is(_tokenSource.Token))
                 .Returns(expectedOperationId);
+            _urlResolver
+                .ResolveOperationStatusUri(expectedOperationId)
+                .Returns(expectedHref);
 
             AddExtendedQueryTagResponse actual = await _extendedQueryTagService.AddExtendedQueryTagsAsync(input, _tokenSource.Token);
-            Assert.Equal(expectedOperationId, actual.OperationId);
+            Assert.Equal(expectedOperationId, actual.Operation.Id);
+            Assert.Equal(expectedHref, actual.Operation.Href);
 
             _extendedQueryTagEntryValidator.Received(1).ValidateExtendedQueryTags(input);
             await _extendedQueryTagStore
@@ -98,6 +107,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
                 .StartQueryTagIndexingAsync(
                     Arg.Is<IReadOnlyCollection<int>>(x => x.Single() == 7),
                     Arg.Is(_tokenSource.Token));
+            _urlResolver.Received(1).ResolveOperationStatusUri(expectedOperationId);
         }
     }
 }

@@ -12,6 +12,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using NSubstitute;
 using Xunit;
 
@@ -71,7 +72,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             using var tokenSource = new CancellationTokenSource();
 
             var input = new List<AddExtendedQueryTagEntry> { new AddExtendedQueryTagEntry() };
-            var expected = new AddExtendedQueryTagResponse(Guid.NewGuid().ToString());
+            var expected = new AddExtendedQueryTagResponse(new OperationReference(Guid.NewGuid().ToString(), new Uri("https://dicom/operation/status")));
             authService.CheckAccess(DataActions.ManageExtendedQueryTags, tokenSource.Token).Returns(DataActions.ManageExtendedQueryTags);
             tagService
                 .AddExtendedQueryTagsAsync(

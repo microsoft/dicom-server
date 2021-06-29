@@ -4,17 +4,17 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
 {
     public class AddExtendedQueryTagResponse
     {
-        public AddExtendedQueryTagResponse(string operationId)
+        public AddExtendedQueryTagResponse(OperationReference operationReference)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(operationId);
-            OperationId = operationId;
+            Operation = EnsureArg.IsNotNull(operationReference);
         }
 
-        public string OperationId { get; }
+        public OperationReference Operation { get; }
     }
 }

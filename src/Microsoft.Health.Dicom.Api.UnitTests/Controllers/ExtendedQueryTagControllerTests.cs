@@ -19,8 +19,8 @@ using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Net.Http.Headers;
 using NSubstitute;
 using Xunit;
@@ -34,31 +34,21 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
         {
             Assert.Throws<ArgumentNullException>(() => new ExtendedQueryTagController(
                 null,
-                Substitute.For<IUrlResolver>(),
                 Options.Create(new FeatureConfiguration()),
                 NullLogger<ExtendedQueryTagController>.Instance));
 
             Assert.Throws<ArgumentNullException>(() => new ExtendedQueryTagController(
                 new Mediator(t => null),
                 null,
-                Options.Create(new FeatureConfiguration()),
                 NullLogger<ExtendedQueryTagController>.Instance));
 
             Assert.Throws<ArgumentNullException>(() => new ExtendedQueryTagController(
                 new Mediator(t => null),
-                Substitute.For<IUrlResolver>(),
-                null,
-                NullLogger<ExtendedQueryTagController>.Instance));
-
-            Assert.Throws<ArgumentNullException>(() => new ExtendedQueryTagController(
-                new Mediator(t => null),
-                Substitute.For<IUrlResolver>(),
                 Options.Create<FeatureConfiguration>(null),
                 NullLogger<ExtendedQueryTagController>.Instance));
 
             Assert.Throws<ArgumentNullException>(() => new ExtendedQueryTagController(
                 new Mediator(t => null),
-                Substitute.For<IUrlResolver>(),
                 Options.Create(new FeatureConfiguration()),
                 null));
         }
@@ -67,11 +57,9 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
         public async Task GivenFeatureIsDisabled_WhenCallingApi_ThenShouldThrowException()
         {
             IMediator _mediator = Substitute.For<IMediator>();
-            IUrlResolver urlResolver = Substitute.For<IUrlResolver>();
-            var featureConfig = Options.Create(new FeatureConfiguration { EnableExtendedQueryTags = false });
-            ExtendedQueryTagController controller = new ExtendedQueryTagController(
+            IOptions<FeatureConfiguration> featureConfig = Options.Create(new FeatureConfiguration { EnableExtendedQueryTags = false });
+            var controller = new ExtendedQueryTagController(
                 _mediator,
-                urlResolver,
                 featureConfig,
                 NullLogger<ExtendedQueryTagController>.Instance);
 
@@ -85,17 +73,16 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
         public async Task GivenOperationId_WhenAddingTags_ReturnIdWithHeader()
         {
             string id = Guid.NewGuid().ToString();
-            string statusUrl = "https://dicom.contoso.io/unit/test/Operations/" + id;
+            var expected = new AddExtendedQueryTagResponse(
+                new OperationReference(id, new Uri("https://dicom.contoso.io/unit/test/Operations/" + id, UriKind.Absolute)));
             IMediator mediator = Substitute.For<IMediator>();
-            IUrlResolver urlResolver = Substitute.For<IUrlResolver>();
             var controller = new ExtendedQueryTagController(
                 mediator,
-                urlResolver,
                 Options.Create(new FeatureConfiguration { EnableExtendedQueryTags = true }),
                 NullLogger<ExtendedQueryTagController>.Instance);
             controller.ControllerContext.HttpContext = new DefaultHttpContext();
 
-            List<AddExtendedQueryTagEntry> input = new List<AddExtendedQueryTagEntry>
+            var input = new List<AddExtendedQueryTagEntry>
             {
                 new AddExtendedQueryTagEntry
                 {
@@ -116,8 +103,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
                 .Send(
                     Arg.Is<AddExtendedQueryTagRequest>(x => ReferenceEquals(x.ExtendedQueryTags, input)),
                     Arg.Is(controller.HttpContext.RequestAborted))
-                .Returns(new AddExtendedQueryTagResponse(id));
-            urlResolver.ResolveOperationStatusUri(id).Returns(new Uri(statusUrl, UriKind.Absolute));
+                .Returns(expected);
 
             var actual = await controller.PostAsync(input) as ObjectResult;
             Assert.NotNull(actual);
@@ -126,13 +112,12 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
             Assert.Single(header);
 
             Assert.Equal((int)HttpStatusCode.Accepted, actual.StatusCode);
-            Assert.Equal(id, ((AddExtendedQueryTagResponse)actual.Value).OperationId);
-            Assert.Equal(statusUrl, header[0]);
+            Assert.Same(expected, actual.Value);
+            Assert.Equal("https://dicom.contoso.io/unit/test/Operations/" + id, header[0]);
 
             await mediator.Received(1).Send(
                 Arg.Is<AddExtendedQueryTagRequest>(x => ReferenceEquals(x.ExtendedQueryTags, input)),
                 Arg.Is(controller.HttpContext.RequestAborted));
-            urlResolver.Received(1).ResolveOperationStatusUri(id);
         }
     }
 }
