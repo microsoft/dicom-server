@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing.Models
 {
@@ -16,11 +17,11 @@ namespace Microsoft.Health.Dicom.Functions.Indexing.Models
         /// <summary>
         /// Gets or sets the inclusive watermark range.
         /// </summary>
-        public (long Start, long End) WatermarkRange { get; set; }
+        public WatermarkRange WatermarkRange { get; set; }
 
         /// <summary>
         /// Gets or sets the tag entires.
         /// </summary>
-        public IReadOnlyList<ExtendedQueryTagStoreEntry> TagStoreEntries { get; set; }
+        public IReadOnlyCollection<ExtendedQueryTagStoreEntry> TagStoreEntries { get; set; }
     }
 }

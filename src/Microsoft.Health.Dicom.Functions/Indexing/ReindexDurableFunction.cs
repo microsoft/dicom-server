@@ -21,7 +21,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
     public partial class ReindexDurableFunction
     {
         private readonly ReindexOperationConfiguration _reindexConfig;
-        private readonly IReindexStateStore _reindexStore;
+        private readonly IReindexStore _reindexStore;
         private readonly IInstanceReindexer _instanceReindexer;
         private readonly IAddExtendedQueryTagService _addExtendedQueryTagService;
         private readonly IInstanceStore _instanceStore;
@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         public ReindexDurableFunction(
             IOptions<ReindexOperationConfiguration> configOptions,
             IAddExtendedQueryTagService addExtendedQueryTagService,
-            IReindexStateStore reindexStore,
+            IReindexStore reindexStore,
             IInstanceStore instanceStore,
             IInstanceReindexer instanceReindexer,
             IExtendedQueryTagStore extendedQueryTagStore,

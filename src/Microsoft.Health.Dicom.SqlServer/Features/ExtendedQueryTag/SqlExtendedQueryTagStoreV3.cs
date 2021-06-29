@@ -35,14 +35,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         public override SchemaVersion Version => SchemaVersion.V3;
 
-        public override async Task AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, ExtendedQueryTagStatus initStatus, int maxAllowedCount, CancellationToken cancellationToken)
+        public override async Task AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxAllowedCount, CancellationToken cancellationToken)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> rows = extendedQueryTagEntries.Select(ToAddExtendedQueryTagsInputTableTypeV1Row);
 
-                V3.AddExtendedQueryTags.PopulateCommand(sqlCommandWrapper, rows, maxAllowedCount);
+                VLatest.AddExtendedQueryTags.PopulateCommand(sqlCommandWrapper, rows, maxAllowedCount);
 
                 try
                 {

@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
     /// </summary>
     public class InstanceReindexer : IInstanceReindexer
     {
-        public Task ReindexInstanceAsync(IReadOnlyList<ExtendedQueryTagStoreEntry> entries, long watermark, CancellationToken cancellationToken = default)
+        public Task ReindexInstanceAsync(IReadOnlyCollection<ExtendedQueryTagStoreEntry> entries, long watermark, CancellationToken cancellationToken = default)
         {
             throw new System.NotImplementedException();
         }

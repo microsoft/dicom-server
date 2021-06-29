@@ -49,7 +49,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             AddExtendedQueryTagEntry extendedQueryTagEntry1 = tag1.BuildAddExtendedQueryTagEntry();
             AddExtendedQueryTagEntry extendedQueryTagEntry2 = tag2.BuildAddExtendedQueryTagEntry(vr: DicomVRCode.CS);
             IExtendedQueryTagStore extendedQueryTagStore = await _extendedQueryTagStoreFactory.GetInstanceAsync();
-            await extendedQueryTagStore.AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry1, extendedQueryTagEntry2 }, ExtendedQueryTagStatus.Ready, 128);
+            await extendedQueryTagStore.AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry1, extendedQueryTagEntry2 }, 128);
 
             await VerifyTagIsAdded(extendedQueryTagEntry1);
             await VerifyTagIsAdded(extendedQueryTagEntry2);
@@ -74,7 +74,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await AddExtendedQueryTagsAsync(extendedQueryTagStore, new AddExtendedQueryTagEntry[] { extendedQueryTagEntry1 });
             DicomTag tag2 = DicomTag.DeviceDescription;
             AddExtendedQueryTagEntry extendedQueryTagEntry2 = tag2.BuildAddExtendedQueryTagEntry();
-            await Assert.ThrowsAsync<ExtendedQueryTagsExceedsMaxAllowedCountException>(() => extendedQueryTagStore.AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry2 }, ExtendedQueryTagStatus.Ready, maxAllowedCount: 1));
+            await Assert.ThrowsAsync<ExtendedQueryTagsExceedsMaxAllowedCountException>(() => extendedQueryTagStore.AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry2 }, maxAllowedCount: 1));
         }
 
         [Fact]
@@ -166,7 +166,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         private Task AddExtendedQueryTagsAsync(IExtendedQueryTagStore extendedQueryTagStore, IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxAllowedCount = 128, CancellationToken cancellationToken = default)
         {
-            return extendedQueryTagStore.AddExtendedQueryTagsAsync(extendedQueryTagEntries, ExtendedQueryTagStatus.Ready, maxAllowedCount, cancellationToken);
+            return extendedQueryTagStore.AddExtendedQueryTagsAsync(extendedQueryTagEntries, maxAllowedCount, cancellationToken);
         }
     }
 }

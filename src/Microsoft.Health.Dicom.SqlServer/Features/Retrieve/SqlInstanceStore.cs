@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
+using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
@@ -36,7 +37,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             return GetInstanceIdentifierImp(studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
         }
 
-        public Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersAsync((long Start, long End) watermarkRange, CancellationToken cancellationToken = default)
+        public Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersAsync(WatermarkRange watermarkRange, CancellationToken cancellationToken = default)
         {
             throw new System.NotImplementedException();
         }

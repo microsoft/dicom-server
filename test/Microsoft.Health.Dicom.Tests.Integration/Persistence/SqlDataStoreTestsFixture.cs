@@ -16,7 +16,6 @@ using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.SqlServer.Features.Indexing;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Store;
@@ -89,8 +88,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 {
                     new SqlIndexDataStoreV1(SqlConnectionWrapperFactory),
                     new SqlIndexDataStoreV2(SqlConnectionWrapperFactory),
-                    new SqlIndexDataStoreV3(SqlConnectionWrapperFactory),
-                    new SqlIndexDataStoreV4(SqlConnectionWrapperFactory)
+                    new SqlIndexDataStoreV3(SqlConnectionWrapperFactory)
                 });
 
             InstanceStore = new SqlInstanceStore(SqlConnectionWrapperFactory);
@@ -101,15 +99,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 {
                     new SqlExtendedQueryTagStoreV1(),
                     new SqlExtendedQueryTagStoreV2(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV2>.Instance),
-                    new SqlExtendedQueryTagStoreV3(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV3>.Instance),
-                    new SqlExtendedQueryTagStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV4>.Instance)
+                    new SqlExtendedQueryTagStoreV3(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV3>.Instance)
                 });
 
-            ReindexStateStore = new SqlReindexStateStore(SqlConnectionWrapperFactory);
-
             SqlIndexDataStoreTestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
-            ReindexStateStoreTestHelper = new ReindexStateStoreTestHelper(TestConnectionString);
-            ExtendedQueryTagStoreTestHelper = new ExtendedQueryTagStoreTestHelper(TestConnectionString);
         }
 
         public SqlDataStoreTestsFixture()
@@ -131,7 +124,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public IStoreFactory<IExtendedQueryTagStore> ExtendedQueryTagStoreFactory { get; }
 
-        public IReindexStateStore ReindexStateStore { get; }
+        public IReindexStore ReindexStateStore { get; }
 
         public SqlIndexDataStoreTestHelper SqlIndexDataStoreTestHelper { get; }
 
