@@ -1,6 +1,6 @@
-# API Versioning for Dicom Server - Developer Guide
+# API Versioning for DICOM Server - Developer Guide
 
-This guide gives an overview of the API versioning of the REST endpoints for Dicom Server.
+This guide gives an overview of the API versioning of the REST endpoints for DICOM Server.
 
 ## Routes
 
@@ -18,6 +18,7 @@ public async Task<IActionResult> PostAsync(string studyInstanceUid = null)
 
 We will only increment the major version of the API, and leave the minor version at 0. Ex: 1.0, 2.0, 3.0, etc.
 
+### Breaking change
 The major version must be incremented if a breaking change is introduced.
 
 List of things we will consider to be a breaking change
@@ -48,13 +49,8 @@ or
 ### How to increment the version
 
 1. Add a new controller to hold the endpoints for the new version, and annotate with `[ApiVersion("<desiredVersion>")]`. All existing endpoints must get the new version.
-2. Mark the previous version as deprecated (see: [Deprecation](#Deprecation)). TODO: should we do this?
-3. Add the new version number to `test/Microsoft.Health.Dicom.Web.Tests.E2E/Rest/VersionAPIData.cs` to test the new endpoints.
-4. Test to verify the breaking changes were not added to the previous version(s).
-
-## Testing for breaking changes
-
-TODO: Update with procedure on how we decide to test
+2. Add the new version number to `test/Microsoft.Health.Dicom.Web.Tests.E2E/Rest/VersionAPIData.cs` to test the new endpoints.
+3. Test to verify the breaking changes were not added to the previous version(s).
 
 ## Deprecation
 
@@ -64,8 +60,8 @@ We can deprecate old versions by marking the version as deprecated as follows:
 [ApiVersion("1.0", Deprecated = true)]
 ```
 
-TODO: Add guidance on when to deprecate and when to retire old versions
+TBD: When to deprecate and when to retire old versions
 
 ## Communicating changes to customers
 
-TODO: figure out if we need to add process for developers to document their changes for customers
+TBD: if process is needed for developers to document their changes to communicate to customers

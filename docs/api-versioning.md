@@ -2,11 +2,11 @@
 
 This guide gives an overview of the API version policies for DICOM Server. 
 
-All versions of the DICOM APIs will always conform to the DICOMweb™ Standard specifications, but versions may expose different APIs based on our conformance statment [https://github.com/microsoft/dicom-server/blob/main/docs/resources/conformance-statement.md]
+All versions of the DICOM APIs will always conform to the DICOMweb™ Standard specifications, but versions may expose different APIs based on our [conformance statment](https://github.com/microsoft/dicom-server/blob/main/docs/resources/conformance-statement.md).
 
 ## Supported Versions
 
-A list of supported versions can be found in our swagger documentation [link].
+A list of supported versions and details of what is supported can be found in the swagger documentation at swagger/v{version}/swagger.json.
 
 ### Prerelease versions
 
@@ -28,7 +28,6 @@ Non-breaking changes (API is not incremented):
 1. Addition of properties that are nullable or have a default value
 2. Addition of properties to a response model
 3. Changing the order of properties
-4. Introduction of paging to existing collections
 
 ## Headers
 
@@ -46,7 +45,3 @@ Example:
 ```
 
 ![Response headers](images/api-headers-example.PNG)
-
-## Deprecation
-
-TODO: Determine deprecation timeline
