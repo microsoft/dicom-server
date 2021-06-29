@@ -60,7 +60,7 @@ namespace Microsoft.Health.Dicom.Functions.Client
             EnsureArg.IsNotNullOrWhiteSpace(operationId, nameof(operationId));
 
             var statusRoute = new Uri(
-                string.Format(CultureInfo.InvariantCulture, _config.Routes.StatusTemplate, operationId),
+                string.Format(CultureInfo.InvariantCulture, _config.Routes.GetStatusRouteTemplate, operationId),
                 UriKind.Relative);
 
             using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, statusRoute);
@@ -87,17 +87,18 @@ namespace Microsoft.Health.Dicom.Functions.Client
                 responseState.InstanceId,
                 responseState.Type,
                 responseState.CreatedTime,
+                responseState.LastUpdatedTime,
                 responseState.RuntimeStatus);
         }
 
         /// <inheritdoc/>
-        public async Task<string> StartQueryTagIndex(IReadOnlyCollection<int> tagKeys, CancellationToken cancellationToken = default)
+        public async Task<string> StartQueryTagIndexingAsync(IReadOnlyCollection<int> tagKeys, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(tagKeys, nameof(tagKeys));
             EnsureArg.HasItems(tagKeys, nameof(tagKeys));
 
             using var content = new StringContent(JsonConvert.SerializeObject(tagKeys, JsonSettings), Encoding.UTF8, MediaTypeNames.Application.Json);
-            using HttpResponseMessage response = await _client.PostAsync(_config.Routes.StartQueryTagReindex, content, cancellationToken);
+            using HttpResponseMessage response = await _client.PostAsync(_config.Routes.StartQueryTagIndexingRoute, content, cancellationToken);
 
             // Re-throw any exceptions we may have encountered when making the HTTP request
             response.EnsureSuccessStatusCode();

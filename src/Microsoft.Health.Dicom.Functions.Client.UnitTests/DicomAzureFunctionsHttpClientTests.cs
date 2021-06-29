@@ -29,8 +29,8 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
                 BaseAddress = new Uri("https://dicom.core/unit/tests/", UriKind.Absolute),
                 Routes = new OperationRoutesConfiguration
                 {
-                    StartQueryTagReindex = new Uri("Reindex", UriKind.Relative),
-                    StatusTemplate = "Orchestrations/Instances/{0}",
+                    StartQueryTagIndexingRoute = new Uri("Reindex", UriKind.Relative),
+                    GetStatusRouteTemplate = "Orchestrations/Instances/{0}",
                 }
             });
 
@@ -146,7 +146,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
             var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), DefaultConfig);
 
             await Assert.ThrowsAsync<ArgumentNullException>(
-                () => client.StartQueryTagIndex(null, CancellationToken.None));
+                () => client.StartQueryTagIndexingAsync(null, CancellationToken.None));
 
             Assert.Equal(0, handler.SentMessages);
         }
@@ -158,7 +158,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
             var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), DefaultConfig);
 
             await Assert.ThrowsAsync<ArgumentException>(
-                () => client.StartQueryTagIndex(Array.Empty<int>(), CancellationToken.None));
+                () => client.StartQueryTagIndexingAsync(Array.Empty<int>(), CancellationToken.None));
 
             Assert.Equal(0, handler.SentMessages);
         }
@@ -177,7 +177,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
 
             handler.SendingAsync += (msg, token) => AssertExpectedStartAddRequestAsync(msg, input);
             HttpRequestException ex = await Assert.ThrowsAsync<HttpRequestException>(
-                () => client.StartQueryTagIndex(input, source.Token));
+                () => client.StartQueryTagIndexingAsync(input, source.Token));
 
             Assert.Equal(expected, ex.StatusCode);
             Assert.Equal(1, handler.SentMessages);
@@ -195,7 +195,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
             var input = new List<int> { 1, 2, 3 };
 
             handler.SendingAsync += (msg, token) => AssertExpectedStartAddRequestAsync(msg, input);
-            string actual = await client.StartQueryTagIndex(input, source.Token);
+            string actual = await client.StartQueryTagIndexingAsync(input, source.Token);
 
             Assert.Equal(1, handler.SentMessages);
             Assert.NotNull(actual);

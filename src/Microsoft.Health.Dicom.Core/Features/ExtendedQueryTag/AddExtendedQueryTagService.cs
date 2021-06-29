@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             // TODO: Handle tags that have already been added
             IExtendedQueryTagStore extendedQueryTagStore = await _extendedQueryTagStoreFactory.GetInstanceAsync(cancellationToken);
             IReadOnlyList<int> keys = await extendedQueryTagStore.AddExtendedQueryTagsAsync(normalized, _maxAllowedCount, cancellationToken);
-            return new AddExtendedQueryTagResponse(await _client.StartQueryTagIndex(keys, cancellationToken));
+            return new AddExtendedQueryTagResponse(await _client.StartQueryTagIndexingAsync(keys, cancellationToken));
         }
     }
 }

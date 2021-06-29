@@ -81,6 +81,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
             var expected = new OperationStatusResponse(
                 id,
                 OperationType.Reindex,
+                DateTime.UtcNow.AddMinutes(-1),
                 DateTime.UtcNow,
                 inProgressStatus);
 
@@ -123,6 +124,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
             var expected = new OperationStatusResponse(
                 id,
                 OperationType.Reindex,
+                DateTime.UtcNow,
                 DateTime.UtcNow,
                 doneStatus);
 

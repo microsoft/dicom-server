@@ -55,6 +55,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <param name="force">Indicates the tag should be deleted regardless of status.</param>
         /// <returns>The task.</returns>
+        // TODO: Remove optional force parameter after final API design
         Task DeleteExtendedQueryTagAsync(string tagPath, string vr, bool force = false, CancellationToken cancellationToken = default);
     }
 }

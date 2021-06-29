@@ -60,7 +60,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             await Assert.ThrowsAsync<ExtendedQueryTagEntryValidationException>(() => _extendedQueryTagService.AddExtendedQueryTagsAsync(input, _tokenSource.Token));
 
             _extendedQueryTagEntryValidator.Received(1).ValidateExtendedQueryTags(input);
-            await _client.DidNotReceiveWithAnyArgs().StartQueryTagIndex(default, default);
+            await _client.DidNotReceiveWithAnyArgs().StartQueryTagIndexingAsync(default, default);
         }
 
         [Fact]
@@ -78,7 +78,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
                     Arg.Is(_tokenSource.Token))
                 .Returns(new List<int> { 7 });
             _client
-                .StartQueryTagIndex(
+                .StartQueryTagIndexingAsync(
                     Arg.Is<IReadOnlyCollection<int>>(x => x.Single() == 7),
                     Arg.Is(_tokenSource.Token))
                 .Returns(expectedOperationId);
@@ -95,7 +95,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
                     Arg.Is(_tokenSource.Token));
             await _client
                 .Received(1)
-                .StartQueryTagIndex(
+                .StartQueryTagIndexingAsync(
                     Arg.Is<IReadOnlyCollection<int>>(x => x.Single() == 7),
                     Arg.Is(_tokenSource.Token));
         }

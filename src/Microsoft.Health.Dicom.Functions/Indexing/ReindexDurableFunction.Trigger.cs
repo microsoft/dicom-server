@@ -18,14 +18,14 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
     public partial class ReindexDurableFunction
     {
         /// <summary>
-        /// The http trigger to add extended Query tags
+        /// The http trigger to add extended query tags
         /// </summary>
         /// <param name="request">The http request.</param>
         /// <param name="client">The client.</param>
         /// <param name="logger">The logger.</param>
         /// <returns>The task.</returns>
-        [FunctionName(nameof(StartAddingTagsAsync))]
-        public async Task<HttpResponseMessage> StartAddingTagsAsync(
+        [FunctionName(nameof(StartQueryTagIndexingAsync))]
+        public async Task<HttpResponseMessage> StartQueryTagIndexingAsync(
             [HttpTrigger(AuthorizationLevel.Anonymous, "Post", Route = "extendedquerytags")] HttpRequestMessage request,
             [DurableClient] IDurableOrchestrationClient client,
             ILogger logger)

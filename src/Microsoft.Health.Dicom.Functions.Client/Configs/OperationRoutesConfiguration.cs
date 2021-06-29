@@ -11,9 +11,9 @@ namespace Microsoft.Health.Dicom.Functions.Client.Configs
     public class OperationRoutesConfiguration
     {
         [Required]
-        public Uri StartQueryTagReindex { get; set; }
+        public Uri StartQueryTagIndexingRoute { get; set; }
 
         [Required]
-        public string StatusTemplate { get; set; }
+        public string GetStatusRouteTemplate { get; set; }
     }
 }
