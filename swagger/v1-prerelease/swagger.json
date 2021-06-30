@@ -2,7 +2,6 @@
   "openapi": "3.0.1",
   "info": {
     "title": "Medical Imaging Server for DICOM",
-    "description": "The Medical Imaging Server for DICOM is a .NET Core implementation of DICOMweb™",
     "license": {
       "name": "MIT License",
       "url": "https://github.com/microsoft/dicom-server/blob/main/LICENSE"
@@ -47,19 +46,36 @@
           "200": {
             "description": "Success",
             "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeFeedEntry"
+                  }
+                }
+              },
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeFeedEntry"
+                  }
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeFeedEntry"
+                  }
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeFeedEntry"
+                  }
                 }
               }
             }
@@ -136,19 +152,36 @@
           "200": {
             "description": "Success",
             "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeFeedEntry"
+                  }
+                }
+              },
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeFeedEntry"
+                  }
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeFeedEntry"
+                  }
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeFeedEntry"
+                  }
                 }
               }
             }
@@ -342,10 +375,44 @@
             "description": "Success"
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       },
@@ -395,13 +462,64 @@
             }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "406": {
-            "description": "Not Acceptable"
+            "description": "Not Acceptable",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       },
@@ -449,10 +567,24 @@
             "description": "Success"
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "406": {
-            "description": "Not Acceptable"
+            "description": "Not Acceptable",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "409": {
             "description": "Conflict",
@@ -468,7 +600,14 @@
             }
           },
           "415": {
-            "description": "Client Error"
+            "description": "Client Error",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
@@ -502,10 +641,44 @@
             "description": "Success"
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       },
@@ -564,13 +737,64 @@
             }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "406": {
-            "description": "Not Acceptable"
+            "description": "Not Acceptable",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       },
@@ -627,10 +851,24 @@
             "description": "Success"
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "406": {
-            "description": "Not Acceptable"
+            "description": "Not Acceptable",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "409": {
             "description": "Conflict",
@@ -646,7 +884,14 @@
             }
           },
           "415": {
-            "description": "Client Error"
+            "description": "Client Error",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
@@ -679,10 +924,44 @@
             "description": "Success"
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       },
@@ -739,13 +1018,64 @@
             }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "406": {
-            "description": "Not Acceptable"
+            "description": "Not Acceptable",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
@@ -787,10 +1117,44 @@
             "description": "Success"
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       },
@@ -856,13 +1220,64 @@
             }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "406": {
-            "description": "Not Acceptable"
+            "description": "Not Acceptable",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
@@ -903,10 +1318,44 @@
             "description": "Success"
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       },
@@ -972,13 +1421,64 @@
             }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "406": {
-            "description": "Not Acceptable"
+            "description": "Not Acceptable",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
@@ -1028,10 +1528,44 @@
             "description": "Success"
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       },
@@ -1106,13 +1640,64 @@
             }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "406": {
-            "description": "Not Acceptable"
+            "description": "Not Acceptable",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
@@ -1156,17 +1741,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "$ref": "#/components/schemas/AddExtendedQueryTagResponse"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "$ref": "#/components/schemas/AddExtendedQueryTagResponse"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "$ref": "#/components/schemas/AddExtendedQueryTagResponse"
                 }
               }
             }
@@ -1183,23 +1768,49 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetExtendedQueryTagEntry"
+                  }
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetExtendedQueryTagEntry"
+                  }
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetExtendedQueryTagEntry"
+                  }
                 }
               }
             }
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
@@ -1254,17 +1865,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "$ref": "#/components/schemas/AddExtendedQueryTagResponse"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "$ref": "#/components/schemas/AddExtendedQueryTagResponse"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "$ref": "#/components/schemas/AddExtendedQueryTagResponse"
                 }
               }
             }
@@ -1292,23 +1903,49 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetExtendedQueryTagEntry"
+                  }
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetExtendedQueryTagEntry"
+                  }
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetExtendedQueryTagEntry"
+                  }
                 }
               }
             }
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
@@ -1334,17 +1971,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "$ref": "#/components/schemas/DeleteExtendedQueryTagResponse"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "$ref": "#/components/schemas/DeleteExtendedQueryTagResponse"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "$ref": "#/components/schemas/DeleteExtendedQueryTagResponse"
                 }
               }
             }
@@ -1371,26 +2008,60 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "$ref": "#/components/schemas/GetExtendedQueryTagEntry"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "$ref": "#/components/schemas/GetExtendedQueryTagEntry"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "$ref": "#/components/schemas/GetExtendedQueryTagEntry"
                 }
               }
             }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
@@ -1425,17 +2096,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "$ref": "#/components/schemas/DeleteExtendedQueryTagResponse"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "$ref": "#/components/schemas/DeleteExtendedQueryTagResponse"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "$ref": "#/components/schemas/DeleteExtendedQueryTagResponse"
                 }
               }
             }
@@ -1471,26 +2142,60 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "$ref": "#/components/schemas/GetExtendedQueryTagEntry"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "$ref": "#/components/schemas/GetExtendedQueryTagEntry"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JsonResult"
+                  "$ref": "#/components/schemas/GetExtendedQueryTagEntry"
                 }
               }
             }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
@@ -2127,13 +2832,34 @@
             }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "406": {
-            "description": "Not Acceptable"
+            "description": "Not Acceptable",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "304": {
             "description": "Not Modified"
@@ -2190,13 +2916,34 @@
             }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "406": {
-            "description": "Not Acceptable"
+            "description": "Not Acceptable",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "304": {
             "description": "Not Modified"
@@ -2249,13 +2996,34 @@
             }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "406": {
-            "description": "Not Acceptable"
+            "description": "Not Acceptable",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "304": {
             "description": "Not Modified"
@@ -2317,13 +3085,34 @@
             }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "406": {
-            "description": "Not Acceptable"
+            "description": "Not Acceptable",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "304": {
             "description": "Not Modified"
@@ -2384,13 +3173,34 @@
             }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "406": {
-            "description": "Not Acceptable"
+            "description": "Not Acceptable",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "304": {
             "description": "Not Modified"
@@ -2460,13 +3270,34 @@
             }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "406": {
-            "description": "Not Acceptable"
+            "description": "Not Acceptable",
+            "content": {
+              "application/dicom+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "304": {
             "description": "Not Modified"
@@ -2547,13 +3378,64 @@
             }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "406": {
-            "description": "Not Acceptable"
+            "description": "Not Acceptable",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
@@ -2640,13 +3522,64 @@
             }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "406": {
-            "description": "Not Acceptable"
+            "description": "Not Acceptable",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
@@ -2811,6 +3744,10 @@
         },
         "additionalProperties": false
       },
+      "AddExtendedQueryTagResponse": {
+        "type": "object",
+        "additionalProperties": false
+      },
       "ChangeFeedAction": {
         "enum": [
           0,
@@ -2866,6 +3803,10 @@
         ],
         "type": "integer",
         "format": "int32"
+      },
+      "DeleteExtendedQueryTagResponse": {
+        "type": "object",
+        "additionalProperties": false
       },
       "DicomDictionaryEntry": {
         "type": "object",
@@ -3052,26 +3993,47 @@
         },
         "additionalProperties": false
       },
-      "JsonResult": {
+      "ExtendedQueryTagStatus": {
+        "enum": [
+          0,
+          1,
+          2
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "GetExtendedQueryTagEntry": {
         "type": "object",
         "properties": {
-          "contentType": {
+          "status": {
+            "$ref": "#/components/schemas/ExtendedQueryTagStatus"
+          },
+          "level": {
+            "$ref": "#/components/schemas/QueryTagLevel"
+          },
+          "path": {
             "type": "string",
             "nullable": true
           },
-          "serializerSettings": {
+          "vr": {
+            "type": "string",
             "nullable": true
           },
-          "statusCode": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "value": {
+          "privateCreator": {
+            "type": "string",
             "nullable": true
           }
         },
         "additionalProperties": false
+      },
+      "QueryTagLevel": {
+        "enum": [
+          0,
+          1,
+          2
+        ],
+        "type": "integer",
+        "format": "int32"
       },
       "Stream": {
         "type": "object",
