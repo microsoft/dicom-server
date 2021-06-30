@@ -58,16 +58,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 => new V2.AddInstanceTableValuedParameters(stringRow, longRows, doubleRows, dateTimeRows, personNameRows));
         }
 
-
         private static T Build<T>(
-        DicomDataset instance,
-        IEnumerable<QueryTag> queryTags,
-        Func<IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row>,
-            IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row>,
-            IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row>,
-            IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV1Row>,
-            IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row>,
-            T> constructor)
+            DicomDataset instance,
+            IEnumerable<QueryTag> queryTags,
+            Func<IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row>,
+                IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row>,
+                IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row>,
+                IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV1Row>,
+                IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row>,
+                T> constructor)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));

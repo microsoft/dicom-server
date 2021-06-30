@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         public IReadOnlyCollection<ExtendedQueryTagStoreEntry> StoreEntries { get; set; }
 
         /// <summary>
-        /// The inclusive start watermark.
+        /// The watermark range.
         /// </summary>
         public WatermarkRange WatermarkRange { get; set; }
     }

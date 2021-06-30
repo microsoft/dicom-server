@@ -21,7 +21,6 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
     public partial class ReindexDurableFunction
     {
         private readonly ReindexOperationConfiguration _reindexConfig;
-        private readonly IReindexStore _reindexStore;
         private readonly IInstanceReindexer _instanceReindexer;
         private readonly IAddExtendedQueryTagService _addExtendedQueryTagService;
         private readonly IInstanceStore _instanceStore;
@@ -32,7 +31,6 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         public ReindexDurableFunction(
             IOptions<ReindexOperationConfiguration> configOptions,
             IAddExtendedQueryTagService addExtendedQueryTagService,
-            IReindexStore reindexStore,
             IInstanceStore instanceStore,
             IInstanceReindexer instanceReindexer,
             IExtendedQueryTagStore extendedQueryTagStore,
@@ -40,7 +38,6 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             SchemaInformation schemaInformation)
         {
             EnsureArg.IsNotNull(configOptions, nameof(configOptions));
-            EnsureArg.IsNotNull(reindexStore, nameof(reindexStore));
             EnsureArg.IsNotNull(instanceReindexer, nameof(instanceReindexer));
             EnsureArg.IsNotNull(addExtendedQueryTagService, nameof(addExtendedQueryTagService));
             EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
@@ -48,7 +45,6 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             EnsureArg.IsNotNull(schemaVersionResolver, nameof(schemaVersionResolver));
             EnsureArg.IsNotNull(schemaInformation, nameof(schemaInformation));
             _reindexConfig = configOptions.Value;
-            _reindexStore = reindexStore;
             _instanceReindexer = instanceReindexer;
             _addExtendedQueryTagService = addExtendedQueryTagService;
             _instanceStore = instanceStore;

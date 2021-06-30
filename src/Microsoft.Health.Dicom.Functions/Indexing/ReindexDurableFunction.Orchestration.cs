@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         {
             EnsureArg.IsNotNull(context, nameof(context));
             logger = context.CreateReplaySafeLogger(logger);
-            var input = context.GetInput<IReadOnlyList<int>>();
+            var input = context.GetInput<IReadOnlyCollection<int>>();
             await context.CallActivityAsync(nameof(UpdateSchemaVersionAsync), null);
             var tagEntries = await context.CallActivityAsync<IReadOnlyCollection<ExtendedQueryTagStoreEntry>>(nameof(GetTagStoreEntriesAsync), input);
             var watermarkRange = await context.CallActivityAsync<WatermarkRange>(nameof(GetReindexWatermarkRangeAsync), null);
@@ -63,8 +63,8 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
 
             ReindexOperation reindexOperation = context.GetInput<ReindexOperation>();
 
-            if (reindexOperation.WatermarkRange != null &&
-                reindexOperation.WatermarkRange.Start >= 0
+            if (reindexOperation.WatermarkRange != null
+                && reindexOperation.WatermarkRange.Start >= 0
                 && reindexOperation.WatermarkRange.End >= 0)
             {
 
@@ -89,7 +89,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             IDurableOrchestrationContext context,
             ReindexOperation reindexOperation)
         {
-            // Reindex. Note that StartWatermark and EndWatermark are Inclusive
+            // Note that StartWatermark and EndWatermark are Inclusive
             long start = reindexOperation.WatermarkRange.Start;
             long end = reindexOperation.WatermarkRange.End;
 
