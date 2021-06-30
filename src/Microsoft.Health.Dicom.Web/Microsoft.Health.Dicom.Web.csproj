@@ -41,6 +41,8 @@
   </ProjectExtensions>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="dotnet new tool-manifest" />
+    <Exec Command="dotnet tool install --version 6.1.4 Swashbuckle.AspNetCore.Cli" />
     <Exec Command="dotnet swagger tofile --output obj/v1-prerelease-swagger.json $(OutputPath)\$(AssemblyName).dll v1-prerelease" />
   </Target>
 
