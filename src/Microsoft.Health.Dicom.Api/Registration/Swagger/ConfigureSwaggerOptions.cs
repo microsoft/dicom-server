@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using EnsureThat;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -15,19 +16,24 @@ namespace Microsoft.Health.Dicom.Api.Registration.Swagger
     {
         private readonly IApiVersionDescriptionProvider _provider;
 
-        public ConfigureSwaggerOptions(IApiVersionDescriptionProvider provider) =>
-          _provider = provider;
+        public ConfigureSwaggerOptions(IApiVersionDescriptionProvider provider)
+        {
+            EnsureArg.IsNotNull(provider, nameof(provider));
+
+            _provider = provider;
+        }
 
         public void Configure(SwaggerGenOptions options)
         {
-            foreach (var description in _provider.ApiVersionDescriptions)
+            foreach (ApiVersionDescription description in _provider.ApiVersionDescriptions)
             {
                 options.SwaggerDoc(
-                  description.GroupName,
-                    new OpenApiInfo()
+                    description.GroupName,
+                    new OpenApiInfo
                     {
-                        Title = $"API {description.ApiVersion}",
+                        Title = $"Medical Imaging Server for DICOM",
                         Version = description.ApiVersion.ToString(),
+                        License = new OpenApiLicense { Name = "MIT License", Url = new System.Uri("https://github.com/microsoft/dicom-server/blob/main/LICENSE") }
                     });
             }
         }

@@ -108,12 +108,14 @@ namespace Microsoft.AspNetCore.Builder
 
             services.AddVersionedApiExplorer(options =>
             {
+                // The format for this is 'v'major[.minor][-status] ex. v1.0-prerelease
                 options.GroupNameFormat = "'v'VVV";
                 options.SubstituteApiVersionInUrl = true;
             });
 
             services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
             services.AddSwaggerGen(options => options.OperationFilter<SwaggerDefaultValues>());
+            services.AddSwaggerGenNewtonsoftSupport();
 
             services.AddSingleton<IUrlResolver, UrlResolver>();
 
@@ -186,7 +188,7 @@ namespace Microsoft.AspNetCore.Builder
 
                     app.UseSwaggerUI(options =>
                     {
-                        foreach (var description in provider.ApiVersionDescriptions)
+                        foreach (ApiVersionDescription description in provider.ApiVersionDescriptions)
                         {
                             options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
                         }
