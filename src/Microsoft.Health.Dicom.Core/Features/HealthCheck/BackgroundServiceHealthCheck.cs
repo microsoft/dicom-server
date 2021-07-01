@@ -11,6 +11,7 @@ using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.HealthCheck
@@ -51,7 +52,7 @@ namespace Microsoft.Health.Dicom.Core.Features.HealthCheck
                 _telemetryClient.GetMetric("Oldest-Requested-Deletion").TrackValue((await oldestWaitingToBeDeleated).ToUnixTimeSeconds());
                 _telemetryClient.GetMetric("Count-Deletions-Max-Retry").TrackValue(await numReachedMaxedRetry);
             }
-            catch (Exception e)
+            catch (DataStoreException e) // This is expected when service is starting up without schema initialization
             {
                 return HealthCheckResult.Unhealthy("Unhealthy service." + e.Message);
             }
