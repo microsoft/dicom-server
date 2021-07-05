@@ -15,7 +15,7 @@
 Dicom server code follows below **patterns** to organize code in these layer.
 
 
-### [MediatoR Handler](https://github.com/jbogard/MediatR):
+### [MediatR Handler](https://github.com/jbogard/MediatR):
 
 <em>Used to dispatch message from the Controller methods. Used to transform request and response from the hosting layer to the service.</em>
 
