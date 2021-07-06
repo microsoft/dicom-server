@@ -11,7 +11,6 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing
 {
@@ -24,21 +23,22 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// <param name="client">The client.</param>
         /// <param name="logger">The logger.</param>
         /// <returns>The task.</returns>
-        [FunctionName(nameof(StartAddingTagsAsync))]
-        public async Task<HttpResponseMessage> StartAddingTagsAsync(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Post", Route = "extendedquerytags")] HttpRequestMessage request,
+        [FunctionName(nameof(StartReindexingTagsAsync))]
+        public async Task<HttpResponseMessage> StartReindexingTagsAsync(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Post", Route = "extendedquerytags/reindex")] HttpRequestMessage request,
             [DurableClient] IDurableOrchestrationClient client,
             ILogger logger)
         {
             EnsureArg.IsNotNull(request, nameof(request));
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(logger, nameof(logger));
-            var extendedQueryTags = await request.Content.ReadAsAsync<List<AddExtendedQueryTagEntry>>();
-            logger.LogInformation("Start adding extended query tags {input}", extendedQueryTags);
-            string instanceId = await client.StartNewAsync(nameof(AddAndReindexTagsAsync), instanceId: null, extendedQueryTags);
+            var extendedQueryTagKeys = await request.Content.ReadAsAsync<IReadOnlyCollection<int>>();
+            logger.LogInformation("Start reindexing {tagCount} extended query tag keys [{extendedQueryTagKeys}]",
+                extendedQueryTagKeys.Count, string.Join(",", extendedQueryTagKeys));
+            // TODO: end request early if no keys are provided.
+            string instanceId = await client.StartNewAsync(nameof(ReindexTagsAsync), instanceId: null, extendedQueryTagKeys);
             logger.LogInformation("Started new orchestration with instanceId {instancId}", instanceId);
 
-            // TODO: these code need to be updated based on contract to client.
             return new HttpResponseMessage { Content = new StringContent(instanceId) };
         }
     }
