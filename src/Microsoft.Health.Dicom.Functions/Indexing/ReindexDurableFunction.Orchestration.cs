@@ -13,7 +13,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
-using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing
@@ -34,10 +34,9 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             EnsureArg.IsNotNull(context, nameof(context));
             logger = context.CreateReplaySafeLogger(logger);
             var input = context.GetInput<IReadOnlyCollection<int>>();
-            await context.CallActivityAsync(nameof(UpdateSchemaVersionAsync), null);
             var tagEntries = await context.CallActivityAsync<IReadOnlyCollection<ExtendedQueryTagStoreEntry>>(nameof(GetTagStoreEntriesAsync), input);
             var watermarkRange = await context.CallActivityAsync<WatermarkRange>(nameof(GetReindexWatermarkRangeAsync), null);
-            ReindexOperation reindexOperation = new ReindexOperation()
+            ReindexOperation reindexOperation = new ReindexOperation
             {
                 OperationId = context.InstanceId,
                 StoreEntries = tagEntries,
@@ -63,8 +62,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
 
             ReindexOperation reindexOperation = context.GetInput<ReindexOperation>();
 
-            if (reindexOperation.WatermarkRange != null
-                && reindexOperation.WatermarkRange.Start >= 0
+            if (reindexOperation.WatermarkRange.Start >= 0
                 && reindexOperation.WatermarkRange.End >= 0)
             {
 

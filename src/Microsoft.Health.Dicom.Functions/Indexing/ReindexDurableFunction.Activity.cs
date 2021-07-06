@@ -11,7 +11,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing
@@ -97,23 +97,6 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             }
 
             await Task.WhenAll(tasks);
-        }
-
-        /// <summary>
-        /// Update schema version.
-        /// </summary>
-        /// <param name="context">The durable activity context.</param>
-        /// <param name="log">The log</param>
-        /// <returns>The task.</returns>
-        [FunctionName(nameof(UpdateSchemaVersionAsync))]
-        public async Task UpdateSchemaVersionAsync([ActivityTrigger] IDurableActivityContext context, ILogger log)
-        {
-            // TODO: performance improvement, don't need to call service for every call.
-            EnsureArg.IsNotNull(context, nameof(context));
-            EnsureArg.IsNotNull(log, nameof(log));
-            log.LogInformation("Fetching schema version");
-            _schemaInformation.Current = (int?)await _schemaVersionResolver.GetCurrentVersionAsync(default);
-            log.LogInformation("Schema version is {version}", _schemaInformation.Current);
         }
     }
 }

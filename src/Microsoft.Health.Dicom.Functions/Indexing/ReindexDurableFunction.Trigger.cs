@@ -33,7 +33,9 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(logger, nameof(logger));
             var extendedQueryTagKeys = await request.Content.ReadAsAsync<IReadOnlyCollection<int>>();
-            logger.LogInformation("Start reindexing extended query tags {extendedQueryTagKeys}", extendedQueryTagKeys);
+            logger.LogInformation("Start reindexing {tagCount} extended query tag keys [{extendedQueryTagKeys}]",
+                extendedQueryTagKeys.Count, string.Join(",", extendedQueryTagKeys));
+            // TODO: end request early if no keys are provided.
             string instanceId = await client.StartNewAsync(nameof(ReindexTagsAsync), instanceId: null, extendedQueryTagKeys);
             logger.LogInformation("Started new orchestration with instanceId {instancId}", instanceId);
 

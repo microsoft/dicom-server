@@ -8,7 +8,6 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
-using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using NSubstitute;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -24,7 +23,6 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly ReindexDurableFunction _reindexDurableFunction;
         private readonly ISchemaVersionResolver _schemaVersionResolver;
-        private readonly SchemaInformation _schemaInformation;
 
         public ReindexDurableFunctionTests()
         {
@@ -34,7 +32,6 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             _instanceStore = Substitute.For<IInstanceStore>();
             _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
             _schemaVersionResolver = Substitute.For<ISchemaVersionResolver>();
-            _schemaInformation = new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max);
             var configuration = Substitute.For<IOptions<ReindexOperationConfiguration>>();
             configuration.Value.Returns(_reindexConfig);
 
@@ -44,8 +41,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 _instanceStore,
                 _instanceReindexer,
                 _extendedQueryTagStore,
-                _schemaVersionResolver,
-                _schemaInformation);
+                _schemaVersionResolver);
         }
     }
 }

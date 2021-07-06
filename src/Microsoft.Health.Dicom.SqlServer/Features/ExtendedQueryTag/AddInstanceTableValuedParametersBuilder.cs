@@ -24,6 +24,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             { DicomVR.DA, Core.Extensions.DicomDatasetExtensions.GetStringDateAsDate },
         };
 
+        private delegate T AddInstanceTableValuedParametersConstructor<T>(
+            IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> stringRows,
+                IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> longRows,
+                IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleRows,
+                IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV1Row> dateTimeRows,
+                IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNameRows);
+
         /// <summary>
         /// Build <see cref="VLatest.AddInstanceTableValuedParameters"/>
         /// </summary>
@@ -36,7 +43,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             EnsureArg.IsNotNull(instance, nameof(instance));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
-            return Build(instance, queryTags,
+            return Build(
+                instance,
+                queryTags,
                 (stringRow, longRows, doubleRows, dateTimeRows, personNameRows)
                 => new VLatest.AddInstanceTableValuedParameters(stringRow, longRows, doubleRows, dateTimeRows, personNameRows));
         }
@@ -53,7 +62,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             EnsureArg.IsNotNull(instance, nameof(instance));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
-            return Build(instance, queryTags,
+            return Build(
+                instance,
+                queryTags,
                 (stringRow, longRows, doubleRows, dateTimeRows, personNameRows)
                 => new V2.AddInstanceTableValuedParameters(stringRow, longRows, doubleRows, dateTimeRows, personNameRows));
         }
@@ -61,16 +72,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         private static T Build<T>(
             DicomDataset instance,
             IEnumerable<QueryTag> queryTags,
-            Func<IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row>,
-                IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row>,
-                IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row>,
-                IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV1Row>,
-                IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row>,
-                T> constructor)
+            AddInstanceTableValuedParametersConstructor<T> constructor)
         {
-            EnsureArg.IsNotNull(instance, nameof(instance));
-            EnsureArg.IsNotNull(queryTags, nameof(queryTags));
-
             List<InsertStringExtendedQueryTagTableTypeV1Row> stringRows = new List<InsertStringExtendedQueryTagTableTypeV1Row>();
             List<InsertLongExtendedQueryTagTableTypeV1Row> longRows = new List<InsertLongExtendedQueryTagTableTypeV1Row>();
             List<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleRows = new List<InsertDoubleExtendedQueryTagTableTypeV1Row>();

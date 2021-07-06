@@ -11,7 +11,7 @@ using Dicom;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
-using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
@@ -90,7 +90,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             DicomTag tag = DicomTag.DeviceSerialNumber;
 
             var storeEntires = new[] { tag.BuildExtendedQueryTagStoreEntry() };
-            ReindexOperation reindexOperation = new ReindexOperation() { WatermarkRange = null, OperationId = Guid.NewGuid().ToString(), StoreEntries = storeEntires };
+            ReindexOperation reindexOperation = new ReindexOperation() { WatermarkRange = new WatermarkRange(-1, -1), OperationId = Guid.NewGuid().ToString(), StoreEntries = storeEntires };
 
             IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
             context.GetInput<ReindexOperation>().Returns(reindexOperation);
