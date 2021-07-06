@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             _fixture = fixture;
         }
 
-        [Fact(Skip = "Setup AAD admin consent issue, Bug 83049: DICOM OSS CI is broken")]
+        [Fact]
         public async Task GivenPostDicomRequest_WithAReadOnlyToken_ReturnUnauthorized()
         {
             if (AuthenticationSettings.SecurityEnabled)
