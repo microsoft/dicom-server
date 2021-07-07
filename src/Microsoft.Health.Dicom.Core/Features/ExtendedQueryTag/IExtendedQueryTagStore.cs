@@ -19,6 +19,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// </summary>
         /// <param name="extendedQueryTagEntries">The extended query tag entries.</param>
         /// <param name="maxAllowedCount">The max allowed count.</param>
+        /// <param name="ready">Optionally indicates whether the <paramref name="extendedQueryTagEntries"/> have been fully indexed.</param>
         /// <param name="cancellationToken">
         /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
         /// </param>
@@ -29,6 +30,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(
             IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries,
             int maxAllowedCount,
+            bool ready = false,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -53,9 +55,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <param name="tagPath">The tag path.</param>
         /// <param name="vr">The VR code.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <param name="force">Indicates the tag should be deleted regardless of status.</param>
         /// <returns>The task.</returns>
-        // TODO: Remove optional force parameter after final API design
-        Task DeleteExtendedQueryTagAsync(string tagPath, string vr, bool force = false, CancellationToken cancellationToken = default);
+        Task DeleteExtendedQueryTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default);
     }
 }

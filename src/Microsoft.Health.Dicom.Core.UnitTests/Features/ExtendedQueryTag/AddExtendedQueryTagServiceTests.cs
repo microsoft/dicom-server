@@ -80,6 +80,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
                 .AddExtendedQueryTagsAsync(
                     Arg.Is<IReadOnlyCollection<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
                     Arg.Is(128),
+                    Arg.Is(false),
                     Arg.Is(_tokenSource.Token))
                 .Returns(new List<int> { 7 });
             _client
@@ -101,6 +102,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
                 .AddExtendedQueryTagsAsync(
                     Arg.Is<IReadOnlyCollection<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
                     Arg.Is(128),
+                    Arg.Is(false),
                     Arg.Is(_tokenSource.Token));
             await _client
                 .Received(1)

@@ -30,8 +30,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         public override SchemaVersion Version => SchemaVersion.V3;
 
-        public override async Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxAllowedCount, CancellationToken cancellationToken)
+        public override async Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(
+            IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries,
+            int maxAllowedCount,
+            bool ready = false,
+            CancellationToken cancellationToken = default)
         {
+            if (ready)
+            {
+                throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+            }
+
             using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {

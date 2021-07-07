@@ -81,7 +81,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
             finally
             {
-                await extendedQueryTagStore.DeleteExtendedQueryTagAsync(extendedQueryTagEntry.Path, extendedQueryTagEntry.VR, force: true);
+                await extendedQueryTagStore.DeleteExtendedQueryTagAsync(extendedQueryTagEntry.Path, extendedQueryTagEntry.VR);
             }
         }
 
@@ -316,7 +316,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
             finally
             {
-                await extendedQueryTagStore.DeleteExtendedQueryTagAsync(queryTag.ExtendedQueryTagStoreEntry.Path, queryTag.ExtendedQueryTagStoreEntry.VR, force: true);
+                await extendedQueryTagStore.DeleteExtendedQueryTagAsync(queryTag.ExtendedQueryTagStoreEntry.Path, queryTag.ExtendedQueryTagStoreEntry.VR);
             }
         }
 
@@ -327,7 +327,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         private async Task<IReadOnlyList<QueryTag>> AddExtendedQueryTags(IExtendedQueryTagStore extendedQueryTagStore, IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags)
         {
-            await extendedQueryTagStore.AddExtendedQueryTagsAsync(extendedQueryTags, maxAllowedCount: 128);
+            await extendedQueryTagStore.AddExtendedQueryTagsAsync(extendedQueryTags, maxAllowedCount: 128, ready: true);
             var extendedQueryTagEntries = await extendedQueryTagStore.GetExtendedQueryTagsAsync();
             return extendedQueryTagEntries.Select(entry => new QueryTag(entry)).ToList();
         }
@@ -378,7 +378,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
             finally
             {
-                await extendedQueryTagStore.DeleteExtendedQueryTagAsync(queryTag.ExtendedQueryTagStoreEntry.Path, queryTag.ExtendedQueryTagStoreEntry.VR, force: true);
+                await extendedQueryTagStore.DeleteExtendedQueryTagAsync(queryTag.ExtendedQueryTagStoreEntry.Path, queryTag.ExtendedQueryTagStoreEntry.VR);
             }
         }
 
@@ -416,11 +416,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         private async Task CleanupExtendedQueryTags(IExtendedQueryTagStore extendedQueryTag)
         {
-            await extendedQueryTag.DeleteExtendedQueryTagAsync(DicomTag.AcquisitionDate.GetPath(), DicomTag.AcquisitionDate.GetDefaultVR().Code, force: true);
-            await extendedQueryTag.DeleteExtendedQueryTagAsync(DicomTag.ConversionType.GetPath(), DicomTag.ConversionType.GetDefaultVR().Code, force: true);
-            await extendedQueryTag.DeleteExtendedQueryTagAsync(DicomTag.DopplerCorrectionAngle.GetPath(), DicomTag.DopplerCorrectionAngle.GetDefaultVR().Code, force: true);
-            await extendedQueryTag.DeleteExtendedQueryTagAsync(DicomTag.ReferencePixelX0.GetPath(), DicomTag.ReferencePixelX0.GetDefaultVR().Code, force: true);
-            await extendedQueryTag.DeleteExtendedQueryTagAsync(DicomTag.DistributionNameRETIRED.GetPath(), DicomTag.DistributionNameRETIRED.GetDefaultVR().Code, force: true);
+            await extendedQueryTag.DeleteExtendedQueryTagAsync(DicomTag.AcquisitionDate.GetPath(), DicomTag.AcquisitionDate.GetDefaultVR().Code);
+            await extendedQueryTag.DeleteExtendedQueryTagAsync(DicomTag.ConversionType.GetPath(), DicomTag.ConversionType.GetDefaultVR().Code);
+            await extendedQueryTag.DeleteExtendedQueryTagAsync(DicomTag.DopplerCorrectionAngle.GetPath(), DicomTag.DopplerCorrectionAngle.GetDefaultVR().Code);
+            await extendedQueryTag.DeleteExtendedQueryTagAsync(DicomTag.ReferencePixelX0.GetPath(), DicomTag.ReferencePixelX0.GetDefaultVR().Code);
+            await extendedQueryTag.DeleteExtendedQueryTagAsync(DicomTag.DistributionNameRETIRED.GetPath(), DicomTag.DistributionNameRETIRED.GetDefaultVR().Code);
         }
     }
 }
