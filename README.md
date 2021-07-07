@@ -63,6 +63,7 @@ Note that the webapp library, ARM templates and Web.Zip package are for testing 
 - [Conformance Statement](docs/resources/conformance-statement.md)
 - [Health Check API](docs/resources/health-check-api.md)
 - [Performance Guidance](docs/resources/performance-guidance.md)
+- [Api Versions](docs/api-versioning.md)
 
 ## Development
 
@@ -73,6 +74,7 @@ Note that the webapp library, ARM templates and Web.Zip package are for testing 
 - [Tests](docs/development/tests.md)
 - [Identity Server Authentication](docs/development/identity-server-authentication.md)
 - [Roles](docs/development/roles.md)
+- [API Versioning (developer)](docs/development/api-versioning-developers.md)
 
 ## Contributing
 
