@@ -22,6 +22,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         /// <param name="watermark">The watermark to DICOM instance.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The task.</returns>
-        Task ReindexInstanceAsync(IReadOnlyList<ExtendedQueryTagStoreEntry> entries, long watermark, CancellationToken cancellationToken = default);
+        Task ReindexInstanceAsync(IReadOnlyCollection<ExtendedQueryTagStoreEntry> entries, long watermark, CancellationToken cancellationToken = default);
     }
 }

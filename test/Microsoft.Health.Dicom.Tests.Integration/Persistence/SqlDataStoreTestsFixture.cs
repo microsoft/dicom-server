@@ -86,7 +86,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 new[]
                 {
                     new SqlIndexDataStoreV1(SqlConnectionWrapperFactory),
-                    new SqlIndexDataStoreV2(SqlConnectionWrapperFactory) ,
+                    new SqlIndexDataStoreV2(SqlConnectionWrapperFactory),
                     new SqlIndexDataStoreV3(SqlConnectionWrapperFactory)
                 });
 
@@ -97,10 +97,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 new[]
                 {
                     new SqlExtendedQueryTagStoreV1(),
-                    new SqlExtendedQueryTagStoreV2(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV2>.Instance) ,
+                    new SqlExtendedQueryTagStoreV2(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV2>.Instance),
                     new SqlExtendedQueryTagStoreV3(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV3>.Instance)
                 });
-
 
             TestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
         }
@@ -181,7 +180,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             {
                 await sqlConnection.OpenAsync();
                 SqlConnection.ClearAllPools();
-
                 using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandTimeout = 600;

@@ -10,7 +10,6 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
-using Microsoft.Health.SqlServer.Features.Schema;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing
 {
@@ -21,40 +20,32 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
     public partial class ReindexDurableFunction
     {
         private readonly ReindexOperationConfiguration _reindexConfig;
-        private readonly IReindexStore _reindexStore;
         private readonly IInstanceReindexer _instanceReindexer;
         private readonly IAddExtendedQueryTagService _addExtendedQueryTagService;
         private readonly IInstanceStore _instanceStore;
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly ISchemaVersionResolver _schemaVersionResolver;
-        private readonly SchemaInformation _schemaInformation;
 
         public ReindexDurableFunction(
             IOptions<ReindexOperationConfiguration> configOptions,
             IAddExtendedQueryTagService addExtendedQueryTagService,
-            IReindexStore reindexStore,
             IInstanceStore instanceStore,
             IInstanceReindexer instanceReindexer,
             IExtendedQueryTagStore extendedQueryTagStore,
-            ISchemaVersionResolver schemaVersionResolver,
-            SchemaInformation schemaInformation)
+            ISchemaVersionResolver schemaVersionResolver)
         {
             EnsureArg.IsNotNull(configOptions, nameof(configOptions));
-            EnsureArg.IsNotNull(reindexStore, nameof(reindexStore));
             EnsureArg.IsNotNull(instanceReindexer, nameof(instanceReindexer));
             EnsureArg.IsNotNull(addExtendedQueryTagService, nameof(addExtendedQueryTagService));
             EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
             EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
             EnsureArg.IsNotNull(schemaVersionResolver, nameof(schemaVersionResolver));
-            EnsureArg.IsNotNull(schemaInformation, nameof(schemaInformation));
             _reindexConfig = configOptions.Value;
-            _reindexStore = reindexStore;
             _instanceReindexer = instanceReindexer;
             _addExtendedQueryTagService = addExtendedQueryTagService;
             _instanceStore = instanceStore;
             _extendedQueryTagStore = extendedQueryTagStore;
             _schemaVersionResolver = schemaVersionResolver;
-            _schemaInformation = schemaInformation;
         }
     }
 }
