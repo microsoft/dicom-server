@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             return GetInstanceIdentifierImp(studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
         }
 
-        public virtual Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersByWatermarkRange(
+        public virtual Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersByWatermarkRange(
             WatermarkRange watermarkRange,
             IndexStatus indexStatus,
             CancellationToken cancellationToken = default)
