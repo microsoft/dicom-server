@@ -8,6 +8,7 @@ using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed;
@@ -123,7 +124,7 @@ namespace Microsoft.Extensions.DependencyInjection
                .AsSelf()
                .AsImplementedInterfaces();
 
-            services.Add<SqlStoreFactory<ISqlInstanceStore, ISqlInstanceStore>>()
+            services.Add<SqlStoreFactory<ISqlInstanceStore, IInstanceStore>>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
@@ -141,6 +142,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsSelf()
                 .AsImplementedInterfaces();
             services.Add<SqlIndexDataStoreV3>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+            services.Add<SqlIndexDataStoreV4>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();

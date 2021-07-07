@@ -41,9 +41,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         public RetrieveMetadataServiceTests(DataStoreTestsFixture storagefixture)
         {
             EnsureArg.IsNotNull(storagefixture, nameof(storagefixture));
+            _instanceStore = Substitute.For<IInstanceStore>();
             _instanceStoreFactory = Substitute.For<IStoreFactory<IInstanceStore>>();
             _instanceStoreFactory.GetInstanceAsync(default).ReturnsForAnyArgs(_instanceStore);
-            _instanceStore = Substitute.For<IInstanceStore>();
             _metadataStore = storagefixture.MetadataStore;
             _eTagGenerator = Substitute.For<IETagGenerator>();
             _retrieveMetadataService = new RetrieveMetadataService(_instanceStoreFactory, _metadataStore, _eTagGenerator);

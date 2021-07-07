@@ -132,8 +132,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public string TestConnectionString { get; }
 
-        public IInstanceStore InstanceStore { get; }
-
         public IStoreFactory<IExtendedQueryTagStore> ExtendedQueryTagStoreFactory { get; }
 
         public SqlIndexDataStoreTestHelper TestHelper { get; }

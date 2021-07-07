@@ -37,8 +37,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         public RetrieveMetadataServiceTests()
         {
             _instanceStoreFactory = Substitute.For<IStoreFactory<IInstanceStore>>();
-            _instanceStoreFactory.GetInstanceAsync(default).ReturnsForAnyArgs(_instanceStore);
             _instanceStore = Substitute.For<IInstanceStore>();
+            _instanceStoreFactory.GetInstanceAsync(default).ReturnsForAnyArgs(_instanceStore);
             _metadataStore = Substitute.For<IMetadataStore>();
             _eTagGenerator = Substitute.For<IETagGenerator>();
 
