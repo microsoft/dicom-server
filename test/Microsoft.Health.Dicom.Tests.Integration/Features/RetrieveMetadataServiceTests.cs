@@ -30,6 +30,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
 
         private readonly RetrieveMetadataService _retrieveMetadataService;
+        private readonly IStoreFactory<IInstanceStore> _instanceStoreFactory;
         private readonly IInstanceStore _instanceStore;
         private readonly IMetadataStore _metadataStore;
         private readonly IETagGenerator _eTagGenerator;
@@ -40,10 +41,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         public RetrieveMetadataServiceTests(DataStoreTestsFixture storagefixture)
         {
             EnsureArg.IsNotNull(storagefixture, nameof(storagefixture));
+            _instanceStoreFactory = Substitute.For<IStoreFactory<IInstanceStore>>();
+            _instanceStoreFactory.GetInstanceAsync(default).ReturnsForAnyArgs(_instanceStore);
             _instanceStore = Substitute.For<IInstanceStore>();
             _metadataStore = storagefixture.MetadataStore;
             _eTagGenerator = Substitute.For<IETagGenerator>();
-            _retrieveMetadataService = new RetrieveMetadataService(_instanceStore, _metadataStore, _eTagGenerator);
+            _retrieveMetadataService = new RetrieveMetadataService(_instanceStoreFactory, _metadataStore, _eTagGenerator);
         }
 
         [Fact]

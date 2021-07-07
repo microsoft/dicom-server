@@ -3,18 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
+using Microsoft.Health.Dicom.Core.Features.Retrieve;
+using Microsoft.Health.Dicom.SqlServer.Feature.Common;
+
+namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
 {
     /// <summary>
-    /// Enum to keep track of available SQL schema versions.
+    ///  Sql version of IIndexDataStore.
     /// </summary>
-    public enum SchemaVersion
+    internal interface ISqlInstanceStore : IInstanceStore, IVersioned
     {
-        Unknown = 0,
-        V1 = 1,
-        V2 = 2,
-        V3 = 3,
-        V4 = 4
-
     }
 }

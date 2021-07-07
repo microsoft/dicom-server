@@ -87,10 +87,20 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 {
                     new SqlIndexDataStoreV1(SqlConnectionWrapperFactory),
                     new SqlIndexDataStoreV2(SqlConnectionWrapperFactory),
-                    new SqlIndexDataStoreV3(SqlConnectionWrapperFactory)
+                    new SqlIndexDataStoreV3(SqlConnectionWrapperFactory),
+                    new SqlIndexDataStoreV4(SqlConnectionWrapperFactory),
                 });
 
-            InstanceStore = new SqlInstanceStore(SqlConnectionWrapperFactory);
+            InstanceStoreFactory = new SqlStoreFactory<ISqlInstanceStore, IInstanceStore>(
+                schemaResolver,
+                new[]
+                {
+                    new SqlInstanceStoreV1(SqlConnectionWrapperFactory),
+                    new SqlInstanceStoreV2(SqlConnectionWrapperFactory),
+                    new SqlInstanceStoreV3(SqlConnectionWrapperFactory),
+                    new SqlInstanceStoreV4(SqlConnectionWrapperFactory),
+                });
+
 
             ExtendedQueryTagStoreFactory = new SqlStoreFactory<ISqlExtendedQueryTagStore, IExtendedQueryTagStore>(
                 schemaResolver,
@@ -98,7 +108,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 {
                     new SqlExtendedQueryTagStoreV1(),
                     new SqlExtendedQueryTagStoreV2(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV2>.Instance),
-                    new SqlExtendedQueryTagStoreV3(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV3>.Instance)
+                    new SqlExtendedQueryTagStoreV3(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV3>.Instance),
+                    new SqlExtendedQueryTagStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV4>.Instance),
                 });
 
             TestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
@@ -114,6 +125,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public SqlConnectionWrapperFactory SqlConnectionWrapperFactory { get; }
 
         public IStoreFactory<IIndexDataStore> IndexDataStoreFactory { get; }
+
+        public IStoreFactory<IInstanceStore> InstanceStoreFactory { get; }
 
         public SchemaUpgradeRunner SchemaUpgradeRunner { get; }
 

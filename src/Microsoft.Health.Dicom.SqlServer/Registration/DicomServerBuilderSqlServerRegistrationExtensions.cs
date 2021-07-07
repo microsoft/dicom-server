@@ -57,6 +57,81 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsSelf()
                 .AsImplementedInterfaces();
 
+            services.AddIndexStore();
+
+            services.Add<SqlQueryStore>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.AddInstanceStore();
+
+            services.Add<SqlChangeFeedStore>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.AddExtendedQueryTagStore();
+
+            return dicomServerBuilder;
+        }
+
+        private static IServiceCollection AddExtendedQueryTagStore(this IServiceCollection services)
+        {
+            services.Add<SqlExtendedQueryTagStoreV1>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+            services.Add<SqlExtendedQueryTagStoreV2>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+            services.Add<SqlExtendedQueryTagStoreV3>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+            services.Add<SqlExtendedQueryTagStoreV4>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+            services.Add<SqlStoreFactory<ISqlExtendedQueryTagStore, IExtendedQueryTagStore>>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+            return services;
+        }
+
+        private static IServiceCollection AddInstanceStore(this IServiceCollection services)
+        {
+            services.Add<SqlInstanceStoreV1>()
+                              .Scoped()
+                              .AsSelf()
+                              .AsImplementedInterfaces();
+
+            services.Add<SqlInstanceStoreV2>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<SqlInstanceStoreV3>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<SqlInstanceStoreV4>()
+               .Scoped()
+               .AsSelf()
+               .AsImplementedInterfaces();
+
+            services.Add<SqlStoreFactory<ISqlInstanceStore, ISqlInstanceStore>>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+            return services;
+        }
+
+        private static IServiceCollection AddIndexStore(this IServiceCollection services)
+        {
             services.Add<SqlIndexDataStoreV1>()
                 .Scoped()
                 .AsSelf()
@@ -73,45 +148,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
-
             // TODO: Ideally, the logger can be registered in the API layer since it's agnostic to the implementation.
             // However, the current implementation of the decorate method requires the concrete type to be already registered,
             // so we need to register here. Need to some more investigation to see how we might be able to do this.
             services.Decorate<ISqlIndexDataStore, SqlLoggingIndexDataStore>();
-
-            services.Add<SqlQueryStore>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<SqlInstanceStore>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<SqlChangeFeedStore>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<SqlExtendedQueryTagStoreV1>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-            services.Add<SqlExtendedQueryTagStoreV2>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-            services.Add<SqlExtendedQueryTagStoreV3>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-            services.Add<SqlStoreFactory<ISqlExtendedQueryTagStore, IExtendedQueryTagStore>>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            return dicomServerBuilder;
+            return services;
         }
     }
 }
