@@ -5,14 +5,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Indexing;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing
@@ -22,87 +21,58 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// <summary>
         /// The activity to complete reindex.
         /// </summary>
-        /// <param name="operationId">The operation id.</param>
+        /// <param name="tagKeys">the tag keys.</param>
         /// <param name="log">The log.</param>
         /// <returns>The task.</returns>
         [FunctionName(nameof(CompleteReindexingTagsAsync))]
-        public Task CompleteReindexingTagsAsync([ActivityTrigger] string operationId, ILogger log)
+        public Task CompleteReindexingTagsAsync(
+            [ActivityTrigger] IReadOnlyCollection<int> tagKeys,
+            ILogger log)
         {
+            EnsureArg.IsNotNull(tagKeys, nameof(tagKeys));
             EnsureArg.IsNotNull(log, nameof(log));
 
-            log.LogInformation("Completing Reindex operation on {operationId}", operationId);
-            return _reindexStore.CompleteReindexAsync(operationId);
+            log.LogInformation("Completing Reindex operation on {tagKeys}", tagKeys);
+            // TODO: update tag status to Ready
+            return Task.CompletedTask;
         }
 
         /// <summary>
-        ///  The activity to add extended query tags.
+        ///  The activity to get reindex watermark range.
         /// </summary>
-        /// <param name="input">The input.</param>
-        /// <param name="log">The log.</param>
-        /// <returns>The store entries.</returns>
-        [FunctionName(nameof(AddTagsAsync))]
-        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AddTagsAsync([ActivityTrigger] IReadOnlyList<AddExtendedQueryTagEntry> input, ILogger log)
-        {
-            EnsureArg.IsNotNull(input, nameof(input));
-            EnsureArg.IsNotNull(log, nameof(log));
-            log.LogInformation("Adding extended query tags with {input}", input);
-
-            // TODO: change AddExtendedQueryTagAsync to return ExtendedQueryTagStoreEntry
-            await _addExtendedQueryTagService.AddExtendedQueryTagsAsync(input);
-            return Array.Empty<ExtendedQueryTagStoreEntry>();
-        }
-
-        /// <summary>
-        ///  The activity to start reindex.
-        /// </summary>
-        /// <param name="input">The input.</param>
+        /// <param name="context">The context.</param>
         /// <param name="log">The log.</param>
         /// <returns>The reindex operation.</returns>
-        [FunctionName(nameof(PrepareReindexingTagsAsync))]
-        public async Task<ReindexOperation> PrepareReindexingTagsAsync([ActivityTrigger] PrepareReindexingTagsInput input, ILogger log)
+        [FunctionName(nameof(GetReindexWatermarkRangeAsync))]
+        public async Task<WatermarkRange> GetReindexWatermarkRangeAsync(
+            [ActivityTrigger] IDurableActivityContext context,
+            ILogger log)
         {
-            EnsureArg.IsNotNull(input, nameof(input));
+            EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(log, nameof(log));
-            log.LogInformation("Start reindex with {input}", input);
-            return await _reindexStore.PrepareReindexingAsync(input.TagKeys, input.OperationId);
+            log.LogInformation("Getting reindex watermark range");
+            // TODO: get reindex watermark range
+            return await Task.FromResult(new WatermarkRange(0, 0));
         }
 
         /// <summary>
-        /// The activity to get processing query tags.
+        ///  The activity to get tag store entires.
         /// </summary>
-        /// <param name="operationId">The operation id.</param>
+        /// <param name="tagKeys">The tag keys.</param>
         /// <param name="log">The log.</param>
-        /// <returns>Extended query tag store entries.</returns>
-        [FunctionName(nameof(GetProcessingTagsAsync))]
-        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetProcessingTagsAsync([ActivityTrigger] string operationId, ILogger log)
+        /// <returns>The reindex operation.</returns>
+        [FunctionName(nameof(GetTagStoreEntriesAsync))]
+        public async Task<IReadOnlyCollection<ExtendedQueryTagStoreEntry>> GetTagStoreEntriesAsync(
+            [ActivityTrigger] IReadOnlyCollection<int> tagKeys,
+            ILogger log)
         {
+            EnsureArg.IsNotNull(tagKeys, nameof(tagKeys));
             EnsureArg.IsNotNull(log, nameof(log));
-
-            log.LogInformation("Getting query tags which is being processed by operation {operationId}", operationId);
-            var entries = await _reindexStore.GetReindexEntriesAsync(operationId);
-            // only process tags which is on Processing
-            var tagKeys = entries
-                .Where(x => x.Status == IndexStatus.Processing)
-                .Select(y => y.TagKey)
-                .ToList();
-            return await _extendedQueryTagStore.GetExtendedQueryTagsAsync(tagKeys);
+            log.LogInformation("Start getting extended query tag store entries for tag keys {input}", tagKeys);
+            // TODO: get extended query tag store entries for tagkeys
+            return await Task.FromResult(Array.Empty<ExtendedQueryTagStoreEntry>());
         }
 
-        /// <summary>
-        ///  The activity to update end watermark of an operation.
-        /// </summary>
-        /// <param name="input">The input.</param>
-        /// <param name="log">The log</param>
-        /// <returns>The task.</returns>
-        [FunctionName(nameof(UpdateReindexProgressAsync))]
-        public Task UpdateReindexProgressAsync([ActivityTrigger] UpdateReindexProgressInput input, ILogger log)
-        {
-            EnsureArg.IsNotNull(input, nameof(input));
-            EnsureArg.IsNotNull(log, nameof(log));
-
-            log.LogInformation("Updating reindex progress with {input}", input);
-            return _reindexStore.UpdateReindexProgressAsync(input.OperationId, input.EndWatermark);
-        }
 
         /// <summary>
         /// The activity to reindex  Dicom instances.
@@ -127,23 +97,6 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             }
 
             await Task.WhenAll(tasks);
-        }
-
-        /// <summary>
-        /// Fetch schema version.
-        /// </summary>
-        /// <param name="context">The durable activity context.</param>
-        /// <param name="log">The log</param>
-        /// <returns>The task.</returns>
-        [FunctionName(nameof(FetchSchemaVersionAsync))]
-        public async Task FetchSchemaVersionAsync([ActivityTrigger] IDurableActivityContext context, ILogger log)
-        {
-            // TODO: performance improvement, don't need to call service for every call.
-            EnsureArg.IsNotNull(context, nameof(context));
-            EnsureArg.IsNotNull(log, nameof(log));
-            log.LogInformation("Fetching schema version");
-            _schemaInformation.Current = (int?)await _schemaVersionResolver.GetCurrentVersionAsync(default);
-            log.LogInformation("Schema version is {version}", _schemaInformation.Current);
         }
     }
 }

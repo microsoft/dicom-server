@@ -46,7 +46,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             {
                 IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> rows = extendedQueryTagEntries.Select(ToAddExtendedQueryTagsInputTableTypeV1Row);
 
-                V3.AddExtendedQueryTags.PopulateCommand(sqlCommandWrapper, maxAllowedCount, new V3.AddExtendedQueryTagsTableValuedParameters(rows));
+                V3.AddExtendedQueryTags.PopulateCommand(sqlCommandWrapper, rows, maxAllowedCount);
 
                 try
                 {

@@ -13,6 +13,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing
@@ -20,27 +21,29 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
     public partial class ReindexDurableFunction
     {
         /// <summary>
-        ///  The orchestration function to add extended query tags.
+        ///  The orchestration function to reindex tags.
         /// </summary>
         /// <param name="context">The context.</param>
         /// <param name="logger">The logger.</param>
         /// <returns>The task.</returns>
-        [FunctionName(nameof(AddAndReindexTagsAsync))]
-        public async Task AddAndReindexTagsAsync(
+        [FunctionName(nameof(ReindexTagsAsync))]
+        public async Task ReindexTagsAsync(
             [OrchestrationTrigger] IDurableOrchestrationContext context,
             ILogger logger)
         {
             EnsureArg.IsNotNull(context, nameof(context));
             logger = context.CreateReplaySafeLogger(logger);
-            await context.CallActivityAsync(nameof(FetchSchemaVersionAsync), null);
-            var input = context.GetInput<IReadOnlyList<AddExtendedQueryTagEntry>>();
-            var storeEntries = await context.CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
-                nameof(AddTagsAsync),
-                input);
-            ReindexOperation reindexOperation = await context.CallActivityAsync<ReindexOperation>(
-                nameof(PrepareReindexingTagsAsync),
-                new PrepareReindexingTagsInput { OperationId = context.InstanceId, TagKeys = storeEntries.Select(x => x.Key).ToList() });
-            await context.CallSubOrchestratorAsync(nameof(ReindexTagsAsync), input: reindexOperation);
+            var input = context.GetInput<IReadOnlyCollection<int>>();
+            var tagEntries = await context.CallActivityAsync<IReadOnlyCollection<ExtendedQueryTagStoreEntry>>(nameof(GetTagStoreEntriesAsync), input);
+            var watermarkRange = await context.CallActivityAsync<WatermarkRange>(nameof(GetReindexWatermarkRangeAsync), null);
+            ReindexOperation reindexOperation = new ReindexOperation
+            {
+                OperationId = context.InstanceId,
+                StoreEntries = tagEntries,
+                WatermarkRange = watermarkRange
+            };
+
+            await context.CallSubOrchestratorAsync(nameof(SubReindexTagsAsync), input: reindexOperation);
         }
 
         /// <summary>
@@ -49,8 +52,8 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// <param name="context">the context.</param>
         /// <param name="logger">The logger.</param>
         /// <returns></returns>
-        [FunctionName(nameof(ReindexTagsAsync))]
-        public async Task ReindexTagsAsync(
+        [FunctionName(nameof(SubReindexTagsAsync))]
+        public async Task SubReindexTagsAsync(
             [OrchestrationTrigger] IDurableOrchestrationContext context,
             ILogger logger)
         {
@@ -59,40 +62,34 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
 
             ReindexOperation reindexOperation = context.GetInput<ReindexOperation>();
 
-            // EndWatermark < 0 means there are no instances.
-            if (reindexOperation.EndWatermark >= 0)
+            if (reindexOperation.WatermarkRange.Start >= 0
+                && reindexOperation.WatermarkRange.End >= 0)
             {
-                IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags = await context
-                    .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(nameof(GetProcessingTagsAsync), reindexOperation.OperationId);
 
-                if (queryTags.Count > 0)
+                long newEnd = await ReindexNextSegmentAsync(context, reindexOperation);
+
+                if (reindexOperation.WatermarkRange.Start <= newEnd)
                 {
-                    long newEnd = await ReindexNextSegmentAsync(context, reindexOperation, queryTags);
-
-                    if (reindexOperation.StartWatermark <= newEnd)
+                    ReindexOperation newInput = new ReindexOperation
                     {
-                        ReindexOperation newInput = new ReindexOperation
-                        {
-                            StartWatermark = reindexOperation.StartWatermark,
-                            EndWatermark = newEnd,
-                            StoreEntries = reindexOperation.StoreEntries
-                        };
+                        WatermarkRange = new WatermarkRange(reindexOperation.WatermarkRange.Start, newEnd),
+                        StoreEntries = reindexOperation.StoreEntries
+                    };
 
-                        context.StartNewOrchestration(nameof(ReindexTagsAsync), input: newInput);
-                    }
+                    context.StartNewOrchestration(nameof(SubReindexTagsAsync), input: newInput);
                 }
+
             }
-            await context.CallActivityAsync(nameof(CompleteReindexingTagsAsync), reindexOperation.OperationId);
+            await context.CallActivityAsync(nameof(CompleteReindexingTagsAsync), reindexOperation.StoreEntries.Select(x => x.Key).ToList());
         }
 
         private async Task<long> ReindexNextSegmentAsync(
             IDurableOrchestrationContext context,
-            ReindexOperation reindexOperation,
-            IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags)
+            ReindexOperation reindexOperation)
         {
-            // Reindex. Note that StartWatermark and EndWatermark are Inclusive
-            long start = reindexOperation.StartWatermark;
-            long end = reindexOperation.EndWatermark;
+            // Note that StartWatermark and EndWatermark are Inclusive
+            long start = reindexOperation.WatermarkRange.Start;
+            long end = reindexOperation.WatermarkRange.End;
 
             if (start <= end)
             {
@@ -105,7 +102,11 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                     batchStart = Math.Max(batchStart, start);
                     if (batchStart <= end)
                     {
-                        ReindexInstanceInput reindexInstanceInput = new ReindexInstanceInput { TagStoreEntries = queryTags, WatermarkRange = (Start: batchStart, End: end) };
+                        ReindexInstanceInput reindexInstanceInput = new ReindexInstanceInput
+                        {
+                            TagStoreEntries = reindexOperation.StoreEntries,
+                            WatermarkRange = new WatermarkRange(batchStart, end)
+                        };
                         batches.Add(context.CallActivityAsync(nameof(ReindexInstancesAsync), reindexInstanceInput));
                         end = batchStart - 1;
                     }
@@ -117,9 +118,6 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
 
                 await Task.WhenAll(batches);
             }
-
-            await context.CallActivityAsync(nameof(UpdateReindexProgressAsync),
-                new UpdateReindexProgressInput { EndWatermark = end, OperationId = reindexOperation.OperationId });
 
             return end;
         }
