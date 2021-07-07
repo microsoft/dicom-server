@@ -40,6 +40,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+        [Produces(KnownContentTypes.ApplicationDicomJson)]
+        [Consumes(KnownContentTypes.ApplicationDicom)] //TODO: Need to add multipart/related; type="application/dicom"
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Accepted)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]

@@ -47,6 +47,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             _logger = logger;
         }
 
+        //Todo: need to add produces for the multipart ones from here: https://github.com/microsoft/dicom-server/blob/main/docs/resources/conformance-statement.md#retrieve-instances-within-study-or-series
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
@@ -65,6 +66,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+        [Produces(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
@@ -83,6 +85,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
+        //todo: need to add produces for multipart ones from here https://github.com/microsoft/dicom-server/blob/main/docs/resources/conformance-statement.md#retrieve-instances-within-study-or-series
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
@@ -104,6 +107,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+        [Produces(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
@@ -123,6 +127,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
+        //todo: need to add produces for multipart from here https://github.com/microsoft/dicom-server/blob/main/docs/resources/conformance-statement.md#retrieve-an-instance
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
@@ -148,6 +153,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+        [Produces(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
@@ -171,6 +177,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
+        //todo: need to add produces for multipart from here https://github.com/microsoft/dicom-server/blob/main/docs/resources/conformance-statement.md#retrieve-frames
         [ProducesResponseType(typeof(Stream), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
