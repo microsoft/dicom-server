@@ -20,6 +20,5 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
         }
 
         public override SchemaVersion Version => SchemaVersion.V4;
-
     }
 }
