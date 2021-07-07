@@ -3,12 +3,20 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Operations;
+using Microsoft.Health.Dicom.Core.Features.Routing;
+using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using NSubstitute;
 using Xunit;
@@ -17,18 +25,46 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
 {
     public class AddExtendedQueryTagServiceTests
     {
-        private readonly IExtendedQueryTagEntryValidator _extendedQueryTagEntryValidator;
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
-        private readonly IAddExtendedQueryTagService _extendedQueryTagService;
+        private readonly IDicomOperationsClient _client;
+        private readonly IExtendedQueryTagEntryValidator _extendedQueryTagEntryValidator;
+        private readonly AddExtendedQueryTagService _extendedQueryTagService;
+        private readonly IUrlResolver _urlResolver;
+        private readonly CancellationTokenSource _tokenSource;
 
         public AddExtendedQueryTagServiceTests()
         {
-            _extendedQueryTagEntryValidator = Substitute.For<IExtendedQueryTagEntryValidator>();
-            _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
             var storeFactory = Substitute.For<IStoreFactory<IExtendedQueryTagStore>>();
-            storeFactory.GetInstanceAsync(default).Returns(_extendedQueryTagStore);
-            var config = new Configs.ExtendedQueryTagConfiguration();
-            _extendedQueryTagService = new AddExtendedQueryTagService(storeFactory, _extendedQueryTagEntryValidator, Options.Create(config));
+
+            _client = Substitute.For<IDicomOperationsClient>();
+            _extendedQueryTagEntryValidator = Substitute.For<IExtendedQueryTagEntryValidator>();
+            _urlResolver = Substitute.For<IUrlResolver>();
+            _extendedQueryTagService = new AddExtendedQueryTagService(
+                storeFactory,
+                _client,
+                _extendedQueryTagEntryValidator,
+                _urlResolver,
+                Options.Create(new ExtendedQueryTagConfiguration { MaxAllowedCount = 128 }));
+
+            _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
+            _tokenSource = new CancellationTokenSource();
+            storeFactory.GetInstanceAsync(_tokenSource.Token).Returns(_extendedQueryTagStore);
+        }
+
+        [Fact]
+        public async Task GivenInvalidInput_WhenAddExtendedQueryTagIsInvoked_ThenStopAfterValidation()
+        {
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+            AddExtendedQueryTagEntry entry = tag.BuildAddExtendedQueryTagEntry();
+            var exception = new ExtendedQueryTagEntryValidationException(string.Empty);
+
+            var input = new AddExtendedQueryTagEntry[] { entry };
+            _extendedQueryTagEntryValidator.WhenForAnyArgs(v => v.ValidateExtendedQueryTags(input)).Throw(exception);
+
+            await Assert.ThrowsAsync<ExtendedQueryTagEntryValidationException>(() => _extendedQueryTagService.AddExtendedQueryTagsAsync(input, _tokenSource.Token));
+
+            _extendedQueryTagEntryValidator.Received(1).ValidateExtendedQueryTags(input);
+            await _client.DidNotReceiveWithAnyArgs().StartQueryTagIndexingAsync(default, default);
         }
 
         [Fact]
@@ -36,24 +72,44 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
             AddExtendedQueryTagEntry entry = tag.BuildAddExtendedQueryTagEntry();
-            await _extendedQueryTagService.AddExtendedQueryTagAsync(new AddExtendedQueryTagEntry[] { entry }, default);
 
-            _extendedQueryTagEntryValidator.ReceivedWithAnyArgs().ValidateExtendedQueryTags(default);
-            await _extendedQueryTagStore.ReceivedWithAnyArgs().AddExtendedQueryTagsAsync(default, default);
-        }
+            var input = new AddExtendedQueryTagEntry[] { entry };
+            string expectedOperationId = Guid.NewGuid().ToString();
+            Uri expectedHref = new Uri("https://dicom.contoso.io/unit/test/Operations/" + expectedOperationId, UriKind.Absolute);
+            _extendedQueryTagStore
+                .AddExtendedQueryTagsAsync(
+                    Arg.Is<IReadOnlyCollection<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
+                    Arg.Is(128),
+                    Arg.Is(false),
+                    Arg.Is(_tokenSource.Token))
+                .Returns(new List<int> { 7 });
+            _client
+                .StartQueryTagIndexingAsync(
+                    Arg.Is<IReadOnlyCollection<int>>(x => x.Single() == 7),
+                    Arg.Is(_tokenSource.Token))
+                .Returns(expectedOperationId);
+            _urlResolver
+                .ResolveOperationStatusUri(expectedOperationId)
+                .Returns(expectedHref);
 
-        [Fact]
-        public async Task GivenInvalidInput_WhenAddExtendedQueryTagIsInvoked_ThenStopAfterValidation()
-        {
-            DicomTag tag = DicomTag.DeviceSerialNumber;
-            var exception = new ExtendedQueryTagEntryValidationException(string.Empty);
-            AddExtendedQueryTagEntry entry = tag.BuildAddExtendedQueryTagEntry();
-            _extendedQueryTagEntryValidator.WhenForAnyArgs(validator => validator.ValidateExtendedQueryTags(default))
-                .Throw(exception);
+            AddExtendedQueryTagResponse actual = await _extendedQueryTagService.AddExtendedQueryTagsAsync(input, _tokenSource.Token);
+            Assert.Equal(expectedOperationId, actual.Operation.Id);
+            Assert.Equal(expectedHref, actual.Operation.Href);
 
-            await Assert.ThrowsAsync<ExtendedQueryTagEntryValidationException>(() => _extendedQueryTagService.AddExtendedQueryTagAsync(new AddExtendedQueryTagEntry[] { entry }, default));
-            _extendedQueryTagEntryValidator.ReceivedWithAnyArgs().ValidateExtendedQueryTags(default);
-            await _extendedQueryTagStore.DidNotReceiveWithAnyArgs().AddExtendedQueryTagsAsync(default, default);
+            _extendedQueryTagEntryValidator.Received(1).ValidateExtendedQueryTags(input);
+            await _extendedQueryTagStore
+                .Received(1)
+                .AddExtendedQueryTagsAsync(
+                    Arg.Is<IReadOnlyCollection<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
+                    Arg.Is(128),
+                    Arg.Is(false),
+                    Arg.Is(_tokenSource.Token));
+            await _client
+                .Received(1)
+                .StartQueryTagIndexingAsync(
+                    Arg.Is<IReadOnlyCollection<int>>(x => x.Single() == 7),
+                    Arg.Is(_tokenSource.Token));
+            _urlResolver.Received(1).ResolveOperationStatusUri(expectedOperationId);
         }
     }
 }

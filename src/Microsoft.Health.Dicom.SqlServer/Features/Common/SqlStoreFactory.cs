@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,7 +41,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             {
                 string msg = currentVersion == SchemaVersion.Unknown
                     ? DicomSqlServerResource.UnknownSchemaVersion
-                    : DicomSqlServerResource.SchemaVersionOutOfRange;
+                    : string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.SchemaVersionOutOfRange, currentVersion);
 
                 throw new KeyNotFoundException(msg);
             }

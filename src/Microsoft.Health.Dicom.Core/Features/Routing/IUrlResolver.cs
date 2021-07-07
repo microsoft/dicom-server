@@ -8,8 +8,18 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Routing
 {
+    /// <summary>
+    /// Represents a utility for creating URLs for the DICOM service.
+    /// </summary>
     public interface IUrlResolver
     {
+        /// <summary>
+        /// Resolves the URI for retrieving the status of an operation.
+        /// </summary>
+        /// <param name="operationId">The unique ID for a long-running operation.</param>
+        /// <returns>An instance of <see cref="Uri"/> pointing to where the status can be retrieved.</returns>
+        Uri ResolveOperationStatusUri(string operationId);
+
         /// <summary>
         /// Resolves the URI to retrieve a study.
         /// </summary>

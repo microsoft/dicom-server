@@ -17,7 +17,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
     public partial class ReindexDurableFunction
     {
         /// <summary>
-        /// The http trigger to add extended Query tags
+        /// The http trigger to add extended query tags
         /// </summary>
         /// <param name="request">The http request.</param>
         /// <param name="client">The client.</param>

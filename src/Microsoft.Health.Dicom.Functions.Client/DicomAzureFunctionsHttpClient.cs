@@ -4,10 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -28,7 +30,7 @@ namespace Microsoft.Health.Dicom.Functions.Client
     {
         private readonly HttpClient _client;
         private readonly FunctionsClientConfiguration _config;
-        private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings
+        internal static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings
         {
             DateTimeZoneHandling = DateTimeZoneHandling.Utc,
         };
@@ -47,7 +49,6 @@ namespace Microsoft.Health.Dicom.Functions.Client
             EnsureArg.IsNotNull(config?.Value, nameof(config));
 
             client.BaseAddress = config.Value.BaseAddress;
-            client.DefaultRequestHeaders.Add(HeaderNames.Accept, MediaTypeNames.Application.Json);
 
             _client = client;
             _config = config.Value;
@@ -59,10 +60,13 @@ namespace Microsoft.Health.Dicom.Functions.Client
             EnsureArg.IsNotNullOrWhiteSpace(operationId, nameof(operationId));
 
             var statusRoute = new Uri(
-                string.Format(CultureInfo.InvariantCulture, _config.Routes.StatusTemplate, operationId),
+                string.Format(CultureInfo.InvariantCulture, _config.Routes.GetStatusRouteTemplate, operationId),
                 UriKind.Relative);
 
-            using HttpResponseMessage response = await _client.GetAsync(statusRoute, cancellationToken);
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, statusRoute);
+            request.Headers.Add(HeaderNames.Accept, MediaTypeNames.Application.Json);
+
+            using HttpResponseMessage response = await _client.SendAsync(request, cancellationToken);
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
                 return null;
@@ -83,7 +87,30 @@ namespace Microsoft.Health.Dicom.Functions.Client
                 responseState.InstanceId,
                 responseState.Type,
                 responseState.CreatedTime,
+                responseState.LastUpdatedTime,
                 responseState.RuntimeStatus);
+        }
+
+        /// <inheritdoc/>
+        public async Task<string> StartQueryTagIndexingAsync(IReadOnlyCollection<int> tagKeys, CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(tagKeys, nameof(tagKeys));
+            EnsureArg.HasItems(tagKeys, nameof(tagKeys));
+
+            using var content = new StringContent(JsonConvert.SerializeObject(tagKeys, JsonSettings), Encoding.UTF8, MediaTypeNames.Application.Json);
+            using HttpResponseMessage response = await _client.PostAsync(_config.Routes.StartQueryTagIndexingRoute, content, cancellationToken);
+
+            // Re-throw any exceptions we may have encountered when making the HTTP request
+            response.EnsureSuccessStatusCode();
+
+            string instanceId =
+#if NET5_0_OR_GREATER
+                await response.Content.ReadAsStringAsync(cancellationToken);
+#else
+                await response.Content.ReadAsStringAsync();
+#endif
+
+            return instanceId;
         }
     }
 }

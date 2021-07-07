@@ -36,10 +36,16 @@ namespace Microsoft.Health.Dicom.Functions.Client.Models
         public string InstanceId { get; set; }
 
         /// <summary>
-        /// Gets or sets the time the orchestration instance was started.
+        /// Gets the date and time the operation was started.
         /// </summary>
-        /// <value>The <see cref="DateTime"/> when the orchestration instance was started by a trigger.</value>
+        /// <value>The <see cref="DateTime"/> when the operation was started.</value>
         public DateTime CreatedTime { get; set; }
+
+        /// <summary>
+        /// Gets the last date and time the operation's execution status was updated.
+        /// </summary>
+        /// <value>The last <see cref="DateTime"/> when the operation status was updated.</value>
+        public DateTime LastUpdatedTime { get; set; }
 
         /// <summary>
         /// Gets or sets the optional input passed to the orchestration instance.
