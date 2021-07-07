@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
         }
 
         public override SchemaVersion Version => SchemaVersion.V4;
-        public override async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersByWatermarkRange(
+        public override async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersByWatermarkRangeAsync(
             WatermarkRange watermarkRange,
             IndexStatus indexStatus,
             CancellationToken cancellationToken = default)

@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         /// <param name="indexStatus"></param>
         /// <param name="cancellationToken">The cancellation token</param>
         /// <returns>The instanceidentifiers</returns>
-        Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersByWatermarkRange(
+        Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersByWatermarkRangeAsync(
             WatermarkRange watermarkRange,
             IndexStatus indexStatus,
             CancellationToken cancellationToken = default);

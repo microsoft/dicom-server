@@ -42,7 +42,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var instance3 = await AddRandomInstanceAsync();
             var instance4 = await AddRandomInstanceAsync();
             var instanceStore = await _instanceStoreFactory.GetInstanceAsync();
-            var instances = await instanceStore.GetInstanceIdentifiersByWatermarkRange(new WatermarkRange(instance1.Version, instance3.Version), IndexStatus.Creating);
+            var instances = await instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(new WatermarkRange(instance1.Version, instance3.Version), IndexStatus.Creating);
             Assert.Equal(instances, new[] { instance1, instance2, instance3 });
         }
 
