@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 2),
                 new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 4),
             };
-            _instanceStore.GetInstanceIdentifiersAsync(input.WatermarkRange, Core.Models.IndexStatus.Created, Arg.Any<CancellationToken>()).Returns(identifiers);
+            _instanceStore.GetInstanceIdentifiersByWatermarkRange(input.WatermarkRange, Core.Models.IndexStatus.Created, Arg.Any<CancellationToken>()).Returns(identifiers);
             await _reindexDurableFunction.ReindexInstancesAsync(input, NullLogger.Instance);
             foreach (var identifier in identifiers)
             {

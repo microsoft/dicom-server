@@ -88,7 +88,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
 
             logger.LogInformation("Reindex instances with {input}", input);
 
-            var instanceIdentifiers = await _instanceStore.GetInstanceIdentifiersAsync(input.WatermarkRange, Core.Models.IndexStatus.Created);
+            var instanceIdentifiers = await _instanceStore.GetInstanceIdentifiersByWatermarkRange(input.WatermarkRange, Core.Models.IndexStatus.Created);
 
             var tasks = new List<Task>();
             foreach (var instanceIdentifier in instanceIdentifiers)

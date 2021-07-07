@@ -9,7 +9,7 @@ using Microsoft.Health.SqlServer.Features.Client;
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 {
     /// <summary>
-    /// Sql IndexDataStore version 2.
+    /// Sql IndexDataStore version 4.
     /// </summary>
     internal class SqlIndexDataStoreV4 : SqlIndexDataStoreV3
     {

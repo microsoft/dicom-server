@@ -9,7 +9,7 @@ using Microsoft.Health.Dicom.SqlServer.Feature.Common;
 namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
 {
     /// <summary>
-    ///  Sql version of IIndexDataStore.
+    ///  Sql version of IInstanceStore.
     /// </summary>
     internal interface ISqlInstanceStore : IInstanceStore, IVersioned
     {

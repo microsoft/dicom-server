@@ -1053,6 +1053,26 @@ BEGIN
 END
 GO
 
+/*************************************************************
+    Stored procedures for adding an instance.
+**************************************************************/
+--
+-- STORED PROCEDURE
+--     GetInstancesByWatermarkRange
+--
+-- DESCRIPTION
+--     Get instances by given watermark range.
+--
+-- PARAMETERS
+--     @startWatermark
+--         * The inclusive start watermark.
+--     @endWatermark
+--         * The inclusive end watermark.
+--     @status
+--         * The instance status.
+-- RETURN VALUE
+--     The instance identifiers.
+------------------------------------------------------------------------
 CREATE PROCEDURE dbo.GetInstancesByWatermarkRange(
     @startWatermark BIGINT,
     @endWatermark BIGINT,
@@ -1069,6 +1089,7 @@ AS
     WHERE Watermark BETWEEN @startWatermark AND @endWatermark
           AND Status = @status
 GO
+
 
 
 /***************************************************************************************/

@@ -1,4 +1,24 @@
-CREATE PROCEDURE dbo.GetInstancesByWatermarkRange(
+/*************************************************************
+    Stored procedures for adding an instance.
+**************************************************************/
+--
+-- STORED PROCEDURE
+--     GetInstancesByWatermarkRange
+--
+-- DESCRIPTION
+--     Get instances by given watermark range.
+--
+-- PARAMETERS
+--     @startWatermark
+--         * The inclusive start watermark.
+--     @endWatermark
+--         * The inclusive end watermark.
+--     @status
+--         * The instance status.
+-- RETURN VALUE
+--     The instance identifiers.
+------------------------------------------------------------------------
+CREATE OR ALTER PROCEDURE dbo.GetInstancesByWatermarkRange(
     @startWatermark BIGINT,
     @endWatermark BIGINT,
     @status TINYINT
