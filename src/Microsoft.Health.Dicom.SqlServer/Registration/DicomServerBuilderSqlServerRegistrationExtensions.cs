@@ -58,26 +58,26 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.AddIndexStore();
+            services.AddIndexDataStores();
 
             services.Add<SqlQueryStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.AddInstanceStore();
+            services.AddInstanceStores();
 
             services.Add<SqlChangeFeedStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.AddExtendedQueryTagStore();
+            services.AddExtendedQueryTagStores();
 
             return dicomServerBuilder;
         }
 
-        private static IServiceCollection AddExtendedQueryTagStore(this IServiceCollection services)
+        private static IServiceCollection AddExtendedQueryTagStores(this IServiceCollection services)
         {
             services.Add<SqlExtendedQueryTagStoreV1>()
                 .Scoped()
@@ -102,28 +102,24 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        private static IServiceCollection AddInstanceStore(this IServiceCollection services)
+        private static IServiceCollection AddInstanceStores(this IServiceCollection services)
         {
             services.Add<SqlInstanceStoreV1>()
-                              .Scoped()
-                              .AsSelf()
-                              .AsImplementedInterfaces();
-
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
             services.Add<SqlInstanceStoreV2>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
-
             services.Add<SqlInstanceStoreV3>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
-
             services.Add<SqlInstanceStoreV4>()
-               .Scoped()
-               .AsSelf()
-               .AsImplementedInterfaces();
-
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
             services.Add<SqlStoreFactory<ISqlInstanceStore, IInstanceStore>>()
                 .Scoped()
                 .AsSelf()
@@ -131,7 +127,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        private static IServiceCollection AddIndexStore(this IServiceCollection services)
+        private static IServiceCollection AddIndexDataStores(this IServiceCollection services)
         {
             services.Add<SqlIndexDataStoreV1>()
                 .Scoped()

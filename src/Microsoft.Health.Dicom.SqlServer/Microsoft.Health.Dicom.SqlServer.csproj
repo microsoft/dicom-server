@@ -4,6 +4,7 @@
     <Description>SQL Server extensions and utilities used by Microsoft's DICOMweb APIs.</Description>
     <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
   </PropertyGroup>
+  
   <ItemGroup>
     <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="fo-dicom" Version="4.0.7" />
@@ -55,7 +56,7 @@
       <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
       <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
       <MutableClassVersion>2</MutableClassVersion>
-    </EmbeddedResource> 
+    </EmbeddedResource>
     <EmbeddedResource Include="Features\Schema\Migrations\3.diff.sql" />
     <EmbeddedResource Include="Features\Schema\Migrations\3.sql">
       <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
@@ -92,4 +93,3 @@
   </Target>
 
 </Project>
-

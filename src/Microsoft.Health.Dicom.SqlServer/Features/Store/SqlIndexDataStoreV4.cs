@@ -13,7 +13,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
     /// </summary>
     internal class SqlIndexDataStoreV4 : SqlIndexDataStoreV3
     {
-
         public SqlIndexDataStoreV4(
             SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
             : base(sqlConnectionWrapperFactory)
@@ -21,6 +20,5 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
         }
 
         public override SchemaVersion Version => SchemaVersion.V4;
-
     }
 }

@@ -31,8 +31,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         /// <summary>
         /// Gets idenfiers of instances within the given range of watermarks.
         /// </summary>
-        /// <param name="watermarkRange"></param>
-        /// <param name="indexStatus"></param>
+        /// <param name="watermarkRange">The watermark range</param>
+        /// <param name="indexStatus">The index status</param>
         /// <param name="cancellationToken">The cancellation token</param>
         /// <returns>The instanceidentifiers</returns>
         Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersByWatermarkRangeAsync(

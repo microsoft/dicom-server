@@ -59,7 +59,5 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             return new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version);
         }
 
-
-
     }
 }
