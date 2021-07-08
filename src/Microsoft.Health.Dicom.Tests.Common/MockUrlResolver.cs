@@ -12,6 +12,13 @@ namespace Microsoft.Health.Dicom.Tests.Common
 {
     public class MockUrlResolver : IUrlResolver
     {
+        public Uri ResolveOperationStatusUri(string operationId)
+        {
+            EnsureArg.IsNotNull(operationId, nameof(operationId));
+
+            return new Uri("/" + operationId, UriKind.Relative);
+        }
+
         public Uri ResolveRetrieveInstanceUri(InstanceIdentifier instanceIdentifier)
         {
             EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));

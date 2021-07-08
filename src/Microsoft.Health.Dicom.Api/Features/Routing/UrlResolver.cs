@@ -43,6 +43,19 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
             _actionContextAccessor.ActionContext);
 
         /// <inheritdoc />
+        public Uri ResolveOperationStatusUri(string operationId)
+        {
+            EnsureArg.IsNotNull(operationId, nameof(operationId));
+
+            return RouteUri(
+                KnownRouteNames.OperationStatus,
+                new RouteValueDictionary
+                {
+                    { KnownActionParameterNames.OperationId, operationId },
+                });
+        }
+
+        /// <inheritdoc />
         public Uri ResolveRetrieveStudyUri(string studyInstanceUid)
         {
             EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
@@ -50,7 +63,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
 
             return RouteUri(
                 hasVersion ? KnownRouteNames.VersionedRetrieveStudy : KnownRouteNames.RetrieveStudy,
-                new RouteValueDictionary()
+                new RouteValueDictionary
                 {
                     { KnownActionParameterNames.StudyInstanceUid, studyInstanceUid },
                 });
@@ -64,7 +77,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
 
             return RouteUri(
                 hasVersion ? KnownRouteNames.VersionedRetrieveInstance : KnownRouteNames.RetrieveInstance,
-                new RouteValueDictionary()
+                new RouteValueDictionary
                 {
                     { KnownActionParameterNames.StudyInstanceUid, instanceIdentifier.StudyInstanceUid },
                     { KnownActionParameterNames.SeriesInstanceUid, instanceIdentifier.SeriesInstanceUid },

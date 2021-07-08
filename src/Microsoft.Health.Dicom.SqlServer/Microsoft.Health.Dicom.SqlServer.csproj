@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>SQL Server extensions and utilities used by Microsoft's DICOMweb APIs.</Description>
@@ -26,6 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
   </ItemGroup>
+
   <ItemGroup>
     <Compile Update="DicomSqlServerResource.Designer.cs">
       <DesignTime>True</DesignTime>
@@ -40,7 +41,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Features\Indexing\" />
     <Folder Include="Features\Schema\Model\" />
   </ItemGroup>
 
@@ -58,7 +58,7 @@
     </EmbeddedResource> 
     <EmbeddedResource Include="Features\Schema\Migrations\3.diff.sql" />
     <EmbeddedResource Include="Features\Schema\Migrations\3.sql">
-      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>      
+      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
       <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
       <MutableClassVersion>3</MutableClassVersion>
     </EmbeddedResource>

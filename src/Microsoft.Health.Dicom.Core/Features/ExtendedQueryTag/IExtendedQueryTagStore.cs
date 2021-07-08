@@ -15,14 +15,23 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     public interface IExtendedQueryTagStore
     {
         /// <summary>
-        /// Add extended query tags into ExtendedQueryTagStore
-        /// Notes: once moved to job framework, the return will jobid, to save development effort, just return task for now.
+        /// Adds the extended query tags into the store if they are not present.
         /// </summary>
         /// <param name="extendedQueryTagEntries">The extended query tag entries.</param>
         /// <param name="maxAllowedCount">The max allowed count.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The tag key.</returns>
-        Task AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxAllowedCount, CancellationToken cancellationToken = default);
+        /// <param name="ready">Optionally indicates whether the <paramref name="extendedQueryTagEntries"/> have been fully indexed.</param>
+        /// <param name="cancellationToken">
+        /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
+        /// </param>
+        /// <returns>
+        /// A task representing the asynchronous add operation. The value of its <see cref="Task{TResult}.Result"/>
+        /// property contains the keys for the <paramref name="extendedQueryTagEntries"/> in the store.
+        /// </returns>
+        Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(
+            IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries,
+            int maxAllowedCount,
+            bool ready = false,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Get stored extended query tags from ExtendedQueryTagStore, if provided, by tagPath.
@@ -45,9 +54,8 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// </summary>
         /// <param name="tagPath">The tag path.</param>
         /// <param name="vr">The VR code.</param>
-        /// <param name="cancellationToken">The cancellation token</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The task.</returns>
         Task DeleteExtendedQueryTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default);
-
     }
 }

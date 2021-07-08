@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
 {
     internal sealed class MockMessageHandler : HttpMessageHandler
     {
-        public event Action<HttpRequestMessage, CancellationToken> Sending;
+        public event Func<HttpRequestMessage, CancellationToken, Task> SendingAsync;
 
         public int SentMessages { get; private set; }
 
@@ -23,11 +23,11 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
             _expected = expected;
         }
 
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            Sending?.Invoke(request, cancellationToken);
+            await SendingAsync?.Invoke(request, cancellationToken);
             SentMessages++;
-            return Task.FromResult(_expected);
+            return _expected;
         }
     }
 }

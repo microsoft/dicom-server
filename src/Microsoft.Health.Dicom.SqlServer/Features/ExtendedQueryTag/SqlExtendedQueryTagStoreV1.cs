@@ -16,7 +16,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
     {
         public virtual SchemaVersion Version => SchemaVersion.V1;
 
-        public virtual Task AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxCount, CancellationToken cancellationToken)
+        public virtual Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(
+            IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries,
+            int maxCount,
+            bool ready = false,
+            CancellationToken cancellationToken = default)
         {
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }

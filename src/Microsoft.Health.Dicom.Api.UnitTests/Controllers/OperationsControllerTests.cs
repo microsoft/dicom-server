@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Api.Controllers;
+using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Net.Http.Headers;
@@ -27,10 +28,17 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
         {
             Assert.Throws<ArgumentNullException>(() => new OperationsController(
                 null,
+                Substitute.For<IUrlResolver>(),
                 NullLogger<OperationsController>.Instance));
 
             Assert.Throws<ArgumentNullException>(() => new OperationsController(
                 new Mediator(t => null),
+                null,
+                NullLogger<OperationsController>.Instance));
+
+            Assert.Throws<ArgumentNullException>(() => new OperationsController(
+                new Mediator(t => null),
+                Substitute.For<IUrlResolver>(),
                 null));
         }
 
@@ -39,8 +47,8 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
         {
             string id = Guid.NewGuid().ToString();
             IMediator mediator = Substitute.For<IMediator>();
-
-            var controller = new OperationsController(mediator, NullLogger<OperationsController>.Instance);
+            IUrlResolver urlResolver = Substitute.For<IUrlResolver>();
+            var controller = new OperationsController(mediator, urlResolver, NullLogger<OperationsController>.Instance);
             controller.ControllerContext.HttpContext = new DefaultHttpContext();
 
             mediator
@@ -55,6 +63,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
             await mediator.Received(1).Send(
                 Arg.Is<OperationStatusRequest>(x => x.OperationId == id),
                 Arg.Is(controller.HttpContext.RequestAborted));
+            urlResolver.DidNotReceiveWithAnyArgs().ResolveOperationStatusUri(default);
         }
 
         [Theory]
@@ -63,23 +72,25 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
         public async Task GivenInProgressStatus_WhenGettingStatus_ThenReturnOk(OperationRuntimeStatus inProgressStatus)
         {
             string id = Guid.NewGuid().ToString();
+            string statusUrl = "https://dicom.contoso.io/unit/test/Operations/" + id;
             IMediator mediator = Substitute.For<IMediator>();
-            OperationStatusResponse expected = new OperationStatusResponse(
+            IUrlResolver urlResolver = Substitute.For<IUrlResolver>();
+            var controller = new OperationsController(mediator, urlResolver, NullLogger<OperationsController>.Instance);
+            controller.ControllerContext.HttpContext = new DefaultHttpContext();
+
+            var expected = new OperationStatusResponse(
                 id,
                 OperationType.Reindex,
+                DateTime.UtcNow.AddMinutes(-1),
                 DateTime.UtcNow,
                 inProgressStatus);
-
-            var controller = new OperationsController(mediator, NullLogger<OperationsController>.Instance);
-            controller.ControllerContext.HttpContext = new DefaultHttpContext();
-            controller.ControllerContext.HttpContext.Request.PathBase = new PathString("/api/v1");
-            controller.ControllerContext.HttpContext.Request.Path = new PathString("/Operations/" + id);
 
             mediator
                 .Send(
                     Arg.Is<OperationStatusRequest>(x => x.OperationId == id),
                     Arg.Is(controller.HttpContext.RequestAborted))
                 .Returns(expected);
+            urlResolver.ResolveOperationStatusUri(id).Returns(new Uri(statusUrl, UriKind.Absolute));
 
             IActionResult response = await controller.GetStatusAsync(id);
             Assert.IsType<ObjectResult>(response);
@@ -89,11 +100,12 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
             var actual = response as ObjectResult;
             Assert.Equal((int)HttpStatusCode.Accepted, actual.StatusCode);
             Assert.Same(expected, actual.Value);
-            Assert.Equal("/api/v1/Operations/" + id, headerValue[0]);
+            Assert.Equal(statusUrl, headerValue[0]);
 
             await mediator.Received(1).Send(
                 Arg.Is<OperationStatusRequest>(x => x.OperationId == id),
                 Arg.Is(controller.HttpContext.RequestAborted));
+            urlResolver.Received(1).ResolveOperationStatusUri(id);
         }
 
         [Theory]
@@ -105,16 +117,16 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
         {
             string id = Guid.NewGuid().ToString();
             IMediator mediator = Substitute.For<IMediator>();
-            OperationStatusResponse expected = new OperationStatusResponse(
+            IUrlResolver urlResolver = Substitute.For<IUrlResolver>();
+            var controller = new OperationsController(mediator, urlResolver, NullLogger<OperationsController>.Instance);
+            controller.ControllerContext.HttpContext = new DefaultHttpContext();
+
+            var expected = new OperationStatusResponse(
                 id,
                 OperationType.Reindex,
                 DateTime.UtcNow,
+                DateTime.UtcNow,
                 doneStatus);
-
-            var controller = new OperationsController(mediator, NullLogger<OperationsController>.Instance);
-            controller.ControllerContext.HttpContext = new DefaultHttpContext();
-            controller.ControllerContext.HttpContext.Request.PathBase = new PathString("/api/v1");
-            controller.ControllerContext.HttpContext.Request.Path = new PathString("/Operations/" + id);
 
             mediator
                 .Send(
@@ -133,6 +145,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
             await mediator.Received(1).Send(
                 Arg.Is<OperationStatusRequest>(x => x.OperationId == id),
                 Arg.Is(controller.HttpContext.RequestAborted));
+            urlResolver.DidNotReceiveWithAnyArgs().ResolveOperationStatusUri(default);
         }
     }
 }
