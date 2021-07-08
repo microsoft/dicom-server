@@ -1494,10 +1494,10 @@ GO
 /***************************************************************************************/
 CREATE PROCEDURE dbo.AddExtendedQueryTags (
     @extendedQueryTags dbo.AddExtendedQueryTagsInputTableType_1 READONLY,
-    @maxAllowedCount INT
+    @maxAllowedCount INT,
+    @ready BIT = 0
 )
 AS
-
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
@@ -1508,18 +1508,14 @@ AS
              THROW 50409, 'extended query tags exceed max allowed count', 1
 
         -- Check if tag with same path already exist
-        SELECT TagKey 
-        FROM dbo.ExtendedQueryTag WITH(HOLDLOCK) 
-        INNER JOIN @extendedQueryTags input 
-        ON input.TagPath = dbo.ExtendedQueryTag.TagPath 
-	    
-        IF @@ROWCOUNT <> 0
+        IF EXISTS(SELECT 1 FROM dbo.ExtendedQueryTag WITH(HOLDLOCK) INNER JOIN @extendedQueryTags input ON input.TagPath = dbo.ExtendedQueryTag.TagPath)
             THROW 50409, 'extended query tag(s) already exist', 2
 
-        -- add to extended query tag table with status 1(Ready)
+        -- add to extended query tag table with status 0 (Adding)
         INSERT INTO dbo.ExtendedQueryTag
             (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus)
-        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, 1 FROM @extendedQueryTags
+        OUTPUT INSERTED.TagKey
+        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, @ready FROM @extendedQueryTags
 
     COMMIT TRANSACTION
 GO
