@@ -26,7 +26,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
         public IIndexDataStore GetInstance()
         {
-            return _indexDataStores.First(store => (int)store.Version == _schemaInformation.Current.Value);
+            // if the service is starting without schema initialized
+            if (_schemaInformation.Current == null)
+            {
+                return _indexDataStores.First(store => (int)store.Version == _schemaInformation.MinimumSupportedVersion);
+            }
+
+            return _indexDataStores.FirstOrDefault(store => (int)store.Version == _schemaInformation.Current);
         }
     }
 }
