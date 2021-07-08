@@ -186,13 +186,14 @@ namespace Microsoft.AspNetCore.Builder
 
                     app.UseSwagger();
 
-                    app.UseSwaggerUI(options =>
+                    // For now disable ui until hear back from accessability team
+                    /* app.UseSwaggerUI(options =>
                     {
                         foreach (ApiVersionDescription description in provider.ApiVersionDescriptions)
                         {
                             options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
                         }
-                    });
+                    }); */
 
                     next(app);
                 };
