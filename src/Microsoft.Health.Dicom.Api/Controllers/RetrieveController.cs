@@ -37,6 +37,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         private readonly IMediator _mediator;
         private readonly ILogger<RetrieveController> _logger;
         private const string IfNoneMatch = "If-None-Match";
+        private const string TypeSeperator = "=";
 
         public RetrieveController(IMediator mediator, ILogger<RetrieveController> logger)
         {
@@ -47,7 +48,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             _logger = logger;
         }
 
-        //Todo: need to add produces for the multipart ones from here: https://github.com/microsoft/dicom-server/blob/main/docs/resources/conformance-statement.md#retrieve-instances-within-study-or-series
+        [Produces(KnownContentTypes.MultipartRelated + TypeSeperator + KnownContentTypes.ApplicationDicom)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
@@ -85,7 +86,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
-        //todo: need to add produces for multipart ones from here https://github.com/microsoft/dicom-server/blob/main/docs/resources/conformance-statement.md#retrieve-instances-within-study-or-series
+        [Produces(KnownContentTypes.MultipartRelated + TypeSeperator + KnownContentTypes.ApplicationDicom)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
@@ -127,7 +128,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
-        //todo: need to add produces for multipart from here https://github.com/microsoft/dicom-server/blob/main/docs/resources/conformance-statement.md#retrieve-an-instance
+        [Produces(KnownContentTypes.ApplicationDicom, new[] { KnownContentTypes.MultipartRelated + TypeSeperator + KnownContentTypes.ApplicationDicom })]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
@@ -177,7 +178,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
-        //todo: need to add produces for multipart from here https://github.com/microsoft/dicom-server/blob/main/docs/resources/conformance-statement.md#retrieve-frames
+        [Produces(KnownContentTypes.MultipartRelated + TypeSeperator + KnownContentTypes.ApplicationOctetStream, new[] { KnownContentTypes.MultipartRelated + TypeSeperator + KnownContentTypes.ImageJpeg2000 })]
         [ProducesResponseType(typeof(Stream), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]

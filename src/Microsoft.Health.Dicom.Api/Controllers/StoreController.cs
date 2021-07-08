@@ -29,6 +29,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
     {
         private readonly IMediator _mediator;
         private readonly ILogger<StoreController> _logger;
+        private const string TypeSeperator = "=";
 
         public StoreController(IMediator mediator, ILogger<StoreController> logger)
         {
@@ -41,7 +42,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
         [Produces(KnownContentTypes.ApplicationDicomJson)]
-        [Consumes(KnownContentTypes.ApplicationDicom, new[] { KnownContentTypes.MultipartRelated })] //TODO: Need to add multipart/related; type="application/dicom"
+        [Consumes(KnownContentTypes.ApplicationDicom, new[] { KnownContentTypes.MultipartRelated + TypeSeperator + KnownContentTypes.ApplicationDicom })]
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Accepted)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
