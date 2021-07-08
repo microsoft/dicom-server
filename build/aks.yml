@@ -1,0 +1,71 @@
+# DESCRIPTION:
+# Builds, tests and packages the solution for the CI build configuration.
+name: $(SourceBranchName)-$(Date:yyyyMMdd)$(Rev:-r)
+
+variables:
+- template: aks-variables.yml
+- group: DICOM-DEV
+- name: imageTag
+  value: $[coalesce(variables['specificTag'], variables['build.buildnumber'])]
+
+trigger:
+  branches:
+    include:
+    - master
+
+pr: none
+
+stages:
+- stage: PublishContainer
+  displayName: 'Publish Docker CI Container'
+  jobs:
+  - job: 'Docker'
+    condition: eq(variables['specificTag'], '')
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - template: docker-build-push.yml
+      parameters:
+        tag: $(imageTag)
+
+- stage: AKSDeploy
+  displayName: Deploy to AKS
+  jobs:
+  - template: helm-deploy.yml
+    parameters:
+      name: deploy_server
+      displayName: Deploy DICOM Server
+      environmentName: DICOM-DEV.dicom
+      logicalEnvironment: DEV
+      chartPath: 'helm/dicom-server'
+      releaseName: 'dicom-server'
+      overrideValues: 'image.tag=$(imageTag),secrets.sqlserver_connectionstring="$(SqlConnectionString)",secrets.blobstore_connectionstring="$(BlobConnectionString)"'
+      valueFile: 'helm/dicom-server/values.yaml'
+      preDeploySteps:
+      - task: AzureCLI@2
+        displayName: Get connection strings
+        inputs:
+          azureSubscription: $(azureSubscriptionName)
+          scriptType: bash
+          scriptLocation: inlineScript
+          failOnStandardError: true
+          inlineScript: |
+            export sqlConStr="Server=tcp:$(SQLServerName).database.windows.net,1433;Database=$(SQLDbName);User ID=$(SQLUsername);Password=$(SQLServerPassword);Encrypt=true;Connection Timeout=30;"
+            export blobConStr="$(az storage account show-connection-string -g cd-dicom -n cddicom --query "connectionString" -o tsv)"
+
+            # replace , with \, for helm --set
+            echo "##vso[task.setvariable variable=SqlConnectionString]${sqlConStr//[,]/\\,}"
+            echo "##vso[task.setvariable variable=BlobConnectionString]${blobConStr//[,]/\\,}"
+  
+  - template: helm-deploy.yml
+    parameters:
+      name: deploy_cast
+      dependsOn: 
+      - deploy_server
+      displayName: Deploy DICOM CAST
+      environmentName: DICOM-DEV.dicom
+      logicalEnvironment: DEV
+      chartPath: 'helm/dicom-cast'
+      releaseName: 'dicom-cast'
+      overrideValues: 'image.tag=$(imageTag),settings.fhir_endpoint="$(fhirEndpoint)",settings.dicomweb_endpoint="$(dicomWebEndpoint)",settings.appInsights_key="$(appInsightsKey)"' # settings.keyvault_endpoint="$(kvEndpoint)"
+      valueFile: 'helm/dicom-cast/values.yaml'

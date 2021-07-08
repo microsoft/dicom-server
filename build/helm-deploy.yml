@@ -1,0 +1,44 @@
+parameters:
+  name: helm_deploy
+  displayName: 'Helm Deploy'
+  pool: 
+    vmImage: 'ubuntu-latest'
+  environmentName: ''
+  logicalEnvironment: ''
+  namespace: 'dicom'
+  chartPath: ''
+  releaseName: ''
+  overrideValues: ''
+  valueFile: ''
+  helmVersion: '3.4.2'
+  dependsOn: []
+  preDeploySteps: []
+  postDeploySteps: []
+  force: false
+
+jobs:  
+- deployment: ${{ parameters.name }}
+  displayName: ${{ parameters.displayName }}
+  dependsOn: ${{ parameters.dependsOn }}
+  pool: ${{ parameters.pool }}
+  environment: ${{ parameters.environmentName }}
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - checkout: self
+        - ${{ parameters.preDeploySteps }}
+        - task: HelmDeploy@0
+          displayName: Helm Deploy app
+          inputs:
+            connectionType: 'Kubernetes Service Connection'
+            namespace: ${{ parameters.namespace }}
+            command: upgrade
+            chartType: FilePath
+            chartPath: ${{ parameters.chartPath }}
+            releaseName: ${{ parameters.releaseName }}
+            overrideValues: ${{ parameters.overrideValues }}
+            valueFile: ${{ parameters.valueFile }}
+            install: true
+            force: ${{ parameters.force }}
+        - ${{ parameters.postDeploySteps }}
