@@ -50,6 +50,7 @@ function Set-DicomServerApiUsers {
     $environmentUsers = @()
 
     foreach ($user in $UserConfiguration) {
+        Write-Host "Persisting User: $($user.id)"
         $userId = $user.id
         if ($UserNamePrefix) {
             $userId = Get-UserId -EnvironmentName $UserNamePrefix -UserId $user.Id
@@ -65,15 +66,19 @@ function Set-DicomServerApiUsers {
         $passwordSecureString = ConvertTo-SecureString $password -AsPlainText -Force
 
         if ($aadUser) {
+            Write-Host "User found, updating password"
             Set-AzureADUserPassword -ObjectId $aadUser.ObjectId -Password $passwordSecureString -EnforceChangePasswordPolicy $false -ForceChangePasswordNextLogin $false
         }
         else {
+            Write-Host "User not found, creating user"
             $PasswordProfile = New-Object -TypeName Microsoft.Open.AzureAD.Model.PasswordProfile
             $PasswordProfile.Password = $password
             $PasswordProfile.EnforceChangePasswordPolicy = $false
             $PasswordProfile.ForceChangePasswordNextLogin = $false
 
             $aadUser = New-AzureADUser -DisplayName $userId -PasswordProfile $PasswordProfile -UserPrincipalName $userUpn -AccountEnabled $true -MailNickName $userId
+
+            Write-Host "User created $($aadUser)"
         }
 
         $upnSecureString = ConvertTo-SecureString -string $userUpn -AsPlainText -Force
