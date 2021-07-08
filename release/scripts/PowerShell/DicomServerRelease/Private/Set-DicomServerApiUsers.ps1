@@ -45,16 +45,17 @@ function Set-DicomServerApiUsers {
         throw "Please log in to Azure AD with Connect-AzureAD cmdlet before proceeding"
     }
 
-    Write-Host "Persisting Users to AAD"
+    Write-Host "Persisting Users to AAD (prefix: $($UserNamePrefix))"
     
     $environmentUsers = @()
 
     foreach ($user in $UserConfiguration) {
-        Write-Host "Persisting User: $($user.id)"
         $userId = $user.id
         if ($UserNamePrefix) {
             $userId = Get-UserId -EnvironmentName $UserNamePrefix -UserId $user.Id
         }
+
+        Write-Host "Persisting User: $($userId)"
 
         $userUpn = Get-UserUpn -UserId $userId -TenantDomain $TenantDomain
 
@@ -66,7 +67,7 @@ function Set-DicomServerApiUsers {
         $passwordSecureString = ConvertTo-SecureString $password -AsPlainText -Force
 
         if ($aadUser) {
-            Write-Host "User found, updating password"
+            Write-Host "User found, updating password - $($aadUser)"
             Set-AzureADUserPassword -ObjectId $aadUser.ObjectId -Password $passwordSecureString -EnforceChangePasswordPolicy $false -ForceChangePasswordNextLogin $false
         }
         else {
@@ -78,7 +79,7 @@ function Set-DicomServerApiUsers {
 
             $aadUser = New-AzureADUser -DisplayName $userId -PasswordProfile $PasswordProfile -UserPrincipalName $userUpn -AccountEnabled $true -MailNickName $userId
 
-            Write-Host "User created $($aadUser)"
+            Write-Host "User created - $($aadUser)"
         }
 
         $upnSecureString = ConvertTo-SecureString -string $userUpn -AsPlainText -Force
