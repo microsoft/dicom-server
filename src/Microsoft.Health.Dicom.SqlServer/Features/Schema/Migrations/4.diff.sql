@@ -1,7 +1,6 @@
 SET XACT_ABORT ON
 
 BEGIN TRANSACTION
-GO
 
 /*************************************************************
     Stored procedures for adding an instance.
@@ -55,7 +54,7 @@ GO
 --     @ready
 --         * Indicates whether the new query tags have been fully indexed
 /***************************************************************************************/
-ALTER PROCEDURE dbo.AddExtendedQueryTags (
+CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTags (
     @extendedQueryTags dbo.AddExtendedQueryTagsInputTableType_1 READONLY,
     @maxAllowedCount INT,
     @ready BIT = 0
