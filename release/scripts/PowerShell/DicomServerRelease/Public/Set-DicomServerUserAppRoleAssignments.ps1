@@ -43,21 +43,15 @@ function Set-DicomServerUserAppRoleAssignments {
         throw "User not found"
     }
 
-    Write-Host "Obtaining application for app id $($ApiAppId)"
     $servicePrincipal = Get-AzureAdServicePrincipal -Filter "appId eq '$ApiAppId'"
-
-    Write-Host "Application found - $($servicePrincipal)"
 
     # Get the collection of roles for the user
     $existingRoleAssignments = Get-AzureADUserAppRoleAssignment -ObjectId $aadUser.ObjectId | Where-Object {$_.ResourceId -eq $servicePrincipal.ObjectId}
-
-    Write-Host "Existing role assigments - $($existingRoleAssignments)"
 
     $expectedRoles = New-Object System.Collections.ArrayList
     $rolesToAdd = New-Object System.Collections.ArrayList
     $rolesToRemove = New-Object System.Collections.ArrayList
 
-    Write-Host "Enumerating appRoles"
     foreach ($role in $AppRoles) {
         $expectedRoles += @($servicePrincipal.AppRoles | Where-Object { $_.Value -eq $role })
     }
