@@ -10,6 +10,7 @@ using Dicom;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
@@ -35,7 +36,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 2),
                 new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 4),
             };
-            _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(input.WatermarkRange, Core.Models.IndexStatus.Created, Arg.Any<CancellationToken>()).Returns(identifiers);
+            _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(input.WatermarkRange, IndexStatus.Created, Arg.Any<CancellationToken>()).Returns(identifiers);
             await _reindexDurableFunction.ReindexInstancesAsync(input, NullLogger.Instance);
             foreach (var identifier in identifiers)
             {
