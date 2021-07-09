@@ -37,7 +37,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         private readonly IMediator _mediator;
         private readonly ILogger<RetrieveController> _logger;
         private const string IfNoneMatch = "If-None-Match";
-        private const string TypeSeperator = "=";
 
         public RetrieveController(IMediator mediator, ILogger<RetrieveController> logger)
         {
@@ -48,7 +47,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             _logger = logger;
         }
 
-        [Produces(KnownContentTypes.MultipartRelated + TypeSeperator + KnownContentTypes.ApplicationDicom)]
+        [Produces(KnownContentTypes.MultipartRelated)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
@@ -86,7 +85,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
-        [Produces(KnownContentTypes.MultipartRelated + TypeSeperator + KnownContentTypes.ApplicationDicom)]
+        [Produces(KnownContentTypes.MultipartRelated)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
@@ -128,7 +127,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
-        [Produces(KnownContentTypes.ApplicationDicom, new[] { KnownContentTypes.MultipartRelated + TypeSeperator + KnownContentTypes.ApplicationDicom })]
+        [Produces(KnownContentTypes.ApplicationDicom, KnownContentTypes.MultipartRelated)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
@@ -178,7 +177,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
-        [Produces(KnownContentTypes.MultipartRelated + TypeSeperator + KnownContentTypes.ApplicationOctetStream, new[] { KnownContentTypes.MultipartRelated + TypeSeperator + KnownContentTypes.ImageJpeg2000 })]
+        [Produces(KnownContentTypes.MultipartRelated)]
         [ProducesResponseType(typeof(Stream), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
