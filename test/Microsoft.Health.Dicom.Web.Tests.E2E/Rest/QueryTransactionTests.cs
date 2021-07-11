@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using Dicom.Serialization;
@@ -238,7 +237,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset testDataResponse1 = null;
             DicomDataset[] responseDatasets = null;
 
-            while (retryCount < 3 && testDataResponse1 == null)
+            while (retryCount < 3 || testDataResponse1 == null)
             {
                 using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(
                     new Uri($"{versionPath}/studies?PatientName={randomNamePart}&FuzzyMatching=true", UriKind.Relative));
@@ -273,9 +272,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset testDataResponse = null;
             DicomDataset[] responseDatasets = null;
 
-            while (retryCount < 3 && testDataResponse == null)
+            while (retryCount < 3 || testDataResponse == null)
             {
-                Thread.Sleep(100);
                 using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(
                     new Uri($"{versionPath}/studies?ReferringPhysicianName={randomNamePart}&FuzzyMatching=true", UriKind.Relative));
 
