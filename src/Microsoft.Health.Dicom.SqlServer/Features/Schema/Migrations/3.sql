@@ -153,9 +153,9 @@ CREATE TABLE dbo.Study (
     StudyDate                   DATE                              NULL,
     StudyDescription            NVARCHAR(64)                      NULL,
     AccessionNumber             NVARCHAR(16)                      NULL,
-    PatientBirthDate            DATE                              NULL,
     PatientNameWords            AS REPLACE(REPLACE(PatientName, '^', ' '), '=', ' ') PERSISTED,
     ReferringPhysicianNameWords AS REPLACE(REPLACE(ReferringPhysicianName, '^', ' '), '=', ' ') PERSISTED,
+    PatientBirthDate            DATE                              NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Study ON dbo.Study

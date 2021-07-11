@@ -226,9 +226,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableDateColumn StudyDate = new NullableDateColumn("StudyDate");
             internal readonly NullableNVarCharColumn StudyDescription = new NullableNVarCharColumn("StudyDescription", 64);
             internal readonly NullableNVarCharColumn AccessionNumber = new NullableNVarCharColumn("AccessionNumber", 16);
-            internal readonly NullableDateColumn PatientBirthDate = new NullableDateColumn("PatientBirthDate");
             internal const string PatientNameWords = "PatientNameWords";
             internal const string ReferringPhysicianNameWords = "ReferringPhysicianNameWords";
+            internal readonly NullableDateColumn PatientBirthDate = new NullableDateColumn("PatientBirthDate");
             internal readonly Index IXC_Study = new Index("IXC_Study");
             internal readonly Index IX_Study_StudyInstanceUid = new Index("IX_Study_StudyInstanceUid");
             internal readonly Index IX_Study_PatientId = new Index("IX_Study_PatientId");
