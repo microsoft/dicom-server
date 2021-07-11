@@ -25,6 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             DicomTag.PatientID,
             DicomTag.PatientName,
             DicomTag.ReferringPhysicianName,
+            DicomTag.PatientBirthDate,
         };
 
 
@@ -33,6 +34,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             DicomTag.SeriesInstanceUID,
             DicomTag.Modality,
             DicomTag.PerformedProcedureStepStartDate,
+            DicomTag.ManufacturerModelName,
         };
 
         private static readonly HashSet<DicomTag> CoreInstanceTags = new HashSet<DicomTag>()

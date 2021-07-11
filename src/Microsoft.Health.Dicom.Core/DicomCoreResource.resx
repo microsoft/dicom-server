@@ -237,7 +237,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The specified study cannot be found.</value>
   </data>
   <data name="UnknownQueryParameter" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Unknown query parameter '{0}'. If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters and queryable attributes.</value>
+    <value>Invalid QIDO-RS query. Unknown query parameter '{0}'. If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters, attributes and the levels.</value>
     <comment>{0} Parameter name</comment>
   </data>
   <data name="UnsupportedContentType" xml:space="preserve">
@@ -245,7 +245,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <comment>{0} is the specified content type. E.g., application/dicom</comment>
   </data>
   <data name="UnsupportedSearchParameter" xml:space="preserve">
-    <value>Invalid QIDO-RS query. AttributeId {0} is not queryable. </value>
+    <value>Invalid QIDO-RS query. AttributeId {0} is not queryable.  If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters, attributes and the levels.</value>
     <comment>{0} AttributeId name.</comment>
   </data>
   <data name="UnsupportedTranscoding" xml:space="preserve">

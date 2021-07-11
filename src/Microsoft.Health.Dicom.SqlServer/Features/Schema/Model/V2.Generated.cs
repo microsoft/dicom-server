@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V2
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -203,13 +203,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly VarCharColumn SeriesInstanceUid = new VarCharColumn("SeriesInstanceUid", 64);
             internal readonly NullableNVarCharColumn Modality = new NullableNVarCharColumn("Modality", 16);
             internal readonly NullableDateColumn PerformedProcedureStepStartDate = new NullableDateColumn("PerformedProcedureStepStartDate");
-            internal readonly NullableNVarCharColumn ManufacturerModelName = new NullableNVarCharColumn("ManufacturerModelName", 64);
             internal readonly Index IXC_Series = new Index("IXC_Series");
             internal readonly Index IX_Series_SeriesKey = new Index("IX_Series_SeriesKey");
             internal readonly Index IX_Series_SeriesInstanceUid = new Index("IX_Series_SeriesInstanceUid");
             internal readonly Index IX_Series_Modality = new Index("IX_Series_Modality");
             internal readonly Index IX_Series_PerformedProcedureStepStartDate = new Index("IX_Series_PerformedProcedureStepStartDate");
-            internal readonly Index IX_Series_ManufacturerModelName = new Index("IX_Series_ManufacturerModelName");
         }
 
         internal class StudyTable : Table
@@ -226,9 +224,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableDateColumn StudyDate = new NullableDateColumn("StudyDate");
             internal readonly NullableNVarCharColumn StudyDescription = new NullableNVarCharColumn("StudyDescription", 64);
             internal readonly NullableNVarCharColumn AccessionNumber = new NullableNVarCharColumn("AccessionNumber", 16);
-            internal readonly NullableDateColumn PatientBirthDate = new NullableDateColumn("PatientBirthDate");
             internal const string PatientNameWords = "PatientNameWords";
-            internal const string ReferringPhysicianNameWords = "ReferringPhysicianNameWords";
             internal readonly Index IXC_Study = new Index("IXC_Study");
             internal readonly Index IX_Study_StudyInstanceUid = new Index("IX_Study_StudyInstanceUid");
             internal readonly Index IX_Study_PatientId = new Index("IX_Study_PatientId");
@@ -237,7 +233,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly Index IX_Study_StudyDate = new Index("IX_Study_StudyDate");
             internal readonly Index IX_Study_StudyDescription = new Index("IX_Study_StudyDescription");
             internal readonly Index IX_Study_AccessionNumber = new Index("IX_Study_AccessionNumber");
-            internal readonly Index IX_Study_PatientBirthDate = new Index("IX_Study_PatientBirthDate");
         }
 
         internal class AddExtendedQueryTagsProcedure : StoredProcedure
@@ -303,8 +298,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.String> _accessionNumber = new ParameterDefinition<System.String>("@accessionNumber", global::System.Data.SqlDbType.NVarChar, true, 64);
             private readonly ParameterDefinition<System.String> _modality = new ParameterDefinition<System.String>("@modality", global::System.Data.SqlDbType.NVarChar, true, 16);
             private readonly ParameterDefinition<System.Nullable<System.DateTime>> _performedProcedureStepStartDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@performedProcedureStepStartDate", global::System.Data.SqlDbType.Date, true);
-            private readonly ParameterDefinition<System.Nullable<System.DateTime>> _patientBirthDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@patientBirthDate", global::System.Data.SqlDbType.Date, true);
-            private readonly ParameterDefinition<System.String> _manufacturerModelName = new ParameterDefinition<System.String>("@manufacturerModelName", global::System.Data.SqlDbType.NVarChar, true, 64);
             private readonly InsertStringExtendedQueryTagTableTypeV1TableValuedParameterDefinition _stringExtendedQueryTags = new InsertStringExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@stringExtendedQueryTags");
             private readonly InsertLongExtendedQueryTagTableTypeV1TableValuedParameterDefinition _longExtendedQueryTags = new InsertLongExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@longExtendedQueryTags");
             private readonly InsertDoubleExtendedQueryTagTableTypeV1TableValuedParameterDefinition _doubleExtendedQueryTags = new InsertDoubleExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@doubleExtendedQueryTags");
@@ -312,7 +305,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly InsertPersonNameExtendedQueryTagTableTypeV1TableValuedParameterDefinition _personNameExtendedQueryTags = new InsertPersonNameExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@personNameExtendedQueryTags");
             private readonly ParameterDefinition<System.Byte> _initialStatus = new ParameterDefinition<System.Byte>("@initialStatus", global::System.Data.SqlDbType.TinyInt, false);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Nullable<System.DateTime> patientBirthDate, System.String manufacturerModelName, global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> stringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> longExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV1Row> dateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNameExtendedQueryTags, System.Byte initialStatus)
+            public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> stringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> longExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV1Row> dateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNameExtendedQueryTags, System.Byte initialStatus)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.AddInstance";
@@ -327,8 +320,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _accessionNumber.AddParameter(command.Parameters, accessionNumber);
                 _modality.AddParameter(command.Parameters, modality);
                 _performedProcedureStepStartDate.AddParameter(command.Parameters, performedProcedureStepStartDate);
-                _patientBirthDate.AddParameter(command.Parameters, patientBirthDate);
-                _manufacturerModelName.AddParameter(command.Parameters, manufacturerModelName);
                 _stringExtendedQueryTags.AddParameter(command.Parameters, stringExtendedQueryTags);
                 _longExtendedQueryTags.AddParameter(command.Parameters, longExtendedQueryTags);
                 _doubleExtendedQueryTags.AddParameter(command.Parameters, doubleExtendedQueryTags);
@@ -337,9 +328,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _initialStatus.AddParameter(command.Parameters, initialStatus);
             }
 
-            public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Nullable<System.DateTime> patientBirthDate, System.String manufacturerModelName, System.Byte initialStatus, AddInstanceTableValuedParameters tableValuedParameters)
+            public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Byte initialStatus, AddInstanceTableValuedParameters tableValuedParameters)
             {
-                PopulateCommand(command, studyInstanceUid: studyInstanceUid, seriesInstanceUid: seriesInstanceUid, sopInstanceUid: sopInstanceUid, patientId: patientId, patientName: patientName, referringPhysicianName: referringPhysicianName, studyDate: studyDate, studyDescription: studyDescription, accessionNumber: accessionNumber, modality: modality, performedProcedureStepStartDate: performedProcedureStepStartDate, patientBirthDate: patientBirthDate, manufacturerModelName: manufacturerModelName, initialStatus: initialStatus, stringExtendedQueryTags: tableValuedParameters.StringExtendedQueryTags, longExtendedQueryTags: tableValuedParameters.LongExtendedQueryTags, doubleExtendedQueryTags: tableValuedParameters.DoubleExtendedQueryTags, dateTimeExtendedQueryTags: tableValuedParameters.DateTimeExtendedQueryTags, personNameExtendedQueryTags: tableValuedParameters.PersonNameExtendedQueryTags);
+                PopulateCommand(command, studyInstanceUid: studyInstanceUid, seriesInstanceUid: seriesInstanceUid, sopInstanceUid: sopInstanceUid, patientId: patientId, patientName: patientName, referringPhysicianName: referringPhysicianName, studyDate: studyDate, studyDescription: studyDescription, accessionNumber: accessionNumber, modality: modality, performedProcedureStepStartDate: performedProcedureStepStartDate, initialStatus: initialStatus, stringExtendedQueryTags: tableValuedParameters.StringExtendedQueryTags, longExtendedQueryTags: tableValuedParameters.LongExtendedQueryTags, doubleExtendedQueryTags: tableValuedParameters.DoubleExtendedQueryTags, dateTimeExtendedQueryTags: tableValuedParameters.DateTimeExtendedQueryTags, personNameExtendedQueryTags: tableValuedParameters.PersonNameExtendedQueryTags);
             }
         }
 
