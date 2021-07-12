@@ -56,15 +56,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             IBlobClientTestProvider testProvider = new BlobClientReadWriteTestProvider(RecyclableMemoryStreamManager);
 
-            var blobClientInitializer = new BlobClientInitializer(testProvider, NullLogger<BlobClientInitializer>.Instance);
-            _blobClient = blobClientInitializer.CreateBlobClient(_blobDataStoreConfiguration);
+            _blobClient = BlobClientFactory.Create(_blobDataStoreConfiguration);
+
+            var blobClientInitializer = new BlobInitializer(_blobClient, testProvider, NullLogger<BlobInitializer>.Instance);
 
             var blobContainerInitializer = new BlobContainerInitializer(_blobContainerConfiguration.ContainerName, NullLogger<BlobContainerInitializer>.Instance);
             var metadataContainerInitializer = new BlobContainerInitializer(_metadataContainerConfiguration.ContainerName, NullLogger<BlobContainerInitializer>.Instance);
 
             await blobClientInitializer.InitializeDataStoreAsync(
-                                            _blobClient,
-                                            _blobDataStoreConfiguration,
                                             new List<IBlobContainerInitializer> { blobContainerInitializer, metadataContainerInitializer });
 
             var jsonSerializer = new JsonSerializer();
