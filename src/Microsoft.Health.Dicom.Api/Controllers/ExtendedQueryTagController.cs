@@ -138,6 +138,32 @@ namespace Microsoft.Health.Dicom.Api.Controllers
                 (int)HttpStatusCode.OK, response.ExtendedQueryTag);
         }
 
+        /// <summary>
+        /// Handles requests to get extended query tag errors.
+        /// </summary>
+        /// <param name="tagPath">Path for requested extended query tag.</param>
+        /// <returns>
+        /// Returns Bad Request if given path can't be parsed. Returns Not Found if given path doesn't map to a stored
+        /// error. Returns OK with a JSON body of requested tag error in other cases.
+        /// </returns>
+        [HttpGet]
+        [Produces(KnownContentTypes.ApplicationJson)]
+        [ProducesResponseType(typeof(GetExtendedQueryTagErrorsResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [VersionedRoute(KnownRoutes.GetExtendedQueryTagErrorsRoute)]
+        [Route(KnownRoutes.GetExtendedQueryTagErrorsRoute)]
+        [AuditEventType(AuditEventSubType.GetExtendedQueryTagErrors)]
+        public async Task<IActionResult> GetTagErrorAsync(string tagPath)
+        {
+            _logger.LogInformation("DICOM Web Get Extended Query Tag Errors request received for extended query tag: {tagPath}", tagPath);
+
+            EnsureFeatureIsEnabled();
+            GetExtendedQueryTagErrorsResponse response = await _mediator.GetExtendedQueryTagErrorsAsync(tagPath, HttpContext.RequestAborted);
+
+            return StatusCode((int)HttpStatusCode.OK, response);
+        }
+
         private void EnsureFeatureIsEnabled()
         {
             if (!_featureEnabled)
