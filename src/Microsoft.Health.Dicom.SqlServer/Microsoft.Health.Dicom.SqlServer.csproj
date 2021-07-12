@@ -38,7 +38,7 @@
       <LastGenOutput>DicomSqlServerResource.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
+    <ItemGroup>
     <Folder Include="Features\Schema\Model\" />
   </ItemGroup>
 
@@ -52,7 +52,13 @@
     <EmbeddedResource Include="Features\Schema\Migrations\2.sql">
       <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
       <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
+      <MutableClassVersion>2</MutableClassVersion>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Features\Schema\Migrations\3.diff.sql" />
+    <EmbeddedResource Include="Features\Schema\Migrations\3.sql">
+      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
       <MutableClassVersion>Latest</MutableClassVersion>
+      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
     </EmbeddedResource>
   </ItemGroup>
 

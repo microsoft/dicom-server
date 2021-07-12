@@ -125,6 +125,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [InlineData("limit=25&offset=0&fuzzymatching=false&includefield=00081030,00080060&StudyDate=19510910-20200220", QueryResource.AllStudies)]
         [InlineData("PatientName=Joe&fuzzyMatching=true&limit=50", QueryResource.AllStudies)]
         [InlineData("PatientName=Joe&fuzzyMatching=true&Modality=CT", QueryResource.AllSeries)]
+        [InlineData("ReferringPhysicianName=dr&fuzzyMatching=true&Modality=CT", QueryResource.AllSeries)]
+        [InlineData("PatientBirthDate=18000101-19010101", QueryResource.AllStudies)]
+        [InlineData("ManufacturerModelName=foomft", QueryResource.AllSeries)]
         public void GivenFilterCondition_WithValidQueryString_ParseSucceeds(string queryString, QueryResource resourceType)
         {
             EnsureArg.IsNotNull(queryString, nameof(queryString));

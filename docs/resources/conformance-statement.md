@@ -291,6 +291,7 @@ We support searching on below attributes and search type.
 | StudyInstanceUID | X | X | X |
 | PatientName | X | X | X |
 | PatientID | X | X | X |
+| PatientBirthDate | X | X | X |
 | AccessionNumber | X | X | X |
 | ReferringPhysicianName | X | X | X |
 | StudyDate | X | X | X |
@@ -298,6 +299,7 @@ We support searching on below attributes and search type.
 | SeriesInstanceUID |  | X | X |
 | Modality |  | X | X |
 | PerformedProcedureStepStartDate |  | X | X |
+| ManufacturerModelName | | X | X |
 | SOPInstanceUID |  |  | X |
 
 #### Search Matching
@@ -306,9 +308,9 @@ We support below matching types.
 
 | Search Type | Supported Attribute | Example |
 | :---------- | :------------------ | :------ |
-| Range Query | StudyDate | {attributeID}={value1}-{value2}. For date/ time values, we supported an inclusive range on the tag. This will be mapped to `attributeID >= {value1} AND attributeID <= {value2}`. |
+| Range Query | StudyDate, PatientBirthDate | {attributeID}={value1}-{value2}. For date/ time values, we supported an inclusive range on the tag. This will be mapped to `attributeID >= {value1} AND attributeID <= {value2}`. |
 | Exact Match | All supported attributes | {attributeID}={value1} |
-| Fuzzy Match | PatientName | Matches any component of the patient name which starts with the value. |
+| Fuzzy Match | PatientName, ReferringPhysicianName | Matches any component of the name which starts with the value. |
 
 #### Attribute ID
 

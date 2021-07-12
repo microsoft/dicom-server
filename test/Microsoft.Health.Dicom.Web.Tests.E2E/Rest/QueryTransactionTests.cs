@@ -258,6 +258,37 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         [Theory]
         [ClassData(typeof(VersionAPIData))]
+        public async Task GivenSearchRequest_ReferringPhysicianNameFuzzyMatch_MatchResult(string versionPath)
+        {
+            string randomNamePart = RandomString(7);
+            DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()
+            {
+                 { DicomTag.ReferringPhysicianName, $"dr^{randomNamePart}^Stone Hall^^" },
+            });
+            var studyId = matchInstance.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+
+            // Retrying the query 3 times, to give sql FT index time to catch up
+            int retryCount = 0;
+            DicomDataset testDataResponse = null;
+            DicomDataset[] responseDatasets = null;
+
+            while (retryCount < 3 || testDataResponse == null)
+            {
+                using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryAsync(
+                    new Uri($"{versionPath}/studies?ReferringPhysicianName={randomNamePart}&FuzzyMatching=true", UriKind.Relative));
+
+                responseDatasets = await response.ToArrayAsync();
+
+                testDataResponse = responseDatasets?.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId);
+                retryCount++;
+            }
+
+            Assert.NotNull(testDataResponse);
+            Assert.Equal(matchInstance.GetSingleValue<string>(DicomTag.ReferringPhysicianName), testDataResponse.GetSingleValue<string>(DicomTag.ReferringPhysicianName));
+        }
+
+        [Theory]
+        [ClassData(typeof(VersionAPIData))]
         public async Task GivenSearchRequest_OHIFViewerStudyQuery_ReturnsOK(string versionPath)
         {
             var OhifViewerQuery = $"{versionPath}/studies?limit=25&offset=0&includefield=00081030%2C00080060&StudyDate=19521125-20210507";

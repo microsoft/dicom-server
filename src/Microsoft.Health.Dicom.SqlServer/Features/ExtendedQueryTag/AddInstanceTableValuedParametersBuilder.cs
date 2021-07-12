@@ -33,6 +33,49 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             DicomDataset instance,
             IEnumerable<QueryTag> queryTags)
         {
+            Build(
+                instance,
+                queryTags,
+                out IReadOnlyList<InsertStringExtendedQueryTagTableTypeV1Row> stringTypeRows,
+                out IReadOnlyList<InsertLongExtendedQueryTagTableTypeV1Row> longTypeRows,
+                out IReadOnlyList<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleTypeRows,
+                out IReadOnlyList<InsertDateTimeExtendedQueryTagTableTypeV1Row> dateTimeTypeRows,
+                out IReadOnlyList<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNamTypeRows
+            );
+            return new VLatest.AddInstanceTableValuedParameters(stringTypeRows, longTypeRows, doubleTypeRows, dateTimeTypeRows, personNamTypeRows);
+        }
+
+        /// <summary>
+        /// Read Index Tag values from DicomDataset.
+        /// </summary>
+        /// <param name="instance">The dicom dataset.</param>
+        /// <param name="queryTags">The index tags.</param>
+        public static V2.AddInstanceTableValuedParameters BuildV2(
+            DicomDataset instance,
+            IEnumerable<QueryTag> queryTags)
+        {
+            Build(
+                instance,
+                queryTags,
+                out IReadOnlyList<InsertStringExtendedQueryTagTableTypeV1Row> stringTypeRows,
+                out IReadOnlyList<InsertLongExtendedQueryTagTableTypeV1Row> longTypeRows,
+                out IReadOnlyList<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleTypeRows,
+                out IReadOnlyList<InsertDateTimeExtendedQueryTagTableTypeV1Row> dateTimeTypeRows,
+                out IReadOnlyList<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNamTypeRows
+            );
+            return new V2.AddInstanceTableValuedParameters(stringTypeRows, longTypeRows, doubleTypeRows, dateTimeTypeRows, personNamTypeRows);
+        }
+
+        private static void Build(
+            DicomDataset instance,
+            IEnumerable<QueryTag> queryTags,
+            out IReadOnlyList<InsertStringExtendedQueryTagTableTypeV1Row> stringTypeRows,
+            out IReadOnlyList<InsertLongExtendedQueryTagTableTypeV1Row> longTypeRows,
+            out IReadOnlyList<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleTypeRows,
+            out IReadOnlyList<InsertDateTimeExtendedQueryTagTableTypeV1Row> dateTimeTypeRows,
+            out IReadOnlyList<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNamTypeRows
+            )
+        {
             EnsureArg.IsNotNull(instance, nameof(instance));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
@@ -78,7 +121,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 }
             }
 
-            return new VLatest.AddInstanceTableValuedParameters(stringRows, longRows, doubleRows, dateTimeRows, personNamRows);
+            stringTypeRows = stringRows;
+            longTypeRows = longRows;
+            doubleTypeRows = doubleRows;
+            dateTimeTypeRows = dateTimeRows;
+            personNamTypeRows = personNamRows;
         }
 
         private static void AddPersonNameRow(DicomDataset instance, List<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNamRows, QueryTag queryTag)
