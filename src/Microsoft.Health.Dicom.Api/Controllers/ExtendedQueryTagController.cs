@@ -123,7 +123,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AuditEventType(AuditEventSubType.GetExtendedQueryTag)]
         public async Task<IActionResult> GetTagAsync(string tagPath)
         {
-            _logger.LogInformation("DICOM Web Get Extended Query Tag request received for extended query tag: {tagPath}");
+            _logger.LogInformation("DICOM Web Get Extended Query Tag request received for extended query tag: {tagPath}", tagPath);
 
             EnsureFeatureIsEnabled();
             GetExtendedQueryTagResponse response = await _mediator.GetExtendedQueryTagAsync(tagPath, HttpContext.RequestAborted);
