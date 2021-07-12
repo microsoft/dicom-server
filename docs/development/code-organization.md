@@ -5,19 +5,19 @@
 
 | Layer              | Example                                                      | Comments                                                                              |
 | ------------------ | ------------------------------------------------------------ |---------------------------------------------------------------------------------------|
-| Hosting Layer      | `Microsoft.Health.Dicom.Web`                                 | Supports hosting in different environments with custom configuration of IoC container. For development purpose only. |
+| Hosting Layer      | `Microsoft.Health.Dicom.Web`                                 | Supports hosting in different environments with custom configuration of IoC container. For development purposes only. |
 | REST API Layer     | `Microsoft.Health.Dicom.Api`                                 | Implements the RESTful DICOMweb&trade; |
 | Core Logic Layer   | `Microsoft.Health.Dicom.Core`                                | Implements core logic to support DICOMweb&trade; |
 | Persistence Layer  | `Microsoft.Health.Dicom.Sql` `Microsoft.Health.Dicom.Blob`   | Pluggable persistence provider |
 
 ## Patterns
 
-Dicom server code follows below **patterns** to organize code in these layer.
+Dicom server code follows the below **patterns** to organize code in these layers.
 
 
-### [MediatoR Handler](https://github.com/jbogard/MediatR):
+### [MediatR Handler](https://github.com/jbogard/MediatR):
 
-<em>Used to dispatch message from the Controller methods. Used to transform request and response from the hosting layer to the service.</em>
+<em>Used to dispatch messages from the Controller methods. Used to transform requests and responses from the hosting layer to the service.</em>
 
 - Naming Guidelines: `Resource`Handler
 -  Example: [DeleteHandler](/src/Microsoft.Health.Dicom.Core/Features/Delete/DeleteHandler.cs)
@@ -32,13 +32,13 @@ Dicom server code follows below **patterns** to organize code in these layer.
 ### [Store Service](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-3.1):
 <em>Data store specific implementation of storing/retrieving/deleting the data.</em>
 
-- Interface is defined in the core and implementation in the specific persistence layer.
+- The interface is defined in the core and implementation in the specific persistence layer.
 - They should not be accessed outside a service.
 - Naming Guidelines: `Resource`Store
 - Example: [SqlIndexDataStore](/src/Microsoft.Health.Dicom.SqlServer/Features/Store/SqlIndexDataStore.cs)
 
 ### [Middleware](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?view=aspnetcore-3.1):
- <em>Standard/Common concerns like authentication, routing, logging, exception handling that needs to be done for each request, are separated to its own component.</em>
+ <em>Standard/Common concerns like authentication, routing, logging, exception handling that needs to be done for each request, are separated into their own components.</em>
 
 - Naming Guidelines: `Responsibility`Middleware.
 - Example: [ExceptionHandlingMiddleware](/src/Microsoft.Health.Dicom.Api/Features/Exceptions/ExceptionHandlingMiddleware.cs).

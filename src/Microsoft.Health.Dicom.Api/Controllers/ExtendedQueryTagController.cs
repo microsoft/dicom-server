@@ -21,6 +21,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Web;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
@@ -45,6 +46,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [BodyModelStateValidator]
+        [Produces(KnownContentTypes.ApplicationJson)]
+        [Consumes(KnownContentTypes.ApplicationJson)]
         [ProducesResponseType(typeof(AddExtendedQueryTagResponse), (int)HttpStatusCode.Accepted)]
         [HttpPost]
         [VersionedRoute(KnownRoutes.ExtendedQueryTagRoute)]
@@ -61,6 +64,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
                (int)HttpStatusCode.Accepted, response);
         }
 
+        [Produces(KnownContentTypes.ApplicationJson)]
         [ProducesResponseType(typeof(DeleteExtendedQueryTagResponse), (int)HttpStatusCode.NoContent)]
         [HttpDelete]
         [VersionedRoute(KnownRoutes.DeleteExtendedQueryTagRoute)]
@@ -83,6 +87,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// Returns Bad Request if given path can't be parsed. Returns Not Found if given path doesn't map to a stored
         /// extended query tag or if no extended query tags are stored. Returns OK with a JSON body of all tags in other cases.
         /// </returns>
+        [Produces(KnownContentTypes.ApplicationJson)]
         [ProducesResponseType(typeof(IEnumerable<GetExtendedQueryTagEntry>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
         [HttpGet]
@@ -108,6 +113,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// Returns Bad Request if given path can't be parsed. Returns Not Found if given path doesn't map to a stored
         /// extended query tag. Returns OK with a JSON body of requested tag in other cases.
         /// </returns>
+        [Produces(KnownContentTypes.ApplicationJson)]
         [ProducesResponseType(typeof(GetExtendedQueryTagEntry), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]

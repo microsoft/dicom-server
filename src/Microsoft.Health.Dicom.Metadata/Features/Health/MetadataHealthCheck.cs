@@ -21,19 +21,16 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Health
         /// Initializes a new instance of the <see cref="MetadataHealthCheck"/> class.
         /// </summary>
         /// <param name="client">The blob client factory.</param>
-        /// <param name="configuration">The blob data store configuration.</param>
         /// <param name="namedBlobContainerConfigurationAccessor">The IOptions accessor to get a named blob container version.</param>
         /// <param name="testProvider">The test provider.</param>
         /// <param name="logger">The logger.</param>
         public MetadataHealthCheck(
             BlobServiceClient client,
-            BlobDataStoreConfiguration configuration,
             IOptionsSnapshot<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
             IBlobClientTestProvider testProvider,
             ILogger<MetadataHealthCheck> logger)
             : base(
                   client,
-                  configuration,
                   namedBlobContainerConfigurationAccessor,
                   Constants.ContainerConfigurationName,
                   testProvider,
