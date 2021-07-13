@@ -21,10 +21,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 { DicomTag.AccessionNumber, new DicomTagSqlEntry(SqlTableType.StudyTable, VLatest.Study.AccessionNumber) },
                 { DicomTag.PatientID, new DicomTagSqlEntry(SqlTableType.StudyTable, VLatest.Study.PatientId) },
                 { DicomTag.PatientName, new DicomTagSqlEntry(SqlTableType.StudyTable, VLatest.Study.PatientName, VLatest.StudyTable.PatientNameWords) },
-                { DicomTag.ReferringPhysicianName, new DicomTagSqlEntry(SqlTableType.StudyTable, VLatest.Study.ReferringPhysicianName) },
+                { DicomTag.ReferringPhysicianName, new DicomTagSqlEntry(SqlTableType.StudyTable, VLatest.Study.ReferringPhysicianName, VLatest.StudyTable.ReferringPhysicianNameWords) },
+                { DicomTag.PatientBirthDate, new DicomTagSqlEntry(SqlTableType.StudyTable, VLatest.Study.PatientBirthDate) },
                 { DicomTag.SeriesInstanceUID, new DicomTagSqlEntry(SqlTableType.SeriesTable, VLatest.Series.SeriesInstanceUid) },
                 { DicomTag.Modality, new DicomTagSqlEntry(SqlTableType.SeriesTable, VLatest.Series.Modality) },
                 { DicomTag.PerformedProcedureStepStartDate, new DicomTagSqlEntry(SqlTableType.SeriesTable, VLatest.Series.PerformedProcedureStepStartDate) },
+                { DicomTag.ManufacturerModelName, new DicomTagSqlEntry(SqlTableType.SeriesTable, VLatest.Series.ManufacturerModelName) },
                 { DicomTag.SOPInstanceUID, new DicomTagSqlEntry(SqlTableType.InstanceTable, VLatest.Instance.SopInstanceUid) },
         };
 

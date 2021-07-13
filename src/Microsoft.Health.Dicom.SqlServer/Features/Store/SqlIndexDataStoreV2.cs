@@ -54,20 +54,20 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     queryTags.Where(tag => tag.IsExtendedQueryTag));
 
                 V2.AddInstance.PopulateCommand(
-                sqlCommandWrapper,
-                instance.GetString(DicomTag.StudyInstanceUID),
-                instance.GetString(DicomTag.SeriesInstanceUID),
-                instance.GetString(DicomTag.SOPInstanceUID),
-                instance.GetSingleValueOrDefault<string>(DicomTag.PatientID),
-                instance.GetSingleValueOrDefault<string>(DicomTag.PatientName),
-                instance.GetSingleValueOrDefault<string>(DicomTag.ReferringPhysicianName),
-                instance.GetStringDateAsDate(DicomTag.StudyDate),
-                instance.GetSingleValueOrDefault<string>(DicomTag.StudyDescription),
-                instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
-                instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
-                instance.GetStringDateAsDate(DicomTag.PerformedProcedureStepStartDate),
-                (byte)IndexStatus.Creating,
-                parameters);
+                    sqlCommandWrapper,
+                    instance.GetString(DicomTag.StudyInstanceUID),
+                    instance.GetString(DicomTag.SeriesInstanceUID),
+                    instance.GetString(DicomTag.SOPInstanceUID),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.PatientID),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.PatientName),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.ReferringPhysicianName),
+                    instance.GetStringDateAsDate(DicomTag.StudyDate),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.StudyDescription),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
+                    instance.GetStringDateAsDate(DicomTag.PerformedProcedureStepStartDate),
+                    (byte)IndexStatus.Creating,
+                    parameters);
 
                 try
                 {

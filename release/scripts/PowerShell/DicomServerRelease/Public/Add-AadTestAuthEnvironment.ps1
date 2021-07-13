@@ -113,7 +113,7 @@ function Add-AadTestAuthEnvironment {
     $appRoles = ($testAuthEnvironment.users.roles + $testAuthEnvironment.clientApplications.roles) | Select-Object -Unique
     Set-DicomServerApiApplicationRoles -ApiAppId $application.AppId -AppRoles $appRoles | Out-Null
 
-    Write-Host "Ensuring users and rol assignments for API Application exist"
+    Write-Host "Ensuring users and role assignments for API Application exist (prefix: $($EnvironmentName))"
     $environmentUsers = Set-DicomServerApiUsers -UserNamePrefix $EnvironmentName -TenantDomain $tenantInfo.TenantDomain -ApiAppId $application.AppId -UserConfiguration $testAuthEnvironment.Users -KeyVaultName $KeyVaultName
 
     $environmentClientApplications = @()
@@ -137,7 +137,7 @@ function Add-AadTestAuthEnvironment {
             $secretSecureString = ConvertTo-SecureString $newPassword.Value -AsPlainText -Force
         }
 
-        Grant-ClientAppAdminConsent -AppId $aadClientApplication.AppId -TenantAdminCredential $TenantAdminCredential
+       # Grant-ClientAppAdminConsent -AppId $aadClientApplication.AppId -TenantAdminCredential $TenantAdminCredential
 
         $environmentClientApplications += @{
             id          = $clientApp.Id

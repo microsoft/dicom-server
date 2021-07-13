@@ -154,7 +154,9 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             IServiceCollection services = EnsureArg.IsNotNull(builder?.Services, nameof(builder));
 
+#pragma warning disable CS0618 // Type or member is obsolete
             services.AddSqlServerBase<SchemaVersion>(configRoot);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             services.Add(provider => new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max))
                 .Singleton()
