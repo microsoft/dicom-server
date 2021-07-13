@@ -14,7 +14,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 {
     internal class SqlExtendedQueryTagStoreV1 : ISqlExtendedQueryTagStore
     {
-        public virtual SchemaVersion Version => SchemaVersion.V1;
+        public virtual VersionRange SupportedVersions => SchemaVersion.V1;
 
         public virtual Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(
             IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries,

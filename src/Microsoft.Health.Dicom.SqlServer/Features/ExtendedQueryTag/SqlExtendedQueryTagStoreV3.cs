@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         {
         }
 
-        public override SchemaVersion Version => SchemaVersion.V3;
+        public override VersionRange SupportedVersions => SchemaVersion.V3;
 
         public override async Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(
             IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries,

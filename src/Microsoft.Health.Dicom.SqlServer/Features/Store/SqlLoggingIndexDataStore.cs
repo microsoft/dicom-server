@@ -16,6 +16,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
         {
         }
 
-        public SchemaVersion Version => ((ISqlIndexDataStore)IndexDataStore).Version;
+        public VersionRange SupportedVersions => ((ISqlIndexDataStore)IndexDataStore).SupportedVersions;
     }
 }
