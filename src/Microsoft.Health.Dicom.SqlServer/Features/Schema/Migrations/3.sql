@@ -15,7 +15,7 @@ IF EXISTS (
     FROM sys.tables
     WHERE name = 'Instance')
 BEGIN
-	ROLLBACK TRANSACTION
+    ROLLBACK TRANSACTION
     RETURN
 END
 
@@ -1559,19 +1559,19 @@ GO
 
 IF NOT EXISTS (
     SELECT * 
-	FROM sys.fulltext_indexes 
-	where object_id = object_id('dbo.Study'))
+    FROM sys.fulltext_indexes 
+    where object_id = object_id('dbo.Study'))
 BEGIN
-	CREATE FULLTEXT INDEX ON Study(PatientNameWords, ReferringPhysicianNameWords LANGUAGE 1033)
-	KEY INDEX IXC_Study
-	WITH STOPLIST = OFF;
+    CREATE FULLTEXT INDEX ON Study(PatientNameWords, ReferringPhysicianNameWords LANGUAGE 1033)
+    KEY INDEX IXC_Study
+    WITH STOPLIST = OFF;
 END
 GO
 
 IF NOT EXISTS (
     SELECT * 
-	FROM sys.fulltext_indexes 
-	where object_id = object_id('dbo.ExtendedQueryTagPersonName'))
+    FROM sys.fulltext_indexes 
+    where object_id = object_id('dbo.ExtendedQueryTagPersonName'))
 BEGIN
     CREATE FULLTEXT INDEX ON ExtendedQueryTagPersonName(TagValueWords LANGUAGE 1033)
     KEY INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey
