@@ -21,14 +21,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
     {
         public SqlInstanceStoreV1(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
         {
-            EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
-
-            SqlConnectionWrapperFactory = sqlConnectionWrapperFactory;
+            SqlConnectionWrapperFactory = EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
         }
 
         protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory { get; }
 
-        public virtual SchemaVersion Version => SchemaVersion.V1;
+        public virtual VersionRange SupportedVersions => new VersionRange(SchemaVersion.V1, SchemaVersion.V3);
 
         public Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
             string studyInstanceUid,
@@ -91,10 +89,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
                            VLatest.Instance.Watermark);
 
                         results.Add(new VersionedInstanceIdentifier(
-                                rStudyInstanceUid,
-                                rSeriesInstanceUid,
-                                rSopInstanceUid,
-                                watermark));
+                            rStudyInstanceUid,
+                            rSeriesInstanceUid,
+                            rSopInstanceUid,
+                            watermark));
                     }
                 }
             }

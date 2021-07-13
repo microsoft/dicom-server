@@ -108,14 +108,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
-            services.Add<SqlInstanceStoreV2>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-            services.Add<SqlInstanceStoreV3>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
             services.Add<SqlInstanceStoreV4>()
                 .Scoped()
                 .AsSelf()
@@ -134,14 +126,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsSelf()
                 .AsImplementedInterfaces();
             services.Add<SqlIndexDataStoreV2>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-            services.Add<SqlIndexDataStoreV3>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-            services.Add<SqlIndexDataStoreV4>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();

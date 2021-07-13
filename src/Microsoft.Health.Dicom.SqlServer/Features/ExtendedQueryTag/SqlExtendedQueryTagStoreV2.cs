@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             Logger = logger;
         }
 
-        public override SchemaVersion Version => SchemaVersion.V2;
+        public override VersionRange SupportedVersions => SchemaVersion.V2;
 
         protected SqlConnectionWrapperFactory ConnectionWrapperFactory { get; }
 

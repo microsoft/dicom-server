@@ -38,16 +38,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<SqlIndexDataStoreV3>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<SqlIndexDataStoreV4>()
-               .Scoped()
-               .AsSelf()
-               .AsImplementedInterfaces();
-
             services.Add<SqlStoreFactory<ISqlIndexDataStore, IIndexDataStore>>()
                 .Scoped()
                 .AsSelf()
@@ -77,16 +67,6 @@ namespace Microsoft.Extensions.DependencyInjection
             IServiceCollection services = EnsureArg.IsNotNull(builder?.Services, nameof(builder));
 
             services.Add<SqlInstanceStoreV1>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<SqlInstanceStoreV2>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<SqlInstanceStoreV3>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();

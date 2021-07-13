@@ -15,15 +15,15 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
 {
-    internal class SqlInstanceStoreV4 : SqlInstanceStoreV3
+    internal class SqlInstanceStoreV4 : SqlInstanceStoreV1
     {
-
         public SqlInstanceStoreV4(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
             : base(sqlConnectionWrapperFactory)
         {
         }
 
-        public override SchemaVersion Version => SchemaVersion.V4;
+        public override VersionRange SupportedVersions => SchemaVersion.V4;
+
         public override async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersByWatermarkRangeAsync(
             WatermarkRange watermarkRange,
             IndexStatus indexStatus,
@@ -52,10 +52,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
                            VLatest.Instance.Watermark);
 
                         results.Add(new VersionedInstanceIdentifier(
-                                rStudyInstanceUid,
-                                rSeriesInstanceUid,
-                                rSopInstanceUid,
-                                watermark));
+                            rStudyInstanceUid,
+                            rSeriesInstanceUid,
+                            rSopInstanceUid,
+                            watermark));
                     }
                 }
             }

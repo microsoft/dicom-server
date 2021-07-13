@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             _sqlConnectionFactoryWrapper = sqlConnectionWrapperFactory;
         }
 
-        public override SchemaVersion Version => SchemaVersion.V2;
+        public override VersionRange SupportedVersions => new VersionRange(SchemaVersion.V2, SchemaVersion.V4);
 
         public override async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {

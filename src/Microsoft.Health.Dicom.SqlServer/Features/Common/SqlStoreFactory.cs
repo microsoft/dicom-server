@@ -28,10 +28,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         public SqlStoreFactory(ISchemaVersionResolver schemaResolver, IEnumerable<TVersionedStore> versionedStores)
         {
-            EnsureArg.IsNotNull(schemaResolver, nameof(schemaResolver));
-            EnsureArg.IsNotNull(versionedStores, nameof(versionedStores));
-            _schemaResolver = schemaResolver;
-            _versionedStores = versionedStores.ToDictionary(x => x.Version);
+            _schemaResolver = EnsureArg.IsNotNull(schemaResolver, nameof(schemaResolver));
+            _versionedStores = EnsureArg.IsNotNull(versionedStores, nameof(versionedStores))
+                .SelectMany(x => x.SupportedVersions.Select(v => (Version: v, Store: x)))
+                .ToDictionary(x => x.Version, x => x.Store);
         }
 
         public async Task<TStore> GetInstanceAsync(CancellationToken cancellationToken = default)

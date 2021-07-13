@@ -8,13 +8,13 @@ using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 namespace Microsoft.Health.Dicom.SqlServer.Feature.Common
 {
     /// <summary>
-    ///  Support versioning.
+    /// Represents versioned functionality.
     /// </summary>
     internal interface IVersioned
     {
         /// <summary>
-        /// Get the Schema version
+        /// Gets the range of supported versions.
         /// </summary>
-        SchemaVersion Version { get; }
+        VersionRange SupportedVersions { get; }
     }
 }
