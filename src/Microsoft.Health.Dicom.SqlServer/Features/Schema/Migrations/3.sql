@@ -1,32 +1,23 @@
--- NOTE: This script DROPS AND RECREATES all database objects.
 -- Style guide: please see: https://github.com/ktaranov/sqlserver-kit/blob/master/SQL%20Server%20Name%20Convention%20and%20T-SQL%20Programming%20Style.md
-
 /*************************************************************
-    Configure database
+Wrapping up in the multiple transactions except CREATE FULLTEXT INDEX which is non-transactional script.
+Guidelines to create scripts - https://github.com/microsoft/healthcare-shared-components/tree/master/src/Microsoft.Health.SqlServer/SqlSchemaScriptsGuidelines.md
 **************************************************************/
 
--- Enable RCSI
-IF ((SELECT is_read_committed_snapshot_on FROM sys.databases WHERE database_id = DB_ID()) = 0) BEGIN
-    ALTER DATABASE CURRENT SET READ_COMMITTED_SNAPSHOT ON
+SET XACT_ABORT ON
+
+BEGIN TRANSACTION
+/***********************************************************************
+ NOTE: just checking first object, since this is run in transaction 
+***************************************************************************/
+IF EXISTS (
+    SELECT * 
+    FROM sys.tables
+    WHERE name = 'Instance')
+BEGIN
+	ROLLBACK TRANSACTION
+    RETURN
 END
-
--- Avoid blocking queries when statistics need to be rebuilt
-IF ((SELECT is_auto_update_stats_async_on FROM sys.databases WHERE database_id = DB_ID()) = 0) BEGIN
-    ALTER DATABASE CURRENT SET AUTO_UPDATE_STATISTICS_ASYNC ON
-END
-
--- Use ANSI behavior for null values
-IF ((SELECT is_ansi_nulls_on FROM sys.databases WHERE database_id = DB_ID()) = 0) BEGIN
-    ALTER DATABASE CURRENT SET ANSI_NULLS ON
-END
-
-GO
-
-/*************************************************************
-Full text catalog creation
-**************************************************************/
-CREATE FULLTEXT CATALOG Dicom_Catalog WITH ACCENT_SENSITIVITY = OFF AS DEFAULT
-GO
 
 /*************************************************************
     Instance Table
@@ -243,11 +234,6 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
-CREATE FULLTEXT INDEX ON Study(PatientNameWords, ReferringPhysicianNameWords LANGUAGE 1033)
-KEY INDEX IXC_Study
-WITH STOPLIST = OFF;
-
-
 /*************************************************************
     Series Table
     Table containing normalized standard Series tags
@@ -316,7 +302,6 @@ INCLUDE
     SeriesKey
 )
 WITH (DATA_COMPRESSION = PAGE)
-GO
 
 /*************************************************************
     DeletedInstance Table
@@ -547,10 +532,6 @@ CREATE UNIQUE NONCLUSTERED INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagK
     WatermarkAndTagKey
 )
 
-CREATE FULLTEXT INDEX ON ExtendedQueryTagPersonName(TagValueWords LANGUAGE 1033)
-KEY INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey
-WITH STOPLIST = OFF;
-
 /*************************************************************
     The user defined type for AddExtendedQueryTagsInput
 *************************************************************/
@@ -561,7 +542,6 @@ CREATE TYPE dbo.AddExtendedQueryTagsInputTableType_1 AS TABLE
     TagPrivateCreator          NVARCHAR(64),  -- Extended Query Tag Private Creator, only valid for private tag.
     TagLevel                   TINYINT  -- Extended Query Tag level. 0 -- Instance Level, 1 -- Series Level, 2 -- Study Level
 )
-GO
 
 /*************************************************************
     Table valued parameter to insert into Extended Query Tag table for data type String
@@ -572,7 +552,6 @@ CREATE TYPE dbo.InsertStringExtendedQueryTagTableType_1 AS TABLE
     TagValue                   NVARCHAR(64),
     TagLevel                   TINYINT
 )
-GO
 
 /*************************************************************
     Table valued parameter to insert into Extended Query Tag table for data type Double
@@ -583,7 +562,6 @@ CREATE TYPE dbo.InsertDoubleExtendedQueryTagTableType_1 AS TABLE
     TagValue                   FLOAT(53),
     TagLevel                   TINYINT
 )
-GO
 
 /*************************************************************
     Table valued parameter to insert into Extended Query Tag table for data type Long
@@ -594,7 +572,6 @@ CREATE TYPE dbo.InsertLongExtendedQueryTagTableType_1 AS TABLE
     TagValue                   BIGINT,
     TagLevel                   TINYINT
 )
-GO
 
 /*************************************************************
     Table valued parameter to insert into Extended Query Tag table for data type Date Time
@@ -605,7 +582,6 @@ CREATE TYPE dbo.InsertDateTimeExtendedQueryTagTableType_1 AS TABLE
     TagValue                   DATETIME2(7),
     TagLevel                   TINYINT
 )
-GO
 
 /*************************************************************
     Table valued parameter to insert into Extended Query Tag table for data type Person Name
@@ -616,7 +592,6 @@ CREATE TYPE dbo.InsertPersonNameExtendedQueryTagTableType_1 AS TABLE
     TagValue                   NVARCHAR(200)        COLLATE SQL_Latin1_General_CP1_CI_AI,
     TagLevel                   TINYINT
 )
-GO
 
 /*************************************************************
     Sequence for generating sequential unique ids
@@ -662,6 +637,7 @@ CREATE SEQUENCE dbo.TagKeySequence
     NO CYCLE
     CACHE 10000
 
+COMMIT TRANSACTION
 GO
 
 /*************************************************************
@@ -710,7 +686,7 @@ GO
 -- RETURN VALUE
 --     The watermark (version).
 ------------------------------------------------------------------------
-CREATE PROCEDURE dbo.AddInstance
+CREATE OR ALTER PROCEDURE dbo.AddInstance
     @studyInstanceUid                   VARCHAR(64),
     @seriesInstanceUid                  VARCHAR(64),
     @sopInstanceUid                     VARCHAR(64),
@@ -992,7 +968,7 @@ GO
 -- RETURN VALUE
 --     None
 --
-CREATE PROCEDURE dbo.UpdateInstanceStatus
+CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatus
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64),
     @sopInstanceUid     VARCHAR(64),
@@ -1054,7 +1030,7 @@ GO
 --     @sopInstanceUid
 --         * The SOP instance UID.
 /***************************************************************************************/
-CREATE PROCEDURE dbo.GetInstance (
+CREATE OR ALTER PROCEDURE dbo.GetInstance (
     @validStatus        TINYINT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64) = NULL,
@@ -1098,7 +1074,7 @@ GO
 --     @sopInstanceUid
 --         * The SOP instance UID.
 /***************************************************************************************/
-CREATE PROCEDURE dbo.DeleteInstance (
+CREATE OR ALTER PROCEDURE dbo.DeleteInstance (
     @cleanupAfter       DATETIMEOFFSET(0),
     @createdStatus      TINYINT,
     @studyInstanceUid   VARCHAR(64),
@@ -1280,7 +1256,7 @@ GO
 --     @maxRetries
 --         * The maximum number of times to retry a cleanup
 /***************************************************************************************/
-CREATE PROCEDURE dbo.RetrieveDeletedInstance
+CREATE OR ALTER PROCEDURE dbo.RetrieveDeletedInstance
     @count          INT,
     @maxRetries     INT
 AS
@@ -1309,7 +1285,7 @@ GO
 --     @watermark
 --         * The watermark of the entry
 /***************************************************************************************/
-CREATE PROCEDURE dbo.DeleteDeletedInstance(
+CREATE OR ALTER PROCEDURE dbo.DeleteDeletedInstance(
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64),
     @sopInstanceUid     VARCHAR(64),
@@ -1349,7 +1325,7 @@ GO
 --     The retry count.
 --
 /***************************************************************************************/
-CREATE PROCEDURE dbo.IncrementDeletedInstanceRetry(
+CREATE OR ALTER PROCEDURE dbo.IncrementDeletedInstanceRetry(
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64),
     @sopInstanceUid     VARCHAR(64),
@@ -1385,7 +1361,7 @@ GO
 --     @offet
 --         * Rows to skip
 /***************************************************************************************/
-CREATE PROCEDURE dbo.GetChangeFeed (
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeed (
     @limit      INT,
     @offset     BIGINT)
 AS
@@ -1414,7 +1390,7 @@ GO
 -- DESCRIPTION
 --     Gets the latest dicom change
 /***************************************************************************************/
-CREATE PROCEDURE dbo.GetChangeFeedLatest
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedLatest
 AS
 BEGIN
     SET NOCOUNT     ON
@@ -1445,7 +1421,7 @@ GO
 --     @tagPath
 --         * The TagPath for the extended query tag to retrieve.
 /***************************************************************************************/
-CREATE PROCEDURE dbo.GetExtendedQueryTag (
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTag (
     @tagPath  VARCHAR(64) = NULL
 )
 AS
@@ -1475,7 +1451,7 @@ GO
 --     @extendedQueryTags
 --         * The extended query tag list
 /***************************************************************************************/
-CREATE PROCEDURE dbo.AddExtendedQueryTags (
+CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTags (
     @extendedQueryTags dbo.AddExtendedQueryTagsInputTableType_1 READONLY
 )
 AS
@@ -1515,7 +1491,7 @@ GO
 --     @dataType
 --         * the data type of extended query tag. 0 -- String, 1 -- Long, 2 -- Double, 3 -- DateTime, 4 -- PersonName
 /***************************************************************************************/
-CREATE PROCEDURE dbo.DeleteExtendedQueryTag (
+CREATE OR ALTER PROCEDURE dbo.DeleteExtendedQueryTag (
     @tagPath VARCHAR(64),
     @dataType TINYINT
 )
@@ -1567,4 +1543,38 @@ AS
         WHERE TagKey = @tagKey
         
     COMMIT TRANSACTION
+GO
+
+/*************************************************************
+Full text catalog and index creation outside transaction
+**************************************************************/
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.fulltext_catalogs
+    WHERE name = 'Dicom_Catalog')
+BEGIN
+    CREATE FULLTEXT CATALOG Dicom_Catalog WITH ACCENT_SENSITIVITY = OFF AS DEFAULT
+END
+GO
+
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.fulltext_indexes 
+	where object_id = object_id('dbo.Study'))
+BEGIN
+	CREATE FULLTEXT INDEX ON Study(PatientNameWords, ReferringPhysicianNameWords LANGUAGE 1033)
+	KEY INDEX IXC_Study
+	WITH STOPLIST = OFF;
+END
+GO
+
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.fulltext_indexes 
+	where object_id = object_id('dbo.ExtendedQueryTagPersonName'))
+BEGIN
+    CREATE FULLTEXT INDEX ON ExtendedQueryTagPersonName(TagValueWords LANGUAGE 1033)
+    KEY INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey
+    WITH STOPLIST = OFF;
+END
 GO
