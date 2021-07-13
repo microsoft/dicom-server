@@ -38,6 +38,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsSelf()
                 .AsImplementedInterfaces();
 
+            services.Add<SqlIndexDataStoreV3>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
             services.Add<SqlStoreFactory<ISqlIndexDataStore, IIndexDataStore>>()
                 .Scoped()
                 .AsSelf()
@@ -110,11 +115,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<SqlExtendedQueryTagStoreV3>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
             services.Add<SqlExtendedQueryTagStoreV4>()
                 .Scoped()
                 .AsSelf()
@@ -134,7 +134,9 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             IServiceCollection services = EnsureArg.IsNotNull(builder?.Services, nameof(builder));
 
+#pragma warning disable CS0618 // Type or member is obsolete
             services.AddSqlServerBase<SchemaVersion>(configRoot);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             services.Add(provider => new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max))
                 .Singleton()

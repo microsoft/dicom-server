@@ -24,16 +24,16 @@ using Microsoft.Health.SqlServer.Features.Storage;
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 {
     /// <summary>
-    /// Sql IndexDataStore version 2.
+    /// Sql IndexDataStore version 3.
     /// </summary>
-    internal class SqlIndexDataStoreV2 : SqlIndexDataStoreV1
+    internal class SqlIndexDataStoreV3 : SqlIndexDataStoreV2
     {
-        public SqlIndexDataStoreV2(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+        public SqlIndexDataStoreV3(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
             : base(sqlConnectionWrapperFactory)
         {
         }
 
-        public override VersionRange SupportedVersions => SchemaVersion.V2;
+        public override VersionRange SupportedVersions => new VersionRange(SchemaVersion.V3, SchemaVersion.V4);
 
         public override async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
@@ -44,11 +44,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 // Build parameter for extended query tag.
-                V2.AddInstanceTableValuedParameters parameters = AddInstanceTableValuedParametersBuilder.BuildV2(
+                VLatest.AddInstanceTableValuedParameters parameters = AddInstanceTableValuedParametersBuilder.BuildVLatest(
                     instance,
                     queryTags.Where(tag => tag.IsExtendedQueryTag));
 
-                V2.AddInstance.PopulateCommand(
+                VLatest.AddInstance.PopulateCommand(
                     sqlCommandWrapper,
                     instance.GetString(DicomTag.StudyInstanceUID),
                     instance.GetString(DicomTag.SeriesInstanceUID),
@@ -61,6 +61,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
                     instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
                     instance.GetStringDateAsDate(DicomTag.PerformedProcedureStepStartDate),
+                    instance.GetStringDateAsDate(DicomTag.PatientBirthDate),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.ManufacturerModelName),
                     (byte)IndexStatus.Creating,
                     parameters);
 

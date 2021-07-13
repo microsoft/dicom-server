@@ -19,7 +19,7 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 {
-    internal class SqlExtendedQueryTagStoreV4 : SqlExtendedQueryTagStoreV3
+    internal class SqlExtendedQueryTagStoreV4 : SqlExtendedQueryTagStoreV2
     {
         public SqlExtendedQueryTagStoreV4(
            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         {
         }
 
-        public override VersionRange SupportedVersions => SchemaVersion.V4;
+        public override VersionRange SupportedVersions => new VersionRange(SchemaVersion.V3, SchemaVersion.V4);
 
         public override async Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(
             IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries,

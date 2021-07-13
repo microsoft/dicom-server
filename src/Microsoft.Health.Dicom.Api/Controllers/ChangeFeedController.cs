@@ -16,6 +16,7 @@ using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
+using Microsoft.Health.Dicom.Core.Web;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
@@ -38,6 +39,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [HttpGet]
+        [Produces(KnownContentTypes.ApplicationJson)]
         [ProducesResponseType(typeof(IEnumerable<ChangeFeedEntry>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
@@ -58,6 +60,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [HttpGet]
+        [Produces(KnownContentTypes.ApplicationJson)]
         [ProducesResponseType(typeof(ChangeFeedEntry), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]

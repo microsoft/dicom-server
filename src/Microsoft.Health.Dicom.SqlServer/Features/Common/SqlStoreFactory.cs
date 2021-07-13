@@ -30,8 +30,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         {
             _schemaResolver = EnsureArg.IsNotNull(schemaResolver, nameof(schemaResolver));
             _versionedStores = EnsureArg.IsNotNull(versionedStores, nameof(versionedStores))
-                .SelectMany(x => x.SupportedVersions.Select(v => (Version: v, Store: x)))
-                .ToDictionary(x => x.Version, x => x.Store);
+                .SelectMany(s => s.SupportedVersions.Select(v => (Version: v, Store: s)))
+                .ToDictionary(p => p.Version, p => p.Store);
         }
 
         public async Task<TStore> GetInstanceAsync(CancellationToken cancellationToken = default)

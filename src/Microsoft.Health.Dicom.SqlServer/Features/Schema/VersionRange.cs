@@ -55,7 +55,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
             => Min == other.Min && Max == other.Max;
 
         public override int GetHashCode()
-            => Min.GetHashCode() ^ Max.GetHashCode();
+            => HashCode.Combine(Min, Max);
 
         public IEnumerator<SchemaVersion> GetEnumerator()
         {

@@ -10,6 +10,7 @@ using EnsureThat;
 using MediatR;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
@@ -57,13 +58,15 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 },
             };
 
+            IOptions<SqlServerDataStoreConfiguration> configOptions = Options.Create(config);
+
             var scriptProvider = new ScriptProvider<SchemaVersion>();
 
             var baseScriptProvider = new BaseScriptProvider();
 
             var mediator = Substitute.For<IMediator>();
 
-            var sqlConnectionStringProvider = new DefaultSqlConnectionStringProvider(config);
+            var sqlConnectionStringProvider = new DefaultSqlConnectionStringProvider(configOptions);
 
             var sqlConnectionFactory = new DefaultSqlConnectionFactory(sqlConnectionStringProvider);
 
@@ -73,7 +76,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             SchemaInformation = new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max);
 
-            _schemaInitializer = new SchemaInitializer(config, SchemaUpgradeRunner, SchemaInformation, sqlConnectionFactory, sqlConnectionStringProvider, mediator, NullLogger<SchemaInitializer>.Instance);
+            _schemaInitializer = new SchemaInitializer(configOptions, schemaManagerDataStore, SchemaUpgradeRunner, SchemaInformation, sqlConnectionFactory, sqlConnectionStringProvider, mediator, NullLogger<SchemaInitializer>.Instance);
 
             SqlTransactionHandler = new SqlTransactionHandler();
 

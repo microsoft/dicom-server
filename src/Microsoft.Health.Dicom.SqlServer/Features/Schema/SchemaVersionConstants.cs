@@ -9,6 +9,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
     {
         public const int Min = (int)SchemaVersion.V1;
         public const int Max = (int)SchemaVersion.V4;
-        public const int SupportExtendedQueryTagSchemaVersion = (int)SchemaVersion.V2;
+        public const int SupportExtendedQueryTagSchemaVersion = (int)SchemaVersion.V3;
     }
 }
