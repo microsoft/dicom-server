@@ -37,7 +37,8 @@ namespace Microsoft.Health.Dicom.Functions
             builder.Services
                 .AddSqlServer(config)
                 .AddForegroundSchemaVersionResolution()
-                .AddExtendedQueryTagStores();
+                .AddExtendedQueryTagStores()
+                .AddInstanceStore();
 
             builder.Services
                 .AddAzureBlobServiceClient(config)

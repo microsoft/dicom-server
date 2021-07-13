@@ -1,4 +1,4 @@
-﻿-- NOTE: This script DROPS AND RECREATES all database objects.
+-- NOTE: This script DROPS AND RECREATES all database objects.
 -- Style guide: please see: https://github.com/ktaranov/sqlserver-kit/blob/master/SQL%20Server%20Name%20Convention%20and%20T-SQL%20Programming%20Style.md
 
 /*************************************************************
@@ -1051,6 +1051,43 @@ BEGIN
             AND Status              = @validStatus
 
 END
+GO
+
+/*************************************************************
+    Stored procedures for adding an instance.
+**************************************************************/
+--
+-- STORED PROCEDURE
+--     GetInstancesByWatermarkRange
+--
+-- DESCRIPTION
+--     Get instances by given watermark range.
+--
+-- PARAMETERS
+--     @startWatermark
+--         * The inclusive start watermark.
+--     @endWatermark
+--         * The inclusive end watermark.
+--     @status
+--         * The instance status.
+-- RETURN VALUE
+--     The instance identifiers.
+------------------------------------------------------------------------
+CREATE PROCEDURE dbo.GetInstancesByWatermarkRange(
+    @startWatermark BIGINT,
+    @endWatermark BIGINT,
+    @status TINYINT
+)
+AS
+    SET NOCOUNT ON
+    SET XACT_ABORT ON
+    SELECT StudyInstanceUid,
+           SeriesInstanceUid,
+           SopInstanceUid,
+           Watermark
+    FROM dbo.Instance
+    WHERE Watermark BETWEEN @startWatermark AND @endWatermark
+          AND Status = @status
 GO
 
 /***************************************************************************************/
