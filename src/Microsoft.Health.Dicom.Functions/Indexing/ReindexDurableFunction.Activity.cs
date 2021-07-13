@@ -12,6 +12,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing
@@ -88,7 +89,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
 
             logger.LogInformation("Reindex instances with {input}", input);
 
-            var instanceIdentifiers = await _instanceStore.GetInstanceIdentifiersAsync(input.WatermarkRange);
+            var instanceIdentifiers = await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(input.WatermarkRange, IndexStatus.Created);
 
             var tasks = new List<Task>();
             foreach (var instanceIdentifier in instanceIdentifiers)

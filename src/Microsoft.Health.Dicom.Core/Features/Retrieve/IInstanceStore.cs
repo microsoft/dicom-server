@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
@@ -30,10 +31,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         /// <summary>
         /// Gets idenfiers of instances within the given range of watermarks.
         /// </summary>
-        /// <param name="watermarkRange"></param>
+        /// <param name="watermarkRange">The watermark range</param>
+        /// <param name="indexStatus">The index status</param>
         /// <param name="cancellationToken">The cancellation token</param>
         /// <returns>The instanceidentifiers</returns>
-        Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersAsync(WatermarkRange watermarkRange, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersByWatermarkRangeAsync(
+            WatermarkRange watermarkRange,
+            IndexStatus indexStatus,
+            CancellationToken cancellationToken = default);
 
     }
 }

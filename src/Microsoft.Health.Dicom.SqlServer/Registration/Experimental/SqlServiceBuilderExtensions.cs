@@ -64,11 +64,23 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static ISqlServiceBuilder AddInstanceStore(this ISqlServiceBuilder builder)
         {
-            EnsureArg.IsNotNull(builder?.Services, nameof(builder))
-                .Add<SqlInstanceStore>()
+            IServiceCollection services = EnsureArg.IsNotNull(builder?.Services, nameof(builder));
+
+            services.Add<SqlInstanceStoreV1>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
+            services.Add<SqlInstanceStoreV4>()
+               .Scoped()
+               .AsSelf()
+               .AsImplementedInterfaces();
+
+            services.Add<SqlStoreFactory<ISqlInstanceStore, ISqlInstanceStore>>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
 
             return builder;
         }
@@ -99,6 +111,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsImplementedInterfaces();
 
             services.Add<SqlExtendedQueryTagStoreV3>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<SqlExtendedQueryTagStoreV4>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();

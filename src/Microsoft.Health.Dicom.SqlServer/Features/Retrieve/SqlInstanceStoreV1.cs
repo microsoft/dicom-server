@@ -2,30 +2,32 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
+
 using System.Collections.Generic;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
 {
-    internal class SqlInstanceStore : IInstanceStore
+    internal class SqlInstanceStoreV1 : ISqlInstanceStore
     {
-        private readonly SqlConnectionWrapperFactory _sqlConnectionWrapperFactory;
-
-        public SqlInstanceStore(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+        public SqlInstanceStoreV1(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
         {
-            EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
-
-            _sqlConnectionWrapperFactory = sqlConnectionWrapperFactory;
+            SqlConnectionWrapperFactory = EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
         }
+
+        protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory { get; }
+
+        public virtual VersionRange SupportedVersions => new VersionRange(SchemaVersion.V1, SchemaVersion.V3);
 
         public Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
             string studyInstanceUid,
@@ -36,9 +38,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             return GetInstanceIdentifierImp(studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
         }
 
-        public Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersAsync(WatermarkRange watermarkRange, CancellationToken cancellationToken = default)
+        public virtual Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersByWatermarkRangeAsync(
+            WatermarkRange watermarkRange,
+            IndexStatus indexStatus,
+            CancellationToken cancellationToken = default)
         {
-            throw new System.NotImplementedException();
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
 
         public Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
@@ -64,7 +69,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
         {
             var results = new List<VersionedInstanceIdentifier>();
 
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.GetInstance.PopulateCommand(
@@ -85,10 +90,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
                            VLatest.Instance.Watermark);
 
                         results.Add(new VersionedInstanceIdentifier(
-                                rStudyInstanceUid,
-                                rSeriesInstanceUid,
-                                rSopInstanceUid,
-                                watermark));
+                            rStudyInstanceUid,
+                            rSeriesInstanceUid,
+                            rSopInstanceUid,
+                            watermark));
                     }
                 }
             }

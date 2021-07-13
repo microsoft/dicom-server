@@ -89,7 +89,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     new SqlIndexDataStoreV2(SqlConnectionWrapperFactory),
                 });
 
-            InstanceStore = new SqlInstanceStore(SqlConnectionWrapperFactory);
+            InstanceStoreFactory = new SqlStoreFactory<ISqlInstanceStore, IInstanceStore>(
+                schemaResolver,
+                new[]
+                {
+                    new SqlInstanceStoreV1(SqlConnectionWrapperFactory),
+                    new SqlInstanceStoreV4(SqlConnectionWrapperFactory),
+                });
+
 
             ExtendedQueryTagStoreFactory = new SqlStoreFactory<ISqlExtendedQueryTagStore, IExtendedQueryTagStore>(
                 schemaResolver,
@@ -115,11 +122,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public IStoreFactory<IIndexDataStore> IndexDataStoreFactory { get; }
 
+        public IStoreFactory<IInstanceStore> InstanceStoreFactory { get; }
+
         public SchemaUpgradeRunner SchemaUpgradeRunner { get; }
 
         public string TestConnectionString { get; }
-
-        public IInstanceStore InstanceStore { get; }
 
         public IStoreFactory<IExtendedQueryTagStore> ExtendedQueryTagStoreFactory { get; }
 

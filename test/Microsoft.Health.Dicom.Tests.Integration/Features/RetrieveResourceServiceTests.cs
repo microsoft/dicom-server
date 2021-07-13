@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
     {
         private readonly RetrieveResourceService _retrieveResourceService;
         private readonly IStoreFactory<IIndexDataStore> _indexDataStoreFactory;
-        private readonly IInstanceStore _instanceStore;
+        private readonly IStoreFactory<IInstanceStore> _instanceStoreFactory;
         private readonly IFileStore _fileStore;
         private readonly ITranscoder _retrieveTranscoder;
         private readonly IFrameHandler _frameHandler;
@@ -48,15 +48,15 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         {
             EnsureArg.IsNotNull(sqlIndexStorageFixture, nameof(sqlIndexStorageFixture));
             EnsureArg.IsNotNull(blobStorageFixture, nameof(blobStorageFixture));
+            _instanceStoreFactory = sqlIndexStorageFixture.InstanceStoreFactory;
             _indexDataStoreFactory = sqlIndexStorageFixture.IndexDataStoreFactory;
-            _instanceStore = sqlIndexStorageFixture.InstanceStore;
             _fileStore = blobStorageFixture.FileStore;
             _retrieveTranscoder = Substitute.For<ITranscoder>();
             _frameHandler = Substitute.For<IFrameHandler>();
             _retrieveTransferSyntaxHandler = new RetrieveTransferSyntaxHandler(NullLogger<RetrieveTransferSyntaxHandler>.Instance);
             _recyclableMemoryStreamManager = blobStorageFixture.RecyclableMemoryStreamManager;
             _retrieveResourceService = new RetrieveResourceService(
-                _instanceStore, _fileStore, _retrieveTranscoder, _frameHandler, _retrieveTransferSyntaxHandler, NullLogger<RetrieveResourceService>.Instance);
+                _instanceStoreFactory, _fileStore, _retrieveTranscoder, _frameHandler, _retrieveTransferSyntaxHandler, NullLogger<RetrieveResourceService>.Instance);
         }
 
         [Fact]

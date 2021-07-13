@@ -8,6 +8,7 @@ using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed;
@@ -57,39 +58,27 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<SqlIndexDataStoreV1>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-            services.Add<SqlIndexDataStoreV2>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-            services.Add<SqlStoreFactory<ISqlIndexDataStore, IIndexDataStore>>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            // TODO: Ideally, the logger can be registered in the API layer since it's agnostic to the implementation.
-            // However, the current implementation of the decorate method requires the concrete type to be already registered,
-            // so we need to register here. Need to some more investigation to see how we might be able to do this.
-            services.Decorate<ISqlIndexDataStore, SqlLoggingIndexDataStore>();
+            services.AddIndexDataStores();
 
             services.Add<SqlQueryStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<SqlInstanceStore>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
+            services.AddInstanceStores();
 
             services.Add<SqlChangeFeedStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
+            services.AddExtendedQueryTagStores();
+
+            return dicomServerBuilder;
+        }
+
+        private static IServiceCollection AddExtendedQueryTagStores(this IServiceCollection services)
+        {
             services.Add<SqlExtendedQueryTagStoreV1>()
                 .Scoped()
                 .AsSelf()
@@ -110,8 +99,45 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+            return services;
+        }
 
-            return dicomServerBuilder;
+        private static IServiceCollection AddInstanceStores(this IServiceCollection services)
+        {
+            services.Add<SqlInstanceStoreV1>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+            services.Add<SqlInstanceStoreV4>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+            services.Add<SqlStoreFactory<ISqlInstanceStore, IInstanceStore>>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+            return services;
+        }
+
+        private static IServiceCollection AddIndexDataStores(this IServiceCollection services)
+        {
+            services.Add<SqlIndexDataStoreV1>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+            services.Add<SqlIndexDataStoreV2>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+            services.Add<SqlStoreFactory<ISqlIndexDataStore, IIndexDataStore>>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+            // TODO: Ideally, the logger can be registered in the API layer since it's agnostic to the implementation.
+            // However, the current implementation of the decorate method requires the concrete type to be already registered,
+            // so we need to register here. Need to some more investigation to see how we might be able to do this.
+            services.Decorate<ISqlIndexDataStore, SqlLoggingIndexDataStore>();
+            return services;
         }
     }
 }
