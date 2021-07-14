@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
     /// </summary>
     public class QueryTagIndexingOptions
     {
-        internal const string ConfigurationSectionName = "Indexing";
+        internal const string SectionName = "Indexing";
 
         /// <summary>
         /// Gets or sets the number of DICOM instances processed a single worker node.

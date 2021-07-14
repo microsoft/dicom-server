@@ -21,6 +21,12 @@ namespace Microsoft.Health.Dicom.Functions.Management
         private readonly PurgeHistoryOptions _purgeConfig;
         private readonly Func<DateTime> _getUtcNow;
 
+        public const string PurgeFrequencyVariable = "%"
+            + DicomFunctionsConfiguration.HostSectionName + ":"
+            + DicomFunctionsConfiguration.SectionName + ":"
+            + PurgeHistoryOptions.SectionName + ":"
+            + nameof(PurgeHistoryOptions.Frequency) + "%";
+
         public PurgeOrchestrationInstanceHistory(IOptions<PurgeHistoryOptions> cleanupOptions)
             : this(cleanupOptions, () => DateTime.UtcNow)
         { }
@@ -33,7 +39,7 @@ namespace Microsoft.Health.Dicom.Functions.Management
 
         [FunctionName(nameof(PurgeOrchestrationInstanceHistory))]
         public async Task Run(
-            [TimerTrigger(DicomFunctionsConfiguration.PurgeFrequencyVariable)] TimerInfo myTimer,
+            [TimerTrigger(PurgeFrequencyVariable)] TimerInfo myTimer,
             [DurableClient] IDurableOrchestrationClient client,
             ILogger log,
             CancellationToken hostCancellationToken)

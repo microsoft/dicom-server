@@ -3,10 +3,18 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Functions
+using System;
+using System.ComponentModel.DataAnnotations;
+
+namespace Microsoft.Health.Dicom.Functions.Client.Configs
 {
-    internal static class AzureFunctionsJobHost
+    public class OperationRoutes
+
     {
-        public const string ConfigurationSectionName = nameof(AzureFunctionsJobHost);
+        [Required]
+        public Uri StartQueryTagIndexingRoute { get; set; }
+
+        [Required]
+        public string GetStatusRouteTemplate { get; set; }
     }
 }

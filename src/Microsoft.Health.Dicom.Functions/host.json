@@ -13,10 +13,10 @@
       "BatchSize": 2,
       "ParallelBatches": 2
     },
-    "OrchestrationHistory": {
+    "PurgeHistory": {
       "RuntimeStatuses": [ "Completed" ],
       "MinimumAgeDays": 14,
-      "PurgeFrequency": "0 0 * * *"
+      "Frequency": "0 0 * * *"
     }
   },
   "BlobStore": {

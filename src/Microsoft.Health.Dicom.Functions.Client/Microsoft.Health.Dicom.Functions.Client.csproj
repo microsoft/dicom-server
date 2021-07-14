@@ -17,6 +17,7 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="$(SdkPackageVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Net.Http.Headers" Version="2.2.8" />

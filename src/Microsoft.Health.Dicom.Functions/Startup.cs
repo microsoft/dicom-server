@@ -8,6 +8,7 @@ using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Modules;
+using Microsoft.Health.Dicom.Functions.Configuration;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Management;
 using Microsoft.Health.Dicom.Functions.Registration;
@@ -24,11 +25,11 @@ namespace Microsoft.Health.Dicom.Functions
             IConfiguration config = builder
                 .GetContext()
                 .Configuration
-                .GetSection(AzureFunctionsJobHost.ConfigurationSectionName);
+                .GetSection(DicomFunctionsConfiguration.HostSectionName);
 
             builder.Services
-                .AddFunctionsOptions<QueryTagIndexingOptions>(QueryTagIndexingOptions.ConfigurationSectionName)
-                .AddFunctionsOptions<PurgeHistoryOptions>(PurgeHistoryOptions.ConfigurationSectionName)
+                .AddFunctionsOptions<QueryTagIndexingOptions>(config, QueryTagIndexingOptions.SectionName)
+                .AddFunctionsOptions<PurgeHistoryOptions>(config, PurgeHistoryOptions.SectionName)
                 .AddStorageServices(config)
                 .AddHttpServices();
 

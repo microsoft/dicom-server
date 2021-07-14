@@ -8,12 +8,20 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Microsoft.Health.Dicom.Functions.Client.Configs
 {
-    public class OperationRoutesConfiguration
+    public class FunctionsClientOptions
     {
-        [Required]
-        public Uri StartQueryTagIndexingRoute { get; set; }
+        internal const string SectionName = "DicomFunctions";
 
         [Required]
-        public string GetStatusRouteTemplate { get; set; }
+        public Uri BaseAddress { get; set; }
+
+        [Required]
+        public OperationRoutes Routes { get; set; } = new OperationRoutes();
+
+        [Range(0, int.MaxValue)]
+        public int MaxRetries { get; set; }
+
+        [Range(0, 10000)]
+        public int MinRetryDelayMilliseconds { get; set; }
     }
 }

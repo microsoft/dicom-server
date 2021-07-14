@@ -11,16 +11,16 @@ namespace Microsoft.Health.Dicom.Functions.Management
 {
     public class PurgeHistoryOptions
     {
-        internal const string ConfigurationSectionName = "OrchestrationHistory";
+        internal const string SectionName = "PurgeHistory";
 
         [Required]
         [MinLength(1)]
         public IReadOnlyCollection<OrchestrationRuntimeStatus> RuntimeStatuses { get; set; }
 
-        [Range(0, 1000)]
+        [Range(0, 365)]
         public int MinimumAgeDays { get; set; } = 30;
 
         [Required]
-        public string PurgeFrequency { get; set; }
+        public string Frequency { get; set; }
     }
 }

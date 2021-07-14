@@ -7,7 +7,7 @@ services:
       ASPNETCORE_ENVIRONMENT: "Development"
       ASPNETCORE_URLS: "https://+:8080"
       DicomServer__Security__Enabled: "false"
-      Functions__BaseAddress: "http://functions:80/api/"
+      DicomFunctions__BaseAddress: "http://functions:80/api/"
       # [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Password is only used for development.")]
       SqlServer__ConnectionString: "Server=tcp:sql,1433;Initial Catalog=DICOM;Persist Security Info=False;User ID=sa;Password=${SAPASSWORD:-L0ca1P@ssw0rd};MultipleActiveResultSets=False;Connection Timeout=30;"
     user: root

@@ -15,18 +15,19 @@ namespace Microsoft.Health.Dicom.Functions.Registration
 {
     internal static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddFunctionsOptions<T>(this IServiceCollection services, string sectionName)
+        public static IServiceCollection AddFunctionsOptions<T>(
+            this IServiceCollection services,
+            IConfiguration configuration,
+            string sectionName)
             where T : class
         {
             EnsureArg.IsNotNull(services, nameof(services));
+            EnsureArg.IsNotNull(configuration, nameof(configuration));
+            EnsureArg.IsNotEmptyOrWhiteSpace(sectionName, nameof(sectionName));
 
-            services
-                .AddOptions<T>()
-                .Configure<IConfiguration>((sectionObj, config) => config
-                    .GetSection(AzureFunctionsJobHost.ConfigurationSectionName)
-                    .GetSection(DicomFunctionsConfiguration.SectionName)
-                    .GetSection(sectionName)
-                    .Bind(sectionObj));
+            services.Configure<T>(configuration
+                .GetSection(DicomFunctionsConfiguration.SectionName)
+                .GetSection(sectionName));
 
             return services;
         }
@@ -34,6 +35,7 @@ namespace Microsoft.Health.Dicom.Functions.Registration
         public static IServiceCollection AddStorageServices(this IServiceCollection services, IConfiguration configuration)
         {
             EnsureArg.IsNotNull(services, nameof(services));
+            EnsureArg.IsNotNull(configuration, nameof(configuration));
 
             new DicomFunctionsBuilder(services)
                 .AddSqlServer(c => configuration.GetSection(SqlServerDataStoreConfiguration.SectionName).Bind(c))
