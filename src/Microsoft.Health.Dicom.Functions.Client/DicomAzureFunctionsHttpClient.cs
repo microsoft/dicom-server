@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Functions.Client
     internal class DicomAzureFunctionsHttpClient : IDicomOperationsClient
     {
         private readonly HttpClient _client;
-        private readonly FunctionsClientConfiguration _config;
+        private readonly FunctionsClientOptions _config;
         internal static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings
         {
             DateTimeZoneHandling = DateTimeZoneHandling.Utc,
@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.Functions.Client
         /// <exception cref="ArgumentNullException">
         /// <paramref name="client"/>, <paramref name="config"/>, or the value of the configuration is <see langword="null"/>.
         /// </exception>
-        public DicomAzureFunctionsHttpClient(HttpClient client, IOptions<FunctionsClientConfiguration> config)
+        public DicomAzureFunctionsHttpClient(HttpClient client, IOptions<FunctionsClientOptions> config)
         {
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(config?.Value, nameof(config));

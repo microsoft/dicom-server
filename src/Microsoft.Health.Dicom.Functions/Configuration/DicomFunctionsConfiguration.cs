@@ -3,16 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Dicom.Core.Configs;
-
-namespace Microsoft.Health.Dicom.Operations.Functions.Configs
+namespace Microsoft.Health.Dicom.Functions.Configuration
 {
-    /// <summary>
-    /// Represents configuration settings related to the Dicom functions.
-    /// </summary>
-    public class DicomFunctionsConfiguration
+    internal static class DicomFunctionsConfiguration
     {
+        public const string HostSectionName = "AzureFunctionsJobHost";
+
         public const string SectionName = "DicomFunctions";
-        public ReindexOperationConfiguration Reindex { get; set; } = new ReindexOperationConfiguration();
     }
 }

@@ -5,9 +5,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Registration;
@@ -15,6 +17,7 @@ using Microsoft.Health.Dicom.Functions.Client.Configs;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
+using Polly.Extensions.Http;
 
 namespace Microsoft.Health.Dicom.Functions.Client
 {
@@ -30,7 +33,6 @@ namespace Microsoft.Health.Dicom.Functions.Client
         /// </summary>
         /// <param name="dicomServerBuilder">A service builder for constructing a DICOM server.</param>
         /// <param name="configurationRoot">The root of a configuration containing settings for the client.</param>
-        /// <param name="configureAction">An optional delegate for modifying the resulting configuration.</param>
         /// <returns>The service builder for adding additional services.</returns>
         /// <exception cref="ArgumentNullException">
         /// <para>
@@ -39,34 +41,37 @@ namespace Microsoft.Health.Dicom.Functions.Client
         /// <para>-or-</para>
         /// <para>
         /// <paramref name="configurationRoot"/> is missing a section with the key
-        /// <see cref="FunctionsClientConfiguration.SectionName"/>.
+        /// <see cref="FunctionsClientOptions.SectionName"/>.
         /// </para>
         /// </exception>
         public static IDicomServerBuilder AddAzureFunctionsClient(
             this IDicomServerBuilder dicomServerBuilder,
-            IConfiguration configurationRoot,
-            Action<FunctionsClientConfiguration> configureAction = null)
+            IConfiguration configurationRoot)
         {
             EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder));
             EnsureArg.IsNotNull(configurationRoot, nameof(configurationRoot));
 
             IServiceCollection services = dicomServerBuilder.Services;
 
-            FunctionsClientConfiguration config = configurationRoot
-                .GetSection(FunctionsClientConfiguration.SectionName)
-                .Get<FunctionsClientConfiguration>();
+            services.Configure<FunctionsClientOptions>(configurationRoot
+                .GetSection(FunctionsClientOptions.SectionName));
 
-            EnsureArg.IsNotNull(config, nameof(configurationRoot));
+            services
+                .AddHttpClient<DicomAzureFunctionsHttpClient>()
+                .AddHttpMessageHandler(
+                    sp =>
+                    {
+                        FunctionsClientOptions config = sp.GetRequiredService<IOptions<FunctionsClientOptions>>().Value;
+                        IEnumerable<TimeSpan> delays = Backoff.ExponentialBackoff(
+                            TimeSpan.FromMilliseconds(config.MinRetryDelayMilliseconds),
+                            config.MaxRetries);
 
-            configureAction?.Invoke(config);
-            services.AddSingleton(Options.Create(config));
+                        IAsyncPolicy<HttpResponseMessage> policy = HttpPolicyExtensions
+                            .HandleTransientHttpError()
+                            .WaitAndRetryAsync(delays);
 
-            IEnumerable<TimeSpan> delays = Backoff.ExponentialBackoff(
-                TimeSpan.FromMilliseconds(config.MinRetryDelayMilliseconds),
-                config.MaxRetries);
-
-            services.AddHttpClient<DicomAzureFunctionsHttpClient>()
-                .AddTransientHttpErrorPolicy(p => p.WaitAndRetryAsync(delays));
+                        return new PolicyHttpMessageHandler(policy);
+                    });
 
             services.Add<DicomAzureFunctionsHttpClient>()
                 .Scoped()

@@ -3,14 +3,18 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.SqlServer.Configs;
+using System;
+using System.ComponentModel.DataAnnotations;
 
-namespace Microsoft.Extensions.DependencyInjection
+namespace Microsoft.Health.Dicom.Functions.Client.Configs
 {
-    public interface ISqlServiceBuilder
-    {
-        IServiceCollection Services { get; }
+    public class OperationRoutes
 
-        SqlServerDataStoreConfiguration Configuration { get; }
+    {
+        [Required]
+        public Uri StartQueryTagIndexingRoute { get; set; }
+
+        [Required]
+        public string GetStatusRouteTemplate { get; set; }
     }
 }

@@ -8,15 +8,15 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Microsoft.Health.Dicom.Functions.Client.Configs
 {
-    public class FunctionsClientConfiguration
+    public class FunctionsClientOptions
     {
-        public const string SectionName = "Functions";
+        internal const string SectionName = "DicomFunctions";
 
         [Required]
         public Uri BaseAddress { get; set; }
 
         [Required]
-        public OperationRoutesConfiguration Routes { get; set; } = new OperationRoutesConfiguration();
+        public OperationRoutes Routes { get; set; } = new OperationRoutes();
 
         [Range(0, int.MaxValue)]
         public int MaxRetries { get; set; }

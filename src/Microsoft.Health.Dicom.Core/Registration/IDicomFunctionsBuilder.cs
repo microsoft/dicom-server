@@ -3,17 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.ComponentModel.DataAnnotations;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace Microsoft.Health.Dicom.Functions.Client.Configs
+namespace Microsoft.Health.Dicom.Core.Registration
 {
-    public class OperationRoutesConfiguration
+    /// <summary>
+    /// A builder type for configuring DICOM function services.
+    /// </summary>
+    public interface IDicomFunctionsBuilder
     {
-        [Required]
-        public Uri StartQueryTagIndexingRoute { get; set; }
-
-        [Required]
-        public string GetStatusRouteTemplate { get; set; }
+        IServiceCollection Services { get; }
     }
 }

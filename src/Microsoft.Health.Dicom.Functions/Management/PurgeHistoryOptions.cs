@@ -9,21 +9,18 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 
 namespace Microsoft.Health.Dicom.Functions.Management
 {
-    public class OrchestrationHistoryConfiguration
+    public class PurgeHistoryOptions
     {
-        public const string SectionName = "OrchestrationHistory";
+        internal const string SectionName = "PurgeHistory";
 
         [Required]
         [MinLength(1)]
         public IReadOnlyCollection<OrchestrationRuntimeStatus> RuntimeStatuses { get; set; }
 
-        [Range(0, 1000)]
+        [Range(0, 365)]
         public int MinimumAgeDays { get; set; } = 30;
 
         [Required]
-        public string PurgeFrequency { get; set; }
-
-        public const string PurgeFrequencyVariable =
-            "%" + AzureFunctionsJobHost.SectionName + ":" + SectionName + ":" + nameof(PurgeFrequency) + "%";
+        public string Frequency { get; set; }
     }
 }

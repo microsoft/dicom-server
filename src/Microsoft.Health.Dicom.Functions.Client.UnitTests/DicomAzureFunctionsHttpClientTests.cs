@@ -23,11 +23,11 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
 {
     public class DicomAzureFunctionsHttpClientTests
     {
-        private static readonly IOptions<FunctionsClientConfiguration> DefaultConfig = Options.Create(
-            new FunctionsClientConfiguration
+        private static readonly IOptions<FunctionsClientOptions> DefaultConfig = Options.Create(
+            new FunctionsClientOptions
             {
                 BaseAddress = new Uri("https://dicom.core/unit/tests/", UriKind.Absolute),
-                Routes = new OperationRoutesConfiguration
+                Routes = new OperationRoutes
                 {
                     StartQueryTagIndexingRoute = new Uri("Reindex", UriKind.Relative),
                     GetStatusRouteTemplate = "Orchestrations/Instances/{0}",
@@ -47,7 +47,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
             Assert.Throws<ArgumentNullException>(
                 () => new DicomAzureFunctionsHttpClient(
                     new HttpClient(handler),
-                    Options.Create<FunctionsClientConfiguration>(null)));
+                    Options.Create<FunctionsClientOptions>(null)));
         }
 
         [Theory]

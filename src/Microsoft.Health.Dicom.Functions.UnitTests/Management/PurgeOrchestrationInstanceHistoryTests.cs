@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
 {
     public class PurgeOrchestrationInstanceHistoryTests
     {
-        private readonly OrchestrationHistoryConfiguration _purgeConfig;
+        private readonly PurgeHistoryOptions _purgeConfig;
         private readonly TimerInfo _timer;
         private readonly ILogger _logger;
         private readonly DateTime _definedNow;
@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
 
         public PurgeOrchestrationInstanceHistoryTests()
         {
-            _purgeConfig = new OrchestrationHistoryConfiguration
+            _purgeConfig = new PurgeHistoryOptions
             {
                 RuntimeStatuses = new OrchestrationRuntimeStatus[] { OrchestrationRuntimeStatus.Completed }
             };

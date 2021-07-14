@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -33,15 +34,34 @@ namespace Microsoft.Extensions.DependencyInjection
             EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-            return serverBuilder
-                        .AddMetadataPersistence(configuration)
-                        .AddMetadataHealthCheck();
+            serverBuilder.Services
+                .AddBlobDataStore(configuration)
+                .AddMetadataStore()
+                .AddMetadataHealthCheck();
+
+            return serverBuilder;
         }
 
-        private static IDicomServerBuilder AddMetadataPersistence(this IDicomServerBuilder serverBuilder, IConfiguration configuration)
+        /// <summary>
+        /// Adds the metadata store for the DICOM functions.
+        /// </summary>
+        /// <param name="functionsBuilder">The DICOM functions builder instance.</param>
+        /// <param name="configure">A delegate for configuring the underlying blob storage client.</param>
+        /// <returns>The functions builder.</returns>
+        public static IDicomFunctionsBuilder AddMetadataStorageDataStore(this IDicomFunctionsBuilder functionsBuilder, Action<BlobDataStoreConfiguration> configure)
         {
-            IServiceCollection services = serverBuilder.Services;
+            EnsureArg.IsNotNull(functionsBuilder, nameof(functionsBuilder));
+            EnsureArg.IsNotNull(configure, nameof(configure));
 
+            functionsBuilder.Services
+                .AddBlobServiceClient(configure)
+                .AddMetadataStore();
+
+            return functionsBuilder;
+        }
+
+        private static IServiceCollection AddBlobDataStore(this IServiceCollection services, IConfiguration configuration)
+        {
             services.AddBlobDataStore();
 
             services.Configure<BlobContainerConfiguration>(
@@ -49,7 +69,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 containerConfiguration => configuration.GetSection(DicomServerBlobConfigurationSectionName)
                     .Bind(containerConfiguration));
 
-            services.Add(sp =>
+            services.Add(
+                sp =>
                 {
                     ILoggerFactory loggerFactory = sp.GetService<ILoggerFactory>();
                     IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfiguration = sp.GetService<IOptionsMonitor<BlobContainerConfiguration>>();
@@ -62,6 +83,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Singleton()
                 .AsService<IBlobContainerInitializer>();
 
+            return services;
+        }
+
+        private static IServiceCollection AddMetadataStore(this IServiceCollection services)
+        {
             services.Add<BlobMetadataStore>()
                 .Scoped()
                 .AsSelf()
@@ -72,13 +98,16 @@ namespace Microsoft.Extensions.DependencyInjection
             // so we need to register here. Need to some more investigation to see how we might be able to do this.
             services.Decorate<IMetadataStore, LoggingMetadataStore>();
 
-            return serverBuilder;
+            return services;
         }
 
-        private static IDicomServerBuilder AddMetadataHealthCheck(this IDicomServerBuilder serverBuilder)
+        private static IServiceCollection AddMetadataHealthCheck(this IServiceCollection services)
         {
-            serverBuilder.Services.AddHealthChecks().AddCheck<MetadataHealthCheck>(name: "MetadataHealthCheck");
-            return serverBuilder;
+            services
+                .AddHealthChecks()
+                .AddCheck<MetadataHealthCheck>(name: "MetadataHealthCheck");
+
+            return services;
         }
     }
 }

@@ -6,14 +6,15 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace Microsoft.Health.Dicom.Core.Configs
+namespace Microsoft.Health.Dicom.Functions.Indexing
 {
     /// <summary>
     /// Represents the configuration for a "reindex" function.
     /// </summary>
-    public class ReindexOperationConfiguration
+    public class QueryTagIndexingOptions
     {
-        public const string SectionName = "Reindex";
+        internal const string SectionName = "Indexing";
+
         /// <summary>
         /// Gets or sets the number of DICOM instances processed a single worker node.
         /// </summary>

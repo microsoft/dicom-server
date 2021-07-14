@@ -6,13 +6,12 @@
 using EnsureThat;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Modules;
+using Microsoft.Health.Dicom.Functions.Configuration;
+using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Management;
-using Microsoft.Health.Dicom.Operations.Functions.Configs;
-using Newtonsoft.Json.Converters;
+using Microsoft.Health.Dicom.Functions.Registration;
 
 [assembly: FunctionsStartup(typeof(Microsoft.Health.Dicom.Functions.Startup))]
 namespace Microsoft.Health.Dicom.Functions
@@ -22,42 +21,20 @@ namespace Microsoft.Health.Dicom.Functions
         public override void Configure(IFunctionsHostBuilder builder)
         {
             EnsureArg.IsNotNull(builder, nameof(builder));
-            var services = builder.Services;
-            IConfiguration config = builder.GetContext().Configuration.GetSection(AzureFunctionsJobHost.SectionName);
 
-            DicomFunctionsConfiguration dicomFuncionsConfig = new DicomFunctionsConfiguration();
-            config?.GetSection(DicomFunctionsConfiguration.SectionName).Bind(dicomFuncionsConfig);
-            services.AddSingleton(Options.Create(dicomFuncionsConfig));
-            services.AddSingleton(Options.Create(dicomFuncionsConfig.Reindex));
-
-            services.AddMvcCore()
-                .AddNewtonsoftJson(x => x.SerializerSettings.Converters
-                .Add(new StringEnumConverter()));
+            IConfiguration config = builder
+                .GetContext()
+                .Configuration
+                .GetSection(DicomFunctionsConfiguration.HostSectionName);
 
             builder.Services
-                .AddSqlServer(config)
-                .AddForegroundSchemaVersionResolution()
-                .AddExtendedQueryTagStores()
-                .AddInstanceStore();
-
-            builder.Services
-                .AddAzureBlobServiceClient(config)
-                .AddMetadataStore();
+                .AddFunctionsOptions<QueryTagIndexingOptions>(config, QueryTagIndexingOptions.SectionName)
+                .AddFunctionsOptions<PurgeHistoryOptions>(config, PurgeHistoryOptions.SectionName)
+                .AddStorageServices(config)
+                .AddHttpServices();
 
             // TODO: the FeatureConfiguration should be removed once we moved the logic to add tags into database out of Azure Function
             new ServiceModule(new FeatureConfiguration { EnableExtendedQueryTags = true }).Load(builder.Services);
-
-            builder.Services
-                .AddOptions<OrchestrationHistoryConfiguration>()
-                .Configure<IConfiguration>((sectionObj, config) => config
-                    .GetSection(AzureFunctionsJobHost.SectionName)
-                    .GetSection(OrchestrationHistoryConfiguration.SectionName)
-                    .Bind(sectionObj));
-
-            builder.Services
-                .AddMvcCore()
-                .AddNewtonsoftJson(x => x.SerializerSettings.Converters
-                    .Add(new StringEnumConverter()));
         }
     }
 }
