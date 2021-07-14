@@ -3,14 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.SqlServer.Configs;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace Microsoft.Extensions.DependencyInjection
+namespace Microsoft.Health.Dicom.Core.Registration
 {
-    public interface ISqlServiceBuilder
+    /// <summary>
+    /// A builder type for configuring DICOM function services.
+    /// </summary>
+    public interface IDicomFunctionsBuilder
     {
         IServiceCollection Services { get; }
-
-        SqlServerDataStoreConfiguration Configuration { get; }
     }
 }

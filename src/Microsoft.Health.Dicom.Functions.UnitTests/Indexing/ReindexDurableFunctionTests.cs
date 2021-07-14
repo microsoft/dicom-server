@@ -10,13 +10,12 @@ using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using NSubstitute;
-using Microsoft.Health.Dicom.Core.Configs;
 
 namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
 {
     public partial class ReindexDurableFunctionTests
     {
-        private readonly ReindexOperationConfiguration _reindexConfig;
+        private readonly QueryTagIndexingOptions _reindexConfig;
         private readonly IInstanceReindexer _instanceReindexer;
         private readonly IAddExtendedQueryTagService _addExtendedQueryTagService;
         private readonly IInstanceStore _instanceStore;
@@ -26,13 +25,13 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
 
         public ReindexDurableFunctionTests()
         {
-            _reindexConfig = new ReindexOperationConfiguration();
+            _reindexConfig = new QueryTagIndexingOptions();
             _instanceReindexer = Substitute.For<IInstanceReindexer>();
             _addExtendedQueryTagService = Substitute.For<IAddExtendedQueryTagService>();
             _instanceStore = Substitute.For<IInstanceStore>();
             _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
             _schemaVersionResolver = Substitute.For<ISchemaVersionResolver>();
-            var configuration = Substitute.For<IOptions<ReindexOperationConfiguration>>();
+            var configuration = Substitute.For<IOptions<QueryTagIndexingOptions>>();
             configuration.Value.Returns(_reindexConfig);
 
             _reindexDurableFunction = new ReindexDurableFunction(

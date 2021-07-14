@@ -4,12 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Data;
-using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Health.Dicom.SqlServer.Features.Common;
+using Microsoft.Health.SqlServer.Features.Schema.Manager;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
 {
@@ -18,21 +16,18 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
     /// </summary>
     public class SqlSchemaVersionResolver : ISchemaVersionResolver
     {
-        private readonly IDbConnectionFactory _dbConnectionFactory;
-
-        internal const string VersionStoredProcedure = "dbo.SelectCurrentSchemaVersion";
+        private readonly IReadOnlySchemaManagerDataStore _schemaManager;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SqlSchemaVersionResolver"/> class.
         /// </summary>
-        /// <param name="dbConnectionFactory">A factory for creating SQL connections.</param>
+        /// <param name="schemaManager">A read-only manager for the application database version.</param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="dbConnectionFactory"/> is <see langword="null"/>.
+        /// <paramref name="schemaManager"/> is <see langword="null"/>.
         /// </exception>
-        public SqlSchemaVersionResolver(IDbConnectionFactory dbConnectionFactory)
+        public SqlSchemaVersionResolver(IReadOnlySchemaManagerDataStore schemaManager)
         {
-            EnsureArg.IsNotNull(dbConnectionFactory, nameof(dbConnectionFactory));
-            _dbConnectionFactory = dbConnectionFactory;
+            _schemaManager = EnsureArg.IsNotNull(schemaManager, nameof(schemaManager));
         }
 
         /// <summary>
@@ -47,17 +42,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
         /// </returns>
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
         public async Task<SchemaVersion> GetCurrentVersionAsync(CancellationToken cancellationToken = default)
-        {
-            using DbConnection connection = await _dbConnectionFactory.GetConnectionAsync(cancellationToken);
-            await connection.OpenAsync(cancellationToken);
-
-            using DbCommand selectCommand = connection.CreateCommand();
-            selectCommand.CommandType = CommandType.StoredProcedure;
-            selectCommand.CommandText = VersionStoredProcedure;
-
-            // TODO: If we cannot find the SP, should we retry because it's a new DB?
-            object current = await selectCommand.ExecuteScalarAsync(cancellationToken);
-            return (current == null || Convert.IsDBNull(current)) ? SchemaVersion.Unknown : (SchemaVersion)current;
-        }
+            => (SchemaVersion)await _schemaManager.GetCurrentSchemaVersionAsync(cancellationToken);
     }
 }

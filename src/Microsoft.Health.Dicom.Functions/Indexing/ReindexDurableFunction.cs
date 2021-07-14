@@ -5,7 +5,6 @@
 
 using EnsureThat;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
@@ -19,7 +18,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
     /// </summary>
     public partial class ReindexDurableFunction
     {
-        private readonly ReindexOperationConfiguration _reindexConfig;
+        private readonly QueryTagIndexingOptions _reindexConfig;
         private readonly IInstanceReindexer _instanceReindexer;
         private readonly IAddExtendedQueryTagService _addExtendedQueryTagService;
         private readonly IInstanceStore _instanceStore;
@@ -27,7 +26,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         private readonly ISchemaVersionResolver _schemaVersionResolver;
 
         public ReindexDurableFunction(
-            IOptions<ReindexOperationConfiguration> configOptions,
+            IOptions<QueryTagIndexingOptions> configOptions,
             IAddExtendedQueryTagService addExtendedQueryTagService,
             IInstanceStore instanceStore,
             IInstanceReindexer instanceReindexer,

@@ -25,16 +25,16 @@ using Microsoft.Health.SqlServer.Registration;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class DicomServerBuilderSqlServerRegistrationExtensions
+    public static class DicomSqlServerRegistrationExtensions
     {
         public static IDicomServerBuilder AddSqlServer(
             this IDicomServerBuilder dicomServerBuilder,
             IConfiguration configurationRoot,
             Action<SqlServerDataStoreConfiguration> configureAction = null)
         {
-            EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder));
-            IServiceCollection services = dicomServerBuilder.Services;
+            IServiceCollection services = EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder)).Services;
 
+            // Add core SQL services
             services
                 .AddSqlServerConnection(
                     config =>
@@ -42,21 +42,45 @@ namespace Microsoft.Extensions.DependencyInjection
                         configurationRoot?.GetSection(SqlServerDataStoreConfiguration.SectionName).Bind(config);
                         configureAction?.Invoke(config);
                     })
-                .AddSqlServerManagement<SchemaVersion>();
+                .AddSqlServerManagement<SchemaVersion>()
+                .AddSqlServerApi()
+                .AddBackgroundSqlSchemaVersionResolver();
 
-            services.AddSqlServerApi();
+            // Add SQL-specific implementations
+            services
+                .AddSqlChangeFeedStore()
+                .AddSqlIndexDataStores()
+                .AddSqlQueryStore()
+                .AddSqlInstanceStores()
+                .AddSqlExtendedQueryTagStores();
 
-            var config = new SqlServerDataStoreConfiguration();
-            configurationRoot?.GetSection("SqlServer").Bind(config);
+            return dicomServerBuilder;
+        }
 
-            services.Add(provider =>
-                {
-                    configureAction?.Invoke(config);
-                    return config;
-                })
-                .Singleton()
-                .AsSelf();
+        public static IDicomFunctionsBuilder AddSqlServer(
+            this IDicomFunctionsBuilder dicomFunctionsBuilder,
+            Action<SqlServerDataStoreConfiguration> configureAction)
+        {
+            EnsureArg.IsNotNull(dicomFunctionsBuilder, nameof(dicomFunctionsBuilder));
+            EnsureArg.IsNotNull(configureAction, nameof(configureAction));
 
+            IServiceCollection services = dicomFunctionsBuilder.Services;
+
+            // Add core SQL services
+            services
+                .AddSqlServerConnection(configureAction)
+                .AddForegroundSqlSchemaVersionResolver();
+
+            // Add SQL-specific implementations
+            services
+                .AddSqlInstanceStores()
+                .AddSqlExtendedQueryTagStores();
+
+            return dicomFunctionsBuilder;
+        }
+
+        private static IServiceCollection AddBackgroundSqlSchemaVersionResolver(this IServiceCollection services)
+        {
             services.Add(provider => new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max))
                 .Singleton()
                 .AsSelf();
@@ -66,101 +90,130 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.AddIndexDataStores();
+            return services;
+        }
 
-            services.Add<SqlQueryStore>()
-                .Scoped()
-                .AsSelf()
+        private static IServiceCollection AddForegroundSqlSchemaVersionResolver(this IServiceCollection services)
+        {
+            services.Add<SqlSchemaVersionResolver>()
+                .Singleton()
                 .AsImplementedInterfaces();
 
-            services.AddInstanceStores();
+            return services;
+        }
 
+        private static IServiceCollection AddSqlChangeFeedStore(this IServiceCollection services)
+        {
             services.Add<SqlChangeFeedStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.AddExtendedQueryTagStores();
-
-            return dicomServerBuilder;
+            return services;
         }
 
-        private static IServiceCollection AddExtendedQueryTagStores(this IServiceCollection services)
+        private static IServiceCollection AddSqlQueryStore(this IServiceCollection services)
+        {
+            services.Add<SqlQueryStore>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            return services;
+        }
+
+        private static IServiceCollection AddSqlExtendedQueryTagStores(this IServiceCollection services)
         {
             services.Add<SqlExtendedQueryTagStoreV1>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
             services.Add<SqlExtendedQueryTagStoreV2>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
             services.Add<SqlExtendedQueryTagStoreV3>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
             services.Add<SqlExtendedQueryTagStoreV4>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
             services.Add<SqlStoreFactory<ISqlExtendedQueryTagStore, IExtendedQueryTagStore>>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
             return services;
         }
 
-        private static IServiceCollection AddInstanceStores(this IServiceCollection services)
+        private static IServiceCollection AddSqlInstanceStores(this IServiceCollection services)
         {
             services.Add<SqlInstanceStoreV1>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
             services.Add<SqlInstanceStoreV2>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
             services.Add<SqlInstanceStoreV3>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
             services.Add<SqlInstanceStoreV4>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
             services.Add<SqlStoreFactory<ISqlInstanceStore, IInstanceStore>>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
             return services;
         }
 
-        private static IServiceCollection AddIndexDataStores(this IServiceCollection services)
+        private static IServiceCollection AddSqlIndexDataStores(this IServiceCollection services)
         {
             services.Add<SqlIndexDataStoreV1>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
             services.Add<SqlIndexDataStoreV2>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
             services.Add<SqlIndexDataStoreV3>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
             services.Add<SqlIndexDataStoreV4>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
             services.Add<SqlStoreFactory<ISqlIndexDataStore, IIndexDataStore>>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
             // TODO: Ideally, the logger can be registered in the API layer since it's agnostic to the implementation.
             // However, the current implementation of the decorate method requires the concrete type to be already registered,
             // so we need to register here. Need to some more investigation to see how we might be able to do this.
             services.Decorate<ISqlIndexDataStore, SqlLoggingIndexDataStore>();
+
             return services;
         }
     }

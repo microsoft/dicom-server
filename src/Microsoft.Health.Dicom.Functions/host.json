@@ -9,9 +9,14 @@
     }
   },
   "DicomFunctions": {
-    "Reindex": {
+    "Indexing": {
       "BatchSize": 2,
       "ParallelBatches": 2
+    },
+    "OrchestrationHistory": {
+      "RuntimeStatuses": [ "Completed" ],
+      "MinimumAgeDays": 14,
+      "PurgeFrequency": "0 0 * * *"
     }
   },
   "BlobStore": {
@@ -32,10 +37,5 @@
       "Factor": 2,
       "FastFirst": true
     }
-  },
-  "OrchestrationsCleanup": {
-    "RuntimeStatuses": [ "Completed" ],
-    "MinimumAgeDays": 14,
-    "PurgeFrequency": "0 0 * * *"
   }
 }
