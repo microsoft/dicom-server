@@ -12,6 +12,7 @@ using EnsureThat;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -100,6 +101,7 @@ namespace Microsoft.AspNetCore.Builder
 
             services.AddApiVersioning(c =>
             {
+                c.ApiVersionReader = new UrlSegmentApiVersionReader();
                 c.AssumeDefaultVersionWhenUnspecified = true;
                 c.DefaultApiVersion = new ApiVersion(1, 0, "prerelease");
                 c.ReportApiVersions = true;
@@ -115,6 +117,8 @@ namespace Microsoft.AspNetCore.Builder
 
             services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
             services.AddSwaggerGen(options => options.OperationFilter<SwaggerDefaultValues>());
+            services.AddSwaggerGen(options => options.OperationFilter<ErrorCodeOperationFilter>());
+            services.AddSwaggerGen(options => options.OperationFilter<RetrieveOperationFilter>());
             services.AddSwaggerGenNewtonsoftSupport();
 
             services.AddSingleton<IUrlResolver, UrlResolver>();
@@ -186,14 +190,13 @@ namespace Microsoft.AspNetCore.Builder
 
                     app.UseSwagger();
 
-                    // For now disable ui until hear back from accessability team
-                    /* app.UseSwaggerUI(options =>
+                    app.UseSwaggerUI(options =>
                     {
                         foreach (ApiVersionDescription description in provider.ApiVersionDescriptions)
                         {
-                            options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
+                            options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.yaml", description.GroupName.ToUpperInvariant());
                         }
-                    }); */
+                    });
 
                     next(app);
                 };
