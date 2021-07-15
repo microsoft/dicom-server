@@ -53,7 +53,7 @@ steps:
       $output = Add-AadTestAuthEnvironment -TestAuthEnvironmentPath $(System.DefaultWorkingDirectory)/testauthenvironment.json -EnvironmentName $(deploymentName) -TenantAdminCredential $adminCredential -EnvironmentLocation $(resourceGroupRegion)
 
 - task: AzurePowerShell@4
-    displayName: 'Set Variables for Admin Consent'
+    displayName: 'Set Variables'
     inputs:
       azureSubscription: $(azureSubscriptionName)
       azurePowerShellVersion: latestVersion
@@ -79,7 +79,7 @@ steps:
         Write-Host "##vso[task.setvariable variable=clientappids]$($clientAppIdsText)"
 
 - task: AzureCLI@2
-  displayName: Grant Admin Consent
+  displayName: 'Grant Admin Constent'
   inputs:
     azureSubscription: $(azureSubscriptionName)
     scriptType: ps
