@@ -53,12 +53,12 @@ steps:
       $output = Add-AadTestAuthEnvironment -TestAuthEnvironmentPath $(System.DefaultWorkingDirectory)/testauthenvironment.json -EnvironmentName $(deploymentName) -TenantAdminCredential $adminCredential -EnvironmentLocation $(resourceGroupRegion)
 
 - task: AzurePowerShell@4
-    displayName: 'Set Variables'
-    inputs:
-      azureSubscription: $(azureSubscriptionName)
-      azurePowerShellVersion: latestVersion
-      ScriptType: inlineScript
-      Inline: |
+  displayName: 'Set Variables'
+  inputs:
+    azureSubscription: $(azureSubscriptionName)
+    azurePowerShellVersion: latestVersion
+    ScriptType: inlineScript
+    Inline: |
         $vaultName = $(deploymentName)-ts       
 
         [string]$appId = Get-AzKeyVaultSecret -VaultName $vaultName -Name "app_id" -AsPlainText -ErrorAction SilentlyContinue
