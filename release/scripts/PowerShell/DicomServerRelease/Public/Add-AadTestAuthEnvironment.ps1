@@ -108,9 +108,13 @@ function Add-AadTestAuthEnvironment {
         # Change to use applicationId returned
         $application = Get-AzureAdApplicationByIdentifierUri $dicomServiceAudience
     }
-
-    Write-Host "Persist application id $($application.AppId)"
-    Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "app_id" -SecretValue $application.AppId | Out-Null
+    
+    $applicationInfo = 
+    @{
+        id          = $application.Id
+        displayName = $application.DisplayName
+        appId       = $application.AppId
+    }
 
     Write-Host "Setting roles on API Application"
     $appRoles = ($testAuthEnvironment.users.roles + $testAuthEnvironment.clientApplications.roles) | Select-Object -Unique
@@ -164,7 +168,8 @@ function Add-AadTestAuthEnvironment {
     Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "security--tokenUrl" -SecretValue $tokenUrlSecureString | Out-Null
     
     @{
-        keyVaultName                  = $KeyVaultName
+        keyVaultName                  = $KeyVaultName 
+        application                   = $applicationInfo
         environmentUsers              = $environmentUsers
         environmentClientApplications = $environmentClientApplications
     }
