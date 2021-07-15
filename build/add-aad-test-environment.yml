@@ -51,3 +51,48 @@ steps:
       Import-Module $(System.DefaultWorkingDirectory)/release/scripts/PowerShell/DicomServerRelease/DicomServerRelease.psd1
 
       $output = Add-AadTestAuthEnvironment -TestAuthEnvironmentPath $(System.DefaultWorkingDirectory)/testauthenvironment.json -EnvironmentName $(deploymentName) -TenantAdminCredential $adminCredential -EnvironmentLocation $(resourceGroupRegion)
+
+- task: AzurePowerShell@4
+    displayName: 'Set Variables for Admin Consent'
+    inputs:
+      azureSubscription: $(azureSubscriptionName)
+      azurePowerShellVersion: latestVersion
+      ScriptType: inlineScript
+      Inline: |
+        $vaultName = $(deploymentName)-ts       
+
+        [string]$appId = Get-AzKeyVaultSecret -VaultName $vaultName -Name "app_id" -AsPlainText -ErrorAction SilentlyContinue
+        Write-Host "##vso[task.setvariable variable=appid]$($appId)"
+
+        [string[]]$clientAppIds = @()
+        $secrets = Get-AzKeyVaultSecret -VaultName $vaultName
+        foreach($secret in $secrets)
+        {
+            if($secret.Name.StartsWith("app--") -and $secret.Name.EndsWith("--id"))
+            {
+              [string]$id = Get-AzKeyVaultSecret -VaultName $vaultName -Name $secret.Name -AsPlainText
+              $clientAppIds += $id
+            }   
+        }
+
+        $clientAppIdsText =  $clientAppIds -join ","
+        Write-Host "##vso[task.setvariable variable=clientappids]$($clientAppIdsText)"
+
+- task: AzureCLI@2
+  displayName: Grant Admin Consent
+  inputs:
+    azureSubscription: $(azureSubscriptionName)
+    scriptType: ps
+    scriptLocation: inlineScript
+    inlineScript: |
+      $username = "$(tenant-admin-user-name)"      
+      $password = "$(tenant-admin-user-password)"
+      $tenantId = "$(tenant-id)"
+      az login --username "$username"  --password  "$password"  --tenant "$tenantId" --allow-no-subscriptions
+      $appId = "$(appid)"
+      $clientAppIds = "$(clientappids)" -split ","
+      foreach($clientAppId in $clientAppIds)
+      {
+          az ad app permission grant --id $clientAppId --api 00000002-0000-0000-c000-000000000000 --scope "User.Read"
+          az ad app permission grant --id $clientAppId --api $appId --scope "user_impersonation"
+      }

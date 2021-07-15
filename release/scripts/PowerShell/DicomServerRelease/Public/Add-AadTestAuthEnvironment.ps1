@@ -109,6 +109,9 @@ function Add-AadTestAuthEnvironment {
         $application = Get-AzureAdApplicationByIdentifierUri $dicomServiceAudience
     }
 
+    Write-Host "Persist application id $($application.AppId)"
+    Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "app_id" -SecretValue $application.AppId | Out-Null
+
     Write-Host "Setting roles on API Application"
     $appRoles = ($testAuthEnvironment.users.roles + $testAuthEnvironment.clientApplications.roles) | Select-Object -Unique
     Set-DicomServerApiApplicationRoles -ApiAppId $application.AppId -AppRoles $appRoles | Out-Null
