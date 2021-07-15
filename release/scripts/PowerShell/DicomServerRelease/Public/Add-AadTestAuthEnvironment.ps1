@@ -111,7 +111,7 @@ function Add-AadTestAuthEnvironment {
     
     $applicationInfo = 
     @{
-        id          = $application.Id
+        id          = $application.ObjectId
         displayName = $application.DisplayName
         appId       = $application.AppId
     }
