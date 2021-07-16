@@ -107,7 +107,7 @@ function Add-AzureAdOauth2PermissionGrant
     [string]$tenantId = ((Get-AzureADCurrentSessionInfo).Tenant.Id)
     # get access token for Graph API
     Write-Host "Get access token to access Graph API in tenant - $tenantId"
-    $accessToken = Get-AzAccessToken -ResourceUrl https://graph.microsoft.com/ -TenantId $tenantId  
+    $accessToken = Get-AzAccessToken -ResourceTypeName AadGraph -TenantId $tenantId  
     Write-Host "DEBUG: Access token is retrieved - $($accessToken.Token)"
     $body = 
     @{
