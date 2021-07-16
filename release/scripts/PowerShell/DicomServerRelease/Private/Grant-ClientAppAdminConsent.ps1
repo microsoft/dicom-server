@@ -17,12 +17,10 @@ function Grant-ClientAppAdminConsent {
     Set-StrictMode -Version Latest
 
     Write-Host "Granting admin consent for app ID $AppId"
-    [string]$tenantId = ((Get-AzureADCurrentSessionInfo).Tenant.Id)
-
-    # get access token for Graph API
-    $accessToken = Get-AzAccessToken -ResourceUrl https://graph.microsoft.com/ -TenantId $tenantId   
 
     # get applicatioin and service principle
+    Write-Host "DEBUG: TenantId - $((Get-AzureADCurrentSessionInfo).Tenant.Id) "
+    
     $app = Get-AzureADApplication -Filter "AppId eq '$AppId'"
     $sp = Get-AzureADServicePrincipal -Filter "AppId eq '$AppId'"
     
@@ -50,24 +48,83 @@ function Grant-ClientAppAdminConsent {
             $oauth2Permission =  $targetSp.Oauth2Permissions | ? {$_.Id -eq $targetAppResourceId}
             $scopeValue = $oauth2Permission.Value
             
-            $body = 
-            @{
-                clientId     =   $sp.ObjectId
-                consentType  =   "AllPrincipals" # admin consent -- consent for users
-                resourceId   =   $targetSp.ObjectId
-                scope        =   $scopeValue 
-            }
-
-           
-            $header = 
-            @{
-                Authorization  = "Bearer $($accessToken.Token)"                    
-                'Content-Type' = 'application/json'
-            }
-            Invoke-RestMethod "https://graph.microsoft.com/v1.0/oauth2PermissionGrants" -Method Post -Body ($body | ConvertTo-Json) -Headers $header 
-            Write-Verbose "Permission '$scopeValue' on '$($targetSp.appDisplayName)' to '$($sp.appDisplayName)' is granted!"
-            
+            Grant-AzureAdOauth2Permission -ClientId $sp.ObjectId ` -ConsentType "AllPrincipals" -ResourceId $targetSp.ObjectId -Scope $scopeValue            
         }
     
     }
+}
+
+function Grant-AzureAdOauth2Permission
+{
+    param(
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string]$ClientId, 
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string]$ConsentType,
+        [string]$PrincipalId,
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string]$ResourceId,
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Scope
+    ) 
+    # check existense
+    $existingEntry = Get-AzureADOAuth2PermissionGrant -All $true | ? {$_.ClientId -eq $sp.ObjectId -and $_.ResourceId -eq $targetSp.ObjectId -and $_.Scope -eq $Scope }
+
+    if ($existingEntry)
+    {
+        Write-Verbose "Permission '$scopeValue' on '$($targetSp.appDisplayName)' to '$($sp.appDisplayName)' has been granted! Update it."
+        Remove-AzureADOAuth2PermissionGrant -ObjectId $existingEntry.ObjectId
+    }
+    Add-AzureAdOauth2PermissionGrant -ClientId $ClientId -ConsentType $ConsentType -PrincipalId $PrincipalId -ResourceId $ResourceId -Scope $Scope
+}
+
+function Add-AzureAdOauth2PermissionGrant
+{
+    param(
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string]$ClientId, 
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string]$ConsentType,
+        [string]$PrincipalId,
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string]$ResourceId,
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Scope
+
+    ) 
+    [string]$tenantId = ((Get-AzureADCurrentSessionInfo).Tenant.Id)
+    # get access token for Graph API
+    Write-Host "Get access token to access Graph API"
+    $accessToken = Get-AzAccessToken -ResourceUrl https://graph.microsoft.com/ -TenantId $tenantId  
+    $body = 
+    @{
+          clientId     =   $ClientId
+          consentType  =   $ConsentType
+          resourceId   =   $ResourceId
+          scope        =   $Scope 
+     }
+     
+     if (-not [string]::IsNullOrEmpty($PrincipalId))
+     {
+        $body.Add("principalId",$PrincipalId)
+     }
+
+           
+    $header =
+    @{
+        Authorization  = "Bearer $($accessToken.Token)"                    
+        'Content-Type' = 'application/json'
+    }
+
+    $response = Invoke-RestMethod "https://graph.microsoft.com/v1.0/oauth2PermissionGrants" -Method Post -Body ($body | ConvertTo-Json) -Headers $header 
+    Write-Host "Permission '$scopeValue' on '$($targetSp.appDisplayName)' to '$($sp.appDisplayName)' is granted!"
+    return $response
 }
