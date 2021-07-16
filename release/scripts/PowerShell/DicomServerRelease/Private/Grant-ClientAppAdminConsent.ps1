@@ -20,11 +20,11 @@ function Grant-ClientAppAdminConsent {
     [string]$tenantId = ((Get-AzureADCurrentSessionInfo).Tenant.Id)
 
     # get access token for Graph API
-    $accessToken = Get-AzAccessToken -ResourceUrl https://graph.microsoft.com/ -TenantId $tenantId    
+    $accessToken = Get-AzAccessToken -ResourceUrl https://graph.microsoft.com/ -TenantId $tenantId   
 
     # get applicatioin and service principle
-    $app = Get-AzureADApplication -Filter "AppId eq '$appId'"
-    $sp = Get-AzureADServicePrincipal -Filter "AppId eq '$appId'"
+    $app = Get-AzureADApplication -Filter "AppId eq '$AppId'"
+    $sp = Get-AzureADServicePrincipal -Filter "AppId eq '$AppId'"
     
     foreach($access in $app.RequiredResourceAccess)
     {
@@ -38,9 +38,9 @@ function Grant-ClientAppAdminConsent {
             # We currently don't have requirement for Role, so only handle Scope.
             if($resourceAccess.Type -ne "Scope")
             {
-                throw "$($resourceAccess.Type) is not supported."
+                Write-Warning "Granting admin content on $($resourceAccess.Type) is not supported."
+                continue
             }
-
             $targetAppResourceId = $resourceAccess.Id
             
             # get target app service principle
@@ -49,29 +49,23 @@ function Grant-ClientAppAdminConsent {
             # get scope value
             $oauth2Permission =  $targetSp.Oauth2Permissions | ? {$_.Id -eq $targetAppResourceId}
             $scopeValue = $oauth2Permission.Value
-           
-            # check if already exist
-            $existingEntry = Get-AzureADOAuth2PermissionGrant -All $true | ? {$_.ClientId -eq $sp.ObjectId -and $_.ResourceId -eq $targetSp.ObjectId}
-            if ($existingEntry)
-            {
-                Write-Host "Permision has been granted on ClientId - $($sp.ObjectId) ResourceId - $($targetSp.ObjectId)!"
+            
+            $body = 
+            @{
+                clientId     =   $sp.ObjectId
+                consentType  =   "AllPrincipals" # admin consent -- consent for users
+                resourceId   =   $targetSp.ObjectId
+                scope        =   $scopeValue 
             }
-            else
-            {
-                $body = @{
-                    clientId     =   $sp.ObjectId
-                    consentType  =   "AllPrincipals" # admin consent -- consent for users
-                    resourceId   =   $targetSp.ObjectId
-                    scope        =   $scopeValue 
-                }
 
            
-                $header = @{
-                        'Authorization' = "Bearer $($accessToken.Token)"                    
-                        'Content-Type' = 'application/json'
-                }
-                Invoke-RestMethod "https://graph.microsoft.com/v1.0/oauth2PermissionGrants" -Method Post -Body ($body | ConvertTo-Json) -Headers $header 
+            $header = 
+            @{
+                Authorization  = "Bearer $($accessToken.Token)"                    
+                'Content-Type' = 'application/json'
             }
+            Invoke-RestMethod "https://graph.microsoft.com/v1.0/oauth2PermissionGrants" -Method Post -Body ($body | ConvertTo-Json) -Headers $header 
+            Write-Verbose "Permission '$scopeValue' on '$($targetSp.appDisplayName)' to '$($sp.appDisplayName)' is granted!"
             
         }
     
