@@ -11,55 +11,69 @@ function Grant-ClientAppAdminConsent {
     param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string]$AppId,
-
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNull()]
-        [pscredential]$TenantAdminCredential
+        [string]$AppId
     )
 
     Set-StrictMode -Version Latest
 
     Write-Host "Granting admin consent for app ID $AppId"
+    [string]$tenantId = ((Get-AzureADCurrentSessionInfo).Tenant.Id)
 
-    # There currently is no documented or supported way of programatically
-    # granting admin consent. So for now we resort to a hack. 
-    # We call an API that is used from the portal. An admin *user* is required for this, a service principal will not work.
-    # Also, the call can fail when the app has just been created, so we include a retry loop. 
+    # get access token for Graph API
+    $accessToken = Get-AzAccessToken -ResourceUrl https://graph.microsoft.com/ -TenantId $tenantId    
 
-    $body = @{
-        grant_type = "password"
-        username   = $TenantAdminCredential.GetNetworkCredential().UserName
-        password   = $TenantAdminCredential.GetNetworkCredential().Password
-        resource   = "74658136-14ec-4630-ad9b-26e160ff0fc6" 
-        client_id  = "1950a258-227b-4e31-a9cf-717495945fc2" # Microsoft Azure PowerShell
-    }
+    # get applicatioin and service principle
+    $app = Get-AzureADApplication -Filter "AppId eq '$appId'"
+    $sp = Get-AzureADServicePrincipal -Filter "AppId eq '$appId'"
     
-    $tokenResponse = Invoke-RestMethod (Get-AzureADTokenEndpoint) -Method POST -Body $body -ContentType 'application/x-www-form-urlencoded'
-    
-    $header = @{
-        'Authorization'          = 'Bearer ' + $tokenResponse.access_token
-        'x-ms-client-request-id' = [guid]::NewGuid()
-    }
-
-    $url = "https://main.iam.ad.ext.azure.com/api/RegisteredApplications/$AppId/Consent?onBehalfOfAll=true"
-    
-    $retryCount = 0
-
-    while ($true) {
-        try {
-            Invoke-RestMethod -Uri $url -Headers $header -Method POST | Out-Null
-            return
-        }
-        catch {
-            if ($retryCount -lt 6) {
-                $retryCount++
-                Write-Warning "Received failure when posting to $url. Will retry in 10 seconds."
-                Start-Sleep -Seconds 10
+    foreach($access in $app.RequiredResourceAccess)
+    {
+        # grant permission for each required access
+        $targetAppId = $access.ResourceAppId
+        foreach($resourceAccess in $access.ResourceAccess)
+        {
+            # There are 2 types: Scope or Role
+            # Role refers to AppRole, can be granted via Graph API appRoleAssignments (https://docs.microsoft.com/en-us/graph/api/serviceprincipal-list-approleassignments?view=graph-rest-1.0&tabs=http)
+            # Scope refers to OAuth2Permission, also known as Delegated permission,  can be granted via Graph API oauth2PermissionGrants (https://docs.microsoft.com/en-us/graph/api/oauth2permissiongrant-list?view=graph-rest-1.0&tabs=http)
+            # We currently don't have requirement for Role, so only handle Scope.
+            if($resourceAccess.Type -ne "Scope")
+            {
+                throw "$($resourceAccess.Type) is not supported."
             }
-            else {
-                throw
-            }    
+
+            $targetAppResourceId = $resourceAccess.Id
+            
+            # get target app service principle
+            $targetSp =  Get-AzureADServicePrincipal -Filter "AppId eq '$targetAppId'"
+
+            # get scope value
+            $oauth2Permission =  $targetSp.Oauth2Permissions | ? {$_.Id -eq $targetAppResourceId}
+            $scopeValue = $oauth2Permission.Value
+           
+            # check if already exist
+            $existingEntry = Get-AzureADOAuth2PermissionGrant -All $true | ? {$_.ClientId -eq $sp.ObjectId -and $_.ResourceId -eq $targetSp.ObjectId}
+            if ($existingEntry)
+            {
+                Write-Host "Permision has been granted on ClientId - $($sp.ObjectId) ResourceId - $($targetSp.ObjectId)!"
+            }
+            else
+            {
+                $body = @{
+                    clientId     =   $sp.ObjectId
+                    consentType  =   "AllPrincipals" # admin consent -- consent for users
+                    resourceId   =   $targetSp.ObjectId
+                    scope        =   $scopeValue 
+                }
+
+           
+                $header = @{
+                        'Authorization' = "Bearer $($accessToken.Token)"                    
+                        'Content-Type' = 'application/json'
+                }
+                Invoke-RestMethod "https://graph.microsoft.com/v1.0/oauth2PermissionGrants" -Method Post -Body ($body | ConvertTo-Json) -Headers $header 
+            }
+            
         }
+    
     }
 }
