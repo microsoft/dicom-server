@@ -19,11 +19,12 @@ function Grant-ClientAppAdminConsent {
     Write-Host "Granting admin consent for app ID $AppId"
 
     # get applicatioin and service principle
-    Write-Host "DEBUG: TenantId - $((Get-AzureADCurrentSessionInfo).Tenant.Id) "
+    Write-Host "DEBUG: TenantId - $((Get-AzureADCurrentSessionInfo).Tenant.Id)"
     
     $app = Get-AzureADApplication -Filter "AppId eq '$AppId'"
     $sp = Get-AzureADServicePrincipal -Filter "AppId eq '$AppId'"
     
+    Write-Host "DEBUG: Trace 1"
     foreach($access in $app.RequiredResourceAccess)
     {
         # grant permission for each required access
@@ -39,16 +40,19 @@ function Grant-ClientAppAdminConsent {
                 Write-Warning "Granting admin content on $($resourceAccess.Type) is not supported."
                 continue
             }
+            Write-Host "DEBUG: Trace 2"
             $targetAppResourceId = $resourceAccess.Id
             
             # get target app service principle
             $targetSp =  Get-AzureADServicePrincipal -Filter "AppId eq '$targetAppId'"
+            Write-Host "DEBUG: Trace 3"
 
             # get scope value
             $oauth2Permission =  $targetSp.Oauth2Permissions | ? {$_.Id -eq $targetAppResourceId}
             $scopeValue = $oauth2Permission.Value
-            
-            Grant-AzureAdOauth2Permission -ClientId $sp.ObjectId ` -ConsentType "AllPrincipals" -ResourceId $targetSp.ObjectId -Scope $scopeValue            
+            Write-Host "DEBUG: Trace 4"
+            Grant-AzureAdOauth2Permission -ClientId $sp.ObjectId ` -ConsentType "AllPrincipals" -ResourceId $targetSp.ObjectId -Scope $scopeValue         
+            Write-Host "Permission '$scopeValue' on '$($targetSp.appDisplayName)' to '$($sp.appDisplayName)' is granted!"   
         }
     
     }
@@ -76,7 +80,7 @@ function Grant-AzureAdOauth2Permission
 
     if ($existingEntry)
     {
-        Write-Verbose "Permission '$scopeValue' on '$($targetSp.appDisplayName)' to '$($sp.appDisplayName)' has been granted! Update it."
+        Write-Verbose "Permission '$Scope' on '$ResourceId' to '$ClientId' has already been granted! Update it."
         Remove-AzureADOAuth2PermissionGrant -ObjectId $existingEntry.ObjectId
     }
     Add-AzureAdOauth2PermissionGrant -ClientId $ClientId -ConsentType $ConsentType -PrincipalId $PrincipalId -ResourceId $ResourceId -Scope $Scope
@@ -102,8 +106,9 @@ function Add-AzureAdOauth2PermissionGrant
     ) 
     [string]$tenantId = ((Get-AzureADCurrentSessionInfo).Tenant.Id)
     # get access token for Graph API
-    Write-Host "Get access token to access Graph API"
+    Write-Host "Get access token to access Graph API in tenant - $tenantId"
     $accessToken = Get-AzAccessToken -ResourceUrl https://graph.microsoft.com/ -TenantId $tenantId  
+    Write-Host "DEBUG: Access token is retrieved - $($accessToken.Token)"
     $body = 
     @{
           clientId     =   $ClientId
@@ -116,15 +121,15 @@ function Add-AzureAdOauth2PermissionGrant
      {
         $body.Add("principalId",$PrincipalId)
      }
-
+      Write-Host "DEBUG: body $(ConvertTo-Json $body)"
            
     $header =
     @{
         Authorization  = "Bearer $($accessToken.Token)"                    
         'Content-Type' = 'application/json'
     }
+    Write-Host "DEBUG: header $(ConvertTo-Json $header)"
 
     $response = Invoke-RestMethod "https://graph.microsoft.com/v1.0/oauth2PermissionGrants" -Method Post -Body ($body | ConvertTo-Json) -Headers $header 
-    Write-Host "Permission '$scopeValue' on '$($targetSp.appDisplayName)' to '$($sp.appDisplayName)' is granted!"
     return $response
 }
