@@ -11,7 +11,10 @@ function Grant-ClientAppAdminConsent {
     param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string]$AppId
+        [string]$AppId,
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [pscredential]$TenantAdminCredential
     )
 
     Set-StrictMode -Version Latest
@@ -19,12 +22,11 @@ function Grant-ClientAppAdminConsent {
     Write-Host "Granting admin consent for app ID $AppId"
 
     # get applicatioin and service principle
-    Write-Host "DEBUG: TenantId - $((Get-AzureADCurrentSessionInfo).Tenant.Id)"
+    Write-Host "DEBUG: TenantId - $((Get-AzureADCurrentSessionInfo).Tenant.Id) "
     
     $app = Get-AzureADApplication -Filter "AppId eq '$AppId'"
     $sp = Get-AzureADServicePrincipal -Filter "AppId eq '$AppId'"
     
-    Write-Host "DEBUG: Trace 1"
     foreach($access in $app.RequiredResourceAccess)
     {
         # grant permission for each required access
@@ -40,18 +42,16 @@ function Grant-ClientAppAdminConsent {
                 Write-Warning "Granting admin content on $($resourceAccess.Type) is not supported."
                 continue
             }
-            Write-Host "DEBUG: Trace 2"
             $targetAppResourceId = $resourceAccess.Id
             
             # get target app service principle
             $targetSp =  Get-AzureADServicePrincipal -Filter "AppId eq '$targetAppId'"
-            Write-Host "DEBUG: Trace 3"
 
             # get scope value
             $oauth2Permission =  $targetSp.Oauth2Permissions | ? {$_.Id -eq $targetAppResourceId}
             $scopeValue = $oauth2Permission.Value
-            Write-Host "DEBUG: Trace 4"
-            Grant-AzureAdOauth2Permission -ClientId $sp.ObjectId ` -ConsentType "AllPrincipals" -ResourceId $targetSp.ObjectId -Scope $scopeValue         
+            
+            Grant-AzureAdOauth2Permission -ClientId $sp.ObjectId ` -ConsentType "AllPrincipals" -ResourceId $targetSp.ObjectId -Scope $scopeValue -TenantAdminCredential $TenantAdminCredential        
             Write-Host "Permission '$scopeValue' on '$($targetSp.appDisplayName)' to '$($sp.appDisplayName)' is granted!"   
         }
     
@@ -73,7 +73,8 @@ function Grant-AzureAdOauth2Permission
         [string]$ResourceId,
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string]$Scope
+        [string]$Scope,
+        [pscredential]$TenantAdminCredential
     ) 
     # check existense
     $existingEntry = Get-AzureADOAuth2PermissionGrant -All $true | ? {$_.ClientId -eq $sp.ObjectId -and $_.ResourceId -eq $targetSp.ObjectId -and $_.Scope -eq $Scope }
@@ -83,7 +84,31 @@ function Grant-AzureAdOauth2Permission
         Write-Verbose "Permission '$Scope' on '$ResourceId' to '$ClientId' has already been granted! Update it."
         Remove-AzureADOAuth2PermissionGrant -ObjectId $existingEntry.ObjectId
     }
-    Add-AzureAdOauth2PermissionGrant -ClientId $ClientId -ConsentType $ConsentType -PrincipalId $PrincipalId -ResourceId $ResourceId -Scope $Scope
+    Add-AzureAdOauth2PermissionGrant -ClientId $ClientId -ConsentType $ConsentType -PrincipalId $PrincipalId -ResourceId $ResourceId -Scope $Scope -TenantAdminCredential $TenantAdminCredential
+}
+
+
+function Get-AccessToken([pscredential]$TenantAdminCredential)
+{
+     [string]$tenantId = ((Get-AzureADCurrentSessionInfo).Tenant.Id)
+      $username = $TenantAdminCredential.UserName
+      $password_raw = $TenantAdminCredential.Password
+      $password =  ConvertTo-SecureString -AsPlainText $password_raw -Force
+      $adminCredential = New-Object PSCredential $username,$password
+
+      $adTokenUrl = "https://login.microsoftonline.com/$tenantId/oauth2/token"
+      $resource = "https://graph.microsoft.com/"
+
+      $body = @{
+          grant_type = "password"
+          username   = $username
+          password   = 'Ph8NS{UU#p;kh63\'
+          resource   = $resource 
+          client_id  = "1950a258-227b-4e31-a9cf-717495945fc2" # Microsoft Azure PowerShell
+      }
+      $response = Invoke-RestMethod -Method 'Post' -Uri $adTokenUrl -ContentType "application/x-www-form-urlencoded" -Body $body
+      return $response.access_token
+ 
 }
 
 function Add-AzureAdOauth2PermissionGrant
@@ -101,14 +126,15 @@ function Add-AzureAdOauth2PermissionGrant
         [string]$ResourceId,
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string]$Scope
+        [string]$Scope,
+        [pscredential]$TenantAdminCredential
 
     ) 
     [string]$tenantId = ((Get-AzureADCurrentSessionInfo).Tenant.Id)
     # get access token for Graph API
     Write-Host "Get access token to access Graph API in tenant - $tenantId"
-    $accessToken = Get-AzAccessToken -ResourceTypeName AadGraph -TenantId $tenantId  
-    Write-Host "DEBUG: Access token is retrieved - $($accessToken.Token)"
+    $accessToken = Get-AccessToken -TenantAdminCredential $TenantAdminCredential
+    Write-Host "DEBUG: Access token is retrieved - $accessToken"
     $body = 
     @{
           clientId     =   $ClientId
@@ -125,10 +151,10 @@ function Add-AzureAdOauth2PermissionGrant
            
     $header =
     @{
-        Authorization  = "Bearer $($accessToken.Token)"                    
+        Authorization  = "Bearer $accessToken"                    
         'Content-Type' = 'application/json'
     }
-    Write-Host "DEBUG: header $(ConvertTo-Json $header)"
+    Write-Host "DEBUG: header $(ConvertTo-Json $body)"
 
     $response = Invoke-RestMethod "https://graph.microsoft.com/v1.0/oauth2PermissionGrants" -Method Post -Body ($body | ConvertTo-Json) -Headers $header 
     return $response
