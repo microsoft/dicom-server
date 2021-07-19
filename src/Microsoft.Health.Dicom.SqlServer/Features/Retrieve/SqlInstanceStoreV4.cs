@@ -65,7 +65,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             return results;
         }
 
-        public override async Task<long?> GetMaxInstanceWatermarkAsync(CancellationToken cancellationToken)
+        public override async Task<long> GetMaxInstanceWatermarkAsync(CancellationToken cancellationToken)
         {
             using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
             using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
@@ -74,7 +74,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
 
             try
             {
-                return (long?)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+                return ((long?)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken)).GetValueOrDefault();
             }
             catch (SqlException ex)
             {

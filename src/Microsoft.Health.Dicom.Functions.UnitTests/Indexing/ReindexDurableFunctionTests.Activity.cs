@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
@@ -31,7 +32,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 new ExtendedQueryTagStoreEntry(1, "01010101", "AS", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding)
             };
 
-            // Set up input
+            // Arrange input
             IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
             context.InstanceId.Returns(operationId);
             context.GetInput<IReadOnlyCollection<int>>().Returns(expectedInput);
@@ -50,19 +51,22 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
 
             // Assert behavior
             Assert.Same(expectedOutput, actual);
+            context.Received(1).GetInput<IReadOnlyCollection<int>>();
             await _extendedQueryTagStore.Received(1).ConfirmReindexingAsync(expectedInput, operationId, CancellationToken.None);
         }
 
         [Fact]
         public async Task GivenInstances_WhenGettingMaxInstanceWatermark_ThenShouldInvokeCorrectMethod()
         {
-            _instanceStore.GetMaxInstanceWatermarkAsync(CancellationToken.None).Returns(Task.FromResult<long?>(12345));
+            IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
+            _instanceStore.GetMaxInstanceWatermarkAsync(CancellationToken.None).Returns(Task.FromResult<long>(12345));
 
-            long? actual = await _reindexDurableFunction.GetMaxInstanceWatermarkAsync(
-                Substitute.For<IDurableActivityContext>(),
+            long actual = await _reindexDurableFunction.GetMaxInstanceWatermarkAsync(
+                context,
                 NullLogger.Instance);
 
             Assert.Equal(12345, actual);
+            Assert.False(context.ReceivedCalls().Any());
             await _instanceStore.Received(1).GetMaxInstanceWatermarkAsync(CancellationToken.None);
         }
 
@@ -77,12 +81,12 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     new ExtendedQueryTagStoreEntry(2, "02", "DT", null, QueryTagLevel.Series, ExtendedQueryTagStatus.Adding),
                     new ExtendedQueryTagStoreEntry(3, "03", "AS", "bar", QueryTagLevel.Study, ExtendedQueryTagStatus.Adding),
                 },
-                WatermarkRange = new WatermarkRange(5, 5),
+                WatermarkRange = new WatermarkRange(5, 10),
             };
 
-            // Set up input
+            // Arrange input
             _instanceStore
-                .GetInstanceIdentifiersByWatermarkRangeAsync(new WatermarkRange(5, 5), IndexStatus.Created, CancellationToken.None)
+                .GetInstanceIdentifiersByWatermarkRangeAsync(batch.WatermarkRange, IndexStatus.Created, CancellationToken.None)
                 .Returns(
                     new List<VersionedInstanceIdentifier>
                     {
@@ -93,13 +97,19 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                         new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 9),
                     });
 
+            _instanceReindexer.ReindexInstanceAsync(batch.QueryTags, 5).Returns(Task.CompletedTask);
+            _instanceReindexer.ReindexInstanceAsync(batch.QueryTags, 6).Returns(Task.CompletedTask);
+            _instanceReindexer.ReindexInstanceAsync(batch.QueryTags, 7).Returns(Task.CompletedTask);
+            _instanceReindexer.ReindexInstanceAsync(batch.QueryTags, 8).Returns(Task.CompletedTask);
+            _instanceReindexer.ReindexInstanceAsync(batch.QueryTags, 9).Returns(Task.CompletedTask);
+
             // Call the activity
             await _reindexDurableFunction.ReindexBatchAsync(batch, NullLogger.Instance);
 
             // Assert behavior
             await _instanceStore
                 .Received(1)
-                .GetInstanceIdentifiersByWatermarkRangeAsync(new WatermarkRange(5, 5), IndexStatus.Created, CancellationToken.None);
+                .GetInstanceIdentifiersByWatermarkRangeAsync(batch.WatermarkRange, IndexStatus.Created, CancellationToken.None);
 
             await _instanceReindexer.Received(1).ReindexInstanceAsync(batch.QueryTags, 5);
             await _instanceReindexer.Received(1).ReindexInstanceAsync(batch.QueryTags, 6);
@@ -115,7 +125,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             var expectedInput = new List<int> { 1, 2, 3, 4, 5 };
             var expectedOutput = new List<int> { 1, 2, 4, 5 };
 
-            // Set up input
+            // Arrange input
             IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
             context.InstanceId.Returns(operationId);
             context.GetInput<IReadOnlyCollection<int>>().Returns(expectedInput);
@@ -133,6 +143,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
 
             // Assert behavior
             Assert.Same(expectedOutput, actual);
+            context.Received(1).GetInput<IReadOnlyCollection<int>>();
             await _extendedQueryTagStore.Received(1).CompleteReindexingAsync(expectedInput, CancellationToken.None);
         }
     }

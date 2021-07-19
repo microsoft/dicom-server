@@ -13,21 +13,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
     /// </summary>
     public readonly struct WatermarkRange : IEquatable<WatermarkRange>
     {
-        public WatermarkRange(long start, int count)
+        public WatermarkRange(long start, long end)
         {
             Start = EnsureArg.IsGte(start, 0, nameof(start));
-            Count = EnsureArg.IsGte(count, 0, nameof(count));
+            End = EnsureArg.IsGte(end, 0, nameof(end));
         }
 
         /// <summary>
-        /// Gets inclusive start watermark.
+        /// Gets inclusive starting instance watermark.
         /// </summary>
         public long Start { get; }
 
         /// <summary>
-        /// Gets or sets exclusive end watermark.
+        /// Gets exclusive ending instance watermark.
         /// </summary>
-        public long End => Start + Count;
+        public long End { get; }
 
         /// <summary>
         /// Gets the maximum number of instances within this range.
@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
         /// <remarks>
         /// Some instances may be missing in the range due to previous deletion operations.
         /// </remarks>
-        public int Count { get; }
+        public long Count => End - Start;
 
         public override bool Equals(object obj)
             => obj is WatermarkRange other && Equals(other);

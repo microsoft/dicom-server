@@ -53,15 +53,18 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// <summary>
         /// Asynchronously retrieves the maximum instance watermark.
         /// </summary>
+        /// <remarks>
+        /// Watermark values start at <c>1</c>.
+        /// </remarks>
         /// <param name="context">The context for the activity.</param>
         /// <param name="logger">A diagnostic logger.</param>
         /// <returns>
         /// A task representing the <see cref="GetMaxInstanceWatermarkAsync"/> operation.
         /// The value of its <see cref="Task{TResult}.Result"/> property contains the maximum watermark value if found;
-        /// otherwise, <see langword="null"/>.
+        /// otherwise, <c>0</c>.
         /// </returns>
         [FunctionName(nameof(GetMaxInstanceWatermarkAsync))]
-        public Task<long?> GetMaxInstanceWatermarkAsync(
+        public Task<long> GetMaxInstanceWatermarkAsync(
             [ActivityTrigger] IDurableActivityContext context,
             ILogger logger)
         {

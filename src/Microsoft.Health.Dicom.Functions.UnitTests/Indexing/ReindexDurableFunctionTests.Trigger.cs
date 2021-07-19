@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
@@ -55,7 +56,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             client
                 .StartNewAsync(
                     nameof(ReindexDurableFunction.ReindexInstancesAsync),
-                    Arg.Is<ReindexInput>(x => ReferenceEquals(x.QueryTagKeys, expectedTagKeys)))
+                    Arg.Is<ReindexInput>(x => x.QueryTagKeys.SequenceEqual(expectedTagKeys)))
                 .Returns(Task.FromResult(instanceId));
 
             HttpResponseMessage response = await _reindexDurableFunction.StartReindexingInstancesAsync(
@@ -68,7 +69,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .Received(1)
                 .StartNewAsync(
                     nameof(ReindexDurableFunction.ReindexInstancesAsync),
-                    Arg.Is<ReindexInput>(x => ReferenceEquals(x.QueryTagKeys, expectedTagKeys)));
+                    Arg.Is<ReindexInput>(x => x.QueryTagKeys.SequenceEqual(expectedTagKeys)));
         }
 
         private static HttpRequestMessage CreateRequest(IReadOnlyCollection<int> tagKeys)

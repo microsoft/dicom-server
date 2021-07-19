@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing.Models
 {
@@ -11,6 +12,6 @@ namespace Microsoft.Health.Dicom.Functions.Indexing.Models
     {
         public IReadOnlyCollection<int> QueryTagKeys { get; set; }
 
-        public ReindexProgress Progress { get; set; }
+        public WatermarkRange Completed { get; set; }
     }
 }

@@ -44,15 +44,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         /// <summary>
         /// Asynchronously gets the maximum instance watermark.
         /// </summary>
+        /// <remarks>
+        /// Watermark values start at <c>1</c>.
+        /// </remarks>
         /// <param name="cancellationToken">
         /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
         /// </param>
         /// <returns>
         /// A task representing the <see cref="GetMaxInstanceWatermarkAsync"/> operation.
         /// The value of its <see cref="Task{TResult}.Result"/> property contains the maximum watermark value if found;
-        /// otherwise, <see langword="null"/>.
+        /// otherwise, <c>0</c>.
         /// </returns>
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-        Task<long?> GetMaxInstanceWatermarkAsync(CancellationToken cancellationToken);
+        Task<long> GetMaxInstanceWatermarkAsync(CancellationToken cancellationToken);
     }
 }

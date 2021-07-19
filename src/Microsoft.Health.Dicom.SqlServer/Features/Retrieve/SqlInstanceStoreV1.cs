@@ -102,7 +102,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             return results;
         }
 
-        public virtual Task<long?> GetMaxInstanceWatermarkAsync(CancellationToken cancellationToken)
+        public virtual Task<long> GetMaxInstanceWatermarkAsync(CancellationToken cancellationToken)
         {
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }

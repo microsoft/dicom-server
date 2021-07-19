@@ -46,26 +46,26 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             List<int> queryTagKeys = queryTags.Select(x => x.Key).ToList();
             if (queryTags.Count > 0)
             {
-                WatermarkRange? optionalRange = await GetNextRangeAsync(context, input.Progress);
-                if (optionalRange.HasValue)
+                List<WatermarkRange> batches = await GetBatchesAsync(context, input.Completed);
+                if (batches.Count > 0)
                 {
-                    WatermarkRange range = optionalRange.GetValueOrDefault();
+                    // Note that batches are in reverse order because we start from the highest watermark
+                    var batchRange = new WatermarkRange(batches[^1].Start, batches[0].End);
 
-                    logger.LogInformation("Beginning to re-index the range {Range}.", range);
-                    await ReindexRangeAsync(context, range, queryTags);
+                    logger.LogInformation("Beginning to re-index the range {Range}.", batchRange);
+                    await Task.WhenAll(batches
+                        .Select(x => context.CallActivityAsync(
+                            nameof(ReindexBatchAsync),
+                            new ReindexBatch { QueryTags = queryTags, WatermarkRange = x })));
 
                     // Create a new orchestration with the same instance ID to process the remaining data
-                    logger.LogInformation("Completed re-indexing the range {Range}. Continuing with new execution...", range);
+                    logger.LogInformation("Completed re-indexing the range {Range}. Continuing with new execution...", batchRange);
 
                     context.ContinueAsNew(
                         new ReindexInput
                         {
                             QueryTagKeys = queryTagKeys,
-                            Progress = new ReindexProgress
-                            {
-                                CurrentWatermark = range.Start - 1,
-                                MaxWatermark = input.Progress?.MaxWatermark ?? range.End,
-                            },
+                            Completed = input.Completed.Count == 0 ? batchRange : new WatermarkRange(batchRange.Start, input.Completed.End),
                         });
                 }
                 else
@@ -87,49 +87,26 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             }
         }
 
-        private async Task<WatermarkRange?> GetNextRangeAsync(IDurableOrchestrationContext context, ReindexProgress progress)
+        private async Task<List<WatermarkRange>> GetBatchesAsync(IDurableOrchestrationContext context, WatermarkRange completed)
         {
-            // If we haven't made progress yet, fetch the maximum watermark from the database.
+            // If we haven't completed any range yet, fetch the maximum watermark from the database.
             // Otherwise, create a WatermarkRange based on the latest progress.
-            // TODO: Durable Function analyzer incorrectly detects DF0108. Remove when it's resolved
 #pragma warning disable DF0108
-            long max = progress != null
-                ? progress.CurrentWatermark
-                : (await context.CallActivityAsync<long?>(nameof(GetMaxInstanceWatermarkAsync), input: null)).GetValueOrDefault();
+            // TODO: Durable Function analyzer incorrectly detects DF0108. Remove when it's resolved
+            long end = completed.Count > 0
+                ? completed.Start
+                : (await context.CallActivityAsync<long>(nameof(GetMaxInstanceWatermarkAsync), input: null)) + 1;
 #pragma warning restore DF0108
 
-            if (max > 0)
+            // Note that the watermark sequence starts at 1!
+            var batches = new List<WatermarkRange>();
+            for (; end > 1 && batches.Count < _options.MaxParallelBatches; end -= _options.BatchSize)
             {
-                int count = (int)Math.Min(max - 1, _options.MaxParallelCount);
-                return new WatermarkRange(max - count, count);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        private Task ReindexRangeAsync(
-            IDurableOrchestrationContext context,
-            WatermarkRange range,
-            IReadOnlyCollection<ExtendedQueryTagStoreEntry> queryTags)
-        {
-            (long start, long end) = range;
-
-            var tasks = new List<Task>();
-            for (; end > start && tasks.Count < _options.MaxParallelBatches; end -= _options.BatchSize)
-            {
-                int count = (int)Math.Min(end - start, _options.BatchSize);
-                tasks.Add(context.CallActivityAsync(
-                    nameof(ReindexBatchAsync),
-                    new ReindexBatch
-                    {
-                        QueryTags = queryTags,
-                        WatermarkRange = new WatermarkRange(end - count, count),
-                    }));
+                int count = (int)Math.Min(end - 1, _options.BatchSize);
+                batches.Add(new WatermarkRange(end - count, end));
             }
 
-            return Task.WhenAll(tasks);
+            return batches;
         }
     }
 }
