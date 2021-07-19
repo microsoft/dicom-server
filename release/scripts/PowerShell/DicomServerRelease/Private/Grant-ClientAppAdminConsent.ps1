@@ -91,10 +91,8 @@ function Grant-AzureAdOauth2Permission
 function Get-AccessToken([pscredential]$TenantAdminCredential)
 {
      [string]$tenantId = ((Get-AzureADCurrentSessionInfo).Tenant.Id)
-      $username = $TenantAdminCredential.UserName
-      $password_raw = $TenantAdminCredential.Password
-      $password =  ConvertTo-SecureString -AsPlainText $password_raw -Force
-      $adminCredential = New-Object PSCredential $username,$password
+      $username = $TenantAdminCredential.GetNetworkCredential().UserName
+      $password_raw = $TenantAdminCredential.GetNetworkCredential().Password
 
       $adTokenUrl = "https://login.microsoftonline.com/$tenantId/oauth2/token"
       $resource = "https://graph.microsoft.com/"
@@ -102,7 +100,7 @@ function Get-AccessToken([pscredential]$TenantAdminCredential)
       $body = @{
           grant_type = "password"
           username   = $username
-          password   = 'Ph8NS{UU#p;kh63\'
+          password   = $password_raw
           resource   = $resource 
           client_id  = "1950a258-227b-4e31-a9cf-717495945fc2" # Microsoft Azure PowerShell
       }
