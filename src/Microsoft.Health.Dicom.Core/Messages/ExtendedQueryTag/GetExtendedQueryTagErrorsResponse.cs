@@ -14,10 +14,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
         public GetExtendedQueryTagErrorsResponse(IReadOnlyCollection<ExtendedQueryTagError> extendedQueryTagErrors)
         {
             ExtendedQueryTagErrors = EnsureArg.IsNotNull(extendedQueryTagErrors);
-            ErrorCount = extendedQueryTagErrors.Count;
         }
-
-        public int ErrorCount { get; }
 
         public IReadOnlyCollection<ExtendedQueryTagError> ExtendedQueryTagErrors { get; }
     }

@@ -13,17 +13,18 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     /// </summary>
     public class ExtendedQueryTagError
     {
-        public ExtendedQueryTagError(DateTime timestamp,
+        public ExtendedQueryTagError(
+            DateTime timestamp,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
             string errorMessage)
         {
-            StudyInstanceUid = EnsureArg.IsNotNull(studyInstanceUid); ;
+            StudyInstanceUid = EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid);
             SeriesInstanceUid = seriesInstanceUid;
             SopInstanceUid = sopInstanceUid;
             UtcTimestamp = timestamp;
-            ErrorMessage = EnsureArg.IsNotNullOrWhiteSpace(errorMessage); ;
+            ErrorMessage = EnsureArg.IsNotNullOrWhiteSpace(errorMessage);
         }
 
         public string StudyInstanceUid { get; }

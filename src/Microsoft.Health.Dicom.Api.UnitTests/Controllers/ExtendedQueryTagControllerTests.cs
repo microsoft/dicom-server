@@ -74,7 +74,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
         public async Task GivenTagPath_WhenCallingApi_ThenShouldReturnOk()
         {
             IMediator mediator = Substitute.For<IMediator>();
-            string path = "11330001";
+            const string path = "11330001";
 
             var controller = new ExtendedQueryTagController(
                 mediator,
@@ -93,8 +93,8 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
             mediator
                 .Send(
                     Arg.Is<GetExtendedQueryTagErrorsRequest>(x => x.Path == path),
-                        Arg.Is(controller.HttpContext.RequestAborted))
-                    .Returns(expected);
+                    Arg.Is(controller.HttpContext.RequestAborted))
+                .Returns(expected);
 
             IActionResult response = await controller.GetTagErrorAsync(path);
             Assert.IsType<ObjectResult>(response);
