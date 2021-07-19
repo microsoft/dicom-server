@@ -64,5 +64,72 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 };
             }
         }
+
+        public override async Task<IReadOnlyCollection<ExtendedQueryTagStoreEntry>> ConfirmReindexingAsync(
+            IReadOnlyCollection<int> queryTagKeys,
+            string operationId,
+            CancellationToken cancellationToken)
+        {
+            using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
+            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
+
+            IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> rows = queryTagKeys.Select(x => new ExtendedQueryTagKeyTableTypeV1Row(x));
+            VLatest.ConfirmReindexing.PopulateCommand(sqlCommandWrapper, rows, operationId);
+
+            try
+            {
+                var queryTags = new List<ExtendedQueryTagStoreEntry>();
+                using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken);
+                while (await reader.ReadAsync(cancellationToken))
+                {
+                    (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, byte tagLevel, byte tagStatus) = reader.ReadRow(
+                        VLatest.ExtendedQueryTag.TagKey,
+                        VLatest.ExtendedQueryTag.TagPath,
+                        VLatest.ExtendedQueryTag.TagVR,
+                        VLatest.ExtendedQueryTag.TagPrivateCreator,
+                        VLatest.ExtendedQueryTag.TagLevel,
+                        VLatest.ExtendedQueryTag.TagStatus);
+
+                    queryTags.Add(new ExtendedQueryTagStoreEntry(
+                        tagKey,
+                        tagPath,
+                        tagVR,
+                        tagPrivateCreator,
+                        (QueryTagLevel)tagLevel,
+                        (ExtendedQueryTagStatus)tagStatus));
+                }
+
+                return queryTags;
+            }
+            catch (SqlException ex)
+            {
+                throw new DataStoreException(ex);
+            }
+        }
+
+        public override async Task<IReadOnlyCollection<int>> CompleteReindexingAsync(IReadOnlyCollection<int> queryTagKeys, CancellationToken cancellationToken = default)
+        {
+            using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
+            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
+
+            IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> rows = queryTagKeys.Select(x => new ExtendedQueryTagKeyTableTypeV1Row(x));
+            VLatest.CompleteReindexing.PopulateCommand(sqlCommandWrapper, rows);
+
+            try
+            {
+                var keys = new List<int>();
+                using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken);
+                while (await reader.ReadAsync(cancellationToken))
+                {
+                    keys.Add(reader.ReadRow(VLatest.ExtendedQueryTagString.TagKey));
+                }
+
+                return keys;
+            }
+            catch (SqlException ex)
+            {
+                throw new DataStoreException(ex);
+            }
+        }
     }
 }

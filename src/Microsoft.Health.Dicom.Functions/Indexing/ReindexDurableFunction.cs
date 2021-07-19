@@ -18,33 +18,24 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
     /// </summary>
     public partial class ReindexDurableFunction
     {
-        private readonly QueryTagIndexingOptions _reindexConfig;
-        private readonly IInstanceReindexer _instanceReindexer;
-        private readonly IAddExtendedQueryTagService _addExtendedQueryTagService;
-        private readonly IInstanceStore _instanceStore;
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
+        private readonly IInstanceStore _instanceStore;
+        private readonly IInstanceReindexer _instanceReindexer;
         private readonly ISchemaVersionResolver _schemaVersionResolver;
+        private readonly QueryTagIndexingOptions _options;
 
         public ReindexDurableFunction(
-            IOptions<QueryTagIndexingOptions> configOptions,
-            IAddExtendedQueryTagService addExtendedQueryTagService,
+            IExtendedQueryTagStore extendedQueryTagStore,
             IInstanceStore instanceStore,
             IInstanceReindexer instanceReindexer,
-            IExtendedQueryTagStore extendedQueryTagStore,
-            ISchemaVersionResolver schemaVersionResolver)
+            ISchemaVersionResolver schemaVersionResolver,
+            IOptions<QueryTagIndexingOptions> configOptions)
         {
-            EnsureArg.IsNotNull(configOptions, nameof(configOptions));
-            EnsureArg.IsNotNull(instanceReindexer, nameof(instanceReindexer));
-            EnsureArg.IsNotNull(addExtendedQueryTagService, nameof(addExtendedQueryTagService));
-            EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
-            EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
-            EnsureArg.IsNotNull(schemaVersionResolver, nameof(schemaVersionResolver));
-            _reindexConfig = configOptions.Value;
-            _instanceReindexer = instanceReindexer;
-            _addExtendedQueryTagService = addExtendedQueryTagService;
-            _instanceStore = instanceStore;
-            _extendedQueryTagStore = extendedQueryTagStore;
-            _schemaVersionResolver = schemaVersionResolver;
+            _extendedQueryTagStore = EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
+            _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
+            _instanceReindexer = EnsureArg.IsNotNull(instanceReindexer, nameof(instanceReindexer));
+            _schemaVersionResolver = EnsureArg.IsNotNull(schemaVersionResolver, nameof(schemaVersionResolver));
+            _options = EnsureArg.IsNotNull(configOptions?.Value, nameof(configOptions));
         }
     }
 }

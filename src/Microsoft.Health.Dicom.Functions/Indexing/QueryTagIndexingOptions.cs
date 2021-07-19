@@ -16,24 +16,21 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         internal const string SectionName = "Indexing";
 
         /// <summary>
-        /// Gets or sets the number of DICOM instances processed a single worker node.
+        /// Gets or sets the number of DICOM instances processed by a single activity.
         /// </summary>
-        /// <remarks>
-        /// The number of DICOM instances interacted upon concurrently is the product of
-        /// <see cref="BatchSize"/> and <see cref="MaxParallelBatches"/>.
-        /// </remarks>
         [Range(1, int.MaxValue)]
         public int BatchSize { get; set; } = 2;
 
         /// <summary>
         /// Gets or sets the maximum number of concurrent batches processed at a given time.
         /// </summary>
-        /// <remarks>
-        /// The number of DICOM instances interacted upon concurrently is the product of
-        /// <see cref="BatchSize"/> and <see cref="MaxParallelBatches"/>.
-        /// </remarks>
         [Range(1, int.MaxValue)]
         public int MaxParallelBatches { get; set; } = 2;
 
+        /// <summary>
+        /// Gets the maximum number of DICOM instances that are processed concurrently
+        /// across all activities for a single orchestration instance.
+        /// </summary>
+        public int MaxParallelCount => BatchSize * MaxParallelBatches;
     }
 }

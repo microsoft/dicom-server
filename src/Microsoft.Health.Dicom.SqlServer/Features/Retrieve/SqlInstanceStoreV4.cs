@@ -4,8 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
@@ -52,15 +54,32 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
                            VLatest.Instance.Watermark);
 
                         results.Add(new VersionedInstanceIdentifier(
-                                rStudyInstanceUid,
-                                rSeriesInstanceUid,
-                                rSopInstanceUid,
-                                watermark));
+                            rStudyInstanceUid,
+                            rSeriesInstanceUid,
+                            rSopInstanceUid,
+                            watermark));
                     }
                 }
             }
 
             return results;
+        }
+
+        public override async Task<long?> GetMaxInstanceWatermarkAsync(CancellationToken cancellationToken)
+        {
+            using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
+            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
+
+            VLatest.GetMaxInstanceWatermark.PopulateCommand(sqlCommandWrapper);
+
+            try
+            {
+                return (long?)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+            }
+            catch (SqlException ex)
+            {
+                throw new DataStoreException(ex);
+            }
         }
     }
 }

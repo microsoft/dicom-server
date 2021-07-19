@@ -3,8 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.WebJobs;
@@ -20,84 +21,114 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
     public partial class ReindexDurableFunction
     {
         /// <summary>
-        /// The activity to complete reindex.
+        /// Asynchronously retrieves the query tags that have been associated with the operation.
         /// </summary>
-        /// <param name="tagKeys">the tag keys.</param>
-        /// <param name="log">The log.</param>
-        /// <returns>The task.</returns>
-        [FunctionName(nameof(CompleteReindexingTagsAsync))]
-        public Task CompleteReindexingTagsAsync(
-            [ActivityTrigger] IReadOnlyCollection<int> tagKeys,
-            ILogger log)
-        {
-            EnsureArg.IsNotNull(tagKeys, nameof(tagKeys));
-            EnsureArg.IsNotNull(log, nameof(log));
-
-            log.LogInformation("Completing Reindex operation on {tagKeys}", tagKeys);
-            // TODO: update tag status to Ready
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        ///  The activity to get reindex watermark range.
-        /// </summary>
-        /// <param name="context">The context.</param>
-        /// <param name="log">The log.</param>
-        /// <returns>The reindex operation.</returns>
-        [FunctionName(nameof(GetReindexWatermarkRangeAsync))]
-        public async Task<WatermarkRange> GetReindexWatermarkRangeAsync(
+        /// <remarks>
+        /// If the tags were not previously associated with the operation, this operation will create the association.
+        /// </remarks>
+        /// <param name="context">The context for the activity.</param>
+        /// <param name="logger">A diagnostic logger.</param>
+        /// <returns>
+        /// A task representing the <see cref="GetQueryTagsAsync"/> operation.
+        /// The value of its <see cref="Task{TResult}.Result"/> property contains the collection of query tags
+        /// that have been associated the operation.
+        /// </returns>
+        [FunctionName(nameof(GetQueryTagsAsync))]
+        public Task<IReadOnlyCollection<ExtendedQueryTagStoreEntry>> GetQueryTagsAsync(
             [ActivityTrigger] IDurableActivityContext context,
-            ILogger log)
+            ILogger logger)
         {
             EnsureArg.IsNotNull(context, nameof(context));
-            EnsureArg.IsNotNull(log, nameof(log));
-            log.LogInformation("Getting reindex watermark range");
-            // TODO: get reindex watermark range
-            return await Task.FromResult(new WatermarkRange(0, 0));
-        }
-
-        /// <summary>
-        ///  The activity to get tag store entires.
-        /// </summary>
-        /// <param name="tagKeys">The tag keys.</param>
-        /// <param name="log">The log.</param>
-        /// <returns>The reindex operation.</returns>
-        [FunctionName(nameof(GetTagStoreEntriesAsync))]
-        public async Task<IReadOnlyCollection<ExtendedQueryTagStoreEntry>> GetTagStoreEntriesAsync(
-            [ActivityTrigger] IReadOnlyCollection<int> tagKeys,
-            ILogger log)
-        {
-            EnsureArg.IsNotNull(tagKeys, nameof(tagKeys));
-            EnsureArg.IsNotNull(log, nameof(log));
-            log.LogInformation("Start getting extended query tag store entries for tag keys {input}", tagKeys);
-            // TODO: get extended query tag store entries for tagkeys
-            return await Task.FromResult(Array.Empty<ExtendedQueryTagStoreEntry>());
-        }
-
-
-        /// <summary>
-        /// The activity to reindex  Dicom instances.
-        /// </summary>
-        /// <param name="input">The input</param>
-        /// <param name="logger">The log.</param>
-        /// <returns>The task</returns>
-        [FunctionName(nameof(ReindexInstancesAsync))]
-        public async Task ReindexInstancesAsync([ActivityTrigger] ReindexInstanceInput input, ILogger logger)
-        {
-            EnsureArg.IsNotNull(input, nameof(input));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            logger.LogInformation("Reindex instances with {input}", input);
+            IReadOnlyCollection<int> tagKeys = context.GetInput<IReadOnlyCollection<int>>();
+            logger.LogInformation("Fetching {Count} query tags for operation ID '{OperationId}': {{{TagKeys}}}",
+                tagKeys.Count,
+                context.InstanceId,
+                string.Join(", ", tagKeys));
 
-            var instanceIdentifiers = await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(input.WatermarkRange, IndexStatus.Created);
+            return _extendedQueryTagStore.ConfirmReindexingAsync(tagKeys, context.InstanceId, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Asynchronously retrieves the maximum instance watermark.
+        /// </summary>
+        /// <param name="context">The context for the activity.</param>
+        /// <param name="logger">A diagnostic logger.</param>
+        /// <returns>
+        /// A task representing the <see cref="GetMaxInstanceWatermarkAsync"/> operation.
+        /// The value of its <see cref="Task{TResult}.Result"/> property contains the maximum watermark value if found;
+        /// otherwise, <see langword="null"/>.
+        /// </returns>
+        [FunctionName(nameof(GetMaxInstanceWatermarkAsync))]
+        public Task<long?> GetMaxInstanceWatermarkAsync(
+            [ActivityTrigger] IDurableActivityContext context,
+            ILogger logger)
+        {
+            EnsureArg.IsNotNull(context, nameof(context));
+            EnsureArg.IsNotNull(logger, nameof(logger));
+
+            logger.LogInformation("Fetching the maximum instance watermark");
+            return _instanceStore.GetMaxInstanceWatermarkAsync(CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Asynchronously re-indexes a range of data.
+        /// </summary>
+        /// <param name="batch">The batch that should be re-indexed including the range of data and the new tags.</param>
+        /// <param name="logger">A diagnostic logger.</param>
+        /// <returns>A task representing the <see cref="ReindexBatchAsync"/> operation.</returns>
+        [FunctionName(nameof(ReindexBatchAsync))]
+        public async Task ReindexBatchAsync([ActivityTrigger] ReindexBatch batch, ILogger logger)
+        {
+            EnsureArg.IsNotNull(batch, nameof(batch));
+            EnsureArg.IsNotNull(logger, nameof(logger));
+
+            logger.LogInformation("Re-indexing instances in the range {Range} for the {TagCount} query tags {{{Tags}}}",
+                batch.WatermarkRange,
+                batch.QueryTags.Count,
+                string.Join(", ", batch.QueryTags.Select(x => x.Path)));
+
+            IReadOnlyList<VersionedInstanceIdentifier> instanceIdentifiers =
+                await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(batch.WatermarkRange, IndexStatus.Created);
 
             var tasks = new List<Task>();
-            foreach (var instanceIdentifier in instanceIdentifiers)
+            foreach (VersionedInstanceIdentifier identifier in instanceIdentifiers)
             {
-                tasks.Add(_instanceReindexer.ReindexInstanceAsync(input.TagStoreEntries, instanceIdentifier.Version));
+                // TODO: Should this be split into two operations:
+                // (1) Read all tags in blob
+                // (2) Write all new indices to SQL together
+                tasks.Add(_instanceReindexer.ReindexInstanceAsync(batch.QueryTags, identifier.Version));
             }
 
             await Task.WhenAll(tasks);
+        }
+
+        /// <summary>
+        /// Asynchronously completes the operation by removing the association between the tags and the operation.
+        /// </summary>
+        /// <param name="context">The context for the activity.</param>
+        /// <param name="logger">A diagnostic logger.</param>
+        /// <returns>
+        /// A task representing the <see cref="CompleteReindexingAsync"/> operation.
+        /// The value of its <see cref="Task{TResult}.Result"/> property contains the set of extended query tags
+        /// whose re-indexing should be considered completed.
+        /// </returns>
+        [FunctionName(nameof(CompleteReindexingAsync))]
+        public Task<IReadOnlyCollection<int>> CompleteReindexingAsync(
+            [ActivityTrigger] IDurableActivityContext context,
+            ILogger logger)
+        {
+            EnsureArg.IsNotNull(context, nameof(context));
+            EnsureArg.IsNotNull(logger, nameof(logger));
+
+            IReadOnlyCollection<int> tagKeys = context.GetInput<IReadOnlyCollection<int>>();
+            logger.LogInformation("Completing the re-indexing operation {OperationId} for {Count} query tags {{{TagKeys}}}",
+                context.InstanceId,
+                tagKeys.Count,
+                string.Join(", ", tagKeys));
+
+            return _extendedQueryTagStore.CompleteReindexingAsync(tagKeys, CancellationToken.None);
         }
     }
 }

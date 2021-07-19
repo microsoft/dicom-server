@@ -19,6 +19,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static ExtendedQueryTagDateTimeTable ExtendedQueryTagDateTime = new ExtendedQueryTagDateTimeTable();
         internal readonly static ExtendedQueryTagDoubleTable ExtendedQueryTagDouble = new ExtendedQueryTagDoubleTable();
         internal readonly static ExtendedQueryTagLongTable ExtendedQueryTagLong = new ExtendedQueryTagLongTable();
+        internal readonly static ExtendedQueryTagOperationTable ExtendedQueryTagOperation = new ExtendedQueryTagOperationTable();
         internal readonly static ExtendedQueryTagPersonNameTable ExtendedQueryTagPersonName = new ExtendedQueryTagPersonNameTable();
         internal readonly static ExtendedQueryTagStringTable ExtendedQueryTagString = new ExtendedQueryTagStringTable();
         internal readonly static InstanceTable Instance = new InstanceTable();
@@ -26,6 +27,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static StudyTable Study = new StudyTable();
         internal readonly static AddExtendedQueryTagsProcedure AddExtendedQueryTags = new AddExtendedQueryTagsProcedure();
         internal readonly static AddInstanceProcedure AddInstance = new AddInstanceProcedure();
+        internal readonly static CompleteReindexingProcedure CompleteReindexing = new CompleteReindexingProcedure();
+        internal readonly static ConfirmReindexingProcedure ConfirmReindexing = new ConfirmReindexingProcedure();
         internal readonly static DeleteDeletedInstanceProcedure DeleteDeletedInstance = new DeleteDeletedInstanceProcedure();
         internal readonly static DeleteExtendedQueryTagProcedure DeleteExtendedQueryTag = new DeleteExtendedQueryTagProcedure();
         internal readonly static DeleteInstanceProcedure DeleteInstance = new DeleteInstanceProcedure();
@@ -34,6 +37,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetExtendedQueryTagProcedure GetExtendedQueryTag = new GetExtendedQueryTagProcedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
         internal readonly static GetInstancesByWatermarkRangeProcedure GetInstancesByWatermarkRange = new GetInstancesByWatermarkRangeProcedure();
+        internal readonly static GetMaxInstanceWatermarkProcedure GetMaxInstanceWatermark = new GetMaxInstanceWatermarkProcedure();
         internal readonly static IncrementDeletedInstanceRetryProcedure IncrementDeletedInstanceRetry = new IncrementDeletedInstanceRetryProcedure();
         internal readonly static RetrieveDeletedInstanceProcedure RetrieveDeletedInstance = new RetrieveDeletedInstanceProcedure();
         internal readonly static UpdateInstanceStatusProcedure UpdateInstanceStatus = new UpdateInstanceStatusProcedure();
@@ -132,6 +136,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly Index IXC_ExtendedQueryTagLong = new Index("IXC_ExtendedQueryTagLong");
+        }
+
+        internal class ExtendedQueryTagOperationTable : Table
+        {
+            internal ExtendedQueryTagOperationTable() : base("dbo.ExtendedQueryTagOperation")
+            {
+            }
+
+            internal readonly IntColumn TagKey = new IntColumn("TagKey");
+            internal readonly VarCharColumn OperationId = new VarCharColumn("OperationId", 36);
+            internal readonly Index IXC_ExtendedQueryTagOperation = new Index("IXC_ExtendedQueryTagOperation");
         }
 
         internal class ExtendedQueryTagPersonNameTable : Table
@@ -389,6 +404,100 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameExtendedQueryTags { get; }
         }
 
+        internal class CompleteReindexingProcedure : StoredProcedure
+        {
+            internal CompleteReindexingProcedure() : base("dbo.CompleteReindexing")
+            {
+            }
+
+            private readonly ExtendedQueryTagKeyTableTypeV1TableValuedParameterDefinition _extendedQueryTagKeys = new ExtendedQueryTagKeyTableTypeV1TableValuedParameterDefinition("@extendedQueryTagKeys");
+
+            public void PopulateCommand(SqlCommandWrapper command, global::System.Collections.Generic.IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> extendedQueryTagKeys)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.CompleteReindexing";
+                _extendedQueryTagKeys.AddParameter(command.Parameters, extendedQueryTagKeys);
+            }
+
+            public void PopulateCommand(SqlCommandWrapper command, CompleteReindexingTableValuedParameters tableValuedParameters)
+            {
+                PopulateCommand(command, extendedQueryTagKeys: tableValuedParameters.ExtendedQueryTagKeys);
+            }
+        }
+
+        internal class CompleteReindexingTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, CompleteReindexingTableValuedParameters>
+        {
+            public CompleteReindexingTvpGenerator(ITableValuedParameterRowGenerator<TInput, ExtendedQueryTagKeyTableTypeV1Row> ExtendedQueryTagKeyTableTypeV1RowGenerator)
+            {
+                this.ExtendedQueryTagKeyTableTypeV1RowGenerator = ExtendedQueryTagKeyTableTypeV1RowGenerator;
+            }
+
+            private readonly ITableValuedParameterRowGenerator<TInput, ExtendedQueryTagKeyTableTypeV1Row> ExtendedQueryTagKeyTableTypeV1RowGenerator;
+
+            public CompleteReindexingTableValuedParameters Generate(TInput input)
+            {
+                return new CompleteReindexingTableValuedParameters(ExtendedQueryTagKeyTableTypeV1RowGenerator.GenerateRows(input));
+            }
+        }
+
+        internal struct CompleteReindexingTableValuedParameters
+        {
+            internal CompleteReindexingTableValuedParameters(global::System.Collections.Generic.IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> ExtendedQueryTagKeys)
+            {
+                this.ExtendedQueryTagKeys = ExtendedQueryTagKeys;
+            }
+
+            internal global::System.Collections.Generic.IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> ExtendedQueryTagKeys { get; }
+        }
+
+        internal class ConfirmReindexingProcedure : StoredProcedure
+        {
+            internal ConfirmReindexingProcedure() : base("dbo.ConfirmReindexing")
+            {
+            }
+
+            private readonly ExtendedQueryTagKeyTableTypeV1TableValuedParameterDefinition _extendedQueryTagKeys = new ExtendedQueryTagKeyTableTypeV1TableValuedParameterDefinition("@extendedQueryTagKeys");
+            private readonly ParameterDefinition<System.String> _operationId = new ParameterDefinition<System.String>("@operationId", global::System.Data.SqlDbType.VarChar, false, 36);
+
+            public void PopulateCommand(SqlCommandWrapper command, global::System.Collections.Generic.IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> extendedQueryTagKeys, System.String operationId)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.ConfirmReindexing";
+                _extendedQueryTagKeys.AddParameter(command.Parameters, extendedQueryTagKeys);
+                _operationId.AddParameter(command.Parameters, operationId);
+            }
+
+            public void PopulateCommand(SqlCommandWrapper command, System.String operationId, ConfirmReindexingTableValuedParameters tableValuedParameters)
+            {
+                PopulateCommand(command, operationId: operationId, extendedQueryTagKeys: tableValuedParameters.ExtendedQueryTagKeys);
+            }
+        }
+
+        internal class ConfirmReindexingTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, ConfirmReindexingTableValuedParameters>
+        {
+            public ConfirmReindexingTvpGenerator(ITableValuedParameterRowGenerator<TInput, ExtendedQueryTagKeyTableTypeV1Row> ExtendedQueryTagKeyTableTypeV1RowGenerator)
+            {
+                this.ExtendedQueryTagKeyTableTypeV1RowGenerator = ExtendedQueryTagKeyTableTypeV1RowGenerator;
+            }
+
+            private readonly ITableValuedParameterRowGenerator<TInput, ExtendedQueryTagKeyTableTypeV1Row> ExtendedQueryTagKeyTableTypeV1RowGenerator;
+
+            public ConfirmReindexingTableValuedParameters Generate(TInput input)
+            {
+                return new ConfirmReindexingTableValuedParameters(ExtendedQueryTagKeyTableTypeV1RowGenerator.GenerateRows(input));
+            }
+        }
+
+        internal struct ConfirmReindexingTableValuedParameters
+        {
+            internal ConfirmReindexingTableValuedParameters(global::System.Collections.Generic.IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> ExtendedQueryTagKeys)
+            {
+                this.ExtendedQueryTagKeys = ExtendedQueryTagKeys;
+            }
+
+            internal global::System.Collections.Generic.IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> ExtendedQueryTagKeys { get; }
+        }
+
         internal class DeleteDeletedInstanceProcedure : StoredProcedure
         {
             internal DeleteDeletedInstanceProcedure() : base("dbo.DeleteDeletedInstance")
@@ -539,6 +648,19 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _startWatermark.AddParameter(command.Parameters, startWatermark);
                 _endWatermark.AddParameter(command.Parameters, endWatermark);
                 _status.AddParameter(command.Parameters, status);
+            }
+        }
+
+        internal class GetMaxInstanceWatermarkProcedure : StoredProcedure
+        {
+            internal GetMaxInstanceWatermarkProcedure() : base("dbo.GetMaxInstanceWatermark")
+            {
+            }
+
+            public void PopulateCommand(SqlCommandWrapper command)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetMaxInstanceWatermark";
             }
         }
 

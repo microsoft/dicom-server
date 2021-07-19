@@ -39,8 +39,8 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             for (int i = 0; i < _reindexConfig.MaxParallelBatches; i++)
             {
                 await context.Received().
-                     CallActivityAsync(nameof(ReindexDurableFunction.ReindexInstancesAsync),
-                         Arg.Is<ReindexInstanceInput>(x => x.WatermarkRange.Start == reindexOperation.WatermarkRange.End - _reindexConfig.BatchSize * i - 1
+                     CallActivityAsync(nameof(ReindexDurableFunction.ReindexBatchAsync),
+                         Arg.Is<ReindexBatch>(x => x.WatermarkRange.Start == reindexOperation.WatermarkRange.End - _reindexConfig.BatchSize * i - 1
                          && x.WatermarkRange.End == reindexOperation.WatermarkRange.End - _reindexConfig.BatchSize * i));
             }
 
@@ -70,14 +70,14 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             for (int i = 0; i < _reindexConfig.MaxParallelBatches; i++)
             {
                 await context.Received().
-                     CallActivityAsync(nameof(ReindexDurableFunction.ReindexInstancesAsync),
-                         Arg.Is<ReindexInstanceInput>(x => x.WatermarkRange.Start == Math.Max(reindexOperation.WatermarkRange.Start, reindexOperation.WatermarkRange.End - _reindexConfig.BatchSize * i - 1)
+                     CallActivityAsync(nameof(ReindexDurableFunction.ReindexBatchAsync),
+                         Arg.Is<ReindexBatch>(x => x.WatermarkRange.Start == Math.Max(reindexOperation.WatermarkRange.Start, reindexOperation.WatermarkRange.End - _reindexConfig.BatchSize * i - 1)
                          && x.WatermarkRange.End == reindexOperation.WatermarkRange.End - _reindexConfig.BatchSize * i));
             }
 
             // Verify  CompleteReindexAsync is called
             await context.Received().
-                    CallActivityAsync(nameof(ReindexDurableFunction.CompleteReindexingTagsAsync),
+                    CallActivityAsync(nameof(ReindexDurableFunction.CompleteReindexingAsync),
                     Arg.Is<IReadOnlyCollection<int>>(x => x.SequenceEqual(reindexOperation.StoreEntries.Select(x => x.Key))));
 
             // Verify StartNewOrchestration is not called
@@ -98,11 +98,11 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             await _reindexDurableFunction.SubReindexTagsAsync(context, NullLogger.Instance);
 
             await context.Received().
-                  CallActivityAsync(nameof(ReindexDurableFunction.CompleteReindexingTagsAsync),
+                  CallActivityAsync(nameof(ReindexDurableFunction.CompleteReindexingAsync),
                   Arg.Is<IReadOnlyCollection<int>>(x => x.SequenceEqual(reindexOperation.StoreEntries.Select(y => y.Key))));
 
             context.DidNotReceive().StartNewOrchestration(nameof(ReindexDurableFunction.SubReindexTagsAsync), Arg.Any<ReindexOperation>());
-            await context.DidNotReceive().CallActivityAsync(nameof(ReindexDurableFunction.ReindexInstancesAsync), Arg.Any<ReindexInstanceInput>());
+            await context.DidNotReceive().CallActivityAsync(nameof(ReindexDurableFunction.ReindexBatchAsync), Arg.Any<ReindexBatch>());
         }
     }
 }

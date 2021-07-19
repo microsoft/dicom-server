@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Operations;
@@ -47,7 +48,9 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             _maxAllowedCount = extendedQueryTagConfiguration.Value.MaxAllowedCount;
         }
 
-        public async Task<AddExtendedQueryTagResponse> AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags, CancellationToken cancellationToken = default)
+        public async Task<AddExtendedQueryTagResponse> AddExtendedQueryTagsAsync(
+            IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags,
+            CancellationToken cancellationToken = default)
         {
             _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(extendedQueryTags);
             var normalized = extendedQueryTags
@@ -55,9 +58,22 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 .ToList();
 
             // TODO: Handle tags that have already been added
+            // Add the extended query tags to the DB
             IExtendedQueryTagStore extendedQueryTagStore = await _extendedQueryTagStoreFactory.GetInstanceAsync(cancellationToken);
-            IReadOnlyList<int> keys = await extendedQueryTagStore.AddExtendedQueryTagsAsync(normalized, _maxAllowedCount, ready: false, cancellationToken: cancellationToken);
-            string operationId = await _client.StartQueryTagIndexingAsync(keys, cancellationToken);
+            IReadOnlyCollection<int> expected = await extendedQueryTagStore.AddExtendedQueryTagsAsync(
+                normalized,
+                _maxAllowedCount,
+                ready: false,
+                cancellationToken: cancellationToken);
+
+            // Start re-indexing
+            string operationId = await _client.StartQueryTagIndexingAsync(expected, cancellationToken);
+
+            // Associate the tags to the operation and confirm their processing
+            if ((await extendedQueryTagStore.ConfirmReindexingAsync(expected, operationId, cancellationToken)).Count == 0)
+            {
+                throw new ExtendedQueryTagsAlreadyExistsException();
+            }
 
             return new AddExtendedQueryTagResponse(
                 new OperationReference(operationId, _uriResolver.ResolveOperationStatusUri(operationId)));

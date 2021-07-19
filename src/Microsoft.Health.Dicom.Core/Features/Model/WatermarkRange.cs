@@ -4,63 +4,61 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.Model
 {
     /// <summary>
-    /// Watermark range
+    /// Represents a range of DICOM instance watermarks.
     /// </summary>
-    public struct WatermarkRange : IEquatable<WatermarkRange>
+    public readonly struct WatermarkRange : IEquatable<WatermarkRange>
     {
-        public WatermarkRange(long start, long end)
+        public WatermarkRange(long start, int count)
         {
-            Start = start;
-            End = end;
+            Start = EnsureArg.IsGte(start, 0, nameof(start));
+            Count = EnsureArg.IsGte(count, 0, nameof(count));
         }
 
         /// <summary>
-        /// Gets or sets inclusive start watermark.
+        /// Gets inclusive start watermark.
         /// </summary>
-        public long Start { get; set; }
+        public long Start { get; }
 
         /// <summary>
-        /// Gets or sets inclusive end watermark.
+        /// Gets or sets exclusive end watermark.
         /// </summary>
-        public long End { get; set; }
+        public long End => Start + Count;
+
+        /// <summary>
+        /// Gets the maximum number of instances within this range.
+        /// </summary>
+        /// <remarks>
+        /// Some instances may be missing in the range due to previous deletion operations.
+        /// </remarks>
+        public int Count { get; }
 
         public override bool Equals(object obj)
-        {
-            if (!(obj is WatermarkRange))
-            {
-                return false;
-            }
-            return Equals((WatermarkRange)obj);
-        }
+            => obj is WatermarkRange other && Equals(other);
 
         public override int GetHashCode()
-        {
-            return HashCode.Combine(Start, End);
-        }
+            => HashCode.Combine(Start, Count);
 
         public static bool operator ==(WatermarkRange left, WatermarkRange right)
-        {
-            return left.Equals(right);
-        }
+            => left.Equals(right);
 
         public static bool operator !=(WatermarkRange left, WatermarkRange right)
-        {
-            return !(left == right);
-        }
+            => !(left == right);
 
         public bool Equals(WatermarkRange other)
-        {
-            return Start == other.Start && End == other.End;
-        }
+            => Start == other.Start && Count == other.Count;
 
         public void Deconstruct(out long start, out long end)
         {
             start = Start;
             end = End;
         }
+
+        public override string ToString()
+            => "[" + Start + ", " + (Start + Count) + ")";
     }
 }
