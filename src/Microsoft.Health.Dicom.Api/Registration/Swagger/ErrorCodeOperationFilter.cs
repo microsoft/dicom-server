@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Api.Registration.Swagger
                         {
                             OpenApiMediaType value = response.Content[contentType];
                             response.Content.Remove(contentType);
-                            response.Content.Add("text/json", value);
+                            response.Content.Add("application/json", value);
                             break;
                         }
 

@@ -188,15 +188,19 @@ namespace Microsoft.AspNetCore.Builder
 
                     app.UseRequestContextAfterAuthentication<IDicomRequestContext>();
 
-                    app.UseSwagger();
+                    app.UseSwagger(c =>
+                    {
+                        c.RouteTemplate = "{documentName}/api.yaml";
+                    });
 
-                    app.UseSwaggerUI(options =>
+                    //Disabling swagger ui until accesability team gets back to us
+                    /*app.UseSwaggerUI(options =>
                     {
                         foreach (ApiVersionDescription description in provider.ApiVersionDescriptions)
                         {
                             options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.yaml", description.GroupName.ToUpperInvariant());
                         }
-                    });
+                    });*/
 
                     next(app);
                 };

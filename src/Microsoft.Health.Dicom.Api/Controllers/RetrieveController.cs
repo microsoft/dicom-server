@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -48,7 +47,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [Produces(KnownContentTypes.MultipartRelated)]
-        [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
@@ -86,7 +85,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [Produces(KnownContentTypes.MultipartRelated)]
-        [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
@@ -128,7 +127,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [Produces(KnownContentTypes.ApplicationDicom, KnownContentTypes.MultipartRelated)]
-        [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
@@ -178,8 +177,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [Produces(KnownContentTypes.MultipartRelated)]
-        [ProducesResponseType(typeof(Stream), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]

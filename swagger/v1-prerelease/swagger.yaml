@@ -42,7 +42,7 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   /changefeed:
@@ -81,7 +81,7 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   /v1-prerelease/changefeed/latest:
@@ -106,7 +106,7 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   /changefeed/latest:
@@ -131,7 +131,7 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   '/v1-prerelease/studies/{studyInstanceUid}':
@@ -150,13 +150,13 @@ paths:
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
     get:
@@ -177,19 +177,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '406':
           description: Not Acceptable
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
     post:
@@ -223,13 +223,13 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '406':
           description: Not Acceptable
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '409':
@@ -243,7 +243,7 @@ paths:
         '415':
           description: Client Error
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   '/studies/{studyInstanceUid}':
@@ -262,13 +262,13 @@ paths:
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
     get:
@@ -289,19 +289,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '406':
           description: Not Acceptable
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
     post:
@@ -335,13 +335,13 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '406':
           description: Not Acceptable
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '409':
@@ -355,7 +355,7 @@ paths:
         '415':
           description: Client Error
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   '/v1-prerelease/studies/{studyInstanceUid}/series/{seriesInstanceUid}':
@@ -379,13 +379,13 @@ paths:
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
     get:
@@ -411,19 +411,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '406':
           description: Not Acceptable
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   '/studies/{studyInstanceUid}/series/{seriesInstanceUid}':
@@ -447,13 +447,13 @@ paths:
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
     get:
@@ -479,19 +479,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '406':
           description: Not Acceptable
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   '/v1-prerelease/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}':
@@ -520,13 +520,13 @@ paths:
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
     get:
@@ -558,19 +558,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '406':
           description: Not Acceptable
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   '/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}':
@@ -599,13 +599,13 @@ paths:
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
     get:
@@ -637,19 +637,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '406':
           description: Not Acceptable
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   /v1-prerelease/extendedquerytags:
@@ -685,7 +685,7 @@ paths:
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   /extendedquerytags:
@@ -721,7 +721,7 @@ paths:
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   '/v1-prerelease/extendedquerytags/{tagPath}':
@@ -760,13 +760,13 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   '/extendedquerytags/{tagPath}':
@@ -805,13 +805,13 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   /v1-prerelease/studies:
@@ -834,7 +834,7 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
     post:
@@ -862,13 +862,13 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '406':
           description: Not Acceptable
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '409':
@@ -882,7 +882,7 @@ paths:
         '415':
           description: Client Error
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   /studies:
@@ -905,7 +905,7 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
     post:
@@ -933,13 +933,13 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '406':
           description: Not Acceptable
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '409':
@@ -953,7 +953,7 @@ paths:
         '415':
           description: Client Error
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   /v1-prerelease/series:
@@ -976,7 +976,7 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   /series:
@@ -999,7 +999,7 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   '/v1-prerelease/studies/{studyInstanceUid}/series':
@@ -1028,7 +1028,7 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   '/studies/{studyInstanceUid}/series':
@@ -1057,7 +1057,7 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   /v1-prerelease/instances:
@@ -1080,7 +1080,7 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   /instances:
@@ -1103,7 +1103,7 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   '/v1-prerelease/studies/{studyInstanceUid}/instances':
@@ -1132,7 +1132,7 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   '/studies/{studyInstanceUid}/instances':
@@ -1161,7 +1161,7 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   '/v1-prerelease/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances':
@@ -1195,7 +1195,7 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   '/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances':
@@ -1229,7 +1229,7 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   '/v1-prerelease/studies/{studyInstanceUid}/metadata':
@@ -1260,19 +1260,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '406':
           description: Not Acceptable
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '304':
@@ -1305,19 +1305,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '406':
           description: Not Acceptable
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '304':
@@ -1355,19 +1355,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '406':
           description: Not Acceptable
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '304':
@@ -1405,19 +1405,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '406':
           description: Not Acceptable
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '304':
@@ -1460,19 +1460,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '406':
           description: Not Acceptable
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '304':
@@ -1515,19 +1515,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '406':
           description: Not Acceptable
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '304':
@@ -1569,19 +1569,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '406':
           description: Not Acceptable
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   '/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/frames/{frames}':
@@ -1621,19 +1621,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '404':
           description: Not Found
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
         '406':
           description: Not Acceptable
           content:
-            text/json:
+            application/json:
               schema:
                 type: string
   /_schema/versions:
@@ -1919,32 +1919,3 @@ components:
         - 2
       type: integer
       format: int32
-    Stream:
-      type: object
-      properties:
-        canRead:
-          type: boolean
-          readOnly: true
-        canSeek:
-          type: boolean
-          readOnly: true
-        canTimeout:
-          type: boolean
-          readOnly: true
-        canWrite:
-          type: boolean
-          readOnly: true
-        length:
-          type: integer
-          format: int64
-          readOnly: true
-        position:
-          type: integer
-          format: int64
-        readTimeout:
-          type: integer
-          format: int32
-        writeTimeout:
-          type: integer
-          format: int32
-      additionalProperties: false

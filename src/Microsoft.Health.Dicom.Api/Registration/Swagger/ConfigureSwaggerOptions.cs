@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Api.Registration.Swagger
                     description.GroupName,
                     new OpenApiInfo
                     {
-                        Title = $"Medical Imaging Server for DICOM",
+                        Title = "Medical Imaging Server for DICOM",
                         Version = description.ApiVersion.ToString(),
                         License = new OpenApiLicense { Name = "MIT License", Url = new System.Uri("https://github.com/microsoft/dicom-server/blob/main/LICENSE") }
                     });
