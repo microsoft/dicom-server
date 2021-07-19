@@ -64,9 +64,48 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
                 NullLogger<ExtendedQueryTagController>.Instance);
 
             await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.GetTagAsync(DicomTag.PageNumberVector.GetPath()));
+            await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.GetTagErrorsAsync(DicomTag.PageNumberVector.GetPath()));
             await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.GetAllTagsAsync());
             await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.PostAsync(Array.Empty<AddExtendedQueryTagEntry>()));
             await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.DeleteAsync(DicomTag.PageNumberVector.GetPath()));
+        }
+
+        [Fact]
+        public async Task GivenTagPath_WhenCallingApi_ThenShouldReturnOk()
+        {
+            IMediator mediator = Substitute.For<IMediator>();
+            const string path = "11330001";
+
+            var controller = new ExtendedQueryTagController(
+                mediator,
+                Options.Create(new FeatureConfiguration { EnableExtendedQueryTags = true }),
+                NullLogger<ExtendedQueryTagController>.Instance);
+            controller.ControllerContext.HttpContext = new DefaultHttpContext();
+
+            var expected = new GetExtendedQueryTagErrorsResponse(
+                new List<ExtendedQueryTagError>
+                {
+                    new ExtendedQueryTagError(DateTime.UtcNow, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), "Error 1"),
+                    new ExtendedQueryTagError(DateTime.UtcNow, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), "Error 2"),
+                    new ExtendedQueryTagError(DateTime.UtcNow, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), "Error 3"),
+                });
+
+            mediator
+                .Send(
+                    Arg.Is<GetExtendedQueryTagErrorsRequest>(x => x.Path == path),
+                    Arg.Is(controller.HttpContext.RequestAborted))
+                .Returns(expected);
+
+            IActionResult response = await controller.GetTagErrorsAsync(path);
+            Assert.IsType<ObjectResult>(response);
+
+            var actual = response as ObjectResult;
+            Assert.Equal((int)HttpStatusCode.OK, actual.StatusCode);
+            Assert.Same(expected, actual.Value);
+
+            await mediator.Received(1).Send(
+                Arg.Is<GetExtendedQueryTagErrorsRequest>(x => x.Path == path),
+                Arg.Is(controller.HttpContext.RequestAborted));
         }
 
         [Fact]

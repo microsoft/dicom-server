@@ -169,6 +169,13 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             return mediator.Send(new GetExtendedQueryTagRequest(extendedQueryTagPath), cancellationToken);
         }
 
+        public static Task<GetExtendedQueryTagErrorsResponse> GetExtendedQueryTagErrorsAsync(
+            this IMediator mediator, string extendedQueryTagPath, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
+            return mediator.Send(new GetExtendedQueryTagErrorsRequest(extendedQueryTagPath), cancellationToken);
+        }
+
         public static Task<OperationStatusResponse> GetOperationStatusAsync(
            this IMediator mediator,
            string id,
