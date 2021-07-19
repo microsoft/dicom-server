@@ -154,7 +154,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [VersionedRoute(KnownRoutes.GetExtendedQueryTagErrorsRoute)]
         [Route(KnownRoutes.GetExtendedQueryTagErrorsRoute)]
         [AuditEventType(AuditEventSubType.GetExtendedQueryTagErrors)]
-        public async Task<IActionResult> GetTagErrorAsync(string tagPath)
+        public async Task<IActionResult> GetTagErrorsAsync(string tagPath)
         {
             _logger.LogInformation("DICOM Web Get Extended Query Tag Errors request received for extended query tag: {tagPath}", tagPath);
 

@@ -64,7 +64,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
                 NullLogger<ExtendedQueryTagController>.Instance);
 
             await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.GetTagAsync(DicomTag.PageNumberVector.GetPath()));
-            await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.GetTagErrorAsync(DicomTag.PageNumberVector.GetPath()));
+            await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.GetTagErrorsAsync(DicomTag.PageNumberVector.GetPath()));
             await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.GetAllTagsAsync());
             await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.PostAsync(Array.Empty<AddExtendedQueryTagEntry>()));
             await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.DeleteAsync(DicomTag.PageNumberVector.GetPath()));
@@ -96,7 +96,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
                     Arg.Is(controller.HttpContext.RequestAborted))
                 .Returns(expected);
 
-            IActionResult response = await controller.GetTagErrorAsync(path);
+            IActionResult response = await controller.GetTagErrorsAsync(path);
             Assert.IsType<ObjectResult>(response);
 
             var actual = response as ObjectResult;
