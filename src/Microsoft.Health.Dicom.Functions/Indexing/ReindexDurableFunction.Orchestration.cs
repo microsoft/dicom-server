@@ -40,8 +40,8 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             ReindexInput input = context.GetInput<ReindexInput>();
 
             // Determine the set of query tags that should be indexed and only continue if there is at least 1
-            IReadOnlyCollection<ExtendedQueryTagStoreEntry> queryTags = await context
-                .CallActivityAsync<IReadOnlyCollection<ExtendedQueryTagStoreEntry>>(nameof(GetQueryTagsAsync), input.QueryTagKeys);
+            IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags = await context
+                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(nameof(GetQueryTagsAsync), input.QueryTagKeys);
 
             List<int> queryTagKeys = queryTags.Select(x => x.Key).ToList();
             if (queryTags.Count > 0)
@@ -50,7 +50,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                 if (batches.Count > 0)
                 {
                     // Note that batches are in reverse order because we start from the highest watermark
-                    var batchRange = new WatermarkRange(batches[^1].Start, batches[0].End);
+                    var batchRange = WatermarkRange.Between(batches[^1].Start, batches[0].End);
 
                     logger.LogInformation("Beginning to re-index the range {Range}.", batchRange);
                     await Task.WhenAll(batches
@@ -65,12 +65,12 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                         new ReindexInput
                         {
                             QueryTagKeys = queryTagKeys,
-                            Completed = input.Completed.Count == 0 ? batchRange : new WatermarkRange(batchRange.Start, input.Completed.End),
+                            Completed = input.Completed.Count == 0 ? batchRange : WatermarkRange.Between(batchRange.Start, input.Completed.End),
                         });
                 }
                 else
                 {
-                    IReadOnlyCollection<int> completed = await context.CallActivityAsync<IReadOnlyCollection<int>>(
+                    IReadOnlyList<int> completed = await context.CallActivityAsync<IReadOnlyList<int>>(
                         nameof(CompleteReindexingAsync),
                         queryTagKeys);
 
@@ -103,7 +103,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             for (; end > 1 && batches.Count < _options.MaxParallelBatches; end -= _options.BatchSize)
             {
                 int count = (int)Math.Min(end - 1, _options.BatchSize);
-                batches.Add(new WatermarkRange(end - count, end));
+                batches.Add(new WatermarkRange(end - count, count));
             }
 
             return batches;

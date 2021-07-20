@@ -40,12 +40,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
 
-        public virtual Task<IReadOnlyCollection<ExtendedQueryTagStoreEntry>> ConfirmReindexingAsync(IReadOnlyCollection<int> queryTagKeys, string operationId, CancellationToken cancellationToken)
+        public virtual Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> ConfirmReindexingAsync(IReadOnlyList<int> queryTagKeys, string operationId, CancellationToken cancellationToken)
         {
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
 
-        public virtual Task<IReadOnlyCollection<int>> CompleteReindexingAsync(IReadOnlyCollection<int> queryTagKeys, CancellationToken cancellationToken = default)
+        public virtual Task<IReadOnlyList<int>> CompleteReindexingAsync(IReadOnlyList<int> queryTagKeys, CancellationToken cancellationToken = default)
         {
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }

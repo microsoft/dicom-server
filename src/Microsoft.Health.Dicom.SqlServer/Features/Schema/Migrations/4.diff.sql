@@ -80,7 +80,7 @@ GO
 -- RETURN VALUE
 --     The instance identifiers.
 ------------------------------------------------------------------------
-ALTER PROCEDURE dbo.GetInstancesByWatermarkRange(
+CREATE OR ALTER PROCEDURE dbo.GetInstancesByWatermarkRange(
     @startWatermark BIGINT,
     @endWatermark BIGINT,
     @status TINYINT

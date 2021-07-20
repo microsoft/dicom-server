@@ -34,14 +34,14 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// that have been associated the operation.
         /// </returns>
         [FunctionName(nameof(GetQueryTagsAsync))]
-        public Task<IReadOnlyCollection<ExtendedQueryTagStoreEntry>> GetQueryTagsAsync(
+        public Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetQueryTagsAsync(
             [ActivityTrigger] IDurableActivityContext context,
             ILogger logger)
         {
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            IReadOnlyCollection<int> tagKeys = context.GetInput<IReadOnlyCollection<int>>();
+            IReadOnlyList<int> tagKeys = context.GetInput<IReadOnlyList<int>>();
             logger.LogInformation("Fetching {Count} query tags for operation ID '{OperationId}': {{{TagKeys}}}",
                 tagKeys.Count,
                 context.InstanceId,
@@ -118,14 +118,14 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// whose re-indexing should be considered completed.
         /// </returns>
         [FunctionName(nameof(CompleteReindexingAsync))]
-        public Task<IReadOnlyCollection<int>> CompleteReindexingAsync(
+        public Task<IReadOnlyList<int>> CompleteReindexingAsync(
             [ActivityTrigger] IDurableActivityContext context,
             ILogger logger)
         {
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            IReadOnlyCollection<int> tagKeys = context.GetInput<IReadOnlyCollection<int>>();
+            IReadOnlyList<int> tagKeys = context.GetInput<IReadOnlyList<int>>();
             logger.LogInformation("Completing the re-indexing operation {OperationId} for {Count} query tags {{{TagKeys}}}",
                 context.InstanceId,
                 tagKeys.Count,

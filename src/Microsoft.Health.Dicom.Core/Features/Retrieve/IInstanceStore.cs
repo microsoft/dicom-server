@@ -56,6 +56,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         /// otherwise, <c>0</c>.
         /// </returns>
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-        Task<long> GetMaxInstanceWatermarkAsync(CancellationToken cancellationToken);
+        Task<long> GetMaxInstanceWatermarkAsync(CancellationToken cancellationToken = default);
     }
 }

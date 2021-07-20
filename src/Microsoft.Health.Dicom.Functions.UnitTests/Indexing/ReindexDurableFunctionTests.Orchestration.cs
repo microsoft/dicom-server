@@ -41,33 +41,18 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             context
                 .GetInput<ReindexInput>()
                 .Returns(expectedInput);
-
             context
-                .CallActivityAsync<IReadOnlyCollection<ExtendedQueryTagStoreEntry>>(
+                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.GetQueryTagsAsync),
                     expectedInput.QueryTagKeys)
-                .Returns(Task.FromResult<IReadOnlyCollection<ExtendedQueryTagStoreEntry>>(expectedTags));
-
+                .Returns(expectedTags);
             context
                 .CallActivityAsync<long>(nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync), input: null)
-                .Returns(Task.FromResult<long>(49));
-
+                .Returns(49);
             context
                 .CallActivityAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
-                    Arg.Is(GetReindexBatchPredicate(expectedTags, 45, 50)))
-                .Returns(Task.CompletedTask);
-
-            context
-                .CallActivityAsync(
-                    nameof(ReindexDurableFunction.ReindexBatchAsync),
-                    Arg.Is(GetReindexBatchPredicate(expectedTags, 40, 45)))
-                .Returns(Task.CompletedTask);
-
-            context
-                .CallActivityAsync(
-                    nameof(ReindexDurableFunction.ReindexBatchAsync),
-                    Arg.Is(GetReindexBatchPredicate(expectedTags, 35, 40)))
+                    Arg.Any<ReindexBatch>())
                 .Returns(Task.CompletedTask);
 
             // Invoke the orchestration
@@ -77,41 +62,34 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             context
                 .Received(1)
                 .GetInput<ReindexInput>();
-
             await context
                 .Received(1)
-                .CallActivityAsync<IReadOnlyCollection<ExtendedQueryTagStoreEntry>>(
+                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.GetQueryTagsAsync),
                     expectedInput.QueryTagKeys);
-
             await context
                 .Received(1)
                 .CallActivityAsync<long>(nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync), input: null);
-
             await context
                 .Received(1)
                 .CallActivityAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
                     Arg.Is(GetReindexBatchPredicate(expectedTags, 45, 50)));
-
             await context
                 .Received(1)
                 .CallActivityAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
                     Arg.Is(GetReindexBatchPredicate(expectedTags, 40, 45)));
-
             await context
                  .Received(1)
                  .CallActivityAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
                     Arg.Is(GetReindexBatchPredicate(expectedTags, 35, 40)));
-
             await context
                 .DidNotReceive()
-                .CallActivityAsync<IReadOnlyCollection<int>>(
+                .CallActivityAsync<IReadOnlyList<int>>(
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
-                    Arg.Any<IReadOnlyCollection<int>>());
-
+                    Arg.Any<IReadOnlyList<int>>());
             context
                 .Received(1)
                 .ContinueAsNew(
@@ -125,7 +103,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             var expectedInput = new ReindexInput
             {
                 QueryTagKeys = new List<int> { 1, 2, 3, 4, 5 },
-                Completed = new WatermarkRange(36, 42),
+                Completed = WatermarkRange.Between(36, 42),
             };
             var expectedTags = new List<ExtendedQueryTagStoreEntry>
             {
@@ -143,23 +121,15 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             context
                 .GetInput<ReindexInput>()
                 .Returns(expectedInput);
-
             context
-                .CallActivityAsync<IReadOnlyCollection<ExtendedQueryTagStoreEntry>>(
+                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.GetQueryTagsAsync),
                     expectedInput.QueryTagKeys)
-                .Returns(Task.FromResult<IReadOnlyCollection<ExtendedQueryTagStoreEntry>>(expectedTags));
-
+                .Returns(expectedTags);
             context
                 .CallActivityAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
-                    Arg.Is(GetReindexBatchPredicate(expectedTags, 33, 36)))
-                .Returns(Task.CompletedTask);
-
-            context
-                .CallActivityAsync(
-                    nameof(ReindexDurableFunction.ReindexBatchAsync),
-                    Arg.Is(GetReindexBatchPredicate(expectedTags, 30, 33)))
+                    Arg.Any<ReindexBatch>())
                 .Returns(Task.CompletedTask);
 
             // Invoke the orchestration
@@ -169,35 +139,29 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             context
                 .Received(1)
                 .GetInput<ReindexInput>();
-
             await context
                 .Received(1)
-                .CallActivityAsync<IReadOnlyCollection<ExtendedQueryTagStoreEntry>>(
+                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.GetQueryTagsAsync),
                     expectedInput.QueryTagKeys);
-
             await context
                 .DidNotReceive()
                 .CallActivityAsync<long>(nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync), input: null);
-
             await context
                 .Received(1)
                 .CallActivityAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
                     Arg.Is(GetReindexBatchPredicate(expectedTags, 33, 36)));
-
             await context
                 .Received(1)
                 .CallActivityAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
                     Arg.Is(GetReindexBatchPredicate(expectedTags, 30, 33)));
-
             await context
                 .DidNotReceive()
-                .CallActivityAsync<IReadOnlyCollection<int>>(
+                .CallActivityAsync<IReadOnlyList<int>>(
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
-                    Arg.Any<IReadOnlyCollection<int>>());
-
+                    Arg.Any<IReadOnlyList<int>>());
             context
                 .Received(1)
                 .ContinueAsNew(
@@ -221,22 +185,19 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             context
                 .GetInput<ReindexInput>()
                 .Returns(expectedInput);
-
             context
-                .CallActivityAsync<IReadOnlyCollection<ExtendedQueryTagStoreEntry>>(
+                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.GetQueryTagsAsync),
                     expectedInput.QueryTagKeys)
-                .Returns(Task.FromResult<IReadOnlyCollection<ExtendedQueryTagStoreEntry>>(expectedTags));
-
+                .Returns(expectedTags);
             context
                 .CallActivityAsync<long>(nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync), input: null)
-                .Returns(Task.FromResult<long>(0));
-
+                .Returns(0);
             context
-                .CallActivityAsync<IReadOnlyCollection<int>>(
+                .CallActivityAsync<IReadOnlyList<int>>(
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
-                    Arg.Is<IReadOnlyCollection<int>>(x => x.SequenceEqual(expectedTags.Select(x => x.Key))))
-                .Returns(Task.FromResult<IReadOnlyCollection<int>>(expectedTags.Select(x => x.Key).ToList()));
+                    Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedTags.Select(x => x.Key))))
+                .Returns(expectedTags.Select(x => x.Key).ToList());
 
             // Invoke the orchestration
             await _reindexDurableFunction.ReindexInstancesAsync(context, NullLogger.Instance);
@@ -245,29 +206,24 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             context
                 .Received(1)
                 .GetInput<ReindexInput>();
-
             await context
                 .Received(1)
-                .CallActivityAsync<IReadOnlyCollection<ExtendedQueryTagStoreEntry>>(
+                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.GetQueryTagsAsync),
                     expectedInput.QueryTagKeys);
-
             await context
                 .Received(1)
                 .CallActivityAsync<long>(nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync), input: null);
-
             await context
                 .DidNotReceive()
                 .CallActivityAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
                     Arg.Any<ReindexInput>());
-
             await context
                 .Received(1)
-                .CallActivityAsync<IReadOnlyCollection<int>>(
+                .CallActivityAsync<IReadOnlyList<int>>(
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
-                    Arg.Is<IReadOnlyCollection<int>>(x => x.SequenceEqual(expectedTags.Select(x => x.Key))));
-
+                    Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedTags.Select(x => x.Key))));
             context
                 .DidNotReceiveWithAnyArgs()
                 .ContinueAsNew(default, default);
@@ -279,7 +235,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             var expectedInput = new ReindexInput
             {
                 QueryTagKeys = new List<int> { 1, 2, 3, 4, 5 },
-                Completed = new WatermarkRange(1, 1000),
+                Completed = WatermarkRange.Between(1, 1000),
             };
             var expectedTags = new List<ExtendedQueryTagStoreEntry>
             {
@@ -293,18 +249,16 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             context
                 .GetInput<ReindexInput>()
                 .Returns(expectedInput);
-
             context
-                .CallActivityAsync<IReadOnlyCollection<ExtendedQueryTagStoreEntry>>(
+                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.GetQueryTagsAsync),
                     expectedInput.QueryTagKeys)
-                .Returns(Task.FromResult<IReadOnlyCollection<ExtendedQueryTagStoreEntry>>(expectedTags));
-
+                .Returns(expectedTags);
             context
-                .CallActivityAsync<IReadOnlyCollection<int>>(
+                .CallActivityAsync<IReadOnlyList<int>>(
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
-                    Arg.Is<IReadOnlyCollection<int>>(x => x.SequenceEqual(expectedTags.Select(x => x.Key))))
-                .Returns(Task.FromResult<IReadOnlyCollection<int>>(expectedTags.Select(x => x.Key).ToList()));
+                    Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedTags.Select(x => x.Key))))
+                .Returns(expectedTags.Select(x => x.Key).ToList());
 
             // Invoke the orchestration
             await _reindexDurableFunction.ReindexInstancesAsync(context, NullLogger.Instance);
@@ -313,29 +267,24 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             context
                 .Received(1)
                 .GetInput<ReindexInput>();
-
             await context
                 .Received(1)
-                .CallActivityAsync<IReadOnlyCollection<ExtendedQueryTagStoreEntry>>(
+                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.GetQueryTagsAsync),
                     expectedInput.QueryTagKeys);
-
             await context
                 .DidNotReceive()
                 .CallActivityAsync<long>(nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync), input: null);
-
             await context
                 .DidNotReceive()
                 .CallActivityAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
                     Arg.Any<ReindexInput>());
-
             await context
                 .Received(1)
-                .CallActivityAsync<IReadOnlyCollection<int>>(
+                .CallActivityAsync<IReadOnlyList<int>>(
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
-                    Arg.Is<IReadOnlyCollection<int>>(x => x.SequenceEqual(expectedTags.Select(x => x.Key))));
-
+                    Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedTags.Select(x => x.Key))));
             context
                 .DidNotReceiveWithAnyArgs()
                 .ContinueAsNew(default, default);
@@ -352,12 +301,11 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             context
                 .GetInput<ReindexInput>()
                 .Returns(expectedInput);
-
             context
-                .CallActivityAsync<IReadOnlyCollection<ExtendedQueryTagStoreEntry>>(
+                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.GetQueryTagsAsync),
                     expectedInput.QueryTagKeys)
-                .Returns(Task.FromResult<IReadOnlyCollection<ExtendedQueryTagStoreEntry>>(expectedTags));
+                .Returns(expectedTags);
 
             // Invoke the orchestration
             await _reindexDurableFunction.ReindexInstancesAsync(context, NullLogger.Instance);
@@ -366,29 +314,24 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             context
                 .Received(1)
                 .GetInput<ReindexInput>();
-
             await context
                 .Received(1)
-                .CallActivityAsync<IReadOnlyCollection<ExtendedQueryTagStoreEntry>>(
+                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.GetQueryTagsAsync),
                     expectedInput.QueryTagKeys);
-
             await context
                 .DidNotReceive()
                 .CallActivityAsync<long>(nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync), input: null);
-
             await context
                 .DidNotReceive()
                 .CallActivityAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
                     Arg.Any<ReindexInput>());
-
             await context
                 .DidNotReceive()
-                .CallActivityAsync<IReadOnlyCollection<int>>(
+                .CallActivityAsync<IReadOnlyList<int>>(
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
-                    Arg.Any<IReadOnlyCollection<int>>());
-
+                    Arg.Any<IReadOnlyList<int>>());
             context
                 .DidNotReceiveWithAnyArgs()
                 .ContinueAsNew(default, default);
@@ -400,7 +343,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             long end)
         {
             return x => ReferenceEquals(x.QueryTags, queryTags)
-                && x.WatermarkRange == new WatermarkRange(start, end);
+                && x.WatermarkRange == WatermarkRange.Between(start, end);
         }
 
         private static Predicate<object> GetReindexInputPredicate(
@@ -410,7 +353,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         {
             return x => x is ReindexInput r
                 && r.QueryTagKeys.SequenceEqual(queryTags.Select(y => y.Key))
-                && r.Completed == new WatermarkRange(start, end);
+                && r.Completed == WatermarkRange.Between(start, end);
         }
     }
 }

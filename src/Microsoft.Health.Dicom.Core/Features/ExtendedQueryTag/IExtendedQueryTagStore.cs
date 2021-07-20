@@ -80,8 +80,8 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// </exception>
         /// <exception cref="ArgumentNullException"><paramref name="queryTagKeys"/> or <paramref name="operationId"/> is <see langword="null"/>.</exception>
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-        Task<IReadOnlyCollection<ExtendedQueryTagStoreEntry>> ConfirmReindexingAsync(
-            IReadOnlyCollection<int> queryTagKeys,
+        Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> ConfirmReindexingAsync(
+            IReadOnlyList<int> queryTagKeys,
             string operationId,
             CancellationToken cancellationToken = default);
 
@@ -100,6 +100,6 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <exception cref="ArgumentException"><paramref name="queryTagKeys"/> is empty.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="queryTagKeys"/> is <see langword="null"/>.</exception>
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-        Task<IReadOnlyCollection<int>> CompleteReindexingAsync(IReadOnlyCollection<int> queryTagKeys, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<int>> CompleteReindexingAsync(IReadOnlyList<int> queryTagKeys, CancellationToken cancellationToken = default);
     }
 }

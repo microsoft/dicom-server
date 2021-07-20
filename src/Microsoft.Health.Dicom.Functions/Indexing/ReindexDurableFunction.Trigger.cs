@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            IReadOnlyCollection<int> extendedQueryTags = await request.Content.ReadAsAsync<IReadOnlyCollection<int>>();
+            IReadOnlyList<int> extendedQueryTags = await request.Content.ReadAsAsync<IReadOnlyList<int>>();
             if (extendedQueryTags == null || extendedQueryTags.Count == 0)
             {
                 return new HttpResponseMessage { StatusCode = HttpStatusCode.BadRequest };

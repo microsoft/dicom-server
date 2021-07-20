@@ -35,23 +35,23 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             // Arrange input
             IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
             context.InstanceId.Returns(operationId);
-            context.GetInput<IReadOnlyCollection<int>>().Returns(expectedInput);
+            context.GetInput<IReadOnlyList<int>>().Returns(expectedInput);
 
             _extendedQueryTagStore
                 .ConfirmReindexingAsync(
                     expectedInput,
                     operationId,
                     CancellationToken.None)
-                .Returns(Task.FromResult<IReadOnlyCollection<ExtendedQueryTagStoreEntry>>(expectedOutput));
+                .Returns(expectedOutput);
 
             // Call the activity
-            IReadOnlyCollection<ExtendedQueryTagStoreEntry> actual = await _reindexDurableFunction.GetQueryTagsAsync(
+            IReadOnlyList<ExtendedQueryTagStoreEntry> actual = await _reindexDurableFunction.GetQueryTagsAsync(
                 context,
                 NullLogger.Instance);
 
             // Assert behavior
             Assert.Same(expectedOutput, actual);
-            context.Received(1).GetInput<IReadOnlyCollection<int>>();
+            context.Received(1).GetInput<IReadOnlyList<int>>();
             await _extendedQueryTagStore.Received(1).ConfirmReindexingAsync(expectedInput, operationId, CancellationToken.None);
         }
 
@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         public async Task GivenInstances_WhenGettingMaxInstanceWatermark_ThenShouldInvokeCorrectMethod()
         {
             IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
-            _instanceStore.GetMaxInstanceWatermarkAsync(CancellationToken.None).Returns(Task.FromResult<long>(12345));
+            _instanceStore.GetMaxInstanceWatermarkAsync(CancellationToken.None).Returns(12345);
 
             long actual = await _reindexDurableFunction.GetMaxInstanceWatermarkAsync(
                 context,
@@ -81,7 +81,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     new ExtendedQueryTagStoreEntry(2, "02", "DT", null, QueryTagLevel.Series, ExtendedQueryTagStatus.Adding),
                     new ExtendedQueryTagStoreEntry(3, "03", "AS", "bar", QueryTagLevel.Study, ExtendedQueryTagStatus.Adding),
                 },
-                WatermarkRange = new WatermarkRange(5, 10),
+                WatermarkRange = WatermarkRange.Between(5, 10),
             };
 
             // Arrange input
@@ -128,22 +128,22 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             // Arrange input
             IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
             context.InstanceId.Returns(operationId);
-            context.GetInput<IReadOnlyCollection<int>>().Returns(expectedInput);
+            context.GetInput<IReadOnlyList<int>>().Returns(expectedInput);
 
             _extendedQueryTagStore
                 .CompleteReindexingAsync(
                     expectedInput,
                     CancellationToken.None)
-                .Returns(Task.FromResult<IReadOnlyCollection<int>>(expectedOutput));
+                .Returns(expectedOutput);
 
             // Call the activity
-            IReadOnlyCollection<int> actual = await _reindexDurableFunction.CompleteReindexingAsync(
+            IReadOnlyList<int> actual = await _reindexDurableFunction.CompleteReindexingAsync(
                 context,
                 NullLogger.Instance);
 
             // Assert behavior
             Assert.Same(expectedOutput, actual);
-            context.Received(1).GetInput<IReadOnlyCollection<int>>();
+            context.Received(1).GetInput<IReadOnlyList<int>>();
             await _extendedQueryTagStore.Received(1).CompleteReindexingAsync(expectedInput, CancellationToken.None);
         }
     }

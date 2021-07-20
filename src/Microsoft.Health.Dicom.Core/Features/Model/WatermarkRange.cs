@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics;
 using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.Model
@@ -11,12 +12,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
     /// <summary>
     /// Represents a range of DICOM instance watermarks.
     /// </summary>
+    [DebuggerDisplay("{ToString(),nq}")]
     public readonly struct WatermarkRange : IEquatable<WatermarkRange>
     {
-        public WatermarkRange(long start, long end)
+        public WatermarkRange(long start, long count)
         {
             Start = EnsureArg.IsGte(start, 0, nameof(start));
-            End = EnsureArg.IsGte(end, 0, nameof(end));
+            End = Start + EnsureArg.IsInRange(count, 0, long.MaxValue - start, nameof(count));
         }
 
         /// <summary>
@@ -41,7 +43,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
             => obj is WatermarkRange other && Equals(other);
 
         public override int GetHashCode()
-            => HashCode.Combine(Start, Count);
+            => HashCode.Combine(Start, End);
 
         public static bool operator ==(WatermarkRange left, WatermarkRange right)
             => left.Equals(right);
@@ -50,7 +52,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
             => !(left == right);
 
         public bool Equals(WatermarkRange other)
-            => Start == other.Start && Count == other.Count;
+            => Start == other.Start && End == other.End;
 
         public void Deconstruct(out long start, out long end)
         {
@@ -59,6 +61,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
         }
 
         public override string ToString()
-            => "[" + Start + ", " + (Start + Count) + ")";
+            => "[" + Start + ", " + End + ")";
+
+        public static WatermarkRange Between(long start, long end)
+            => new WatermarkRange(start, EnsureArg.IsGte(end, start, nameof(end)) - start);
     }
 }
