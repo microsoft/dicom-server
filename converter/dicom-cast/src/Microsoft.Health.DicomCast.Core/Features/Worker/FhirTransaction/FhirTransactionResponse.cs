@@ -18,5 +18,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
         /// <inheritdoc/>
         public FhirTransactionResponseEntry ImagingStudy { get; set; }
+
+        public FhirTransactionResponseEntry Observation { get; set; }
     }
 }

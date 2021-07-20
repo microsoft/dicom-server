@@ -27,7 +27,10 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
         private readonly IFhirClient _fhirClient;
         private readonly IFhirResourceValidator _fhirResourceValidator;
 
-        private readonly IEnumerable<FHIRVersion> _supportedFHIRVersions = new List<FHIRVersion> { FHIRVersion.N4_0_0, FHIRVersion.N4_0_1 };
+        private readonly IEnumerable<FHIRVersion> _supportedFHIRVersions = new List<FHIRVersion>
+        {
+            FHIRVersion.N4_0_0, FHIRVersion.N4_0_1
+        };
 
         public FhirService(IFhirClient fhirClient, IFhirResourceValidator fhirResourceValidator)
         {
@@ -49,6 +52,14 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
         /// <inheritdoc/>
         public Task<Endpoint> RetrieveEndpointAsync(string queryParameter, CancellationToken cancellationToken)
             => SearchByQueryParameterAsync<Endpoint>(queryParameter, cancellationToken);
+
+        public Task<IEnumerable<Observation>> RetrieveObservationsAsync(Identifier identifier, CancellationToken cancellationToken = default)
+        {
+            return SearchMultiByIdentifierAsync<Observation>(identifier, cancellationToken);
+        }
+
+        public Task<Observation> RetrieveObservationAsync(Identifier imagingStudyID, CancellationToken cancellationToken)
+            => SearchByIdentifierAsync<Observation>(imagingStudyID, cancellationToken);
 
         /// <inheritdoc/>
         public async Task CheckFhirServiceCapability(CancellationToken cancellationToken)
@@ -82,11 +93,19 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
             return await SearchByQueryParameterAsync<TResource>(identifier.ToSearchQueryParameter(), cancellationToken);
         }
 
-        private async Task<TResource> SearchByQueryParameterAsync<TResource>(string queryParameter, CancellationToken cancellationToken)
+
+        private async Task<IEnumerable<TResource>> SearchMultiByIdentifierAsync<TResource>(Identifier identifier, CancellationToken cancellationToken)
+            where TResource : Resource, new()
+        {
+            EnsureArg.IsNotNull(identifier, nameof(identifier));
+
+            return await SearchMultiByQueryParameterAsync<TResource>(identifier.ToSearchQueryParameter(), cancellationToken);
+        }
+
+        private async Task<IEnumerable<TResource>> SearchMultiWithLimitByQueryParameterAsync<TResource>(string queryParameter, int maxCount, CancellationToken cancellationToken)
             where TResource : Resource, new()
         {
             EnsureArg.IsNotNullOrEmpty(queryParameter, nameof(queryParameter));
-
             string fhirTypeName = ModelInfo.GetFhirTypeNameForType(typeof(TResource));
             if (!Enum.TryParse(fhirTypeName, out ResourceType resourceType))
             {
@@ -99,24 +118,22 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
                 count: null,
                 cancellationToken);
 
+
             int matchCount = 0;
-            TResource result = null;
+            var results = new List<TResource>();
 
             while (bundle != null)
             {
                 matchCount += bundle.Entry.Count;
-
-                if (matchCount > 1)
+                if (matchCount > maxCount)
                 {
-                    // Multiple matches.
+                    // Too many matches
                     throw new MultipleMatchingResourcesException(typeof(TResource).Name);
                 }
-                else if (bundle.Entry.Count == 1)
-                {
-                    // There was only one match but because the server could return empty continuation token
-                    // with more results, we need to follow the links to make sure there are no additional matching resources.
-                    result = (TResource)bundle.Entry[0].Resource;
-                }
+
+                IEnumerable<TResource> resources = bundle.Entry
+                    .Select(component => (TResource)component.Resource);
+                results.AddRange(resources);
 
                 if (bundle.NextLink != null)
                 {
@@ -128,13 +145,27 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
                 }
             }
 
-            // Validate to make sure the resource is valid.
-            if (result != null)
+            // Validate to make sure the resources are valid.
+            foreach (TResource resource in results)
             {
-                _fhirResourceValidator.Validate(result);
+                _fhirResourceValidator.Validate(resource);
             }
 
-            return result;
+            return results;
+        }
+
+        private async Task<IEnumerable<TResource>> SearchMultiByQueryParameterAsync<TResource>(string queryParameter, CancellationToken cancellationToken)
+            where TResource : Resource, new()
+        {
+            return await SearchMultiWithLimitByQueryParameterAsync<TResource>(queryParameter, int.MaxValue, cancellationToken);
+        }
+
+        private async Task<TResource> SearchByQueryParameterAsync<TResource>(string queryParameter, CancellationToken cancellationToken)
+            where TResource : Resource, new()
+        {
+            IEnumerable<TResource> matches = await SearchMultiWithLimitByQueryParameterAsync<TResource>(queryParameter, 1, cancellationToken);
+            IEnumerable<TResource> enumerable = matches.ToList();
+            return enumerable.Any() ? enumerable.First() : null;
         }
     }
 }
