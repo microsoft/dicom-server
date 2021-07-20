@@ -64,5 +64,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 };
             }
         }
+
+        public override async Task<IReadOnlyList<ExtendedQueryTagError>> GetExtendedQueryTagErrorsAsync(string tagPath, CancellationToken cancellationToken = default)
+        {
+            using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
+            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
+
+            // Returns an empty list for now.
+            // TODO change once stored procedure is created.
+            return (IReadOnlyList<ExtendedQueryTagError>)Task.FromResult(new List<ExtendedQueryTagError>());
+        }
     }
 }
