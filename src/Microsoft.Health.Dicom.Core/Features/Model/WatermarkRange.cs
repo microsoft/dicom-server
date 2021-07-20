@@ -21,6 +21,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
             End = Start + EnsureArg.IsInRange(count, 0, long.MaxValue - start, nameof(count));
         }
 
+        public static WatermarkRange None { get; } = new WatermarkRange(0, 0); // Same as default
+
         /// <summary>
         /// Gets inclusive starting instance watermark.
         /// </summary>

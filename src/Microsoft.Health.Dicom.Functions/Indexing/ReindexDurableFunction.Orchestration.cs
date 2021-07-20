@@ -110,7 +110,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
 #pragma warning disable DF0108
                 // TODO: Durable Function analyzer incorrectly detects DF0108. Remove when it's resolved
                 end = (await context.CallActivityAsync<long>(nameof(GetMaxInstanceWatermarkAsync), input: null)) + 1;
-                logger.LogInformation("Found maximum watermark is {Max}.", end - 1);
+                logger.LogInformation("Found maximum watermark {Max}.", end - 1);
 #pragma warning restore DF0108
             }
 

@@ -458,18 +458,20 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
             private readonly ExtendedQueryTagKeyTableTypeV1TableValuedParameterDefinition _extendedQueryTagKeys = new ExtendedQueryTagKeyTableTypeV1TableValuedParameterDefinition("@extendedQueryTagKeys");
             private readonly ParameterDefinition<System.String> _operationId = new ParameterDefinition<System.String>("@operationId", global::System.Data.SqlDbType.VarChar, false, 36);
+            private readonly ParameterDefinition<System.Nullable<System.Boolean>> _includeCompleted = new ParameterDefinition<System.Nullable<System.Boolean>>("@includeCompleted", global::System.Data.SqlDbType.Bit, true);
 
-            public void PopulateCommand(SqlCommandWrapper command, global::System.Collections.Generic.IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> extendedQueryTagKeys, System.String operationId)
+            public void PopulateCommand(SqlCommandWrapper command, global::System.Collections.Generic.IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> extendedQueryTagKeys, System.String operationId, System.Nullable<System.Boolean> includeCompleted)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.ConfirmReindexing";
                 _extendedQueryTagKeys.AddParameter(command.Parameters, extendedQueryTagKeys);
                 _operationId.AddParameter(command.Parameters, operationId);
+                _includeCompleted.AddParameter(command.Parameters, includeCompleted);
             }
 
-            public void PopulateCommand(SqlCommandWrapper command, System.String operationId, ConfirmReindexingTableValuedParameters tableValuedParameters)
+            public void PopulateCommand(SqlCommandWrapper command, System.String operationId, System.Nullable<System.Boolean> includeCompleted, ConfirmReindexingTableValuedParameters tableValuedParameters)
             {
-                PopulateCommand(command, operationId: operationId, extendedQueryTagKeys: tableValuedParameters.ExtendedQueryTagKeys);
+                PopulateCommand(command, operationId: operationId, includeCompleted: includeCompleted, extendedQueryTagKeys: tableValuedParameters.ExtendedQueryTagKeys);
             }
         }
 

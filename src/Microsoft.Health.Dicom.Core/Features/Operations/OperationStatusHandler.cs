@@ -13,26 +13,23 @@ using Microsoft.Health.Dicom.Core.Messages.Operations;
 namespace Microsoft.Health.Dicom.Core.Features.Operations
 {
     /// <summary>
-    /// Represents a handler that encapsulates <see cref="IOperationsService.GetStatusAsync(string, CancellationToken)"/>
+    /// Represents a handler that encapsulates <see cref="IDicomOperationsClient.GetStatusAsync(string, CancellationToken)"/>
     /// to process instances of <see cref="OperationStatusRequest"/>.
     /// </summary>
     public class OperationStatusHandler : IRequestHandler<OperationStatusRequest, OperationStatusResponse>
     {
-        private readonly IOperationsService _service;
+        private readonly IDicomOperationsClient _client;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OperationStatusHandler"/> class.
         /// </summary>
-        /// <param name="service">A service that interacts with long-running and DICOM-specific operations.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="service"/> is <see langword="null"/>.</exception>
-        public OperationStatusHandler(IOperationsService service)
-        {
-            EnsureArg.IsNotNull(service, nameof(service));
-            _service = service;
-        }
+        /// <param name="client">A client for interacting with DICOM operations.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="client"/> is <see langword="null"/>.</exception>
+        public OperationStatusHandler(IDicomOperationsClient client)
+            => _client = EnsureArg.IsNotNull(client, nameof(client));
 
         /// <summary>
-        /// Invokes <see cref="IOperationsService.GetStatusAsync(string, CancellationToken)"/> by forwarding the
+        /// Invokes <see cref="IDicomOperationsClient.GetStatusAsync(string, CancellationToken)"/> by forwarding the
         /// <see cref="OperationStatusRequest.OperationId"/> and returns its response.
         /// </summary>
         /// <param name="request">A request for the status of a particular DICOM operation.</param>
@@ -50,7 +47,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
         {
             // TODO: Check for data action
             EnsureArg.IsNotNull(request, nameof(request));
-            return await _service.GetStatusAsync(request.OperationId, cancellationToken);
+            return await _client.GetStatusAsync(request.OperationId, cancellationToken);
         }
     }
 }

@@ -63,14 +63,19 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <summary>
         /// Asynchronously confirms that the given tag keys are associated with the given re-indexing operation.
         /// </summary>
+        /// <remarks>
+        /// If the tags were not previously associated with the <paramref name="operationId"/>,
+        /// this operation will create the association.
+        /// </remarks>
         /// <param name="queryTagKeys">The keys for the extended query tags.</param>
         /// <param name="operationId">The unique ID for the re-indexing operation.</param>
+        /// <param name="includeCompleted">Indicates whether completed tags should be returned.</param>
         /// <param name="cancellationToken">
         /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
         /// </param>
         /// <returns>
         /// A task representing the <see cref="ConfirmReindexingAsync"/> operation.
-        /// The value of its <see cref="Task{TResult}.Result"/> property contains the set of query tags associated with
+        /// The value of its <see cref="Task{TResult}.Result"/> property contains the subset of query tags associated with
         /// the specified <paramref name="operationId"/>.
         /// </returns>
         /// <exception cref="ArgumentException">
@@ -83,6 +88,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> ConfirmReindexingAsync(
             IReadOnlyList<int> queryTagKeys,
             string operationId,
+            bool includeCompleted = false,
             CancellationToken cancellationToken = default);
 
         /// <summary>

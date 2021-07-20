@@ -175,13 +175,16 @@ GO
 --         * The list of extended query tag keys
 --     @operationId
 --         * The ID for the re-indexing operation
+--     @includeCompleted
+--         * Indicates whether completed tags should be returned
 --
 -- RETURN VALUE
---     All of the tags associated with the given operation ID, which may or may not include the specified tag keys
+--     The subset of the given tags which are associated with the operation, and possibly those that have completed indexing
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.ConfirmReindexing (
     @extendedQueryTagKeys dbo.ExtendedQueryTagKeyTableType_1 READONLY,
-    @operationId VARCHAR(36)
+    @operationId VARCHAR(36),
+    @includeCompleted BIT = 0
 )
 AS
     SET NOCOUNT     ON
@@ -204,10 +207,13 @@ AS
             VALUES (T.TagKey, @operationId);
 
         SELECT dbo.ExtendedQueryTag.*
-        FROM dbo.ExtendedQueryTag WITH(HOLDLOCK)
-        INNER JOIN dbo.ExtendedQueryTagOperation WITH(HOLDLOCK)
+        FROM @extendedQueryTagKeys input
+        INNER JOIN dbo.ExtendedQueryTag WITH(HOLDLOCK)
+        ON input.TagKey = dbo.ExtendedQueryTag.TagKey
+        LEFT OUTER JOIN dbo.ExtendedQueryTagOperation WITH(HOLDLOCK)
         ON dbo.ExtendedQueryTag.TagKey = dbo.ExtendedQueryTagOperation.TagKey
-        WHERE dbo.ExtendedQueryTagOperation.OperationId = @operationId
+        WHERE (@includeCompleted = 1 AND dbo.ExtendedQueryTag.TagStatus = 1)
+            OR (dbo.ExtendedQueryTagOperation.OperationId = @operationId AND dbo.ExtendedQueryTag.TagStatus = 0)
 
     COMMIT TRANSACTION
 GO

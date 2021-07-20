@@ -24,13 +24,13 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// Asynchronously retrieves the query tags that have been associated with the operation.
         /// </summary>
         /// <remarks>
-        /// If the tags were not previously associated with the operation, this operation will create the association.
+        /// If the tags were not previously associated with the operation ID, this operation will create the association.
         /// </remarks>
         /// <param name="context">The context for the activity.</param>
         /// <param name="logger">A diagnostic logger.</param>
         /// <returns>
         /// A task representing the <see cref="GetQueryTagsAsync"/> operation.
-        /// The value of its <see cref="Task{TResult}.Result"/> property contains the collection of query tags
+        /// The value of its <see cref="Task{TResult}.Result"/> property contains the subset of query tags
         /// that have been associated the operation.
         /// </returns>
         [FunctionName(nameof(GetQueryTagsAsync))]
@@ -47,7 +47,11 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                 context.InstanceId,
                 string.Join(", ", tagKeys));
 
-            return _extendedQueryTagStore.ConfirmReindexingAsync(tagKeys, context.InstanceId, CancellationToken.None);
+            return _extendedQueryTagStore.ConfirmReindexingAsync(
+                tagKeys,
+                context.InstanceId,
+                includeCompleted: false,
+                cancellationToken: CancellationToken.None);
         }
 
         /// <summary>

@@ -145,11 +145,6 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<OperationsService>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
             services.Add<OperationStatusHandler>()
                 .Scoped()
                 .AsSelf()

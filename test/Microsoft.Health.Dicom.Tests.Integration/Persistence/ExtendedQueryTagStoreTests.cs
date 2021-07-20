@@ -155,7 +155,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Fact]
-        public async Task GivenQueryTags_WhenConfirmingReindexing_ThenOnlyReturnUnclaimedTags()
+        public async Task GivenQueryTags_WhenConfirmingReindexing_ThenOnlyReturnDesiredTags()
         {
             DicomTag tag1 = DicomTag.DeviceSerialNumber;
             DicomTag tag2 = DicomTag.PatientAge;
@@ -169,8 +169,29 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 .Concat(await AddExtendedQueryTagsAsync(extendedQueryTagStore, new AddExtendedQueryTagEntry[] { extendedQueryTagEntry3 }, ready: true))
                 .ToList();
 
-            IReadOnlyList<ExtendedQueryTagStoreEntry> actual = await extendedQueryTagStore.ConfirmReindexingAsync(keys, Guid.NewGuid().ToString());
+            // Only return tags that are being indexed
+            IReadOnlyList<ExtendedQueryTagStoreEntry> actual = await extendedQueryTagStore.ConfirmReindexingAsync(keys, Guid.NewGuid().ToString(), includeCompleted: false);
             Assert.True(actual.Select(x => x.Key).SequenceEqual(keys.Take(2)));
+        }
+
+        [Fact]
+        public async Task GivenCompletedQueryTags_WhenConfirmingReindexing_ThenOnlyReturnDesiredTags()
+        {
+            DicomTag tag1 = DicomTag.DeviceSerialNumber;
+            DicomTag tag2 = DicomTag.PatientAge;
+            DicomTag tag3 = DicomTag.PatientMotherBirthName;
+            AddExtendedQueryTagEntry extendedQueryTagEntry1 = tag1.BuildAddExtendedQueryTagEntry();
+            AddExtendedQueryTagEntry extendedQueryTagEntry2 = tag2.BuildAddExtendedQueryTagEntry();
+            AddExtendedQueryTagEntry extendedQueryTagEntry3 = tag3.BuildAddExtendedQueryTagEntry();
+            IExtendedQueryTagStore extendedQueryTagStore = await _extendedQueryTagStoreFactory.GetInstanceAsync();
+
+            List<int> keys = (await AddExtendedQueryTagsAsync(extendedQueryTagStore, new AddExtendedQueryTagEntry[] { extendedQueryTagEntry1, extendedQueryTagEntry2 }, ready: false))
+                .Concat(await AddExtendedQueryTagsAsync(extendedQueryTagStore, new AddExtendedQueryTagEntry[] { extendedQueryTagEntry3 }, ready: true))
+                .ToList();
+
+            // Only return tags that are being indexed
+            IReadOnlyList<ExtendedQueryTagStoreEntry> actual = await extendedQueryTagStore.ConfirmReindexingAsync(keys, Guid.NewGuid().ToString(), includeCompleted: true);
+            Assert.True(actual.Select(x => x.Key).SequenceEqual(keys));
         }
 
         [Fact]

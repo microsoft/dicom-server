@@ -19,13 +19,13 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// Gets or sets the number of DICOM instances processed by a single activity.
         /// </summary>
         [Range(1, int.MaxValue)]
-        public int BatchSize { get; set; } = 2;
+        public int BatchSize { get; set; } = 5;
 
         /// <summary>
         /// Gets or sets the maximum number of concurrent batches processed at a given time.
         /// </summary>
         [Range(1, int.MaxValue)]
-        public int MaxParallelBatches { get; set; } = 2;
+        public int MaxParallelBatches { get; set; } = 10;
 
         /// <summary>
         /// Gets the maximum number of DICOM instances that are processed concurrently

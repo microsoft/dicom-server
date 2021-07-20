@@ -68,13 +68,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         public override async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> ConfirmReindexingAsync(
             IReadOnlyList<int> queryTagKeys,
             string operationId,
-            CancellationToken cancellationToken)
+            bool includeCompleted = false,
+            CancellationToken cancellationToken = default)
         {
             using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
             using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
 
             IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> rows = queryTagKeys.Select(x => new ExtendedQueryTagKeyTableTypeV1Row(x));
-            VLatest.ConfirmReindexing.PopulateCommand(sqlCommandWrapper, rows, operationId);
+            VLatest.ConfirmReindexing.PopulateCommand(sqlCommandWrapper, rows, operationId, includeCompleted);
 
             try
             {

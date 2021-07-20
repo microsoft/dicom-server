@@ -94,6 +94,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
                 .ConfirmReindexingAsync(
                     Arg.Is<IReadOnlyList<int>>(x => x.Single() == storeEntry.Key),
                     Arg.Is(expectedOperationId),
+                    Arg.Is(true),
                     Arg.Is(_tokenSource.Token))
                 .Returns(new List<ExtendedQueryTagStoreEntry>());
 
@@ -118,6 +119,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
                 .ConfirmReindexingAsync(
                     Arg.Is<IReadOnlyList<int>>(x => x.Single() == storeEntry.Key),
                     Arg.Is(expectedOperationId),
+                    Arg.Is(true),
                     Arg.Is(_tokenSource.Token));
             _urlResolver.DidNotReceiveWithAnyArgs().ResolveOperationStatusUri(default);
         }
@@ -148,6 +150,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
                 .ConfirmReindexingAsync(
                     Arg.Is<IReadOnlyList<int>>(x => x.Single() == storeEntry.Key),
                     Arg.Is(expectedOperationId),
+                    Arg.Is(true),
                     Arg.Is(_tokenSource.Token))
                 .Returns(new List<ExtendedQueryTagStoreEntry> { storeEntry });
             _urlResolver
@@ -176,6 +179,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
                 .ConfirmReindexingAsync(
                     Arg.Is<IReadOnlyList<int>>(x => x.Single() == storeEntry.Key),
                     Arg.Is(expectedOperationId),
+                    Arg.Is(true),
                     Arg.Is(_tokenSource.Token));
             _urlResolver.Received(1).ResolveOperationStatusUri(expectedOperationId);
         }

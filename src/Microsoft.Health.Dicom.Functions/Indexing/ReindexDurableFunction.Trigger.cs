@@ -14,6 +14,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing
@@ -31,6 +32,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// The value of its <see cref="Task{TResult}.Result"/> property contains the <see cref="HttpResponseMessage"/>
         /// whose body encodes the resulting orchestration instance ID.
         /// </returns>
+        // TODO: Replace Anonymous with auth for all HTTP endpoints
         [FunctionName(nameof(StartReindexingInstancesAsync))]
         public async Task<HttpResponseMessage> StartReindexingInstancesAsync(
             [HttpTrigger(AuthorizationLevel.Anonymous, "Post", Route = "extendedquerytags/reindex")] HttpRequestMessage request,
@@ -51,7 +53,13 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                 extendedQueryTags.Count,
                 string.Join(", ", extendedQueryTags));
 
-            string instanceId = await client.StartNewAsync(nameof(ReindexInstancesAsync), new ReindexInput { QueryTagKeys = extendedQueryTags });
+            string instanceId = await client.StartNewAsync(
+                nameof(ReindexInstancesAsync),
+                new ReindexInput
+                {
+                    QueryTagKeys = extendedQueryTags,
+                    Completed = WatermarkRange.None,
+                });
 
             logger.LogInformation("Successfully started new orchestration instance with ID '{InstanceId}'.", instanceId);
             return new HttpResponseMessage

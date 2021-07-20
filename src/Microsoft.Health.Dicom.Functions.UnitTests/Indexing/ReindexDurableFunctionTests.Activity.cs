@@ -38,10 +38,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             context.GetInput<IReadOnlyList<int>>().Returns(expectedInput);
 
             _extendedQueryTagStore
-                .ConfirmReindexingAsync(
-                    expectedInput,
-                    operationId,
-                    CancellationToken.None)
+                .ConfirmReindexingAsync(expectedInput, operationId, false, CancellationToken.None)
                 .Returns(expectedOutput);
 
             // Call the activity
@@ -52,7 +49,9 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             // Assert behavior
             Assert.Same(expectedOutput, actual);
             context.Received(1).GetInput<IReadOnlyList<int>>();
-            await _extendedQueryTagStore.Received(1).ConfirmReindexingAsync(expectedInput, operationId, CancellationToken.None);
+            await _extendedQueryTagStore
+                .Received(1)
+                .ConfirmReindexingAsync(expectedInput, operationId, false, CancellationToken.None);
         }
 
         [Fact]
@@ -67,7 +66,9 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
 
             Assert.Equal(12345, actual);
             Assert.False(context.ReceivedCalls().Any());
-            await _instanceStore.Received(1).GetMaxInstanceWatermarkAsync(CancellationToken.None);
+            await _instanceStore
+                .Received(1)
+                .GetMaxInstanceWatermarkAsync(CancellationToken.None);
         }
 
         [Fact]
@@ -131,9 +132,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             context.GetInput<IReadOnlyList<int>>().Returns(expectedInput);
 
             _extendedQueryTagStore
-                .CompleteReindexingAsync(
-                    expectedInput,
-                    CancellationToken.None)
+                .CompleteReindexingAsync(expectedInput, CancellationToken.None)
                 .Returns(expectedOutput);
 
             // Call the activity
@@ -144,7 +143,9 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             // Assert behavior
             Assert.Same(expectedOutput, actual);
             context.Received(1).GetInput<IReadOnlyList<int>>();
-            await _extendedQueryTagStore.Received(1).CompleteReindexingAsync(expectedInput, CancellationToken.None);
+            await _extendedQueryTagStore
+                .Received(1)
+                .CompleteReindexingAsync(expectedInput, CancellationToken.None);
         }
     }
 }
