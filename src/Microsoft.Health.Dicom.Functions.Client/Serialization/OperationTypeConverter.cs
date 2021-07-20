@@ -26,8 +26,8 @@ namespace Microsoft.Health.Dicom.Functions.Client.Serialization
                         reader.TokenType));
             }
 
-            // TODO: Support Nullable<OperationType> is necessary
-            return string.Equals(reader.Value as string, "Reindex", StringComparison.OrdinalIgnoreCase)
+            // TODO: Support Nullable<OperationType> if necessary
+            return string.Equals(reader.Value as string, "ReindexInstancesAsync", StringComparison.OrdinalIgnoreCase)
                 ? OperationType.Reindex
                 : OperationType.Unknown;
         }

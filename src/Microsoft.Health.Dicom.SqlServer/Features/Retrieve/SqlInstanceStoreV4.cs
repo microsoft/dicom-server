@@ -81,7 +81,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
 
             try
             {
-                return ((long?)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken)).GetValueOrDefault();
+                object result = await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+                return result is DBNull ? 0 : (long)result;
             }
             catch (SqlException ex)
             {

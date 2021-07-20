@@ -43,10 +43,15 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags = await context
                 .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(nameof(GetQueryTagsAsync), input.QueryTagKeys);
 
+            logger.LogInformation(
+                "Found {Count} extended query tag paths to re-index {{{TagPaths}}}.",
+                queryTags.Count,
+                string.Join(", ", queryTags.Select(x => x.Path)));
+
             List<int> queryTagKeys = queryTags.Select(x => x.Key).ToList();
             if (queryTags.Count > 0)
             {
-                List<WatermarkRange> batches = await GetBatchesAsync(context, input.Completed);
+                List<WatermarkRange> batches = await GetBatchesAsync(context, input.Completed, logger);
                 if (batches.Count > 0)
                 {
                     // Note that batches are in reverse order because we start from the highest watermark
@@ -87,16 +92,27 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             }
         }
 
-        private async Task<List<WatermarkRange>> GetBatchesAsync(IDurableOrchestrationContext context, WatermarkRange completed)
+        private async Task<List<WatermarkRange>> GetBatchesAsync(
+            IDurableOrchestrationContext context,
+            WatermarkRange completed,
+            ILogger logger)
         {
             // If we haven't completed any range yet, fetch the maximum watermark from the database.
             // Otherwise, create a WatermarkRange based on the latest progress.
+            long end;
+            if (completed.Count > 0)
+            {
+                end = completed.Start;
+                logger.LogInformation("Previous execution finished range {Range}.", completed);
+            }
+            else
+            {
 #pragma warning disable DF0108
-            // TODO: Durable Function analyzer incorrectly detects DF0108. Remove when it's resolved
-            long end = completed.Count > 0
-                ? completed.Start
-                : (await context.CallActivityAsync<long>(nameof(GetMaxInstanceWatermarkAsync), input: null)) + 1;
+                // TODO: Durable Function analyzer incorrectly detects DF0108. Remove when it's resolved
+                end = (await context.CallActivityAsync<long>(nameof(GetMaxInstanceWatermarkAsync), input: null)) + 1;
+                logger.LogInformation("Found maximum watermark is {Max}.", end - 1);
 #pragma warning restore DF0108
+            }
 
             // Note that the watermark sequence starts at 1!
             var batches = new List<WatermarkRange>();

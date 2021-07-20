@@ -108,7 +108,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
                 Content = new StringContent(
 @$"
 {{
-  ""Name"": ""Reindex"",
+  ""Name"": ""ReindexInstancesAsync"",
   ""InstanceId"": ""{id}"",
   ""CreatedTime"": ""{createdDateTime}"",
   ""LastUpdatedTime"": ""{createdDateTime.AddMinutes(15)}"",

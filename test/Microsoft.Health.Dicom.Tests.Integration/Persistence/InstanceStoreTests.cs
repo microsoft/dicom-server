@@ -55,8 +55,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             IInstanceStore instanceStore = await _instanceStoreFactory.GetInstanceAsync();
 
-            // TODO: How to check empty?
-
             // Populate DB and Check
             await AddRandomInstanceAsync();
             await AddRandomInstanceAsync();
