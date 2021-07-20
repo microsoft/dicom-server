@@ -18,6 +18,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static ExtendedQueryTagTable ExtendedQueryTag = new ExtendedQueryTagTable();
         internal readonly static ExtendedQueryTagDateTimeTable ExtendedQueryTagDateTime = new ExtendedQueryTagDateTimeTable();
         internal readonly static ExtendedQueryTagDoubleTable ExtendedQueryTagDouble = new ExtendedQueryTagDoubleTable();
+        internal readonly static ExtendedQueryTagErrorTable ExtendedQueryTagError = new ExtendedQueryTagErrorTable();
         internal readonly static ExtendedQueryTagLongTable ExtendedQueryTagLong = new ExtendedQueryTagLongTable();
         internal readonly static ExtendedQueryTagOperationTable ExtendedQueryTagOperation = new ExtendedQueryTagOperationTable();
         internal readonly static ExtendedQueryTagPersonNameTable ExtendedQueryTagPersonName = new ExtendedQueryTagPersonNameTable();
@@ -25,16 +26,19 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static InstanceTable Instance = new InstanceTable();
         internal readonly static SeriesTable Series = new SeriesTable();
         internal readonly static StudyTable Study = new StudyTable();
+        internal readonly static AddExtendedQueryTagErrorProcedure AddExtendedQueryTagError = new AddExtendedQueryTagErrorProcedure();
         internal readonly static AddExtendedQueryTagsProcedure AddExtendedQueryTags = new AddExtendedQueryTagsProcedure();
         internal readonly static AddInstanceProcedure AddInstance = new AddInstanceProcedure();
         internal readonly static AssignReindexingOperationProcedure AssignReindexingOperation = new AssignReindexingOperationProcedure();
         internal readonly static CompleteReindexingProcedure CompleteReindexing = new CompleteReindexingProcedure();
         internal readonly static DeleteDeletedInstanceProcedure DeleteDeletedInstance = new DeleteDeletedInstanceProcedure();
         internal readonly static DeleteExtendedQueryTagProcedure DeleteExtendedQueryTag = new DeleteExtendedQueryTagProcedure();
+        internal readonly static DeleteExtendedQueryTagErrorsProcedure DeleteExtendedQueryTagErrors = new DeleteExtendedQueryTagErrorsProcedure();
         internal readonly static DeleteInstanceProcedure DeleteInstance = new DeleteInstanceProcedure();
         internal readonly static GetChangeFeedProcedure GetChangeFeed = new GetChangeFeedProcedure();
         internal readonly static GetChangeFeedLatestProcedure GetChangeFeedLatest = new GetChangeFeedLatestProcedure();
         internal readonly static GetExtendedQueryTagProcedure GetExtendedQueryTag = new GetExtendedQueryTagProcedure();
+        internal readonly static GetExtendedQueryTagErrorsProcedure GetExtendedQueryTagErrors = new GetExtendedQueryTagErrorsProcedure();
         internal readonly static GetExtendedQueryTagsByOperationProcedure GetExtendedQueryTagsByOperation = new GetExtendedQueryTagsByOperationProcedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
         internal readonly static GetInstancesByWatermarkRangeProcedure GetInstancesByWatermarkRange = new GetInstancesByWatermarkRangeProcedure();
@@ -123,6 +127,20 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly Index IXC_ExtendedQueryTagDouble = new Index("IXC_ExtendedQueryTagDouble");
+        }
+
+        internal class ExtendedQueryTagErrorTable : Table
+        {
+            internal ExtendedQueryTagErrorTable() : base("dbo.ExtendedQueryTagError")
+            {
+            }
+
+            internal readonly IntColumn TagKey = new IntColumn("TagKey");
+            internal readonly IntColumn ErrorCode = new IntColumn("ErrorCode");
+            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
+            internal readonly DateTime2Column CreatedTime = new DateTime2Column("CreatedTime", 7);
+            internal readonly Index IXC_ExtendedQueryTagError = new Index("IXC_ExtendedQueryTagError");
+            internal readonly Index IX_ExtendedQueryTagError_TagKey = new Index("IX_ExtendedQueryTagError_TagKey");
         }
 
         internal class ExtendedQueryTagLongTable : Table
@@ -257,6 +275,28 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly Index IX_Study_StudyDescription = new Index("IX_Study_StudyDescription");
             internal readonly Index IX_Study_AccessionNumber = new Index("IX_Study_AccessionNumber");
             internal readonly Index IX_Study_PatientBirthDate = new Index("IX_Study_PatientBirthDate");
+        }
+
+        internal class AddExtendedQueryTagErrorProcedure : StoredProcedure
+        {
+            internal AddExtendedQueryTagErrorProcedure() : base("dbo.AddExtendedQueryTagError")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _tagKey = new ParameterDefinition<System.Int32>("@tagKey", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Int32> _errorCode = new ParameterDefinition<System.Int32>("@errorCode", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Int64> _watermark = new ParameterDefinition<System.Int64>("@watermark", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.DateTime> _createdTime = new ParameterDefinition<System.DateTime>("@createdTime", global::System.Data.SqlDbType.DateTime2, false, 7);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 tagKey, System.Int32 errorCode, System.Int64 watermark, System.DateTime createdTime)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.AddExtendedQueryTagError";
+                _tagKey.AddParameter(command.Parameters, tagKey);
+                _errorCode.AddParameter(command.Parameters, errorCode);
+                _watermark.AddParameter(command.Parameters, watermark);
+                _createdTime.AddParameter(command.Parameters, createdTime);
+            }
         }
 
         internal class AddExtendedQueryTagsProcedure : StoredProcedure
@@ -543,6 +583,22 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
+        internal class DeleteExtendedQueryTagErrorsProcedure : StoredProcedure
+        {
+            internal DeleteExtendedQueryTagErrorsProcedure() : base("dbo.DeleteExtendedQueryTagErrors")
+            {
+            }
+
+            private readonly ParameterDefinition<System.String> _tagPath = new ParameterDefinition<System.String>("@tagPath", global::System.Data.SqlDbType.VarChar, false, 64);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.DeleteExtendedQueryTagErrors";
+                _tagPath.AddParameter(command.Parameters, tagPath);
+            }
+        }
+
         internal class DeleteInstanceProcedure : StoredProcedure
         {
             internal DeleteInstanceProcedure() : base("dbo.DeleteInstance")
@@ -610,6 +666,22 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetExtendedQueryTag";
+                _tagPath.AddParameter(command.Parameters, tagPath);
+            }
+        }
+
+        internal class GetExtendedQueryTagErrorsProcedure : StoredProcedure
+        {
+            internal GetExtendedQueryTagErrorsProcedure() : base("dbo.GetExtendedQueryTagErrors")
+            {
+            }
+
+            private readonly ParameterDefinition<System.String> _tagPath = new ParameterDefinition<System.String>("@tagPath", global::System.Data.SqlDbType.VarChar, false, 64);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetExtendedQueryTagErrors";
                 _tagPath.AddParameter(command.Parameters, tagPath);
             }
         }
