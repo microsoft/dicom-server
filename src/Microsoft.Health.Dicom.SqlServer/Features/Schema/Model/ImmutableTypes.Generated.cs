@@ -49,6 +49,32 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal System.Byte TagLevel { get; }
     }
 
+    internal class ExtendedQueryTagKeyTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<ExtendedQueryTagKeyTableTypeV1Row>
+    {
+        internal ExtendedQueryTagKeyTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.ExtendedQueryTagKeyTableType_1")
+        {
+        }
+
+        internal readonly IntColumn TagKey = new IntColumn("TagKey");
+
+        protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagKey };
+
+        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, ExtendedQueryTagKeyTableTypeV1Row rowData)
+        {
+            TagKey.Set(record, 0, rowData.TagKey);
+        }
+    }
+
+    internal struct ExtendedQueryTagKeyTableTypeV1Row
+    {
+        internal ExtendedQueryTagKeyTableTypeV1Row(System.Int32 TagKey)
+        {
+            this.TagKey = TagKey;
+        }
+
+        internal System.Int32 TagKey { get; }
+    }
+
     internal class InsertDateTimeExtendedQueryTagTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<InsertDateTimeExtendedQueryTagTableTypeV1Row>
     {
         internal InsertDateTimeExtendedQueryTagTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertDateTimeExtendedQueryTagTableType_1")

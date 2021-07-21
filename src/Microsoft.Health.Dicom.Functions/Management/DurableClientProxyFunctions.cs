@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -14,6 +15,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Functions.Extensions;
+using Microsoft.Health.Dicom.Functions.Indexing;
 
 namespace Microsoft.Health.Dicom.Functions.Management
 {
@@ -22,9 +24,15 @@ namespace Microsoft.Health.Dicom.Functions.Management
     /// </summary>
     public static class DurableClientProxyFunctions
     {
+        internal static readonly ImmutableHashSet<string> PublicOperationTypes = ImmutableHashSet.Create(
+            nameof(ReindexDurableFunction.ReindexInstancesAsync));
+
         /// <summary>
         /// Gets the status of an orchestration instance.
         /// </summary>
+        /// <remarks>
+        /// Only public-facing orchestrations can be returned by this operation.
+        /// </remarks>
         /// <param name="request">The incoming HTTP request.</param>
         /// <param name="client">The client for interacting the the Durable Functions extension.</param>
         /// <param name="instanceId">The unique ID for the orchestration instance.</param>
@@ -68,7 +76,9 @@ namespace Microsoft.Health.Dicom.Functions.Management
             source.Token.ThrowIfCancellationRequested();
 
             DurableOrchestrationStatus status = await client.GetStatusAsync(instanceId, showInput: false);
-            return status == null ? new NotFoundResult() : new OkObjectResult(status);
+            return status != null && PublicOperationTypes.Contains(status.Name)
+                ? new OkObjectResult(status)
+                : new NotFoundResult();
         }
     }
 }

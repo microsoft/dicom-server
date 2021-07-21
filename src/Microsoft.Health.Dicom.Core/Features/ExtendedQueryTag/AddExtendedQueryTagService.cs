@@ -47,7 +47,9 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             _maxAllowedCount = extendedQueryTagConfiguration.Value.MaxAllowedCount;
         }
 
-        public async Task<AddExtendedQueryTagResponse> AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags, CancellationToken cancellationToken = default)
+        public async Task<AddExtendedQueryTagResponse> AddExtendedQueryTagsAsync(
+            IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags,
+            CancellationToken cancellationToken = default)
         {
             _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(extendedQueryTags);
             var normalized = extendedQueryTags
@@ -55,12 +57,17 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 .ToList();
 
             // TODO: Handle tags that have already been added
+            // Add the extended query tags to the DB
             IExtendedQueryTagStore extendedQueryTagStore = await _extendedQueryTagStoreFactory.GetInstanceAsync(cancellationToken);
-            IReadOnlyList<int> keys = await extendedQueryTagStore.AddExtendedQueryTagsAsync(normalized, _maxAllowedCount, ready: false, cancellationToken: cancellationToken);
-            string operationId = await _client.StartQueryTagIndexingAsync(keys, cancellationToken);
+            IReadOnlyList<int> addedKeys = await extendedQueryTagStore.AddExtendedQueryTagsAsync(
+                normalized,
+                _maxAllowedCount,
+                ready: false,
+                cancellationToken: cancellationToken);
 
-            return new AddExtendedQueryTagResponse(
-                new OperationReference(operationId, _uriResolver.ResolveOperationStatusUri(operationId)));
+            // Start re-indexing
+            string operationId = await _client.StartQueryTagIndexingAsync(addedKeys, cancellationToken);
+            return new AddExtendedQueryTagResponse(new OperationReference(operationId, _uriResolver.ResolveOperationStatusUri(operationId)));
         }
     }
 }

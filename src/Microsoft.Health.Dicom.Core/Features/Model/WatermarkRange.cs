@@ -4,63 +4,68 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.Model
 {
     /// <summary>
-    /// Watermark range
+    /// Represents a range of DICOM instance watermarks.
     /// </summary>
-    public struct WatermarkRange : IEquatable<WatermarkRange>
+    [DebuggerDisplay("{ToString(),nq}")]
+    public readonly struct WatermarkRange : IEquatable<WatermarkRange>
     {
-        public WatermarkRange(long start, long end)
+        public WatermarkRange(long start, long count)
         {
-            Start = start;
-            End = end;
+            Start = EnsureArg.IsGte(start, 0, nameof(start));
+            End = Start + EnsureArg.IsInRange(count, 0, long.MaxValue - start, nameof(count));
         }
 
-        /// <summary>
-        /// Gets or sets inclusive start watermark.
-        /// </summary>
-        public long Start { get; set; }
+        public static WatermarkRange None { get; } = new WatermarkRange(0, 0); // Same as default
 
         /// <summary>
-        /// Gets or sets inclusive end watermark.
+        /// Gets inclusive starting instance watermark.
         /// </summary>
-        public long End { get; set; }
+        public long Start { get; }
+
+        /// <summary>
+        /// Gets exclusive ending instance watermark.
+        /// </summary>
+        public long End { get; }
+
+        /// <summary>
+        /// Gets the maximum number of instances within this range.
+        /// </summary>
+        /// <remarks>
+        /// Some instances may be missing in the range due to previous deletion operations.
+        /// </remarks>
+        public long Count => End - Start;
 
         public override bool Equals(object obj)
-        {
-            if (!(obj is WatermarkRange))
-            {
-                return false;
-            }
-            return Equals((WatermarkRange)obj);
-        }
+            => obj is WatermarkRange other && Equals(other);
 
         public override int GetHashCode()
-        {
-            return HashCode.Combine(Start, End);
-        }
+            => HashCode.Combine(Start, End);
 
         public static bool operator ==(WatermarkRange left, WatermarkRange right)
-        {
-            return left.Equals(right);
-        }
+            => left.Equals(right);
 
         public static bool operator !=(WatermarkRange left, WatermarkRange right)
-        {
-            return !(left == right);
-        }
+            => !(left == right);
 
         public bool Equals(WatermarkRange other)
-        {
-            return Start == other.Start && End == other.End;
-        }
+            => Start == other.Start && End == other.End;
 
         public void Deconstruct(out long start, out long end)
         {
             start = Start;
             end = End;
         }
+
+        public override string ToString()
+            => "[" + Start + ", " + End + ")";
+
+        public static WatermarkRange Between(long start, long end)
+            => new WatermarkRange(start, EnsureArg.IsGte(end, start, nameof(end)) - start);
     }
 }

@@ -10,9 +10,9 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 namespace Microsoft.Health.Dicom.Functions.Indexing.Models
 {
     /// <summary>
-    ///  Represents input to <see cref="ReindexDurableFunction.ReindexInstancesAsync"/>
+    ///  Represents input to <see cref="ReindexDurableFunction.ReindexBatchAsync"/>
     /// </summary>
-    public class ReindexInstanceInput
+    public class ReindexBatch
     {
         /// <summary>
         /// Gets or sets the inclusive watermark range.
@@ -22,6 +22,6 @@ namespace Microsoft.Health.Dicom.Functions.Indexing.Models
         /// <summary>
         /// Gets or sets the tag entires.
         /// </summary>
-        public IReadOnlyCollection<ExtendedQueryTagStoreEntry> TagStoreEntries { get; set; }
+        public IReadOnlyCollection<ExtendedQueryTagStoreEntry> QueryTags { get; set; }
     }
 }

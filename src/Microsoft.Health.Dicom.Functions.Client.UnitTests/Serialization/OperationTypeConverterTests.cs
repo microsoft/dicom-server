@@ -47,7 +47,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests.Serialization
 
         [Theory]
         [InlineData("null", OperationType.Unknown)]
-        [InlineData("\"ReIndeX\"", OperationType.Reindex)]
+        [InlineData("\"ReindexInstancesAsync\"", OperationType.Reindex)]
         [InlineData("\"NewJob\"", OperationType.Unknown)]
         [InlineData("\"Unknown\"", OperationType.Unknown)]
         public void GivenStringOrNullToken_WhenReadingJson_ThenReturnOperationType(string json, OperationType expected)
