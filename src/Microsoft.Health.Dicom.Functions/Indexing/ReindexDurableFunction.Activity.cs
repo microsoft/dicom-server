@@ -13,6 +13,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 
@@ -34,7 +35,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// that have been associated the operation.
         /// </returns>
         [FunctionName(nameof(GetQueryTagsAsync))]
-        public Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetQueryTagsAsync(
+        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetQueryTagsAsync(
             [ActivityTrigger] IDurableActivityContext context,
             ILogger logger)
         {
@@ -47,7 +48,8 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                 context.InstanceId,
                 string.Join(", ", tagKeys));
 
-            return _extendedQueryTagStore.ConfirmReindexingAsync(
+            IExtendedQueryTagStore extendedQueryTagStore = await _extendedQueryTagStoreFactory.GetInstanceAsync();
+            return await extendedQueryTagStore.ConfirmReindexingAsync(
                 tagKeys,
                 context.InstanceId,
                 includeCompleted: false,
@@ -68,7 +70,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// otherwise, <c>0</c>.
         /// </returns>
         [FunctionName(nameof(GetMaxInstanceWatermarkAsync))]
-        public Task<long> GetMaxInstanceWatermarkAsync(
+        public async Task<long> GetMaxInstanceWatermarkAsync(
             [ActivityTrigger] IDurableActivityContext context,
             ILogger logger)
         {
@@ -76,7 +78,8 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             logger.LogInformation("Fetching the maximum instance watermark");
-            return _instanceStore.GetMaxInstanceWatermarkAsync(CancellationToken.None);
+            IInstanceStore instanceStore = await _instanceStoreFactory.GetInstanceAsync();
+            return await instanceStore.GetMaxInstanceWatermarkAsync(CancellationToken.None);
         }
 
         /// <summary>
@@ -96,8 +99,9 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                 batch.QueryTags.Count,
                 string.Join(", ", batch.QueryTags.Select(x => x.Path)));
 
+            IInstanceStore instanceStore = await _instanceStoreFactory.GetInstanceAsync();
             IReadOnlyList<VersionedInstanceIdentifier> instanceIdentifiers =
-                await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(batch.WatermarkRange, IndexStatus.Created);
+                await instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(batch.WatermarkRange, IndexStatus.Created);
 
             var tasks = new List<Task>();
             foreach (VersionedInstanceIdentifier identifier in instanceIdentifiers)
@@ -122,7 +126,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// whose re-indexing should be considered completed.
         /// </returns>
         [FunctionName(nameof(CompleteReindexingAsync))]
-        public Task<IReadOnlyList<int>> CompleteReindexingAsync(
+        public async Task<IReadOnlyList<int>> CompleteReindexingAsync(
             [ActivityTrigger] IDurableActivityContext context,
             ILogger logger)
         {
@@ -135,7 +139,8 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                 tagKeys.Count,
                 string.Join(", ", tagKeys));
 
-            return _extendedQueryTagStore.CompleteReindexingAsync(tagKeys, CancellationToken.None);
+            IExtendedQueryTagStore extendedQueryTagStore = await _extendedQueryTagStoreFactory.GetInstanceAsync();
+            return await extendedQueryTagStore.CompleteReindexingAsync(tagKeys, CancellationToken.None);
         }
     }
 }

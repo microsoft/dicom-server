@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Client.Configs;
@@ -181,6 +182,20 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
 
             Assert.Equal(expected, ex.StatusCode);
             Assert.Equal(1, handler.SentMessages);
+        }
+
+        [Fact]
+        public async Task GivenConflict_WhenStartingReindex_ThenThrowAlreadyExistsException()
+        {
+            var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.Conflict));
+            var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), DefaultConfig);
+
+            var input = new List<int> { 1, 2, 3 };
+            using var source = new CancellationTokenSource();
+
+            handler.SendingAsync += (msg, token) => AssertExpectedStartAddRequestAsync(msg, input);
+            await Assert.ThrowsAsync<ExtendedQueryTagsAlreadyExistsException>(
+                () => client.StartQueryTagIndexingAsync(input, source.Token));
         }
 
         [Fact]

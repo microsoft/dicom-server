@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Operations;
@@ -68,21 +67,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
             // Start re-indexing
             string operationId = await _client.StartQueryTagIndexingAsync(addedKeys, cancellationToken);
-
-            // Associate the tags to the operation and confirm their processing
-            IReadOnlyList<ExtendedQueryTagStoreEntry> confirmedTags = await extendedQueryTagStore.ConfirmReindexingAsync(
-                addedKeys,
-                operationId,
-                includeCompleted: true,
-                cancellationToken: cancellationToken);
-
-            if (confirmedTags.Count == 0)
-            {
-                throw new ExtendedQueryTagsAlreadyExistsException();
-            }
-
-            return new AddExtendedQueryTagResponse(
-                new OperationReference(operationId, _uriResolver.ResolveOperationStatusUri(operationId)));
+            return new AddExtendedQueryTagResponse(new OperationReference(operationId, _uriResolver.ResolveOperationStatusUri(operationId)));
         }
     }
 }

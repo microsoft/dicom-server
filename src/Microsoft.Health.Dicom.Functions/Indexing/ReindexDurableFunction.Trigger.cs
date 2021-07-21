@@ -4,29 +4,41 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Functions.Extensions;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
+using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing
 {
     public partial class ReindexDurableFunction
     {
+        private static readonly JsonSerializer DefaultJsonSerializer = JsonSerializer.CreateDefault();
+
         /// <summary>
         /// Asynchronously starts the creation of an index for the provided query tags over the previously added data.
         /// </summary>
         /// <param name="request">An <see cref="HttpRequestMessage"/> containing the query tag keys.</param>
         /// <param name="client">A client for interacting with the Azure Durable Functions extension.</param>
         /// <param name="logger">A diagnostic logger.</param>
+        /// <param name="hostCancellationToken">
+        /// The token to monitor for cancellation requests from the Azure Functions host.
+        /// The default value is <see cref="CancellationToken.None"/>.
+        /// </param>
         /// <returns>
         /// A task representing the <see cref="StartReindexingInstancesAsync"/> operation.
         /// The value of its <see cref="Task{TResult}.Result"/> property contains the <see cref="HttpResponseMessage"/>
@@ -35,37 +47,63 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         // TODO: Replace Anonymous with auth for all HTTP endpoints
         [FunctionName(nameof(StartReindexingInstancesAsync))]
         public async Task<HttpResponseMessage> StartReindexingInstancesAsync(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Post", Route = "extendedquerytags/reindex")] HttpRequestMessage request,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Post", Route = "extendedquerytags/reindex")] HttpRequest request,
             [DurableClient] IDurableOrchestrationClient client,
-            ILogger logger)
+            ILogger logger,
+            CancellationToken hostCancellationToken = default)
         {
             EnsureArg.IsNotNull(request, nameof(request));
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            IReadOnlyList<int> extendedQueryTags = await request.Content.ReadAsAsync<IReadOnlyList<int>>();
-            if (extendedQueryTags == null || extendedQueryTags.Count == 0)
+            using CancellationTokenSource source = request.CreateRequestAbortedLinkedTokenSource(hostCancellationToken);
+
+            // TODO: In .NET 5, use HttpRequestJsonExtensions.ReadFromJsonAsync which can gracefully handle different
+            //       encodings. Here we'll expect a UTF-8 encoding which we can control as the client.
+            // We use Newtonsoft here for consistency across our other serializers
+            // (Although we could leverage the PipeReader if we used System.Text.Json)
+            IReadOnlyList<int> extendedQueryTagKeys;
+            using (StreamReader streamReader = new StreamReader(request.Body, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true))
+            using (JsonReader reader = new JsonTextReader(streamReader))
+            {
+                extendedQueryTagKeys = DefaultJsonSerializer.Deserialize<IReadOnlyList<int>>(reader);
+            }
+
+            if (extendedQueryTagKeys == null || extendedQueryTagKeys.Count == 0)
             {
                 return new HttpResponseMessage { StatusCode = HttpStatusCode.BadRequest };
             }
 
             logger.LogInformation("Received request to index {tagCount} extended query tag keys {{{extendedQueryTagKeys}}}.",
-                extendedQueryTags.Count,
-                string.Join(", ", extendedQueryTags));
+                extendedQueryTagKeys.Count,
+                string.Join(", ", extendedQueryTagKeys));
 
+            // Start the re-indexing orchestration
             string instanceId = await client.StartNewAsync(
                 nameof(ReindexInstancesAsync),
                 new ReindexInput
                 {
-                    QueryTagKeys = extendedQueryTags,
+                    QueryTagKeys = extendedQueryTagKeys,
                     Completed = WatermarkRange.None,
                 });
 
             logger.LogInformation("Successfully started new orchestration instance with ID '{InstanceId}'.", instanceId);
-            return new HttpResponseMessage
-            {
-                Content = new StringContent(instanceId, Encoding.UTF8, MediaTypeNames.Text.Plain)
-            };
+
+            // Associate the tags to the operation and confirm their processing
+            IExtendedQueryTagStore extendedQueryTagStore = await _extendedQueryTagStoreFactory.GetInstanceAsync(source.Token);
+            IReadOnlyList<ExtendedQueryTagStoreEntry> confirmedTags = await extendedQueryTagStore.ConfirmReindexingAsync(
+                extendedQueryTagKeys,
+                instanceId,
+                includeCompleted: true,
+                cancellationToken: source.Token);
+
+            return confirmedTags.Count == 0
+                ? new HttpResponseMessage { StatusCode = HttpStatusCode.Conflict }
+                : new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.Accepted,
+                    Content = new StringContent(instanceId, Encoding.UTF8, MediaTypeNames.Text.Plain)
+                };
         }
     }
 }

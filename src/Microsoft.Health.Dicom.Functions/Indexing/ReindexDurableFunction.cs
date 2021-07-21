@@ -5,6 +5,7 @@
 
 using EnsureThat;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
@@ -18,21 +19,21 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
     /// </summary>
     public partial class ReindexDurableFunction
     {
-        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
-        private readonly IInstanceStore _instanceStore;
+        private readonly IStoreFactory<IExtendedQueryTagStore> _extendedQueryTagStoreFactory;
+        private readonly IStoreFactory<IInstanceStore> _instanceStoreFactory;
         private readonly IInstanceReindexer _instanceReindexer;
         private readonly ISchemaVersionResolver _schemaVersionResolver;
         private readonly QueryTagIndexingOptions _options;
 
         public ReindexDurableFunction(
-            IExtendedQueryTagStore extendedQueryTagStore,
-            IInstanceStore instanceStore,
+            IStoreFactory<IExtendedQueryTagStore> extendedQueryTagStoreFactory,
+            IStoreFactory<IInstanceStore> instanceStoreFactory,
             IInstanceReindexer instanceReindexer,
             ISchemaVersionResolver schemaVersionResolver,
             IOptions<QueryTagIndexingOptions> configOptions)
         {
-            _extendedQueryTagStore = EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
-            _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
+            _extendedQueryTagStoreFactory = EnsureArg.IsNotNull(extendedQueryTagStoreFactory, nameof(extendedQueryTagStoreFactory));
+            _instanceStoreFactory = EnsureArg.IsNotNull(instanceStoreFactory, nameof(instanceStoreFactory));
             _instanceReindexer = EnsureArg.IsNotNull(instanceReindexer, nameof(instanceReindexer));
             _schemaVersionResolver = EnsureArg.IsNotNull(schemaVersionResolver, nameof(schemaVersionResolver));
             _options = EnsureArg.IsNotNull(configOptions?.Value, nameof(configOptions));
