@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -60,11 +60,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
                 try
                 {
-                    await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+                    await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
                 }
                 catch (SqlException ex)
                 {
-                    throw ex.ErrorCode switch
+                    throw ex.Number switch
                     {
                         SqlErrorCodes.NotFound => new InstanceNotFoundException(),
                         SqlErrorCodes.Conflict => new PendingInstanceException(),

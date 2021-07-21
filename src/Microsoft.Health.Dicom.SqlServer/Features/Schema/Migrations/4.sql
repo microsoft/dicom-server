@@ -1,3 +1,4 @@
+
 -- Style guide: please see: https://github.com/ktaranov/sqlserver-kit/blob/master/SQL%20Server%20Name%20Convention%20and%20T-SQL%20Programming%20Style.md
 /*************************************************************
 Wrapping up in the multiple transactions except CREATE FULLTEXT INDEX which is non-transactional script.
@@ -1641,13 +1642,14 @@ AS
             @instanceKey = InstanceKey,
             @watermark = Watermark,
             @status = Status
-        FROM dbo.Instance WITH (REPEATABLEREAD) 
+        FROM dbo.Instance WITH (HOLDLOCK) 
         WHERE StudyInstanceUid = @studyInstanceUid
             AND SeriesInstanceUid = @seriesInstanceUid
             AND SopInstanceUid = @sopInstanceUid
 
         IF @@ROWCOUNT = 0
             THROW 50404, 'Instance not exists', 1
+
         IF @status <> 1 -- Created
             THROW 50409, 'Instance is not been stored succssfully', 1
 

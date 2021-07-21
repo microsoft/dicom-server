@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             await _reindexDurableFunction.ReindexInstancesAsync(input, NullLogger.Instance);
             foreach (var identifier in identifiers)
             {
-                await _instanceReindexer.Received().ReindexInstanceAsync(tagsEntries, identifier.Version, Arg.Any<CancellationToken>());
+                await _instanceReindexer.Received().ReindexInstanceAsync(tagsEntries, identifier, Arg.Any<CancellationToken>());
             }
         }
     }

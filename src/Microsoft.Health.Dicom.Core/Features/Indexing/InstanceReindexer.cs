@@ -31,6 +31,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         }
         public async Task ReindexInstanceAsync(IReadOnlyCollection<ExtendedQueryTagStoreEntry> entries, VersionedInstanceIdentifier versionedInstanceId, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(entries, nameof(entries));
+            EnsureArg.IsNotNull(versionedInstanceId, nameof(versionedInstanceId));
             DicomDataset dataset = await _metadataStore.GetInstanceMetadataAsync(versionedInstanceId, cancellationToken);
             var indexDataStore = await _indexDataStoreFactory.GetInstanceAsync(cancellationToken);
             await indexDataStore.ReindexInstanceAsync(dataset, entries.Select(x => new QueryTag(x)), cancellationToken);
