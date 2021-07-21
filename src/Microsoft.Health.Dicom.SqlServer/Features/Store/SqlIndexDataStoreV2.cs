@@ -49,7 +49,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 // Build parameter for extended query tag.
-                V2.AddInstanceTableValuedParameters parameters = AddInstanceTableValuedParametersBuilder.BuildV2(
+                V2.AddInstanceTableValuedParameters parameters = ExtendedQueryTagRowsBuilder.BuildV2(
                     instance,
                     queryTags.Where(tag => tag.IsExtendedQueryTag));
 

@@ -17,7 +17,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
     /// <summary>
     /// Build AddInstanceTableValuedParameters
     /// </summary>
-    internal static class AddInstanceTableValuedParametersBuilder
+    internal static class ExtendedQueryTagRowsBuilder
     {
         private static readonly Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, DateTime?>> DataTimeReaders = new Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, DateTime?>>()
         {
@@ -67,6 +67,60 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 queryTags,
                 (stringRow, longRows, doubleRows, dateTimeRows, personNameRows)
                     => new V2.AddInstanceTableValuedParameters(stringRow, longRows, doubleRows, dateTimeRows, personNameRows));
+        }
+
+        // Make a class for it
+        public static (IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> stringRows,
+            IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> longRows,
+            IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleRows,
+            IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV1Row> dateTimeRows,
+            IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNameRows)
+            Build(
+            DicomDataset instance,
+            IEnumerable<QueryTag> queryTags,)
+        {
+            var stringRows = new List<InsertStringExtendedQueryTagTableTypeV1Row>();
+            var longRows = new List<InsertLongExtendedQueryTagTableTypeV1Row>();
+            var doubleRows = new List<InsertDoubleExtendedQueryTagTableTypeV1Row>();
+            var dateTimeRows = new List<InsertDateTimeExtendedQueryTagTableTypeV1Row>();
+            var personNamRows = new List<InsertPersonNameExtendedQueryTagTableTypeV1Row>();
+
+            foreach (var queryTag in queryTags)
+            {
+                ExtendedQueryTagDataType dataType = ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[queryTag.VR.Code];
+                switch (dataType)
+                {
+                    case ExtendedQueryTagDataType.StringData:
+                        AddStringRow(instance, stringRows, queryTag);
+
+                        break;
+
+                    case ExtendedQueryTagDataType.LongData:
+                        AddLongRow(instance, longRows, queryTag);
+
+                        break;
+
+                    case ExtendedQueryTagDataType.DoubleData:
+                        AddDoubleRow(instance, doubleRows, queryTag);
+
+                        break;
+
+                    case ExtendedQueryTagDataType.DateTimeData:
+                        AddDateTimeRow(instance, dateTimeRows, queryTag);
+
+                        break;
+
+                    case ExtendedQueryTagDataType.PersonNameData:
+                        AddPersonNameRow(instance, personNamRows, queryTag);
+
+                        break;
+
+                    default:
+                        Debug.Fail($"Not able to handle {dataType}");
+                        break;
+                }
+            }
+
         }
 
         private static T Build<T>(

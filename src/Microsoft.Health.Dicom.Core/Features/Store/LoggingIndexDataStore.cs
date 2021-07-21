@@ -29,6 +29,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 default,
                 "Creating DICOM instance index with '{DicomInstanceIdentifier}'.");
 
+        private static readonly Action<ILogger, InstanceIdentifier, Exception> LogReindexIndexDelegate =
+                LoggerMessage.Define<InstanceIdentifier>(
+                LogLevel.Debug,
+                default,
+                "Reindexing DICOM instance with '{DicomInstanceIdentifier}'.");
+
         private static readonly Action<ILogger, long, Exception> LogCreateInstanceIndexSucceededDelegate =
             LoggerMessage.Define<long>(
                 LogLevel.Debug,
@@ -137,6 +143,26 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             }
         }
 
+        /// <inheritdoc />
+        public async Task ReindexInstanceAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(dicomDataset);
+            LogReindexIndexDelegate(_logger, dicomDataset.ToInstanceIdentifier(), null);
+
+            try
+            {
+                await IndexDataStore.ReindexInstanceAsync(dicomDataset, queryTags, cancellationToken);
+
+                LogOperationSucceededDelegate(_logger, null);
+
+            }
+            catch (DataStoreException ex)
+            {
+                LogOperationFailedDelegate(_logger, ex);
+
+                throw;
+            }
+        }
         /// <inheritdoc />
         public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
@@ -313,5 +339,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 throw;
             }
         }
+
     }
 }
