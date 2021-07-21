@@ -39,7 +39,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         private readonly IFileStore _fileStore = Substitute.For<IFileStore>();
         private readonly IMetadataStore _metadataStore = Substitute.For<IMetadataStore>();
         private readonly IIndexDataStore _indexDataStore = Substitute.For<IIndexDataStore>();
-        private readonly IStoreFactory<IIndexDataStore> _indexDataStoreFactory = Substitute.For<IStoreFactory<IIndexDataStore>>();
         private readonly IDeleteService _deleteService = Substitute.For<IDeleteService>();
         private readonly StoreOrchestrator _storeOrchestrator;
 
@@ -60,13 +59,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             _dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset);
             _dicomInstanceEntry.GetStreamAsync(DefaultCancellationToken).Returns(_stream);
 
-            _indexDataStoreFactory.GetInstanceAsync(DefaultCancellationToken).Returns(_indexDataStore);
-
             _indexDataStore.CreateInstanceIndexAsync(_dicomDataset, DefaultCancellationToken).Returns(DefaultVersion);
             _queryTagService.GetQueryTagsAsync(Arg.Any<CancellationToken>())
                 .Returns(Array.Empty<QueryTag>());
 
-            _storeOrchestrator = new StoreOrchestrator(_fileStore, _metadataStore, _indexDataStoreFactory, _deleteService, _queryTagService);
+            _storeOrchestrator = new StoreOrchestrator(_fileStore, _metadataStore, _indexDataStore, _deleteService, _queryTagService);
         }
 
         [Fact]

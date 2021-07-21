@@ -11,18 +11,18 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Schema
 {
-    public class BackgroundSchemaVersionResolverTests
+    public class PassthroughSchemaVersionResolverTests
     {
         [Fact]
         public void GivenNullArgument_WhenConstructing_ThenThrowArgumentNullException()
         {
-            Assert.Throws<ArgumentNullException>(() => new BackgroundSchemaVersionResolver(null));
+            Assert.Throws<ArgumentNullException>(() => new PassthroughSchemaVersionResolver(null));
         }
 
         [Fact]
         public async Task GivenAnyInvocation_WhenGettingCurrentVersion_ThenReturnCurrentVersion()
         {
-            var resolver = new BackgroundSchemaVersionResolver(new SchemaInformation(1, 3) { Current = 2 });
+            var resolver = new PassthroughSchemaVersionResolver(new SchemaInformation(1, 3) { Current = 2 });
             Assert.Equal(SchemaVersion.V2, await resolver.GetCurrentVersionAsync(default));
         }
     }

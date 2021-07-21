@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; }
 
-        public IStoreFactory<IIndexDataStore> IndexDataStoreFactory => _sqlDataStoreTestsFixture.IndexDataStoreFactory;
+        public IIndexDataStore IndexDataStore => _sqlDataStoreTestsFixture.IndexDataStore;
 
         public IIndexDataStoreTestHelper IndexDataStoreTestHelper => _sqlDataStoreTestsFixture.TestHelper;
 
@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var optionsConfiguration = Substitute.For<IOptions<DeletedInstanceCleanupConfiguration>>();
             optionsConfiguration.Value.Returns(cleanupConfiguration);
             DeleteService = new DeleteService(
-                _sqlDataStoreTestsFixture.IndexDataStoreFactory,
+                _sqlDataStoreTestsFixture.IndexDataStore,
                 _blobStorageTestsFixture.MetadataStore,
                 _blobStorageTestsFixture.FileStore,
                 optionsConfiguration,

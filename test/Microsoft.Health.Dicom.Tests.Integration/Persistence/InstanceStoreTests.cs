@@ -6,7 +6,6 @@
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -22,15 +21,15 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     /// </summary>
     public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
     {
-        private readonly IStoreFactory<IInstanceStore> _instanceStoreFactory;
-        private readonly IStoreFactory<IIndexDataStore> _indexDataStoreFactory;
+        private readonly IInstanceStore _instanceStore;
+        private readonly IIndexDataStore _indexDataStore;
 
         public InstanceStoreTests(SqlDataStoreTestsFixture fixture)
         {
-            EnsureArg.IsNotNull(fixture?.InstanceStoreFactory, nameof(fixture.InstanceStoreFactory));
-            EnsureArg.IsNotNull(fixture?.IndexDataStoreFactory, nameof(fixture.IndexDataStoreFactory));
-            _instanceStoreFactory = fixture.InstanceStoreFactory;
-            _indexDataStoreFactory = fixture.IndexDataStoreFactory;
+            EnsureArg.IsNotNull(fixture?.InstanceStore, nameof(fixture.InstanceStore));
+            EnsureArg.IsNotNull(fixture?.IndexDataStore, nameof(fixture.IndexDataStore));
+            _instanceStore = fixture.InstanceStore;
+            _indexDataStore = fixture.IndexDataStore;
         }
 
         [Fact]
@@ -41,8 +40,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var instance2 = await AddRandomInstanceAsync();
             var instance3 = await AddRandomInstanceAsync();
             var instance4 = await AddRandomInstanceAsync();
-            var instanceStore = await _instanceStoreFactory.GetInstanceAsync();
-            var instances = await instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(new WatermarkRange(instance1.Version, instance3.Version), IndexStatus.Creating);
+            var instances = await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(new WatermarkRange(instance1.Version, instance3.Version), IndexStatus.Creating);
             Assert.Equal(instances, new[] { instance1, instance2, instance3 });
         }
 
@@ -54,8 +52,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             string seriesInstanceUid = dataset.GetString(DicomTag.SeriesInstanceUID);
             string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
 
-            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
-            long version = await indexDataStore.CreateInstanceIndexAsync(dataset);
+            long version = await _indexDataStore.CreateInstanceIndexAsync(dataset);
             return new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version);
         }
 

@@ -13,33 +13,32 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.HealthCheck
 {
     public class BackgroundServiceHealthCheck : IHealthCheck
     {
-        private readonly IStoreFactory<IIndexDataStore> _indexDataStoreFactory;
+        private readonly IIndexDataStore _indexDataStore;
         private readonly DeletedInstanceCleanupConfiguration _deletedInstanceCleanupConfiguration;
         private readonly TelemetryClient _telemetryClient;
         private readonly BackgroundServiceHealthCheckCache _backgroundServiceHealthCheckCache;
         private readonly ILogger<BackgroundServiceHealthCheck> _logger;
 
         public BackgroundServiceHealthCheck(
-            IStoreFactory<IIndexDataStore> indexDataStoreFactory,
+            IIndexDataStore indexDataStore,
             IOptions<DeletedInstanceCleanupConfiguration> deletedInstanceCleanupConfiguration,
             TelemetryClient telemetryClient,
             BackgroundServiceHealthCheckCache backgroundServiceHealthCheckCache,
             ILogger<BackgroundServiceHealthCheck> logger)
         {
-            EnsureArg.IsNotNull(indexDataStoreFactory, nameof(indexDataStoreFactory));
+            EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
             EnsureArg.IsNotNull(deletedInstanceCleanupConfiguration?.Value, nameof(deletedInstanceCleanupConfiguration));
             EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
             EnsureArg.IsNotNull(backgroundServiceHealthCheckCache, nameof(backgroundServiceHealthCheckCache));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _indexDataStoreFactory = indexDataStoreFactory;
+            _indexDataStore = indexDataStore;
             _deletedInstanceCleanupConfiguration = deletedInstanceCleanupConfiguration.Value;
             _telemetryClient = telemetryClient;
             _backgroundServiceHealthCheckCache = backgroundServiceHealthCheckCache;
@@ -48,13 +47,11 @@ namespace Microsoft.Health.Dicom.Core.Features.HealthCheck
 
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
-            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync(cancellationToken);
-
             try
             {
-                Task<DateTimeOffset> oldestWaitingToBeDeleated = _backgroundServiceHealthCheckCache.GetOrAddOldestTimeAsync(indexDataStore.GetOldestDeletedAsync, cancellationToken);
+                Task<DateTimeOffset> oldestWaitingToBeDeleated = _backgroundServiceHealthCheckCache.GetOrAddOldestTimeAsync(_indexDataStore.GetOldestDeletedAsync, cancellationToken);
                 Task<int> numReachedMaxedRetry = _backgroundServiceHealthCheckCache.GetOrAddNumExhaustedDeletionAttemptsAsync(
-                    t => indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(_deletedInstanceCleanupConfiguration.MaxRetries, t),
+                    t => _indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(_deletedInstanceCleanupConfiguration.MaxRetries, t),
                     cancellationToken);
 
                 _telemetryClient.GetMetric("Oldest-Requested-Deletion").TrackValue((await oldestWaitingToBeDeleated).ToUnixTimeSeconds());

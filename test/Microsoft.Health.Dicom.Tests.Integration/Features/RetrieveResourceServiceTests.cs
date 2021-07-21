@@ -32,8 +32,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
     public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>, IClassFixture<SqlDataStoreTestsFixture>
     {
         private readonly RetrieveResourceService _retrieveResourceService;
-        private readonly IStoreFactory<IIndexDataStore> _indexDataStoreFactory;
-        private readonly IStoreFactory<IInstanceStore> _instanceStoreFactory;
+        private readonly IIndexDataStore _indexDataStore;
+        private readonly IInstanceStore _instanceStore;
         private readonly IFileStore _fileStore;
         private readonly ITranscoder _retrieveTranscoder;
         private readonly IFrameHandler _frameHandler;
@@ -48,15 +48,15 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         {
             EnsureArg.IsNotNull(sqlIndexStorageFixture, nameof(sqlIndexStorageFixture));
             EnsureArg.IsNotNull(blobStorageFixture, nameof(blobStorageFixture));
-            _instanceStoreFactory = sqlIndexStorageFixture.InstanceStoreFactory;
-            _indexDataStoreFactory = sqlIndexStorageFixture.IndexDataStoreFactory;
+            _instanceStore = sqlIndexStorageFixture.InstanceStore;
+            _indexDataStore = sqlIndexStorageFixture.IndexDataStore;
             _fileStore = blobStorageFixture.FileStore;
             _retrieveTranscoder = Substitute.For<ITranscoder>();
             _frameHandler = Substitute.For<IFrameHandler>();
             _retrieveTransferSyntaxHandler = new RetrieveTransferSyntaxHandler(NullLogger<RetrieveTransferSyntaxHandler>.Instance);
             _recyclableMemoryStreamManager = blobStorageFixture.RecyclableMemoryStreamManager;
             _retrieveResourceService = new RetrieveResourceService(
-                _instanceStoreFactory, _fileStore, _retrieveTranscoder, _frameHandler, _retrieveTransferSyntaxHandler, NullLogger<RetrieveResourceService>.Instance);
+                _instanceStore, _fileStore, _retrieveTranscoder, _frameHandler, _retrieveTransferSyntaxHandler, NullLogger<RetrieveResourceService>.Instance);
         }
 
         [Fact]
@@ -152,8 +152,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 
         private async Task StoreDatasetsAndInstances(DicomDataset dataset, bool flagToStoreInstance)
         {
-            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
-            long version = await indexDataStore.CreateInstanceIndexAsync(dataset);
+            long version = await _indexDataStore.CreateInstanceIndexAsync(dataset);
 
             var versionedInstanceIdentifier = dataset.ToVersionedInstanceIdentifier(version);
 
@@ -172,7 +171,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                     stream);
             }
 
-            await indexDataStore.UpdateInstanceIndexStatusAsync(versionedInstanceIdentifier, IndexStatus.Created);
+            await _indexDataStore.UpdateInstanceIndexStatusAsync(versionedInstanceIdentifier, IndexStatus.Created);
         }
 
         private void ValidateResponseDicomFiles(
