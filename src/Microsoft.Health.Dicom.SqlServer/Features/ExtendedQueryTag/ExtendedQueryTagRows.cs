@@ -9,7 +9,7 @@ using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 {
     /// <summary>
-    /// Represent rows for extended query tag.
+    /// Represent rows for extended query tag index data.
     /// </summary>
     internal class ExtendedQueryTagRows
     {

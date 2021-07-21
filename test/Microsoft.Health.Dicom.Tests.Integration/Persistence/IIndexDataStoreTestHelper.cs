@@ -28,12 +28,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         Task ClearDeletedInstanceTable();
 
         internal Task<IReadOnlyList<ExtendedQueryTagDataRow>> GetExtendedQueryTagDataAsync(
-          ExtendedQueryTagDataType dataType,
-          int tagKey,
-          long studyKey,
-          long? seriesKey = null,
-          long? instanceKey = null,
-          CancellationToken cancellationToken = default);
+            ExtendedQueryTagDataType dataType,
+            int tagKey,
+            long studyKey,
+            long? seriesKey = null,
+            long? instanceKey = null,
+            CancellationToken cancellationToken = default);
 
         internal Task<IReadOnlyList<ExtendedQueryTagDataRow>> GetExtendedQueryTagDataForTagKeyAsync(ExtendedQueryTagDataType dataType, int tagKey, CancellationToken cancellationToken = default);
     }

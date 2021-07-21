@@ -15,7 +15,7 @@ using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 {
     /// <summary>
-    /// Build AddInstanceTableValuedParameters
+    /// Class that build ExtendedQueryTagRows.
     /// </summary>
     internal static class ExtendedQueryTagRowsBuilder
     {
@@ -79,7 +79,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             result.PersonNameRows = personNamRows;
             return result;
         }
-
 
         private static void AddPersonNameRow(DicomDataset instance, List<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNamRows, QueryTag queryTag)
         {

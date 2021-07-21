@@ -42,7 +42,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 var rows = ExtendedQueryTagRowsBuilder.Build(instance, queryTags.Where(tag => tag.IsExtendedQueryTag));
-                // Build parameter for extended query tag.
                 VLatest.ReindexInstanceTableValuedParameters parameters = new VLatest.ReindexInstanceTableValuedParameters(
                     rows.StringRows,
                     rows.LongRows,

@@ -50,7 +50,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             {
                 var rows = ExtendedQueryTagRowsBuilder.Build(instance, queryTags.Where(tag => tag.IsExtendedQueryTag));
 
-                // Build parameter for extended query tag.
                 V2.AddInstanceTableValuedParameters parameters = new V2.AddInstanceTableValuedParameters(
                     rows.StringRows,
                     rows.LongRows,

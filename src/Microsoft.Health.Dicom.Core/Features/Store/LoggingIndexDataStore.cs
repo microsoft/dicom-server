@@ -163,6 +163,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 throw;
             }
         }
+
         /// <inheritdoc />
         public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
@@ -339,6 +340,5 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 throw;
             }
         }
-
     }
 }

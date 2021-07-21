@@ -119,8 +119,7 @@ CREATE OR ALTER PROCEDURE dbo.ReindexInstance
     @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1 READONLY,
     @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
-    SET NOCOUNT ON
-
+    SET NOCOUNT    ON
     SET XACT_ABORT ON
     BEGIN TRANSACTION
 
