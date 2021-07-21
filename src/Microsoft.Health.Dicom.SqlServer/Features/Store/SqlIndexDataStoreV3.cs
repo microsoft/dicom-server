@@ -44,12 +44,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
+                var rows = ExtendedQueryTagRowsBuilder.Build(instance, queryTags.Where(tag => tag.IsExtendedQueryTag));
                 // Build parameter for extended query tag.
-                VLatest.AddInstanceTableValuedParameters parameters = AddInstanceTableValuedParametersBuilder.BuildVLatest(
-                    instance,
-                    queryTags.Where(tag => tag.IsExtendedQueryTag));
+                V3.AddInstanceTableValuedParameters parameters = new V3.AddInstanceTableValuedParameters(
+                    rows.StringRows,
+                    rows.LongRows,
+                    rows.DoubleRows,
+                    rows.DateTimeRows,
+                    rows.PersonNameRows
+                );
 
-                VLatest.AddInstance.PopulateCommand(
+                V3.AddInstance.PopulateCommand(
                     sqlCommandWrapper,
                     instance.GetString(DicomTag.StudyInstanceUID),
                     instance.GetString(DicomTag.SeriesInstanceUID),

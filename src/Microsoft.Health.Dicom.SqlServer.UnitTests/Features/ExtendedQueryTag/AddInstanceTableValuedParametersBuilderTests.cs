@@ -23,25 +23,25 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
             DicomDataset dataset = new DicomDataset();
             dataset.Add(element);
             QueryTag tag = new QueryTag(element.Tag.BuildExtendedQueryTagStoreEntry(vr: element.ValueRepresentation.Code));
-            var parameters = ExtendedQueryTagRowsBuilder.BuildVLatest(dataset, new QueryTag[] { tag });
+            var parameters = ExtendedQueryTagRowsBuilder.Build(dataset, new QueryTag[] { tag });
 
             ExtendedQueryTagDataType dataType = ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[element.ValueRepresentation.Code];
             switch (dataType)
             {
                 case ExtendedQueryTagDataType.StringData:
-                    Assert.Equal(expectedValue, parameters.StringExtendedQueryTags.First().TagValue);
+                    Assert.Equal(expectedValue, parameters.StringRows.First().TagValue);
                     break;
                 case ExtendedQueryTagDataType.LongData:
-                    Assert.Equal(expectedValue, parameters.LongExtendedQueryTags.First().TagValue);
+                    Assert.Equal(expectedValue, parameters.LongRows.First().TagValue);
                     break;
                 case ExtendedQueryTagDataType.DoubleData:
-                    Assert.Equal(expectedValue, parameters.DoubleExtendedQueryTags.First().TagValue);
+                    Assert.Equal(expectedValue, parameters.DoubleRows.First().TagValue);
                     break;
                 case ExtendedQueryTagDataType.DateTimeData:
-                    Assert.Equal(expectedValue, parameters.DateTimeExtendedQueryTags.First().TagValue);
+                    Assert.Equal(expectedValue, parameters.DateTimeRows.First().TagValue);
                     break;
                 case ExtendedQueryTagDataType.PersonNameData:
-                    Assert.Equal(expectedValue, parameters.PersonNameExtendedQueryTags.First().TagValue);
+                    Assert.Equal(expectedValue, parameters.PersonNameRows.First().TagValue);
                     break;
             }
         }

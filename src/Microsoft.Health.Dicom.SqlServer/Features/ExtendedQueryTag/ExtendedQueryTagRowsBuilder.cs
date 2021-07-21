@@ -24,61 +24,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             { DicomVR.DA, Core.Extensions.DicomDatasetExtensions.GetStringDateAsDate },
         };
 
-        private delegate T AddInstanceTableValuedParametersConstructor<T>(
-            IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> stringRows,
-            IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> longRows,
-            IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleRows,
-            IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV1Row> dateTimeRows,
-            IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNameRows);
-
-        /// <summary>
-        /// Build <see cref="VLatest.AddInstanceTableValuedParameters"/>
-        /// </summary>
-        /// <param name="instance">The dicom dataset.</param>
-        /// <param name="queryTags">The index tags.</param>
-        public static VLatest.AddInstanceTableValuedParameters BuildVLatest(
+        public static ExtendedQueryTagRows Build(
             DicomDataset instance,
             IEnumerable<QueryTag> queryTags)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
-
-            return Build(
-                instance,
-                queryTags,
-                (stringRow, longRows, doubleRows, dateTimeRows, personNameRows)
-                    => new VLatest.AddInstanceTableValuedParameters(stringRow, longRows, doubleRows, dateTimeRows, personNameRows));
-        }
-
-        /// <summary>
-        /// Build <see cref="V2.AddInstanceTableValuedParameters"/>
-        /// </summary>
-        /// <param name="instance">The dicom dataset.</param>
-        /// <param name="queryTags">The index tags.</param>
-        public static V2.AddInstanceTableValuedParameters BuildV2(
-            DicomDataset instance,
-            IEnumerable<QueryTag> queryTags)
-        {
-            EnsureArg.IsNotNull(instance, nameof(instance));
-            EnsureArg.IsNotNull(queryTags, nameof(queryTags));
-
-            return Build(
-                instance,
-                queryTags,
-                (stringRow, longRows, doubleRows, dateTimeRows, personNameRows)
-                    => new V2.AddInstanceTableValuedParameters(stringRow, longRows, doubleRows, dateTimeRows, personNameRows));
-        }
-
-        // Make a class for it
-        public static (IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> stringRows,
-            IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> longRows,
-            IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleRows,
-            IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV1Row> dateTimeRows,
-            IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNameRows)
-            Build(
-            DicomDataset instance,
-            IEnumerable<QueryTag> queryTags,)
-        {
+            ExtendedQueryTagRows result = new ExtendedQueryTagRows();
             var stringRows = new List<InsertStringExtendedQueryTagTableTypeV1Row>();
             var longRows = new List<InsertLongExtendedQueryTagTableTypeV1Row>();
             var doubleRows = new List<InsertDoubleExtendedQueryTagTableTypeV1Row>();
@@ -120,58 +72,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                         break;
                 }
             }
-
+            result.StringRows = stringRows;
+            result.LongRows = longRows;
+            result.DoubleRows = doubleRows;
+            result.DateTimeRows = dateTimeRows;
+            result.PersonNameRows = personNamRows;
+            return result;
         }
 
-        private static T Build<T>(
-            DicomDataset instance,
-            IEnumerable<QueryTag> queryTags,
-            AddInstanceTableValuedParametersConstructor<T> factory)
-        {
-            var stringRows = new List<InsertStringExtendedQueryTagTableTypeV1Row>();
-            var longRows = new List<InsertLongExtendedQueryTagTableTypeV1Row>();
-            var doubleRows = new List<InsertDoubleExtendedQueryTagTableTypeV1Row>();
-            var dateTimeRows = new List<InsertDateTimeExtendedQueryTagTableTypeV1Row>();
-            var personNamRows = new List<InsertPersonNameExtendedQueryTagTableTypeV1Row>();
-
-            foreach (var queryTag in queryTags)
-            {
-                ExtendedQueryTagDataType dataType = ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[queryTag.VR.Code];
-                switch (dataType)
-                {
-                    case ExtendedQueryTagDataType.StringData:
-                        AddStringRow(instance, stringRows, queryTag);
-
-                        break;
-
-                    case ExtendedQueryTagDataType.LongData:
-                        AddLongRow(instance, longRows, queryTag);
-
-                        break;
-
-                    case ExtendedQueryTagDataType.DoubleData:
-                        AddDoubleRow(instance, doubleRows, queryTag);
-
-                        break;
-
-                    case ExtendedQueryTagDataType.DateTimeData:
-                        AddDateTimeRow(instance, dateTimeRows, queryTag);
-
-                        break;
-
-                    case ExtendedQueryTagDataType.PersonNameData:
-                        AddPersonNameRow(instance, personNamRows, queryTag);
-
-                        break;
-
-                    default:
-                        Debug.Fail($"Not able to handle {dataType}");
-                        break;
-                }
-            }
-
-            return factory.Invoke(stringRows, longRows, doubleRows, dateTimeRows, personNamRows);
-        }
 
         private static void AddPersonNameRow(DicomDataset instance, List<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNamRows, QueryTag queryTag)
         {

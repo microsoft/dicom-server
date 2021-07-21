@@ -137,7 +137,7 @@ AS
             @instanceKey = InstanceKey,
             @watermark = Watermark,
             @status = Status
-        FROM dbo.Instance WITH (REPEATABLEREAD) 
+        FROM dbo.Instance WITH (HOLDLOCK) 
         WHERE StudyInstanceUid = @studyInstanceUid
             AND SeriesInstanceUid = @seriesInstanceUid
             AND SopInstanceUid = @sopInstanceUid

@@ -16,6 +16,7 @@ using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
+using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 {
@@ -40,17 +41,22 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
+                var rows = ExtendedQueryTagRowsBuilder.Build(instance, queryTags.Where(tag => tag.IsExtendedQueryTag));
                 // Build parameter for extended query tag.
-                var parameters = AddInstanceTableValuedParametersBuilder.BuildVLatest(
-                    instance,
-                    queryTags.Where(tag => tag.IsExtendedQueryTag));
+                VLatest.ReindexInstanceTableValuedParameters parameters = new VLatest.ReindexInstanceTableValuedParameters(
+                    rows.StringRows,
+                    rows.LongRows,
+                    rows.DoubleRows,
+                    rows.DateTimeRows,
+                    rows.PersonNameRows
+                );
 
                 VLatest.ReindexInstance.PopulateCommand(
-                sqlCommandWrapper,
-                instance.GetString(DicomTag.StudyInstanceUID),
-                instance.GetString(DicomTag.SeriesInstanceUID),
-                instance.GetString(DicomTag.SOPInstanceUID),
-                parameters);
+                    sqlCommandWrapper,
+                    instance.GetString(DicomTag.StudyInstanceUID),
+                    instance.GetString(DicomTag.SeriesInstanceUID),
+                    instance.GetString(DicomTag.SOPInstanceUID),
+                    parameters);
 
                 try
                 {
@@ -58,7 +64,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                 }
                 catch (SqlException ex)
                 {
-                    throw new DataStoreException(ex);
+                    throw ex.ErrorCode switch
+                    {
+                        SqlErrorCodes.NotFound => new InstanceNotFoundException(),
+                        SqlErrorCodes.Conflict => new PendingInstanceException(),
+                        _ => new DataStoreException(ex),
+                    };
+
                 }
             }
         }
