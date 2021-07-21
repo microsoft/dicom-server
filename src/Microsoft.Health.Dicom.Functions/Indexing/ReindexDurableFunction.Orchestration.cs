@@ -39,9 +39,12 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             logger = context.CreateReplaySafeLogger(logger);
             ReindexInput input = context.GetInput<ReindexInput>();
 
-            // Determine the set of query tags that should be indexed and only continue if there is at least 1
-            IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags = await context
-                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(nameof(GetQueryTagsAsync), input.QueryTagKeys);
+            // Determine the set of query tags that should be indexed and only continue if there is at least 1.
+            // For the first time this orchestration executes, assign all of the tags in the input to the operation,
+            // otherwise simply fetch the tags from the database for this operation.
+            IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags = input.Completed.Count == 0
+                ? await context.CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(nameof(AssignReindexingOperationAsync), input.QueryTagKeys)
+                : await context.CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(nameof(GetQueryTagsAsync), null);
 
             logger.LogInformation(
                 "Found {Count} extended query tag paths to re-index {{{TagPaths}}}.",
@@ -107,11 +110,8 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             }
             else
             {
-#pragma warning disable DF0108
-                // TODO: Durable Function analyzer incorrectly detects DF0108. Remove when it's resolved
-                end = (await context.CallActivityAsync<long>(nameof(GetMaxInstanceWatermarkAsync), input: null)) + 1;
+                end = (await context.CallActivityAsync<long>(nameof(GetMaxInstanceWatermarkAsync), null)) + 1;
                 logger.LogInformation("Found maximum watermark {Max}.", end - 1);
-#pragma warning restore DF0108
             }
 
             // Note that the watermark sequence starts at 1!

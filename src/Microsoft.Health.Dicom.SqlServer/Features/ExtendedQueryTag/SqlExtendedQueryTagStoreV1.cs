@@ -30,6 +30,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
 
+        public virtual Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsByOperationAsync(string operationId, CancellationToken cancellationToken = default)
+        {
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+        }
+
         public virtual Task DeleteExtendedQueryTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default)
         {
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
@@ -40,7 +45,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
 
-        public virtual Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> ConfirmReindexingAsync(IReadOnlyList<int> queryTagKeys, string operationId, bool includeCompleted = false, CancellationToken cancellationToken = default)
+        public virtual Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AssignReindexingOperationAsync(IReadOnlyList<int> queryTagKeys, string operationId, bool returnIfCompleted = false, CancellationToken cancellationToken = default)
         {
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }

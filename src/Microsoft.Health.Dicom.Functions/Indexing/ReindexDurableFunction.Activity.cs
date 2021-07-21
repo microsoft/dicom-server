@@ -22,11 +22,43 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
     public partial class ReindexDurableFunction
     {
         /// <summary>
-        /// Asynchronously retrieves the query tags that have been associated with the operation.
+        /// Asynchronously assigns the <see cref="IDurableActivityContext.InstanceId"/> to the given tag keys.
         /// </summary>
         /// <remarks>
         /// If the tags were not previously associated with the operation ID, this operation will create the association.
         /// </remarks>
+        /// <param name="context">The context for the activity.</param>
+        /// <param name="logger">A diagnostic logger.</param>
+        /// <returns>
+        /// A task representing the <see cref="AssignReindexingOperationAsync"/> operation.
+        /// The value of its <see cref="Task{TResult}.Result"/> property contains the subset of query tags
+        /// that have been associated the operation.
+        /// </returns>
+        [FunctionName(nameof(AssignReindexingOperationAsync))]
+        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AssignReindexingOperationAsync(
+            [ActivityTrigger] IDurableActivityContext context,
+            ILogger logger)
+        {
+            EnsureArg.IsNotNull(context, nameof(context));
+            EnsureArg.IsNotNull(logger, nameof(logger));
+
+            IReadOnlyList<int> tagKeys = context.GetInput<IReadOnlyList<int>>();
+            logger.LogInformation("Assigning {Count} query tags to operation ID '{OperationId}': {{{TagKeys}}}",
+                tagKeys.Count,
+                context.InstanceId,
+                string.Join(", ", tagKeys));
+
+            IExtendedQueryTagStore extendedQueryTagStore = await _extendedQueryTagStoreFactory.GetInstanceAsync();
+            return await extendedQueryTagStore.AssignReindexingOperationAsync(
+                tagKeys,
+                context.InstanceId,
+                returnIfCompleted: false,
+                cancellationToken: CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Asynchronously retrieves the query tags that have been associated with the operation.
+        /// </summary>
         /// <param name="context">The context for the activity.</param>
         /// <param name="logger">A diagnostic logger.</param>
         /// <returns>
@@ -42,17 +74,13 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            IReadOnlyList<int> tagKeys = context.GetInput<IReadOnlyList<int>>();
-            logger.LogInformation("Fetching {Count} query tags for operation ID '{OperationId}': {{{TagKeys}}}",
-                tagKeys.Count,
-                context.InstanceId,
-                string.Join(", ", tagKeys));
+            logger.LogInformation(
+                "Fetching the extended query tags for operation ID '{OperationId}'.",
+                context.InstanceId);
 
             IExtendedQueryTagStore extendedQueryTagStore = await _extendedQueryTagStoreFactory.GetInstanceAsync();
-            return await extendedQueryTagStore.ConfirmReindexingAsync(
-                tagKeys,
+            return await extendedQueryTagStore.GetExtendedQueryTagsByOperationAsync(
                 context.InstanceId,
-                includeCompleted: false,
                 cancellationToken: CancellationToken.None);
         }
 

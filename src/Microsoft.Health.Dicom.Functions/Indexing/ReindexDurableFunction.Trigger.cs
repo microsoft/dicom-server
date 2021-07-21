@@ -91,10 +91,10 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
 
             // Associate the tags to the operation and confirm their processing
             IExtendedQueryTagStore extendedQueryTagStore = await _extendedQueryTagStoreFactory.GetInstanceAsync(source.Token);
-            IReadOnlyList<ExtendedQueryTagStoreEntry> confirmedTags = await extendedQueryTagStore.ConfirmReindexingAsync(
+            IReadOnlyList<ExtendedQueryTagStoreEntry> confirmedTags = await extendedQueryTagStore.AssignReindexingOperationAsync(
                 extendedQueryTagKeys,
                 instanceId,
-                includeCompleted: true,
+                returnIfCompleted: true,
                 cancellationToken: source.Token);
 
             return confirmedTags.Count == 0

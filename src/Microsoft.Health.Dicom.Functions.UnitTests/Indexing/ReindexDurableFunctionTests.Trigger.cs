@@ -64,10 +64,10 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .Returns(instanceId);
 
             _extendedQueryTagStore
-                .ConfirmReindexingAsync(
+                .AssignReindexingOperationAsync(
                     Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedTagKeys)),
                     instanceId,
-                    includeCompleted: true,
+                    returnIfCompleted: true,
                     cancellationToken: Arg.Any<CancellationToken>())
                 .Returns(new List<ExtendedQueryTagStoreEntry>());
 
@@ -84,10 +84,10 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     Arg.Is<ReindexInput>(x => x.QueryTagKeys.SequenceEqual(expectedTagKeys)));
             await _extendedQueryTagStore
                 .Received(1)
-                .ConfirmReindexingAsync(
+                .AssignReindexingOperationAsync(
                     Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedTagKeys)),
                     instanceId,
-                    includeCompleted: true,
+                    returnIfCompleted: true,
                     cancellationToken: Arg.Any<CancellationToken>());
         }
 
@@ -105,10 +105,10 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .Returns(instanceId);
 
             _extendedQueryTagStore
-                .ConfirmReindexingAsync(
+                .AssignReindexingOperationAsync(
                     Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedTagKeys)),
                     instanceId,
-                    includeCompleted: true,
+                    returnIfCompleted: true,
                     cancellationToken: Arg.Any<CancellationToken>())
                 .Returns(
                     new List<ExtendedQueryTagStoreEntry>
@@ -130,10 +130,10 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     Arg.Is<ReindexInput>(x => x.QueryTagKeys.SequenceEqual(expectedTagKeys)));
             await _extendedQueryTagStore
                 .Received(1)
-                .ConfirmReindexingAsync(
+                .AssignReindexingOperationAsync(
                     Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedTagKeys)),
                     instanceId,
-                    includeCompleted: true,
+                    returnIfCompleted: true,
                     cancellationToken: Arg.Any<CancellationToken>());
         }
 

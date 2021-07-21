@@ -407,7 +407,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath ON dbo.ExtendedQuer
 **************************************************************/
 CREATE TABLE dbo.ExtendedQueryTagOperation (
     TagKey                  INT                  NOT NULL, --PK
-    OperationId             VARCHAR(36)          NOT NULL -- TODO: Use uniqueidentifier
+    OperationId             VARCHAR(32)          NOT NULL -- TODO: Use uniqueidentifier
 )
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagOperation ON dbo.ExtendedQueryTagOperation
@@ -1520,10 +1520,40 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
+--     GetExtendedQueryTagsByOperation
+--
+-- DESCRIPTION
+--     Gets all extended query tags assigned to an operation.
+--
+-- PARAMETERS
+--     @operationId
+--         * The unique ID for the operation.
+--
+-- RETURN VALUE
+--     The set of extended query tags assigned to the operation.
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagsByOperation (
+    @operationId VARCHAR(32)
+)
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    SELECT XQT.*
+    FROM dbo.ExtendedQueryTag AS XQT
+    INNER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
+    WHERE OperationId = @operationId
+END
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
 --     AddExtendedQueryTags
 --
 -- DESCRIPTION
---    Add a list of extended query tags.
+--    Adds a list of extended query tags. If a tag already exists, but it has yet to be assigned to a re-indexing
+--    operation, then its existing row is deleted before the addition.
 --
 -- PARAMETERS
 --     @extendedQueryTags
@@ -1534,7 +1564,7 @@ GO
 --         * Indicates whether the new query tags have been fully indexed
 --
 -- RETURN VALUE
---     The keys for the added tags
+--     The keys for the added tags.
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTags (
     @extendedQueryTags dbo.AddExtendedQueryTagsInputTableType_1 READONLY,
@@ -1550,21 +1580,21 @@ AS
         -- Check if total count exceed @maxCount
         -- HOLDLOCK to prevent adding queryTags from other transactions at same time.
         IF (SELECT COUNT(*)
-            FROM dbo.ExtendedQueryTag WITH(HOLDLOCK)
-            FULL OUTER JOIN @extendedQueryTags input ON dbo.ExtendedQueryTag.TagPath = input.TagPath) > @maxAllowedCount
+            FROM dbo.ExtendedQueryTag AS XQT WITH(HOLDLOCK)
+            FULL OUTER JOIN @extendedQueryTags AS input ON XQT.TagPath = input.TagPath) > @maxAllowedCount
             THROW 50409, 'extended query tags exceed max allowed count', 1
 
         -- Check if tag with same path already exist
-        -- Because the web client may fail between the addition of the tag and the invoking of re-indexing,
-        -- the stored procedure allows tags unassociated with an operation to be overwritten
-        DECLARE @existingTags TABLE(TagKey INT, TagStatus TINYINT, OperationId VARCHAR(36) NULL)
+        -- Because the web client may fail between the addition of the tag and the starting of re-indexing operation,
+        -- the stored procedure allows tags that are not assigned to an operation to be overwritten
+        DECLARE @existingTags TABLE(TagKey INT, TagStatus TINYINT, OperationId VARCHAR(32) NULL)
 
         INSERT INTO @existingTags
             (TagKey, TagStatus, OperationId)
-        SELECT dbo.ExtendedQueryTag.TagKey, TagStatus, OperationId
-        FROM dbo.ExtendedQueryTag
-        INNER JOIN @extendedQueryTags input ON input.TagPath = dbo.ExtendedQueryTag.TagPath
-        LEFT OUTER JOIN dbo.ExtendedQueryTagOperation ON dbo.ExtendedQueryTag.TagKey = dbo.ExtendedQueryTagOperation.TagKey
+        SELECT XQT.TagKey, TagStatus, OperationId
+        FROM dbo.ExtendedQueryTag AS XQT
+        INNER JOIN @extendedQueryTags AS input ON input.TagPath = XQT.TagPath
+        LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
 
         IF EXISTS(SELECT 1 FROM @existingTags WHERE TagStatus <> 0 OR (TagStatus = 0 AND OperationId IS NOT NULL))
             THROW 50409, 'extended query tag(s) already exist', 2
@@ -1572,8 +1602,8 @@ AS
         -- Delete any "pending" tags whose operation has yet to be assigned
         DELETE XQT
         FROM dbo.ExtendedQueryTag AS XQT
-        INNER JOIN @existingTags AS ET
-        ON XQT.TagKey = ET.TagKey
+        INNER JOIN @existingTags AS et
+        ON XQT.TagKey = et.TagKey
 
         -- Add the new tags with the given status
         INSERT INTO dbo.ExtendedQueryTag
@@ -1653,26 +1683,26 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     ConfirmReindexing
+--     AssignReindexingOperation
 --
 -- DESCRIPTION
---    Confirms that the set of tag keys are associated with the given operation
+--    Assigns the given operation ID to the set of extended query tags, if possible.
 --
 -- PARAMETERS
 --     @extendedQueryTagKeys
 --         * The list of extended query tag keys
 --     @operationId
 --         * The ID for the re-indexing operation
---     @includeCompleted
---         * Indicates whether completed tags should be returned
+--     @returnIfCompleted
+--         * Indicates whether completed tags should also be returned
 --
 -- RETURN VALUE
---     The subset of the given tags which are associated with the operation, and possibly those that have completed indexing
+--     The subset of keys whose operation was successfully assigned.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.ConfirmReindexing (
+CREATE OR ALTER PROCEDURE dbo.AssignReindexingOperation (
     @extendedQueryTagKeys dbo.ExtendedQueryTagKeyTableType_1 READONLY,
-    @operationId VARCHAR(36),
-    @includeCompleted BIT = 0
+    @operationId VARCHAR(32),
+    @returnIfCompleted BIT = 0
 )
 AS
     SET NOCOUNT     ON
@@ -1680,28 +1710,24 @@ AS
 
     BEGIN TRANSACTION
 
-        MERGE INTO dbo.ExtendedQueryTagOperation AS O
+        MERGE INTO dbo.ExtendedQueryTagOperation AS XQTO
         USING
         (
             SELECT input.TagKey
-            FROM @extendedQueryTagKeys input
-            INNER JOIN dbo.ExtendedQueryTag WITH(HOLDLOCK)
-            ON input.TagKey = dbo.ExtendedQueryTag.TagKey
-            WHERE dbo.ExtendedQueryTag.TagStatus = 0
-        ) AS T
-        ON O.TagKey = T.TagKey
+            FROM @extendedQueryTagKeys AS input
+            INNER JOIN dbo.ExtendedQueryTag AS XQT WITH(HOLDLOCK) ON input.TagKey = XQT.TagKey
+            WHERE TagStatus = 0
+        ) AS tags
+        ON XQTO.TagKey = tags.TagKey
         WHEN NOT MATCHED THEN
             INSERT (TagKey, OperationId)
-            VALUES (T.TagKey, @operationId);
+            VALUES (tags.TagKey, @operationId);
 
-        SELECT dbo.ExtendedQueryTag.*
-        FROM @extendedQueryTagKeys input
-        INNER JOIN dbo.ExtendedQueryTag WITH(HOLDLOCK)
-        ON input.TagKey = dbo.ExtendedQueryTag.TagKey
-        LEFT OUTER JOIN dbo.ExtendedQueryTagOperation WITH(HOLDLOCK)
-        ON dbo.ExtendedQueryTag.TagKey = dbo.ExtendedQueryTagOperation.TagKey
-        WHERE (@includeCompleted = 1 AND dbo.ExtendedQueryTag.TagStatus = 1)
-            OR (dbo.ExtendedQueryTagOperation.OperationId = @operationId AND dbo.ExtendedQueryTag.TagStatus = 0)
+        SELECT XQT.*
+        FROM @extendedQueryTagKeys AS input
+        INNER JOIN dbo.ExtendedQueryTag AS XQT WITH(HOLDLOCK) ON input.TagKey = XQT.TagKey
+        LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO WITH(HOLDLOCK) ON XQT.TagKey = XQTO.TagKey
+        WHERE (@returnIfCompleted = 1 AND TagStatus = 1) OR (OperationId = @operationId AND TagStatus = 0)
 
     COMMIT TRANSACTION
 GO
@@ -1738,18 +1764,15 @@ AS
         OUTPUT INSERTED.TagKey
         INTO @updatedKeys
         FROM dbo.ExtendedQueryTag AS XQT
-        INNER JOIN @extendedQueryTagKeys input
-        ON XQT.TagKey = input.TagKey
-        INNER JOIN dbo.ExtendedQueryTagOperation AS XQTO
-        ON input.TagKey = XQTO.TagKey
-        WHERE XQT.TagStatus = 0
+        INNER JOIN @extendedQueryTagKeys AS input ON XQT.TagKey = input.TagKey
+        INNER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON input.TagKey = XQTO.TagKey
+        WHERE TagStatus = 0
 
         -- Delete their corresponding operations
         DELETE XQTO
         OUTPUT DELETED.TagKey
         FROM dbo.ExtendedQueryTagOperation AS XQTO
-        INNER JOIN @updatedKeys AS K
-        ON XQTO.TagKey = K.TagKey
+        INNER JOIN @updatedKeys AS uk ON XQTO.TagKey = uk.TagKey
 
     COMMIT TRANSACTION
 GO

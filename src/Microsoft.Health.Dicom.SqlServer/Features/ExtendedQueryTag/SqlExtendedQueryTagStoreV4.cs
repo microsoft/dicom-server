@@ -8,6 +8,7 @@ using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using EnsureThat;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -30,12 +31,46 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         public override SchemaVersion Version => SchemaVersion.V4;
 
+        public override async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsByOperationAsync(string operationId, CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(operationId, nameof(operationId));
+
+            var results = new List<ExtendedQueryTagStoreEntry>();
+
+            using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.GetExtendedQueryTagsByOperation.PopulateCommand(sqlCommandWrapper, operationId);
+
+                using (SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                {
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus) = reader.ReadRow(
+                            VLatest.ExtendedQueryTag.TagKey,
+                            VLatest.ExtendedQueryTag.TagPath,
+                            VLatest.ExtendedQueryTag.TagVR,
+                            VLatest.ExtendedQueryTag.TagPrivateCreator,
+                            VLatest.ExtendedQueryTag.TagLevel,
+                            VLatest.ExtendedQueryTag.TagStatus);
+
+                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus));
+                    }
+                }
+            }
+
+            return results;
+        }
+
         public override async Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(
             IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries,
             int maxAllowedCount,
             bool ready = false,
             CancellationToken cancellationToken = default)
         {
+            EnsureArg.IsNotNull(extendedQueryTagEntries, nameof(extendedQueryTagEntries));
+            EnsureArg.IsGt(maxAllowedCount, 0, nameof(maxAllowedCount));
+
             using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
             using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
 
@@ -65,17 +100,20 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             }
         }
 
-        public override async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> ConfirmReindexingAsync(
+        public override async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AssignReindexingOperationAsync(
             IReadOnlyList<int> queryTagKeys,
             string operationId,
-            bool includeCompleted = false,
+            bool returnIfCompleted = false,
             CancellationToken cancellationToken = default)
         {
+            EnsureArg.HasItems(queryTagKeys, nameof(queryTagKeys));
+            EnsureArg.IsNotNullOrWhiteSpace(operationId, nameof(operationId));
+
             using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
             using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
 
             IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> rows = queryTagKeys.Select(x => new ExtendedQueryTagKeyTableTypeV1Row(x));
-            VLatest.ConfirmReindexing.PopulateCommand(sqlCommandWrapper, rows, operationId, includeCompleted);
+            VLatest.AssignReindexingOperation.PopulateCommand(sqlCommandWrapper, rows, operationId, returnIfCompleted);
 
             try
             {
@@ -110,6 +148,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         public override async Task<IReadOnlyList<int>> CompleteReindexingAsync(IReadOnlyList<int> queryTagKeys, CancellationToken cancellationToken = default)
         {
+            EnsureArg.HasItems(queryTagKeys, nameof(queryTagKeys));
+
             using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
             using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
 

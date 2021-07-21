@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .Returns(expectedInput);
             context
                 .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
-                    nameof(ReindexDurableFunction.GetQueryTagsAsync),
+                    nameof(ReindexDurableFunction.AssignReindexingOperationAsync),
                     expectedInput.QueryTagKeys)
                 .Returns(expectedTags);
             context
@@ -65,8 +65,13 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             await context
                 .Received(1)
                 .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
-                    nameof(ReindexDurableFunction.GetQueryTagsAsync),
+                    nameof(ReindexDurableFunction.AssignReindexingOperationAsync),
                     expectedInput.QueryTagKeys);
+            await context
+                .DidNotReceive()
+                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                    nameof(ReindexDurableFunction.GetQueryTagsAsync),
+                    Arg.Any<object>());
             await context
                 .Received(1)
                 .CallActivityAsync<long>(nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync), input: null);
@@ -89,7 +94,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .DidNotReceive()
                 .CallActivityAsync<IReadOnlyList<int>>(
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
-                    Arg.Any<IReadOnlyList<int>>());
+                    Arg.Any<object>());
             context
                 .Received(1)
                 .ContinueAsNew(
@@ -124,7 +129,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             context
                 .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.GetQueryTagsAsync),
-                    expectedInput.QueryTagKeys)
+                    input: null)
                 .Returns(expectedTags);
             context
                 .CallActivityAsync(
@@ -140,13 +145,18 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .Received(1)
                 .GetInput<ReindexInput>();
             await context
+                .DidNotReceive()
+                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                    nameof(ReindexDurableFunction.AssignReindexingOperationAsync),
+                    Arg.Any<object>());
+            await context
                 .Received(1)
                 .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.GetQueryTagsAsync),
-                    expectedInput.QueryTagKeys);
+                    input: null);
             await context
                 .DidNotReceive()
-                .CallActivityAsync<long>(nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync), input: null);
+                .CallActivityAsync<long>(nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync), Arg.Any<object>());
             await context
                 .Received(1)
                 .CallActivityAsync(
@@ -161,7 +171,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .DidNotReceive()
                 .CallActivityAsync<IReadOnlyList<int>>(
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
-                    Arg.Any<IReadOnlyList<int>>());
+                    Arg.Any<object>());
             context
                 .Received(1)
                 .ContinueAsNew(
@@ -187,7 +197,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .Returns(expectedInput);
             context
                 .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
-                    nameof(ReindexDurableFunction.GetQueryTagsAsync),
+                    nameof(ReindexDurableFunction.AssignReindexingOperationAsync),
                     expectedInput.QueryTagKeys)
                 .Returns(expectedTags);
             context
@@ -209,8 +219,13 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             await context
                 .Received(1)
                 .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
-                    nameof(ReindexDurableFunction.GetQueryTagsAsync),
+                    nameof(ReindexDurableFunction.AssignReindexingOperationAsync),
                     expectedInput.QueryTagKeys);
+            await context
+                .DidNotReceive()
+                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                    nameof(ReindexDurableFunction.GetQueryTagsAsync),
+                    Arg.Any<object>());
             await context
                 .Received(1)
                 .CallActivityAsync<long>(nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync), input: null);
@@ -218,7 +233,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .DidNotReceive()
                 .CallActivityAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
-                    Arg.Any<ReindexInput>());
+                    Arg.Any<object>());
             await context
                 .Received(1)
                 .CallActivityAsync<IReadOnlyList<int>>(
@@ -252,7 +267,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             context
                 .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.GetQueryTagsAsync),
-                    expectedInput.QueryTagKeys)
+                    input: null)
                 .Returns(expectedTags);
             context
                 .CallActivityAsync<IReadOnlyList<int>>(
@@ -268,18 +283,23 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .Received(1)
                 .GetInput<ReindexInput>();
             await context
+                .DidNotReceive()
+                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                    nameof(ReindexDurableFunction.AssignReindexingOperationAsync),
+                    Arg.Any<object>());
+            await context
                 .Received(1)
                 .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.GetQueryTagsAsync),
-                    expectedInput.QueryTagKeys);
+                    input: null);
             await context
                 .DidNotReceive()
-                .CallActivityAsync<long>(nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync), input: null);
+                .CallActivityAsync<long>(nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync), Arg.Any<object>());
             await context
                 .DidNotReceive()
                 .CallActivityAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
-                    Arg.Any<ReindexInput>());
+                    Arg.Any<object>());
             await context
                 .Received(1)
                 .CallActivityAsync<IReadOnlyList<int>>(
@@ -303,7 +323,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .Returns(expectedInput);
             context
                 .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
-                    nameof(ReindexDurableFunction.GetQueryTagsAsync),
+                    nameof(ReindexDurableFunction.AssignReindexingOperationAsync),
                     expectedInput.QueryTagKeys)
                 .Returns(expectedTags);
 
@@ -317,21 +337,26 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             await context
                 .Received(1)
                 .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
-                    nameof(ReindexDurableFunction.GetQueryTagsAsync),
+                    nameof(ReindexDurableFunction.AssignReindexingOperationAsync),
                     expectedInput.QueryTagKeys);
             await context
                 .DidNotReceive()
-                .CallActivityAsync<long>(nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync), input: null);
+                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                    nameof(ReindexDurableFunction.GetQueryTagsAsync),
+                    Arg.Any<object>());
+            await context
+                .DidNotReceive()
+                .CallActivityAsync<long>(nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync), Arg.Any<object>());
             await context
                 .DidNotReceive()
                 .CallActivityAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
-                    Arg.Any<ReindexInput>());
+                    Arg.Any<object>());
             await context
                 .DidNotReceive()
                 .CallActivityAsync<IReadOnlyList<int>>(
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
-                    Arg.Any<IReadOnlyList<int>>());
+                    Arg.Any<object>());
             context
                 .DidNotReceiveWithAnyArgs()
                 .ContinueAsNew(default, default);

@@ -52,6 +52,25 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(IReadOnlyList<int> tagKeys, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Asynchronously gets extended query tags assigned to the <paramref name="operationId"/>.
+        /// </summary>
+        /// <param name="operationId">The unique ID for the re-indexing operation.</param>
+        /// <param name="cancellationToken">
+        /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
+        /// </param>
+        /// <returns>
+        /// A task representing the <see cref="GetExtendedQueryTagsByOperationAsync"/> operation.
+        /// The value of its <see cref="Task{TResult}.Result"/> property contains the set of query tags assigned
+        /// to the <paramref name="operationId"/>.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="operationId"/> is empty or consists of white space characters.
+        /// </exception>
+        /// <exception cref="ArgumentNullException"><paramref name="operationId"/> is <see langword="null"/>.</exception>
+        /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+        Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsByOperationAsync(string operationId, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Asynchronously deletes extended query tag.
         /// </summary>
         /// <param name="tagPath">The tag path.</param>
@@ -61,22 +80,18 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         Task DeleteExtendedQueryTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Asynchronously confirms that the given tag keys are associated with the given re-indexing operation.
+        /// Asynchronously assigns the given <paramref name="operationId"/> to the given tag keys.
         /// </summary>
-        /// <remarks>
-        /// If the tags were not previously associated with the <paramref name="operationId"/>,
-        /// this operation will create the association.
-        /// </remarks>
         /// <param name="queryTagKeys">The keys for the extended query tags.</param>
         /// <param name="operationId">The unique ID for the re-indexing operation.</param>
-        /// <param name="includeCompleted">Indicates whether completed tags should be returned.</param>
+        /// <param name="returnIfCompleted">Indicates whether completed tags should also be returned.</param>
         /// <param name="cancellationToken">
         /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
         /// </param>
         /// <returns>
-        /// A task representing the <see cref="ConfirmReindexingAsync"/> operation.
-        /// The value of its <see cref="Task{TResult}.Result"/> property contains the subset of query tags associated with
-        /// the specified <paramref name="operationId"/>.
+        /// A task representing the <see cref="AssignReindexingOperationAsync"/> operation.
+        /// The value of its <see cref="Task{TResult}.Result"/> property contains the subset of query tags that were
+        /// successfully assigned to the <paramref name="operationId"/>.
         /// </returns>
         /// <exception cref="ArgumentException">
         /// <para><paramref name="queryTagKeys"/> is empty.</para>
@@ -85,10 +100,10 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// </exception>
         /// <exception cref="ArgumentNullException"><paramref name="queryTagKeys"/> or <paramref name="operationId"/> is <see langword="null"/>.</exception>
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-        Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> ConfirmReindexingAsync(
+        Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AssignReindexingOperationAsync(
             IReadOnlyList<int> queryTagKeys,
             string operationId,
-            bool includeCompleted = false,
+            bool returnIfCompleted = false,
             CancellationToken cancellationToken = default);
 
         /// <summary>

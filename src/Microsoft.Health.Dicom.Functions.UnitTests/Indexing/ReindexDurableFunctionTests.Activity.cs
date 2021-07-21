@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
     public partial class ReindexDurableFunctionTests
     {
         [Fact]
-        public async Task GivenTagKeys_WhenGettingQueryTagsForReindexing_ThenShouldPassArguments()
+        public async Task GivenTagKeys_WhenAssigningReindexingOperation_ThenShouldPassArguments()
         {
             string operationId = Guid.NewGuid().ToString();
             var expectedInput = new List<int> { 1, 2, 3, 4, 5 };
@@ -38,7 +38,37 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             context.GetInput<IReadOnlyList<int>>().Returns(expectedInput);
 
             _extendedQueryTagStore
-                .ConfirmReindexingAsync(expectedInput, operationId, false, CancellationToken.None)
+                .AssignReindexingOperationAsync(expectedInput, operationId, false, CancellationToken.None)
+                .Returns(expectedOutput);
+
+            // Call the activity
+            IReadOnlyList<ExtendedQueryTagStoreEntry> actual = await _reindexDurableFunction.AssignReindexingOperationAsync(
+                context,
+                NullLogger.Instance);
+
+            // Assert behavior
+            Assert.Same(expectedOutput, actual);
+            context.Received(1).GetInput<IReadOnlyList<int>>();
+            await _extendedQueryTagStore
+                .Received(1)
+                .AssignReindexingOperationAsync(expectedInput, operationId, false, CancellationToken.None);
+        }
+
+        [Fact]
+        public async Task GivenTagKeys_WhenGettingExtentendedQueryTags_ThenShouldPassArguments()
+        {
+            string operationId = Guid.NewGuid().ToString();
+            var expectedOutput = new List<ExtendedQueryTagStoreEntry>
+            {
+                new ExtendedQueryTagStoreEntry(1, "01010101", "AS", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding)
+            };
+
+            // Arrange input
+            IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
+            context.InstanceId.Returns(operationId);
+
+            _extendedQueryTagStore
+                .GetExtendedQueryTagsByOperationAsync(operationId, CancellationToken.None)
                 .Returns(expectedOutput);
 
             // Call the activity
@@ -48,10 +78,9 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
 
             // Assert behavior
             Assert.Same(expectedOutput, actual);
-            context.Received(1).GetInput<IReadOnlyList<int>>();
             await _extendedQueryTagStore
                 .Received(1)
-                .ConfirmReindexingAsync(expectedInput, operationId, false, CancellationToken.None);
+                .GetExtendedQueryTagsByOperationAsync(operationId, CancellationToken.None);
         }
 
         [Fact]
