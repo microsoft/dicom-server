@@ -22,12 +22,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
     public class InstanceReindexer : IInstanceReindexer
     {
         private readonly IMetadataStore _metadataStore;
-        private readonly IStoreFactory<IIndexDataStore> _indexDataStoreFactory;
+        private readonly IIndexDataStore _indexDataStore;
 
-        public InstanceReindexer(IMetadataStore metadataStore, IStoreFactory<IIndexDataStore> indexDataStoreFactory)
+        public InstanceReindexer(IMetadataStore metadataStore, IIndexDataStore indexDataStore)
         {
             _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
-            _indexDataStoreFactory = EnsureArg.IsNotNull(indexDataStoreFactory, nameof(indexDataStoreFactory));
+            _indexDataStore = EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
         }
 
         public async Task ReindexInstanceAsync(IReadOnlyCollection<ExtendedQueryTagStoreEntry> entries, VersionedInstanceIdentifier versionedInstanceId, CancellationToken cancellationToken)
@@ -35,8 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
             EnsureArg.IsNotNull(entries, nameof(entries));
             EnsureArg.IsNotNull(versionedInstanceId, nameof(versionedInstanceId));
             DicomDataset dataset = await _metadataStore.GetInstanceMetadataAsync(versionedInstanceId, cancellationToken);
-            var indexDataStore = await _indexDataStoreFactory.GetInstanceAsync(cancellationToken);
-            await indexDataStore.ReindexInstanceAsync(dataset, entries.Select(x => new QueryTag(x)), cancellationToken);
+            await _indexDataStore.ReindexInstanceAsync(dataset, entries.Select(x => new QueryTag(x)), cancellationToken);
         }
     }
 }

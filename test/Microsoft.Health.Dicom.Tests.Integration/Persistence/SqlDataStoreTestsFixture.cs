@@ -132,10 +132,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public IExtendedQueryTagStore ExtendedQueryTagStore { get; }
 
         public SchemaUpgradeRunner SchemaUpgradeRunner { get; }
-
         public string TestConnectionString { get; }
-
-        public IStoreFactory<IExtendedQueryTagStore> ExtendedQueryTagStoreFactory { get; }
 
         public IIndexDataStoreTestHelper TestHelper { get; }
 

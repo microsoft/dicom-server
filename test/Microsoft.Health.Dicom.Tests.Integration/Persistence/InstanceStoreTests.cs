@@ -7,7 +7,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -25,22 +26,18 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     /// </summary>
     public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
     {
-        private readonly IStoreFactory<IInstanceStore> _instanceStoreFactory;
-        private readonly IStoreFactory<IIndexDataStore> _indexDataStoreFactory;
-        private readonly IStoreFactory<IExtendedQueryTagStore> _extendedQueryTagStoreFactory;
-        private readonly IIndexDataStoreTestHelper _indexDataStoreTestHelper;
         private readonly IInstanceStore _instanceStore;
         private readonly IIndexDataStore _indexDataStore;
+        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
+        private readonly IIndexDataStoreTestHelper _indexDataStoreTestHelper;
 
         public InstanceStoreTests(SqlDataStoreTestsFixture fixture)
         {
-            EnsureArg.IsNotNull(fixture?.InstanceStoreFactory, nameof(fixture.InstanceStoreFactory));
-            EnsureArg.IsNotNull(fixture?.IndexDataStoreFactory, nameof(fixture.IndexDataStoreFactory));
-            EnsureArg.IsNotNull(fixture?.ExtendedQueryTagStoreFactory, nameof(fixture.ExtendedQueryTagStoreFactory));
+            EnsureArg.IsNotNull(fixture?.ExtendedQueryTagStore, nameof(fixture.ExtendedQueryTagStore));
             EnsureArg.IsNotNull(fixture?.TestHelper, nameof(fixture.TestHelper));
-            _instanceStoreFactory = fixture.InstanceStoreFactory;
-            _indexDataStoreFactory = fixture.IndexDataStoreFactory;
-            _extendedQueryTagStoreFactory = fixture.ExtendedQueryTagStoreFactory;
+            _instanceStore = fixture.InstanceStore;
+            _indexDataStore = fixture.IndexDataStore;
+            _extendedQueryTagStore = fixture.ExtendedQueryTagStore;
             _indexDataStoreTestHelper = fixture.TestHelper;
             EnsureArg.IsNotNull(fixture?.InstanceStore, nameof(fixture.InstanceStore));
             EnsureArg.IsNotNull(fixture?.IndexDataStore, nameof(fixture.IndexDataStore));
@@ -64,8 +61,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenStudyTag_WhenReindexWithNewInstance_ThenTagValueShouldBeUpdated()
         {
-            var indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
-
             DicomTag tag = DicomTag.DeviceSerialNumber;
             string tagValue1 = "test1";
             string tagValue2 = "test2";
@@ -82,8 +77,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Study));
             QueryTag queryTag = new QueryTag(tagStoreEntry);
 
-            await indexDataStore.ReindexInstanceAsync(dataset1, new[] { queryTag });
-            await indexDataStore.ReindexInstanceAsync(dataset2, new[] { queryTag });
+            await _indexDataStore.ReindexInstanceAsync(dataset1, new[] { queryTag });
+            await _indexDataStore.ReindexInstanceAsync(dataset2, new[] { queryTag });
 
             var row = (await _indexDataStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, null, null)).First();
             Assert.Equal(tagValue2, row.TagValue);
@@ -92,8 +87,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenSeriesTag_WhenReindexWithOldInstance_ThenTagValueShouldNotBeUpdated()
         {
-            var indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
-
             DicomTag tag = DicomTag.AcquisitionDeviceProcessingCode;
             string tagValue1 = "test1";
             string tagValue2 = "test2";
@@ -111,8 +104,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Series));
             QueryTag queryTag = new QueryTag(tagStoreEntry);
 
-            await indexDataStore.ReindexInstanceAsync(dataset2, new[] { queryTag });
-            await indexDataStore.ReindexInstanceAsync(dataset1, new[] { queryTag });
+            await _indexDataStore.ReindexInstanceAsync(dataset2, new[] { queryTag });
+            await _indexDataStore.ReindexInstanceAsync(dataset1, new[] { queryTag });
 
             var row = (await _indexDataStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, null)).First();
             Assert.Equal(tagValue2, row.TagValue);
@@ -121,8 +114,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenInstanceTag_WhenReindexWithNotIndexedInstance_ThenTagValueShouldBeInserted()
         {
-            var indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
-
             DicomTag tag = DicomTag.AcquisitionDeviceProcessingDescription;
             string tagValue = "test";
 
@@ -133,7 +124,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Instance));
 
-            await indexDataStore.ReindexInstanceAsync(dataset, new[] { new QueryTag(tagStoreEntry) });
+            await _indexDataStore.ReindexInstanceAsync(dataset, new[] { new QueryTag(tagStoreEntry) });
 
             var row = (await _indexDataStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance.StudyKey, instance.SeriesKey, instance.InstanceKey)).First();
             Assert.Equal(tagValue, row.TagValue);
@@ -142,9 +133,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenInstanceTag_WhenReindexWithIndexedInstance_ThenTagValueShouldNotBeUpdated()
         {
-            var tagStore = await _extendedQueryTagStoreFactory.GetInstanceAsync();
-            var indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
-
             DicomTag tag = DicomTag.DeviceLabel;
             string tagValue = "test";
             var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Instance));
@@ -153,7 +141,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             dataset.Add(tag, tagValue);
             var instance = await CreateInstanceIndexAsync(dataset, IndexStatus.Created);
 
-            await indexDataStore.ReindexInstanceAsync(dataset, new[] { new QueryTag(tagStoreEntry) });
+            await _indexDataStore.ReindexInstanceAsync(dataset, new[] { new QueryTag(tagStoreEntry) });
 
             var row = (await _indexDataStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance.StudyKey, instance.SeriesKey, instance.InstanceKey)).First();
             Assert.Equal(tagValue, row.TagValue);
@@ -163,49 +151,41 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenInstanceNotExist_WhenReindex_ThenShouldThrowException()
         {
-            var tagStore = await _extendedQueryTagStoreFactory.GetInstanceAsync();
-            var indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
-
             DicomTag tag = DicomTag.DeviceID;
             var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Instance));
 
             DicomDataset dataset = Samples.CreateRandomInstanceDataset();
-            await Assert.ThrowsAsync<InstanceNotFoundException>(() => indexDataStore.ReindexInstanceAsync(dataset, new[] { new QueryTag(tagStoreEntry) }));
+            await Assert.ThrowsAsync<InstanceNotFoundException>(() => _indexDataStore.ReindexInstanceAsync(dataset, new[] { new QueryTag(tagStoreEntry) }));
         }
 
         [Fact]
         public async Task GivenPendingInstance_WhenReindex_ThenShouldThrowException()
         {
-            var tagStore = await _extendedQueryTagStoreFactory.GetInstanceAsync();
-            var indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
-
             DicomTag tag = DicomTag.DeviceDescription;
             var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Instance));
 
             DicomDataset dataset = Samples.CreateRandomInstanceDataset();
 
             await CreateInstanceIndexAsync(dataset, IndexStatus.Creating);
-            await Assert.ThrowsAsync<PendingInstanceException>(() => indexDataStore.ReindexInstanceAsync(dataset, new[] { new QueryTag(tagStoreEntry) }));
+            await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.ReindexInstanceAsync(dataset, new[] { new QueryTag(tagStoreEntry) }));
         }
 
 
         private async Task<ExtendedQueryTagStoreEntry> AddExtendedQueryTagAsync(AddExtendedQueryTagEntry addExtendedQueryTagEntry)
         {
-            var tagStore = await _extendedQueryTagStoreFactory.GetInstanceAsync();
-            await tagStore.AddExtendedQueryTagsAsync(new[] { addExtendedQueryTagEntry }, 128);
-            return (await tagStore.GetExtendedQueryTagsAsync(path: addExtendedQueryTagEntry.Path)).First();
+            await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new[] { addExtendedQueryTagEntry }, 128);
+            return (await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: addExtendedQueryTagEntry.Path)).First();
         }
 
         private async Task<Instance> CreateInstanceIndexAsync(DicomDataset dataset, IndexStatus indexStatus)
         {
-            var indexDataStore = await _indexDataStoreFactory.GetInstanceAsync();
             string studyUid = dataset.GetString(DicomTag.StudyInstanceUID);
             string seriesUid = dataset.GetString(DicomTag.SeriesInstanceUID);
             string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
-            long watermark = await indexDataStore.CreateInstanceIndexAsync(dataset);
+            long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset);
             if (indexStatus != IndexStatus.Creating)
             {
-                await indexDataStore.UpdateInstanceIndexStatusAsync(new VersionedInstanceIdentifier(studyUid, seriesUid, sopInstanceUid, watermark), IndexStatus.Created);
+                await _indexDataStore.UpdateInstanceIndexStatusAsync(new VersionedInstanceIdentifier(studyUid, seriesUid, sopInstanceUid, watermark), IndexStatus.Created);
             }
 
             return await _indexDataStoreTestHelper.GetInstanceAsync(studyUid, seriesUid, sopInstanceUid, watermark);
