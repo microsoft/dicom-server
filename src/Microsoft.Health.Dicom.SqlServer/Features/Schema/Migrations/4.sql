@@ -415,6 +415,16 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagOperation ON dbo.ExtendedQuery
     TagKey
 )
 
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagOperation_OperationId ON dbo.ExtendedQueryTagOperation
+(
+    OperationId
+)
+INCLUDE
+(
+    TagKey
+)
+
 /*************************************************************
     Extended Query Tag Data Table for VR Types mapping to String
     Note: Watermark is primarily used while re-indexing to determine which TagValue is latest.

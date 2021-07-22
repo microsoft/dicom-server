@@ -29,6 +29,21 @@ BEGIN
         TagKey
     )
 END
+
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.indexes 
+    WHERE name='IX_ExtendedQueryTagOperation_OperationId' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagOperation'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagOperation_OperationId ON dbo.ExtendedQueryTagOperation
+    (
+        OperationId
+    )
+    INCLUDE
+    (
+        TagKey
+    )
+END
 GO
 
 /*************************************************************

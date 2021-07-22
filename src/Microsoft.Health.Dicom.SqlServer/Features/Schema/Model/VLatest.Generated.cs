@@ -148,6 +148,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly IntColumn TagKey = new IntColumn("TagKey");
             internal readonly VarCharColumn OperationId = new VarCharColumn("OperationId", 32);
             internal readonly Index IXC_ExtendedQueryTagOperation = new Index("IXC_ExtendedQueryTagOperation");
+            internal readonly Index IX_ExtendedQueryTagOperation_OperationId = new Index("IX_ExtendedQueryTagOperation_OperationId");
         }
 
         internal class ExtendedQueryTagPersonNameTable : Table
