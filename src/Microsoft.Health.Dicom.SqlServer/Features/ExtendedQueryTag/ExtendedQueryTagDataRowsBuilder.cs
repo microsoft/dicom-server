@@ -17,20 +17,20 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
     /// <summary>
     /// Class that build ExtendedQueryTagRows.
     /// </summary>
-    internal static class ExtendedQueryTagRowsBuilder
+    internal static class ExtendedQueryTagDataRowsBuilder
     {
         private static readonly Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, DateTime?>> DataTimeReaders = new Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, DateTime?>>()
         {
             { DicomVR.DA, Core.Extensions.DicomDatasetExtensions.GetStringDateAsDate },
         };
 
-        public static ExtendedQueryTagRows Build(
+        public static ExtendedQueryTagDataRows Build(
             DicomDataset instance,
             IEnumerable<QueryTag> queryTags)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
-            ExtendedQueryTagRows result = new ExtendedQueryTagRows();
+            ExtendedQueryTagDataRows result = new ExtendedQueryTagDataRows();
             var stringRows = new List<InsertStringExtendedQueryTagTableTypeV1Row>();
             var longRows = new List<InsertLongExtendedQueryTagTableTypeV1Row>();
             var doubleRows = new List<InsertDoubleExtendedQueryTagTableTypeV1Row>();

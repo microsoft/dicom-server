@@ -159,8 +159,8 @@ AS
                 FROM @stringExtendedQueryTags input
                 INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD) 
                 ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                -- Not merge on extended query tag which is being deleted.
-                AND dbo.ExtendedQueryTag.TagStatus <> 2     
+                -- Only merge on extended query tag which is being adding.
+                AND dbo.ExtendedQueryTag.TagStatus = 0     
             ) AS S
             ON T.TagKey = S.TagKey        
                 AND T.StudyKey = @studyKey
@@ -173,15 +173,17 @@ AS
                 UPDATE SET T.Watermark = IIF(@watermark > T.Watermark, @watermark, T.Watermark), T.TagValue = IIF(@watermark > T.Watermark, S.TagValue, T.TagValue)
             WHEN NOT MATCHED THEN 
                 INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
-                VALUES(
-                S.TagKey,
-                S.TagValue,
-                @studyKey,
-                -- When TagLevel is not Study, we should fill SeriesKey
-                (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
-                -- When TagLevel is Instance, we should fill InstanceKey
-                (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
-                @watermark);        
+                VALUES
+                (
+                    S.TagKey,
+                    S.TagValue,
+                    @studyKey,
+                    -- When TagLevel is not Study, we should fill SeriesKey
+                    (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+                    -- When TagLevel is Instance, we should fill InstanceKey
+                    (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+                    @watermark
+                );        
         END
 
         -- Long Key tags
@@ -194,7 +196,7 @@ AS
                 FROM @longExtendedQueryTags input
                 INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD) 
                 ON dbo.ExtendedQueryTag.TagKey = input.TagKey            
-                AND dbo.ExtendedQueryTag.TagStatus <> 2     
+                AND dbo.ExtendedQueryTag.TagStatus = 0   
             ) AS S
             ON T.TagKey = S.TagKey        
                 AND T.StudyKey = @studyKey            
@@ -205,13 +207,15 @@ AS
                 UPDATE SET T.Watermark = IIF(@watermark > T.Watermark, @watermark, T.Watermark), T.TagValue = IIF(@watermark > T.Watermark, S.TagValue, T.TagValue)
             WHEN NOT MATCHED THEN 
                 INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
-                VALUES(
-                S.TagKey,
-                S.TagValue,
-                @studyKey,            
-                (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),            
-                (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
-                @watermark);        
+                VALUES
+                (
+                    S.TagKey,
+                    S.TagValue,
+                    @studyKey,            
+                    (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),            
+                    (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+                    @watermark
+                );        
         END
 
         -- Double Key tags
@@ -224,7 +228,7 @@ AS
                 FROM @doubleExtendedQueryTags input
                 INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD) 
                 ON dbo.ExtendedQueryTag.TagKey = input.TagKey            
-                AND dbo.ExtendedQueryTag.TagStatus <> 2     
+                AND dbo.ExtendedQueryTag.TagStatus = 0   
             ) AS S
             ON T.TagKey = S.TagKey        
                 AND T.StudyKey = @studyKey            
@@ -235,13 +239,15 @@ AS
                 UPDATE SET T.Watermark = IIF(@watermark > T.Watermark, @watermark, T.Watermark), T.TagValue = IIF(@watermark > T.Watermark, S.TagValue, T.TagValue)
             WHEN NOT MATCHED THEN 
                 INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
-                VALUES(
-                S.TagKey,
-                S.TagValue,
-                @studyKey,            
-                (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),            
-                (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
-                @watermark);        
+                VALUES
+                (
+                    S.TagKey,
+                    S.TagValue,
+                    @studyKey,            
+                    (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),            
+                    (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+                    @watermark
+                );        
         END
 
         -- DateTime Key tags
@@ -254,7 +260,7 @@ AS
                 FROM @dateTimeExtendedQueryTags input
                 INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD) 
                 ON dbo.ExtendedQueryTag.TagKey = input.TagKey            
-                AND dbo.ExtendedQueryTag.TagStatus <> 2     
+                AND dbo.ExtendedQueryTag.TagStatus = 0
             ) AS S
             ON T.TagKey = S.TagKey        
                 AND T.StudyKey = @studyKey            
@@ -265,13 +271,15 @@ AS
                 UPDATE SET T.Watermark = IIF(@watermark > T.Watermark, @watermark, T.Watermark), T.TagValue = IIF(@watermark > T.Watermark, S.TagValue, T.TagValue)
             WHEN NOT MATCHED THEN 
                 INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
-                VALUES(
-                S.TagKey,
-                S.TagValue,
-                @studyKey,            
-                (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),            
-                (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
-                @watermark);        
+                VALUES
+                (
+                    S.TagKey,
+                    S.TagValue,
+                    @studyKey,            
+                    (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),            
+                    (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+                    @watermark
+                );        
         END
 
         -- PersonName Key tags
@@ -284,7 +292,7 @@ AS
                 FROM @personNameExtendedQueryTags input
                 INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD) 
                 ON dbo.ExtendedQueryTag.TagKey = input.TagKey            
-                AND dbo.ExtendedQueryTag.TagStatus <> 2     
+                AND dbo.ExtendedQueryTag.TagStatus = 0 
             ) AS S
             ON T.TagKey = S.TagKey        
                 AND T.StudyKey = @studyKey            
@@ -295,13 +303,15 @@ AS
                 UPDATE SET T.Watermark = IIF(@watermark > T.Watermark, @watermark, T.Watermark), T.TagValue = IIF(@watermark > T.Watermark, S.TagValue, T.TagValue)
             WHEN NOT MATCHED THEN 
                 INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
-                VALUES(
-                S.TagKey,
-                S.TagValue,
-                @studyKey,            
-                (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),            
-                (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
-                @watermark);        
+                VALUES
+                (
+                    S.TagKey,
+                    S.TagValue,
+                    @studyKey,            
+                    (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),            
+                    (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+                    @watermark
+                );        
         END
 
     COMMIT TRANSACTION

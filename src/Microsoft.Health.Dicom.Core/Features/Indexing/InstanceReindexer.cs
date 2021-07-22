@@ -29,6 +29,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
             _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
             _indexDataStoreFactory = EnsureArg.IsNotNull(indexDataStoreFactory, nameof(indexDataStoreFactory));
         }
+
         public async Task ReindexInstanceAsync(IReadOnlyCollection<ExtendedQueryTagStoreEntry> entries, VersionedInstanceIdentifier versionedInstanceId, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(entries, nameof(entries));

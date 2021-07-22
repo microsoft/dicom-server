@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                var rows = ExtendedQueryTagRowsBuilder.Build(instance, queryTags.Where(tag => tag.IsExtendedQueryTag));
+                var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags.Where(tag => tag.IsExtendedQueryTag));
                 VLatest.ReindexInstanceTableValuedParameters parameters = new VLatest.ReindexInstanceTableValuedParameters(
                     rows.StringRows,
                     rows.LongRows,
