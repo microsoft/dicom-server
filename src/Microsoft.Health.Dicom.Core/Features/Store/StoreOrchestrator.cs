@@ -26,20 +26,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     {
         private readonly IFileStore _fileStore;
         private readonly IMetadataStore _metadataStore;
-        private readonly IStoreFactory<IIndexDataStore> _indexDataStoreFactory;
+        private readonly IIndexDataStore _indexDataStore;
         private readonly IDeleteService _deleteService;
         private readonly IQueryTagService _queryTagService;
 
         public StoreOrchestrator(
             IFileStore fileStore,
             IMetadataStore metadataStore,
-            IStoreFactory<IIndexDataStore> indexDataStoreFactory,
+            IIndexDataStore indexDataStore,
             IDeleteService deleteService,
             IQueryTagService queryTagService)
         {
             EnsureArg.IsNotNull(fileStore, nameof(fileStore));
             EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
-            EnsureArg.IsNotNull(indexDataStoreFactory, nameof(indexDataStoreFactory));
+            EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
             EnsureArg.IsNotNull(deleteService, nameof(deleteService));
             EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
 
@@ -47,7 +47,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             _metadataStore = metadataStore;
             _deleteService = deleteService;
             _queryTagService = queryTagService;
-            _indexDataStoreFactory = indexDataStoreFactory;
+            _indexDataStore = indexDataStore;
         }
 
         /// <inheritdoc />
@@ -57,10 +57,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         {
             EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
 
-            IIndexDataStore indexDataStore = await _indexDataStoreFactory.GetInstanceAsync(cancellationToken);
             DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
             var queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken);
-            long version = await indexDataStore.CreateInstanceIndexAsync(dicomDataset, queryTags, cancellationToken);
+            long version = await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, queryTags, cancellationToken);
 
             var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version);
 
@@ -76,7 +75,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 await Task.WhenAll(tasks);
 
                 // Successfully uploaded the files. Update the status to be available.
-                await indexDataStore.UpdateInstanceIndexStatusAsync(versionedInstanceIdentifier, IndexStatus.Created, cancellationToken);
+                await _indexDataStore.UpdateInstanceIndexStatusAsync(versionedInstanceIdentifier, IndexStatus.Created, cancellationToken);
             }
             catch (Exception)
             {

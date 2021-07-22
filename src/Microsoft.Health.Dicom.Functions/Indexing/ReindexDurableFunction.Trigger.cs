@@ -90,8 +90,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             logger.LogInformation("Successfully started new orchestration instance with ID '{InstanceId}'.", instanceId);
 
             // Associate the tags to the operation and confirm their processing
-            IExtendedQueryTagStore extendedQueryTagStore = await _extendedQueryTagStoreFactory.GetInstanceAsync(source.Token);
-            IReadOnlyList<ExtendedQueryTagStoreEntry> confirmedTags = await extendedQueryTagStore.AssignReindexingOperationAsync(
+            IReadOnlyList<ExtendedQueryTagStoreEntry> confirmedTags = await _extendedQueryTagStore.AssignReindexingOperationAsync(
                 extendedQueryTagKeys,
                 instanceId,
                 returnIfCompleted: true,

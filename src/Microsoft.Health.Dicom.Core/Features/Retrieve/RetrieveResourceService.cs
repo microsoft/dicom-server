@@ -21,28 +21,28 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
     public class RetrieveResourceService : IRetrieveResourceService
     {
         private readonly IFileStore _blobDataStore;
-        private readonly IStoreFactory<IInstanceStore> _instanceStoreFactory;
+        private readonly IInstanceStore _instanceStore;
         private readonly ITranscoder _transcoder;
         private readonly IFrameHandler _frameHandler;
         private readonly IRetrieveTransferSyntaxHandler _retrieveTransferSyntaxHandler;
         private readonly ILogger<RetrieveResourceService> _logger;
 
         public RetrieveResourceService(
-            IStoreFactory<IInstanceStore> instanceStoreFactory,
+            IInstanceStore instanceStore,
             IFileStore blobDataStore,
             ITranscoder transcoder,
             IFrameHandler frameHandler,
             IRetrieveTransferSyntaxHandler retrieveTransferSyntaxHandler,
             ILogger<RetrieveResourceService> logger)
         {
-            EnsureArg.IsNotNull(instanceStoreFactory, nameof(instanceStoreFactory));
+            EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
             EnsureArg.IsNotNull(blobDataStore, nameof(blobDataStore));
             EnsureArg.IsNotNull(transcoder, nameof(transcoder));
             EnsureArg.IsNotNull(frameHandler, nameof(frameHandler));
             EnsureArg.IsNotNull(retrieveTransferSyntaxHandler, nameof(retrieveTransferSyntaxHandler));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _instanceStoreFactory = instanceStoreFactory;
+            _instanceStore = instanceStore;
             _blobDataStore = blobDataStore;
             _transcoder = transcoder;
             _frameHandler = frameHandler;
@@ -59,8 +59,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 string transferSyntax = _retrieveTransferSyntaxHandler.GetTransferSyntax(message.ResourceType, message.AcceptHeaders, out AcceptHeaderDescriptor acceptHeaderDescriptor);
                 bool isOriginalTransferSyntaxRequested = DicomTransferSyntaxUids.IsOriginalTransferSyntaxRequested(transferSyntax);
 
-                var instanceStore = await _instanceStoreFactory.GetInstanceAsync(cancellationToken);
-                IEnumerable<VersionedInstanceIdentifier> retrieveInstances = await instanceStore.GetInstancesToRetrieve(
+                IEnumerable<VersionedInstanceIdentifier> retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
                     message.ResourceType, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
 
                 if (!retrieveInstances.Any())

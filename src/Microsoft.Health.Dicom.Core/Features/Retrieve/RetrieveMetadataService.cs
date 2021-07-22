@@ -19,28 +19,27 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public class RetrieveMetadataService : IRetrieveMetadataService
     {
-        private readonly IStoreFactory<IInstanceStore> _instanceStoreFactory;
+        private readonly IInstanceStore _instanceStore;
         private readonly IMetadataStore _metadataStore;
         private readonly IETagGenerator _eTagGenerator;
 
         public RetrieveMetadataService(
-            IStoreFactory<IInstanceStore> instanceStoreFactory,
+            IInstanceStore instanceStore,
             IMetadataStore metadataStore,
             IETagGenerator eTagGenerator)
         {
-            EnsureArg.IsNotNull(instanceStoreFactory, nameof(instanceStoreFactory));
+            EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
             EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
             EnsureArg.IsNotNull(eTagGenerator, nameof(eTagGenerator));
 
-            _instanceStoreFactory = instanceStoreFactory;
+            _instanceStore = instanceStore;
             _metadataStore = metadataStore;
             _eTagGenerator = eTagGenerator;
         }
 
         public async Task<RetrieveMetadataResponse> RetrieveStudyInstanceMetadataAsync(string studyInstanceUid, string ifNoneMatch = null, CancellationToken cancellationToken = default)
         {
-            var instanceStore = await _instanceStoreFactory.GetInstanceAsync(cancellationToken);
-            IEnumerable<VersionedInstanceIdentifier> retrieveInstances = await instanceStore.GetInstancesToRetrieve(
+            IEnumerable<VersionedInstanceIdentifier> retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
                 ResourceType.Study,
                 studyInstanceUid,
                 seriesInstanceUid: null,
@@ -54,8 +53,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
         public async Task<RetrieveMetadataResponse> RetrieveSeriesInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, string ifNoneMatch = null, CancellationToken cancellationToken = default)
         {
-            var instanceStore = await _instanceStoreFactory.GetInstanceAsync(cancellationToken);
-            IEnumerable<VersionedInstanceIdentifier> retrieveInstances = await instanceStore.GetInstancesToRetrieve(
+            IEnumerable<VersionedInstanceIdentifier> retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
                     ResourceType.Series,
                     studyInstanceUid,
                     seriesInstanceUid,
@@ -69,8 +67,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
         public async Task<RetrieveMetadataResponse> RetrieveSopInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string ifNoneMatch = null, CancellationToken cancellationToken = default)
         {
-            var instanceStore = await _instanceStoreFactory.GetInstanceAsync(cancellationToken);
-            IEnumerable<VersionedInstanceIdentifier> retrieveInstances = await instanceStore.GetInstancesToRetrieve(
+            IEnumerable<VersionedInstanceIdentifier> retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
                 ResourceType.Instance,
                 studyInstanceUid,
                 seriesInstanceUid,

@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
-using Microsoft.Health.Dicom.SqlServer.Feature.Common;
+using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
 {

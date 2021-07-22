@@ -3,9 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Threading;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
@@ -31,16 +29,9 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             _instanceReindexer = Substitute.For<IInstanceReindexer>();
             _schemaVersionResolver = Substitute.For<ISchemaVersionResolver>();
             _options = new QueryTagIndexingOptions();
-
-            IStoreFactory<IExtendedQueryTagStore> extendedQueryTagStoreFactory = Substitute.For<IStoreFactory<IExtendedQueryTagStore>>();
-            IStoreFactory<IInstanceStore> instanceStoreFactory = Substitute.For<IStoreFactory<IInstanceStore>>();
-
-            extendedQueryTagStoreFactory.GetInstanceAsync(Arg.Any<CancellationToken>()).Returns(_extendedQueryTagStore);
-            instanceStoreFactory.GetInstanceAsync(Arg.Any<CancellationToken>()).Returns(_instanceStore);
-
             _reindexDurableFunction = new ReindexDurableFunction(
-                extendedQueryTagStoreFactory,
-                instanceStoreFactory,
+                _extendedQueryTagStore,
+                _instanceStore,
                 _instanceReindexer,
                 _schemaVersionResolver,
                 Options.Create(_options));

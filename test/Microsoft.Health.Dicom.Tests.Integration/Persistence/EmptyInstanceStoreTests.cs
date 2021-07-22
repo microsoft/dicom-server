@@ -5,7 +5,6 @@
 
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Xunit;
 
@@ -16,18 +15,17 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     /// </summary>
     public class EmptyInstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
     {
-        private readonly IStoreFactory<IInstanceStore> _instanceStoreFactory;
+        private readonly IInstanceStore _instanceStore;
 
         public EmptyInstanceStoreTests(SqlDataStoreTestsFixture fixture)
         {
-            _instanceStoreFactory = EnsureArg.IsNotNull(fixture?.InstanceStoreFactory, nameof(fixture.InstanceStoreFactory));
+            _instanceStore = EnsureArg.IsNotNull(fixture?.InstanceStore, nameof(fixture.InstanceStore));
         }
 
         [Fact]
         public async Task GivenEmptyDB_WhenGettingMaxInstanceWatermark_ThenReturnZero()
         {
-            IInstanceStore instanceStore = await _instanceStoreFactory.GetInstanceAsync();
-            Assert.Equal(0L, await instanceStore.GetMaxInstanceWatermarkAsync());
+            Assert.Equal(0L, await _instanceStore.GetMaxInstanceWatermarkAsync());
         }
     }
 }
