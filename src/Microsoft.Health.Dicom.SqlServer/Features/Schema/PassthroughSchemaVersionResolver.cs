@@ -25,11 +25,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
         /// <exception cref="ArgumentNullException">
         /// <paramref name="schemaInformation"/> is <see langword="null"/>.
         /// </exception>
-        public PassthroughSchemaVersionResolver
-            (SchemaInformation schemaInformation)
+        public PassthroughSchemaVersionResolver(SchemaInformation schemaInformation)
         {
-            EnsureArg.IsNotNull(schemaInformation, nameof(schemaInformation));
-            _schemaInformation = schemaInformation;
+            _schemaInformation = EnsureArg.IsNotNull(schemaInformation, nameof(schemaInformation));
         }
 
         /// <inheritdoc/>
