@@ -12,7 +12,6 @@ using Dicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
@@ -37,8 +36,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await ValidateInsertFeed(dicomInstanceIdentifier, 1);
 
             // delete and validate
-            IIndexDataStore indexDataStore = await _fixture.DicomIndexDataStoreFactory.GetInstanceAsync();
-            await indexDataStore.DeleteInstanceIndexAsync(dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
+            await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
             await ValidateDeleteFeed(dicomInstanceIdentifier, 2);
 
             // re-create the same instance and validate
@@ -54,8 +52,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await ValidateNoChangeFeed(dicomInstanceIdentifier);
 
             // delete and validate
-            IIndexDataStore indexDataStore = await _fixture.DicomIndexDataStoreFactory.GetInstanceAsync();
-            await indexDataStore.DeleteInstanceIndexAsync(dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
+            await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
             await ValidateNoChangeFeed(dicomInstanceIdentifier);
         }
 
@@ -122,14 +119,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 { DicomTag.PatientID, TestUidGenerator.Generate() },
             };
 
-            IIndexDataStore indexDataStore = await _fixture.DicomIndexDataStoreFactory.GetInstanceAsync();
-            var version = await indexDataStore.CreateInstanceIndexAsync(newDataSet);
+            var version = await _fixture.DicomIndexDataStore.CreateInstanceIndexAsync(newDataSet);
 
             var versionedIdentifier = newDataSet.ToVersionedInstanceIdentifier(version);
 
             if (instanceFullyCreated)
             {
-                await indexDataStore.UpdateInstanceIndexStatusAsync(versionedIdentifier, Core.Models.IndexStatus.Created);
+                await _fixture.DicomIndexDataStore.UpdateInstanceIndexStatusAsync(versionedIdentifier, Core.Models.IndexStatus.Created);
             }
 
             return versionedIdentifier;
