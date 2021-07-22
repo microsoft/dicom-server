@@ -85,7 +85,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Singleton()
                 .AsSelf();
 
-            services.Add<BackgroundSchemaVersionResolver>()
+            services.Add<PassthroughSchemaVersionResolver>()
                 .Singleton()
                 .AsSelf()
                 .AsImplementedInterfaces();
@@ -124,90 +124,36 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private static IServiceCollection AddSqlExtendedQueryTagStores(this IServiceCollection services)
         {
-            services.Add<SqlExtendedQueryTagStoreV1>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<SqlExtendedQueryTagStoreV2>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<SqlExtendedQueryTagStoreV3>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<SqlExtendedQueryTagStoreV4>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<SqlStoreFactory<ISqlExtendedQueryTagStore, IExtendedQueryTagStore>>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
+            services.TryAddScoped<IExtendedQueryTagStore, SqlExtendedQueryTagStore>();
+            services.TryAddScoped<VersionedCache<ISqlExtendedQueryTagStore>>();
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagStore, SqlExtendedQueryTagStoreV1>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagStore, SqlExtendedQueryTagStoreV2>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagStore, SqlExtendedQueryTagStoreV3>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagStore, SqlExtendedQueryTagStoreV4>());
 
             return services;
         }
 
         private static IServiceCollection AddSqlInstanceStores(this IServiceCollection services)
         {
-            services.Add<SqlInstanceStoreV1>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<SqlInstanceStoreV2>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<SqlInstanceStoreV3>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<SqlInstanceStoreV4>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<SqlStoreFactory<ISqlInstanceStore, IInstanceStore>>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
+            services.TryAddScoped<IInstanceStore, SqlInstanceStore>();
+            services.TryAddScoped<VersionedCache<ISqlInstanceStore>>();
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV1>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV2>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV3>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV4>());
 
             return services;
         }
 
         private static IServiceCollection AddSqlIndexDataStores(this IServiceCollection services)
         {
-            services.Add<SqlIndexDataStoreV1>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<SqlIndexDataStoreV2>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<SqlIndexDataStoreV3>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<SqlIndexDataStoreV4>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<SqlStoreFactory<ISqlIndexDataStore, IIndexDataStore>>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
+            services.TryAddScoped<IIndexDataStore, SqlIndexDataStore>();
+            services.TryAddScoped<VersionedCache<ISqlIndexDataStore>>();
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV1>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV2>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV3>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV4>());
 
             // TODO: Ideally, the logger can be registered in the API layer since it's agnostic to the implementation.
             // However, the current implementation of the decorate method requires the concrete type to be already registered,

@@ -11,7 +11,6 @@ using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
@@ -21,26 +20,26 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     public class AddExtendedQueryTagService : IAddExtendedQueryTagService
     {
-        private readonly IStoreFactory<IExtendedQueryTagStore> _extendedQueryTagStoreFactory;
+        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly IDicomOperationsClient _client;
         private readonly IExtendedQueryTagEntryValidator _extendedQueryTagEntryValidator;
         private readonly IUrlResolver _uriResolver;
         private readonly int _maxAllowedCount;
 
         public AddExtendedQueryTagService(
-            IStoreFactory<IExtendedQueryTagStore> extendedQueryTagStoreFactory,
+            IExtendedQueryTagStore extendedQueryTagStore,
             IDicomOperationsClient client,
             IExtendedQueryTagEntryValidator extendedQueryTagEntryValidator,
             IUrlResolver uriResolver,
             IOptions<ExtendedQueryTagConfiguration> extendedQueryTagConfiguration)
         {
-            EnsureArg.IsNotNull(extendedQueryTagStoreFactory, nameof(extendedQueryTagStoreFactory));
+            EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
             EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(extendedQueryTagEntryValidator, nameof(extendedQueryTagEntryValidator));
             EnsureArg.IsNotNull(uriResolver, nameof(uriResolver));
             EnsureArg.IsNotNull(extendedQueryTagConfiguration?.Value, nameof(extendedQueryTagConfiguration));
 
-            _extendedQueryTagStoreFactory = extendedQueryTagStoreFactory;
+            _extendedQueryTagStore = extendedQueryTagStore;
             _client = client;
             _extendedQueryTagEntryValidator = extendedQueryTagEntryValidator;
             _uriResolver = uriResolver;
@@ -55,8 +54,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 .ToList();
 
             // TODO: Handle tags that have already been added
-            IExtendedQueryTagStore extendedQueryTagStore = await _extendedQueryTagStoreFactory.GetInstanceAsync(cancellationToken);
-            IReadOnlyList<int> keys = await extendedQueryTagStore.AddExtendedQueryTagsAsync(normalized, _maxAllowedCount, ready: false, cancellationToken: cancellationToken);
+            IReadOnlyList<int> keys = await _extendedQueryTagStore.AddExtendedQueryTagsAsync(normalized, _maxAllowedCount, ready: false, cancellationToken: cancellationToken);
             string operationId = await _client.StartQueryTagIndexingAsync(keys, cancellationToken);
 
             return new AddExtendedQueryTagResponse(

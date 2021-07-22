@@ -3,18 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Dicom.SqlServer.Features.Schema;
+using Microsoft.Health.Dicom.Core.Exceptions;
 
-namespace Microsoft.Health.Dicom.SqlServer.Feature.Common
+namespace Microsoft.Health.Dicom.SqlServer.Exceptions
 {
-    /// <summary>
-    ///  Support versioning.
-    /// </summary>
-    internal interface IVersioned
+    internal class InvalidSchemaVersionException : DicomServerException
     {
-        /// <summary>
-        /// Get the Schema version
-        /// </summary>
-        SchemaVersion Version { get; }
+        public InvalidSchemaVersionException(string message)
+            : base(message)
+        {
+        }
     }
 }

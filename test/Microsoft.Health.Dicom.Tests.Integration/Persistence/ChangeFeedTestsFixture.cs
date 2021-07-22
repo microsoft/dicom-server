@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Xunit;
 
@@ -19,7 +18,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             _sqlDataStoreTestsFixture = new SqlDataStoreTestsFixture();
         }
 
-        public IStoreFactory<IIndexDataStore> DicomIndexDataStoreFactory => _sqlDataStoreTestsFixture.IndexDataStoreFactory;
+        public IIndexDataStore DicomIndexDataStore => _sqlDataStoreTestsFixture.IndexDataStore;
 
         public IIndexDataStoreTestHelper DicomIndexDataStoreTestHelper => _sqlDataStoreTestsFixture.TestHelper;
 

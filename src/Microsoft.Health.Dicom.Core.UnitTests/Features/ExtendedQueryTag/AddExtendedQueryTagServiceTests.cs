@@ -12,7 +12,6 @@ using Dicom;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Routing;
@@ -34,21 +33,18 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
 
         public AddExtendedQueryTagServiceTests()
         {
-            var storeFactory = Substitute.For<IStoreFactory<IExtendedQueryTagStore>>();
-
+            _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
             _client = Substitute.For<IDicomOperationsClient>();
             _extendedQueryTagEntryValidator = Substitute.For<IExtendedQueryTagEntryValidator>();
             _urlResolver = Substitute.For<IUrlResolver>();
             _extendedQueryTagService = new AddExtendedQueryTagService(
-                storeFactory,
+                _extendedQueryTagStore,
                 _client,
                 _extendedQueryTagEntryValidator,
                 _urlResolver,
                 Options.Create(new ExtendedQueryTagConfiguration { MaxAllowedCount = 128 }));
 
-            _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
             _tokenSource = new CancellationTokenSource();
-            storeFactory.GetInstanceAsync(_tokenSource.Token).Returns(_extendedQueryTagStore);
         }
 
         [Fact]
