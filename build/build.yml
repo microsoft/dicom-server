@@ -35,4 +35,3 @@ steps:
 
   - ${{ if eq(parameters.apiVersioning, 'true') }}:
       - template: versioning.yml
-  
