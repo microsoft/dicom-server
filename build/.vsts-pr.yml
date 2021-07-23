@@ -39,9 +39,7 @@ stages:
       vmImage: $(windowsVmImage)
     steps:
     - template: build.yml
-      parameters:
-        apiVersioning: true
-
+    
   - job: Linux
     pool:
      vmImage: 'ubuntu-latest'
@@ -50,6 +48,7 @@ stages:
       parameters:
         packageArtifacts: false
         analyzeSecurity: false
+        apiVersioning: true
 
 - stage: DeployTestEnvironment
   displayName: 'Deploy Test Environment'
