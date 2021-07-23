@@ -1550,7 +1550,12 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-    SELECT XQT.*
+    SELECT XQT.TagKey,
+           TagPath,
+           TagVR,
+           TagPrivateCreator,
+           TagLevel,
+           TagStatus
     FROM dbo.ExtendedQueryTag AS XQT
     INNER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
     WHERE OperationId = @operationId
@@ -1967,7 +1972,12 @@ AS
             INSERT (TagKey, OperationId)
             VALUES (tags.TagKey, @operationId);
 
-        SELECT XQT.*
+        SELECT XQT.TagKey,
+               TagPath,
+               TagVR,
+               TagPrivateCreator,
+               TagLevel,
+               TagStatus
         FROM @extendedQueryTagKeys AS input
         INNER JOIN dbo.ExtendedQueryTag AS XQT WITH(HOLDLOCK) ON input.TagKey = XQT.TagKey
         LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO WITH(HOLDLOCK) ON XQT.TagKey = XQTO.TagKey
