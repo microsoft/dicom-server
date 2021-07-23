@@ -8,6 +8,7 @@ $(() => {
     let displayServerEdit = false
     let serverAddressInput = $("#server-address-input")
     let bearerTokenInput = $('#bearer-token-input')
+    let serverVersionInput = $('#server-version-input')
     let serverAddressButton = $("#set-server-address")
     let selectFileButton = $("#select-file")
     let postFileButton = $("#post-file")
@@ -22,7 +23,7 @@ $(() => {
     let serverSettingsMenu = $('#server-settings-menu')
     let serverSettingsSection = $('#server-settings-section')
     let serverAddressDisplay = $('#server-address-display')
-    let postUrl = serverAddressInput.val() + "/studies"
+    let postUrl = serverAddressInput.val() + "/" + serverVersionInput.val() + "/studies"
     let changeFeedSection = $('#change-feed-section')
     let changeFeedMenu = $('#change-feed-menu')
     let changeFeedButton = $('#change-feed-button')
@@ -78,9 +79,10 @@ $(() => {
 
     serverAddressButton.click(() => {
         if (displayServerEdit) {
-            postUrl = serverAddressInput.val() + "/studies"
+            postUrl = serverAddressInput.val() + "/" + serverVersionInput.val() + "/studies"
             serverAddressDisplay.html(postUrl)
             serverAddressInput.prop('disabled', true);
+            serverVersionInput.prop('disabled', true);
             bearerTokenInput.prop('disabled', true)
             serverAddressButton.val("Change")
             serverAddressButton.toggleClass("is-primary", false)
@@ -88,6 +90,7 @@ $(() => {
             serverAddressButton.val("Update")
             serverAddressButton.toggleClass("is-primary", true)
             serverAddressInput.prop('disabled', false);
+            serverVersionInput.prop('disabled', false);
             bearerTokenInput.prop('disabled', false)
         }
         displayServerEdit = !displayServerEdit
@@ -98,7 +101,7 @@ $(() => {
     })
 
     postFileButton.click(() => {
-        let url = serverAddressInput.val() + "/studies"
+        let url = serverAddressInput.val() + "/" + serverVersionInput.val() + "/studies"
         let bearerToken = bearerTokenInput.val()
 
         hideErrorSuccess()
@@ -146,7 +149,7 @@ $(() => {
 
         offset = offsetInput.val()
 
-        let url = serverAddressInput.val() + "/changefeed?includemetadata=false&offset=" + offset
+        let url = serverAddressInput.val() + "/" + serverVersionInput.val() + "/changefeed?includemetadata=false&offset=" + offset
         let bearerToken = bearerTokenInput.val()
 
         hideErrorSuccess()
