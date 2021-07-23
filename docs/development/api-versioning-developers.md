@@ -46,11 +46,18 @@ or
 
 `ApiVersion prereleaseVersion = new ApiVersion(x, 0, "prerelease");`
 
+### Testing for breaking changes
+Currently we have a test in our pr and ci pipeline that checks to make sure that any defined api versions do not have any breaking changes (changes that are not backward compatible). We use [OpenAPI-diff](https://github.com/OpenAPITools/openapi-diff) to compare a baseline OpenApi Doc for each version with a version that is generated after the build step in the pipeline. If there are breaking changes detected between the baseline that is checked into the repo and the OpenApi doc generated in the pipeline, then the pipeline fails. 
+
 ### How to increment the version
 
 1. Add a new controller to hold the endpoints for the new version, and annotate with `[ApiVersion("<desiredVersion>")]`. All existing endpoints must get the new version.
 2. Add the new version number to `test/Microsoft.Health.Dicom.Web.Tests.E2E/Rest/VersionAPIData.cs` to test the new endpoints.
 3. Test to verify the breaking changes were not added to the previous version(s).
+4. Do the following to add the checks in the pr and ci pipeline to verify that developers do not accidentally create breaking changes.
+    1. Add the new version to the arguments in `build/versioning.yml`. The powershell script takes in an array of versions so the new version can just be added to the argument.
+    1. Generate the yaml file for the new version and save it to `/dicom-server/swagger/{Version}/swagger.yaml`. This will allow us to use this as the new baseline to compare against in the pr and ci pipelines to make sure there are no breaking changes introduced accidentally. The step needs to only be done once for each new version, however if the version is still in development then it can be updated multiple times.
+5. Update the index.html file in the electron tool `tools\dicom-web-electron\index.html` to allow for the user to select the new version. 
 
 ## Deprecation
 
