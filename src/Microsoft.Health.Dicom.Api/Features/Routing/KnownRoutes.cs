@@ -22,7 +22,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
 
         private const string ExtendedQueryTagPathRouteSegment = "{" + KnownActionParameterNames.TagPath + "}";
 
-        public const string StoreRoute = StudiesRouteSegment + "/{" + KnownActionParameterNames.StudyInstanceUid + "?}";
+        public const string StoreInstancesRoute = StudiesRouteSegment;
+        public const string StoreInstancesInStudyRoute = StudiesRouteSegment + "/{" + KnownActionParameterNames.StudyInstanceUid + "}";
 
         public const string StudyRoute = StudiesRouteSegment + "/" + StudiesInstanceUidRouteSegment;
         public const string SeriesRoute = StudyRoute + "/" + SeriesRouteSegment + "/" + SeriesInstanceUidRouteSegment;
