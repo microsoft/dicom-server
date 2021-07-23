@@ -19,6 +19,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         internal const string VersionedRetrieveFrame = nameof(VersionedRetrieveFrame);
         internal const string RetrieveFrame = nameof(RetrieveFrame);
 
+        internal const string VersionedOperationStatus = nameof(VersionedOperationStatus);
         internal const string OperationStatus = nameof(OperationStatus);
     }
 }

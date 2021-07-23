@@ -7,26 +7,21 @@ using System.Collections.Generic;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
-namespace Microsoft.Health.Dicom.Core.Features.Indexing
+namespace Microsoft.Health.Dicom.Functions.Indexing.Models
 {
     /// <summary>
-    /// Stands for reindex operation.
+    ///  Represents input to <see cref="ReindexDurableFunction.ReindexBatchAsync"/>
     /// </summary>
-    public class ReindexOperation
+    public class ReindexBatch
     {
         /// <summary>
-        /// Gets or sets operation id.
-        /// </summary>
-        public string OperationId { get; set; }
-
-        /// <summary>
-        /// Gets or sets query tags store entries.
-        /// </summary>
-        public IReadOnlyCollection<ExtendedQueryTagStoreEntry> StoreEntries { get; set; }
-
-        /// <summary>
-        /// The watermark range.
+        /// Gets or sets the inclusive watermark range.
         /// </summary>
         public WatermarkRange WatermarkRange { get; set; }
+
+        /// <summary>
+        /// Gets or sets the tag entires.
+        /// </summary>
+        public IReadOnlyCollection<ExtendedQueryTagStoreEntry> QueryTags { get; set; }
     }
 }

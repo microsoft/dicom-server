@@ -29,31 +29,31 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
         [InlineData("\t  \r\n")]
         public async Task GivenInvalidId_WhenHandlingRequest_ThenThrowArgumentException(string id)
         {
-            IOperationsService service = Substitute.For<IOperationsService>();
+            IDicomOperationsClient client = Substitute.For<IDicomOperationsClient>();
             Type exceptionType = id is null ? typeof(ArgumentNullException) : typeof(ArgumentException);
             await Assert.ThrowsAsync(
                 exceptionType,
-                () => new OperationStatusHandler(service).Handle(
+                () => new OperationStatusHandler(client).Handle(
                     new OperationStatusRequest(id),
                     CancellationToken.None));
 
-            await service.DidNotReceiveWithAnyArgs().GetStatusAsync(default, default);
+            await client.DidNotReceiveWithAnyArgs().GetStatusAsync(default, default);
         }
 
         [Fact]
         public async Task GivenValidRequest_WhenHandlingRequest_ThenReturnResponse()
         {
             using var source = new CancellationTokenSource();
-            IOperationsService service = Substitute.For<IOperationsService>();
-            var handler = new OperationStatusHandler(service);
+            IDicomOperationsClient client = Substitute.For<IDicomOperationsClient>();
+            var handler = new OperationStatusHandler(client);
 
             string id = Guid.NewGuid().ToString();
             var expected = new OperationStatusResponse(id, OperationType.Reindex, DateTime.UtcNow, DateTime.UtcNow, OperationRuntimeStatus.Completed);
-            service.GetStatusAsync(Arg.Is(id), Arg.Is(source.Token)).Returns(expected);
+            client.GetStatusAsync(Arg.Is(id), Arg.Is(source.Token)).Returns(expected);
 
             Assert.Same(expected, await handler.Handle(new OperationStatusRequest(id), source.Token));
 
-            await service.Received(1).GetStatusAsync(Arg.Is(id), Arg.Is(source.Token));
+            await client.Received(1).GetStatusAsync(Arg.Is(id), Arg.Is(source.Token));
         }
     }
 }

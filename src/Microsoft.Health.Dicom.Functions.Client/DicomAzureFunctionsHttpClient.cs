@@ -14,10 +14,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
 using Microsoft.Health.Dicom.Functions.Client.Configs;
-using Microsoft.Health.Dicom.Functions.Client.Models;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 
@@ -75,20 +75,9 @@ namespace Microsoft.Health.Dicom.Functions.Client
             // Re-throw any exceptions we may have encountered when making the HTTP request
             response.EnsureSuccessStatusCode();
 
-            DurableOrchestrationInstanceStatus responseState = JsonConvert.DeserializeObject<DurableOrchestrationInstanceStatus>(
-#if NET5_0_OR_GREATER
+            return JsonConvert.DeserializeObject<OperationStatusResponse>(
                 await response.Content.ReadAsStringAsync(cancellationToken),
-#else
-                await response.Content.ReadAsStringAsync(),
-#endif
                 JsonSettings);
-
-            return new OperationStatusResponse(
-                responseState.InstanceId,
-                responseState.Type,
-                responseState.CreatedTime,
-                responseState.LastUpdatedTime,
-                responseState.RuntimeStatus);
         }
 
         /// <inheritdoc/>
@@ -100,17 +89,15 @@ namespace Microsoft.Health.Dicom.Functions.Client
             using var content = new StringContent(JsonConvert.SerializeObject(tagKeys, JsonSettings), Encoding.UTF8, MediaTypeNames.Application.Json);
             using HttpResponseMessage response = await _client.PostAsync(_config.Routes.StartQueryTagIndexingRoute, content, cancellationToken);
 
+            // If there is a conflict, another client already added this tag while we were processing
+            if (response.StatusCode == HttpStatusCode.Conflict)
+            {
+                throw new ExtendedQueryTagsAlreadyExistsException();
+            }
+
             // Re-throw any exceptions we may have encountered when making the HTTP request
             response.EnsureSuccessStatusCode();
-
-            string instanceId =
-#if NET5_0_OR_GREATER
-                await response.Content.ReadAsStringAsync(cancellationToken);
-#else
-                await response.Content.ReadAsStringAsync();
-#endif
-
-            return instanceId;
+            return await response.Content.ReadAsStringAsync(cancellationToken);
         }
     }
 }

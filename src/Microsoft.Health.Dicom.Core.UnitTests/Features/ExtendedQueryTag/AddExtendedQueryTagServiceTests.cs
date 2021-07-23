@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         }
 
         [Fact]
-        public async Task GivenInvalidInput_WhenAddExtendedQueryTagIsInvoked_ThenStopAfterValidation()
+        public async Task GivenInvalidInput_WhenAddingExtendedQueryTag_ThenStopAfterValidation()
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
             AddExtendedQueryTagEntry entry = tag.BuildAddExtendedQueryTagEntry();
@@ -57,31 +57,33 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             var input = new AddExtendedQueryTagEntry[] { entry };
             _extendedQueryTagEntryValidator.WhenForAnyArgs(v => v.ValidateExtendedQueryTags(input)).Throw(exception);
 
-            await Assert.ThrowsAsync<ExtendedQueryTagEntryValidationException>(() => _extendedQueryTagService.AddExtendedQueryTagsAsync(input, _tokenSource.Token));
+            await Assert.ThrowsAsync<ExtendedQueryTagEntryValidationException>(
+                () => _extendedQueryTagService.AddExtendedQueryTagsAsync(input, _tokenSource.Token));
 
             _extendedQueryTagEntryValidator.Received(1).ValidateExtendedQueryTags(input);
             await _client.DidNotReceiveWithAnyArgs().StartQueryTagIndexingAsync(default, default);
         }
 
         [Fact]
-        public async Task GivenValidInput_WhenAddExtendedQueryTagIsInvoked_ThenShouldSucceed()
+        public async Task GivenValidInput_WhenAddingExtendedQueryTag_ThenShouldSucceed()
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
             AddExtendedQueryTagEntry entry = tag.BuildAddExtendedQueryTagEntry();
+            ExtendedQueryTagStoreEntry storeEntry = tag.BuildExtendedQueryTagStoreEntry();
 
             var input = new AddExtendedQueryTagEntry[] { entry };
             string expectedOperationId = Guid.NewGuid().ToString();
-            Uri expectedHref = new Uri("https://dicom.contoso.io/unit/test/Operations/" + expectedOperationId, UriKind.Absolute);
+            var expectedHref = new Uri("https://dicom.contoso.io/unit/test/Operations/" + expectedOperationId, UriKind.Absolute);
             _extendedQueryTagStore
                 .AddExtendedQueryTagsAsync(
-                    Arg.Is<IReadOnlyCollection<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
+                    Arg.Is<IReadOnlyList<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
                     Arg.Is(128),
                     Arg.Is(false),
                     Arg.Is(_tokenSource.Token))
-                .Returns(new List<int> { 7 });
+                .Returns(new List<int> { storeEntry.Key });
             _client
                 .StartQueryTagIndexingAsync(
-                    Arg.Is<IReadOnlyCollection<int>>(x => x.Single() == 7),
+                    Arg.Is<IReadOnlyList<int>>(x => x.Single() == storeEntry.Key),
                     Arg.Is(_tokenSource.Token))
                 .Returns(expectedOperationId);
             _urlResolver
@@ -96,14 +98,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             await _extendedQueryTagStore
                 .Received(1)
                 .AddExtendedQueryTagsAsync(
-                    Arg.Is<IReadOnlyCollection<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
+                    Arg.Is<IReadOnlyList<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
                     Arg.Is(128),
                     Arg.Is(false),
                     Arg.Is(_tokenSource.Token));
             await _client
                 .Received(1)
                 .StartQueryTagIndexingAsync(
-                    Arg.Is<IReadOnlyCollection<int>>(x => x.Single() == 7),
+                    Arg.Is<IReadOnlyList<int>>(x => x.Single() == storeEntry.Key),
                     Arg.Is(_tokenSource.Token));
             _urlResolver.Received(1).ResolveOperationStatusUri(expectedOperationId);
         }

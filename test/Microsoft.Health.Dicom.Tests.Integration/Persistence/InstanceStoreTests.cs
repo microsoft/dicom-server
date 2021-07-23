@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
@@ -33,30 +34,40 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public InstanceStoreTests(SqlDataStoreTestsFixture fixture)
         {
-            EnsureArg.IsNotNull(fixture?.ExtendedQueryTagStore, nameof(fixture.ExtendedQueryTagStore));
-            EnsureArg.IsNotNull(fixture?.TestHelper, nameof(fixture.TestHelper));
-            _instanceStore = fixture.InstanceStore;
-            _indexDataStore = fixture.IndexDataStore;
-            _extendedQueryTagStore = fixture.ExtendedQueryTagStore;
-            _indexDataStoreTestHelper = fixture.TestHelper;
-            EnsureArg.IsNotNull(fixture?.InstanceStore, nameof(fixture.InstanceStore));
-            EnsureArg.IsNotNull(fixture?.IndexDataStore, nameof(fixture.IndexDataStore));
-            _instanceStore = fixture.InstanceStore;
-            _indexDataStore = fixture.IndexDataStore;
+            _instanceStore = EnsureArg.IsNotNull(fixture?.InstanceStore, nameof(fixture.InstanceStore));
+            _indexDataStore = EnsureArg.IsNotNull(fixture?.IndexDataStore, nameof(fixture.IndexDataStore));
+            _extendedQueryTagStore = EnsureArg.IsNotNull(fixture?.ExtendedQueryTagStore, nameof(fixture.ExtendedQueryTagStore));
+            _indexDataStoreTestHelper = EnsureArg.IsNotNull(fixture?.TestHelper, nameof(fixture.TestHelper));
         }
 
         [Fact]
         public async Task GivenInstances_WhenGetInstanceIdentifiersByWatermarkRange_ThenItShouldReturnInstancesInRange()
         {
-            var instance0 = await AddRandomInstanceAsync();
+            await AddRandomInstanceAsync();
             var instance1 = await AddRandomInstanceAsync();
             var instance2 = await AddRandomInstanceAsync();
             var instance3 = await AddRandomInstanceAsync();
             var instance4 = await AddRandomInstanceAsync();
-            var instances = await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(new WatermarkRange(instance1.Version, instance3.Version), IndexStatus.Creating);
+            await AddRandomInstanceAsync();
+
+            IReadOnlyList<VersionedInstanceIdentifier> instances = await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(
+                WatermarkRange.Between(instance1.Version, instance4.Version),
+                IndexStatus.Creating);
+
             Assert.Equal(instances, new[] { instance1, instance2, instance3 });
         }
 
+        [Fact]
+        public async Task GivenInstances_WhenGettingMaxInstanceWatermark_ThenReturnMaxValue()
+        {
+            // Populate DB and Check
+            await AddRandomInstanceAsync();
+            await AddRandomInstanceAsync();
+            await AddRandomInstanceAsync();
+            var last = await AddRandomInstanceAsync();
+
+            Assert.Equal(last.Version, await _instanceStore.GetMaxInstanceWatermarkAsync());
+        }
 
         [Fact]
         public async Task GivenStudyTag_WhenReindexWithNewInstance_ThenTagValueShouldBeUpdated()
@@ -202,6 +213,5 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             long version = await _indexDataStore.CreateInstanceIndexAsync(dataset);
             return new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version);
         }
-
     }
 }

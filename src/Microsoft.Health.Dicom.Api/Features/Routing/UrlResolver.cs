@@ -45,10 +45,11 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         /// <inheritdoc />
         public Uri ResolveOperationStatusUri(string operationId)
         {
-            EnsureArg.IsNotNull(operationId, nameof(operationId));
+            EnsureArg.IsNotNullOrWhiteSpace(operationId, nameof(operationId));
+            var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey("version");
 
             return RouteUri(
-                KnownRouteNames.OperationStatus,
+                hasVersion ? KnownRouteNames.VersionedOperationStatus : KnownRouteNames.OperationStatus,
                 new RouteValueDictionary
                 {
                     { KnownActionParameterNames.OperationId, operationId },

@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Client.Configs;
@@ -108,17 +109,11 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
                 Content = new StringContent(
 @$"
 {{
-  ""Name"": ""Reindex"",
-  ""InstanceId"": ""{id}"",
+  ""OperationId"": ""{id}"",
+  ""Type"": ""Reindex"",
   ""CreatedTime"": ""{createdDateTime}"",
   ""LastUpdatedTime"": ""{createdDateTime.AddMinutes(15)}"",
-  ""Input"": null,
-  ""Output"": ""Hello World"",
-  ""RuntimeStatus"": ""Running"",
-  ""CustomStatus"": {{
-    ""Foo"": ""Bar""
-    }},
-  ""History"": null
+  ""Status"": ""Running""
 }}
 "
                 )
@@ -134,6 +129,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
 
             Assert.NotNull(actual);
             Assert.Equal(createdDateTime, actual.CreatedTime);
+            Assert.Equal(createdDateTime.AddMinutes(15), actual.LastUpdatedTime);
             Assert.Equal(id, actual.OperationId);
             Assert.Equal(OperationRuntimeStatus.Running, actual.Status);
             Assert.Equal(OperationType.Reindex, actual.Type);
@@ -181,6 +177,20 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
 
             Assert.Equal(expected, ex.StatusCode);
             Assert.Equal(1, handler.SentMessages);
+        }
+
+        [Fact]
+        public async Task GivenConflict_WhenStartingReindex_ThenThrowAlreadyExistsException()
+        {
+            var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.Conflict));
+            var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), DefaultConfig);
+
+            var input = new List<int> { 1, 2, 3 };
+            using var source = new CancellationTokenSource();
+
+            handler.SendingAsync += (msg, token) => AssertExpectedStartAddRequestAsync(msg, input);
+            await Assert.ThrowsAsync<ExtendedQueryTagsAlreadyExistsException>(
+                () => client.StartQueryTagIndexingAsync(input, source.Token));
         }
 
         [Fact]

@@ -12,7 +12,6 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 
@@ -21,105 +20,109 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
     public partial class ReindexDurableFunction
     {
         /// <summary>
-        ///  The orchestration function to reindex tags.
+        /// Asynchronously creates an index for the provided query tags over the previously added data.
         /// </summary>
-        /// <param name="context">The context.</param>
-        /// <param name="logger">The logger.</param>
-        /// <returns>The task.</returns>
-        [FunctionName(nameof(ReindexTagsAsync))]
-        public async Task ReindexTagsAsync(
+        /// <remarks>
+        /// Durable functions are reliable, and their implementations will be executed repeatedly over the lifetime of
+        /// a single instance.
+        /// </remarks>
+        /// <param name="context">The context for the orchestration instance.</param>
+        /// <param name="logger">A diagnostic logger.</param>
+        /// <returns>A task representing the <see cref="ReindexInstancesAsync"/> operation.</returns>
+        [FunctionName(nameof(ReindexInstancesAsync))]
+        public async Task ReindexInstancesAsync(
             [OrchestrationTrigger] IDurableOrchestrationContext context,
             ILogger logger)
         {
             EnsureArg.IsNotNull(context, nameof(context));
+
             logger = context.CreateReplaySafeLogger(logger);
-            var input = context.GetInput<IReadOnlyCollection<int>>();
-            var tagEntries = await context.CallActivityAsync<IReadOnlyCollection<ExtendedQueryTagStoreEntry>>(nameof(GetTagStoreEntriesAsync), input);
-            var watermarkRange = await context.CallActivityAsync<WatermarkRange>(nameof(GetReindexWatermarkRangeAsync), null);
-            ReindexOperation reindexOperation = new ReindexOperation
+            ReindexInput input = context.GetInput<ReindexInput>();
+
+            // Determine the set of query tags that should be indexed and only continue if there is at least 1.
+            // For the first time this orchestration executes, assign all of the tags in the input to the operation,
+            // otherwise simply fetch the tags from the database for this operation.
+            IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags = input.Completed.Count == 0
+                ? await context.CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(nameof(AssignReindexingOperationAsync), input.QueryTagKeys)
+                : await context.CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(nameof(GetQueryTagsAsync), null);
+
+            logger.LogInformation(
+                "Found {Count} extended query tag paths to re-index {{{TagPaths}}}.",
+                queryTags.Count,
+                string.Join(", ", queryTags.Select(x => x.Path)));
+
+            List<int> queryTagKeys = queryTags.Select(x => x.Key).ToList();
+            if (queryTags.Count > 0)
             {
-                OperationId = context.InstanceId,
-                StoreEntries = tagEntries,
-                WatermarkRange = watermarkRange
-            };
-
-            await context.CallSubOrchestratorAsync(nameof(SubReindexTagsAsync), input: reindexOperation);
-        }
-
-        /// <summary>
-        /// The orchestration function to Reindex Extended Query Tags.
-        /// </summary>
-        /// <param name="context">the context.</param>
-        /// <param name="logger">The logger.</param>
-        /// <returns></returns>
-        [FunctionName(nameof(SubReindexTagsAsync))]
-        public async Task SubReindexTagsAsync(
-            [OrchestrationTrigger] IDurableOrchestrationContext context,
-            ILogger logger)
-        {
-            EnsureArg.IsNotNull(context, nameof(context));
-            logger = context.CreateReplaySafeLogger(logger);
-
-            ReindexOperation reindexOperation = context.GetInput<ReindexOperation>();
-
-            if (reindexOperation.WatermarkRange.Start >= 0
-                && reindexOperation.WatermarkRange.End >= 0)
-            {
-
-                long newEnd = await ReindexNextSegmentAsync(context, reindexOperation);
-
-                if (reindexOperation.WatermarkRange.Start <= newEnd)
+                List<WatermarkRange> batches = await GetBatchesAsync(context, input.Completed, logger);
+                if (batches.Count > 0)
                 {
-                    ReindexOperation newInput = new ReindexOperation
-                    {
-                        WatermarkRange = new WatermarkRange(reindexOperation.WatermarkRange.Start, newEnd),
-                        StoreEntries = reindexOperation.StoreEntries
-                    };
+                    // Note that batches are in reverse order because we start from the highest watermark
+                    var batchRange = WatermarkRange.Between(batches[^1].Start, batches[0].End);
 
-                    context.StartNewOrchestration(nameof(SubReindexTagsAsync), input: newInput);
-                }
+                    logger.LogInformation("Beginning to re-index the range {Range}.", batchRange);
+                    await Task.WhenAll(batches
+                        .Select(x => context.CallActivityAsync(
+                            nameof(ReindexBatchAsync),
+                            new ReindexBatch { QueryTags = queryTags, WatermarkRange = x })));
 
-            }
-            await context.CallActivityAsync(nameof(CompleteReindexingTagsAsync), reindexOperation.StoreEntries.Select(x => x.Key).ToList());
-        }
+                    // Create a new orchestration with the same instance ID to process the remaining data
+                    logger.LogInformation("Completed re-indexing the range {Range}. Continuing with new execution...", batchRange);
 
-        private async Task<long> ReindexNextSegmentAsync(
-            IDurableOrchestrationContext context,
-            ReindexOperation reindexOperation)
-        {
-            // Note that StartWatermark and EndWatermark are Inclusive
-            long start = reindexOperation.WatermarkRange.Start;
-            long end = reindexOperation.WatermarkRange.End;
-
-            if (start <= end)
-            {
-                List<Task> batches = new List<Task>();
-
-                // pickup next segment and send tasks to activity
-                for (int parallel = 0; parallel < _reindexConfig.MaxParallelBatches; parallel++)
-                {
-                    long batchStart = end - _reindexConfig.BatchSize + 1;
-                    batchStart = Math.Max(batchStart, start);
-                    if (batchStart <= end)
-                    {
-                        ReindexInstanceInput reindexInstanceInput = new ReindexInstanceInput
+                    context.ContinueAsNew(
+                        new ReindexInput
                         {
-                            TagStoreEntries = reindexOperation.StoreEntries,
-                            WatermarkRange = new WatermarkRange(batchStart, end)
-                        };
-                        batches.Add(context.CallActivityAsync(nameof(ReindexInstancesAsync), reindexInstanceInput));
-                        end = batchStart - 1;
-                    }
-                    else
-                    {
-                        break;
-                    }
+                            QueryTagKeys = queryTagKeys,
+                            Completed = input.Completed.Count == 0 ? batchRange : WatermarkRange.Between(batchRange.Start, input.Completed.End),
+                        });
                 }
+                else
+                {
+                    IReadOnlyList<int> completed = await context.CallActivityAsync<IReadOnlyList<int>>(
+                        nameof(CompleteReindexingAsync),
+                        queryTagKeys);
 
-                await Task.WhenAll(batches);
+                    logger.LogInformation(
+                        "Completed re-indexing for the following extended query tags {{{QueryTagKeys}}}.",
+                        string.Join(", ", completed));
+                }
+            }
+            else
+            {
+                logger.LogWarning(
+                    "Could not find any query tags for the re-indexing operation '{OperationId}'.",
+                    context.InstanceId);
+            }
+        }
+
+        private async Task<List<WatermarkRange>> GetBatchesAsync(
+            IDurableOrchestrationContext context,
+            WatermarkRange completed,
+            ILogger logger)
+        {
+            // If we haven't completed any range yet, fetch the maximum watermark from the database.
+            // Otherwise, create a WatermarkRange based on the latest progress.
+            long end;
+            if (completed.Count > 0)
+            {
+                end = completed.Start;
+                logger.LogInformation("Previous execution finished range {Range}.", completed);
+            }
+            else
+            {
+                end = (await context.CallActivityAsync<long>(nameof(GetMaxInstanceWatermarkAsync), null)) + 1;
+                logger.LogInformation("Found maximum watermark {Max}.", end - 1);
             }
 
-            return end;
+            // Note that the watermark sequence starts at 1!
+            var batches = new List<WatermarkRange>();
+            for (; end > 1 && batches.Count < _options.MaxParallelBatches; end -= _options.BatchSize)
+            {
+                int count = (int)Math.Min(end - 1, _options.BatchSize);
+                batches.Add(new WatermarkRange(end - count, count));
+            }
+
+            return batches;
         }
     }
 }
