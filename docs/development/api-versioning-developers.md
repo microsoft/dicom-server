@@ -70,5 +70,4 @@ We can deprecate old versions by marking the version as deprecated as follows:
 TBD: When to deprecate and when to retire old versions
 
 ## Communicating changes to customers
-
 TBD: if process is needed for developers to document their changes to communicate to customers
