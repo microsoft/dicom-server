@@ -45,7 +45,7 @@ paths:
             application/json:
               schema:
                 type: string
-  /changefeed:
+  /changefeed1:
     get:
       tags:
         - ChangeFeed

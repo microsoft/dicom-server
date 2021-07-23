@@ -1,6 +1,6 @@
 steps:
 - task: PowerShell@2
-  displayName: "generate v1-prerelease swagger"
+  displayName: "Validate Api has no breaking changes"
   inputs:
     filepath: '$(System.DefaultWorkingDirectory)/samples/scripts/PowerShell/GenerateOpenApiYaml.ps1'
     arguments: >
