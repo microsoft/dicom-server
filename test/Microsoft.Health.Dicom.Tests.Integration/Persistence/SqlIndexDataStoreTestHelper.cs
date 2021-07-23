@@ -248,12 +248,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         async Task<IReadOnlyList<ExtendedQueryTagDataRow>> IIndexDataStoreTestHelper.GetExtendedQueryTagDataAsync(
-           ExtendedQueryTagDataType dataType,
-           int tagKey,
-           long studyKey,
-           long? seriesKey,
-           long? instanceKey,
-           CancellationToken cancellationToken)
+            ExtendedQueryTagDataType dataType,
+            int tagKey,
+            long studyKey,
+            long? seriesKey,
+            long? instanceKey,
+            CancellationToken cancellationToken)
         {
             var results = new List<ExtendedQueryTagDataRow>();
             string tagKeyParam = "@tagKey";

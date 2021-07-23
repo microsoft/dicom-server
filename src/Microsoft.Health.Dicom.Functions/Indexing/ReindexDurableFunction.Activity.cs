@@ -94,7 +94,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             var tasks = new List<Task>();
             foreach (var instanceIdentifier in instanceIdentifiers)
             {
-                tasks.Add(_instanceReindexer.ReindexInstanceAsync(input.TagStoreEntries, instanceIdentifier.Version));
+                tasks.Add(_instanceReindexer.ReindexInstanceAsync(input.TagStoreEntries, instanceIdentifier));
             }
 
             await Task.WhenAll(tasks);

@@ -15,65 +15,22 @@ using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 {
     /// <summary>
-    /// Build AddInstanceTableValuedParameters
+    /// Class that build ExtendedQueryTagRows.
     /// </summary>
-    internal static class AddInstanceTableValuedParametersBuilder
+    internal static class ExtendedQueryTagDataRowsBuilder
     {
         private static readonly Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, DateTime?>> DataTimeReaders = new Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, DateTime?>>()
         {
             { DicomVR.DA, Core.Extensions.DicomDatasetExtensions.GetStringDateAsDate },
         };
 
-        private delegate T AddInstanceTableValuedParametersConstructor<T>(
-            IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> stringRows,
-            IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> longRows,
-            IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleRows,
-            IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV1Row> dateTimeRows,
-            IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNameRows);
-
-        /// <summary>
-        /// Build <see cref="VLatest.AddInstanceTableValuedParameters"/>
-        /// </summary>
-        /// <param name="instance">The dicom dataset.</param>
-        /// <param name="queryTags">The index tags.</param>
-        public static VLatest.AddInstanceTableValuedParameters BuildVLatest(
+        public static ExtendedQueryTagDataRows Build(
             DicomDataset instance,
             IEnumerable<QueryTag> queryTags)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
-
-            return Build(
-                instance,
-                queryTags,
-                (stringRow, longRows, doubleRows, dateTimeRows, personNameRows)
-                    => new VLatest.AddInstanceTableValuedParameters(stringRow, longRows, doubleRows, dateTimeRows, personNameRows));
-        }
-
-        /// <summary>
-        /// Build <see cref="V2.AddInstanceTableValuedParameters"/>
-        /// </summary>
-        /// <param name="instance">The dicom dataset.</param>
-        /// <param name="queryTags">The index tags.</param>
-        public static V2.AddInstanceTableValuedParameters BuildV2(
-            DicomDataset instance,
-            IEnumerable<QueryTag> queryTags)
-        {
-            EnsureArg.IsNotNull(instance, nameof(instance));
-            EnsureArg.IsNotNull(queryTags, nameof(queryTags));
-
-            return Build(
-                instance,
-                queryTags,
-                (stringRow, longRows, doubleRows, dateTimeRows, personNameRows)
-                    => new V2.AddInstanceTableValuedParameters(stringRow, longRows, doubleRows, dateTimeRows, personNameRows));
-        }
-
-        private static T Build<T>(
-            DicomDataset instance,
-            IEnumerable<QueryTag> queryTags,
-            AddInstanceTableValuedParametersConstructor<T> factory)
-        {
+            ExtendedQueryTagDataRows result = new ExtendedQueryTagDataRows();
             var stringRows = new List<InsertStringExtendedQueryTagTableTypeV1Row>();
             var longRows = new List<InsertLongExtendedQueryTagTableTypeV1Row>();
             var doubleRows = new List<InsertDoubleExtendedQueryTagTableTypeV1Row>();
@@ -115,8 +72,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                         break;
                 }
             }
-
-            return factory.Invoke(stringRows, longRows, doubleRows, dateTimeRows, personNamRows);
+            result.StringRows = stringRows;
+            result.LongRows = longRows;
+            result.DoubleRows = doubleRows;
+            result.DateTimeRows = dateTimeRows;
+            result.PersonNameRows = personNamRows;
+            return result;
         }
 
         private static void AddPersonNameRow(DicomDataset instance, List<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNamRows, QueryTag queryTag)
