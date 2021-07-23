@@ -1,0 +1,10 @@
+steps:
+- task: PowerShell@2
+  displayName: "generate v1-prerelease swagger"
+  inputs:
+    filepath: '$(System.DefaultWorkingDirectory)/samples/scripts/PowerShell/GenerateOpenApiYaml.ps1'
+    arguments: >
+      -WorkingDir '$(System.DefaultWorkingDirectory)'
+      -OutputPathofDll 'src/Microsoft.Health.Dicom.Web/bin/$(buildConfiguration)/net5.0/Microsoft.Health.Dicom.Web.dll'
+      -OutputPathOfOpenApiDoc 'src/Microsoft.Health.Dicom.Web/bin'
+      -Version 'v1-prerelease'
