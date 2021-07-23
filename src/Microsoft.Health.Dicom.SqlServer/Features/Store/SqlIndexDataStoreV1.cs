@@ -328,5 +328,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                 }
             }
         }
+
+        public virtual Task ReindexInstanceAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
+        {
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+        }
     }
 }

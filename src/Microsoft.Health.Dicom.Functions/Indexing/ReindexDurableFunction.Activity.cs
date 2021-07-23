@@ -129,10 +129,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             var tasks = new List<Task>();
             foreach (VersionedInstanceIdentifier identifier in instanceIdentifiers)
             {
-                // TODO: Should this be split into two operations:
-                // (1) Read all tags in blob
-                // (2) Write all new indices to SQL together
-                tasks.Add(_instanceReindexer.ReindexInstanceAsync(batch.QueryTags, identifier.Version));
+                tasks.Add(_instanceReindexer.ReindexInstanceAsync(input.TagStoreEntries, identifier));
             }
 
             await Task.WhenAll(tasks);

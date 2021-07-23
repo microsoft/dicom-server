@@ -29,6 +29,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Asynchronously reindex a DICOM instance.
+        /// </summary>
+        /// <param name="dicomDataset">The DICOM dataset to reindex.</param>
+        /// <param name="queryTags">Queryable dicom tags</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task that represents the asynchronous reindex operation.</returns>
+        Task ReindexInstanceAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Asynchronously deletes the indices of all instances which belongs to the study specified by the <paramref name="studyInstanceUid"/>.
         /// </summary>
         /// <param name="studyInstanceUid">The StudyInstanceUID.</param>
