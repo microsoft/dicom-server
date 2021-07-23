@@ -109,17 +109,11 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
                 Content = new StringContent(
 @$"
 {{
-  ""Name"": ""ReindexInstancesAsync"",
-  ""InstanceId"": ""{id}"",
+  ""OperationId"": ""{id}"",
+  ""Type"": ""Reindex"",
   ""CreatedTime"": ""{createdDateTime}"",
   ""LastUpdatedTime"": ""{createdDateTime.AddMinutes(15)}"",
-  ""Input"": null,
-  ""Output"": ""Hello World"",
-  ""RuntimeStatus"": ""Running"",
-  ""CustomStatus"": {{
-    ""Foo"": ""Bar""
-    }},
-  ""History"": null
+  ""Status"": ""Running""
 }}
 "
                 )
@@ -135,6 +129,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
 
             Assert.NotNull(actual);
             Assert.Equal(createdDateTime, actual.CreatedTime);
+            Assert.Equal(createdDateTime.AddMinutes(15), actual.LastUpdatedTime);
             Assert.Equal(id, actual.OperationId);
             Assert.Equal(OperationRuntimeStatus.Running, actual.Status);
             Assert.Equal(OperationType.Reindex, actual.Type);

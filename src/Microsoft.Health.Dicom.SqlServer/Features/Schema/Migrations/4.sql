@@ -2010,23 +2010,20 @@ AS
 
     BEGIN TRANSACTION
 
-        DECLARE @updatedKeys AS dbo.ExtendedQueryTagKeyTableType_1
-
         -- Update the TagStatus of all rows to Completed (1)
         UPDATE XQT
         SET TagStatus = 1
-        OUTPUT INSERTED.TagKey
-        INTO @updatedKeys
         FROM dbo.ExtendedQueryTag AS XQT
         INNER JOIN @extendedQueryTagKeys AS input ON XQT.TagKey = input.TagKey
-        INNER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON input.TagKey = XQTO.TagKey
         WHERE TagStatus = 0
 
         -- Delete their corresponding operations
         DELETE XQTO
         OUTPUT DELETED.TagKey
         FROM dbo.ExtendedQueryTagOperation AS XQTO
-        INNER JOIN @updatedKeys AS uk ON XQTO.TagKey = uk.TagKey
+        INNER JOIN dbo.ExtendedQueryTag AS XQT ON XQTO.TagKey = XQT.TagKey
+        INNER JOIN @extendedQueryTagKeys AS input ON XQT.TagKey = input.TagKey
+        WHERE TagStatus = 1
 
     COMMIT TRANSACTION
 GO

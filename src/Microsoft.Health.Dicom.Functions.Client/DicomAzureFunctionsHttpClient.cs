@@ -18,7 +18,6 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
 using Microsoft.Health.Dicom.Functions.Client.Configs;
-using Microsoft.Health.Dicom.Functions.Client.Models;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 
@@ -76,16 +75,9 @@ namespace Microsoft.Health.Dicom.Functions.Client
             // Re-throw any exceptions we may have encountered when making the HTTP request
             response.EnsureSuccessStatusCode();
 
-            DurableOrchestrationInstanceStatus responseState = JsonConvert.DeserializeObject<DurableOrchestrationInstanceStatus>(
+            return JsonConvert.DeserializeObject<OperationStatusResponse>(
                 await response.Content.ReadAsStringAsync(cancellationToken),
                 JsonSettings);
-
-            return new OperationStatusResponse(
-                responseState.InstanceId,
-                responseState.Type,
-                responseState.CreatedTime,
-                responseState.LastUpdatedTime,
-                responseState.RuntimeStatus);
         }
 
         /// <inheritdoc/>

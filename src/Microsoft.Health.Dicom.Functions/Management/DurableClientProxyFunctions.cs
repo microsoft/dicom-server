@@ -14,8 +14,9 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Messages.Operations;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Extensions;
-using Microsoft.Health.Dicom.Functions.Indexing;
 
 namespace Microsoft.Health.Dicom.Functions.Management
 {
@@ -24,8 +25,7 @@ namespace Microsoft.Health.Dicom.Functions.Management
     /// </summary>
     public static class DurableClientProxyFunctions
     {
-        internal static readonly ImmutableHashSet<string> PublicOperationTypes = ImmutableHashSet.Create(
-            nameof(ReindexDurableFunction.ReindexInstancesAsync));
+        internal static readonly ImmutableHashSet<OperationType> PublicOperationTypes = ImmutableHashSet.Create(OperationType.Reindex);
 
         /// <summary>
         /// Gets the status of an orchestration instance.
@@ -43,8 +43,8 @@ namespace Microsoft.Health.Dicom.Functions.Management
         /// </param>
         /// <returns>
         /// A task representing the <see cref="GetStatusAsync(HttpRequest, IDurableOrchestrationClient, string, ILogger, CancellationToken)"/>
-        /// operation. The value of its <see cref="Task{TResult}.Result"/> property contains the status of the orchestration
-        /// instance with the specified <paramref name="instanceId"/>, if found; otherwise <see cref="BadRequestResult"/>.
+        /// operation. The value of its <see cref="Task{TResult}.Result"/> property contains the status of the DICOM operation
+        /// with the specified <paramref name="instanceId"/>, if found; otherwise <see cref="BadRequestResult"/>.
         /// </returns>
         /// <exception cref="ArgumentException">
         /// <paramref name="request"/>, <paramref name="client"/>, or <paramref name="logger"/> is <see langword="null"/>.
@@ -75,10 +75,23 @@ namespace Microsoft.Health.Dicom.Functions.Management
             // GetStatusAsync doesn't accept a token, so the best we can do is cancel before execution
             source.Token.ThrowIfCancellationRequested();
 
-            DurableOrchestrationStatus status = await client.GetStatusAsync(instanceId, showInput: false);
-            return status != null && PublicOperationTypes.Contains(status.Name)
+            OperationStatusResponse status = await GetOperationStatusAsync(client, instanceId);
+            return status != null && PublicOperationTypes.Contains(status.Type)
                 ? new OkObjectResult(status)
                 : new NotFoundResult();
+        }
+
+        private static async Task<OperationStatusResponse> GetOperationStatusAsync(IDurableOrchestrationClient client, string instanceId)
+        {
+            DurableOrchestrationStatus status = await client.GetStatusAsync(instanceId, showInput: false);
+            return status == null
+                ? null
+                : new OperationStatusResponse(
+                    status.InstanceId,
+                    status.GetOperationType(),
+                    status.CreatedTime,
+                    status.LastUpdatedTime,
+                    status.GetOperationRuntimeStatus());
         }
     }
 }

@@ -26,19 +26,4 @@
     <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="DicomFunctionsClientResource.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>DicomFunctionsClientResource.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="DicomFunctionsClientResource.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>DicomFunctionsClientResource.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-
 </Project>

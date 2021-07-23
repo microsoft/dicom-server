@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Health.Dicom.Core.Messages.Operations;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Management;
 using NSubstitute;
@@ -79,6 +81,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
             string id = Guid.NewGuid().ToString();
             var status = new DurableOrchestrationStatus
             {
+                InstanceId = id,
                 CreatedTime = DateTime.UtcNow.AddMinutes(-2),
                 LastUpdatedTime = DateTime.UtcNow,
                 Name = "Foo",
@@ -104,6 +107,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
             string id = Guid.NewGuid().ToString();
             var status = new DurableOrchestrationStatus
             {
+                InstanceId = id,
                 CreatedTime = DateTime.UtcNow.AddMinutes(-2),
                 LastUpdatedTime = DateTime.UtcNow,
                 Name = nameof(ReindexDurableFunction.ReindexInstancesAsync),
@@ -119,8 +123,13 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
                 id,
                 NullLogger.Instance) as OkObjectResult;
 
-            Assert.NotNull(result);
-            Assert.Same(status, result.Value);
+            var actual = result?.Value as OperationStatusResponse;
+            Assert.NotNull(actual);
+            Assert.Equal(id, actual.OperationId);
+            Assert.Equal(OperationType.Reindex, actual.Type);
+            Assert.Equal(status.CreatedTime, actual.CreatedTime);
+            Assert.Equal(status.LastUpdatedTime, actual.LastUpdatedTime);
+            Assert.Equal(OperationRuntimeStatus.Running, actual.Status);
 
             await client.Received(1).GetStatusAsync(id, showHistory: false, showHistoryOutput: false, showInput: false);
         }
