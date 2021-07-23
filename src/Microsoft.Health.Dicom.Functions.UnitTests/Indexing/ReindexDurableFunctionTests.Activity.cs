@@ -114,24 +114,24 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 WatermarkRange = WatermarkRange.Between(5, 10),
             };
 
+            var expected = new List<VersionedInstanceIdentifier>
+            {
+                new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 5),
+                new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 6),
+                new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 7),
+                new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 8),
+                new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 9),
+            };
+
             // Arrange input
             _instanceStore
                 .GetInstanceIdentifiersByWatermarkRangeAsync(batch.WatermarkRange, IndexStatus.Created, CancellationToken.None)
-                .Returns(
-                    new List<VersionedInstanceIdentifier>
-                    {
-                        new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 5),
-                        new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 6),
-                        new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 7),
-                        new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 8),
-                        new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 9),
-                    });
+                .Returns(expected);
 
-            _instanceReindexer.ReindexInstanceAsync(batch.QueryTags, 5).Returns(Task.CompletedTask);
-            _instanceReindexer.ReindexInstanceAsync(batch.QueryTags, 6).Returns(Task.CompletedTask);
-            _instanceReindexer.ReindexInstanceAsync(batch.QueryTags, 7).Returns(Task.CompletedTask);
-            _instanceReindexer.ReindexInstanceAsync(batch.QueryTags, 8).Returns(Task.CompletedTask);
-            _instanceReindexer.ReindexInstanceAsync(batch.QueryTags, 9).Returns(Task.CompletedTask);
+            foreach (VersionedInstanceIdentifier identifier in expected)
+            {
+                _instanceReindexer.ReindexInstanceAsync(batch.QueryTags, identifier).Returns(Task.CompletedTask);
+            }
 
             // Call the activity
             await _reindexDurableFunction.ReindexBatchAsync(batch, NullLogger.Instance);
@@ -141,11 +141,10 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .Received(1)
                 .GetInstanceIdentifiersByWatermarkRangeAsync(batch.WatermarkRange, IndexStatus.Created, CancellationToken.None);
 
-            await _instanceReindexer.Received(1).ReindexInstanceAsync(batch.QueryTags, 5);
-            await _instanceReindexer.Received(1).ReindexInstanceAsync(batch.QueryTags, 6);
-            await _instanceReindexer.Received(1).ReindexInstanceAsync(batch.QueryTags, 7);
-            await _instanceReindexer.Received(1).ReindexInstanceAsync(batch.QueryTags, 8);
-            await _instanceReindexer.Received(1).ReindexInstanceAsync(batch.QueryTags, 9);
+            foreach (VersionedInstanceIdentifier identifier in expected)
+            {
+                await _instanceReindexer.Received(1).ReindexInstanceAsync(batch.QueryTags, identifier);
+            }
         }
 
         [Fact]
