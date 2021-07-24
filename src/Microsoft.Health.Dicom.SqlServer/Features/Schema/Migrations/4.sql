@@ -1,344 +1,538 @@
 -- Style guide: please see: https://github.com/ktaranov/sqlserver-kit/blob/master/SQL%20Server%20Name%20Convention%20and%20T-SQL%20Programming%20Style.md
+
+/*************************************************************
+Full text catalog creation
+**************************************************************/
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.fulltext_catalogs
+    WHERE name = 'Dicom_Catalog')
+BEGIN
+    CREATE FULLTEXT CATALOG Dicom_Catalog WITH ACCENT_SENSITIVITY = OFF AS DEFAULT
+END
+GO
+
 /*************************************************************
 Wrapping up in the multiple transactions except CREATE FULLTEXT INDEX which is non-transactional script.
 Guidelines to create scripts - https://github.com/microsoft/healthcare-shared-components/tree/master/src/Microsoft.Health.SqlServer/SqlSchemaScriptsGuidelines.md
 **************************************************************/
-
 SET XACT_ABORT ON
 
 BEGIN TRANSACTION
-/***********************************************************************
- NOTE: just checking first object, since this is run in transaction 
-***************************************************************************/
-IF EXISTS (
-    SELECT * 
-    FROM sys.tables
-    WHERE name = 'Instance')
-BEGIN
-    ROLLBACK TRANSACTION
-    RETURN
-END
 
 /*************************************************************
     Instance Table
     Dicom instances with unique Study, Series and Instance Uid
 **************************************************************/
-CREATE TABLE dbo.Instance (
-    InstanceKey             BIGINT                     NOT NULL, --PK
-    SeriesKey               BIGINT                     NOT NULL, --FK
-    -- StudyKey needed to join directly from Study table to find a instance
-    StudyKey                BIGINT                     NOT NULL, --FK
-    --instance keys used in WADO
-    StudyInstanceUid        VARCHAR(64)                NOT NULL,
-    SeriesInstanceUid       VARCHAR(64)                NOT NULL,
-    SopInstanceUid          VARCHAR(64)                NOT NULL,
-    --data consitency columns
-    Watermark               BIGINT                     NOT NULL,
-    Status                  TINYINT                    NOT NULL,
-    LastStatusUpdatedDate   DATETIME2(7)               NOT NULL,
-    --audit columns
-    CreatedDate             DATETIME2(7)               NOT NULL
-) WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.tables
+    WHERE name = 'Instance')
+BEGIN
+    CREATE TABLE dbo.Instance (
+        InstanceKey             BIGINT                     NOT NULL, --PK
+        SeriesKey               BIGINT                     NOT NULL, --FK
+        -- StudyKey needed to join directly from Study table to find a instance
+        StudyKey                BIGINT                     NOT NULL, --FK
+        --instance keys used in WADO
+        StudyInstanceUid        VARCHAR(64)                NOT NULL,
+        SeriesInstanceUid       VARCHAR(64)                NOT NULL,
+        SopInstanceUid          VARCHAR(64)                NOT NULL,
+        --data consitency columns
+        Watermark               BIGINT                     NOT NULL,
+        Status                  TINYINT                    NOT NULL,
+        LastStatusUpdatedDate   DATETIME2(7)               NOT NULL,
+        --audit columns
+        CreatedDate             DATETIME2(7)               NOT NULL
+    ) WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance
-(
-    SeriesKey,
-    InstanceKey
-)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_Instance' AND object_id = OBJECT_ID('dbo.Instance'))
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance
+    (
+        SeriesKey,
+        InstanceKey
+    )
+END
 
 --Filter indexes
-CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
-(
-    StudyInstanceUid,
-    SeriesInstanceUid,
-    SopInstanceUid
-)
-INCLUDE
-(
-    Status,
-    Watermark
-)
-WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid' AND object_id = OBJECT_ID('dbo.Instance'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
+    (
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid
+    )
+    INCLUDE
+    (
+        Status,
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_Status on dbo.Instance
-(
-    StudyInstanceUid,
-    Status
-)
-INCLUDE
-(
-    Watermark
-)
-WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IX_Instance_StudyInstanceUid_Status' AND object_id = OBJECT_ID('dbo.Instance'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_Status on dbo.Instance
+    (
+        StudyInstanceUid,
+        Status
+    )
+    INCLUDE
+    (
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status on dbo.Instance
-(
-    StudyInstanceUid,
-    SeriesInstanceUid,
-    Status
-)
-INCLUDE
-(
-    Watermark
-)
-WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status' AND object_id = OBJECT_ID('dbo.Instance'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status on dbo.Instance
+    (
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        Status
+    )
+    INCLUDE
+    (
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE NONCLUSTERED INDEX IX_Instance_SopInstanceUid_Status on dbo.Instance
-(
-    SopInstanceUid,
-    Status
-)
-INCLUDE
-(
-    StudyInstanceUid,
-    SeriesInstanceUid,
-    Watermark
-)
-WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IX_Instance_SopInstanceUid_Status' AND object_id = OBJECT_ID('dbo.Instance'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Instance_SopInstanceUid_Status on dbo.Instance
+    (
+        SopInstanceUid,
+        Status
+    )
+    INCLUDE
+    (
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE NONCLUSTERED INDEX IX_Instance_Watermark on dbo.Instance
-(
-    Watermark
-)
-WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IX_Instance_Watermark' AND object_id = OBJECT_ID('dbo.Instance'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Instance_Watermark on dbo.Instance
+    (
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
 
 --Cross apply indexes
-CREATE NONCLUSTERED INDEX IX_Instance_SeriesKey_Status on dbo.Instance
-(
-    SeriesKey,
-    Status
-)
-INCLUDE
-(
-    StudyInstanceUid,
-    SeriesInstanceUid,
-    SopInstanceUid,
-    Watermark
-)
-WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IX_Instance_SeriesKey_Status' AND object_id = OBJECT_ID('dbo.Instance'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Instance_SeriesKey_Status on dbo.Instance
+    (
+        SeriesKey,
+        Status
+    )
+    INCLUDE
+    (
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid,
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE NONCLUSTERED INDEX IX_Instance_StudyKey_Status on dbo.Instance
-(
-    StudyKey,
-    Status
-)
-INCLUDE
-(
-    StudyInstanceUid,
-    SeriesInstanceUid,
-    SopInstanceUid,
-    Watermark
-)
-WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IX_Instance_StudyKey_Status' AND object_id = OBJECT_ID('dbo.Instance'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Instance_StudyKey_Status on dbo.Instance
+    (
+        StudyKey,
+        Status
+    )
+    INCLUDE
+    (
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid,
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
 
 /*************************************************************
     Study Table
     Table containing normalized standard Study tags
 **************************************************************/
-CREATE TABLE dbo.Study (
-    StudyKey                    BIGINT                            NOT NULL, --PK
-    StudyInstanceUid            VARCHAR(64)                       NOT NULL,
-    PatientId                   NVARCHAR(64)                      NOT NULL,
-    PatientName                 NVARCHAR(200)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
-    ReferringPhysicianName      NVARCHAR(200)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
-    StudyDate                   DATE                              NULL,
-    StudyDescription            NVARCHAR(64)                      NULL,
-    AccessionNumber             NVARCHAR(16)                      NULL,
-    PatientNameWords            AS REPLACE(REPLACE(PatientName, '^', ' '), '=', ' ') PERSISTED,
-    ReferringPhysicianNameWords AS REPLACE(REPLACE(ReferringPhysicianName, '^', ' '), '=', ' ') PERSISTED,
-    PatientBirthDate            DATE                              NULL
-) WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.tables
+    WHERE name = 'Study')
+BEGIN
+    CREATE TABLE dbo.Study (
+        StudyKey                    BIGINT                            NOT NULL, --PK
+        StudyInstanceUid            VARCHAR(64)                       NOT NULL,
+        PatientId                   NVARCHAR(64)                      NOT NULL,
+        PatientName                 NVARCHAR(200)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
+        ReferringPhysicianName      NVARCHAR(200)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
+        StudyDate                   DATE                              NULL,
+        StudyDescription            NVARCHAR(64)                      NULL,
+        AccessionNumber             NVARCHAR(16)                      NULL,
+        PatientNameWords            AS REPLACE(REPLACE(PatientName, '^', ' '), '=', ' ') PERSISTED,
+        ReferringPhysicianNameWords AS REPLACE(REPLACE(ReferringPhysicianName, '^', ' '), '=', ' ') PERSISTED,
+        PatientBirthDate            DATE                              NULL
+    ) WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE UNIQUE CLUSTERED INDEX IXC_Study ON dbo.Study
-(
-    StudyKey
-)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_Study' AND object_id = OBJECT_ID('dbo.Study'))
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_Study ON dbo.Study
+    (
+        StudyKey
+    )
+END
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Study_StudyInstanceUid ON dbo.Study
-(
-    StudyInstanceUid
-)
-INCLUDE
-(
-    StudyKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IX_Study_StudyInstanceUid' AND object_id = OBJECT_ID('dbo.Study'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Study_StudyInstanceUid ON dbo.Study
+    (
+        StudyInstanceUid
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE NONCLUSTERED INDEX IX_Study_PatientId ON dbo.Study
-(
-    PatientId
-)
-INCLUDE
-(
-    StudyKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IX_Study_PatientId' AND object_id = OBJECT_ID('dbo.Study'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Study_PatientId ON dbo.Study
+    (
+        PatientId
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE NONCLUSTERED INDEX IX_Study_PatientName ON dbo.Study
-(
-    PatientName
-)
-INCLUDE
-(
-    StudyKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IX_Study_PatientName' AND object_id = OBJECT_ID('dbo.Study'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Study_PatientName ON dbo.Study
+    (
+        PatientName
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE NONCLUSTERED INDEX IX_Study_ReferringPhysicianName ON dbo.Study
-(
-    ReferringPhysicianName
-)
-INCLUDE
-(
-    StudyKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IX_Study_ReferringPhysicianName' AND object_id = OBJECT_ID('dbo.Study'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Study_ReferringPhysicianName ON dbo.Study
+    (
+        ReferringPhysicianName
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE NONCLUSTERED INDEX IX_Study_StudyDate ON dbo.Study
-(
-    StudyDate
-)
-INCLUDE
-(
-    StudyKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IX_Study_StudyDate' AND object_id = OBJECT_ID('dbo.Study'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Study_StudyDate ON dbo.Study
+    (
+        StudyDate
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE NONCLUSTERED INDEX IX_Study_StudyDescription ON dbo.Study
-(
-    StudyDescription
-)
-INCLUDE
-(
-    StudyKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IX_Study_StudyDescription' AND object_id = OBJECT_ID('dbo.Study'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Study_StudyDescription ON dbo.Study
+    (
+        StudyDescription
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE NONCLUSTERED INDEX IX_Study_AccessionNumber ON dbo.Study
-(
-    AccessionNumber
-)
-INCLUDE
-(
-    StudyKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IX_Study_AccessionNumber' AND object_id = OBJECT_ID('dbo.Study'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Study_AccessionNumber ON dbo.Study
+    (
+        AccessionNumber
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE NONCLUSTERED INDEX IX_Study_PatientBirthDate ON dbo.Study
-(
-    PatientBirthDate
-)
-INCLUDE
-(
-    StudyKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.indexes 
+    WHERE name='IX_Study_PatientBirthDate' AND object_id = OBJECT_ID('dbo.Study'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Study_PatientBirthDate ON dbo.Study
+    (
+        PatientBirthDate
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
+
+COMMIT TRANSACTION
+GO
+
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.fulltext_indexes 
+    where object_id = object_id('dbo.Study'))
+BEGIN
+    CREATE FULLTEXT INDEX ON Study(PatientNameWords, ReferringPhysicianNameWords LANGUAGE 1033)
+    KEY INDEX IXC_Study
+    WITH STOPLIST = OFF;
+END
+GO
+
+SET XACT_ABORT ON
+
+BEGIN TRANSACTION
 
 /*************************************************************
     Series Table
     Table containing normalized standard Series tags
 **************************************************************/
 
-CREATE TABLE dbo.Series (
-    SeriesKey                           BIGINT                     NOT NULL, --PK
-    StudyKey                            BIGINT                     NOT NULL, --FK
-    SeriesInstanceUid                   VARCHAR(64)                NOT NULL,
-    Modality                            NVARCHAR(16)               NULL,
-    PerformedProcedureStepStartDate     DATE                       NULL,
-    ManufacturerModelName               NVARCHAR(64)               NULL
-) WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.tables
+    WHERE name = 'Series')
+BEGIN
+    CREATE TABLE dbo.Series (
+        SeriesKey                           BIGINT                     NOT NULL, --PK
+        StudyKey                            BIGINT                     NOT NULL, --FK
+        SeriesInstanceUid                   VARCHAR(64)                NOT NULL,
+        Modality                            NVARCHAR(16)               NULL,
+        PerformedProcedureStepStartDate     DATE                       NULL,
+        ManufacturerModelName               NVARCHAR(64)               NULL
+    ) WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE UNIQUE CLUSTERED INDEX IXC_Series ON dbo.Series
-(
-    StudyKey,
-    SeriesKey
-)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_Series' AND object_id = OBJECT_ID('dbo.Series'))
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_Series ON dbo.Series
+    (
+        StudyKey,
+        SeriesKey
+    )
+END
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Series_SeriesKey ON dbo.Series
-(
-    SeriesKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IX_Series_SeriesKey' AND object_id = OBJECT_ID('dbo.Series'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Series_SeriesKey ON dbo.Series
+    (
+        SeriesKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Series_SeriesInstanceUid ON dbo.Series
-(
-    SeriesInstanceUid
-)
-INCLUDE
-(
-    StudyKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IX_Series_SeriesInstanceUid' AND object_id = OBJECT_ID('dbo.Series'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Series_SeriesInstanceUid ON dbo.Series
+    (
+        SeriesInstanceUid
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE NONCLUSTERED INDEX IX_Series_Modality ON dbo.Series
-(
-    Modality
-)
-INCLUDE
-(
-    StudyKey,
-    SeriesKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IX_Series_Modality' AND object_id = OBJECT_ID('dbo.Series'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Series_Modality ON dbo.Series
+    (
+        Modality
+    )
+    INCLUDE
+    (
+        StudyKey,
+        SeriesKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE NONCLUSTERED INDEX IX_Series_PerformedProcedureStepStartDate ON dbo.Series
-(
-    PerformedProcedureStepStartDate
-)
-INCLUDE
-(
-    StudyKey,
-    SeriesKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IX_Series_PerformedProcedureStepStartDate' AND object_id = OBJECT_ID('dbo.Series'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Series_PerformedProcedureStepStartDate ON dbo.Series
+    (
+        PerformedProcedureStepStartDate
+    )
+    INCLUDE
+    (
+        StudyKey,
+        SeriesKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE NONCLUSTERED INDEX IX_Series_ManufacturerModelName ON dbo.Series
-(
-    ManufacturerModelName
-)
-INCLUDE
-(
-    StudyKey,
-    SeriesKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.indexes 
+    WHERE name='IX_Series_ManufacturerModelName' AND object_id = OBJECT_ID('dbo.Series'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Series_ManufacturerModelName ON dbo.Series
+    (
+        ManufacturerModelName
+    )
+    INCLUDE
+    (
+        StudyKey,
+        SeriesKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
+GO
 
 /*************************************************************
     DeletedInstance Table
     Table containing deleted instances that will be removed after the specified date
 **************************************************************/
-CREATE TABLE dbo.DeletedInstance
-(
-    StudyInstanceUid    VARCHAR(64)       NOT NULL,
-    SeriesInstanceUid   VARCHAR(64)       NOT NULL,
-    SopInstanceUid      VARCHAR(64)       NOT NULL,
-    Watermark           BIGINT            NOT NULL,
-    DeletedDateTime     DATETIMEOFFSET(0) NOT NULL,
-    RetryCount          INT               NOT NULL,
-    CleanupAfter        DATETIMEOFFSET(0) NOT NULL
-) WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.tables
+    WHERE name = 'DeletedInstance')
+BEGIN
+    CREATE TABLE dbo.DeletedInstance
+    (
+        StudyInstanceUid    VARCHAR(64)       NOT NULL,
+        SeriesInstanceUid   VARCHAR(64)       NOT NULL,
+        SopInstanceUid      VARCHAR(64)       NOT NULL,
+        Watermark           BIGINT            NOT NULL,
+        DeletedDateTime     DATETIMEOFFSET(0) NOT NULL,
+        RetryCount          INT               NOT NULL,
+        CleanupAfter        DATETIMEOFFSET(0) NOT NULL
+    ) WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE UNIQUE CLUSTERED INDEX IXC_DeletedInstance ON dbo.DeletedInstance
-(
-    StudyInstanceUid,
-    SeriesInstanceUid,
-    SopInstanceUid,
-    WaterMark
-)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_DeletedInstance' AND object_id = OBJECT_ID('dbo.DeletedInstance'))
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_DeletedInstance ON dbo.DeletedInstance
+    (
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid,
+        WaterMark
+    )
+END
 
-CREATE NONCLUSTERED INDEX IX_DeletedInstance_RetryCount_CleanupAfter ON dbo.DeletedInstance
-(
-    RetryCount,
-    CleanupAfter
-)
-INCLUDE
-(
-    StudyInstanceUid,
-    SeriesInstanceUid,
-    SopInstanceUid,
-    Watermark
-)
-WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IX_DeletedInstance_RetryCount_CleanupAfter' AND object_id = OBJECT_ID('dbo.DeletedInstance'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_DeletedInstance_RetryCount_CleanupAfter ON dbo.DeletedInstance
+    (
+        RetryCount,
+        CleanupAfter
+    )
+    INCLUDE
+    (
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid,
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
 
 /*************************************************************
     Changes Table
@@ -349,28 +543,46 @@ WITH (DATA_COMPRESSION = PAGE)
     CurrentWatermark = OriginalWatermark,  Current State = Created
     CurrentWatermark <> OriginalWatermark, Current State = Replaced
 **************************************************************/
-CREATE TABLE dbo.ChangeFeed (
-    Sequence                BIGINT IDENTITY(1,1) NOT NULL,
-    Timestamp               DATETIMEOFFSET(7)    NOT NULL,
-    Action                  TINYINT              NOT NULL,
-    StudyInstanceUid        VARCHAR(64)          NOT NULL,
-    SeriesInstanceUid       VARCHAR(64)          NOT NULL,
-    SopInstanceUid          VARCHAR(64)          NOT NULL,
-    OriginalWatermark       BIGINT               NOT NULL,
-    CurrentWatermark        BIGINT               NULL
-) WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.tables
+    WHERE name = 'ChangeFeed')
+BEGIN
+    CREATE TABLE dbo.ChangeFeed (
+        Sequence                BIGINT IDENTITY(1,1) NOT NULL,
+        Timestamp               DATETIMEOFFSET(7)    NOT NULL,
+        Action                  TINYINT              NOT NULL,
+        StudyInstanceUid        VARCHAR(64)          NOT NULL,
+        SeriesInstanceUid       VARCHAR(64)          NOT NULL,
+        SopInstanceUid          VARCHAR(64)          NOT NULL,
+        OriginalWatermark       BIGINT               NOT NULL,
+        CurrentWatermark        BIGINT               NULL
+    ) WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
-(
-    Sequence
-)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_ChangeFeed' AND object_id = OBJECT_ID('dbo.ChangeFeed'))
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
+    (
+        Sequence
+    )
+END
 
-CREATE NONCLUSTERED INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.ChangeFeed
-(
-    StudyInstanceUid,
-    SeriesInstanceUid,
-    SopInstanceUid
-)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid' AND object_id = OBJECT_ID('dbo.ChangeFeed'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.ChangeFeed
+    (
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid
+    )
+END
 
 /*************************************************************
     Extended Query Tag Table
@@ -380,50 +592,42 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopIn
     TagPrivateCreator is identification code of private tag implementer, only apply to private tag.
     TagStatus can be 0, 1 or 2 to represent Adding, Ready or Deleting    
 **************************************************************/
-CREATE TABLE dbo.ExtendedQueryTag (
-    TagKey                  INT                  NOT NULL, --PK
-    TagPath                 VARCHAR(64)          NOT NULL,
-    TagVR                   VARCHAR(2)           NOT NULL,
-    TagPrivateCreator       NVARCHAR(64)         NULL, 
-    TagLevel                TINYINT              NOT NULL,
-    TagStatus               TINYINT              NOT NULL
-)
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.tables
+    WHERE name = 'ExtendedQueryTag')
+BEGIN
+    CREATE TABLE dbo.ExtendedQueryTag (
+        TagKey                  INT                  NOT NULL, --PK
+        TagPath                 VARCHAR(64)          NOT NULL,
+        TagVR                   VARCHAR(2)           NOT NULL,
+        TagPrivateCreator       NVARCHAR(64)         NULL, 
+        TagLevel                TINYINT              NOT NULL,
+        TagStatus               TINYINT              NOT NULL
+    )
+END
 
-CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
-(
-    TagKey
-)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_ExtendedQueryTag' AND object_id = OBJECT_ID('dbo.ExtendedQueryTag'))
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
+    (
+        TagKey
+    )
+END
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath ON dbo.ExtendedQueryTag
-(
-    TagPath
-)
-
-/*************************************************************
-    Extended Query Tag Operation Table
-    Stores the association between tags and their reindexing operation
-    TagKey is the primary key and foreign key for the row in dbo.ExtendedQueryTag
-    OperationId is the unique ID for the associated operation (like reindexing)
-**************************************************************/
-CREATE TABLE dbo.ExtendedQueryTagOperation (
-    TagKey                  INT                  NOT NULL, --PK
-    OperationId             VARCHAR(32)          NOT NULL -- TODO: Use uniqueidentifier
-)
-
-CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagOperation ON dbo.ExtendedQueryTagOperation
-(
-    TagKey
-)
-
-
-CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagOperation_OperationId ON dbo.ExtendedQueryTagOperation
-(
-    OperationId
-)
-INCLUDE
-(
-    TagKey
-)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IX_ExtendedQueryTag_TagPath' AND object_id = OBJECT_ID('dbo.ExtendedQueryTag'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath ON dbo.ExtendedQueryTag
+    (
+        TagPath
+    )
+END
 
 /*************************************************************
     Extended Query Tag Data Table for VR Types mapping to String
@@ -432,23 +636,35 @@ INCLUDE
             the Watermark is used to ensure that if there are different values between instances,
             the value on the instance with the highest watermark wins.
 **************************************************************/
-CREATE TABLE dbo.ExtendedQueryTagString (
-    TagKey                  INT                  NOT NULL, --PK
-    TagValue                NVARCHAR(64)         NOT NULL,
-    StudyKey                BIGINT               NOT NULL, --FK
-    SeriesKey               BIGINT               NULL,     --FK
-    InstanceKey             BIGINT               NULL,     --FK
-    Watermark               BIGINT               NOT NULL
-) WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.tables
+    WHERE name = 'ExtendedQueryTagString')
+BEGIN
+    CREATE TABLE dbo.ExtendedQueryTagString (
+        TagKey                  INT                  NOT NULL, --PK
+        TagValue                NVARCHAR(64)         NOT NULL,
+        StudyKey                BIGINT               NOT NULL, --FK
+        SeriesKey               BIGINT               NULL,     --FK
+        InstanceKey             BIGINT               NULL,     --FK
+        Watermark               BIGINT               NOT NULL
+    ) WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString ON dbo.ExtendedQueryTagString
-(
-    TagKey,
-    TagValue,
-    StudyKey,
-    SeriesKey,
-    InstanceKey
-)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_ExtendedQueryTagString' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagString'))
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString ON dbo.ExtendedQueryTagString
+    (
+        TagKey,
+        TagValue,
+        StudyKey,
+        SeriesKey,
+        InstanceKey
+    )
+END
 
 /*************************************************************
     Extended Query Tag Data Table for VR Types mapping to Long
@@ -457,23 +673,35 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString ON dbo.ExtendedQueryTag
             the Watermark is used to ensure that if there are different values between instances,
             the value on the instance with the highest watermark wins.
 **************************************************************/
-CREATE TABLE dbo.ExtendedQueryTagLong (
-    TagKey                  INT                  NOT NULL, --PK
-    TagValue                BIGINT               NOT NULL,
-    StudyKey                BIGINT               NOT NULL, --FK
-    SeriesKey               BIGINT               NULL,     --FK
-    InstanceKey             BIGINT               NULL,     --FK
-    Watermark               BIGINT               NOT NULL
-) WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.tables
+    WHERE name = 'ExtendedQueryTagLong')
+BEGIN
+    CREATE TABLE dbo.ExtendedQueryTagLong (
+        TagKey                  INT                  NOT NULL, --PK
+        TagValue                BIGINT               NOT NULL,
+        StudyKey                BIGINT               NOT NULL, --FK
+        SeriesKey               BIGINT               NULL,     --FK
+        InstanceKey             BIGINT               NULL,     --FK
+        Watermark               BIGINT               NOT NULL
+    ) WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong ON dbo.ExtendedQueryTagLong
-(
-    TagKey,
-    TagValue,
-    StudyKey,
-    SeriesKey,
-    InstanceKey
-)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_ExtendedQueryTagLong' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagLong'))
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong ON dbo.ExtendedQueryTagLong
+    (
+        TagKey,
+        TagValue,
+        StudyKey,
+        SeriesKey,
+        InstanceKey
+    )
+END
 
 /*************************************************************
     Extended Query Tag Data Table for VR Types mapping to Double
@@ -482,23 +710,35 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong ON dbo.ExtendedQueryTagLo
             the Watermark is used to ensure that if there are different values between instances,
             the value on the instance with the highest watermark wins.
 **************************************************************/
-CREATE TABLE dbo.ExtendedQueryTagDouble (
-    TagKey                  INT                  NOT NULL, --PK
-    TagValue                FLOAT(53)            NOT NULL,
-    StudyKey                BIGINT               NOT NULL, --FK
-    SeriesKey               BIGINT               NULL,     --FK
-    InstanceKey             BIGINT               NULL,     --FK
-    Watermark               BIGINT               NOT NULL
-) WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.tables
+    WHERE name = 'ExtendedQueryTagDouble')
+BEGIN
+    CREATE TABLE dbo.ExtendedQueryTagDouble (
+        TagKey                  INT                  NOT NULL, --PK
+        TagValue                FLOAT(53)            NOT NULL,
+        StudyKey                BIGINT               NOT NULL, --FK
+        SeriesKey               BIGINT               NULL,     --FK
+        InstanceKey             BIGINT               NULL,     --FK
+        Watermark               BIGINT               NOT NULL
+    ) WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble ON dbo.ExtendedQueryTagDouble
-(
-    TagKey,
-    TagValue,
-    StudyKey,
-    SeriesKey,
-    InstanceKey
-)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_ExtendedQueryTagDouble' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagDouble'))
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble ON dbo.ExtendedQueryTagDouble
+    (
+        TagKey,
+        TagValue,
+        StudyKey,
+        SeriesKey,
+        InstanceKey
+    )
+END
 
 /*************************************************************
     Extended Query Tag Data Table for VR Types mapping to DateTime
@@ -507,23 +747,35 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble ON dbo.ExtendedQueryTag
             the Watermark is used to ensure that if there are different values between instances,
             the value on the instance with the highest watermark wins.
 **************************************************************/
-CREATE TABLE dbo.ExtendedQueryTagDateTime (
-    TagKey                  INT                  NOT NULL, --PK
-    TagValue                DATETIME2(7)         NOT NULL,
-    StudyKey                BIGINT               NOT NULL, --FK
-    SeriesKey               BIGINT               NULL,     --FK
-    InstanceKey             BIGINT               NULL,     --FK
-    Watermark               BIGINT               NOT NULL
-) WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.tables
+    WHERE name = 'ExtendedQueryTagDateTime')
+BEGIN
+    CREATE TABLE dbo.ExtendedQueryTagDateTime (
+        TagKey                  INT                  NOT NULL, --PK
+        TagValue                DATETIME2(7)         NOT NULL,
+        StudyKey                BIGINT               NOT NULL, --FK
+        SeriesKey               BIGINT               NULL,     --FK
+        InstanceKey             BIGINT               NULL,     --FK
+        Watermark               BIGINT               NOT NULL
+    ) WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryTagDateTime
-(
-    TagKey,
-    TagValue,
-    StudyKey,
-    SeriesKey,
-    InstanceKey
-)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_ExtendedQueryTagDateTime' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagDateTime'))
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryTagDateTime
+    (
+        TagKey,
+        TagValue,
+        StudyKey,
+        SeriesKey,
+        InstanceKey
+    )
+END
 
 /*************************************************************
     Extended Query Tag Data Table for VR Types mapping to PersonName
@@ -531,147 +783,284 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryT
             For example, with multiple instances in a series, while indexing a series level tag,
             the Watermark is used to ensure that if there are different values between instances,
             the value on the instance with the highest watermark wins.
-    Note: The primary key is designed on the assumption that tags only occur once in an instance.
+	Note: The primary key is designed on the assumption that tags only occur once in an instance.
 **************************************************************/
-CREATE TABLE dbo.ExtendedQueryTagPersonName (
-    TagKey                  INT                  NOT NULL, --FK
-    TagValue                NVARCHAR(200)        COLLATE SQL_Latin1_General_CP1_CI_AI NOT NULL,
-    StudyKey                BIGINT               NOT NULL, --FK
-    SeriesKey               BIGINT               NULL,     --FK
-    InstanceKey             BIGINT               NULL,     --FK
-    Watermark               BIGINT               NOT NULL,
-    WatermarkAndTagKey      AS CONCAT(TagKey, '.', Watermark), --PK
-    TagValueWords           AS REPLACE(REPLACE(TagValue, '^', ' '), '=', ' ') PERSISTED,
-) WITH (DATA_COMPRESSION = PAGE)
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.tables
+    WHERE name = 'ExtendedQueryTagPersonName')
+BEGIN
+    CREATE TABLE dbo.ExtendedQueryTagPersonName (
+        TagKey                  INT                  NOT NULL, --FK
+        TagValue                NVARCHAR(200)        COLLATE SQL_Latin1_General_CP1_CI_AI NOT NULL,
+        StudyKey                BIGINT               NOT NULL, --FK
+        SeriesKey               BIGINT               NULL,     --FK
+        InstanceKey             BIGINT               NULL,     --FK
+        Watermark               BIGINT               NOT NULL,
+        WatermarkAndTagKey      AS CONCAT(TagKey, '.', Watermark), --PK
+        TagValueWords           AS REPLACE(REPLACE(TagValue, '^', ' '), '=', ' ') PERSISTED,
+    ) WITH (DATA_COMPRESSION = PAGE)
+END
 
-CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName ON dbo.ExtendedQueryTagPersonName
-(
-    TagKey,
-    TagValue,
-    StudyKey,
-    SeriesKey,
-    InstanceKey
-)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_ExtendedQueryTagPersonName' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagPersonName'))
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName ON dbo.ExtendedQueryTagPersonName
+    (
+        TagKey,
+        TagValue,
+        StudyKey,
+        SeriesKey,
+        InstanceKey
+    )
+END
 
-CREATE UNIQUE NONCLUSTERED INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey ON dbo.ExtendedQueryTagPersonName
-(
-    WatermarkAndTagKey
-)
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagPersonName'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey ON dbo.ExtendedQueryTagPersonName
+    (
+        WatermarkAndTagKey
+    )
+END
+
+COMMIT TRANSACTION
+GO
+
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.fulltext_indexes 
+	where object_id = object_id('dbo.ExtendedQueryTagPersonName'))
+BEGIN
+    CREATE FULLTEXT INDEX ON ExtendedQueryTagPersonName(TagValueWords LANGUAGE 1033)
+    KEY INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey
+    WITH STOPLIST = OFF;
+END
+GO
+
+SET XACT_ABORT ON
+
+BEGIN TRANSACTION
+
+/*************************************************************
+    Extended Query Tag Operation Table
+    Stores the association between tags and their reindexing operation
+    TagKey is the primary key and foreign key for the row in dbo.ExtendedQueryTag
+    OperationId is the unique ID for the associated operation (like re-indexing)
+**************************************************************/
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.tables
+    WHERE name = 'ExtendedQueryTagOperation')
+BEGIN
+    CREATE TABLE dbo.ExtendedQueryTagOperation (
+        TagKey                  INT                  NOT NULL, --PK
+        OperationId             VARCHAR(32)          NOT NULL
+    )
+END
+
+IF NOT EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IXC_ExtendedQueryTagOperation' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagOperation'))
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagOperation ON dbo.ExtendedQueryTagOperation
+    (
+        TagKey
+    )
+END
+
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.indexes 
+    WHERE name='IX_ExtendedQueryTagOperation_OperationId' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagOperation'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagOperation_OperationId ON dbo.ExtendedQueryTagOperation
+    (
+        OperationId
+    )
+    INCLUDE
+    (
+        TagKey
+    )
+END
+GO
 
 /*************************************************************
     The user defined type for AddExtendedQueryTagsInput
 *************************************************************/
-CREATE TYPE dbo.AddExtendedQueryTagsInputTableType_1 AS TABLE
-(
-    TagPath                    VARCHAR(64),  -- Extended Query Tag Path. Each extended query tag take 8 bytes, support upto 8 levels, no delimeter between each level.
-    TagVR                      VARCHAR(2),  -- Extended Query Tag VR.
-    TagPrivateCreator          NVARCHAR(64),  -- Extended Query Tag Private Creator, only valid for private tag.
-    TagLevel                   TINYINT  -- Extended Query Tag level. 0 -- Instance Level, 1 -- Series Level, 2 -- Study Level
-)
+IF TYPE_ID(N'AddExtendedQueryTagsInputTableType_1') IS NULL
+BEGIN
+    CREATE TYPE dbo.AddExtendedQueryTagsInputTableType_1 AS TABLE
+    (
+        TagPath                    VARCHAR(64),  -- Extended Query Tag Path. Each extended query tag take 8 bytes, support upto 8 levels, no delimeter between each level.
+        TagVR                      VARCHAR(2),  -- Extended Query Tag VR.
+        TagPrivateCreator          NVARCHAR(64),  -- Extended Query Tag Private Creator, only valid for private tag.
+        TagLevel                   TINYINT  -- Extended Query Tag level. 0 -- Instance Level, 1 -- Series Level, 2 -- Study Level
+    )
+END
+GO
 
 /*************************************************************
     Table valued parameter to insert into Extended Query Tag table for data type String
 *************************************************************/
-CREATE TYPE dbo.InsertStringExtendedQueryTagTableType_1 AS TABLE
-(
-    TagKey                     INT,
-    TagValue                   NVARCHAR(64),
-    TagLevel                   TINYINT
-)
+IF TYPE_ID(N'InsertStringExtendedQueryTagTableType_1') IS NULL
+BEGIN
+    CREATE TYPE dbo.InsertStringExtendedQueryTagTableType_1 AS TABLE
+    (
+        TagKey                     INT,
+        TagValue                   NVARCHAR(64),
+        TagLevel                   TINYINT
+    )
+END
+GO
 
 /*************************************************************
     Table valued parameter to insert into Extended Query Tag table for data type Double
 *************************************************************/
-CREATE TYPE dbo.InsertDoubleExtendedQueryTagTableType_1 AS TABLE
-(
-    TagKey                     INT,
-    TagValue                   FLOAT(53),
-    TagLevel                   TINYINT
-)
+IF TYPE_ID(N'InsertDoubleExtendedQueryTagTableType_1') IS NULL
+BEGIN
+    CREATE TYPE dbo.InsertDoubleExtendedQueryTagTableType_1 AS TABLE
+    (
+        TagKey                     INT,
+        TagValue                   FLOAT(53),
+        TagLevel                   TINYINT
+    )
+END
+GO
 
 /*************************************************************
     Table valued parameter to insert into Extended Query Tag table for data type Long
 *************************************************************/
-CREATE TYPE dbo.InsertLongExtendedQueryTagTableType_1 AS TABLE
-(
-    TagKey                     INT,
-    TagValue                   BIGINT,
-    TagLevel                   TINYINT
-)
+IF TYPE_ID(N'InsertLongExtendedQueryTagTableType_1') IS NULL
+BEGIN
+    CREATE TYPE dbo.InsertLongExtendedQueryTagTableType_1 AS TABLE
+    (
+        TagKey                     INT,
+        TagValue                   BIGINT,
+        TagLevel                   TINYINT
+    )
+END
+GO
 
 /*************************************************************
     Table valued parameter to insert into Extended Query Tag table for data type Date Time
 *************************************************************/
-CREATE TYPE dbo.InsertDateTimeExtendedQueryTagTableType_1 AS TABLE
-(
-    TagKey                     INT,
-    TagValue                   DATETIME2(7),
-    TagLevel                   TINYINT
-)
+IF TYPE_ID(N'InsertDateTimeExtendedQueryTagTableType_1') IS NULL
+BEGIN
+    CREATE TYPE dbo.InsertDateTimeExtendedQueryTagTableType_1 AS TABLE
+    (
+        TagKey                     INT,
+        TagValue                   DATETIME2(7),
+        TagLevel                   TINYINT
+    )
+END
+GO
 
 /*************************************************************
     Table valued parameter to insert into Extended Query Tag table for data type Person Name
 *************************************************************/
-CREATE TYPE dbo.InsertPersonNameExtendedQueryTagTableType_1 AS TABLE
-(
-    TagKey                     INT,
-    TagValue                   NVARCHAR(200)        COLLATE SQL_Latin1_General_CP1_CI_AI,
-    TagLevel                   TINYINT
-)
+IF TYPE_ID(N'InsertPersonNameExtendedQueryTagTableType_1') IS NULL
+BEGIN
+    CREATE TYPE dbo.InsertPersonNameExtendedQueryTagTableType_1 AS TABLE
+    (
+        TagKey                     INT,
+        TagValue                   NVARCHAR(200)        COLLATE SQL_Latin1_General_CP1_CI_AI,
+        TagLevel                   TINYINT
+    )
+END
+GO
 
 /*************************************************************
     The user defined type for stored procedures that consume extended query tag keys
 *************************************************************/
-CREATE TYPE dbo.ExtendedQueryTagKeyTableType_1 AS TABLE
-(
-    TagKey                     INT
-)
+IF TYPE_ID(N'ExtendedQueryTagKeyTableType_1') IS NULL
+BEGIN
+    CREATE TYPE dbo.ExtendedQueryTagKeyTableType_1 AS TABLE
+    (
+        TagKey                     INT
+    )
+END
+GO
 
 /*************************************************************
     Sequence for generating sequential unique ids
 **************************************************************/
 
-CREATE SEQUENCE dbo.WatermarkSequence
-    AS BIGINT
-    START WITH 1
-    INCREMENT BY 1
-    MINVALUE 1
-    NO CYCLE
-    CACHE 1000000
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.sequences
+    WHERE name = 'WatermarkSequence')
+BEGIN
+    CREATE SEQUENCE dbo.WatermarkSequence
+        AS BIGINT
+        START WITH 1
+        INCREMENT BY 1
+        MINVALUE 1
+        NO CYCLE
+        CACHE 1000000
+END
 
-CREATE SEQUENCE dbo.StudyKeySequence
-    AS BIGINT
-    START WITH 1
-    INCREMENT BY 1
-    MINVALUE 1
-    NO CYCLE
-    CACHE 1000000
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.sequences
+    WHERE name = 'StudyKeySequence')
+BEGIN
+    CREATE SEQUENCE dbo.StudyKeySequence
+        AS BIGINT
+        START WITH 1
+        INCREMENT BY 1
+        MINVALUE 1
+        NO CYCLE
+        CACHE 1000000
+END
 
-CREATE SEQUENCE dbo.SeriesKeySequence
-    AS BIGINT
-    START WITH 1
-    INCREMENT BY 1
-    MINVALUE 1
-    NO CYCLE
-    CACHE 1000000
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.sequences
+    WHERE name = 'SeriesKeySequence')
+BEGIN
+    CREATE SEQUENCE dbo.SeriesKeySequence
+        AS BIGINT
+        START WITH 1
+        INCREMENT BY 1
+        MINVALUE 1
+        NO CYCLE
+        CACHE 1000000
+END
 
-CREATE SEQUENCE dbo.InstanceKeySequence
-    AS BIGINT
-    START WITH 1
-    INCREMENT BY 1
-    MINVALUE 1
-    NO CYCLE
-    CACHE 1000000
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.sequences
+    WHERE name = 'InstanceKeySequence')
+BEGIN
+    CREATE SEQUENCE dbo.InstanceKeySequence
+        AS BIGINT
+        START WITH 1
+        INCREMENT BY 1
+        MINVALUE 1
+        NO CYCLE
+        CACHE 1000000
+END
 
-CREATE SEQUENCE dbo.TagKeySequence
-    AS INT
-    START WITH 1
-    INCREMENT BY 1
-    MINVALUE 1
-    NO CYCLE
-    CACHE 10000
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.sequences
+    WHERE name = 'TagKeySequence')
+BEGIN
+    CREATE SEQUENCE dbo.TagKeySequence
+        AS INT
+        START WITH 1
+        INCREMENT BY 1
+        MINVALUE 1
+        NO CYCLE
+        CACHE 10000
+END
 
-COMMIT TRANSACTION
 GO
 
 /*************************************************************
@@ -976,7 +1365,6 @@ AS
     COMMIT TRANSACTION
 GO
 
-
 /*************************************************************
     Stored procedures for updating an instance status.
 **************************************************************/
@@ -1045,6 +1433,23 @@ AS
         AND SopInstanceUid    = @sopInstanceUid
 
     COMMIT TRANSACTION
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     GetMaxInstanceWatermark
+--
+-- DESCRIPTION
+--    Gets the maximum instance watermark, which could alternatively be thought of as an ETag for the state of Instance table
+--
+-- RETURN VALUE
+--     The maximum instance watermark in the database
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.GetMaxInstanceWatermark
+AS
+    SET NOCOUNT ON
+
+    SELECT MAX(Watermark) AS Watermark FROM dbo.Instance
 GO
 
 /***************************************************************************************/
@@ -1124,23 +1529,6 @@ AS
     FROM dbo.Instance
     WHERE Watermark BETWEEN @startWatermark AND @endWatermark
           AND Status = @status
-GO
-
-/***************************************************************************************/
--- STORED PROCEDURE
---     GetMaxInstanceWatermark
---
--- DESCRIPTION
---    Gets the maximum instance watermark, which could alternatively be thought of as an ETag for the state of Instance table
---
--- RETURN VALUE
---     The maximum instance watermark in the database
-/***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetMaxInstanceWatermark
-AS
-    SET NOCOUNT ON
-
-    SELECT MAX(Watermark) AS Watermark FROM dbo.Instance
 GO
 
 /***************************************************************************************/
@@ -1530,40 +1918,6 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetExtendedQueryTagsByOperation
---
--- DESCRIPTION
---     Gets all extended query tags assigned to an operation.
---
--- PARAMETERS
---     @operationId
---         * The unique ID for the operation.
---
--- RETURN VALUE
---     The set of extended query tags assigned to the operation.
-/***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagsByOperation (
-    @operationId VARCHAR(32)
-)
-AS
-BEGIN
-    SET NOCOUNT     ON
-    SET XACT_ABORT  ON
-
-    SELECT XQT.TagKey,
-           TagPath,
-           TagVR,
-           TagPrivateCreator,
-           TagLevel,
-           TagStatus
-    FROM dbo.ExtendedQueryTag AS XQT
-    INNER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
-    WHERE OperationId = @operationId
-END
-GO
-
-/***************************************************************************************/
--- STORED PROCEDURE
 --     AddExtendedQueryTags
 --
 -- DESCRIPTION
@@ -1631,6 +1985,40 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
+--     GetExtendedQueryTagsByOperation
+--
+-- DESCRIPTION
+--     Gets all extended query tags assigned to an operation.
+--
+-- PARAMETERS
+--     @operationId
+--         * The unique ID for the operation.
+--
+-- RETURN VALUE
+--     The set of extended query tags assigned to the operation.
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagsByOperation (
+    @operationId VARCHAR(32)
+)
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    SELECT XQT.TagKey,
+           TagPath,
+           TagVR,
+           TagPrivateCreator,
+           TagLevel,
+           TagStatus
+    FROM dbo.ExtendedQueryTag AS XQT
+    INNER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
+    WHERE OperationId = @operationId
+END
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
 --    DeleteExtendedQueryTag
 --
 -- DESCRIPTION
@@ -1654,15 +2042,15 @@ AS
     BEGIN TRANSACTION
         
         DECLARE @tagStatus TINYINT
-        DECLARE @tagKey INT
+        DECLARE @tagKey INT        
  
         SELECT @tagKey = TagKey, @tagStatus = TagStatus
-        FROM dbo.ExtendedQueryTag WITH(XLOCK)
+        FROM dbo.ExtendedQueryTag WITH(XLOCK) 
         WHERE dbo.ExtendedQueryTag.TagPath = @tagPath
 
         -- Check existence
         IF @@ROWCOUNT = 0
-            THROW 50404, 'extended query tag not found', 1
+            THROW 50404, 'extended query tag not found', 1 
 
         -- check if status is Ready
         IF @tagStatus <> 1
@@ -1670,13 +2058,13 @@ AS
 
         -- Update status to Deleting
         UPDATE dbo.ExtendedQueryTag
-        SET TagStatus = 2
+        SET TagStatus = 2 
         WHERE dbo.ExtendedQueryTag.TagKey = @tagKey
 
     COMMIT TRANSACTION
 
     BEGIN TRANSACTION
-
+        
         -- Delete index data
         IF @dataType = 0
             DELETE FROM dbo.ExtendedQueryTagString WHERE TagKey = @tagKey
@@ -1692,7 +2080,7 @@ AS
         -- Delete tag
         DELETE FROM dbo.ExtendedQueryTag 
         WHERE TagKey = @tagKey
-
+        
     COMMIT TRANSACTION
 GO
 
@@ -2028,36 +2416,5 @@ AS
     COMMIT TRANSACTION
 GO
 
-/*************************************************************
-Full text catalog and index creation outside transaction
-**************************************************************/
-IF NOT EXISTS (
-    SELECT * 
-    FROM sys.fulltext_catalogs
-    WHERE name = 'Dicom_Catalog')
-BEGIN
-    CREATE FULLTEXT CATALOG Dicom_Catalog WITH ACCENT_SENSITIVITY = OFF AS DEFAULT
-END
-GO
-
-IF NOT EXISTS (
-    SELECT * 
-    FROM sys.fulltext_indexes 
-    where object_id = object_id('dbo.Study'))
-BEGIN
-    CREATE FULLTEXT INDEX ON Study(PatientNameWords, ReferringPhysicianNameWords LANGUAGE 1033)
-    KEY INDEX IXC_Study
-    WITH STOPLIST = OFF;
-END
-GO
-
-IF NOT EXISTS (
-    SELECT * 
-    FROM sys.fulltext_indexes 
-    where object_id = object_id('dbo.ExtendedQueryTagPersonName'))
-BEGIN
-    CREATE FULLTEXT INDEX ON ExtendedQueryTagPersonName(TagValueWords LANGUAGE 1033)
-    KEY INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey
-    WITH STOPLIST = OFF;
-END
+COMMIT TRANSACTION
 GO
