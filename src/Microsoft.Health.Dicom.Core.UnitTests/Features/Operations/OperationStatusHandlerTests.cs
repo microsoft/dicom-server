@@ -22,19 +22,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
             Assert.Throws<ArgumentNullException>(() => new OperationStatusHandler(null));
         }
 
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        [InlineData("   ")]
-        [InlineData("\t  \r\n")]
-        public async Task GivenInvalidId_WhenHandlingRequest_ThenThrowArgumentException(string id)
+        [Fact]
+        public async Task GivenInvalidId_WhenHandlingRequest_ThenThrowArgumentException()
         {
             IDicomOperationsClient client = Substitute.For<IDicomOperationsClient>();
-            Type exceptionType = id is null ? typeof(ArgumentNullException) : typeof(ArgumentException);
-            await Assert.ThrowsAsync(
-                exceptionType,
+            await Assert.ThrowsAsync<ArgumentException>(
                 () => new OperationStatusHandler(client).Handle(
-                    new OperationStatusRequest(id),
+                    new OperationStatusRequest(Guid.Empty),
                     CancellationToken.None));
 
             await client.DidNotReceiveWithAnyArgs().GetStatusAsync(default, default);
@@ -47,7 +41,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
             IDicomOperationsClient client = Substitute.For<IDicomOperationsClient>();
             var handler = new OperationStatusHandler(client);
 
-            string id = Guid.NewGuid().ToString();
+            Guid id = Guid.NewGuid();
             var expected = new OperationStatusResponse(id, OperationType.Reindex, DateTime.UtcNow, DateTime.UtcNow, OperationRuntimeStatus.Completed);
             client.GetStatusAsync(Arg.Is(id), Arg.Is(source.Token)).Returns(expected);
 

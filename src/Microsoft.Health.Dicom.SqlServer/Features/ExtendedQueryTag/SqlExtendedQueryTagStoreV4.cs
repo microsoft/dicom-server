@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -31,9 +32,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         public override SchemaVersion Version => SchemaVersion.V4;
 
-        public override async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsByOperationAsync(string operationId, CancellationToken cancellationToken = default)
+        public override async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsByOperationAsync(Guid operationId, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(operationId, nameof(operationId));
+            EnsureArg.IsNotEmpty(operationId, nameof(operationId));
 
             var results = new List<ExtendedQueryTagStoreEntry>();
 
@@ -102,12 +103,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         public override async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AssignReindexingOperationAsync(
             IReadOnlyList<int> queryTagKeys,
-            string operationId,
+            Guid operationId,
             bool returnIfCompleted = false,
             CancellationToken cancellationToken = default)
         {
             EnsureArg.HasItems(queryTagKeys, nameof(queryTagKeys));
-            EnsureArg.IsNotNullOrWhiteSpace(operationId, nameof(operationId));
+            EnsureArg.IsNotEmpty(operationId, nameof(operationId));
 
             using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
             using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();

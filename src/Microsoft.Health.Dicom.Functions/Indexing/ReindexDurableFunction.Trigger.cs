@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -87,12 +88,19 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                     Completed = WatermarkRange.None,
                 });
 
+            // The ID should be a GUID, but if for some reason the platform fails to generate a GUID string
+            // then we should abort the orchestration and return a failure status code to the user.
+            if (!Guid.TryParse(instanceId, out Guid instanceGuid))
+            {
+                return new HttpResponseMessage { StatusCode = HttpStatusCode.InternalServerError };
+            }
+
             logger.LogInformation("Successfully started new orchestration instance with ID '{InstanceId}'.", instanceId);
 
             // Associate the tags to the operation and confirm their processing
             IReadOnlyList<ExtendedQueryTagStoreEntry> confirmedTags = await _extendedQueryTagStore.AssignReindexingOperationAsync(
                 extendedQueryTagKeys,
-                instanceId,
+                instanceGuid,
                 returnIfCompleted: true,
                 cancellationToken: source.Token);
 

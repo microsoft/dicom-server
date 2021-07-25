@@ -72,7 +72,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             ExtendedQueryTagStoreEntry storeEntry = tag.BuildExtendedQueryTagStoreEntry();
 
             var input = new AddExtendedQueryTagEntry[] { entry };
-            string expectedOperationId = Guid.NewGuid().ToString();
+            Guid expectedOperationId = Guid.NewGuid();
             var expectedHref = new Uri("https://dicom.contoso.io/unit/test/Operations/" + expectedOperationId, UriKind.Absolute);
             _extendedQueryTagStore
                 .AddExtendedQueryTagsAsync(

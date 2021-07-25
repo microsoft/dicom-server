@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 using Newtonsoft.Json;
@@ -53,7 +54,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         [Fact]
         public async Task GivenExtendedQueryTagConflict_WhenStartingToReindexInstances_ThenReturnConflict()
         {
-            string instanceId = Guid.NewGuid().ToString();
+            Guid instanceId = Guid.NewGuid();
             var expectedTagKeys = new List<int> { 1, 2, 3 };
             IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
 
@@ -61,7 +62,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .StartNewAsync(
                     nameof(ReindexDurableFunction.ReindexInstancesAsync),
                     Arg.Is<ReindexInput>(x => x.QueryTagKeys.SequenceEqual(expectedTagKeys)))
-                .Returns(instanceId);
+                .Returns(OperationId.ToString(instanceId));
 
             _extendedQueryTagStore
                 .AssignReindexingOperationAsync(
@@ -94,7 +95,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         [Fact]
         public async Task GivenExtendedQueryTagKeys_WhenStartingToReindexInstances_ThenReturnOperationId()
         {
-            string instanceId = Guid.NewGuid().ToString();
+            Guid instanceId = Guid.NewGuid();
             var expectedTagKeys = new List<int> { 1, 2, 3 };
             IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
 
@@ -102,7 +103,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .StartNewAsync(
                     nameof(ReindexDurableFunction.ReindexInstancesAsync),
                     Arg.Is<ReindexInput>(x => x.QueryTagKeys.SequenceEqual(expectedTagKeys)))
-                .Returns(instanceId);
+                .Returns(OperationId.ToString(instanceId));
 
             _extendedQueryTagStore
                 .AssignReindexingOperationAsync(
@@ -122,7 +123,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 NullLogger.Instance);
 
             Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
-            Assert.Equal(instanceId, await response.Content.ReadAsStringAsync());
+            Assert.Equal(OperationId.ToString(instanceId), await response.Content.ReadAsStringAsync());
             await client
                 .Received(1)
                 .StartNewAsync(

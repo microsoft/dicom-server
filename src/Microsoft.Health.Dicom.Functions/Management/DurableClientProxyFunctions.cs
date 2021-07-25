@@ -42,8 +42,8 @@ namespace Microsoft.Health.Dicom.Functions.Management
         /// The default value is <see cref="CancellationToken.None"/>.
         /// </param>
         /// <returns>
-        /// A task representing the <see cref="GetStatusAsync(HttpRequest, IDurableOrchestrationClient, string, ILogger, CancellationToken)"/>
-        /// operation. The value of its <see cref="Task{TResult}.Result"/> property contains the status of the DICOM operation
+        /// A task representing the <see cref="GetStatusAsync"/> operation. The value of its
+        /// <see cref="Task{TResult}.Result"/> property contains the status of the DICOM operation
         /// with the specified <paramref name="instanceId"/>, if found; otherwise <see cref="BadRequestResult"/>.
         /// </returns>
         /// <exception cref="ArgumentException">
@@ -55,7 +55,7 @@ namespace Microsoft.Health.Dicom.Functions.Management
         public static async Task<IActionResult> GetStatusAsync(
             [HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "Orchestrations/Instances/{instanceId}")] HttpRequest request,
             [DurableClient] IDurableOrchestrationClient client,
-            string instanceId,
+            Guid instanceId,
             ILogger logger,
             CancellationToken hostCancellationToken = default)
         {
@@ -67,9 +67,9 @@ namespace Microsoft.Health.Dicom.Functions.Management
 
             logger.LogInformation("Querying orchestration instance with ID '{InstanceId}'", instanceId);
 
-            if (string.IsNullOrWhiteSpace(instanceId))
+            if (instanceId == Guid.Empty)
             {
-                return new BadRequestResult();
+                return new NotFoundResult();
             }
 
             // GetStatusAsync doesn't accept a token, so the best we can do is cancel before execution
@@ -81,13 +81,13 @@ namespace Microsoft.Health.Dicom.Functions.Management
                 : new NotFoundResult();
         }
 
-        private static async Task<OperationStatusResponse> GetOperationStatusAsync(IDurableOrchestrationClient client, string instanceId)
+        private static async Task<OperationStatusResponse> GetOperationStatusAsync(IDurableOrchestrationClient client, Guid instanceId)
         {
-            DurableOrchestrationStatus status = await client.GetStatusAsync(instanceId, showInput: false);
-            return status == null
+            DurableOrchestrationStatus status = await client.GetStatusAsync(OperationId.ToString(instanceId), showInput: false);
+            return status == null || !Guid.TryParse(status.InstanceId, out Guid instanceGuid)
                 ? null
                 : new OperationStatusResponse(
-                    status.InstanceId,
+                    instanceGuid,
                     status.GetOperationType(),
                     status.CreatedTime,
                     status.LastUpdatedTime,

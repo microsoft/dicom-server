@@ -13,6 +13,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Functions.Extensions;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing
@@ -38,6 +39,13 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
 
             logger = context.CreateReplaySafeLogger(logger);
             ReindexInput input = context.GetInput<ReindexInput>();
+
+            // The ID should be a GUID, but if for some reason the platform fails to generate a GUID string
+            // then we should abort this orchestration instance. We already returned a failure to the client.
+            if (!context.HasInstanceGuid())
+            {
+                return;
+            }
 
             // Determine the set of query tags that should be indexed and only continue if there is at least 1.
             // For the first time this orchestration executes, assign all of the tags in the input to the operation,

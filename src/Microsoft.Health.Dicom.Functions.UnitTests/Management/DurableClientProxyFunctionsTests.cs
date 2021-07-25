@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
         {
             var context = new DefaultHttpContext();
             IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
-            string id = Guid.NewGuid().ToString();
+            Guid id = Guid.NewGuid();
 
             await Assert.ThrowsAsync<ArgumentNullException>(
                 () => DurableClientProxyFunctions.GetStatusAsync(null, client, id, NullLogger.Instance));
@@ -39,18 +39,14 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
             await client.DidNotReceiveWithAnyArgs().GetStatusAsync(default(string));
         }
 
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        [InlineData("   ")]
-        [InlineData("\t  \r\n")]
-        public async Task GivenInvalidId_WhenGettingStatus_ThenReturnBadRequest(string id)
+        [Fact]
+        public async Task GivenInvalidId_WhenGettingStatus_ThenReturnBadRequest()
         {
             var context = new DefaultHttpContext();
             IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
 
-            Assert.IsType<BadRequestResult>(
-                await DurableClientProxyFunctions.GetStatusAsync(context.Request, client, id, NullLogger.Instance));
+            Assert.IsType<NotFoundResult>(
+                await DurableClientProxyFunctions.GetStatusAsync(context.Request, client, Guid.Empty, NullLogger.Instance));
 
             await client.DidNotReceiveWithAnyArgs().GetStatusAsync(default(string));
         }
@@ -59,10 +55,11 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
         public async Task GivenNullStatus_WhenGettingStatus_ThenReturnNotFound()
         {
             var context = new DefaultHttpContext();
-            string id = Guid.NewGuid().ToString();
+            Guid id = Guid.NewGuid();
 
             IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
-            client.GetStatusAsync(id, showHistory: false, showHistoryOutput: false, showInput: false)
+            client
+                .GetStatusAsync(OperationId.ToString(id), showHistory: false, showHistoryOutput: false, showInput: false)
                 .Returns((DurableOrchestrationStatus)null);
 
             Assert.IsType<NotFoundResult>(await DurableClientProxyFunctions.GetStatusAsync(
@@ -71,17 +68,19 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
                 id,
                 NullLogger.Instance));
 
-            await client.Received(1).GetStatusAsync(id, showHistory: false, showHistoryOutput: false, showInput: false);
+            await client
+                .Received(1)
+                .GetStatusAsync(OperationId.ToString(id), showHistory: false, showHistoryOutput: false, showInput: false);
         }
 
         [Fact]
         public async Task GivenInvalidName_WhenGettingStatus_ThenReturnNotFound()
         {
             var context = new DefaultHttpContext();
-            string id = Guid.NewGuid().ToString();
+            Guid id = Guid.NewGuid();
             var status = new DurableOrchestrationStatus
             {
-                InstanceId = id,
+                InstanceId = OperationId.ToString(id),
                 CreatedTime = DateTime.UtcNow.AddMinutes(-2),
                 LastUpdatedTime = DateTime.UtcNow,
                 Name = "Foo",
@@ -89,7 +88,9 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
             };
 
             IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
-            client.GetStatusAsync(id, showHistory: false, showHistoryOutput: false, showInput: false).Returns(status);
+            client
+                .GetStatusAsync(OperationId.ToString(id), showHistory: false, showHistoryOutput: false, showInput: false)
+                .Returns(status);
 
             Assert.IsType<NotFoundResult>(await DurableClientProxyFunctions.GetStatusAsync(
                 context.Request,
@@ -97,17 +98,19 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
                 id,
                 NullLogger.Instance));
 
-            await client.Received(1).GetStatusAsync(id, showHistory: false, showHistoryOutput: false, showInput: false);
+            await client
+                .Received(1)
+                .GetStatusAsync(OperationId.ToString(id), showHistory: false, showHistoryOutput: false, showInput: false);
         }
 
         [Fact]
         public async Task GivenValidStatus_WhenGettingStatus_ThenReturnOk()
         {
             var context = new DefaultHttpContext();
-            string id = Guid.NewGuid().ToString();
+            Guid id = Guid.NewGuid();
             var status = new DurableOrchestrationStatus
             {
-                InstanceId = id,
+                InstanceId = OperationId.ToString(id),
                 CreatedTime = DateTime.UtcNow.AddMinutes(-2),
                 LastUpdatedTime = DateTime.UtcNow,
                 Name = nameof(ReindexDurableFunction.ReindexInstancesAsync),
@@ -115,7 +118,9 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
             };
 
             IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
-            client.GetStatusAsync(id, showHistory: false, showHistoryOutput: false, showInput: false).Returns(status);
+            client
+                .GetStatusAsync(OperationId.ToString(id), showHistory: false, showHistoryOutput: false, showInput: false)
+                .Returns(status);
 
             var result = await DurableClientProxyFunctions.GetStatusAsync(
                 context.Request,
@@ -131,7 +136,9 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
             Assert.Equal(status.LastUpdatedTime, actual.LastUpdatedTime);
             Assert.Equal(OperationRuntimeStatus.Running, actual.Status);
 
-            await client.Received(1).GetStatusAsync(id, showHistory: false, showHistoryOutput: false, showInput: false);
+            await client
+                .Received(1)
+                .GetStatusAsync(OperationId.ToString(id), showHistory: false, showHistoryOutput: false, showInput: false);
         }
     }
 }

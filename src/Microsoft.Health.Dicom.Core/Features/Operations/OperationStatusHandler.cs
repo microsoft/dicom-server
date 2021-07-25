@@ -13,7 +13,7 @@ using Microsoft.Health.Dicom.Core.Messages.Operations;
 namespace Microsoft.Health.Dicom.Core.Features.Operations
 {
     /// <summary>
-    /// Represents a handler that encapsulates <see cref="IDicomOperationsClient.GetStatusAsync(string, CancellationToken)"/>
+    /// Represents a handler that encapsulates <see cref="IDicomOperationsClient.GetStatusAsync"/>
     /// to process instances of <see cref="OperationStatusRequest"/>.
     /// </summary>
     public class OperationStatusHandler : IRequestHandler<OperationStatusRequest, OperationStatusResponse>
@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
             => _client = EnsureArg.IsNotNull(client, nameof(client));
 
         /// <summary>
-        /// Invokes <see cref="IDicomOperationsClient.GetStatusAsync(string, CancellationToken)"/> by forwarding the
+        /// Invokes <see cref="IDicomOperationsClient.GetStatusAsync"/> by forwarding the
         /// <see cref="OperationStatusRequest.OperationId"/> and returns its response.
         /// </summary>
         /// <param name="request">A request for the status of a particular DICOM operation.</param>

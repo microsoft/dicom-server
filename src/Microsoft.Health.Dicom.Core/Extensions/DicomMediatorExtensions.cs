@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -178,11 +179,11 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
         public static Task<OperationStatusResponse> GetOperationStatusAsync(
            this IMediator mediator,
-           string id,
+           Guid operationId,
            CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
-            return mediator.Send(new OperationStatusRequest(id), cancellationToken);
+            return mediator.Send(new OperationStatusRequest(operationId), cancellationToken);
         }
     }
 }

@@ -72,7 +72,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             using var tokenSource = new CancellationTokenSource();
 
             var input = new List<AddExtendedQueryTagEntry> { new AddExtendedQueryTagEntry() };
-            var expected = new AddExtendedQueryTagResponse(new OperationReference(Guid.NewGuid().ToString(), new Uri("https://dicom/operation/status")));
+            var expected = new AddExtendedQueryTagResponse(new OperationReference(Guid.NewGuid(), new Uri("https://dicom/operation/status")));
             authService.CheckAccess(DataActions.ManageExtendedQueryTags, tokenSource.Token).Returns(DataActions.ManageExtendedQueryTags);
             tagService
                 .AddExtendedQueryTagsAsync(
