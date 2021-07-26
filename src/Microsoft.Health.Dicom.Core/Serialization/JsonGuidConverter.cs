@@ -24,8 +24,8 @@ namespace Microsoft.Health.Dicom.Core.Serialization
 
         public JsonGuidConverter(string formatSpecifier, bool exactMatch)
         {
-            // Note that null and empty string are equivalent to "D"
-            _formatSpecifier = formatSpecifier;
+            // We do not accept the null or empty specifiers, as TryParseExact does not accept them
+            _formatSpecifier = EnsureArg.IsNotNullOrEmpty(formatSpecifier);
             _tryParse = exactMatch ? TryParseExact : Guid.TryParse;
         }
 
