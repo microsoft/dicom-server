@@ -28,8 +28,6 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
 {
     public partial class ReindexDurableFunction
     {
-        private static readonly JsonSerializer DefaultJsonSerializer = JsonSerializer.CreateDefault();
-
         /// <summary>
         /// Asynchronously starts the creation of an index for the provided query tags over the previously added data.
         /// </summary>
@@ -67,7 +65,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             using (StreamReader streamReader = new StreamReader(request.Body, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true))
             using (JsonReader reader = new JsonTextReader(streamReader))
             {
-                extendedQueryTagKeys = DefaultJsonSerializer.Deserialize<IReadOnlyList<int>>(reader);
+                extendedQueryTagKeys = _jsonSerializer.Deserialize<IReadOnlyList<int>>(reader);
             }
 
             if (extendedQueryTagKeys == null || extendedQueryTagKeys.Count == 0)

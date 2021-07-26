@@ -6,6 +6,7 @@
 using System;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
@@ -16,6 +17,7 @@ using Microsoft.Health.Dicom.Metadata;
 using Microsoft.Health.Dicom.Metadata.Features.Health;
 using Microsoft.Health.Dicom.Metadata.Features.Storage;
 using Microsoft.Health.Extensions.DependencyInjection;
+using Microsoft.IO;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -33,6 +35,8 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
+
+            serverBuilder.Services.TryAddSingleton<RecyclableMemoryStreamManager>();
 
             serverBuilder.Services
                 .AddBlobDataStore(configuration)
@@ -52,6 +56,8 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             EnsureArg.IsNotNull(functionsBuilder, nameof(functionsBuilder));
             EnsureArg.IsNotNull(configure, nameof(configure));
+
+            functionsBuilder.Services.TryAddSingleton<RecyclableMemoryStreamManager>();
 
             functionsBuilder.Services
                 .AddBlobServiceClient(configure)
