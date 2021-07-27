@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     public partial class DicomElementMinimumValidator : IDicomElementMinimumValidator
     {
 
-        private static readonly IReadOnlyDictionary<DicomVR, IValidation> Validations = new Dictionary<DicomVR, IValidation>
+        private static readonly IReadOnlyDictionary<DicomVR, IDicomElementValidation> Validations = new Dictionary<DicomVR, IDicomElementValidation>
         {
             { DicomVR.AE, new MaxLengthValidation(16) },
             { DicomVR.AS, new RequiredLengthValidation(4) },
@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             {
                 Debug.Fail("Dicom VR type should not be null");
             }
-            if (Validations.TryGetValue(vr, out IValidation validationRule))
+            if (Validations.TryGetValue(vr, out IDicomElementValidation validationRule))
             {
                 validationRule.Validate(dicomElement);
             }

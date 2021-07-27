@@ -3,13 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
 {
-    public class DicomElementMinimumValidationTests
+    public class DicomElementMinimumValidatorTests
     {
         [Theory]
         [InlineData("abc.123")]
@@ -17,14 +18,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         [InlineData("0123456789012345678901234567890123456789012345678901234567890123456789")]
         public void GivenUIInvalidValue_WhenValidating_Throws(string id)
         {
-            Assert.Throws<InvalidIdentifierException>(() => DicomElementMinimumValidation.ValidateUI(id, nameof(id)));
+            Assert.Throws<InvalidIdentifierException>(() => UidValidation.Validate(id, nameof(id)));
         }
 
         [Theory]
         [InlineData("0123456789abcdefg")]
         public void GivenCSInvalidValue_WhenValidating_Throws(string value)
         {
-            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidateCS(value, nameof(value)));
+            DicomCodeString element = new DicomCodeString(DicomTag.StudyInstanceUID, value);
+            Assert.Throws<DicomStringElementValidationException>(() => new DicomElementMinimumValidator().Validate(element));
         }
 
         [Theory]
@@ -32,7 +34,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         [InlineData("abc\\efg")]
         public void GivenLOInvalidValue_WhenValidating_Throws(string value)
         {
-            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidateLO(value, nameof(value)));
+            DicomLongString element = new DicomLongString(DicomTag.StudyInstanceUID, value);
+            Assert.Throws<DicomStringElementValidationException>(() => new DicomElementMinimumValidator().Validate(element));
         }
 
         [Theory]
@@ -40,14 +43,16 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         [InlineData("233434343")]
         public void GivenDAInvalidValue_WhenValidating_Throws(string value)
         {
-            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidateDA(value, nameof(value)));
+            DicomDate element = new DicomDate(DicomTag.StudyInstanceUID, value);
+            Assert.Throws<DicomStringElementValidationException>(() => new DicomElementMinimumValidator().Validate(element));
         }
 
         [Theory]
         [InlineData("0123456789abcdefg")]
         public void GivenSHInvalidValue_WhenValidating_Throws(string value)
         {
-            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidateSH(value, nameof(value)));
+            DicomShortString element = new DicomShortString(DicomTag.StudyInstanceUID, value);
+            Assert.Throws<DicomStringElementValidationException>(() => new DicomElementMinimumValidator().Validate(element));
         }
 
         [Theory]
@@ -56,28 +61,32 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         [InlineData("0123456789012345678901234567890123456789012345678901234567890123456789")]
         public void GivenPNInvalidValue_WhenValidating_Throws(string value)
         {
-            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidatePN(value, nameof(value)));
+            DicomPersonName element = new DicomPersonName(DicomTag.StudyInstanceUID, value);
+            Assert.Throws<DicomStringElementValidationException>(() => new DicomElementMinimumValidator().Validate(element));
         }
 
         [Theory]
         [InlineData("01234567891234567")] // exceed max length
         public void GivenAEInvalidValue_WhenValidating_Throws(string value)
         {
-            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidateAE(value, nameof(value)));
+            DicomApplicationEntity element = new DicomApplicationEntity(DicomTag.StudyInstanceUID, value);
+            Assert.ThrowsAny<DicomStringElementValidationException>(() => new DicomElementMinimumValidator().Validate(element));
         }
 
         [Theory]
         [InlineData("12345")] // exceed max length
         public void GivenASInvalidValue_WhenValidating_Throws(string value)
         {
-            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidateAS(value, nameof(value)));
+            DicomAgeString element = new DicomAgeString(DicomTag.StudyInstanceUID, value);
+            Assert.Throws<DicomStringElementValidationException>(() => new DicomElementMinimumValidator().Validate(element));
         }
 
         [Theory]
         [InlineData("0123456789123")] // exceed max length
         public void GivenISInvalidValue_WhenValidating_Throws(string value)
         {
-            Assert.Throws<DicomElementValidationException>(() => DicomElementMinimumValidation.ValidateIS(value, nameof(value)));
+            DicomIntegerString element = new DicomIntegerString(DicomTag.StudyInstanceUID, value);
+            Assert.Throws<DicomStringElementValidationException>(() => new DicomElementMinimumValidator().Validate(element));
         }
     }
 }

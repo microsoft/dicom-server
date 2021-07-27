@@ -7,7 +7,7 @@ using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    internal interface IValidation
+    internal interface IDicomElementValidation
     {
         void Validate(DicomElement dicomElement);
     }
