@@ -3,8 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using Dicom;
-using Microsoft.Health.Dicom.Core.Exceptions;
+using Dicom.IO;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Xunit;
 
@@ -12,81 +13,43 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
 {
     public class DicomElementMinimumValidatorTests
     {
-        [Theory]
-        [InlineData("abc.123")]
-        [InlineData("11|")]
-        [InlineData("0123456789012345678901234567890123456789012345678901234567890123456789")]
-        public void GivenUIInvalidValue_WhenValidating_Throws(string id)
+        private readonly IDicomElementMinimumValidator _validator;
+
+        public DicomElementMinimumValidatorTests()
         {
-            Assert.Throws<InvalidIdentifierException>(() => DicomUidValidation.Validate(id, nameof(id)));
+            _validator = new DicomElementMinimumValidator();
         }
 
         [Theory]
-        [InlineData("0123456789abcdefg")]
-        public void GivenCSInvalidValue_WhenValidating_Throws(string value)
+        [MemberData(nameof(SupportedDicomElements))]
+        public void GivenSupportedVR_WhenValidating_ThenShouldPass(DicomElement dicomElement)
         {
-            DicomCodeString element = new DicomCodeString(DicomTag.StudyInstanceUID, value);
-            Assert.Throws<DicomStringElementValidationException>(() => new DicomElementMinimumValidator().Validate(element));
+            _validator.Validate(dicomElement);
         }
 
-        [Theory]
-        [InlineData("0123456789012345678901234567890123456789012345678901234567890123456789")]
-        [InlineData("abc\\efg")]
-        public void GivenLOInvalidValue_WhenValidating_Throws(string value)
+        public static IEnumerable<object[]> SupportedDicomElements()
         {
-            DicomLongString element = new DicomLongString(DicomTag.StudyInstanceUID, value);
-            Assert.Throws<DicomStringElementValidationException>(() => new DicomElementMinimumValidator().Validate(element));
-        }
+            yield return new object[] { new DicomApplicationEntity(DicomTag.DestinationAE, "012") };
+            yield return new object[] { new DicomAgeString(DicomTag.PatientAge, "012W") };
 
-        [Theory]
-        [InlineData("20100141")]
-        [InlineData("233434343")]
-        public void GivenDAInvalidValue_WhenValidating_Throws(string value)
-        {
-            DicomDate element = new DicomDate(DicomTag.StudyInstanceUID, value);
-            Assert.Throws<DicomStringElementValidationException>(() => new DicomElementMinimumValidator().Validate(element));
-        }
+            yield return new object[] { new DicomCodeString(DicomTag.AcquisitionStartCondition, "0123456789 ") };
+            yield return new object[] { new DicomDate(DicomTag.AcquisitionDate, "20210313") };
+            yield return new object[] { new DicomDecimalString(DicomTag.ActiveSourceLength, "1e1") };
 
-        [Theory]
-        [InlineData("0123456789abcdefg")]
-        public void GivenSHInvalidValue_WhenValidating_Throws(string value)
-        {
-            DicomShortString element = new DicomShortString(DicomTag.StudyInstanceUID, value);
-            Assert.Throws<DicomStringElementValidationException>(() => new DicomElementMinimumValidator().Validate(element));
-        }
+            yield return new object[] { new DicomFloatingPointSingle(DicomTag.AnchorPoint, ByteConverter.ToByteBuffer(new float[] { float.MaxValue })) };
+            yield return new object[] { new DicomFloatingPointDouble(DicomTag.DopplerCorrectionAngle, ByteConverter.ToByteBuffer(new double[] { double.MaxValue })) };
 
-        [Theory]
-        [InlineData("abc^xyz=abc^xyz=abc^xyz=abc^xyz")]
-        [InlineData("abc^efg^hij^pqr^lmn^xyz")]
-        [InlineData("0123456789012345678901234567890123456789012345678901234567890123456789")]
-        public void GivenPNInvalidValue_WhenValidating_Throws(string value)
-        {
-            DicomPersonName element = new DicomPersonName(DicomTag.StudyInstanceUID, value);
-            Assert.Throws<DicomStringElementValidationException>(() => new DicomElementMinimumValidator().Validate(element));
-        }
+            yield return new object[] { new DicomIntegerString(DicomTag.DoseReferenceNumber, "012345678912") };
+            yield return new object[] { new DicomLongString(DicomTag.WindowCenterWidthExplanation, "0123456789012345678901234567890123456789012345678901234567891234") };
+            yield return new object[] { new DicomPersonName(DicomTag.PatientName, "abc^xyz=abc^xyz^xyz^xyz^xyz=abc^xyz") };
 
-        [Theory]
-        [InlineData("01234567891234567")] // exceed max length
-        public void GivenAEInvalidValue_WhenValidating_Throws(string value)
-        {
-            DicomApplicationEntity element = new DicomApplicationEntity(DicomTag.StudyInstanceUID, value);
-            Assert.ThrowsAny<DicomStringElementValidationException>(() => new DicomElementMinimumValidator().Validate(element));
-        }
+            yield return new object[] { new DicomShortString(DicomTag.AccessionNumber, "0123456789123456") };
+            yield return new object[] { new DicomSignedLong(DicomTag.DisplayedAreaBottomRightHandCorner, int.MaxValue) };
+            yield return new object[] { new DicomSignedShort(DicomTag.LargestImagePixelValue, short.MaxValue) };
 
-        [Theory]
-        [InlineData("12345")] // exceed max length
-        public void GivenASInvalidValue_WhenValidating_Throws(string value)
-        {
-            DicomAgeString element = new DicomAgeString(DicomTag.StudyInstanceUID, value);
-            Assert.Throws<DicomStringElementValidationException>(() => new DicomElementMinimumValidator().Validate(element));
-        }
-
-        [Theory]
-        [InlineData("0123456789123")] // exceed max length
-        public void GivenISInvalidValue_WhenValidating_Throws(string value)
-        {
-            DicomIntegerString element = new DicomIntegerString(DicomTag.StudyInstanceUID, value);
-            Assert.Throws<DicomStringElementValidationException>(() => new DicomElementMinimumValidator().Validate(element));
+            yield return new object[] { new DicomUniqueIdentifier(DicomTag.DigitalSignatureUID, "13.14.520") };
+            yield return new object[] { new DicomUnsignedLong(DicomTag.DopplerSampleVolumeXPositionRetiredRETIRED, uint.MaxValue) };
+            yield return new object[] { new DicomUnsignedShort(DicomTag.AcquisitionMatrix, ushort.MaxValue) };
         }
     }
 }

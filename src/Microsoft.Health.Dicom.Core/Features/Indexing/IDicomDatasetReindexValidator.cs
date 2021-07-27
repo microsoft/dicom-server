@@ -9,8 +9,17 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Indexing
 {
+    /// <summary>
+    /// Validator that validates DicomDataset for reindexing.
+    /// </summary>
     public interface IDicomDatasetReindexValidator
     {
+        /// <summary>
+        /// Validate dicomDataset.
+        /// </summary>
+        /// <param name="dicomDataset">The dicom Dataset.</param>
+        /// <param name="queryTags">The query tags.</param>
+        /// <returns>Valid query tags.</returns>
         IReadOnlyCollection<QueryTag> Validate(DicomDataset dicomDataset, IReadOnlyCollection<QueryTag> queryTags);
     }
 }

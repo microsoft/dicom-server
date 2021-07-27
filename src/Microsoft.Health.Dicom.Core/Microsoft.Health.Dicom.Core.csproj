@@ -33,12 +33,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Features\Security\roles.schema.json" />
   </ItemGroup>
-  
-  <ItemGroup>
-    <None Include="Features\Validation\DicomElementMinimumValidator.*.cs">
-      <DependentUpon>DicomElementMinimumValidator.cs</DependentUpon>
-    </None>
-  </ItemGroup>
 
   <ItemGroup>
     <Compile Update="DicomCoreResource.Designer.cs">

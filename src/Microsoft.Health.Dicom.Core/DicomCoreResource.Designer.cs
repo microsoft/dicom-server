@@ -106,6 +106,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Dicom element has multiple values. We only support indexing single value element..
+        /// </summary>
+        internal static string DicomElementHasMultipleValues {
+            get {
+                return ResourceManager.GetString("DicomElementHasMultipleValues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; does not validate VR &apos;{1}&apos;: {2}..
         /// </summary>
         internal static string DicomElementValidationFailed {
@@ -126,9 +135,9 @@ namespace Microsoft.Health.Dicom.Core {
         /// <summary>
         ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; with value &apos;{1}&apos; does not validate VR &apos;{2}&apos;: {3}..
         /// </summary>
-        internal static string DicomStringElementValidationFailed {
+        internal static string DicomValueElementValidationFailed {
             get {
-                return ResourceManager.GetString("DicomStringElementValidationFailed", resourceCulture);
+                return ResourceManager.GetString("DicomValueElementValidationFailed", resourceCulture);
             }
         }
         

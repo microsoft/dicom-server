@@ -9,9 +9,9 @@ using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    public class DicomStringElementValidationException : DicomElementValidationException
+    public class DicomValueElementValidationException : DicomElementValidationException
     {
-        public DicomStringElementValidationException(ValidationErrorCode errorCode, string name, string value, DicomVR vr, string message)
+        public DicomValueElementValidationException(ValidationErrorCode errorCode, string name, string value, DicomVR vr, string message)
            : base(errorCode, name, vr, message)
         {
             EnsureArg.IsNotNull(vr, nameof(vr));
@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
         }
 
 
-        public override string Message => string.Format(DicomCoreResource.DicomStringElementValidationFailed, Name, Value, VR.Code, base.Message);
+        public override string Message => string.Format(DicomCoreResource.DicomValueElementValidationFailed, Value, VR.Code, base.Message);
 
         public string Value { get; }
     }

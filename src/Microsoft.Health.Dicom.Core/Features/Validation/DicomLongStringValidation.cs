@@ -31,12 +31,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
             if (value.Length > 64)
             {
-                throw new DicomStringElementValidationException(ValidationErrorCode.ValueIsTooLong, name, value, DicomVR.LO, DicomCoreResource.ValueLengthExceeds64Characters);
+                throw new DicomValueElementValidationException(ValidationErrorCode.ValueIsTooLong, name, value, DicomVR.LO, DicomCoreResource.ValueLengthExceeds64Characters);
             }
 
             if (value.Contains("\\", StringComparison.OrdinalIgnoreCase) || value.ToCharArray().Any(IsControlExceptESC))
             {
-                throw new DicomStringElementValidationException(ValidationErrorCode.ValueContainsInvalidCharacters, name, value, DicomVR.LO, DicomCoreResource.ValueContainsInvalidCharacter);
+                throw new DicomValueElementValidationException(ValidationErrorCode.ValueContainsInvalidCharacters, name, value, DicomVR.LO, DicomCoreResource.ValueContainsInvalidCharacter);
             }
         }
     }

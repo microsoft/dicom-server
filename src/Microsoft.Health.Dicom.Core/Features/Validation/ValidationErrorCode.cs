@@ -18,9 +18,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         None = 0,
 
         /// <summary>
-        /// Value has multiple items -- we only support single item.
+        /// Dicom element has multiple values -- we only support indexing single value dicom element.
         /// </summary>
-        ValueHasMultipleItems = 0001,
+        ElementHasMultipleValues = 0001,
 
         /// <summary>
         ///  Value is too long.

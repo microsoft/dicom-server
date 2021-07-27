@@ -20,24 +20,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             RequiredLength = requiredLength;
         }
 
-
         public override void Validate(DicomElement dicomElement)
         {
             base.Validate(dicomElement);
             DicomVR vr = dicomElement.ValueRepresentation;
-            if (ValidationLimits.SupportedVRs.TryGetValue(vr, out DicomVRType vrType))
+            if (ValidationLimits.CanGetAsString(vr))
             {
-                if (vrType == DicomVRType.Binary)
-                {
-                    ValidateByteBufferLengthIsRequired(vr, dicomElement.Tag.GetFriendlyName(), dicomElement.Buffer);
-                }
-                else
-                {
-                    ValidateStringLengthIsRequired(vr, dicomElement.Tag.GetFriendlyName(), dicomElement.Get<string>());
-                }
+                ValidateStringLength(vr, dicomElement.Tag.GetFriendlyName(), dicomElement.Get<string>());
+            }
+            else
+            {
+                ValidateByteBufferLength(vr, dicomElement.Tag.GetFriendlyName(), dicomElement.Buffer);
             }
         }
-        private void ValidateByteBufferLengthIsRequired(DicomVR dicomVR, string name, IByteBuffer value)
+        private void ValidateByteBufferLength(DicomVR dicomVR, string name, IByteBuffer value)
         {
             if (value?.Size != RequiredLength)
             {
@@ -49,11 +45,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             }
         }
 
-        private void ValidateStringLengthIsRequired(DicomVR dicomVR, string name, string value)
+        private void ValidateStringLength(DicomVR dicomVR, string name, string value)
         {
             if (value?.Length != RequiredLength)
             {
-                throw new DicomStringElementValidationException(
+                throw new DicomValueElementValidationException(
                     ValidationErrorCode.ValueIsNotRequiredLength,
                     name,
                     value,

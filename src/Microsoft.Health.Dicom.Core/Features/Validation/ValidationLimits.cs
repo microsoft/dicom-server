@@ -4,30 +4,44 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using Dicom;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
     internal static class ValidationLimits
     {
-        public static readonly IReadOnlyDictionary<DicomVR, DicomVRType> SupportedVRs = new Dictionary<DicomVR, DicomVRType>
+        public static readonly HashSet<DicomVR> SupportedVRs = new HashSet<DicomVR>(StringVrs.Union(BinaryVrs));
+
+        private static readonly HashSet<DicomVR> StringVrs = new HashSet<DicomVR>()
         {
-            { DicomVR.AE,   DicomVRType.Text },
-            { DicomVR.AS,   DicomVRType.Text },
-            { DicomVR.CS,   DicomVRType.Text },
-            { DicomVR.DA,   DicomVRType.Text },
-            { DicomVR.DS,   DicomVRType.Text },
-            { DicomVR.IS,   DicomVRType.Text },
-            { DicomVR.LO,   DicomVRType.Text },
-            { DicomVR.PN,   DicomVRType.Text },
-            { DicomVR.SH,   DicomVRType.Text },
-            { DicomVR.UI,   DicomVRType.Text },
-            { DicomVR.FL,   DicomVRType.Binary },
-            { DicomVR.FD,   DicomVRType.Binary },
-            { DicomVR.SL,   DicomVRType.Binary },
-            { DicomVR.SS,   DicomVRType.Binary },
-            {  DicomVR.UL,  DicomVRType.Binary },
-            { DicomVR.US,   DicomVRType.Binary },
+           DicomVR.AE,
+           DicomVR.AS,
+           DicomVR.CS,
+           DicomVR.DA,
+           DicomVR.DS,
+           DicomVR.IS,
+           DicomVR.LO,
+           DicomVR.PN,
+           DicomVR.SH,
+           DicomVR.UI,
         };
+
+        private static readonly HashSet<DicomVR> BinaryVrs = new HashSet<DicomVR>()
+        {
+            DicomVR.FL,
+            DicomVR.FD,
+            DicomVR.SL,
+            DicomVR.SS,
+            DicomVR.UL,
+            DicomVR.US,
+        };
+
+        public static bool CanGetAsString(this DicomVR vr)
+        {
+            EnsureArg.IsNotNull(vr, nameof(vr));
+            return StringVrs.Contains(vr);
+        }
     }
 }

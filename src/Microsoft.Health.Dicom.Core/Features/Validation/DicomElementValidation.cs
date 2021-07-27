@@ -17,13 +17,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         {
             EnsureArg.IsNotNull(dicomElement, nameof(dicomElement));
             DicomVR vr = dicomElement.ValueRepresentation;
-            if (ValidationLimits.SupportedVRs.TryGetValue(vr, out _))
+            if (ValidationLimits.SupportedVRs.Contains(vr))
             {
-                // only works for single value dicom element
-                // Since we accept empty/null value, hence Count = 0 is accepted.
+                // only works for single value dicom element ( Since we accept empty/null value, Count = 0 is accepted).
                 if (dicomElement.Count > 1)
                 {
-                    throw new DicomElementValidationException(ValidationErrorCode.ValueHasMultipleItems, dicomElement.Tag.GetFriendlyName(), vr, "Multiple elements are detected");
+                    throw new DicomElementValidationException(
+                        ValidationErrorCode.ElementHasMultipleValues,
+                        dicomElement.Tag.GetFriendlyName(),
+                        vr,
+                        DicomCoreResource.DicomElementHasMultipleValues);
                 }
             }
             else

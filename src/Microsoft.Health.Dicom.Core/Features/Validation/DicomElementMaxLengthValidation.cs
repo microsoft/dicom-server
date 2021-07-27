@@ -19,7 +19,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
         public int MaxLength { get; }
 
-
         public override void Validate(DicomElement dicomElement)
         {
             base.Validate(dicomElement);
@@ -27,7 +26,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             string value = dicomElement.Get<string>();
             if (value?.Length > MaxLength)
             {
-                throw new DicomStringElementValidationException(
+                throw new DicomValueElementValidationException(
                     ValidationErrorCode.ValueIsTooLong,
                     dicomElement.Tag.GetFriendlyName(),
                     value,

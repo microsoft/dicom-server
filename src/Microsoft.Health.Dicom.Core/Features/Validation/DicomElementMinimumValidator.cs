@@ -10,7 +10,7 @@ using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    public partial class DicomElementMinimumValidator : IDicomElementMinimumValidator
+    public class DicomElementMinimumValidator : IDicomElementMinimumValidator
     {
 
         private static readonly IReadOnlyDictionary<DicomVR, IDicomElementValidation> Validations = new Dictionary<DicomVR, IDicomElementValidation>

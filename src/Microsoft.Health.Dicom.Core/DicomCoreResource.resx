@@ -386,8 +386,11 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The extended query tag '{0}' is expected to have VR '{1}' but has '{2}' in file.</value>
     <comment>{0}  dicom tag. {1} expected vr code. {2} vr in file.</comment>
   </data>
-  <data name="DicomStringElementValidationFailed" xml:space="preserve">
+  <data name="DicomValueElementValidationFailed" xml:space="preserve">
     <value>Dicom element '{0}' with value '{1}' does not validate VR '{2}': {3}.</value>
     <comment>Dicom element {0} of value {1} of type {2}. {3} has more detailed message on why.</comment>
+  </data>
+  <data name="DicomElementHasMultipleValues" xml:space="preserve">
+    <value>Dicom element has multiple values. We only support indexing single value element.</value>
   </data>
 </root>

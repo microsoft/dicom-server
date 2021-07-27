@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
                 {
                     if (dicomElement.ValueRepresentation != queryTag.VR)
                     {
-                        // TODO: log error in error store and skip this tag
+                        // TODO: log error in error store
                         continue;
                     }
 
@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
                     }
                     catch (DicomElementValidationException)
                     {
-                        // TODO: log error in error store and skip this tag
+                        // TODO: log error in error store
                         continue;
                     }
 

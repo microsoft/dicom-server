@@ -27,26 +27,26 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             var groups = value.Split('=');
             if (groups.Length > 3)
             {
-                throw new DicomStringElementValidationException(ValidationErrorCode.PatientNameHasTooManyGroups, name, value, DicomVR.PN, "value contains too many groups");
+                throw new DicomValueElementValidationException(ValidationErrorCode.PatientNameHasTooManyGroups, name, value, DicomVR.PN, DicomCoreResource.ValueExceedsAllowedGroups);
             }
 
             foreach (var group in groups)
             {
                 if (group.Length > 64)
                 {
-                    throw new DicomStringElementValidationException(ValidationErrorCode.PatientNameGroupIsTooLong, name, value, DicomVR.PN, "value exceeds maximum length of 64 characters");
+                    throw new DicomValueElementValidationException(ValidationErrorCode.PatientNameGroupIsTooLong, name, value, DicomVR.PN, DicomCoreResource.ValueLengthExceeds64Characters);
                 }
 
                 if (group.ToCharArray().Any(IsControlExceptESC))
                 {
-                    throw new DicomStringElementValidationException(ValidationErrorCode.ValueContainsInvalidCharacters, name, value, DicomVR.PN, "value contains invalid control character");
+                    throw new DicomValueElementValidationException(ValidationErrorCode.ValueContainsInvalidCharacters, name, value, DicomVR.PN, DicomCoreResource.ValueContainsInvalidCharacter);
                 }
             }
 
             var groupcomponents = groups.Select(group => group.Split('^').Length);
             if (groupcomponents.Any(l => l > 5))
             {
-                throw new DicomStringElementValidationException(ValidationErrorCode.PatientNameHasTooManyComponents, name, value, DicomVR.PN, "value contains too many components");
+                throw new DicomValueElementValidationException(ValidationErrorCode.PatientNameHasTooManyComponents, name, value, DicomVR.PN, DicomCoreResource.ValueExceedsAllowedComponents);
             }
         }
     }
