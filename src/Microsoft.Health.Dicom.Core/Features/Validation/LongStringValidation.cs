@@ -18,6 +18,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
             string value = dicomElement.Get<string>();
             string name = dicomElement.Tag.ToString();
+            Validate(value, name);
+        }
+
+        public static void Validate(string value, string name)
+        {
             if (string.IsNullOrEmpty(value))
             {
                 return;
@@ -38,4 +43,5 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
           => char.IsControl(c) && (c != '\u001b');
 
     }
+
 }

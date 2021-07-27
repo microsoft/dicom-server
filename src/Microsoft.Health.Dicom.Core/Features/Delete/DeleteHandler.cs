@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
 
         private static void ValidateDeleteResourcesRequest(DeleteResourcesRequest request)
         {
-            UidValidator.Validate(request.StudyInstanceUid, nameof(request.StudyInstanceUid));
+            UidValidation.Validate(request.StudyInstanceUid, nameof(request.StudyInstanceUid));
 
             switch (request.ResourceType)
             {

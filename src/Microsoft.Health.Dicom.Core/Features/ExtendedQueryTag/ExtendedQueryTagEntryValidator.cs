@@ -171,7 +171,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
             try
             {
-                DicomElementMinimumValidator.ValidateLO(privateCreator, nameof(privateCreator));
+                LongStringValidation.Validate(privateCreator, nameof(privateCreator));
             }
             catch (DicomElementValidationException ex)
             {
