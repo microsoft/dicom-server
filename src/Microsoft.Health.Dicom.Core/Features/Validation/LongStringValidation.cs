@@ -7,6 +7,7 @@ using System;
 using System.Linq;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
@@ -17,7 +18,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             base.Validate(dicomElement);
 
             string value = dicomElement.Get<string>();
-            string name = dicomElement.Tag.ToString();
+            string name = dicomElement.Tag.GetFriendlyName();
             Validate(value, name);
         }
 
@@ -38,10 +39,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 throw new DicomStringElementValidationException(ValidationErrorCode.ValueContainsInvalidCharacters, name, value, DicomVR.LO, DicomCoreResource.ValueContainsInvalidCharacter);
             }
         }
-
-        private static bool IsControlExceptESC(char c)
-          => char.IsControl(c) && (c != '\u001b');
-
     }
 
 }

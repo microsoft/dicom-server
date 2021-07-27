@@ -11,7 +11,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    internal abstract class DicomElementValidation : IValidation
+    internal class DicomElementValidation : IValidation
     {
         public virtual void Validate(DicomElement dicomElement)
         {
@@ -20,9 +20,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             if (ValidationLimits.SupportedVRs.TryGetValue(vr, out _))
             {
                 // only works for single value dicom element
-                if (dicomElement.Count != 1)
+                // Since we accept empty/null value, hence Count = 0 is accepted.
+                if (dicomElement.Count > 1)
                 {
-                    throw new DicomElementValidationException(ValidationErrorCode.MultipleElementDetected, dicomElement.Tag.GetFriendlyName(), vr, "Multiple elements are detected");
+                    throw new DicomElementValidationException(ValidationErrorCode.ValueHasMultipleItems, dicomElement.Tag.GetFriendlyName(), vr, "Multiple elements are detected");
                 }
             }
             else
@@ -30,5 +31,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 Debug.Fail($"Validating VR {vr.Code} is not supported.");
             }
         }
+
+        protected static bool IsControlExceptESC(char c)
+        => char.IsControl(c) && (c != '\u001b');
     }
 }

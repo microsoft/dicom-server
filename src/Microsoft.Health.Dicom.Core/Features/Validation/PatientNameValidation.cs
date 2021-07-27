@@ -27,14 +27,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             var groups = value.Split('=');
             if (groups.Length > 3)
             {
-                throw new DicomStringElementValidationException(ValidationErrorCode.InvalidPNTooManyGroups, name, value, DicomVR.PN, "value contains too many groups");
+                throw new DicomStringElementValidationException(ValidationErrorCode.PatientNameHasTooManyGroups, name, value, DicomVR.PN, "value contains too many groups");
             }
 
             foreach (var group in groups)
             {
                 if (group.Length > 64)
                 {
-                    throw new DicomStringElementValidationException(ValidationErrorCode.InvalidPNGroupIsTooLong, name, value, DicomVR.PN, "value exceeds maximum length of 64 characters");
+                    throw new DicomStringElementValidationException(ValidationErrorCode.PatientNameGroupIsTooLong, name, value, DicomVR.PN, "value exceeds maximum length of 64 characters");
                 }
 
                 if (group.ToCharArray().Any(IsControlExceptESC))
@@ -46,12 +46,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             var groupcomponents = groups.Select(group => group.Split('^').Length);
             if (groupcomponents.Any(l => l > 5))
             {
-                throw new DicomStringElementValidationException(ValidationErrorCode.InvalidPNTooManyComponents, name, value, DicomVR.PN, "value contains too many components");
+                throw new DicomStringElementValidationException(ValidationErrorCode.PatientNameHasTooManyComponents, name, value, DicomVR.PN, "value contains too many components");
             }
         }
-
-        private static bool IsControlExceptESC(char c)
-          => char.IsControl(c) && (c != '\u001b');
-
     }
 }

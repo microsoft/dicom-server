@@ -7,6 +7,7 @@ using System.Globalization;
 using Dicom;
 using Dicom.IO.Buffer;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
@@ -28,11 +29,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             {
                 if (vrType == DicomVRType.Binary)
                 {
-                    ValidateByteBufferLengthIsRequired(vr, dicomElement.Tag.ToString(), dicomElement.Buffer);
+                    ValidateByteBufferLengthIsRequired(vr, dicomElement.Tag.GetFriendlyName(), dicomElement.Buffer);
                 }
                 else
                 {
-                    ValidateStringLengthIsRequired(vr, dicomElement.Tag.ToString(), dicomElement.Get<string>());
+                    ValidateStringLengthIsRequired(vr, dicomElement.Tag.GetFriendlyName(), dicomElement.Get<string>());
                 }
             }
         }
