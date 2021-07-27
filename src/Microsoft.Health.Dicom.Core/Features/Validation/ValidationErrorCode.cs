@@ -17,19 +17,49 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     {
         None = 0,
 
-        // General Errors
+        /// <summary>
+        /// Value has multiple items -- we only support single item.
+        /// </summary>
         ValueHasMultipleItems = 0001,
-        ValueExceedMaxLength = 0002,
-        ValueNotMatchRequiredLength = 0003,
+
+        /// <summary>
+        ///  Value is too long.
+        /// </summary>
+        ValueIsTooLong = 0002,
+
+        /// <summary>
+        /// Value is not required length.
+        /// </summary>
+        ValueIsNotRequiredLength = 0003,
+
+        /// <summary>
+        /// Value contains invalid characters.
+        /// </summary>
         ValueContainsInvalidCharacters = 0004,
 
-        // Patient Name specific errors
+        /// <summary>
+        /// Patient name has too many groups.
+        /// </summary>
         PatientNameHasTooManyGroups = 1000,
+
+        /// <summary>
+        /// Group of patient name is too long.
+        /// </summary>
         PatientNameGroupIsTooLong = 1001,
+
+        /// <summary>
+        ///  Group of patient name contains invalid characters.
+        /// </summary>
         PatientNameGroupContainsInvalidCharacters = 1002,
+
+        /// <summary>
+        /// Patient name has too many components
+        /// </summary>
         PatientNameHasTooManyComponents = 1003,
 
-        // Date specific errors
+        /// <summary>
+        /// Date is invalid.
+        /// </summary>
         InvalidDate = 1100,
     }
 }

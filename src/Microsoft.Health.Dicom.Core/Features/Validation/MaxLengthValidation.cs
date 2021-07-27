@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             if (value?.Length > MaxLength)
             {
                 throw new DicomStringElementValidationException(
-                    ValidationErrorCode.ValueExceedMaxLength,
+                    ValidationErrorCode.ValueIsTooLong,
                     dicomElement.Tag.GetFriendlyName(),
                     value,
                     dicomElement.ValueRepresentation,

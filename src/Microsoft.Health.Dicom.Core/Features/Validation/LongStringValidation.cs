@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
             if (value.Length > 64)
             {
-                throw new DicomStringElementValidationException(ValidationErrorCode.ValueExceedMaxLength, name, value, DicomVR.LO, DicomCoreResource.ValueLengthExceeds64Characters);
+                throw new DicomStringElementValidationException(ValidationErrorCode.ValueIsTooLong, name, value, DicomVR.LO, DicomCoreResource.ValueLengthExceeds64Characters);
             }
 
             if (value.Contains("\\", StringComparison.OrdinalIgnoreCase) || value.ToCharArray().Any(IsControlExceptESC))
