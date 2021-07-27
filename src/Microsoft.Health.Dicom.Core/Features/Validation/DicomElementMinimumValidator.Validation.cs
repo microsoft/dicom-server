@@ -5,18 +5,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text.RegularExpressions;
+using System.Diagnostics;
 using Dicom;
 using Dicom.IO.Buffer;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    public static class DicomElementMinimumValidation
+    public partial class DicomElementMinimumValidator : IDicomElementMinimumValidator
     {
         private static readonly Regex ValidIdentifierCharactersFormat = new Regex("^[0-9\\.]*$", RegexOptions.Compiled);
 

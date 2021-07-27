@@ -13,7 +13,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    public class DicomElementMinimumValidator : IDicomElementMinimumValidator
+    public partial class DicomElementMinimumValidator : IDicomElementMinimumValidator
     {
         private readonly Dictionary<DicomVR, Action<string, string>> _stringValidators = new Dictionary<DicomVR, Action<string, string>>();
         private readonly Dictionary<DicomVR, Action<IByteBuffer, string>> _byteBufferValidators = new Dictionary<DicomVR, Action<IByteBuffer, string>>();

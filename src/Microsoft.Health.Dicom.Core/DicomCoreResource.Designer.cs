@@ -106,7 +106,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; with value &apos;{1}&apos; does not validate VR &apos;{2}&apos;: {3}..
+        ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; does not validate VR &apos;{1}&apos;: {2}..
         /// </summary>
         internal static string DicomElementValidationFailed {
             get {
@@ -120,6 +120,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string DicomFileLengthLimitExceeded {
             get {
                 return ResourceManager.GetString("DicomFileLengthLimitExceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; with value &apos;{1}&apos; does not validate VR &apos;{2}&apos;: {3}..
+        /// </summary>
+        internal static string DicomStringElementValidationFailed {
+            get {
+                return ResourceManager.GetString("DicomStringElementValidationFailed", resourceCulture);
             }
         }
         
