@@ -11,11 +11,11 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    internal class RequiredLengthValidation : DicomElementValidation
+    internal class DicomElementRequiredLengthValidation : DicomElementValidation
     {
         public int RequiredLength { get; }
 
-        public RequiredLengthValidation(int requiredLength)
+        public DicomElementRequiredLengthValidation(int requiredLength)
         {
             RequiredLength = requiredLength;
         }

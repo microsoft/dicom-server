@@ -10,9 +10,9 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    internal class MaxLengthValidation : DicomElementValidation
+    internal class DicomElementMaxLengthValidation : DicomElementValidation
     {
-        public MaxLengthValidation(int maxLength)
+        public DicomElementMaxLengthValidation(int maxLength)
         {
             MaxLength = maxLength;
         }

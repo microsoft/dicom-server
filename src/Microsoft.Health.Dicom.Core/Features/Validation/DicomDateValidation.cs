@@ -11,7 +11,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    internal class DateValidation : DicomElementValidation
+    internal class DicomDateValidation : DicomElementValidation
     {
         private const string DateFormatDA = "yyyyMMdd";
         public override void Validate(DicomElement dicomElement)

@@ -10,7 +10,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    internal class PatientNameValidation : DicomElementValidation
+    internal class DicomPersonNameValidation : DicomElementValidation
     {
         public override void Validate(DicomElement dicomElement)
         {

@@ -11,7 +11,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    internal class LongStringValidation : DicomElementValidation
+    internal class DicomLongStringValidation : DicomElementValidation
     {
         public override void Validate(DicomElement dicomElement)
         {

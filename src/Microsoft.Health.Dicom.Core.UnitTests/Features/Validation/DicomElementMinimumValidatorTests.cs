@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         [InlineData("0123456789012345678901234567890123456789012345678901234567890123456789")]
         public void GivenUIInvalidValue_WhenValidating_Throws(string id)
         {
-            Assert.Throws<InvalidIdentifierException>(() => UidValidation.Validate(id, nameof(id)));
+            Assert.Throws<InvalidIdentifierException>(() => DicomUidValidation.Validate(id, nameof(id)));
         }
 
         [Theory]
