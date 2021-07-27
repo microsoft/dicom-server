@@ -31,6 +31,7 @@ namespace Microsoft.Health.Dicom.Functions
             builder.Services
                 .AddFunctionsOptions<QueryTagIndexingOptions>(config, QueryTagIndexingOptions.SectionName)
                 .AddFunctionsOptions<PurgeHistoryOptions>(config, PurgeHistoryOptions.SectionName)
+                .AddRecyclableMemoryStreamManager()
                 .AddDicomJsonNetSerialization()
                 .AddStorageServices(config)
                 .AddHttpServices();

@@ -17,7 +17,6 @@ using Microsoft.Health.Dicom.Metadata;
 using Microsoft.Health.Dicom.Metadata.Features.Health;
 using Microsoft.Health.Dicom.Metadata.Features.Storage;
 using Microsoft.Health.Extensions.DependencyInjection;
-using Microsoft.IO;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -36,46 +35,7 @@ namespace Microsoft.Extensions.DependencyInjection
             EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-            serverBuilder.Services.TryAddSingleton<RecyclableMemoryStreamManager>();
-
-            serverBuilder.Services
-                .AddBlobDataStore(configuration)
-                .AddMetadataStore()
-                .AddMetadataHealthCheck();
-
-            return serverBuilder;
-        }
-
-        /// <summary>
-        /// Adds the metadata store for the DICOM functions.
-        /// </summary>
-        /// <param name="functionsBuilder">The DICOM functions builder instance.</param>
-        /// <param name="configure">A delegate for configuring the underlying blob storage client.</param>
-        /// <returns>The functions builder.</returns>
-        public static IDicomFunctionsBuilder AddMetadataStorageDataStore(this IDicomFunctionsBuilder functionsBuilder, Action<BlobDataStoreConfiguration> configure)
-        {
-            EnsureArg.IsNotNull(functionsBuilder, nameof(functionsBuilder));
-            EnsureArg.IsNotNull(configure, nameof(configure));
-
-            functionsBuilder.Services.TryAddSingleton<RecyclableMemoryStreamManager>();
-
-            functionsBuilder.Services
-                .AddBlobServiceClient(configure)
-                .AddMetadataStore();
-
-            return functionsBuilder;
-        }
-
-        private static IServiceCollection AddBlobDataStore(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddBlobDataStore();
-
-            services.Configure<BlobContainerConfiguration>(
-                Constants.ContainerConfigurationName,
-                containerConfiguration => configuration.GetSection(DicomServerBlobConfigurationSectionName)
-                    .Bind(containerConfiguration));
-
-            services.Add(
+            serverBuilder.Services.Add(
                 sp =>
                 {
                     ILoggerFactory loggerFactory = sp.GetService<ILoggerFactory>();
@@ -89,11 +49,37 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Singleton()
                 .AsService<IBlobContainerInitializer>();
 
-            return services;
+            serverBuilder.Services
+                .AddBlobDataStore()
+                .AddMetadataStore(c => configuration.GetSection(DicomServerBlobConfigurationSectionName).Bind(c))
+                .AddMetadataHealthCheck();
+
+            return serverBuilder;
         }
 
-        private static IServiceCollection AddMetadataStore(this IServiceCollection services)
+        /// <summary>
+        /// Adds the metadata store for the DICOM functions.
+        /// </summary>
+        /// <param name="functionsBuilder">The DICOM functions builder instance.</param>
+        /// <param name="containerName">The name of the metadata container.</param>
+        /// <param name="configure">A delegate for configuring the underlying blob storage client.</param>
+        /// <returns>The functions builder.</returns>
+        public static IDicomFunctionsBuilder AddMetadataStorageDataStore(this IDicomFunctionsBuilder functionsBuilder, string containerName, Action<BlobDataStoreConfiguration> configure)
         {
+            EnsureArg.IsNotNull(functionsBuilder, nameof(functionsBuilder));
+            EnsureArg.IsNotNull(configure, nameof(configure));
+
+            functionsBuilder.Services
+                .AddBlobServiceClient(configure)
+                .AddMetadataStore(c => c.ContainerName = containerName);
+
+            return functionsBuilder;
+        }
+
+        private static IServiceCollection AddMetadataStore(this IServiceCollection services, Action<BlobContainerConfiguration> configure)
+        {
+            services.Configure(Constants.ContainerConfigurationName, configure);
+
             services.Add<BlobMetadataStore>()
                 .Scoped()
                 .AsSelf()

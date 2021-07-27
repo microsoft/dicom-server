@@ -32,14 +32,14 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             IInstanceReindexer instanceReindexer,
             ISchemaVersionResolver schemaVersionResolver,
             JsonSerializer jsonSerializer,
-            IOptions<QueryTagIndexingOptions> configOptions)
+            IOptions<QueryTagIndexingOptions> options)
         {
             _extendedQueryTagStore = EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
             _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
             _instanceReindexer = EnsureArg.IsNotNull(instanceReindexer, nameof(instanceReindexer));
             _schemaVersionResolver = EnsureArg.IsNotNull(schemaVersionResolver, nameof(schemaVersionResolver));
             _jsonSerializer = EnsureArg.IsNotNull(jsonSerializer, nameof(jsonSerializer));
-            _options = EnsureArg.IsNotNull(configOptions?.Value, nameof(configOptions));
+            _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
         }
     }
 }
