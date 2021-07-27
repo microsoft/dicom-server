@@ -9,6 +9,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
     public interface IDicomElementMinimumValidator
     {
-        void Validate(DicomElement element);
+        void Validate(DicomElement dicomElement);
     }
 }

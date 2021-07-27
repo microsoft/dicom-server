@@ -5,10 +5,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using System.Text.RegularExpressions;
 using Dicom;
 using Dicom.IO.Buffer;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
@@ -19,9 +22,24 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
         private const string DateFormatDA = "yyyyMMdd";
 
-        private static readonly HashSet<DicomVR> BinaryVRs = new HashSet<DicomVR>()
+        private static readonly IReadOnlyDictionary<DicomVR, DicomVRType> SupportedVRs = new Dictionary<DicomVR, DicomVRType>
         {
-             DicomVR.FL, DicomVR.FD, DicomVR.SL, DicomVR.SS,  DicomVR.UL,  DicomVR.US
+            { DicomVR.AE,   DicomVRType.Text },
+            { DicomVR.AS,   DicomVRType.Text },
+            { DicomVR.CS,   DicomVRType.Text },
+            { DicomVR.DA,   DicomVRType.Text },
+            { DicomVR.DS,   DicomVRType.Text },
+            { DicomVR.IS,   DicomVRType.Text },
+            { DicomVR.LO,   DicomVRType.Text },
+            { DicomVR.PN,   DicomVRType.Text },
+            { DicomVR.SH,   DicomVRType.Text },
+            { DicomVR.UI,   DicomVRType.Text },
+            { DicomVR.FL,   DicomVRType.Binary },
+            { DicomVR.FD,   DicomVRType.Binary },
+            { DicomVR.SL,   DicomVRType.Binary },
+            { DicomVR.SS,   DicomVRType.Binary },
+            {  DicomVR.UL,  DicomVRType.Binary },
+            { DicomVR.US,   DicomVRType.Binary },
         };
 
         private static readonly IReadOnlyDictionary<DicomVR, (int MaxLength, ValidationErrorCode ErrorCode)> MaxLengthValidations = new Dictionary<DicomVR, (int, ValidationErrorCode)>()
@@ -45,45 +63,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             { DicomVR.US, (2, ValidationErrorCode.InvalidUSNotRequiredLength) },
         };
 
-        private static readonly IReadOnlyDictionary<DicomVR, Action<DicomElement>> AdditionalValidations = new Dictionary<DicomVR, Action<DicomElement>>()
+        private static readonly IReadOnlyDictionary<DicomVR, Action<DicomElement>> OtherValidations = new Dictionary<DicomVR, Action<DicomElement>>()
         {
             {DicomVR.DA, ValidateDA },
             {DicomVR.LO, ValidateLO },
             {DicomVR.PN, ValidatePN },
             {DicomVR.UI, ValidateUI }
         };
-
-        public static void Validate(DicomElement dicomElement)
-        {
-            EnsureArg.IsNotNull(dicomElement, nameof(dicomElement));
-            DicomVR vr = dicomElement.ValueRepresentation;
-
-            // Validate MaxLength
-            if (MaxLengthValidations.ContainsKey(vr))
-            {
-                ValidateLengthNotExceed(vr, dicomElement.Tag.GetFriendlyName(), dicomElement.Get<string>());
-            }
-
-            // Validate Required Length
-            if (RequiredLengthValidations.ContainsKey(vr))
-            {
-                if (BinaryVRs.Contains(vr))
-                {
-                    ValidateByteBufferLengthIsRequired(vr, dicomElement.Tag.ToString(), dicomElement.Buffer);
-                }
-                else
-                {
-                    ValidateStringLengthIsRequired(vr, dicomElement.Tag.ToString(), dicomElement.Get<string>());
-                }
-            }
-
-            // Other validation
-            if (AdditionalValidations.ContainsKey(vr))
-            {
-                AdditionalValidations[vr].Invoke(dicomElement);
-            }
-
-        }
 
         private static void ValidateDA(DicomElement dicomElement)
         {
@@ -103,15 +89,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         private static void ValidateLO(DicomElement dicomElement)
         {
             string value = dicomElement.Get<string>();
-            if (string.IsNullOrEmpty(value))
-            {
-                return;
-            }
-
-            if (value.Contains("\\", StringComparison.OrdinalIgnoreCase) || value.ToCharArray().Any(IsControlExceptESC))
-            {
-                throw new DicomStringElementValidationException(ValidationErrorCode.InvalidLOContainsInvalidCharacters, dicomElement.Tag.ToString(), value, DicomVR.LO, DicomCoreResource.ValueContainsInvalidCharacter);
-            }
+            string name = dicomElement.Tag.GetFriendlyName();
+            ValidateLO(value, name);
         }
 
         // probably can dial down the validation here
@@ -231,5 +210,43 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
         private static bool IsControlExceptESC(char c)
             => char.IsControl(c) && (c != '\u001b');
+
+
+        internal static void ValidateUI(string value, string name)
+        {
+            EnsureArg.IsNotNullOrEmpty(name);
+            if (string.IsNullOrEmpty(value))
+            {
+                return;
+            }
+
+            // trailling spaces are allowed
+            value = value.TrimEnd(' ');
+
+            if (value.Length > 64)
+            {
+                // UI value is validated in other cases like params for WADO, DELETE. So keeping the exception specific.
+                throw new InvalidIdentifierException(value, name);
+            }
+
+            if (!ValidIdentifierCharactersFormat.IsMatch(value))
+            {
+                throw new InvalidIdentifierException(value, name);
+            }
+        }
+
+        internal static void ValidateLO(string value, string name)
+        {
+            EnsureArg.IsNotNullOrEmpty(name);
+            if (string.IsNullOrEmpty(value))
+            {
+                return;
+            }
+
+            if (value.Contains("\\", StringComparison.OrdinalIgnoreCase) || value.ToCharArray().Any(IsControlExceptESC))
+            {
+                throw new DicomStringElementValidationException(ValidationErrorCode.InvalidLOContainsInvalidCharacters, name, value, DicomVR.LO, DicomCoreResource.ValueContainsInvalidCharacter);
+            }
+        }
     }
 }
