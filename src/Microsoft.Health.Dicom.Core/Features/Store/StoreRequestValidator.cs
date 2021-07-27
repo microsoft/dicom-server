@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             if (request.StudyInstanceUid != null)
             {
-                DicomElementMinimumValidator.ValidateUI(request.StudyInstanceUid, nameof(request.StudyInstanceUid));
+                UidValidation.Validate(request.StudyInstanceUid, nameof(request.StudyInstanceUid));
             }
         }
     }

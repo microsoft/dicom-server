@@ -66,11 +66,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
             switch (request.ResourceType)
             {
                 case ResourceType.Series:
-                    UidValidator.Validate(request.SeriesInstanceUid, nameof(request.SeriesInstanceUid));
+                    UidValidation.Validate(request.SeriesInstanceUid, nameof(request.SeriesInstanceUid));
                     break;
                 case ResourceType.Instance:
-                    UidValidator.Validate(request.SeriesInstanceUid, nameof(request.SeriesInstanceUid));
-                    UidValidator.Validate(request.SopInstanceUid, nameof(request.SopInstanceUid));
+                    UidValidation.Validate(request.SeriesInstanceUid, nameof(request.SeriesInstanceUid));
+                    UidValidation.Validate(request.SopInstanceUid, nameof(request.SopInstanceUid));
                     break;
             }
         }

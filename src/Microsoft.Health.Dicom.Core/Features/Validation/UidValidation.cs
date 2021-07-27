@@ -15,15 +15,26 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     internal class UidValidation : DicomElementValidation
     {
         private static readonly Regex ValidIdentifierCharactersFormat = new Regex("^[0-9\\.]*$", RegexOptions.Compiled);
+
         public override void Validate(DicomElement dicomElement)
         {
             base.Validate(dicomElement);
 
             string value = dicomElement.Get<string>();
             string name = dicomElement.Tag.GetFriendlyName();
+            Validate(name, value, allowEmpty: true);
+        }
+
+        public static void Validate(string value, string name, bool allowEmpty = false)
+        {
             if (string.IsNullOrEmpty(value))
             {
-                return;
+                if (allowEmpty)
+                {
+                    return;
+                }
+
+                throw new InvalidIdentifierException(value, name);
             }
 
             // trailling spaces are allowed
