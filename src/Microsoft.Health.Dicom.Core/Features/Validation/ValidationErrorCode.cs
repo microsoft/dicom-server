@@ -8,6 +8,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     public enum ValidationErrorCode
     {
         None,
+        MultipleElementDetected = 0001,
+        ValueExceedMaxLength = 0002,
+        ValueNotMatchRequiredLength = 0003,
+        ValueContainsInvalidCharacters = 0004,
         InvalidAEExceedMaxLength = 1000,
         InvalidASNotRequiredLength = 1100,
         InvalidAT = 1200,
