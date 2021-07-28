@@ -58,13 +58,13 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
         [InlineData("")]
         [InlineData("   ")]
         [InlineData("\t  \r\n")]
-        public async Task GivenInvalidId_WhenGettingStatus_ThenReturnNotFound(string id)
+        public async Task GivenInvalidId_WhenGettingStatus_ThenReturnBadRequest(string id)
         {
             var context = new DefaultHttpContext();
             IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
 
             HttpResponseMessage actual = await _proxy.GetStatusAsync(context.Request, client, id, NullLogger.Instance);
-            Assert.Equal(HttpStatusCode.NotFound, actual.StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, actual.StatusCode);
 
             await client.DidNotReceiveWithAnyArgs().GetStatusAsync(default(string));
         }

@@ -80,7 +80,7 @@ namespace Microsoft.Health.Dicom.Functions.Management
 
             if (string.IsNullOrWhiteSpace(instanceId))
             {
-                return new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound };
+                return new HttpResponseMessage { StatusCode = HttpStatusCode.BadRequest };
             }
 
             // GetStatusAsync doesn't accept a token, so the best we can do is cancel before execution

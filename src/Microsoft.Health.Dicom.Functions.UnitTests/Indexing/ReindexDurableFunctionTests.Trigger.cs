@@ -136,9 +136,9 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     cancellationToken: Arg.Any<CancellationToken>());
         }
 
-        private static HttpRequest CreateRequest(IReadOnlyCollection<int> tagKeys)
+        private HttpRequest CreateRequest(IReadOnlyCollection<int> tagKeys)
         {
-            byte[] buffer = tagKeys == null ? Array.Empty<byte>() : JsonSerializer.SerializeToUtf8Bytes(tagKeys);
+            byte[] buffer = tagKeys == null ? Array.Empty<byte>() : JsonSerializer.SerializeToUtf8Bytes(tagKeys, _jsonSerializerOptions);
 
             var context = new DefaultHttpContext();
             context.Request.Method = HttpMethod.Post.Method;
