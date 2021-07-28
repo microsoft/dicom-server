@@ -1959,7 +1959,7 @@ AS
 
     BEGIN TRANSACTION
 
-        MERGE INTO dbo.ExtendedQueryTagOperation AS XQTO
+        MERGE INTO dbo.ExtendedQueryTagOperation WITH(HOLDLOCK) AS XQTO
         USING
         (
             SELECT input.TagKey
