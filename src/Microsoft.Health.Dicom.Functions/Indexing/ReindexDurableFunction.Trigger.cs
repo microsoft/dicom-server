@@ -63,7 +63,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                 extendedQueryTagKeys = await JsonSerializer.DeserializeAsync<IReadOnlyList<int>>(request.Body, _jsonOptions, source.Token);
                 if (extendedQueryTagKeys == null || extendedQueryTagKeys.Count == 0)
                 {
-                    throw new JsonException("Expected at least 1 element in array.");
+                    throw new JsonException("Expected a JSON array with at least 1 element.");
                 }
             }
             catch (JsonException e)

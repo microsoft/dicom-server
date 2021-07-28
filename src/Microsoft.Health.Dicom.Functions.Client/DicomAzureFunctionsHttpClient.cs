@@ -37,20 +37,21 @@ namespace Microsoft.Health.Dicom.Functions.Client
         /// </summary>
         /// <param name="client">The HTTP client used to communicate with the HTTP triggered functions.</param>
         /// <param name="jsonSerializerOptions">Settings to be used when serializing or deserializing JSON.</param>
-        /// <param name="config">A configuration that specifies how to communicate with the Azure Functions.</param>
+        /// <param name="options">A configuration that specifies how to communicate with the Azure Functions.</param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="client"/>, <paramref name="config"/>, or the value of the configuration is <see langword="null"/>.
+        /// <paramref name="client"/>, <paramref name="jsonSerializerOptions"/>, <paramref name="options"/>, or
+        /// either <see cref="IOptions{TOptions}.Value"/> is <see langword="null"/>.
         /// </exception>
         public DicomAzureFunctionsHttpClient(
             HttpClient client,
             IOptions<JsonSerializerOptions> jsonSerializerOptions,
-            IOptions<FunctionsClientOptions> config)
+            IOptions<FunctionsClientOptions> options)
         {
             _client = EnsureArg.IsNotNull(client, nameof(client));
             _jsonSerializerOptions = EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
-            _options = EnsureArg.IsNotNull(config?.Value, nameof(config));
+            _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
 
-            client.BaseAddress = config.Value.BaseAddress;
+            client.BaseAddress = options.Value.BaseAddress;
         }
 
         /// <inheritdoc/>

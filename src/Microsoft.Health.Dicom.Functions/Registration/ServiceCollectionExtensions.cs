@@ -40,8 +40,10 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddRecyclableMemoryStreamManager(this IServiceCollection services, Func<RecyclableMemoryStreamManager> factory = null)
         {
             EnsureArg.IsNotNull(services, nameof(services));
-            factory ??= () => new RecyclableMemoryStreamManager();
 
+            // The custom service provider used by Azure Functions cannot seem to resolve the
+            // RecyclableMemoryStreamManager ctor overloads without help, so we instantiate it ourselves
+            factory ??= () => new RecyclableMemoryStreamManager();
             services.TryAddSingleton(factory());
 
             return services;
