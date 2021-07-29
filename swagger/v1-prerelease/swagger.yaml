@@ -1,0 +1,1921 @@
+openapi: 3.0.1
+info:
+  title: Medical Imaging Server for DICOM
+  license:
+    name: MIT License
+    url: https://github.com/microsoft/dicom-server/blob/main/LICENSE
+  version: 1.0-prerelease
+paths:
+  /v1-prerelease/changefeed:
+    get:
+      tags:
+        - ChangeFeed
+      parameters:
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            format: int64
+            default: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 10
+        - name: includeMetadata
+          in: query
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChangeFeedEntry'
+        '401':
+          description: Unauthorized
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /changefeed:
+    get:
+      tags:
+        - ChangeFeed
+      parameters:
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            format: int64
+            default: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 10
+        - name: includeMetadata
+          in: query
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChangeFeedEntry'
+        '401':
+          description: Unauthorized
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /v1-prerelease/changefeed/latest:
+    get:
+      tags:
+        - ChangeFeed
+      parameters:
+        - name: includeMetadata
+          in: query
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangeFeedEntry'
+        '401':
+          description: Unauthorized
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /changefeed/latest:
+    get:
+      tags:
+        - ChangeFeed
+      parameters:
+        - name: includeMetadata
+          in: query
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangeFeedEntry'
+        '401':
+          description: Unauthorized
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  '/v1-prerelease/studies/{studyInstanceUid}':
+    delete:
+      tags:
+        - Delete
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Success
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+    get:
+      tags:
+        - Retrieve
+      operationId: VersionedRetrieveStudy
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            multipart/related: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+    post:
+      tags:
+        - Store
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '202':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+        '409':
+          description: Conflict
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '415':
+          description: Client Error
+          content:
+            application/json:
+              schema:
+                type: string
+  '/studies/{studyInstanceUid}':
+    delete:
+      tags:
+        - Delete
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Success
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+    get:
+      tags:
+        - Retrieve
+      operationId: RetrieveStudy
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            multipart/related: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+    post:
+      tags:
+        - Store
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '202':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+        '409':
+          description: Conflict
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '415':
+          description: Client Error
+          content:
+            application/json:
+              schema:
+                type: string
+  '/v1-prerelease/studies/{studyInstanceUid}/series/{seriesInstanceUid}':
+    delete:
+      tags:
+        - Delete
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Success
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+    get:
+      tags:
+        - Retrieve
+      operationId: VersionedRetrieveSeries
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            multipart/related: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+  '/studies/{studyInstanceUid}/series/{seriesInstanceUid}':
+    delete:
+      tags:
+        - Delete
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Success
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+    get:
+      tags:
+        - Retrieve
+      operationId: RetrieveSeries
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            multipart/related: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+  '/v1-prerelease/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}':
+    delete:
+      tags:
+        - Delete
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sopInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Success
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+    get:
+      tags:
+        - Retrieve
+      operationId: VersionedRetrieveInstance
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sopInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom: { }
+            multipart/related: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+  '/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}':
+    delete:
+      tags:
+        - Delete
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sopInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Success
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+    get:
+      tags:
+        - Retrieve
+      operationId: RetrieveInstance
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sopInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom: { }
+            multipart/related: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+  /v1-prerelease/extendedquerytags:
+    post:
+      tags:
+        - ExtendedQueryTag
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/AddExtendedQueryTagEntry'
+      responses:
+        '202':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddExtendedQueryTagResponse'
+    get:
+      tags:
+        - ExtendedQueryTag
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GetExtendedQueryTagEntry'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+  /extendedquerytags:
+    post:
+      tags:
+        - ExtendedQueryTag
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/AddExtendedQueryTagEntry'
+      responses:
+        '202':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddExtendedQueryTagResponse'
+    get:
+      tags:
+        - ExtendedQueryTag
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GetExtendedQueryTagEntry'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+  '/v1-prerelease/extendedquerytags/{tagPath}':
+    delete:
+      tags:
+        - ExtendedQueryTag
+      parameters:
+        - name: tagPath
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteExtendedQueryTagResponse'
+    get:
+      tags:
+        - ExtendedQueryTag
+      parameters:
+        - name: tagPath
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetExtendedQueryTagEntry'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+  '/extendedquerytags/{tagPath}':
+    delete:
+      tags:
+        - ExtendedQueryTag
+      parameters:
+        - name: tagPath
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteExtendedQueryTagResponse'
+    get:
+      tags:
+        - ExtendedQueryTag
+      parameters:
+        - name: tagPath
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetExtendedQueryTagEntry'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+  /v1-prerelease/studies:
+    get:
+      tags:
+        - Query
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+    post:
+      tags:
+        - Store
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '202':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+        '409':
+          description: Conflict
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '415':
+          description: Client Error
+          content:
+            application/json:
+              schema:
+                type: string
+  /studies:
+    get:
+      tags:
+        - Query
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+    post:
+      tags:
+        - Store
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '202':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+        '409':
+          description: Conflict
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '415':
+          description: Client Error
+          content:
+            application/json:
+              schema:
+                type: string
+  /v1-prerelease/series:
+    get:
+      tags:
+        - Query
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /series:
+    get:
+      tags:
+        - Query
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  '/v1-prerelease/studies/{studyInstanceUid}/series':
+    get:
+      tags:
+        - Query
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  '/studies/{studyInstanceUid}/series':
+    get:
+      tags:
+        - Query
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /v1-prerelease/instances:
+    get:
+      tags:
+        - Query
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /instances:
+    get:
+      tags:
+        - Query
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  '/v1-prerelease/studies/{studyInstanceUid}/instances':
+    get:
+      tags:
+        - Query
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  '/studies/{studyInstanceUid}/instances':
+    get:
+      tags:
+        - Query
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  '/v1-prerelease/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances':
+    get:
+      tags:
+        - Query
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  '/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances':
+    get:
+      tags:
+        - Query
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  '/v1-prerelease/studies/{studyInstanceUid}/metadata':
+    get:
+      tags:
+        - Retrieve
+      parameters:
+        - name: If-None-Match
+          in: header
+          schema:
+            type: string
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+        '304':
+          description: Not Modified
+  '/studies/{studyInstanceUid}/metadata':
+    get:
+      tags:
+        - Retrieve
+      parameters:
+        - name: If-None-Match
+          in: header
+          schema:
+            type: string
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+        '304':
+          description: Not Modified
+  '/v1-prerelease/studies/{studyInstanceUid}/series/{seriesInstanceUid}/metadata':
+    get:
+      tags:
+        - Retrieve
+      parameters:
+        - name: If-None-Match
+          in: header
+          schema:
+            type: string
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+        '304':
+          description: Not Modified
+  '/studies/{studyInstanceUid}/series/{seriesInstanceUid}/metadata':
+    get:
+      tags:
+        - Retrieve
+      parameters:
+        - name: If-None-Match
+          in: header
+          schema:
+            type: string
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+        '304':
+          description: Not Modified
+  '/v1-prerelease/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/metadata':
+    get:
+      tags:
+        - Retrieve
+      parameters:
+        - name: If-None-Match
+          in: header
+          schema:
+            type: string
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sopInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+        '304':
+          description: Not Modified
+  '/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/metadata':
+    get:
+      tags:
+        - Retrieve
+      parameters:
+        - name: If-None-Match
+          in: header
+          schema:
+            type: string
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sopInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+        '304':
+          description: Not Modified
+  '/v1-prerelease/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/frames/{frames}':
+    get:
+      tags:
+        - Retrieve
+      operationId: VersionedRetrieveFrame
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sopInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: frames
+          in: path
+          required: true
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      responses:
+        '200':
+          description: Success
+          content:
+            multipart/related: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+  '/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/frames/{frames}':
+    get:
+      tags:
+        - Retrieve
+      operationId: RetrieveFrame
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sopInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: frames
+          in: path
+          required: true
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      responses:
+        '200':
+          description: Success
+          content:
+            multipart/related: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+  /_schema/versions:
+    get:
+      tags:
+        - Schema
+      responses:
+        '200':
+          description: Success
+  /_schema/versions/current:
+    get:
+      tags:
+        - Schema
+      responses:
+        '200':
+          description: Success
+  '/_schema/versions/{id}/script':
+    get:
+      tags:
+        - Schema
+      operationId: Script
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Success
+  '/_schema/versions/{id}/script/diff':
+    get:
+      tags:
+        - Schema
+      operationId: Diff
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Success
+  /_schema/compatibility:
+    get:
+      tags:
+        - Schema
+      responses:
+        '200':
+          description: Success
+components:
+  schemas:
+    AddExtendedQueryTagEntry:
+      type: object
+      properties:
+        level:
+          type: string
+          nullable: true
+        path:
+          type: string
+          nullable: true
+        vr:
+          type: string
+          nullable: true
+        privateCreator:
+          type: string
+          nullable: true
+      additionalProperties: false
+    AddExtendedQueryTagResponse:
+      type: object
+      additionalProperties: false
+    ChangeFeedAction:
+      enum:
+        - 0
+        - 1
+      type: integer
+      format: int32
+    ChangeFeedEntry:
+      type: object
+      properties:
+        sequence:
+          type: integer
+          format: int64
+        studyInstanceUid:
+          type: string
+          nullable: true
+        seriesInstanceUid:
+          type: string
+          nullable: true
+        sopInstanceUid:
+          type: string
+          nullable: true
+        action:
+          $ref: '#/components/schemas/ChangeFeedAction'
+        timestamp:
+          type: string
+          format: date-time
+        state:
+          $ref: '#/components/schemas/ChangeFeedState'
+        metadata:
+          type: array
+          items:
+            $ref: '#/components/schemas/DicomItem'
+          nullable: true
+      additionalProperties: false
+    ChangeFeedState:
+      enum:
+        - 0
+        - 1
+        - 2
+      type: integer
+      format: int32
+    DeleteExtendedQueryTagResponse:
+      type: object
+      additionalProperties: false
+    DicomDictionaryEntry:
+      type: object
+      properties:
+        tag:
+          $ref: '#/components/schemas/DicomTag'
+        maskTag:
+          $ref: '#/components/schemas/DicomMaskedTag'
+        name:
+          type: string
+          nullable: true
+        keyword:
+          type: string
+          nullable: true
+        valueRepresentations:
+          type: array
+          items:
+            $ref: '#/components/schemas/DicomVR'
+          nullable: true
+          readOnly: true
+        valueMultiplicity:
+          $ref: '#/components/schemas/DicomVM'
+        isRetired:
+          type: boolean
+          readOnly: true
+      additionalProperties: false
+    DicomItem:
+      type: object
+      properties:
+        tag:
+          $ref: '#/components/schemas/DicomTag'
+        valueRepresentation:
+          $ref: '#/components/schemas/DicomVR'
+      additionalProperties: false
+    DicomMaskedTag:
+      type: object
+      properties:
+        tag:
+          $ref: '#/components/schemas/DicomTag'
+        group:
+          type: integer
+          format: int32
+          readOnly: true
+        element:
+          type: integer
+          format: int32
+          readOnly: true
+        card:
+          type: integer
+          format: int32
+          readOnly: true
+        mask:
+          type: integer
+          format: int32
+          readOnly: true
+      additionalProperties: false
+    DicomPrivateCreator:
+      type: object
+      properties:
+        creator:
+          type: string
+          nullable: true
+      additionalProperties: false
+    DicomTag:
+      type: object
+      properties:
+        group:
+          type: integer
+          format: int32
+        element:
+          type: integer
+          format: int32
+        isPrivate:
+          type: boolean
+          readOnly: true
+        privateCreator:
+          $ref: '#/components/schemas/DicomPrivateCreator'
+        dictionaryEntry:
+          $ref: '#/components/schemas/DicomDictionaryEntry'
+      additionalProperties: false
+    DicomVM:
+      type: object
+      properties:
+        minimum:
+          type: integer
+          format: int32
+        maximum:
+          type: integer
+          format: int32
+        multiplicity:
+          type: integer
+          format: int32
+      additionalProperties: false
+    DicomVR:
+      type: object
+      properties:
+        code:
+          type: string
+          nullable: true
+          readOnly: true
+        name:
+          type: string
+          nullable: true
+          readOnly: true
+        isString:
+          type: boolean
+          readOnly: true
+        isStringEncoded:
+          type: boolean
+          readOnly: true
+        is16bitLength:
+          type: boolean
+          readOnly: true
+        isMultiValue:
+          type: boolean
+          readOnly: true
+        paddingValue:
+          type: integer
+          format: int32
+          readOnly: true
+        maximumLength:
+          type: integer
+          format: int32
+          readOnly: true
+        unitSize:
+          type: integer
+          format: int32
+          readOnly: true
+        byteSwap:
+          type: integer
+          format: int32
+          readOnly: true
+        valueType:
+          type: string
+          nullable: true
+          readOnly: true
+      additionalProperties: false
+    ExtendedQueryTagStatus:
+      enum:
+        - 0
+        - 1
+        - 2
+      type: integer
+      format: int32
+    GetExtendedQueryTagEntry:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/ExtendedQueryTagStatus'
+        level:
+          $ref: '#/components/schemas/QueryTagLevel'
+        path:
+          type: string
+          nullable: true
+        vr:
+          type: string
+          nullable: true
+        privateCreator:
+          type: string
+          nullable: true
+      additionalProperties: false
+    QueryTagLevel:
+      enum:
+        - 0
+        - 1
+        - 2
+      type: integer
+      format: int32

@@ -11,6 +11,8 @@ using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -26,6 +28,7 @@ using Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 using Microsoft.Health.Dicom.Api.Features.Context;
 using Microsoft.Health.Dicom.Api.Features.Formatters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
+using Microsoft.Health.Dicom.Api.Registration.Swagger;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Routing;
@@ -33,6 +36,7 @@ using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.IO;
 using Newtonsoft.Json;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Microsoft.AspNetCore.Builder
 {
@@ -97,11 +101,25 @@ namespace Microsoft.AspNetCore.Builder
 
             services.AddApiVersioning(c =>
             {
+                c.ApiVersionReader = new UrlSegmentApiVersionReader();
                 c.AssumeDefaultVersionWhenUnspecified = true;
                 c.DefaultApiVersion = new ApiVersion(1, 0, "prerelease");
                 c.ReportApiVersions = true;
                 c.UseApiBehavior = false;
             });
+
+            services.AddVersionedApiExplorer(options =>
+            {
+                // The format for this is 'v'major[.minor][-status] ex. v1.0-prerelease
+                options.GroupNameFormat = "'v'VVV";
+                options.SubstituteApiVersionInUrl = true;
+            });
+
+            services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+            services.AddSwaggerGen(options => options.OperationFilter<SwaggerDefaultValues>());
+            services.AddSwaggerGen(options => options.OperationFilter<ErrorCodeOperationFilter>());
+            services.AddSwaggerGen(options => options.OperationFilter<RetrieveOperationFilter>());
+            services.AddSwaggerGenNewtonsoftSupport();
 
             services.AddSingleton<IUrlResolver, UrlResolver>();
 
@@ -148,6 +166,8 @@ namespace Microsoft.AspNetCore.Builder
                 {
                     IWebHostEnvironment env = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
 
+                    IApiVersionDescriptionProvider provider = app.ApplicationServices.GetRequiredService<IApiVersionDescriptionProvider>();
+
                     // This middleware will add delegates to the OnStarting method of httpContext.Response for setting headers.
                     app.UseBaseHeaders();
 
@@ -167,6 +187,20 @@ namespace Microsoft.AspNetCore.Builder
                     app.UseAuthentication();
 
                     app.UseRequestContextAfterAuthentication<IDicomRequestContext>();
+
+                    app.UseSwagger(c =>
+                    {
+                        c.RouteTemplate = "{documentName}/api.yaml";
+                    });
+
+                    //Disabling swagger ui until accesability team gets back to us
+                    /*app.UseSwaggerUI(options =>
+                    {
+                        foreach (ApiVersionDescription description in provider.ApiVersionDescriptions)
+                        {
+                            options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.yaml", description.GroupName.ToUpperInvariant());
+                        }
+                    });*/
 
                     next(app);
                 };
