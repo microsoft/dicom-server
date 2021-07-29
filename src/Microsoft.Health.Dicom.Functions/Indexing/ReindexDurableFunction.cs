@@ -10,7 +10,6 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
-using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing
 {
