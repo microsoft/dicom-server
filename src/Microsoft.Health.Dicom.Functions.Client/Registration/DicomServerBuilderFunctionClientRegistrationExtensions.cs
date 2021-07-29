@@ -9,12 +9,12 @@ using System.Net.Http;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Functions.Client.Configs;
-using Microsoft.Health.Extensions.DependencyInjection;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
 using Polly.Extensions.Http;
@@ -53,9 +53,7 @@ namespace Microsoft.Health.Dicom.Functions.Client
 
             IServiceCollection services = dicomServerBuilder.Services;
 
-            services.Configure<FunctionsClientOptions>(configurationRoot
-                .GetSection(FunctionsClientOptions.SectionName));
-
+            services.TryAddScoped<IDicomOperationsClient, DicomAzureFunctionsHttpClient>();
             services
                 .AddHttpClient<DicomAzureFunctionsHttpClient>()
                 .AddHttpMessageHandler(
@@ -72,11 +70,7 @@ namespace Microsoft.Health.Dicom.Functions.Client
 
                         return new PolicyHttpMessageHandler(policy);
                     });
-
-            services.Add<DicomAzureFunctionsHttpClient>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
+            services.Configure<FunctionsClientOptions>(configurationRoot.GetSection(FunctionsClientOptions.SectionName));
 
             return dicomServerBuilder;
         }

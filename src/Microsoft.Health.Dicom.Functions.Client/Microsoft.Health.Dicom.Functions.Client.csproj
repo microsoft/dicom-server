@@ -21,7 +21,6 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Net.Http.Headers" Version="2.2.8" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Polly" Version="7.2.2" />
     <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
   </ItemGroup>

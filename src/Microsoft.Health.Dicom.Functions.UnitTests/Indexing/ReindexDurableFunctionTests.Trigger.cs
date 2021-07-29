@@ -10,7 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
-using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -20,7 +20,6 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
-using Newtonsoft.Json;
 using NSubstitute;
 using Xunit;
 
@@ -138,9 +137,9 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     cancellationToken: Arg.Any<CancellationToken>());
         }
 
-        private static HttpRequest CreateRequest(IReadOnlyCollection<int> tagKeys)
+        private HttpRequest CreateRequest(IReadOnlyCollection<int> tagKeys)
         {
-            byte[] buffer = tagKeys == null ? Array.Empty<byte>() : Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(tagKeys));
+            byte[] buffer = tagKeys == null ? Array.Empty<byte>() : JsonSerializer.SerializeToUtf8Bytes(tagKeys, _jsonSerializerOptions);
 
             var context = new DefaultHttpContext();
             context.Request.Method = HttpMethod.Post.Method;

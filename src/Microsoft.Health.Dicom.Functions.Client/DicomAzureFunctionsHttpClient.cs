@@ -8,8 +8,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Net.Mime;
-using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -20,7 +21,6 @@ using Microsoft.Health.Dicom.Core.Messages.Operations;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Client.Configs;
 using Microsoft.Net.Http.Headers;
-using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Functions.Client
 {
@@ -30,29 +30,29 @@ namespace Microsoft.Health.Dicom.Functions.Client
     internal class DicomAzureFunctionsHttpClient : IDicomOperationsClient
     {
         private readonly HttpClient _client;
-        private readonly FunctionsClientOptions _config;
-        internal static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings
-        {
-            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-        };
+        private readonly JsonSerializerOptions _jsonSerializerOptions;
+        private readonly FunctionsClientOptions _options;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DicomAzureFunctionsHttpClient"/> class.
         /// </summary>
         /// <param name="client">The HTTP client used to communicate with the HTTP triggered functions.</param>
-        /// <param name="config">A configuration that specifies how to communicate with the Azure Functions.</param>
+        /// <param name="jsonSerializerOptions">Settings to be used when serializing or deserializing JSON.</param>
+        /// <param name="options">A configuration that specifies how to communicate with the Azure Functions.</param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="client"/>, <paramref name="config"/>, or the value of the configuration is <see langword="null"/>.
+        /// <paramref name="client"/>, <paramref name="jsonSerializerOptions"/>, <paramref name="options"/>, or
+        /// either <see cref="IOptions{TOptions}.Value"/> is <see langword="null"/>.
         /// </exception>
-        public DicomAzureFunctionsHttpClient(HttpClient client, IOptions<FunctionsClientOptions> config)
+        public DicomAzureFunctionsHttpClient(
+            HttpClient client,
+            IOptions<JsonSerializerOptions> jsonSerializerOptions,
+            IOptions<FunctionsClientOptions> options)
         {
-            EnsureArg.IsNotNull(client, nameof(client));
-            EnsureArg.IsNotNull(config?.Value, nameof(config));
+            _client = EnsureArg.IsNotNull(client, nameof(client));
+            _jsonSerializerOptions = EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
+            _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
 
-            client.BaseAddress = config.Value.BaseAddress;
-
-            _client = client;
-            _config = config.Value;
+            client.BaseAddress = options.Value.BaseAddress;
         }
 
         /// <inheritdoc/>
@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.Functions.Client
             EnsureArg.IsNotEmpty(operationId, nameof(operationId));
 
             var statusRoute = new Uri(
-                string.Format(CultureInfo.InvariantCulture, _config.Routes.GetStatusRouteTemplate, OperationId.ToString(operationId)),
+                string.Format(CultureInfo.InvariantCulture, _options.Routes.GetStatusRouteTemplate, OperationId.ToString(operationId)),
                 UriKind.Relative);
 
             using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, statusRoute);
@@ -75,10 +75,7 @@ namespace Microsoft.Health.Dicom.Functions.Client
 
             // Re-throw any exceptions we may have encountered when making the HTTP request
             response.EnsureSuccessStatusCode();
-
-            return JsonConvert.DeserializeObject<OperationStatusResponse>(
-                await response.Content.ReadAsStringAsync(cancellationToken),
-                JsonSettings);
+            return await response.Content.ReadFromJsonAsync<OperationStatusResponse>(_jsonSerializerOptions, cancellationToken);
         }
 
         /// <inheritdoc/>
@@ -87,8 +84,11 @@ namespace Microsoft.Health.Dicom.Functions.Client
             EnsureArg.IsNotNull(tagKeys, nameof(tagKeys));
             EnsureArg.HasItems(tagKeys, nameof(tagKeys));
 
-            using var content = new StringContent(JsonConvert.SerializeObject(tagKeys, JsonSettings), Encoding.UTF8, MediaTypeNames.Application.Json);
-            using HttpResponseMessage response = await _client.PostAsync(_config.Routes.StartQueryTagIndexingRoute, content, cancellationToken);
+            using HttpResponseMessage response = await _client.PostAsJsonAsync(
+                _options.Routes.StartQueryTagIndexingRoute,
+                tagKeys,
+                _jsonSerializerOptions,
+                cancellationToken);
 
             // If there is a conflict, another client already added this tag while we were processing
             if (response.StatusCode == HttpStatusCode.Conflict)
