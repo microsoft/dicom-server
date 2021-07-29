@@ -21,6 +21,9 @@
   },
   "BlobStore": {
     "ConnectionString": null,
+    "Containers": {
+      "Metadata": "metadatacontainer"
+    },
     "RequestOptions": {
       "ExponentialRetryBackoffDeltaInSeconds": 4,
       "ExponentialRetryMaxAttempts": 6,

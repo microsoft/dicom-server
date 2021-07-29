@@ -6,8 +6,6 @@
 using System;
 using System.Reflection;
 using System.Text.Json.Serialization;
-using Dicom;
-using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -35,7 +33,6 @@ using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.IO;
-using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Microsoft.AspNetCore.Builder
@@ -90,15 +87,14 @@ namespace Microsoft.AspNetCore.Builder
 
             services.AddOptions();
 
-            services.AddMvc(options =>
-            {
-                options.EnableEndpointRouting = false;
-                options.RespectBrowserAcceptHeader = true;
-                options.OutputFormatters.Insert(0, new DicomJsonOutputFormatter());
-            }).AddJsonOptions(jsonOptions =>
-            {
-                jsonOptions.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-            });
+            services
+                .AddMvc(options =>
+                {
+                    options.EnableEndpointRouting = false;
+                    options.RespectBrowserAcceptHeader = true;
+                    options.OutputFormatters.Insert(0, new DicomJsonOutputFormatter());
+                })
+                .AddJsonSerializerOptions(o => o.Converters.Add(new JsonStringEnumConverter()));
 
             services.AddApiVersioning(c =>
             {
@@ -128,18 +124,9 @@ namespace Microsoft.AspNetCore.Builder
             services.AddTransient<IStartupFilter, DicomServerStartupFilter>();
 
             // Register the Json Serializer to use
-            var jsonSerializer = new JsonSerializer();
-            jsonSerializer.Converters.Add(new JsonDicomConverter());
-            services.AddSingleton(jsonSerializer);
+            services.AddDicomJsonNetSerialization();
 
             services.TryAddSingleton<RecyclableMemoryStreamManager>();
-
-            // Disable fo-dicom data item validation. Disabling at global level
-            // Opt-in validation instead of opt-out
-            // De-serializing to Dataset while read has no Dataset level option to disable validation
-#pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = false;
-#pragma warning restore CS0618 // Type or member is obsolete
 
             return new DicomServerBuilder(services);
         }
