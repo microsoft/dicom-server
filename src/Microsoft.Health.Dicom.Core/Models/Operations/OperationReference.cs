@@ -4,9 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Text.Json.Serialization;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Serialization;
-using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Core.Models.Operations
 {
@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.Core.Models.Operations
         /// Gets the operation ID.
         /// </summary>
         /// <value>The unique ID that denotes a particular long-running operation.</value>
-        [JsonConverter(typeof(JsonGuidConverter), OperationId.FormatSpecifier)]
+        [JsonConverter(typeof(OperationIdJsonConverter))]
         public Guid Id { get; }
 
         /// <summary>

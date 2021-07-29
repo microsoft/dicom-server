@@ -333,15 +333,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected JSON token of type &apos;{0}&apos; but found &apos;{1}&apos; instead..
-        /// </summary>
-        internal static string InvalidJsonToken {
-            get {
-                return ResourceManager.GetString("InvalidJsonToken", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified limit value &apos;{0}&apos; is not a valid integer..
         /// </summary>
         internal static string InvalidLimitValue {
@@ -383,15 +374,6 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string InvalidQueryStringValue {
             get {
                 return ResourceManager.GetString("InvalidQueryStringValue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable parse &apos;{0}&apos; as type &apos;{1}&apos;..
-        /// </summary>
-        internal static string InvalidStringParse {
-            get {
-                return ResourceManager.GetString("InvalidStringParse", resourceCulture);
             }
         }
         

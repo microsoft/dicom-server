@@ -6,62 +6,48 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using Microsoft.Health.Dicom.Core.Serialization;
-using Newtonsoft.Json;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
 {
     public class JsonGuidConverterTests
     {
-        [Fact]
-        public void GivenJsonGuidConverter_WhenCheckingRead_ThenReturnTrue()
-        {
-            Assert.True(new JsonGuidConverter("N").CanRead);
-        }
+        private static readonly JsonSerializerOptions DefaultOptions = new JsonSerializerOptions();
 
         [Fact]
-        public void GivenJsonGuidConverter_WhenCheckingWrite_ThenReturnTrue()
+        public void GivenJsonGuidConverter_WhenCheckingNullHandling_ThenReturnFalse()
         {
-            Assert.True(new JsonGuidConverter("P").CanWrite);
+            Assert.False(new JsonGuidConverter("N").HandleNull);
         }
 
         [Theory]
-        [InlineData("")]
         [InlineData("null")]
         [InlineData("42")]
         [InlineData("{ \"foo\": \"bar\" }")]
         [InlineData("[ 1, 2, 3 ]")]
-        public void GivenInvalidToken_WhenReadingJson_ThenThrowJsonReaderException(string json)
-        {
-            using var reader = new StringReader(json);
-            using var jsonReader = new JsonTextReader(reader);
-
-            Assert.Equal(json != "", jsonReader.Read());
-            Assert.Throws<JsonReaderException>(
-                () => new JsonGuidConverter("N").ReadJson(
-                    jsonReader,
-                    typeof(Guid),
-                    null,
-                    new JsonSerializer()));
-        }
-
-        [Theory]
         [InlineData("\"\"")]
         [InlineData("\"bar\"")]
         [InlineData("\"0123456789abcdef0123456789abcde\"")]
-        public void GivenInvalidStringToken_WhenReadingJson_ThenThrowJsonReaderException(string json)
+        public void GivenInvalidToken_WhenReadingJson_ThenThrowJsonReaderException(string json)
         {
-            using var reader = new StringReader(json);
-            using var jsonReader = new JsonTextReader(reader);
+            var jsonReader = new Utf8JsonReader(Encoding.UTF8.GetBytes(json));
 
             Assert.True(jsonReader.Read());
-            Assert.Throws<JsonReaderException>(
-                () => new JsonGuidConverter(formatSpecifier: "D", exactMatch: false).ReadJson(
-                    jsonReader,
-                    typeof(Guid),
-                    null,
-                    new JsonSerializer()));
+            try
+            {
+                new JsonGuidConverter("N").Read(ref jsonReader, typeof(Guid), DefaultOptions);
+                throw new ThrowsException(typeof(JsonException));
+            }
+            catch (Exception e)
+            {
+                if (e.GetType() != typeof(JsonException))
+                {
+                    throw new ThrowsException(typeof(JsonException), e);
+                }
+            }
         }
 
         [Theory]
@@ -72,16 +58,21 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
         [InlineData("\"255d38e6-2df7-4377-87c5-7b2386349d60\"", "X")]
         public void GivenIncorrectFormatStringToken_WhenReadingExactJson_ThenThrowJsonReaderException(string json, string formatSpecifier)
         {
-            using var reader = new StringReader(json);
-            using var jsonReader = new JsonTextReader(reader);
+            var jsonReader = new Utf8JsonReader(Encoding.UTF8.GetBytes(json));
 
             Assert.True(jsonReader.Read());
-            Assert.Throws<JsonReaderException>(
-                () => new JsonGuidConverter(formatSpecifier, exactMatch: true).ReadJson(
-                    jsonReader,
-                    typeof(Guid),
-                    null,
-                    new JsonSerializer()));
+            try
+            {
+                new JsonGuidConverter(formatSpecifier, exactMatch: true).Read(ref jsonReader, typeof(Guid), DefaultOptions);
+                throw new ThrowsException(typeof(JsonException));
+            }
+            catch (Exception e)
+            {
+                if (e.GetType() != typeof(JsonException))
+                {
+                    throw new ThrowsException(typeof(JsonException), e);
+                }
+            }
         }
 
         [Theory]
@@ -93,16 +84,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
         public void GivenStringToken_WhenReadingNonExactJson_ThenReturnGuid(string formatSpecifier)
         {
             Guid expected = Guid.NewGuid();
-            using var reader = new StringReader("\"" + expected.ToString(formatSpecifier) + "\"");
-            using var jsonReader = new JsonTextReader(reader);
+            var jsonReader = new Utf8JsonReader(Encoding.UTF8.GetBytes("\"" + expected.ToString(formatSpecifier) + "\""));
 
             Assert.True(jsonReader.Read());
-            Guid actual = (Guid)new JsonGuidConverter("N", exactMatch: false).ReadJson(
-                    jsonReader,
-                    typeof(Guid),
-                    null,
-                    new JsonSerializer());
-
+            Guid actual = new JsonGuidConverter("N", exactMatch: false).Read(ref jsonReader, typeof(Guid), DefaultOptions);
             Assert.Equal(expected, actual);
         }
 
@@ -115,16 +100,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
         public void GivenStringToken_WhenReadingExactJson_ThenReturnGuid(string formatSpecifier)
         {
             Guid expected = Guid.NewGuid();
-            using var reader = new StringReader("\"" + expected.ToString(formatSpecifier) + "\"");
-            using var jsonReader = new JsonTextReader(reader);
+            var jsonReader = new Utf8JsonReader(Encoding.UTF8.GetBytes("\"" + expected.ToString(formatSpecifier) + "\""));
 
             Assert.True(jsonReader.Read());
-            Guid actual = (Guid)new JsonGuidConverter(formatSpecifier, exactMatch: true).ReadJson(
-                    jsonReader,
-                    typeof(Guid),
-                    null,
-                    new JsonSerializer());
-
+            Guid actual = new JsonGuidConverter(formatSpecifier, exactMatch: false).Read(ref jsonReader, typeof(Guid), DefaultOptions);
             Assert.Equal(expected, actual);
         }
 
@@ -137,20 +116,16 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
         public void GivenGuid_WhenWritingJson_ThenThrowNotSupportedException(string formatSpecifier)
         {
             Guid expected = Guid.NewGuid();
-            var buffer = new StringBuilder();
+            using var buffer = new MemoryStream();
+            var jsonWriter = new Utf8JsonWriter(buffer);
 
-            using (var writer = new StringWriter(buffer))
-            using (var jsonWriter = new JsonTextWriter(writer))
-            {
-                new JsonGuidConverter(formatSpecifier, exactMatch: true).WriteJson(
-                    jsonWriter,
-                    expected,
-                    new JsonSerializer());
-            }
+            new JsonGuidConverter(formatSpecifier, exactMatch: true).Write(jsonWriter, expected, DefaultOptions);
+            jsonWriter.Flush();
 
-            using var reader = new StringReader(buffer.ToString());
-            using var jsonReader = new JsonTextReader(reader);
-            Assert.Equal(expected.ToString(formatSpecifier), jsonReader.ReadAsString());
+            buffer.Seek(0, SeekOrigin.Begin);
+            var jsonReader = new Utf8JsonReader(buffer.ToArray());
+
+            Assert.Equal(expected.ToString(formatSpecifier), JsonSerializer.Deserialize<string>(ref jsonReader, DefaultOptions));
         }
     }
 }

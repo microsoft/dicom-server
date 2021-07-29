@@ -123,7 +123,9 @@ namespace Microsoft.AspNetCore.Builder
             services.RegisterAssemblyModules(typeof(DicomMediatorExtensions).Assembly, dicomServerConfiguration.Features, dicomServerConfiguration.Services);
             services.AddTransient<IStartupFilter, DicomServerStartupFilter>();
 
+            // Register the Json Serializer to use
             services.AddDicomJsonNetSerialization();
+
             services.TryAddSingleton<RecyclableMemoryStreamManager>();
 
             return new DicomServerBuilder(services);

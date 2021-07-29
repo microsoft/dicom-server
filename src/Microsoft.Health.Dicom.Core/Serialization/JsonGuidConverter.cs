@@ -4,9 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Globalization;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using EnsureThat;
-using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Core.Serialization
 {
@@ -29,40 +29,15 @@ namespace Microsoft.Health.Dicom.Core.Serialization
             _tryParse = exactMatch ? TryParseExact : Guid.TryParse;
         }
 
-        public override Guid ReadJson(JsonReader reader, Type objectType, Guid existingValue, bool hasExistingValue, JsonSerializer serializer)
-        {
-            EnsureArg.IsNotNull(reader, nameof(reader));
-
-            if (reader.TokenType is not JsonToken.String)
-            {
-                throw new JsonReaderException(
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        DicomCoreResource.InvalidJsonToken,
-                        JsonToken.String,
-                        reader.TokenType));
-            }
-
-            if (!_tryParse(reader.Value as string, out Guid value))
-            {
-                throw new JsonReaderException(
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        DicomCoreResource.InvalidStringParse,
-                        reader.Value,
-                        typeof(Guid)));
-            }
-
-            return value;
-        }
-
-        public override void WriteJson(JsonWriter writer, Guid value, JsonSerializer serializer)
-        {
-            EnsureArg.IsNotNull(writer, nameof(writer));
-            writer.WriteValue(value.ToString(_formatSpecifier));
-        }
-
         private bool TryParseExact(string input, out Guid value)
             => Guid.TryParseExact(input, _formatSpecifier, out value);
+
+        public override Guid Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            => reader.TokenType is JsonTokenType.String && _tryParse(reader.GetString(), out Guid value)
+                ? value
+                : throw new JsonException();
+
+        public override void Write(Utf8JsonWriter writer, Guid value, JsonSerializerOptions options)
+            => writer.WriteStringValue(value.ToString(_formatSpecifier));
     }
 }
