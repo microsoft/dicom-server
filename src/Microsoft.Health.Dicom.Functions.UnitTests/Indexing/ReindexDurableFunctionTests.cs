@@ -10,6 +10,7 @@ using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
+using Newtonsoft.Json;
 using NSubstitute;
 
 namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
