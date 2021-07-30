@@ -5,15 +5,19 @@
 
 using System;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 
 namespace Microsoft.Health.Dicom.Functions.Extensions
 {
     internal static class DurableFunctionsContextExtensions
     {
         public static bool HasInstanceGuid(this IDurableOrchestrationContext durableOrchestrationContext)
-            => Guid.TryParse(durableOrchestrationContext.InstanceId, out Guid _);
+            => Guid.TryParseExact(
+                durableOrchestrationContext.InstanceId,
+                OperationId.FormatSpecifier,
+                out Guid _);
 
         public static Guid GetInstanceGuid(this IDurableActivityContext durableActivityContext)
-            => Guid.Parse(durableActivityContext.InstanceId);
+            => Guid.ParseExact(durableActivityContext.InstanceId, OperationId.FormatSpecifier);
     }
 }

@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Core.Models.Operations
         /// <param name="operationId">A unique operation ID.</param>
         /// <returns>
         /// The <see cref="string"/> representation for the <paramref name="operationId"/> using
-        /// the <c>"N"</c> format specifier.
+        /// the <see cref="FormatSpecifier"/>.
         /// </returns>
         public static string ToString(Guid operationId)
             => operationId.ToString(FormatSpecifier);

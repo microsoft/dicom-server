@@ -15,8 +15,6 @@ namespace Microsoft.Health.Dicom.Tests.Common
     {
         public Uri ResolveOperationStatusUri(Guid operationId)
         {
-            EnsureArg.IsNotEmpty(operationId, nameof(operationId));
-
             return new Uri("/" + OperationId.ToString(operationId), UriKind.Relative);
         }
 

@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using EnsureThat;
 using MediatR;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Operations
@@ -18,9 +17,8 @@ namespace Microsoft.Health.Dicom.Core.Messages.Operations
         /// Initializes a new instance of the <see cref="OperationStatusRequest"/> class.
         /// </summary>
         /// <param name="operationId">The unique ID for a particular DICOM operation.</param>
-        /// <exception cref="ArgumentException"><paramref name="operationId"/> is <see cref="Guid.Empty"/>.</exception>
         public OperationStatusRequest(Guid operationId)
-            => OperationId = EnsureArg.IsNotEmpty(operationId, nameof(operationId));
+            => OperationId = operationId;
 
         /// <summary>
         /// Gets the operation ID.

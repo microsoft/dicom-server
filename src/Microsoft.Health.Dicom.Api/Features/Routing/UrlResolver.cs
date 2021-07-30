@@ -46,7 +46,6 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         /// <inheritdoc />
         public Uri ResolveOperationStatusUri(Guid operationId)
         {
-            EnsureArg.IsNotEmpty(operationId, nameof(operationId));
             var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey("version");
 
             return RouteUri(

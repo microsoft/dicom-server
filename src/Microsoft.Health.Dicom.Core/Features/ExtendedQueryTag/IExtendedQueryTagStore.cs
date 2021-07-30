@@ -63,7 +63,6 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// The value of its <see cref="Task{TResult}.Result"/> property contains the set of query tags assigned
         /// to the <paramref name="operationId"/>.
         /// </returns>
-        /// <exception cref="ArgumentException"><paramref name="operationId"/> is <see cref="Guid.Empty"/>.</exception>
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
         Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsByOperationAsync(Guid operationId, CancellationToken cancellationToken = default);
 
@@ -90,11 +89,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// The value of its <see cref="Task{TResult}.Result"/> property contains the subset of query tags that were
         /// successfully assigned to the <paramref name="operationId"/>.
         /// </returns>
-        /// <exception cref="ArgumentException">
-        /// <para><paramref name="queryTagKeys"/> is empty.</para>
-        /// <para>-or-</para>
-        /// <para><paramref name="operationId"/> is <see cref="Guid.Empty"/></para>
-        /// </exception>
+        /// <exception cref="ArgumentException"><paramref name="queryTagKeys"/> is empty.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="queryTagKeys"/> is <see langword="null"/>.</exception>
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
         Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AssignReindexingOperationAsync(

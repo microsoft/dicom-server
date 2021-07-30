@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Functions.Configuration;
+using Microsoft.Health.Dicom.Functions.Durable;
 using Microsoft.Health.Dicom.Functions.Registration;
 using Microsoft.Health.SqlServer.Configs;
 using Microsoft.IO;
@@ -33,6 +34,15 @@ namespace Microsoft.Extensions.DependencyInjection
             services.Configure<T>(configuration
                 .GetSection(DicomFunctionsConfiguration.SectionName)
                 .GetSection(sectionName));
+
+            return services;
+        }
+
+        public static IServiceCollection AddDurableFunctionServices(this IServiceCollection services)
+        {
+            EnsureArg.IsNotNull(services, nameof(services));
+
+            services.TryAddSingleton(GuidFactory.Default);
 
             return services;
         }

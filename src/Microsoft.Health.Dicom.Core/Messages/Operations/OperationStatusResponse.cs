@@ -26,7 +26,9 @@ namespace Microsoft.Health.Dicom.Core.Messages.Operations
         /// <param name="createdTime">The date and time when the operation was created.</param>
         /// <param name="lastUpdatedTime">The date and time when the operation's status was last updated.</param>
         /// <param name="status">The runtime status of the operation.</param>
-        /// <exception cref="ArgumentException"><paramref name="operationId"/> is <see cref="Guid.Empty"/></exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="status"/> or <paramref name="type"/> is undefined.
+        /// </exception>
         public OperationStatusResponse(
             Guid operationId,
             OperationType type,
@@ -34,7 +36,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Operations
             DateTime lastUpdatedTime,
             OperationRuntimeStatus status)
         {
-            OperationId = EnsureArg.IsNotEmpty(operationId, nameof(operationId));
+            OperationId = operationId;
             Type = EnsureArg.EnumIsDefined(type, nameof(type));
             CreatedTime = createdTime;
             LastUpdatedTime = lastUpdatedTime;

@@ -28,7 +28,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
         /// <see cref="Task{TResult}.Result"/> property contains the status of the operation
         /// with the specified <paramref name="operationId"/>, if found; otherwise <see langword="null"/>.
         /// </returns>
-        /// <exception cref="ArgumentException"><paramref name="operationId"/> is <see cref="Guid.Empty"/>.</exception>
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
         Task<OperationStatusResponse> GetStatusAsync(Guid operationId, CancellationToken cancellationToken = default);
 

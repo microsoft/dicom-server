@@ -21,16 +21,14 @@ namespace Microsoft.Health.Dicom.Core.Models.Operations
         /// <param name="id">The unique operation ID.</param>
         /// <param name="href">The resource URL for the operation.</param>
         /// <exception cref="ArgumentException">
-        /// <para><paramref name="id"/> is <see cref="Guid.Empty"/>.</para>
-        /// <para>-or-</para>
-        /// <para><paramref name="href"/> is empty or consists of white space characters.</para>
+        /// <paramref name="href"/> is empty or consists of white space characters.
         /// </exception>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="href"/> is <see langword="null"/>.
         /// </exception>
         public OperationReference(Guid id, Uri href)
         {
-            Id = EnsureArg.IsNotEmpty(id, nameof(id));
+            Id = id;
             Href = EnsureArg.IsNotNull(href, nameof(href));
         }
 

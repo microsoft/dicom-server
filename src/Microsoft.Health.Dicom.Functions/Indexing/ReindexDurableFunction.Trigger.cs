@@ -20,6 +20,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Extensions;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 
@@ -78,20 +79,15 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                 string.Join(", ", extendedQueryTagKeys));
 
             // Start the re-indexing orchestration
+            Guid instanceGuid = _guidFactory.Create();
             string instanceId = await client.StartNewAsync(
                 nameof(ReindexInstancesAsync),
+                OperationId.ToString(instanceGuid),
                 new ReindexInput
                 {
                     QueryTagKeys = extendedQueryTagKeys,
                     Completed = WatermarkRange.None,
                 });
-
-            // The ID should be a GUID, but if for some reason the platform fails to generate a GUID string
-            // then we should abort the orchestration and return a failure status code to the user.
-            if (!Guid.TryParse(instanceId, out Guid instanceGuid))
-            {
-                return new HttpResponseMessage { StatusCode = HttpStatusCode.InternalServerError };
-            }
 
             logger.LogInformation("Successfully started new orchestration instance with ID '{InstanceId}'.", instanceId);
 

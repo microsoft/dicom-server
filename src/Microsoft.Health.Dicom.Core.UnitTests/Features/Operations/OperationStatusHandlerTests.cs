@@ -23,18 +23,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
         }
 
         [Fact]
-        public async Task GivenInvalidId_WhenHandlingRequest_ThenThrowArgumentException()
-        {
-            IDicomOperationsClient client = Substitute.For<IDicomOperationsClient>();
-            await Assert.ThrowsAsync<ArgumentException>(
-                () => new OperationStatusHandler(client).Handle(
-                    new OperationStatusRequest(Guid.Empty),
-                    CancellationToken.None));
-
-            await client.DidNotReceiveWithAnyArgs().GetStatusAsync(default, default);
-        }
-
-        [Fact]
         public async Task GivenValidRequest_WhenHandlingRequest_ThenReturnResponse()
         {
             using var source = new CancellationTokenSource();

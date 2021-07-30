@@ -66,17 +66,6 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
         }
 
         [Fact]
-        public async Task GivenInvalidId_WhenGettingStatus_ThenThrowArgumentException()
-        {
-            var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound));
-            var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), _jsonSerializerOptions, DefaultOptions);
-
-            await Assert.ThrowsAsync<ArgumentException>(() => client.GetStatusAsync(Guid.Empty, CancellationToken.None));
-
-            Assert.Equal(0, handler.SentMessages);
-        }
-
-        [Fact]
         public async Task GivenNotFound_WhenGettingStatus_ThenReturnNull()
         {
             var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound));

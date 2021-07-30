@@ -58,8 +58,6 @@ namespace Microsoft.Health.Dicom.Functions.Client
         /// <inheritdoc/>
         public async Task<OperationStatusResponse> GetStatusAsync(Guid operationId, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotEmpty(operationId, nameof(operationId));
-
             var statusRoute = new Uri(
                 string.Format(CultureInfo.InvariantCulture, _options.Routes.GetStatusRouteTemplate, OperationId.ToString(operationId)),
                 UriKind.Relative);
