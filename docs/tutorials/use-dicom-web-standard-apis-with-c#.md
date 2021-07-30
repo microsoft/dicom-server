@@ -21,6 +21,7 @@ Once you have deployed an instance of the Medical Imaging Server for DICOM, retr
 1. Sign into the [Azure Portal](https://portal.azure.com/).
 1. Search for **App Services** and select your Medical Imaging Server for DICOM App Service.
 1. Copy the **URL** of your App Service.
+1. Append the version you would like to use to the end of your service url (ex. `https://<service_url>/v<version>/`) and use this as the url for your DICOM service in all the following examples. For more information on versioning visit the [Api Versioning Documentation](../api-versioning.md).
 
 In your application install the following nuget packages:
 

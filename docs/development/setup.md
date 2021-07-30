@@ -34,7 +34,7 @@
    - `Content-Type: multipart/related` **(don't change boundary part)**
 - Update request body:
    - `Content-Type: application/dicom`
-- Post the request to https://localhost:63838/studies
+- Post the request to `https://localhost:63838/v<version>/studies`
    - Hit Execute button
 
 ![Post A Dicom Image](/docs/images/FiddlerPost.png)
@@ -46,7 +46,7 @@
 ## Posting DICOM files using Postman
 Postman only supports uploading DICOM files using the single part payload defined in the DICOM standard. This is because Postman cannot support custom separators in a multipart/related POST request.
 - [Install Postman](https://www.postman.com/downloads/)
-- Set the request to be a post request to the url `https://localhost:63838/studies`
+- Set the request to be a post request to the url `https://localhost:63838/v<version>/studies`
 - In the `Body` tab of Postman select `binary` and and then select the single part DICOM file you would like to upload
 - In the headers section add the following. All the headers should match as in the image below 
    - Accept: `application/dicom+json`
@@ -58,6 +58,6 @@ Postman only supports uploading DICOM files using the single part payload define
 ## Postman for Get
 - Example QIDO to get all studies
 ```http
-GET https://localhost:63838/studies
+GET https://localhost:63838/v<version>/studies
 accept: application/dicom+json
 ```
