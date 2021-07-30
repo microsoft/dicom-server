@@ -78,11 +78,6 @@ namespace Microsoft.Health.Dicom.Functions.Management
 
             logger.LogInformation("Querying orchestration instance with ID '{InstanceId}'", instanceId);
 
-            if (instanceId == Guid.Empty)
-            {
-                return new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound };
-            }
-
             // GetStatusAsync doesn't accept a token, so the best we can do is cancel before execution
             source.Token.ThrowIfCancellationRequested();
 

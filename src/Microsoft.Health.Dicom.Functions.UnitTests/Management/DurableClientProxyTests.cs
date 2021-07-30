@@ -54,18 +54,6 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
         }
 
         [Fact]
-        public async Task GivenInvalidId_WhenGettingStatus_ThenReturnBadRequest()
-        {
-            var context = new DefaultHttpContext();
-            IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
-
-            HttpResponseMessage actual = await _proxy.GetStatusAsync(context.Request, client, Guid.Empty, NullLogger.Instance);
-            Assert.Equal(HttpStatusCode.NotFound, actual.StatusCode);
-
-            await client.DidNotReceiveWithAnyArgs().GetStatusAsync(default(string));
-        }
-
-        [Fact]
         public async Task GivenNullStatus_WhenGettingStatus_ThenReturnNotFound()
         {
             var context = new DefaultHttpContext();

@@ -29,9 +29,6 @@ namespace Microsoft.Health.Dicom.Core.Serialization
             _tryParse = exactMatch ? TryParseExact : Guid.TryParse;
         }
 
-        private bool TryParseExact(string input, out Guid value)
-            => Guid.TryParseExact(input, _formatSpecifier, out value);
-
         public override Guid Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType is JsonTokenType.String && _tryParse(reader.GetString(), out Guid value)
                 ? value
@@ -39,5 +36,8 @@ namespace Microsoft.Health.Dicom.Core.Serialization
 
         public override void Write(Utf8JsonWriter writer, Guid value, JsonSerializerOptions options)
             => writer.WriteStringValue(value.ToString(_formatSpecifier));
+
+        private bool TryParseExact(string input, out Guid value)
+            => Guid.TryParseExact(input, _formatSpecifier, out value);
     }
 }
