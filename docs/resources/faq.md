@@ -31,7 +31,6 @@ No single product, including the Medical Imaging Server for DICOM, fully support
 
 The Medical Imaging Server for DICOM has versions for the REST API used to access the server. The version is specified as a URL path in the requests. For more information visit the [Api Versioning Documentation](../api-versioning.md).
 
-
 ## Does the Medical Imaging Server for DICOM store any PHI?
 
 Absolutely. One of the core objectives for the Medical Imaging Server for DICOM is to support standard and innovating radiologist workflows. These workflows demand the use of PHI data.
