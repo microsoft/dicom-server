@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -80,13 +79,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(OperationStatusResponse), (int)HttpStatusCode.Accepted)]
         [ProducesResponseType(typeof(OperationStatusResponse), (int)HttpStatusCode.OK)]
         [AuditEventType(AuditEventSubType.Operation)]
-        public async Task<IActionResult> GetStatusAsync([Required] Guid operationId)
+        public async Task<IActionResult> GetStatusAsync(Guid operationId)
         {
             _logger.LogInformation("DICOM Web Get Operation Status request received for ID '{OperationId}'", operationId);
-            if (operationId == Guid.Empty)
-            {
-                return NotFound();
-            }
 
             OperationStatusResponse response = await _mediator.GetOperationStatusAsync(operationId, HttpContext.RequestAborted);
 
