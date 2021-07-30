@@ -11,7 +11,12 @@
   "DicomFunctions": {
     "Indexing": {
       "BatchSize": 2,
-      "ParallelBatches": 2
+      "ParallelBatches": 2,
+      "ActivityRetryOptions": {
+        "BackoffCoefficient": 2,
+        "FirstRetryInterval": "00:00:01",
+        "MaxNumberOfAttempts": 10
+      }
     },
     "PurgeHistory": {
       "RuntimeStatuses": [ "Completed" ],

@@ -41,20 +41,27 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             {
                 VLatest.GetExtendedQueryTagsByOperation.PopulateCommand(sqlCommandWrapper, operationId);
 
-                using (SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                try
                 {
-                    while (await reader.ReadAsync(cancellationToken))
+                    using (SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
                     {
-                        (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus) = reader.ReadRow(
-                            VLatest.ExtendedQueryTag.TagKey,
-                            VLatest.ExtendedQueryTag.TagPath,
-                            VLatest.ExtendedQueryTag.TagVR,
-                            VLatest.ExtendedQueryTag.TagPrivateCreator,
-                            VLatest.ExtendedQueryTag.TagLevel,
-                            VLatest.ExtendedQueryTag.TagStatus);
+                        while (await reader.ReadAsync(cancellationToken))
+                        {
+                            (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus) = reader.ReadRow(
+                                VLatest.ExtendedQueryTag.TagKey,
+                                VLatest.ExtendedQueryTag.TagPath,
+                                VLatest.ExtendedQueryTag.TagVR,
+                                VLatest.ExtendedQueryTag.TagPrivateCreator,
+                                VLatest.ExtendedQueryTag.TagLevel,
+                                VLatest.ExtendedQueryTag.TagStatus);
 
-                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus));
+                            results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus));
+                        }
                     }
+                }
+                catch (SqlException ex)
+                {
+                    throw new DataStoreException(ex);
                 }
             }
 

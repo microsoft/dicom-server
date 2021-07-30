@@ -5,11 +5,12 @@
 
 using System;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing
 {
     /// <summary>
-    /// Represents the configuration for a "reindex" function.
+    /// Represents the options for a "re-index" function.
     /// </summary>
     public class QueryTagIndexingOptions
     {
@@ -32,5 +33,11 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// across all activities for a single orchestration instance.
         /// </summary>
         public int MaxParallelCount => BatchSize * MaxParallelBatches;
+
+        /// <summary>
+        /// Gets or sets the <see cref="RetryOptions"/> for re-indexing activities.
+        /// </summary>
+        [Required]
+        public RetryOptions ActivityRetryOptions { get; set; }
     }
 }

@@ -6,6 +6,7 @@
 using System.Text.Json;
 using EnsureThat;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
@@ -44,6 +45,9 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             _schemaVersionResolver = EnsureArg.IsNotNull(schemaVersionResolver, nameof(schemaVersionResolver));
             _jsonOptions = EnsureArg.IsNotNull(jsonOptions?.Value, nameof(jsonOptions));
             _options = EnsureArg.IsNotNull(configOptions?.Value, nameof(configOptions));
+
+            // TODO: In .NET 5 we'll be able to leverage SQlException.IsTransient as well
+            _options.ActivityRetryOptions.Handle ??= e => e is DataStoreException;
         }
     }
 }
