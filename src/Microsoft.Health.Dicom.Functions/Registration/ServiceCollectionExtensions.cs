@@ -24,16 +24,22 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddFunctionsOptions<T>(
             this IServiceCollection services,
             IConfiguration configuration,
-            string sectionName)
+            string sectionName,
+            bool bindNonPublicProperties = false)
             where T : class
         {
             EnsureArg.IsNotNull(services, nameof(services));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
             EnsureArg.IsNotEmptyOrWhiteSpace(sectionName, nameof(sectionName));
 
-            services.Configure<T>(configuration
-                .GetSection(DicomFunctionsConfiguration.SectionName)
-                .GetSection(sectionName));
+            services
+                .AddOptions<T>()
+                .Bind(
+                    configuration
+                        .GetSection(DicomFunctionsConfiguration.SectionName)
+                        .GetSection(sectionName),
+                    x => x.BindNonPublicProperties = bindNonPublicProperties)
+                .ValidateDataAnnotations();
 
             return services;
         }
