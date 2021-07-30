@@ -111,7 +111,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
         [Fact]
         public async Task GivenOperationId_WhenAddingTags_ReturnIdWithHeader()
         {
-            string id = Guid.NewGuid().ToString();
+            Guid id = Guid.NewGuid();
             var expected = new AddExtendedQueryTagResponse(
                 new OperationReference(id, new Uri("https://dicom.contoso.io/unit/test/Operations/" + id, UriKind.Absolute)));
             IMediator mediator = Substitute.For<IMediator>();

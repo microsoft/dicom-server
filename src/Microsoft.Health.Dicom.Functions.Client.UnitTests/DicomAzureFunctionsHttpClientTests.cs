@@ -65,29 +65,13 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
                     Options.Create<FunctionsClientOptions>(null)));
         }
 
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        [InlineData("   ")]
-        [InlineData("\t  \r\n")]
-        public async Task GivenInvalidId_WhenGettingStatus_ThenThrowArgumentException(string id)
-        {
-            var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound));
-            var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), _jsonSerializerOptions, DefaultOptions);
-
-            Type exceptionType = id is null ? typeof(ArgumentNullException) : typeof(ArgumentException);
-            await Assert.ThrowsAsync(exceptionType, () => client.GetStatusAsync(id, CancellationToken.None));
-
-            Assert.Equal(0, handler.SentMessages);
-        }
-
         [Fact]
         public async Task GivenNotFound_WhenGettingStatus_ThenReturnNull()
         {
             var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound));
             var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), _jsonSerializerOptions, DefaultOptions);
 
-            string id = Guid.NewGuid().ToString();
+            Guid id = Guid.NewGuid();
             using var source = new CancellationTokenSource();
 
             handler.SendingAsync += (msg, token) => AssertExpectedStatusRequestAsync(msg, id);
@@ -104,7 +88,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
             var handler = new MockMessageHandler(new HttpResponseMessage(expected));
             var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), _jsonSerializerOptions, DefaultOptions);
 
-            string id = Guid.NewGuid().ToString();
+            Guid id = Guid.NewGuid();
             using var source = new CancellationTokenSource();
 
             handler.SendingAsync += (msg, token) => AssertExpectedStatusRequestAsync(msg, id);
@@ -116,7 +100,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
         [Fact]
         public async Task GivenSuccessfulResponse_WhenGettingStatus_ThenReturnStatus()
         {
-            string id = Guid.NewGuid().ToString();
+            Guid id = Guid.NewGuid();
             var createdDateTime = new DateTime(2021, 06, 08, 1, 2, 3, DateTimeKind.Utc);
             var response = new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -210,8 +194,8 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
         [Fact]
         public async Task GivenSuccessfulResponse_WhenStartingReindex_ThenReturnInstanceId()
         {
-            string expected = Guid.NewGuid().ToString();
-            var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(expected) };
+            Guid expected = Guid.NewGuid();
+            var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(OperationId.ToString(expected)) };
             var handler = new MockMessageHandler(response);
             var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), _jsonSerializerOptions, DefaultOptions);
 
@@ -219,16 +203,15 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
             var input = new List<int> { 1, 2, 3 };
 
             handler.SendingAsync += (msg, token) => AssertExpectedStartAddRequestAsync(msg, input);
-            string actual = await client.StartQueryTagIndexingAsync(input, source.Token);
+            Guid actual = await client.StartQueryTagIndexingAsync(input, source.Token);
 
             Assert.Equal(1, handler.SentMessages);
-            Assert.NotNull(actual);
             Assert.Equal(expected, actual);
         }
 
-        private static async Task AssertExpectedStatusRequestAsync(HttpRequestMessage msg, string expectedId)
+        private static async Task AssertExpectedStatusRequestAsync(HttpRequestMessage msg, Guid expectedId)
         {
-            await AssertExpectedRequestAsync(msg, HttpMethod.Get, new Uri("https://dicom.core/unit/tests/Orchestrations/Instances/" + expectedId));
+            await AssertExpectedRequestAsync(msg, HttpMethod.Get, new Uri("https://dicom.core/unit/tests/Orchestrations/Instances/" + OperationId.ToString(expectedId)));
             Assert.Equal(MediaTypeNames.Application.Json, msg.Headers.Accept.Single().MediaType);
         }
 

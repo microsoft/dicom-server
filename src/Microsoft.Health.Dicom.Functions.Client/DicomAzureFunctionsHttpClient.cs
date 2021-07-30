@@ -18,6 +18,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Client.Configs;
 using Microsoft.Net.Http.Headers;
 
@@ -55,12 +56,10 @@ namespace Microsoft.Health.Dicom.Functions.Client
         }
 
         /// <inheritdoc/>
-        public async Task<OperationStatusResponse> GetStatusAsync(string operationId, CancellationToken cancellationToken = default)
+        public async Task<OperationStatusResponse> GetStatusAsync(Guid operationId, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(operationId, nameof(operationId));
-
             var statusRoute = new Uri(
-                string.Format(CultureInfo.InvariantCulture, _options.Routes.GetStatusRouteTemplate, operationId),
+                string.Format(CultureInfo.InvariantCulture, _options.Routes.GetStatusRouteTemplate, OperationId.ToString(operationId)),
                 UriKind.Relative);
 
             using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, statusRoute);
@@ -78,7 +77,7 @@ namespace Microsoft.Health.Dicom.Functions.Client
         }
 
         /// <inheritdoc/>
-        public async Task<string> StartQueryTagIndexingAsync(IReadOnlyCollection<int> tagKeys, CancellationToken cancellationToken = default)
+        public async Task<Guid> StartQueryTagIndexingAsync(IReadOnlyCollection<int> tagKeys, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(tagKeys, nameof(tagKeys));
             EnsureArg.HasItems(tagKeys, nameof(tagKeys));
@@ -97,7 +96,7 @@ namespace Microsoft.Health.Dicom.Functions.Client
 
             // Re-throw any exceptions we may have encountered when making the HTTP request
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync(cancellationToken);
+            return Guid.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
         }
     }
 }

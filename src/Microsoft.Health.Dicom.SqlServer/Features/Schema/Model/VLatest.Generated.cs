@@ -147,7 +147,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             internal readonly IntColumn TagKey = new IntColumn("TagKey");
-            internal readonly VarCharColumn OperationId = new VarCharColumn("OperationId", 32);
+            internal readonly UniqueIdentifierColumn OperationId = new UniqueIdentifierColumn("OperationId");
             internal readonly Index IXC_ExtendedQueryTagOperation = new Index("IXC_ExtendedQueryTagOperation");
             internal readonly Index IX_ExtendedQueryTagOperation_OperationId = new Index("IX_ExtendedQueryTagOperation_OperationId");
         }
@@ -414,10 +414,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             private readonly ExtendedQueryTagKeyTableTypeV1TableValuedParameterDefinition _extendedQueryTagKeys = new ExtendedQueryTagKeyTableTypeV1TableValuedParameterDefinition("@extendedQueryTagKeys");
-            private readonly ParameterDefinition<System.String> _operationId = new ParameterDefinition<System.String>("@operationId", global::System.Data.SqlDbType.VarChar, false, 32);
+            private readonly ParameterDefinition<System.Guid> _operationId = new ParameterDefinition<System.Guid>("@operationId", global::System.Data.SqlDbType.UniqueIdentifier, false);
             private readonly ParameterDefinition<System.Nullable<System.Boolean>> _returnIfCompleted = new ParameterDefinition<System.Nullable<System.Boolean>>("@returnIfCompleted", global::System.Data.SqlDbType.Bit, true);
 
-            public void PopulateCommand(SqlCommandWrapper command, global::System.Collections.Generic.IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> extendedQueryTagKeys, System.String operationId, System.Nullable<System.Boolean> returnIfCompleted)
+            public void PopulateCommand(SqlCommandWrapper command, global::System.Collections.Generic.IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> extendedQueryTagKeys, System.Guid operationId, System.Nullable<System.Boolean> returnIfCompleted)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.AssignReindexingOperation";
@@ -426,7 +426,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _returnIfCompleted.AddParameter(command.Parameters, returnIfCompleted);
             }
 
-            public void PopulateCommand(SqlCommandWrapper command, System.String operationId, System.Nullable<System.Boolean> returnIfCompleted, AssignReindexingOperationTableValuedParameters tableValuedParameters)
+            public void PopulateCommand(SqlCommandWrapper command, System.Guid operationId, System.Nullable<System.Boolean> returnIfCompleted, AssignReindexingOperationTableValuedParameters tableValuedParameters)
             {
                 PopulateCommand(command, operationId: operationId, returnIfCompleted: returnIfCompleted, extendedQueryTagKeys: tableValuedParameters.ExtendedQueryTagKeys);
             }
@@ -620,9 +620,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
-            private readonly ParameterDefinition<System.String> _operationId = new ParameterDefinition<System.String>("@operationId", global::System.Data.SqlDbType.VarChar, false, 32);
+            private readonly ParameterDefinition<System.Guid> _operationId = new ParameterDefinition<System.Guid>("@operationId", global::System.Data.SqlDbType.UniqueIdentifier, false);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.String operationId)
+            public void PopulateCommand(SqlCommandWrapper command, System.Guid operationId)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetExtendedQueryTagsByOperation";

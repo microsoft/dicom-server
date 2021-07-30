@@ -12,6 +12,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 using NSubstitute;
@@ -37,7 +38,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             _options.MaxParallelBatches = 3;
 
             // Arrange the input
-            IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
+            IDurableOrchestrationContext context = CreateContext();
             context
                 .GetInput<ReindexInput>()
                 .Returns(expectedInput);
@@ -122,7 +123,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             _options.MaxParallelBatches = 2;
 
             // Arrange the input
-            IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
+            IDurableOrchestrationContext context = CreateContext();
             context
                 .GetInput<ReindexInput>()
                 .Returns(expectedInput);
@@ -191,7 +192,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             };
 
             // Arrange the input
-            IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
+            IDurableOrchestrationContext context = CreateContext();
             context
                 .GetInput<ReindexInput>()
                 .Returns(expectedInput);
@@ -260,7 +261,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             };
 
             // Arrange the input
-            IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
+            IDurableOrchestrationContext context = CreateContext();
             context
                 .GetInput<ReindexInput>()
                 .Returns(expectedInput);
@@ -317,7 +318,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             var expectedTags = new List<ExtendedQueryTagStoreEntry>();
 
             // Arrange the input
-            IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
+            IDurableOrchestrationContext context = CreateContext();
             context
                 .GetInput<ReindexInput>()
                 .Returns(expectedInput);
@@ -360,6 +361,13 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             context
                 .DidNotReceiveWithAnyArgs()
                 .ContinueAsNew(default, default);
+        }
+
+        private static IDurableOrchestrationContext CreateContext(Guid? instanceId = null)
+        {
+            IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
+            context.InstanceId.Returns(OperationId.ToString(instanceId ?? Guid.NewGuid()));
+            return context;
         }
 
         private static Expression<Predicate<ReindexBatch>> GetReindexBatchPredicate(

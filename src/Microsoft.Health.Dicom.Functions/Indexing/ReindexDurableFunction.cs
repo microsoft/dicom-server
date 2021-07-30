@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
+using Microsoft.Health.Dicom.Functions.Durable;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing
@@ -19,6 +20,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
     /// </summary>
     public partial class ReindexDurableFunction
     {
+        private readonly IGuidFactory _guidFactory;
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly IInstanceStore _instanceStore;
         private readonly IInstanceReindexer _instanceReindexer;
@@ -27,6 +29,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         private readonly QueryTagIndexingOptions _options;
 
         public ReindexDurableFunction(
+            IGuidFactory guidFactory,
             IExtendedQueryTagStore extendedQueryTagStore,
             IInstanceStore instanceStore,
             IInstanceReindexer instanceReindexer,
@@ -34,6 +37,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             IOptions<JsonSerializerOptions> jsonOptions,
             IOptions<QueryTagIndexingOptions> configOptions)
         {
+            _guidFactory = EnsureArg.IsNotNull(guidFactory, nameof(guidFactory));
             _extendedQueryTagStore = EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
             _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
             _instanceReindexer = EnsureArg.IsNotNull(instanceReindexer, nameof(instanceReindexer));

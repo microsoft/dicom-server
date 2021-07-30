@@ -27,12 +27,17 @@ namespace Microsoft.Health.Dicom.Functions
                 .Configuration
                 .GetSection(DicomFunctionsConfiguration.HostSectionName);
 
+            // Common DICOM Services
+            builder.Services
+                .AddRecyclableMemoryStreamManager()
+                .AddDicomJsonNetSerialization()
+                .AddStorageServices(config);
+
+            // Function Services
             builder.Services
                 .AddFunctionsOptions<QueryTagIndexingOptions>(config, QueryTagIndexingOptions.SectionName)
                 .AddFunctionsOptions<PurgeHistoryOptions>(config, PurgeHistoryOptions.SectionName)
-                .AddRecyclableMemoryStreamManager()
-                .AddDicomJsonNetSerialization()
-                .AddStorageServices(config)
+                .AddDurableFunctionServices()
                 .AddHttpServices();
 
             // TODO: the FeatureConfiguration should be removed once we moved the logic to add tags into database out of Azure Function

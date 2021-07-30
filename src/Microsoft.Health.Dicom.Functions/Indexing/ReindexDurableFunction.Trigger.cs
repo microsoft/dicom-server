@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -19,6 +20,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Extensions;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 
@@ -77,8 +79,10 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                 string.Join(", ", extendedQueryTagKeys));
 
             // Start the re-indexing orchestration
+            Guid instanceGuid = _guidFactory.Create();
             string instanceId = await client.StartNewAsync(
                 nameof(ReindexInstancesAsync),
+                OperationId.ToString(instanceGuid),
                 new ReindexInput
                 {
                     QueryTagKeys = extendedQueryTagKeys,
@@ -90,7 +94,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             // Associate the tags to the operation and confirm their processing
             IReadOnlyList<ExtendedQueryTagStoreEntry> confirmedTags = await _extendedQueryTagStore.AssignReindexingOperationAsync(
                 extendedQueryTagKeys,
-                instanceId,
+                instanceGuid,
                 returnIfCompleted: true,
                 cancellationToken: source.Token);
 

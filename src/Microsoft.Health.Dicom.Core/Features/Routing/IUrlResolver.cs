@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Routing
         /// </summary>
         /// <param name="operationId">The unique ID for a long-running operation.</param>
         /// <returns>An instance of <see cref="Uri"/> pointing to where the status can be retrieved.</returns>
-        Uri ResolveOperationStatusUri(string operationId);
+        Uri ResolveOperationStatusUri(Guid operationId);
 
         /// <summary>
         /// Resolves the URI to retrieve a study.

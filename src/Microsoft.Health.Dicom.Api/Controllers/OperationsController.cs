@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -65,7 +64,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// </remarks>
         /// <param name="operationId">The unique ID for a particular DICOM operation.</param>
         /// <returns>
-        /// A task representing the <see cref="GetStatusAsync(string)"/> operation. The value of its
+        /// A task representing the <see cref="GetStatusAsync"/> operation. The value of its
         /// <see cref="Task{TResult}.Result"/> property contains the status of the operation, if found;
         /// otherwise <see cref="NotFoundResult"/>
         /// </returns>
@@ -80,7 +79,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(OperationStatusResponse), (int)HttpStatusCode.Accepted)]
         [ProducesResponseType(typeof(OperationStatusResponse), (int)HttpStatusCode.OK)]
         [AuditEventType(AuditEventSubType.Operation)]
-        public async Task<IActionResult> GetStatusAsync([Required] string operationId)
+        public async Task<IActionResult> GetStatusAsync(Guid operationId)
         {
             _logger.LogInformation("DICOM Web Get Operation Status request received for ID '{OperationId}'", operationId);
 

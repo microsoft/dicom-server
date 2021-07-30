@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Routing;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 
 namespace Microsoft.Health.Dicom.Api.Features.Routing
 {
@@ -43,16 +44,15 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
             _actionContextAccessor.ActionContext);
 
         /// <inheritdoc />
-        public Uri ResolveOperationStatusUri(string operationId)
+        public Uri ResolveOperationStatusUri(Guid operationId)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(operationId, nameof(operationId));
             var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey("version");
 
             return RouteUri(
                 hasVersion ? KnownRouteNames.VersionedOperationStatus : KnownRouteNames.OperationStatus,
                 new RouteValueDictionary
                 {
-                    { KnownActionParameterNames.OperationId, operationId },
+                    { KnownActionParameterNames.OperationId, OperationId.ToString(operationId) },
                 });
         }
 

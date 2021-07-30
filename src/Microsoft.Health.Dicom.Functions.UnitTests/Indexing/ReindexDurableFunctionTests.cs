@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
+using Microsoft.Health.Dicom.Functions.Durable;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using NSubstitute;
@@ -17,6 +18,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
     public partial class ReindexDurableFunctionTests
     {
         private readonly ReindexDurableFunction _reindexDurableFunction;
+        private readonly IGuidFactory _guidFactory;
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly IInstanceStore _instanceStore;
         private readonly IInstanceReindexer _instanceReindexer;
@@ -26,6 +28,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
 
         public ReindexDurableFunctionTests()
         {
+            _guidFactory = Substitute.For<IGuidFactory>();
             _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
             _instanceStore = Substitute.For<IInstanceStore>();
             _instanceReindexer = Substitute.For<IInstanceReindexer>();
@@ -33,6 +36,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             _jsonSerializerOptions = new JsonSerializerOptions();
             _options = new QueryTagIndexingOptions();
             _reindexDurableFunction = new ReindexDurableFunction(
+                _guidFactory,
                 _extendedQueryTagStore,
                 _instanceStore,
                 _instanceReindexer,

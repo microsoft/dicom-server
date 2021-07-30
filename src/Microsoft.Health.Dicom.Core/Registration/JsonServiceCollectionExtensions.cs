@@ -6,6 +6,7 @@
 using Dicom;
 using Dicom.Serialization;
 using EnsureThat;
+using Newtonsoft.Json;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -16,7 +17,7 @@ namespace Microsoft.Extensions.DependencyInjection
             EnsureArg.IsNotNull(services, nameof(services));
 
             // Register the Json Serializer to use
-            var jsonSerializer = new Newtonsoft.Json.JsonSerializer();
+            var jsonSerializer = new JsonSerializer();
             jsonSerializer.Converters.Add(new JsonDicomConverter());
             services.AddSingleton(jsonSerializer);
 

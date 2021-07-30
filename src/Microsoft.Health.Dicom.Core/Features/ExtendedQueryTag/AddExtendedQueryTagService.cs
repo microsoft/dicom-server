@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -63,7 +64,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 cancellationToken: cancellationToken);
 
             // Start re-indexing
-            string operationId = await _client.StartQueryTagIndexingAsync(addedKeys, cancellationToken);
+            Guid operationId = await _client.StartQueryTagIndexingAsync(addedKeys, cancellationToken);
             return new AddExtendedQueryTagResponse(new OperationReference(operationId, _uriResolver.ResolveOperationStatusUri(operationId)));
         }
     }

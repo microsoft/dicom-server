@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
@@ -25,7 +26,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         [Fact]
         public async Task GivenTagKeys_WhenAssigningReindexingOperation_ThenShouldPassArguments()
         {
-            string operationId = Guid.NewGuid().ToString();
+            Guid operationId = Guid.NewGuid();
             var expectedInput = new List<int> { 1, 2, 3, 4, 5 };
             var expectedOutput = new List<ExtendedQueryTagStoreEntry>
             {
@@ -34,7 +35,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
 
             // Arrange input
             IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
-            context.InstanceId.Returns(operationId);
+            context.InstanceId.Returns(OperationId.ToString(operationId));
             context.GetInput<IReadOnlyList<int>>().Returns(expectedInput);
 
             _extendedQueryTagStore
@@ -57,7 +58,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         [Fact]
         public async Task GivenTagKeys_WhenGettingExtentendedQueryTags_ThenShouldPassArguments()
         {
-            string operationId = Guid.NewGuid().ToString();
+            Guid operationId = Guid.NewGuid();
             var expectedOutput = new List<ExtendedQueryTagStoreEntry>
             {
                 new ExtendedQueryTagStoreEntry(1, "01010101", "AS", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding)
@@ -65,7 +66,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
 
             // Arrange input
             IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
-            context.InstanceId.Returns(operationId);
+            context.InstanceId.Returns(OperationId.ToString(operationId));
 
             _extendedQueryTagStore
                 .GetExtendedQueryTagsByOperationAsync(operationId, CancellationToken.None)

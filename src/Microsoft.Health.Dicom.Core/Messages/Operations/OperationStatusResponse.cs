@@ -4,8 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Text.Json.Serialization;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Dicom.Core.Serialization;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Operations
 {
@@ -24,31 +26,29 @@ namespace Microsoft.Health.Dicom.Core.Messages.Operations
         /// <param name="createdTime">The date and time when the operation was created.</param>
         /// <param name="lastUpdatedTime">The date and time when the operation's status was last updated.</param>
         /// <param name="status">The runtime status of the operation.</param>
-        /// <exception cref="ArgumentException"><paramref name="operationId"/> consists of white space characters.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="operationId"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="status"/> or <paramref name="type"/> is undefined.
+        /// </exception>
         public OperationStatusResponse(
-            string operationId,
+            Guid operationId,
             OperationType type,
             DateTime createdTime,
             DateTime lastUpdatedTime,
             OperationRuntimeStatus status)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(operationId, nameof(operationId));
-            EnsureArg.EnumIsDefined(type, nameof(type));
-            EnsureArg.EnumIsDefined(status, nameof(status));
-
             OperationId = operationId;
-            Type = type;
+            Type = EnsureArg.EnumIsDefined(type, nameof(type));
             CreatedTime = createdTime;
             LastUpdatedTime = lastUpdatedTime;
-            Status = status;
+            Status = EnsureArg.EnumIsDefined(status, nameof(status));
         }
 
         /// <summary>
         /// Gets the operation ID.
         /// </summary>
         /// <value>The unique ID that denotes a particular operation.</value>
-        public string OperationId { get; }
+        [JsonConverter(typeof(OperationIdJsonConverter))]
+        public Guid OperationId { get; }
 
         /// <summary>
         /// Gets the category of the operation.

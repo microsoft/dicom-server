@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using EnsureThat;
 using MediatR;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Operations
@@ -18,19 +17,14 @@ namespace Microsoft.Health.Dicom.Core.Messages.Operations
         /// Initializes a new instance of the <see cref="OperationStatusRequest"/> class.
         /// </summary>
         /// <param name="operationId">The unique ID for a particular DICOM operation.</param>
-        /// <exception cref="ArgumentException"><paramref name="operationId"/> consists of white space characters.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="operationId"/> is <see langword="null"/>.</exception>
-        public OperationStatusRequest(string operationId)
-        {
-            EnsureArg.IsNotNullOrWhiteSpace(operationId, nameof(operationId));
-            OperationId = operationId;
-        }
+        public OperationStatusRequest(Guid operationId)
+            => OperationId = operationId;
 
         /// <summary>
         /// Gets the operation ID.
         /// </summary>
         /// <value>The unique ID that denotes a particular operation.</value>
-        public string OperationId { get; }
+        public Guid OperationId { get; }
     }
 }
 

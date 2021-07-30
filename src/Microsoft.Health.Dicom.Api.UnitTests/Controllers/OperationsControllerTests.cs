@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
         [Fact]
         public async Task GivenNullStatus_WhenGettingStatus_ThenReturnNotFound()
         {
-            string id = Guid.NewGuid().ToString();
+            Guid id = Guid.NewGuid();
             IMediator mediator = Substitute.For<IMediator>();
             IUrlResolver urlResolver = Substitute.For<IUrlResolver>();
             var controller = new OperationsController(mediator, urlResolver, NullLogger<OperationsController>.Instance);
@@ -71,7 +71,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
         [InlineData(OperationRuntimeStatus.Running)]
         public async Task GivenInProgressStatus_WhenGettingStatus_ThenReturnOk(OperationRuntimeStatus inProgressStatus)
         {
-            string id = Guid.NewGuid().ToString();
+            Guid id = Guid.NewGuid();
             string statusUrl = "https://dicom.contoso.io/unit/test/Operations/" + id;
             IMediator mediator = Substitute.For<IMediator>();
             IUrlResolver urlResolver = Substitute.For<IUrlResolver>();
@@ -115,7 +115,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
         [InlineData(OperationRuntimeStatus.Canceled)]
         public async Task GivenDoneStatus_WhenGettingStatus_ThenReturnOk(OperationRuntimeStatus doneStatus)
         {
-            string id = Guid.NewGuid().ToString();
+            Guid id = Guid.NewGuid();
             IMediator mediator = Substitute.For<IMediator>();
             IUrlResolver urlResolver = Substitute.For<IUrlResolver>();
             var controller = new OperationsController(mediator, urlResolver, NullLogger<OperationsController>.Instance);

@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using NSubstitute;
 using Xunit;
 
@@ -58,7 +59,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Routing
         [Fact]
         public void GivenOperationId_WhenRetrieveOperationStatusUriIsResolved_ThenCorrectUrlShouldBeReturned()
         {
-            string operationId = Guid.NewGuid().ToString();
+            Guid operationId = Guid.NewGuid();
 
             _urlResolver.ResolveOperationStatusUri(operationId);
 
@@ -66,7 +67,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Routing
                 KnownRouteNames.OperationStatus,
                 routeValues =>
                 {
-                    Assert.Equal(operationId, routeValues[KnownActionParameterNames.OperationId]);
+                    Assert.Equal(OperationId.ToString(operationId), routeValues[KnownActionParameterNames.OperationId]);
                 });
         }
 

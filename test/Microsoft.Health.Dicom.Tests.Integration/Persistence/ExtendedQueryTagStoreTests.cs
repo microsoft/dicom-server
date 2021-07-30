@@ -85,7 +85,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             DicomTag tag = DicomTag.DeviceSerialNumber;
             AddExtendedQueryTagEntry extendedQueryTagEntry = tag.BuildAddExtendedQueryTagEntry();
             int key = (await AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry }, ready: false)).Single();
-            Assert.NotEmpty(await _extendedQueryTagStore.AssignReindexingOperationAsync(new int[] { key }, Guid.NewGuid().ToString()));
+            Assert.NotEmpty(await _extendedQueryTagStore.AssignReindexingOperationAsync(new int[] { key }, Guid.NewGuid()));
             await Assert.ThrowsAsync<ExtendedQueryTagsAlreadyExistsException>(() => AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry }));
         }
 
@@ -164,7 +164,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 ready: false)).Take(2).ToList();
 
             // Assign the first two to the operation
-            string operationId = Guid.NewGuid().ToString();
+            Guid operationId = Guid.NewGuid();
             actual = await _extendedQueryTagStore.AssignReindexingOperationAsync(
                 expected,
                 operationId,
@@ -191,7 +191,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 .ToList();
 
             // Only return tags that are being indexed
-            IReadOnlyList<ExtendedQueryTagStoreEntry> actual = await _extendedQueryTagStore.AssignReindexingOperationAsync(keys, Guid.NewGuid().ToString(), returnIfCompleted: false);
+            IReadOnlyList<ExtendedQueryTagStoreEntry> actual = await _extendedQueryTagStore.AssignReindexingOperationAsync(keys, Guid.NewGuid(), returnIfCompleted: false);
             Assert.True(actual.Select(x => x.Key).SequenceEqual(keys.Take(2)));
         }
 
@@ -212,7 +212,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             // Only return tags that are being indexed
             IReadOnlyList<ExtendedQueryTagStoreEntry> actual = await _extendedQueryTagStore.AssignReindexingOperationAsync(
                 keys,
-                Guid.NewGuid().ToString(),
+                Guid.NewGuid(),
                 returnIfCompleted: true);
 
             Assert.True(actual.Select(x => x.Key).SequenceEqual(keys));
@@ -233,7 +233,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 .ToList();
 
             List<int> expectedKeys = keys.Take(2).ToList();
-            IReadOnlyList<ExtendedQueryTagStoreEntry> actual = await _extendedQueryTagStore.AssignReindexingOperationAsync(keys, Guid.NewGuid().ToString());
+            IReadOnlyList<ExtendedQueryTagStoreEntry> actual = await _extendedQueryTagStore.AssignReindexingOperationAsync(keys, Guid.NewGuid());
             Assert.True(actual.Select(x => x.Key).SequenceEqual(expectedKeys));
             Assert.True((await _extendedQueryTagStore.CompleteReindexingAsync(expectedKeys)).SequenceEqual(expectedKeys));
         }
@@ -274,7 +274,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             {
                 // Pretend that any pending tags that do not have an associated operation are being indexed.
                 // Afterwards, "complete" the re-indexing for all the tags such that they can be deleted.
-                await _extendedQueryTagStore.AssignReindexingOperationAsync(pendingTags, Guid.NewGuid().ToString());
+                await _extendedQueryTagStore.AssignReindexingOperationAsync(pendingTags, Guid.NewGuid());
                 await _extendedQueryTagStore.CompleteReindexingAsync(pendingTags);
             }
 
