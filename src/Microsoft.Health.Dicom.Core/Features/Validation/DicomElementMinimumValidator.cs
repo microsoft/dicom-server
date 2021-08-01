@@ -47,7 +47,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             }
             else
             {
-                Debug.Fail($"Validating VR {vr.Code} is not supported.");
+                Debug.Fail($"Validating VR {vr?.Code} is not supported.");
             }
         }
 

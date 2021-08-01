@@ -29,14 +29,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 return;
             }
 
-            if (value.Length > 64)
-            {
-                throw new DicomValueElementValidationException(ValidationErrorCode.ValueIsTooLong, name, value, DicomVR.LO, DicomCoreResource.ValueLengthExceeds64Characters);
-            }
+            DicomElementMaxLengthValidation.Validate(value, 64, name, DicomVR.LO);
 
             if (value.Contains("\\", StringComparison.OrdinalIgnoreCase) || value.ToCharArray().Any(IsControlExceptESC))
             {
-                throw new DicomValueElementValidationException(ValidationErrorCode.ValueContainsInvalidCharacters, name, value, DicomVR.LO, DicomCoreResource.ValueContainsInvalidCharacter);
+                throw new DicomElementValidationException(ValidationErrorCode.ValueContainsInvalidCharacters, name, DicomVR.LO, DicomCoreResource.ValueContainsInvalidCharacter, value);
             }
         }
     }

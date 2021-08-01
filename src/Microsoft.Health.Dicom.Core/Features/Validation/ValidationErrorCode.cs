@@ -23,9 +23,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         ElementHasMultipleValues = 0001,
 
         /// <summary>
-        ///  Value is too long.
+        ///  Value exceeds max length
         /// </summary>
-        ValueIsTooLong = 0002,
+        ValueExceedsMaxLength = 0002,
 
         /// <summary>
         /// Value is not required length.

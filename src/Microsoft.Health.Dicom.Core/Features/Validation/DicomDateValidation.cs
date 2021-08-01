@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
             if (!DateTime.TryParseExact(value, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out _))
             {
-                throw new DicomValueElementValidationException(ValidationErrorCode.InvalidDate, name, value, DicomVR.DA, DicomCoreResource.ValueIsInvalidDate);
+                throw new DicomElementValidationException(ValidationErrorCode.InvalidDate, name, DicomVR.DA, DicomCoreResource.ValueIsInvalidDate, value);
             }
         }
     }

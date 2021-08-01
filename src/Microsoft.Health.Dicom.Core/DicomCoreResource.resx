@@ -263,12 +263,6 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="ValueIsInvalidDate" xml:space="preserve">
     <value>Value cannot be parsed as a valid date.</value>
   </data>
-  <data name="ValueLengthExceeds16Characters" xml:space="preserve">
-    <value>Value exceeds maximum length of 16 characters.</value>
-  </data>
-  <data name="ValueLengthExceeds64Characters" xml:space="preserve">
-    <value>Value exceeds maximum length of 64 characters.</value>
-  </data>
   <data name="NotSupportMultipleAcceptHeaders" xml:space="preserve">
     <value>The request contains multiple accept headers, which is not supported.</value>
   </data>
@@ -327,13 +321,9 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>Invalid QIDO-RS query. Specified value '{0}' extended query tag with path '{1}' is not a valid long value.</value>
     <comment>{0} long value. {1} extended query tag path.</comment>
   </data>
-  <data name="ValueLengthAboveMaxLength" xml:space="preserve">
-    <value>Value length is above {0}.</value>
+  <data name="ValueLengthExceedsMaxLength" xml:space="preserve">
+    <value>Value length exceeds maximum length of {0}.</value>
     <comment>{0} max length.</comment>
-  </data>
-  <data name="ValueLengthBelowMinLength" xml:space="preserve">
-    <value>Value length is below {0}.</value>
-    <comment>{0} min length.</comment>
   </data>
   <data name="ValueLengthIsNotRequiredLength" xml:space="preserve">
     <value>Value length is not {0}.</value>
@@ -386,7 +376,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The extended query tag '{0}' is expected to have VR '{1}' but has '{2}' in file.</value>
     <comment>{0}  dicom tag. {1} expected vr code. {2} vr in file.</comment>
   </data>
-  <data name="DicomValueElementValidationFailed" xml:space="preserve">
+  <data name="DicomElementValidationFailedWithValue" xml:space="preserve">
     <value>Dicom element '{0}' with value '{1}' does not validate VR '{2}': {3}.</value>
     <comment>Dicom element {0} of value {1} of type {2}. {3} has more detailed message on why.</comment>
   </data>

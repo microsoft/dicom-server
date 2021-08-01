@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
             string value = dicomElement.Get<string>();
             string name = dicomElement.Tag.GetFriendlyName();
-            Validate(name, value, allowEmpty: true);
+            Validate(value, name, allowEmpty: true);
         }
 
         public static void Validate(string value, string name, bool allowEmpty = false)

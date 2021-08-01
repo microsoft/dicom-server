@@ -12,8 +12,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
     internal static class ValidationLimits
     {
-        public static readonly HashSet<DicomVR> SupportedVRs = new HashSet<DicomVR>(StringVrs.Union(BinaryVrs));
-
         private static readonly HashSet<DicomVR> StringVrs = new HashSet<DicomVR>()
         {
            DicomVR.AE,
@@ -37,6 +35,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             DicomVR.UL,
             DicomVR.US,
         };
+
+        public static readonly HashSet<DicomVR> SupportedVRs = new HashSet<DicomVR>(StringVrs.Union(BinaryVrs));
 
         public static bool CanGetAsString(this DicomVR vr)
         {

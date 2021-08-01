@@ -49,12 +49,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         {
             if (value?.Length != RequiredLength)
             {
-                throw new DicomValueElementValidationException(
+                throw new DicomElementValidationException(
                     ValidationErrorCode.ValueIsNotRequiredLength,
                     name,
-                    value,
                     dicomVR,
-                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthIsNotRequiredLength, RequiredLength));
+                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthIsNotRequiredLength, RequiredLength),
+                    value);
             }
         }
     }

@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
 {
     public class DicomElementValidationException : ValidationException
     {
-        public DicomElementValidationException(ValidationErrorCode errorCode, string name, DicomVR vr, string message)
+        public DicomElementValidationException(ValidationErrorCode errorCode, string name, DicomVR vr, string message, string value = null)
            : base(message)
         {
             EnsureArg.IsNotNull(name, nameof(name));
@@ -21,14 +21,19 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
             ErrorCode = errorCode;
             Name = name;
             VR = vr;
+            Value = value;
         }
 
         public ValidationErrorCode ErrorCode { get; }
 
-        public override string Message => string.Format(DicomCoreResource.DicomElementValidationFailed, Name, VR.Code, base.Message);
+        public override string Message => Value == null ?
+                string.Format(DicomCoreResource.DicomElementValidationFailed, Name, VR.Code, base.Message)
+                : string.Format(DicomCoreResource.DicomElementValidationFailedWithValue, Name, Value, VR.Code, base.Message);
 
         public string Name { get; }
 
         public DicomVR VR { get; }
+
+        public string Value { get; }
     }
 }

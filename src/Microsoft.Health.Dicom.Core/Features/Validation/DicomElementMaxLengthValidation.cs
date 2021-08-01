@@ -5,6 +5,7 @@
 
 using System.Globalization;
 using Dicom;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 
@@ -24,14 +25,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             base.Validate(dicomElement);
 
             string value = dicomElement.Get<string>();
-            if (value?.Length > MaxLength)
+            Validate(value, MaxLength, dicomElement.Tag.GetFriendlyName(), dicomElement.ValueRepresentation);
+        }
+
+        public static void Validate(string value, int maxLength, string name, DicomVR vr)
+        {
+            EnsureArg.IsNotNullOrEmpty(name, nameof(name));
+            EnsureArg.IsNotNull(vr, nameof(vr));
+            if (value?.Length > maxLength)
             {
-                throw new DicomValueElementValidationException(
-                    ValidationErrorCode.ValueIsTooLong,
-                    dicomElement.Tag.GetFriendlyName(),
-                    value,
-                    dicomElement.ValueRepresentation,
-                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthAboveMaxLength, MaxLength));
+                throw new DicomElementValidationException(
+                    ValidationErrorCode.ValueExceedsMaxLength,
+                    name,
+                    vr,
+                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthExceedsMaxLength, maxLength),
+                    value);
             }
         }
     }
