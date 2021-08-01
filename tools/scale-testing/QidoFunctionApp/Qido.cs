@@ -21,8 +21,8 @@ namespace QidoFunctionApp
         [FunctionName("Qido")]
         public static void Run([ServiceBusTrigger(KnownTopics.Qido, KnownSubscriptions.S1, Connection = "ServiceBusConnectionString")] byte[] message, ILogger log)
         {
-            var url = new Uri(Encoding.UTF8.GetString(message));
-            log.LogInformation($"C# ServiceBus topic trigger function processed message: {url}");
+            var queryParam = Encoding.UTF8.GetString(message);
+            log.LogInformation($"C# ServiceBus topic trigger function processed message: {queryParam}");
             using var httpClient = new HttpClient
             {
                 BaseAddress = new Uri(KnownApplicationUrls.DicomServerUrl),
@@ -32,7 +32,7 @@ namespace QidoFunctionApp
 
             try
             {
-                ProcessMessageWithQueryUrl(url);
+                ProcessMessageWithQueryUrl(queryParam);
             }
             catch (Exception ex)
             {
@@ -40,9 +40,9 @@ namespace QidoFunctionApp
             }
         }
 
-        private static void ProcessMessageWithQueryUrl(Uri url)
+        private static void ProcessMessageWithQueryUrl(string queryParam)
         {
-            s_client.QueryAsync(url).Wait();
+            s_client.QueryStudyAsync(queryParam).Wait();
         }
 
         private static void SetupDicomWebClient(HttpClient httpClient)
