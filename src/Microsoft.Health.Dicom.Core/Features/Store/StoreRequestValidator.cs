@@ -30,10 +30,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 throw new BadRequestException(DicomCoreResource.MissingRequestBody);
             }
 
-            if (request.StudyInstanceUid != null)
-            {
-                DicomUidValidation.Validate(request.StudyInstanceUid, nameof(request.StudyInstanceUid));
-            }
+            DicomUidValidation.Validate(request.StudyInstanceUid, nameof(request.StudyInstanceUid), allowEmpty: true);
         }
     }
 }

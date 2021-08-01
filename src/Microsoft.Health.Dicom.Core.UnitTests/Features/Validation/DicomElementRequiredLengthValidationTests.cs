@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         public void GivenBinaryValueOfRequiredLength_WhenValidating_ThenShouldPass()
         {
             DicomElement element = new DicomSignedShort(DicomTag.LargestImagePixelValue, short.MaxValue);
-            new DicomElementRequiredLengthValidation(4).Validate(element);
+            new DicomElementRequiredLengthValidation(2).Validate(element);
         }
 
         [Fact]
