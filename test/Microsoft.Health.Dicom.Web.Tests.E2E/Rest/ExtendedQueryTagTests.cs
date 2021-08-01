@@ -32,9 +32,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             _client = fixture.Client;
         }
 
-        [Theory]
-        [ClassData(typeof(VersionAPIData))]
-        public async Task GivenValidExtendedQueryTags_WhenGoThroughEndToEndScenario_ThenShouldSucceed(string versionPath)
+        [Fact]
+        public async Task GivenValidExtendedQueryTags_WhenGoThroughEndToEndScenario_ThenShouldSucceed()
         {
             // Prepare 3 extended query tags.
             // One is private tag on Instance level
@@ -103,19 +102,19 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                     await _client.StoreAsync(dicomFiles, studyInstanceUid: string.Empty, cancellationToken: default);
 
                     // Query on instance for private tag
-                    DicomWebAsyncEnumerableResponse<DicomDataset> queryInstanceResponse = await _client.QueryAsync(new Uri($"{versionPath}/instances?{privateTag.GetPath()}=3", UriKind.Relative), cancellationToken: default);
+                    DicomWebAsyncEnumerableResponse<DicomDataset> queryInstanceResponse = await _client.QueryInstancesAsync($"{privateTag.GetPath()}=3", cancellationToken: default);
                     DicomDataset[] instanceResult = await queryInstanceResponse.ToArrayAsync();
                     Assert.Single(instanceResult);
                     Assert.Equal(instanceUid3, instanceResult[0].GetSingleValue<string>(DicomTag.SOPInstanceUID));
 
                     // Query on series for standardTagSeries
-                    DicomWebAsyncEnumerableResponse<DicomDataset> querySeriesResponse = await _client.QueryAsync(new Uri($"{versionPath}/series?{standardTagSeries.GetPath()}=345", UriKind.Relative), cancellationToken: default);
+                    DicomWebAsyncEnumerableResponse<DicomDataset> querySeriesResponse = await _client.QuerySeriesAsync($"{standardTagSeries.GetPath()}=345", cancellationToken: default);
                     DicomDataset[] seriesResult = await querySeriesResponse.ToArrayAsync();
                     Assert.Single(seriesResult);
                     Assert.Equal(seriesUid1, seriesResult[0].GetSingleValue<string>(DicomTag.SeriesInstanceUID));
 
                     // Query on study for standardTagStudy
-                    DicomWebAsyncEnumerableResponse<DicomDataset> queryStudyResponse = await _client.QueryAsync(new Uri($"{versionPath}/studies?{standardTagStudy.GetPath()}=1", UriKind.Relative), cancellationToken: default);
+                    DicomWebAsyncEnumerableResponse<DicomDataset> queryStudyResponse = await _client.QueryStudyAsync($"{standardTagStudy.GetPath()}=1", cancellationToken: default);
                     DicomDataset[] studyResult = await queryStudyResponse.ToArrayAsync();
                     Assert.Single(studyResult);
                     Assert.Equal(studyUid, seriesResult[0].GetSingleValue<string>(DicomTag.StudyInstanceUID));
@@ -140,10 +139,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [MemberData(nameof(GetVersionsAndRequestBodyWithMissingProperty))]
-        public async Task GivenMissingPropertyInRequestBody_WhenCallingPostAsync_ThenShouldThrowException(string requestBody, string missingProperty, string versionPath)
+        [MemberData(nameof(GetRequestBodyWithMissingProperty))]
+        public async Task GivenMissingPropertyInRequestBody_WhenCallingPostAsync_ThenShouldThrowException(string requestBody, string missingProperty)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, $"{versionPath}/extendedquerytags");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{DicomApiVersions.Latest}/extendedquerytags");
             {
                 request.Content = new StringContent(requestBody);
                 request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType);
@@ -155,12 +154,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Contains(string.Format("The request body is not valid. Details: \r\nThe Dicom Tag Property {0} must be specified and must not be null, empty or whitespace", missingProperty), response.Content.ReadAsStringAsync().Result);
         }
 
-        [Theory]
-        [ClassData(typeof(VersionAPIData))]
-        public async Task GivenInvalidTagLevelInRequestBody_WhenCallingPostAync_ThenShouldThrowException(string versionPath)
+        [Fact]
+        public async Task GivenInvalidTagLevelInRequestBody_WhenCallingPostAync_ThenShouldThrowException()
         {
             string requestBody = "[{\"Path\":\"00100040\",\"Level\":\"Studys\"}]";
-            using var request = new HttpRequestMessage(HttpMethod.Post, $"{versionPath}/extendedquerytags");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{DicomApiVersions.Latest}/extendedquerytags");
             {
                 request.Content = new StringContent(requestBody);
                 request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType);
@@ -172,15 +170,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal("The request body is not valid. Details: \r\nInput Dicom Tag Level 'Studys' is invalid. It must have value 'Study', 'Series' or 'Instance'.", response.Content.ReadAsStringAsync().Result);
         }
 
-        public static IEnumerable<object[]> GetVersionsAndRequestBodyWithMissingProperty
+        public static IEnumerable<object[]> GetRequestBodyWithMissingProperty
         {
             get
             {
-                foreach (object[] version in VersionAPIData.VersionSegmentData)
-                {
-                    yield return new object[] { "[{\"Path\":\"00100040\"}]", "Level", version[0] };
-                    yield return new object[] { "[{\"Path\":\"\",\"Level\":\"Study\"}]", "Path", version[0] };
-                }
+                yield return new object[] { "[{\"Path\":\"00100040\"}]", "Level" };
+                yield return new object[] { "[{\"Path\":\"\",\"Level\":\"Study\"}]", "Path" };
             }
         }
 
