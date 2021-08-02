@@ -78,10 +78,7 @@ stages:
   displayName: 'Detect Breaking Changes In API'
   dependsOn:
   - BuildRunUnitTests
-  job: Linux
-  pool:
-    vmImage: 'ubuntu-latest'
-  steps:
+  jobs:
   - template: versioning.yml
 
 - stage: RunIntegrationTests
