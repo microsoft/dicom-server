@@ -1,10 +1,16 @@
 steps:
-- task: PowerShell@2
-  displayName: "Validate Api has no breaking changes"
-  inputs:
-    filepath: '$(System.DefaultWorkingDirectory)/samples/scripts/PowerShell/GenerateOpenApiYaml.ps1'
-    arguments: >
-      -WorkingDir '$(System.DefaultWorkingDirectory)'
-      -OutputPathofDll 'src/Microsoft.Health.Dicom.Web/bin/$(buildConfiguration)/net5.0/Microsoft.Health.Dicom.Web.dll'
-      -OutputPathOfOpenApiDoc 'src/Microsoft.Health.Dicom.Web/bin'
-      -Version 'v1-prerelease'
+  - task: DownloadBuildArtifacts@0
+    inputs:
+      buildType: 'current'
+      downloadType: 'single'
+      downloadPath: '$(System.ArtifactsDirectory)'
+      artifactName: 'deploy'
+
+  - task: PowerShell@2
+    displayName: 'Detect API Breaking Changes'
+    inputs:
+      filepath: '$(System.DefaultWorkingDirectory)/samples/scripts/PowerShell/GenerateOpenApiYaml.ps1'
+      arguments: >
+        -WorkingDir '$(System.DefaultWorkingDirectory)'
+        -OutputPathofDll 'src/Microsoft.Health.Dicom.Web/bin/$(buildConfiguration)/net5.0/Microsoft.Health.Dicom.Web.dll'
+        -Version 'v1-prerelease'

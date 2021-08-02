@@ -32,6 +32,3 @@ steps:
 
   - ${{ if eq(parameters.analyzeSecurity, 'true') }}:
     - template: analyze.yml
-
-  - ${{ if eq(parameters.apiVersioning, 'true') }}:
-      - template: versioning.yml
