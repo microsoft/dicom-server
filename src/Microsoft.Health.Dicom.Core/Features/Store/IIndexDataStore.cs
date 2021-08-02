@@ -24,9 +24,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// </summary>
         /// <param name="dicomDataset">The DICOM dataset to index.</param>
         /// <param name="queryTags">Queryable dicom tags</param>
+        /// <param name="extendedQueryTagETag">Extended query tag ETag.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous create operation.</returns>
-        Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
+        Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, ExtendedQueryTagETag extendedQueryTagETag, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously reindex a DICOM instance.

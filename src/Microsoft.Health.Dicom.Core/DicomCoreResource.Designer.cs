@@ -170,6 +170,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ETag of extended query tag mismatch..
+        /// </summary>
+        internal static string ExtendedQueryTagETagMismatch {
+            get {
+                return ResourceManager.GetString("ExtendedQueryTagETagMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Extended Query Tag feature is disabled..
         /// </summary>
         internal static string ExtendedQueryTagFeatureDisabled {
