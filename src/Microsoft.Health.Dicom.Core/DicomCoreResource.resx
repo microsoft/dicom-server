@@ -312,9 +312,6 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="ExtendedQueryTagsAlreadyExists" xml:space="preserve">
     <value>One or more extended query tags already exist.</value>
   </data>
-  <data name="ExtendedQueryTagErrorAlreadyExists" xml:space="preserve">
-    <value>This extended query tag error already exists.</value>
-  </data>
   <data name="ExtendedQueryTagNotFound" xml:space="preserve">
     <value>The specified extended query tag with tag path {0} cannot be found.</value>
     <comment>{0} tagPath on request</comment>

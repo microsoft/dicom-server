@@ -520,12 +520,12 @@ AS
             THROW 50404, 'extended query tag not found', 1 
 
         SELECT
-            XQTE.TagKey,
-            XQTE.ErrorCode,
-            XQTE.CreatedTime,
-            instance.StudyInstanceUid,
-            instance.SeriesInstanceUid,
-            instance.SopInstanceUid
+            TagKey,
+            ErrorCode,
+            CreatedTime,
+            StudyInstanceUid,
+            SeriesInstanceUid,
+            SopInstanceUid
         FROM dbo.ExtendedQueryTagError AS XQTE
         INNER JOIN dbo.Instance AS instance ON XQTE.Watermark = instance.Watermark
         WHERE TagKey = @tagKey
@@ -586,7 +586,6 @@ GO
 -- RETURN VALUE
 --     The tag key of the error added.
 /***************************************************************************************/
-
 CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTagError (
     @tagKey INT,
     @errorCode INT,
@@ -602,12 +601,17 @@ AS
         IF NOT EXISTS (SELECT * FROM dbo.ExtendedQueryTag WITH (HOLDLOCK) WHERE TagKey = @tagKey)
             THROW 50404, 'Tag does not exist', 1;
         --Check if error with same @@tagKey and @errorCode already exist
-        IF EXISTS (SELECT * FROM dbo.ExtendedQueryTagError WITH (HOLDLOCK) WHERE TagKey = @tagKey AND ErrorCode = @errorCode AND Watermark = @watermark)
-            THROW 50409, 'this extended query tag error already exist', 2
+        IF EXISTS (SELECT * FROM dbo.ExtendedQueryTagError WITH (UPDLOCK) WHERE TagKey = @tagKey AND ErrorCode = @errorCode AND Watermark = @watermark)
+            --THROW 50409, 'this extended query tag error already exist', 2
+            UPDATE dbo.ExtendedQueryTagError
+            SET CreatedTime = @createdTime
+            OUTPUT INSERTED.TagKey
+            WHERE TagKey = @tagKey
 
-        INSERT INTO dbo.ExtendedQueryTagError (TagKey, ErrorCode, Watermark, CreatedTime)
-        OUTPUT INSERTED.TagKey
-        VALUES (@tagKey, @errorCode, @watermark, @createdTime)
+        ELSE
+            INSERT INTO dbo.ExtendedQueryTagError (TagKey, ErrorCode, Watermark, CreatedTime)
+            OUTPUT INSERTED.TagKey
+            VALUES (@tagKey, @errorCode, @watermark, @createdTime)
 
     COMMIT TRANSACTION
 GO

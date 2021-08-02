@@ -60,13 +60,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
             }
             catch (SqlException e)
             {
-                switch (e.Number)
-                {
-                    case SqlErrorCodes.Conflict:
-                        throw new ExtendedQueryTagErrorAlreadyExistsException();
-                    case SqlErrorCodes.NotFound:
-                        throw new ExtendedQueryTagNotFoundException("Attempted to add error on non existing query tag.");
-                }
+                if (e.Number == SqlErrorCodes.NotFound)
+                    throw new ExtendedQueryTagNotFoundException("Attempted to add error on non existing query tag.");
 
                 throw new DataStoreException(e);
             }

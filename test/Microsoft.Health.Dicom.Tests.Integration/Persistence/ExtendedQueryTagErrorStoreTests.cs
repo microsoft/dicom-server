@@ -134,21 +134,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Fact]
-        public async Task GivenExistingQueryTagError_WhenAddExtendedQueryTagError_ThenShouldThrowException()
-        {
-            ExtendedQueryTagStoreEntry actualTagEntry = await CreateTagInStoreAsync();
-
-            await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
-                actualTagEntry.Key, 0, _watermark, _definedNow);
-
-            var extendedQueryTagError = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(actualTagEntry.Path);
-            Assert.Equal(1, extendedQueryTagError.Count);
-
-            await Assert.ThrowsAsync<ExtendedQueryTagErrorAlreadyExistsException>(() => _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
-                actualTagEntry.Key, 0, _watermark, _definedNow));
-        }
-
-        [Fact]
         public async Task GivenExistingQueryTagError_WhenDeletingExtendedQueryTagErrors_ThenShouldDeleteAllErrorsForTag()
         {
             ExtendedQueryTagStoreEntry actualTagEntry = await CreateTagInStoreAsync();
