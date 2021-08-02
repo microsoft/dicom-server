@@ -25,20 +25,22 @@ using NameValueHeaderValue = System.Net.Http.Headers.NameValueHeaderValue;
 
 namespace Microsoft.Health.Dicom.Client
 {
-    public class DicomWebClient : IDicomWebClient
+    public partial class DicomWebClient : IDicomWebClient
     {
-        private const string TransferSyntaxHeaderName = "transfer-syntax";
-
-        private const string BaseExtendedQueryTagUri = "/extendedquerytags";
-
         private readonly JsonSerializerSettings _jsonSerializerSettings;
+        private readonly string _apiVersion;
 
-        public DicomWebClient(HttpClient httpClient)
+        /// <summary>
+        /// New instance of DicomWebClient to talk to the server
+        /// </summary>
+        /// <param name="httpClient">HttpClient</param>
+        /// <param name="apiVersion">Pin the DicomWebClient to a specific server API version.</param>
+        public DicomWebClient(HttpClient httpClient, string apiVersion = DicomApiVersions.V1Prerelease)
         {
             EnsureArg.IsNotNull(httpClient, nameof(httpClient));
 
             HttpClient = httpClient;
-
+            _apiVersion = apiVersion;
             _jsonSerializerSettings = new JsonSerializerSettings();
             _jsonSerializerSettings.Converters.Add(new JsonDicomConverter(writeTagsAsKeywords: true, autoValidate: false));
 
@@ -55,7 +57,115 @@ namespace Microsoft.Health.Dicom.Client
         /// </remarks>
         public Func<MemoryStream> GetMemoryStream { get; set; }
 
+        #region WADO-RS
+        public async Task<DicomWebAsyncEnumerableResponse<DicomFile>> RetrieveStudyAsync(
+            string studyInstanceUid,
+            string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax,
+            CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+
+            return await RetrieveInstancesAsync(
+                new Uri("/" + _apiVersion + string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid), UriKind.Relative),
+                dicomTransferSyntax,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> RetrieveStudyMetadataAsync(
+            string studyInstanceUid,
+            string ifNoneMatch = null,
+            CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+
+            return await RetrieveMetadataAsync(
+                new Uri("/" + _apiVersion + string.Format(DicomWebConstants.BaseRetrieveStudyMetadataUriFormat, studyInstanceUid), UriKind.Relative),
+                ifNoneMatch,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<DicomWebAsyncEnumerableResponse<DicomFile>> RetrieveSeriesAsync(
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax,
+            CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+            EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
+
+            return await RetrieveInstancesAsync(
+                new Uri("/" + _apiVersion + string.Format(DicomWebConstants.BaseSeriesUriFormat, studyInstanceUid, seriesInstanceUid), UriKind.Relative),
+                dicomTransferSyntax,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> RetrieveSeriesMetadataAsync(
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string ifNoneMatch = null,
+            CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+            EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
+
+            return await RetrieveMetadataAsync(
+                new Uri("/" + _apiVersion + string.Format(DicomWebConstants.BaseRetrieveSeriesMetadataUriFormat, studyInstanceUid, seriesInstanceUid), UriKind.Relative),
+                ifNoneMatch,
+                cancellationToken).ConfigureAwait(false);
+        }
+
         public async Task<DicomWebResponse<DicomFile>> RetrieveInstanceAsync(
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string sopInstanceUid,
+            string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax,
+            CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+            EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
+            EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
+
+            return await RetrieveInstanceAsync(
+                new Uri("/" + _apiVersion + string.Format(DicomWebConstants.BaseInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative),
+                dicomTransferSyntax,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> RetrieveInstanceMetadataAsync(
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string sopInstanceUid,
+            string ifNoneMatch = null,
+            CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+            EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
+            EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
+
+            return await RetrieveMetadataAsync(
+                new Uri("/" + _apiVersion + string.Format(DicomWebConstants.BaseRetrieveInstanceMetadataUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative),
+                ifNoneMatch,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<DicomWebAsyncEnumerableResponse<Stream>> RetrieveFramesAsync(
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string sopInstanceUid,
+            int[] frames = null,
+            string mediaType = DicomWebConstants.ApplicationOctetStreamMediaType,
+            string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax,
+            CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+            EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
+            EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
+            var requestUri = new Uri("/" + _apiVersion + string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid, string.Join("%2C", frames)), UriKind.Relative);
+
+            return await RetrieveFramesAsync(requestUri, mediaType, dicomTransferSyntax, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<DicomWebResponse<DicomFile>> RetrieveInstanceAsync(
             Uri requestUri,
             string dicomTransferSyntax,
             CancellationToken cancellationToken)
@@ -85,7 +195,7 @@ namespace Microsoft.Health.Dicom.Client
                 });
         }
 
-        public async Task<DicomWebAsyncEnumerableResponse<DicomFile>> RetrieveInstancesAsync(
+        private async Task<DicomWebAsyncEnumerableResponse<DicomFile>> RetrieveInstancesAsync(
             Uri requestUri,
             string dicomTransferSyntax,
             CancellationToken cancellationToken)
@@ -108,7 +218,7 @@ namespace Microsoft.Health.Dicom.Client
                 ReadMultipartResponseAsDicomFileAsync(response.Content, cancellationToken));
         }
 
-        public async Task<DicomWebAsyncEnumerableResponse<Stream>> RetrieveFramesAsync(
+        private async Task<DicomWebAsyncEnumerableResponse<Stream>> RetrieveFramesAsync(
             Uri requestUri,
             string mediaType,
             string dicomTransferSyntax,
@@ -133,7 +243,7 @@ namespace Microsoft.Health.Dicom.Client
                 ReadMultipartResponseAsStreamsAsync(response.Content, cancellationToken));
         }
 
-        public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> RetrieveMetadataAsync(
+        private async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> RetrieveMetadataAsync(
             Uri requestUri,
             string ifNoneMatch,
             CancellationToken cancellationToken)
@@ -165,7 +275,9 @@ namespace Microsoft.Health.Dicom.Client
                 response,
                 DeserializeAsAsyncEnumerable<DicomDataset>(response.Content));
         }
+        #endregion
 
+        #region STOW-RS
         public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
             IEnumerable<DicomFile> dicomFiles,
             string studyInstanceUid,
@@ -249,7 +361,18 @@ namespace Microsoft.Health.Dicom.Client
                 .ConfigureAwait(false);
         }
 
-        public async Task<DicomWebResponse<DicomDataset>> StoreAsync(Uri requestUri, HttpContent content, CancellationToken cancellationToken)
+        public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
+            HttpContent content,
+            CancellationToken cancellationToken)
+        {
+            return await StoreAsync(
+                new Uri("/" + _apiVersion + DicomWebConstants.StudiesUriString, UriKind.Relative),
+                content,
+                cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        private async Task<DicomWebResponse<DicomDataset>> StoreAsync(Uri requestUri, HttpContent content, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(requestUri, nameof(requestUri));
             EnsureArg.IsNotNull(content, nameof(content));
@@ -290,8 +413,49 @@ namespace Microsoft.Health.Dicom.Client
                     return JsonConvert.DeserializeObject<DicomDataset>(contentText, _jsonSerializerSettings);
                 });
         }
+        #endregion
 
-        public async Task<DicomWebResponse> DeleteAsync(Uri requestUri, CancellationToken cancellationToken)
+        #region Delete
+        public async Task<DicomWebResponse> DeleteStudyAsync(
+            string studyInstanceUid,
+            CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+
+            var requestUri = new Uri("/" + _apiVersion + string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid), UriKind.Relative);
+
+            return await DeleteAsync(requestUri, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<DicomWebResponse> DeleteSeriesAsync(
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+            EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
+
+            var requestUri = new Uri("/" + _apiVersion + string.Format(DicomWebConstants.BaseSeriesUriFormat, studyInstanceUid, seriesInstanceUid), UriKind.Relative);
+
+            return await DeleteAsync(requestUri, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<DicomWebResponse> DeleteInstanceAsync(
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string sopInstanceUid,
+            CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+            EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
+            EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
+
+            var requestUri = new Uri("/" + _apiVersion + string.Format(DicomWebConstants.BaseInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative);
+
+            return await DeleteAsync(requestUri, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<DicomWebResponse> DeleteAsync(Uri requestUri, CancellationToken cancellationToken)
         {
             using var request = new HttpRequestMessage(HttpMethod.Delete, requestUri);
 
@@ -302,14 +466,89 @@ namespace Microsoft.Health.Dicom.Client
 
             return new DicomWebResponse(response);
         }
+        #endregion
 
-        [Obsolete("Please use QueryAsync(Uri, CancellationToken) instead.")]
-        public Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryAsync(string requestUri, CancellationToken cancellationToken)
+        #region QIDO-RS
+        public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryStudyAsync(
+            string queryString,
+            CancellationToken cancellationToken)
         {
-            return QueryAsync(new Uri(requestUri, UriKind.Relative), cancellationToken);
+            var uri = new Uri("/" + _apiVersion + DicomWebConstants.StudiesUriString + GetQueryParamUriString(queryString), UriKind.Relative);
+
+            return await QueryAsync(uri, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryAsync(Uri requestUri, CancellationToken cancellationToken)
+        public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryStudySeriesAsync(
+            string studyInstanceUid,
+            string queryString,
+            CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+
+            var uri = new Uri("/" + _apiVersion + string.Format(DicomWebConstants.QueryStudySeriesUriFormat, studyInstanceUid) + GetQueryParamUriString(queryString), UriKind.Relative);
+
+            return await QueryAsync(uri, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryStudyInstanceAsync(
+            string studyInstanceUid,
+            string queryString,
+            CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+
+            var uri = new Uri("/" + _apiVersion + string.Format(DicomWebConstants.QueryStudyInstanceUriFormat, studyInstanceUid) + GetQueryParamUriString(queryString), UriKind.Relative);
+
+            return await QueryAsync(uri, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryStudySeriesInstanceAsync(
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string queryString,
+            CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+            EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
+
+            var uri = new Uri("/" + _apiVersion + string.Format(DicomWebConstants.QueryStudySeriesInstancesUriFormat, studyInstanceUid, seriesInstanceUid) + GetQueryParamUriString(queryString), UriKind.Relative);
+
+            return await QueryAsync(uri, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QuerySeriesAsync(
+            string queryString,
+            CancellationToken cancellationToken)
+        {
+            var uri = new Uri("/" + _apiVersion + DicomWebConstants.SeriesUriString + GetQueryParamUriString(queryString), UriKind.Relative);
+
+            return await QueryAsync(uri, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QuerySeriesInstanceAsync(
+            string seriesInstanceUid,
+            string queryString,
+            CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
+
+            var uri = new Uri("/" + _apiVersion + string.Format(DicomWebConstants.QuerySeriesInstancUriFormat, seriesInstanceUid) + GetQueryParamUriString(queryString), UriKind.Relative);
+
+            return await QueryAsync(uri, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryInstancesAsync(
+            string queryString,
+            CancellationToken cancellationToken)
+        {
+            var uri = new Uri("/" + _apiVersion + DicomWebConstants.InstancesUriString + GetQueryParamUriString(queryString), UriKind.Relative);
+
+            return await QueryAsync(uri, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryAsync(
+            Uri requestUri,
+            CancellationToken cancellationToken)
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
@@ -324,12 +563,14 @@ namespace Microsoft.Health.Dicom.Client
                 response,
                 DeserializeAsAsyncEnumerable<DicomDataset>(response.Content));
         }
+        #endregion
 
+        #region ChangeFeed
         public async Task<DicomWebAsyncEnumerableResponse<ChangeFeedEntry>> GetChangeFeed(string queryString, CancellationToken cancellationToken)
         {
             using var request = new HttpRequestMessage(
                 HttpMethod.Get,
-                new Uri($"/changefeed{queryString}", UriKind.Relative));
+                new Uri($"/{_apiVersion}/changefeed{queryString}", UriKind.Relative));
 
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
                 .ConfigureAwait(false);
@@ -345,7 +586,7 @@ namespace Microsoft.Health.Dicom.Client
         {
             using var request = new HttpRequestMessage(
                 HttpMethod.Get,
-                new Uri($"/changefeed/latest{queryString}", UriKind.Relative));
+                new Uri($"/{_apiVersion}/changefeed/latest{queryString}", UriKind.Relative));
 
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
                 .ConfigureAwait(false);
@@ -360,12 +601,15 @@ namespace Microsoft.Health.Dicom.Client
                     return JsonConvert.DeserializeObject<ChangeFeedEntry>(contentText, _jsonSerializerSettings);
                 });
         }
+        #endregion
 
+        #region ExtendedQueryTag
         public async Task<DicomWebResponse> AddExtendedQueryTagAsync(IEnumerable<AddExtendedQueryTagEntry> tagEntries, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(tagEntries, nameof(tagEntries));
             string jsonString = JsonConvert.SerializeObject(tagEntries);
-            using var request = new HttpRequestMessage(HttpMethod.Post, BaseExtendedQueryTagUri);
+            var uri = new Uri($"/{_apiVersion}{DicomWebConstants.BaseExtendedQueryTagUri}", UriKind.Relative);
+            using var request = new HttpRequestMessage(HttpMethod.Post, uri);
             {
                 request.Content = new StringContent(jsonString);
                 request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType);
@@ -381,7 +625,8 @@ namespace Microsoft.Health.Dicom.Client
         {
             EnsureArg.IsNotNullOrWhiteSpace(tagPath, nameof(tagPath));
 
-            using var request = new HttpRequestMessage(HttpMethod.Delete, new Uri($"{BaseExtendedQueryTagUri}/{tagPath}", UriKind.Relative));
+            var uri = new Uri($"/{_apiVersion}{DicomWebConstants.BaseExtendedQueryTagUri}/{tagPath}", UriKind.Relative);
+            using var request = new HttpRequestMessage(HttpMethod.Delete, uri);
 
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
                 .ConfigureAwait(false);
@@ -393,7 +638,8 @@ namespace Microsoft.Health.Dicom.Client
 
         public async Task<DicomWebResponse<IEnumerable<GetExtendedQueryTagEntry>>> GetExtendedQueryTagsAsync(CancellationToken cancellationToken)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(BaseExtendedQueryTagUri, UriKind.Relative));
+            var uri = new Uri($"/{_apiVersion}{DicomWebConstants.BaseExtendedQueryTagUri}", UriKind.Relative);
+            using var request = new HttpRequestMessage(HttpMethod.Get, uri);
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
                 .ConfigureAwait(false);
             await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
@@ -408,7 +654,8 @@ namespace Microsoft.Health.Dicom.Client
 
         public async Task<DicomWebResponse<GetExtendedQueryTagEntry>> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, new Uri($"{BaseExtendedQueryTagUri}/{tagPath}", UriKind.Relative));
+            var uri = new Uri($"/{_apiVersion}{DicomWebConstants.BaseExtendedQueryTagUri}/{tagPath}", UriKind.Relative);
+            using var request = new HttpRequestMessage(HttpMethod.Get, uri);
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
                 .ConfigureAwait(false);
             await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
@@ -420,7 +667,9 @@ namespace Microsoft.Health.Dicom.Client
                      return JsonConvert.DeserializeObject<GetExtendedQueryTagEntry>(contentText, _jsonSerializerSettings);
                  });
         }
+        #endregion
 
+        #region Helpers
         [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Callers will dispose of the StreamContent")]
         private static MultipartContent ConvertStreamsToMultipartContent(IEnumerable<Stream> streams)
         {
@@ -447,9 +696,14 @@ namespace Microsoft.Health.Dicom.Client
             return streamContent;
         }
 
+        private static string GetQueryParamUriString(string queryString)
+        {
+            return string.IsNullOrWhiteSpace(queryString) == true ? string.Empty : "?" + queryString;
+        }
+
         private static string CreateAcceptHeader(MediaTypeWithQualityHeaderValue mediaTypeHeader, string dicomTransferSyntax)
         {
-            string transferSyntaxHeader = dicomTransferSyntax == null ? string.Empty : $";{TransferSyntaxHeaderName}=\"{dicomTransferSyntax}\"";
+            string transferSyntaxHeader = dicomTransferSyntax == null ? string.Empty : $";{DicomWebConstants.TransferSyntaxHeaderName}=\"{dicomTransferSyntax}\"";
 
             return $"{mediaTypeHeader}{transferSyntaxHeader}";
         }
@@ -463,8 +717,8 @@ namespace Microsoft.Health.Dicom.Client
             return multipartHeader;
         }
 
-        private static Uri GenerateStoreRequestUri(string studyInstanceUid)
-            => new Uri(string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid), UriKind.Relative);
+        private Uri GenerateStoreRequestUri(string studyInstanceUid)
+            => new Uri("/" + _apiVersion + string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid), UriKind.Relative);
 
         private async IAsyncEnumerable<Stream> ReadMultipartResponseAsStreamsAsync(HttpContent httpContent, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
@@ -552,5 +806,6 @@ namespace Microsoft.Health.Dicom.Client
                 yield return item;
             }
         }
+        #endregion
     }
 }
