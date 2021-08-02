@@ -1,4 +1,8 @@
-steps:
+jobs:
+- job: SetupAndRun
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
   - task: DownloadBuildArtifacts@0
     inputs:
       buildType: 'current'
