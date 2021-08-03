@@ -16,5 +16,5 @@ jobs:
       filepath: '$(System.DefaultWorkingDirectory)/samples/scripts/PowerShell/GenerateOpenApiYaml.ps1'
       arguments: >
         -WorkingDir '$(System.WorkingDir)'
-        -AssemblyDir '$(System.ArtifactsDirectory)/src/Microsoft.Health.Dicom.Web/bin/$(buildConfiguration)/net5.0/Microsoft.Health.Dicom.Web.dll'
+        -AssemblyDir '$(build.artifactStagingDirectory)/web/net5.0/Microsoft.Health.Dicom.Web.dll'
         -Version 'v1-prerelease'
