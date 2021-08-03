@@ -10,21 +10,25 @@ using EnsureThat;
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     /// <summary>
-    /// ExtendedQueryTag row version.
+    /// ExtendedQueryTag ETag.
     /// </summary>
     public class ExtendedQueryTagETag
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="QueryTag"/> class.
+        /// Initializes a new instance of the <see cref="ExtendedQueryTagETag"/> class.
         /// </summary>
-        /// <remarks>Used for constuctoring from core dicom tag.PatientName e.g. </remarks>
-        /// <param name="rowVersions">The core dicom Tag.</param>        
-        public ExtendedQueryTagETag(IReadOnlyCollection<ExtendedQueryTagVersion> rowVersions)
+        /// <param name="tagVersions">The tag versions.</param>        
+        public ExtendedQueryTagETag(IReadOnlyCollection<ExtendedQueryTagVersion> tagVersions)
         {
-            EnsureArg.IsNotNull(rowVersions, nameof(rowVersions));
-            ETag = rowVersions.Count == 0 ? null : rowVersions.Max();
+            TagVerions = EnsureArg.IsNotNull(tagVersions, nameof(tagVersions));
+            ETag = tagVersions.Count == 0 ? null : tagVersions.Max();
         }
 
+        /// <summary>
+        /// Create   ExtendedQueryTagETag from QueryTag collection.
+        /// </summary>
+        /// <param name="queryTags">The QueryTag collection.</param>
+        /// <returns>The ExtendedQueryTagETag.</returns>
         public static ExtendedQueryTagETag FromQueryTags(IReadOnlyCollection<QueryTag> queryTags)
         {
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
@@ -34,6 +38,14 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 .ToList());
         }
 
+        /// <summary>
+        /// Gets collection of TagVersions.
+        /// </summary>
+        public IReadOnlyCollection<ExtendedQueryTagVersion> TagVerions { get; }
+
+        /// <summary>
+        /// Gets ETag.
+        /// </summary>
         public ExtendedQueryTagVersion? ETag { get; }
     }
 }
