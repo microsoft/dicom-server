@@ -5,7 +5,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
@@ -24,12 +23,12 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         public ExtendedQueryTagVersion(byte[] version)
         {
             _version = EnsureArg.IsNotNull(version, nameof(version));
-            Debug.Assert(version.Length == 8, "row version length should be 8");
+            Debug.Assert(version.Length == 8, "Version length should be 8");
         }
 
         public int CompareTo(ExtendedQueryTagVersion other)
         {
-            Debug.Assert(_version.Length == other._version.Length, "Row version should have same length");
+            Debug.Assert(_version.Length == other._version.Length, "Version should have same length");
             for (int i = 0; i < _version.Length; i++)
             {
                 if (_version[i] != other._version[i])
@@ -42,7 +41,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
         public bool Equals(ExtendedQueryTagVersion other)
         {
-            return _version.SequenceEqual(other._version);
+            return CompareTo(other) == 0;
         }
 
         public override bool Equals(object obj)
