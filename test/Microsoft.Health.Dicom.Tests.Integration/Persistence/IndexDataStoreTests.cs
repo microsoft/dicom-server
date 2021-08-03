@@ -31,6 +31,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private readonly IIndexDataStore _indexDataStore;
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly IIndexDataStoreTestHelper _testHelper;
+        private readonly IExtendedQueryTagStoreTestHelper _extendedQueryTagStoreTestHelper;
         private readonly DateTimeOffset _startDateTime = Clock.UtcNow;
 
         public IndexDataStoreTests(SqlDataStoreTestsFixture fixture)
@@ -38,10 +39,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             EnsureArg.IsNotNull(fixture, nameof(fixture));
             EnsureArg.IsNotNull(fixture.IndexDataStore, nameof(fixture.IndexDataStore));
             EnsureArg.IsNotNull(fixture.ExtendedQueryTagStore, nameof(fixture.ExtendedQueryTagStore));
-            EnsureArg.IsNotNull(fixture.TestHelper, nameof(fixture.TestHelper));
+            EnsureArg.IsNotNull(fixture.IndexDataStoreTestHelper, nameof(fixture.IndexDataStoreTestHelper));
+            EnsureArg.IsNotNull(fixture.ExtendedQueryTagStoreTestHelper, nameof(fixture.ExtendedQueryTagStoreTestHelper));
             _indexDataStore = fixture.IndexDataStore;
             _extendedQueryTagStore = fixture.ExtendedQueryTagStore;
-            _testHelper = fixture.TestHelper;
+            _testHelper = fixture.IndexDataStoreTestHelper;
+            _extendedQueryTagStoreTestHelper = fixture.ExtendedQueryTagStoreTestHelper;
         }
 
         [Fact]

@@ -72,7 +72,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             {
                 long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag }, etag);
                 Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, watermark);
-                IReadOnlyList<ExtendedQueryTagDataRow> rows = await _testHelper.GetExtendedQueryTagDataAsync(dataType, queryTag.ExtendedQueryTagStoreEntry.Key, instance.StudyKey);
+                IReadOnlyList<ExtendedQueryTagDataRow> rows = await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(dataType, queryTag.ExtendedQueryTagStoreEntry.Key, instance.StudyKey);
                 Assert.Single(rows);
                 Assert.Equal(watermark, rows[0].Watermark);
                 Assert.Equal(expectedValue, rows[0].TagValue);
@@ -106,17 +106,17 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
                 // Study and series level tags should not be deleted.
-                Assert.Single(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DateTimeData, queryTags[0].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey));
-                Assert.Single(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, queryTags[1].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey));
-                Assert.Single(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DoubleData, queryTags[2].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey));
+                Assert.Single(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DateTimeData, queryTags[0].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey));
+                Assert.Single(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, queryTags[1].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey));
+                Assert.Single(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DoubleData, queryTags[2].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey));
 
                 // Instance level tags under the deleted instance should be deleted.
-                Assert.Empty(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.LongData, queryTags[3].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, instance1.InstanceKey));
-                Assert.Empty(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.PersonNameData, queryTags[4].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, instance1.InstanceKey));
+                Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.LongData, queryTags[3].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, instance1.InstanceKey));
+                Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.PersonNameData, queryTags[4].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, instance1.InstanceKey));
 
                 // Instance level tags under the other instance should not be deleted.
-                Assert.Single(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.LongData, queryTags[3].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, instance2.InstanceKey));
-                Assert.Single(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.PersonNameData, queryTags[4].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, instance2.InstanceKey));
+                Assert.Single(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.LongData, queryTags[3].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, instance2.InstanceKey));
+                Assert.Single(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.PersonNameData, queryTags[4].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, instance2.InstanceKey));
             }
             finally
             {
@@ -150,27 +150,27 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 await _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, Clock.UtcNow);
 
                 // Study level tags should not be deleted.
-                Assert.Single(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DateTimeData, queryTags[0].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey));
+                Assert.Single(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DateTimeData, queryTags[0].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey));
 
                 // Series level tags under the first series should be deleted.
-                Assert.Empty(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, queryTags[1].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey));
-                Assert.Empty(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DoubleData, queryTags[2].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey));
+                Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, queryTags[1].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey));
+                Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DoubleData, queryTags[2].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey));
 
                 // Instance level tags under the first instance in the deleted series should be deleted.
-                Assert.Empty(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.LongData, queryTags[3].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, instance1.InstanceKey));
-                Assert.Empty(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.PersonNameData, queryTags[4].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, instance1.InstanceKey));
+                Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.LongData, queryTags[3].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, instance1.InstanceKey));
+                Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.PersonNameData, queryTags[4].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, instance1.InstanceKey));
 
                 // Instance level tags under the second instance in the deleted series should be deleted.
-                Assert.Empty(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.LongData, queryTags[3].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, instance2.InstanceKey));
-                Assert.Empty(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.PersonNameData, queryTags[4].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, instance2.InstanceKey));
+                Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.LongData, queryTags[3].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, instance2.InstanceKey));
+                Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.PersonNameData, queryTags[4].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, instance2.InstanceKey));
 
                 // Series level tags under the second series should not be deleted.
-                Assert.Single(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, queryTags[1].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance3.SeriesKey));
-                Assert.Single(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DoubleData, queryTags[2].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance3.SeriesKey));
+                Assert.Single(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, queryTags[1].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance3.SeriesKey));
+                Assert.Single(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DoubleData, queryTags[2].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance3.SeriesKey));
 
                 // Instance level tags under the instance in the second series should not be deleted
-                Assert.Single(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.LongData, queryTags[3].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance3.SeriesKey, instance3.InstanceKey));
-                Assert.Single(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.PersonNameData, queryTags[4].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance3.SeriesKey, instance3.InstanceKey));
+                Assert.Single(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.LongData, queryTags[3].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance3.SeriesKey, instance3.InstanceKey));
+                Assert.Single(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.PersonNameData, queryTags[4].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance3.SeriesKey, instance3.InstanceKey));
             }
             finally
             {
@@ -206,30 +206,30 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 await _indexDataStore.DeleteStudyIndexAsync(studyInstanceUid, Clock.UtcNow);
 
                 // Study level query tags for the first study should be deleted.
-                Assert.Empty(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DateTimeData, queryTags[0].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey));
+                Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DateTimeData, queryTags[0].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey));
 
                 // Series level query tags for the first series under the first study should be deleted.
-                Assert.Empty(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, queryTags[1].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey));
-                Assert.Empty(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DoubleData, queryTags[2].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey));
+                Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, queryTags[1].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey));
+                Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DoubleData, queryTags[2].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey));
 
                 // Instance level query tags for the first instance under the first series under the deleted study should be deleted.
-                Assert.Empty(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.LongData, queryTags[3].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, instance1.InstanceKey));
-                Assert.Empty(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.PersonNameData, queryTags[4].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, instance1.InstanceKey));
+                Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.LongData, queryTags[3].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, instance1.InstanceKey));
+                Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.PersonNameData, queryTags[4].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, instance1.InstanceKey));
 
                 // Series level query tags for the first instance under the first series under the deleted study should be deleted.
-                Assert.Empty(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.LongData, queryTags[3].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance2.SeriesKey, instance2.InstanceKey));
-                Assert.Empty(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.PersonNameData, queryTags[4].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance2.SeriesKey, instance2.InstanceKey));
+                Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.LongData, queryTags[3].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance2.SeriesKey, instance2.InstanceKey));
+                Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.PersonNameData, queryTags[4].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey, instance2.SeriesKey, instance2.InstanceKey));
 
                 // Study level query tags for the second study should not be deleted.
-                Assert.Single(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DateTimeData, queryTags[0].ExtendedQueryTagStoreEntry.Key, instance3.StudyKey));
+                Assert.Single(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DateTimeData, queryTags[0].ExtendedQueryTagStoreEntry.Key, instance3.StudyKey));
 
                 // Series level query tags for the series under the second study should not be deleted.
-                Assert.Single(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.LongData, queryTags[3].ExtendedQueryTagStoreEntry.Key, instance3.StudyKey, instance3.SeriesKey, instance3.InstanceKey));
-                Assert.Single(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.PersonNameData, queryTags[4].ExtendedQueryTagStoreEntry.Key, instance3.StudyKey, instance3.SeriesKey, instance3.InstanceKey));
+                Assert.Single(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.LongData, queryTags[3].ExtendedQueryTagStoreEntry.Key, instance3.StudyKey, instance3.SeriesKey, instance3.InstanceKey));
+                Assert.Single(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.PersonNameData, queryTags[4].ExtendedQueryTagStoreEntry.Key, instance3.StudyKey, instance3.SeriesKey, instance3.InstanceKey));
 
                 // Instance level query tags for the instance under the series under the second study should not be deleted.
-                Assert.Single(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.LongData, queryTags[3].ExtendedQueryTagStoreEntry.Key, instance3.StudyKey, instance3.SeriesKey, instance3.InstanceKey));
-                Assert.Single(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.PersonNameData, queryTags[4].ExtendedQueryTagStoreEntry.Key, instance3.StudyKey, instance3.SeriesKey, instance3.InstanceKey));
+                Assert.Single(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.LongData, queryTags[3].ExtendedQueryTagStoreEntry.Key, instance3.StudyKey, instance3.SeriesKey, instance3.InstanceKey));
+                Assert.Single(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.PersonNameData, queryTags[4].ExtendedQueryTagStoreEntry.Key, instance3.StudyKey, instance3.SeriesKey, instance3.InstanceKey));
             }
             finally
             {
@@ -258,11 +258,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
                 // Ensure all tags regardless of level are removed as it is the only instance in series/study.
-                Assert.Empty(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DateTimeData, queryTags[0].ExtendedQueryTagStoreEntry.Key, instance.StudyKey));
-                Assert.Empty(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, queryTags[1].ExtendedQueryTagStoreEntry.Key, instance.StudyKey, instance.SeriesKey));
-                Assert.Empty(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DoubleData, queryTags[2].ExtendedQueryTagStoreEntry.Key, instance.StudyKey, instance.SeriesKey));
-                Assert.Empty(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.LongData, queryTags[3].ExtendedQueryTagStoreEntry.Key, instance.StudyKey, instance.SeriesKey, instance.InstanceKey));
-                Assert.Empty(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.PersonNameData, queryTags[4].ExtendedQueryTagStoreEntry.Key, instance.StudyKey, instance.SeriesKey, instance.InstanceKey));
+                Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DateTimeData, queryTags[0].ExtendedQueryTagStoreEntry.Key, instance.StudyKey));
+                Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, queryTags[1].ExtendedQueryTagStoreEntry.Key, instance.StudyKey, instance.SeriesKey));
+                Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DoubleData, queryTags[2].ExtendedQueryTagStoreEntry.Key, instance.StudyKey, instance.SeriesKey));
+                Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.LongData, queryTags[3].ExtendedQueryTagStoreEntry.Key, instance.StudyKey, instance.SeriesKey, instance.InstanceKey));
+                Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.PersonNameData, queryTags[4].ExtendedQueryTagStoreEntry.Key, instance.StudyKey, instance.SeriesKey, instance.InstanceKey));
             }
             finally
             {
@@ -296,7 +296,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, watermark);
                 long? seriesKey = level != QueryTagLevel.Study ? instance.SeriesKey : null;
                 long? instanceKey = level == QueryTagLevel.Instance ? instance.InstanceKey : null;
-                var stringRows = await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, queryTag.ExtendedQueryTagStoreEntry.Key, instance.StudyKey, seriesKey, instanceKey);
+                var stringRows = await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, queryTag.ExtendedQueryTagStoreEntry.Key, instance.StudyKey, seriesKey, instanceKey);
 
                 Assert.Single(stringRows);
                 Assert.Equal(stringRows[0].TagValue, value);
@@ -357,7 +357,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag }, etag);
                 Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, watermark);
                 long? seriesKey = level != QueryTagLevel.Study ? instance.SeriesKey : null;
-                var stringRows = await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, queryTag.ExtendedQueryTagStoreEntry.Key, instance.StudyKey, seriesKey);
+                var stringRows = await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, queryTag.ExtendedQueryTagStoreEntry.Key, instance.StudyKey, seriesKey);
 
                 Assert.Single(stringRows);
                 Assert.Equal(stringRows[0].TagValue, value);

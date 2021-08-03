@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
@@ -247,95 +246,5 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
         }
 
-        async Task<IReadOnlyList<ExtendedQueryTagDataRow>> IIndexDataStoreTestHelper.GetExtendedQueryTagDataAsync(
-            ExtendedQueryTagDataType dataType,
-            int tagKey,
-            long studyKey,
-            long? seriesKey,
-            long? instanceKey,
-            CancellationToken cancellationToken)
-        {
-            var results = new List<ExtendedQueryTagDataRow>();
-            string tagKeyParam = "@tagKey";
-            string studyKeyParam = "@studyKey";
-            string seriesKeyParam = "@seriesKey";
-            string instanceKeyParam = "@instanceKey";
-
-            // Columns on all extended query tag index data tables are of same names
-            string studyKeyColName = VLatest.ExtendedQueryTagString.StudyKey.Metadata.Name;
-            string seriesKeyColName = VLatest.ExtendedQueryTagString.SeriesKey.Metadata.Name;
-            string instanceKeyColName = VLatest.ExtendedQueryTagString.InstanceKey.Metadata.Name;
-            string tagKeyName = VLatest.ExtendedQueryTagString.TagKey.Metadata.Name;
-            string seriesFilter = seriesKey.HasValue ? $"{seriesKeyColName} = {seriesKeyParam}" : $"{seriesKeyColName} IS NULL";
-            string instanceFilter = instanceKey.HasValue ? $"{instanceKeyColName} = {instanceKeyParam}" : $"{instanceKeyColName} IS NULL";
-
-            return await GetExtendedQueryTagRowsAsync(
-                dataType,
-                sqlCommand =>
-                {
-                    sqlCommand.CommandText = @$"
-                        SELECT *
-                        FROM {DateTypeAndTableNameMapping[dataType]}
-                        WHERE 
-                            {tagKeyName} = {tagKeyParam}
-                            AND {studyKeyColName} = {studyKeyParam}
-                            AND {seriesFilter}
-                            AND {instanceFilter}
-                    ";
-
-                    sqlCommand.Parameters.AddWithValue(tagKeyParam, tagKey);
-                    sqlCommand.Parameters.AddWithValue(studyKeyParam, studyKey);
-                    sqlCommand.Parameters.AddWithValue(seriesKeyParam, seriesKey.HasValue ? seriesKey.Value : DBNull.Value);
-                    sqlCommand.Parameters.AddWithValue(instanceKeyParam, instanceKey.HasValue ? instanceKey.Value : DBNull.Value);
-                },
-                cancellationToken);
-        }
-
-        async Task<IReadOnlyList<ExtendedQueryTagDataRow>> IIndexDataStoreTestHelper.GetExtendedQueryTagDataForTagKeyAsync(ExtendedQueryTagDataType dataType, int tagKey, CancellationToken cancellationToken)
-        {
-            string tagKeyParam = "@tagKey";
-
-            return await GetExtendedQueryTagRowsAsync(
-                dataType,
-                sqlCommand =>
-                {
-                    sqlCommand.CommandText = @$"
-                            SELECT *
-                            FROM {DateTypeAndTableNameMapping[dataType]}
-                            WHERE 
-                                {VLatest.ExtendedQueryTagString.TagKey} = {tagKeyParam}
-                            
-                        ";
-
-                    sqlCommand.Parameters.AddWithValue(tagKeyParam, tagKey);
-                },
-                cancellationToken);
-        }
-
-        private async Task<IReadOnlyList<ExtendedQueryTagDataRow>> GetExtendedQueryTagRowsAsync(ExtendedQueryTagDataType dataType, Action<SqlCommand> filler, CancellationToken cancellationToken)
-        {
-            var results = new List<ExtendedQueryTagDataRow>();
-            using (var sqlConnection = new SqlConnection(_connectionString))
-            {
-                await sqlConnection.OpenAsync(cancellationToken);
-
-                using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
-                {
-                    filler(sqlCommand);
-
-                    using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync(cancellationToken))
-                    {
-                        if (await sqlDataReader.ReadAsync(cancellationToken))
-                        {
-                            ExtendedQueryTagDataRow row = new ExtendedQueryTagDataRow();
-                            row.Read(sqlDataReader, dataType);
-                            results.Add(row);
-                        }
-                    }
-                }
-            }
-
-            return results;
-        }
     }
 }

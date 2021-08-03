@@ -113,7 +113,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     new SqlExtendedQueryTagStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV4>.Instance),
                 }));
 
-            TestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
+            IndexDataStoreTestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
+            ExtendedQueryTagStoreTestHelper = new ExtendedQueryTagStoreTestHelper(TestConnectionString);
         }
 
         public SqlDataStoreTestsFixture()
@@ -134,7 +135,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public SchemaUpgradeRunner SchemaUpgradeRunner { get; }
         public string TestConnectionString { get; }
 
-        public IIndexDataStoreTestHelper TestHelper { get; }
+        public IIndexDataStoreTestHelper IndexDataStoreTestHelper { get; }
+
+        public IExtendedQueryTagStoreTestHelper ExtendedQueryTagStoreTestHelper { get; }
 
         public SchemaInformation SchemaInformation { get; set; }
 

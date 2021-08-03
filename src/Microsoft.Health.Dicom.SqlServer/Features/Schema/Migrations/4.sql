@@ -379,7 +379,7 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopIn
     TagLevel can be 0, 1 or 2 to represent Instance, Series or Study level
     TagPrivateCreator is identification code of private tag implementer, only apply to private tag.
     TagStatus can be 0, 1 or 2 to represent Adding, Ready or Deleting.
-    TagVersion is version of the tag.
+    TagVersion is version of the tag. Nullable for backward compatibility.
 **************************************************************/
 CREATE TABLE dbo.ExtendedQueryTag (
     TagKey                  INT                  NOT NULL, --PK
@@ -388,7 +388,7 @@ CREATE TABLE dbo.ExtendedQueryTag (
     TagPrivateCreator       NVARCHAR(64)         NULL, 
     TagLevel                TINYINT              NOT NULL,
     TagStatus               TINYINT              NOT NULL,
-    TagVersion              ROWVERSION           NOT NULL,
+    TagVersion              ROWVERSION           NULL,
 )
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
@@ -681,48 +681,52 @@ GO
 **************************************************************/
 --
 -- STORED PROCEDURE
---     AddInstance
+--      AddInstance
 --
 -- DESCRIPTION
---     Adds a DICOM instance.
+--      Adds a DICOM instance.
 --
 -- PARAMETERS
---     @studyInstanceUid
---         * The study instance UID.
---     @seriesInstanceUid
---         * The series instance UID.
---     @sopInstanceUid
---         * The SOP instance UID.
---     @patientId
---         * The Id of the patient.
---     @patientName
---         * The name of the patient.
---     @referringPhysicianName
---         * The referring physician name.
---     @studyDate
---         * The study date.
---     @studyDescription
---         * The study description.
---     @accessionNumber
---         * The accession number associated for the study.
---     @modality
---         * The modality associated for the series.
---     @performedProcedureStepStartDate
---         * The date when the procedure for the series was performed.
---     @stringExtendedQueryTags
---         * String extended query tag data
---     @longExtendedQueryTags
---         * Long extended query tag data
---     @doubleExtendedQueryTags
---         * Double extended query tag data
---     @dateTimeExtendedQueryTags
---         * DateTime extended query tag data
---     @personNameExtendedQueryTags
---         * PersonName extended query tag data
+--      @studyInstanceUid
+--          * The study instance UID.
+--      @seriesInstanceUid
+--          * The series instance UID.
+--      @sopInstanceUid
+--          * The SOP instance UID.
+--      @patientId
+--          * The Id of the patient.
+--      @patientName
+--          * The name of the patient.
+--      @referringPhysicianName
+--          * The referring physician name.
+--      @studyDate
+--          * The study date.
+--      @studyDescription
+--          * The study description.
+--      @accessionNumber
+--          * The accession number associated for the study.
+--      @modality
+--          * The modality associated for the series.
+--      @performedProcedureStepStartDate
+--          * The date when the procedure for the series was performed.
+--      @stringExtendedQueryTags
+--          * String extended query tag data
+--      @longExtendedQueryTags
+--          * Long extended query tag data
+--      @doubleExtendedQueryTags
+--          * Double extended query tag data
+--      @dateTimeExtendedQueryTags
+--          * DateTime extended query tag data
+--      @personNameExtendedQueryTags
+--          * PersonName extended query tag data
+--      @initialStatus
+--          * Initial status 
+--      @extendedQueryTagETag
+--          * ExtendedQueryTag ETag
 -- RETURN VALUE
 --     The watermark (version).
 ------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.AddInstance
+CREATE PROCEDURE dbo.AddInstance
     @studyInstanceUid                   VARCHAR(64),
     @seriesInstanceUid                  VARCHAR(64),
     @sopInstanceUid                     VARCHAR(64),
@@ -756,7 +760,7 @@ AS
     DECLARE @seriesKey BIGINT
     DECLARE @instanceKey BIGINT
 
-    IF @extendedQueryTagVersion <> (SELECT MAX(TagVersion) FROM dbo.ExtendedQueryTag)
+    IF @extendedQueryTagETag <> (SELECT MAX(TagVersion) FROM dbo.ExtendedQueryTag)
         THROW 50409, 'ETag does not match', 10
 
     SELECT @existingStatus = Status
@@ -981,7 +985,6 @@ AS
 
     COMMIT TRANSACTION
 GO
-
 
 /*************************************************************
     Stored procedures for updating an instance status.
@@ -1515,7 +1518,7 @@ GO
 --     @tagPath
 --         * The TagPath for the extended query tag to retrieve.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTag (
+CREATE PROCEDURE dbo.GetExtendedQueryTag (
     @tagPath  VARCHAR(64) = NULL
 )
 AS
@@ -1528,7 +1531,8 @@ BEGIN
             TagVR,
             TagPrivateCreator,
             TagLevel,
-            TagStatus
+            TagStatus,
+            TagVersion
     FROM    dbo.ExtendedQueryTag
     WHERE   TagPath                 = ISNULL(@tagPath, TagPath)
 END
@@ -1561,7 +1565,8 @@ BEGIN
            TagVR,
            TagPrivateCreator,
            TagLevel,
-           TagStatus
+           TagStatus,
+           TagVersion
     FROM dbo.ExtendedQueryTag AS XQT
     INNER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
     WHERE OperationId = @operationId
@@ -1983,7 +1988,8 @@ AS
                TagVR,
                TagPrivateCreator,
                TagLevel,
-               TagStatus
+               TagStatus,
+               TagVersion
         FROM @extendedQueryTagKeys AS input
         INNER JOIN dbo.ExtendedQueryTag AS XQT WITH(HOLDLOCK) ON input.TagKey = XQT.TagKey
         LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO WITH(HOLDLOCK) ON XQT.TagKey = XQTO.TagKey
