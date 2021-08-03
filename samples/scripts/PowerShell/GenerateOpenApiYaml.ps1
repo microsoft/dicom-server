@@ -1,7 +1,7 @@
 <#
 .SYNOPSIS 
 Generates the OpenApi doc for the specified version and compares it with the baseline to make sure no breaking changes are introduced
-.Parameter WorkingDir
+.Parameter SwaggerDir
 The working directory
 .PARAMETER AssemblyDir
 Path for the web projects dll
@@ -12,7 +12,7 @@ Version of SwashbuckleCLI to use
 #>
 
 param(
-    [string]$WorkingDir,
+    [string]$SwaggerDir,
 
     [string]$AssemblyDir,
 
@@ -26,9 +26,9 @@ foreach ($Version in $Versions)
 
     dotnet new tool-manifest --force
     dotnet tool install --version $SwashbuckleCLIVersion Swashbuckle.AspNetCore.Cli
-    dotnet swagger tofile --yaml --output "$WorkingDir/$Version.yaml" "$AssemblyDir" $Version
+    dotnet swagger tofile --yaml --output "$SwaggerDir/$Version.yaml" "$AssemblyDir" $Version
 
     write-host "Running comparison with baseline for version $Version"
-    docker run --rm -t -v ${WorkingDir}:/dicom-server openapitools/openapi-diff:latest "/dicom-server/swagger/$Version/swagger.yaml" "/dicom-server/$version.yaml" --fail-on-incompatible
+    docker run --rm -t -v ${SwaggerDir}:/swagger openapitools/openapi-diff:latest@sha256:5da8291d3947414491e4c62de74f8fc1ee573a88461fb2fb09979ecb5ea5eb02 "/swagger/$Version/swagger.yaml" "/swagger/$version.yaml" --fail-on-incompatible
 
 }

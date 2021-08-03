@@ -1,5 +1,5 @@
 jobs:
-- job: SetupAndRun
+- job: OpenApiDiff
   pool:
     vmImage: 'ubuntu-latest'
   steps:
@@ -10,11 +10,16 @@ jobs:
       downloadPath: '$(System.ArtifactsDirectory)'
       artifactName: 'deploy'
 
+  - task: ExtractFiles@1
+    inputs:
+      archiveFilePatterns: '$(System.ArtifactsDirectory)/deploy/Microsoft.Health.Dicom.Web.zip'
+      destinationFolder: '$(System.ArtifactsDirectory)/deploy/webArtifacts'
+
   - task: PowerShell@2
     displayName: 'Detect API Breaking Changes'
     inputs:
       filepath: '$(System.DefaultWorkingDirectory)/samples/scripts/PowerShell/GenerateOpenApiYaml.ps1'
       arguments: >
-        -WorkingDir '$(System.WorkingDir)'
-        -AssemblyDir '$(build.artifactStagingDirectory)/web/net5.0/Microsoft.Health.Dicom.Web.dll'
+        -SwaggerDir '$(System.DefaultWorkingDirectory)/swagger/'
+        -AssemblyDir '$(System.ArtifactsDirectory)/deploy/webArtifacts/Microsoft.Health.Dicom.Web.dll'
         -Version 'v1-prerelease'
