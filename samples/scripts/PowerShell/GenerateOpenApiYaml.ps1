@@ -26,9 +26,9 @@ foreach ($Version in $Versions)
 
     dotnet new tool-manifest --force
     dotnet tool install --version $SwashbuckleCLIVersion Swashbuckle.AspNetCore.Cli
-    dotnet swagger tofile --yaml --output "$WorkingDir/src/Microsoft.Health.Dicom.Web/bin/$Version.yaml" "$WorkingDir/$AssemblyDir" $Version
+    dotnet swagger tofile --yaml --output "$WorkingDir/$Version.yaml" "$AssemblyDir" $Version
 
     write-host "Running comparison with baseline for version $Version"
-    docker run --rm -t -v ${WorkingDir}:/dicom-server openapitools/openapi-diff:latest "/dicom-server/swagger/$Version/swagger.yaml" "/dicom-server/src/Microsoft.Health.Dicom.Web/bin/$version.yaml" --fail-on-incompatible
+    docker run --rm -t -v ${WorkingDir}:/dicom-server openapitools/openapi-diff:latest "/dicom-server/swagger/$Version/swagger.yaml" "/dicom-server/$version.yaml" --fail-on-incompatible
 
 }
