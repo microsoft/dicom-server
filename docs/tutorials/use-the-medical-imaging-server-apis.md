@@ -19,6 +19,8 @@ You can learn more about our support of the various DICOM Web Standard APIs in o
 
 In order to use the DICOMweb&trade; Standard APIs, you must have an instance of the Medical Imaging Server for DICOM deployed. If you have not already deployed the Medical Imaging Server, [Deploy the Medical Imaging Server to Azure](../quickstarts/deploy-via-azure.md).
 
+Once deployment is complete, you can use the Azure Portal to navigate to the newly created App Service to see the details and the service url. Make sure to specify the version as part of the url when making requests. More information can be found in the [Api Versioning Documentation](../api-versioning.md)
+
 ## Overview of various methods to use with Medical Imaging Server for DICOM
 
 Because the Medical Imaging Server for DICOM is exposed as a REST API, you can access it using any modern development language. For language-agnostic information on working with the service, please refer to our [Conformance Statement](../resources/conformance-statement.md).

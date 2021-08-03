@@ -2,7 +2,7 @@
 
 This guide gives an overview of the API version policies for DICOM Server. 
 
-All versions of the DICOM APIs will always conform to the DICOMweb™ Standard specifications, but versions may expose different APIs based on our [conformance statment](https://github.com/microsoft/dicom-server/blob/main/docs/resources/conformance-statement.md).
+All versions of the DICOM APIs will always conform to the DICOMweb™ Standard specifications, but versions may expose different APIs based on our [conformance statement](https://github.com/microsoft/dicom-server/blob/main/docs/resources/conformance-statement.md).
 
 ## Specifying version of REST API in Requests
 
@@ -27,7 +27,7 @@ An API version with the label "prerelease" indicates that the version is not rea
 
 ### How Versions Are Incremented
 
-We currently only increment the major version when ever there is a breaking change which is considered to be not backwards compatible. All minor versions are implied to be `0`. All versions are in the format `Major.0`
+We currently only increment the major version whenever there is a breaking change which is considered to be not backwards compatible. All minor versions are implied to be `0`. All versions are in the format `Major.0`
 
 Some Examples of a breaking change (Major version is incremented):
 1. Renaming or removing endpoints
