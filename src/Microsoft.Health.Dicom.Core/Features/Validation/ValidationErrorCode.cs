@@ -7,59 +7,63 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
     /// <summary>
     /// Validation Error Code.
-    /// Error Code is  4 letter number. 
-    /// First 2 letters indicate VR:
-    ///  00 - General error for all VR
-    ///  01 - Error for PN
-    /// Last 2 letters indicate specific errors for VR.
+    /// Error Code is a short number (from 0 to 32767), and organized in this way:
+    /// 0 => No error.
+    /// [1,100) => General error for all VR.
+    /// [100,200) => Error for PN.
+    /// [200,300) => Error for DA.
+    /// Each VR could have up to 100 error code.
     /// </summary>
     public enum ValidationErrorCode
     {
+        /// <summary>
+        /// No error.
+        /// </summary>
         None = 0,
 
         /// <summary>
         /// Dicom element has multiple values -- we only support indexing single value dicom element.
         /// </summary>
-        ElementHasMultipleValues = 0001,
+        ElementHasMultipleValues = 1,
 
         /// <summary>
-        ///  Value exceeds max length
+        ///  Value length exceeds max length
         /// </summary>
-        ValueExceedsMaxLength = 0002,
+        ValueLengthExceedsMaxLength = 2,
 
         /// <summary>
-        /// Value is not required length.
+        /// Value length is not required length.
         /// </summary>
-        ValueIsNotRequiredLength = 0003,
+        ValueLengthIsNotRequiredLength = 3,
 
         /// <summary>
         /// Value contains invalid characters.
         /// </summary>
-        ValueContainsInvalidCharacters = 0004,
+        ValueContainsInvalidCharacters = 4,
 
         /// <summary>
         /// Patient name has too many groups.
         /// </summary>
-        PatientNameHasTooManyGroups = 1000,
+        PatientNameHasTooManyGroups = 100,
 
         /// <summary>
         /// Group of patient name is too long.
         /// </summary>
-        PatientNameGroupIsTooLong = 1001,
+        PatientNameGroupIsTooLong = 101,
 
         /// <summary>
         ///  Group of patient name contains invalid characters.
         /// </summary>
-        PatientNameGroupContainsInvalidCharacters = 1002,
+        PatientNameGroupContainsInvalidCharacters = 102,
 
         /// <summary>
         /// Patient name has too many components
         /// </summary>
-        PatientNameHasTooManyComponents = 1003,
+        PatientNameHasTooManyComponents = 103,
 
         /// <summary>
         /// Date is invalid.
         /// </summary>
-        InvalidDate = 1100,
+        InvalidDate = 200,
     }
 }

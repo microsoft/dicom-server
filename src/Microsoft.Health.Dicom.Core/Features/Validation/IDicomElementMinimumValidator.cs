@@ -4,11 +4,17 @@
 // -------------------------------------------------------------------------------------------------
 
 using Dicom;
+using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
     public interface IDicomElementMinimumValidator
     {
+        /// <summary>
+        /// Validate Dicom Element.
+        /// </summary>
+        /// <param name="dicomElement">The Dicom Element</param>
+        /// <exception cref="DicomElementValidationException"/>
         void Validate(DicomElement dicomElement);
     }
 }

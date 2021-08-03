@@ -9,6 +9,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
     internal interface IDicomElementValidation
     {
+        /// <summary>
+        /// Validate DicomElement
+        /// </summary>
+        /// <param name="dicomElement">The dicom element</param>
+        /// <exception cref="DicomElementValidation"/>
         void Validate(DicomElement dicomElement);
     }
 }

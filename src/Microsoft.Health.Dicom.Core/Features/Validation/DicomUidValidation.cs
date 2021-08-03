@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
     internal class DicomUidValidation : DicomElementValidation
     {
-        private static readonly Regex ValidIdentifierCharactersFormat = new Regex("^[0-9\\.]*$", RegexOptions.Compiled);
+        private static readonly Regex ValidIdentifierCharactersFormat = new Regex("^[0-9\\.]*[0-9]$", RegexOptions.Compiled);
 
         public override void Validate(DicomElement dicomElement)
         {

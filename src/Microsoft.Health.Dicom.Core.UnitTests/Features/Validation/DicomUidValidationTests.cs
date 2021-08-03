@@ -13,14 +13,17 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
     public class DicomUidValidationTests
     {
 
-        [Fact]
-        public void GivenValidateUid_WhenValidating_ThenShouldPass()
+        [Theory]
+        [InlineData("13.14.520")]
+        [InlineData("13")]
+        public void GivenValidateUid_WhenValidating_ThenShouldPass(string value)
         {
-            DicomElement element = new DicomUniqueIdentifier(DicomTag.DigitalSignatureUID, "13.14.520");
+            DicomElement element = new DicomUniqueIdentifier(DicomTag.DigitalSignatureUID, value);
             new DicomUidValidation().Validate(element);
         }
 
         [Theory]
+        [InlineData("123.")] // end with .
         [InlineData("abc.123")] // a is invalid character
         [InlineData("11|")] // | is invalid character
         [InlineData("0123456789012345678901234567890123456789012345678901234567890123456789")] // value is too long
@@ -28,7 +31,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         {
             DicomElement element = new DicomUniqueIdentifier(DicomTag.DigitalSignatureUID, value);
             Assert.Throws<InvalidIdentifierException>(() => new DicomUidValidation().Validate(element));
-
         }
 
     }

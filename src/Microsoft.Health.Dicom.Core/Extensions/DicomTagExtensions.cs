@@ -47,7 +47,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         /// Get friendly name of dicom tag.
         /// </summary>
         /// <param name="dicomTag">The dicom tag.</param>
-        /// <returns></returns>
+        /// <returns>The friendly name.</returns>
         public static string GetFriendlyName(this DicomTag dicomTag)
         {
             EnsureArg.IsNotNull(dicomTag, nameof(dicomTag));

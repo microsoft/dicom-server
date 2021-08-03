@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Diagnostics;
 using System.Globalization;
 using Dicom;
 using EnsureThat;
@@ -15,6 +16,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     {
         public DicomElementMaxLengthValidation(int maxLength)
         {
+            Debug.Assert(maxLength > 0, "MaxLength should be positive number.");
             MaxLength = maxLength;
         }
 
@@ -35,7 +37,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             if (value?.Length > maxLength)
             {
                 throw new DicomElementValidationException(
-                    ValidationErrorCode.ValueExceedsMaxLength,
+                    ValidationErrorCode.ValueLengthExceedsMaxLength,
                     name,
                     vr,
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthExceedsMaxLength, maxLength),
