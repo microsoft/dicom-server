@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// </summary>
         /// <param name="tagPath">The tag path.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A boolean.</returns>
-        Task<bool> DeleteExtendedQueryTagErrorsAsync(string tagPath, CancellationToken cancellationToken = default);
+        /// <returns>The tag key.</returns>
+        Task<int> DeleteExtendedQueryTagErrorsAsync(string tagPath, CancellationToken cancellationToken = default);
     }
 }

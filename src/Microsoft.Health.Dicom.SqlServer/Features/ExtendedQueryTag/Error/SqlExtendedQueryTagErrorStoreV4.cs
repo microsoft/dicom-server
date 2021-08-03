@@ -88,7 +88,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
                     VLatest.Instance.SopInstanceUid);
 
                 //TODO: build the error message here
-                string errorMessage = "error" + errorCode;
+                string errorMessage = "error: " + errorCode;
 
                 results.Add(new ExtendedQueryTagError(createdTime, studyInstanceUid, seriesInstanceUid, sopInstanceUid, errorMessage));
             }
@@ -96,14 +96,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
             return results;
         }
 
-        public override async Task<bool> DeleteExtendedQueryTagErrorsAsync(string tagPath, CancellationToken cancellationToken = default)
+        public override async Task<int> DeleteExtendedQueryTagErrorsAsync(string tagPath, CancellationToken cancellationToken = default)
         {
             using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
             using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
 
             VLatest.DeleteExtendedQueryTagErrors.PopulateCommand(sqlCommandWrapper, tagPath);
 
-            return await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken) != 0;
+            return await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
         }
     }
 }

@@ -98,9 +98,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             });
 
             _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tagPath).Returns(new List<ExtendedQueryTagError>());
-            GetExtendedQueryTagErrorsResponse response = await _extendedQueryTagErrorsService.GetExtendedQueryTagErrorsAsync(tagPath);
-
-            // CHECK FOR RESPONSE MESSAGE?
+            await _extendedQueryTagErrorsService.GetExtendedQueryTagErrorsAsync(tagPath);
+            await _extendedQueryTagErrorStore.Received(1).GetExtendedQueryTagErrorsAsync(tagPath);
         }
 
         [Fact]
@@ -110,7 +109,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
 
             var expected = new List<ExtendedQueryTagError> { CreateExtendedQueryTagError("fake error message", Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), DateTime.UtcNow) };
 
-            //expected.Select(x => new ExtendedQueryTagError() )
             DicomTag[] parsedTags = new DicomTag[] { DicomTag.DeviceID };
 
             _dicomTagParser.TryParse(tagPath, out Arg.Any<DicomTag[]>()).Returns(x =>
@@ -121,6 +119,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
 
             _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tagPath).Returns(expected);
             GetExtendedQueryTagErrorsResponse response = await _extendedQueryTagErrorsService.GetExtendedQueryTagErrorsAsync(tagPath);
+            await _extendedQueryTagErrorStore.Received(1).GetExtendedQueryTagErrorsAsync(tagPath);
 
             Assert.Equal(expected, response.ExtendedQueryTagErrors);
         }
