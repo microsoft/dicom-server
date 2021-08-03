@@ -8,7 +8,7 @@ IF NOT EXISTS (
     WHERE object_id = OBJECT_ID('dbo.ExtendedQueryTag') AND name = 'TagVersion')
 BEGIN
     ALTER TABLE dbo.ExtendedQueryTag
-    ADD TagVersion ROWVERSION NULL
+    ADD TagVersion  ROWVERSION   NOT NULL
 END
 
 /*************************************************************

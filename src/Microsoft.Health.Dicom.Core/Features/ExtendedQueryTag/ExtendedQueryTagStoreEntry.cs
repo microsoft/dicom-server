@@ -26,19 +26,22 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <summary>
         /// Key of this extended query tag entry.
         /// </summary>
-        public int Key { get; set; }
+        public int Key { get; }
 
         /// <summary>
         /// Status of this tag.
         /// </summary>
-        public ExtendedQueryTagStatus Status { get; set; }
+        public ExtendedQueryTagStatus Status { get; }
 
         /// <summary>
         /// Level of this tag. Could be Study, Series or Instance.
         /// </summary>
-        public QueryTagLevel Level { get; set; }
+        public QueryTagLevel Level { get; }
 
-        public ExtendedQueryTagVersion? Version { get; set; }
+        /// <summary>
+        /// ExtendedQueryTag Version
+        /// </summary>
+        public ExtendedQueryTagVersion? Version { get; }
 
         /// <summary>
         /// Convert to  <see cref="GetExtendedQueryTagEntry"/>.

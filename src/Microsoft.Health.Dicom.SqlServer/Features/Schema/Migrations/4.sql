@@ -388,7 +388,7 @@ CREATE TABLE dbo.ExtendedQueryTag (
     TagPrivateCreator       NVARCHAR(64)         NULL, 
     TagLevel                TINYINT              NOT NULL,
     TagStatus               TINYINT              NOT NULL,
-    TagVersion              ROWVERSION           NULL,
+    TagVersion              ROWVERSION           NOT NULL,
 )
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
