@@ -20,7 +20,18 @@ namespace Microsoft.Health.Dicom.Client
         public const string BaseRetrieveFramesUriFormat = BaseInstanceUriFormat + "/frames/{3}";
         public const string BaseRetrieveFramesRenderedUriFormat = BaseRetrieveFramesUriFormat + "/rendered";
         public const string BaseRetrieveFramesThumbnailUriFormat = BaseRetrieveFramesUriFormat + "/thumbnail";
+        public const string StudiesUriString = "/studies";
+        public const string SeriesUriString = "/series";
+        public const string InstancesUriString = "/instances";
+        public const string QueryStudyInstanceUriFormat = BaseStudyUriFormat + InstancesUriString;
+        public const string QueryStudySeriesUriFormat = BaseStudyUriFormat + SeriesUriString;
+        public const string QueryStudySeriesInstancesUriFormat = BaseStudyUriFormat + SeriesUriString + "/{1}" + InstancesUriString;
+        public const string QuerySeriesInstancUriFormat = SeriesUriString + "/{0}" + InstancesUriString;
+        public const string BaseExtendedQueryTagUri = "/extendedquerytags";
+
         public const string OriginalDicomTransferSyntax = "*";
+
+        public const string TransferSyntaxHeaderName = "transfer-syntax";
 
         public const string ApplicationDicomMediaType = "application/dicom";
         public const string ApplicationDicomJsonMediaType = "application/dicom+json";

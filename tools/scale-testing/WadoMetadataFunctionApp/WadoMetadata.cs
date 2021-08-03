@@ -46,17 +46,17 @@ namespace WadoMetadataFunctionApp
 
         private static void RetrieveInstanceMetadata(string studyUid, string seriesUid, string instanceUid)
         {
-            DicomWebClientExtensions.RetrieveInstanceMetadataAsync(s_client, studyUid, seriesUid, instanceUid).Wait();
+            s_client.RetrieveInstanceMetadataAsync(studyUid, seriesUid, instanceUid).Wait();
         }
 
         private static void RetrieveSeriesMetadata(string studyUid, string seriesUid)
         {
-            DicomWebClientExtensions.RetrieveSeriesMetadataAsync(s_client, studyUid, seriesUid).Wait();
+            s_client.RetrieveSeriesMetadataAsync(studyUid, seriesUid).Wait();
         }
 
         private static void RetrieveStudyMetadata(string studyUid)
         {
-            DicomWebClientExtensions.RetrieveStudyMetadataAsync(s_client, studyUid).Wait();
+            s_client.RetrieveStudyMetadataAsync(studyUid).Wait();
         }
 
         private static void ProcessMessage(byte[] message, ILogger log)

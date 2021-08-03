@@ -54,10 +54,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [MemberData(nameof(GetVersionsAndUnsupportedAcceptHeadersForStudiesAndSeries))]
-        public async Task GivenUnsupportedAcceptHeaders_WhenRetrieveSeries_ThenServerShouldReturnNotAcceptable(bool singlePart, string mediaType, string transferSyntax, string versionPath)
+        [MemberData(nameof(GetUnsupportedAcceptHeadersForStudiesAndSeries))]
+        public async Task GivenUnsupportedAcceptHeaders_WhenRetrieveSeries_ThenServerShouldReturnNotAcceptable(bool singlePart, string mediaType, string transferSyntax)
         {
-            var requestUri = new Uri(versionPath + string.Format(DicomWebConstants.BaseSeriesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate()), UriKind.Relative);
+            var requestUri = new Uri(DicomApiVersions.Latest + string.Format(DicomWebConstants.BaseSeriesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate()), UriKind.Relative);
 
             using HttpRequestMessage request = new HttpRequestMessageBuilder().Build(requestUri, singlePart: singlePart, mediaType, transferSyntax);
             using HttpResponseMessage response = await _client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
