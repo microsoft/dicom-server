@@ -20,15 +20,21 @@ param(
 
     [string]$SwashbuckleCLIVersion = '6.1.4'
 )
+
+dotnet new tool-manifest --force
+dotnet tool install --version $SwashbuckleCLIVersion Swashbuckle.AspNetCore.Cli
+
+docker create -v ${SwaggerDir}:/swagger --name openAPIDiff openapitools/openapi-diff:latest@sha256:5da8291d3947414491e4c62de74f8fc1ee573a88461fb2fb09979ecb5ea5eb02
+
 foreach ($Version in $Versions)
 {
     write-host "Generating Yaml file for $Version"
 
-    dotnet new tool-manifest --force
-    dotnet tool install --version $SwashbuckleCLIVersion Swashbuckle.AspNetCore.Cli
-    dotnet swagger tofile --yaml --output "$SwaggerDir/$Version.yaml" "$AssemblyDir" $Version
+    dotnet swagger tofile --yaml --output (Join-Path -Path "$SwaggerDir" -ChildPath "$Version.yaml") "$AssemblyDir" $Version
 
     write-host "Running comparison with baseline for version $Version"
-    docker run --rm -t -v ${SwaggerDir}:/swagger openapitools/openapi-diff:latest@sha256:5da8291d3947414491e4c62de74f8fc1ee573a88461fb2fb09979ecb5ea5eb02 "/swagger/$Version/swagger.yaml" "/swagger/$version.yaml" --fail-on-incompatible
+    docker run --rm -t --volumes-from openAPIDiff openapitools/openapi-diff:latest@sha256:5da8291d3947414491e4c62de74f8fc1ee573a88461fb2fb09979ecb5ea5eb02 "/swagger/$Version/swagger.yaml" "/swagger/$version.yaml" --fail-on-incompatible
 
 }
+
+docker rm openAPIDiff --force

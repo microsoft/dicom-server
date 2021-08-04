@@ -3,6 +3,12 @@ jobs:
   pool:
     vmImage: 'ubuntu-latest'
   steps:
+
+  - task: UseDotNet@2
+    displayName: 'Use .NET Core sdk'
+    inputs:
+      useGlobalJson: true
+
   - task: DownloadBuildArtifacts@0
     inputs:
       buildType: 'current'
@@ -11,6 +17,7 @@ jobs:
       artifactName: 'deploy'
 
   - task: ExtractFiles@1
+    displayName: 'Extract Web zip'
     inputs:
       archiveFilePatterns: '$(System.ArtifactsDirectory)/deploy/Microsoft.Health.Dicom.Web.zip'
       destinationFolder: '$(System.ArtifactsDirectory)/deploy/webArtifacts'
@@ -20,6 +27,6 @@ jobs:
     inputs:
       filepath: '$(System.DefaultWorkingDirectory)/samples/scripts/PowerShell/GenerateOpenApiYaml.ps1'
       arguments: >
-        -SwaggerDir '$(System.DefaultWorkingDirectory)/swagger/'
+        -SwaggerDir '$(System.DefaultWorkingDirectory)/swagger'
         -AssemblyDir '$(System.ArtifactsDirectory)/deploy/webArtifacts/Microsoft.Health.Dicom.Web.dll'
         -Version 'v1-prerelease'
