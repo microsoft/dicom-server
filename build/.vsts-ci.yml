@@ -48,6 +48,7 @@ stages:
       parameters:
         packageArtifacts: false
         analyzeSecurity: false
+        apiVersioning: true
 
 - stage: UpdateTestEnvironment
   displayName: 'Update Test Environment'
@@ -72,6 +73,13 @@ stages:
         WebAppName: '$(deploymentName)'
         Package: '$(System.ArtifactsDirectory)/deploy/Microsoft.Health.Dicom.Web.zip'
         TakeAppOfflineFlag: true
+
+- stage: ValidateAPIVersioning
+  displayName: 'Detect Breaking Changes In API'
+  dependsOn:
+  - BuildRunUnitTests
+  jobs:
+  - template: versioning.yml
 
 - stage: RunIntegrationTests
   displayName: 'Integration tests'
