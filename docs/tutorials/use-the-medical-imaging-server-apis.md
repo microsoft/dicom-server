@@ -41,7 +41,7 @@ Postman is an excellent tool for designing, building and testing REST APIs. [Dow
 
 One important caveat with Postman and the DICOMweb&trade; Standard: Postman can only support uploading DICOM files using the single part payload defined in the DICOM standard. This is because Postman cannot support custom separators in a multipart/related POST request. For more information, please see [https://github.com/postmanlabs/postman-app-support/issues/576](https://github.com/postmanlabs/postman-app-support/issues/576) for more information on this bug. Thus all examples in the Postman collection for uploading DICOM documents using a multipart request are prefixed with [will not work - see description]. The examples for uploading using a single part request are included in the collection and are prefixed with "Store-Single-Instance".
 
-To use the Postman collection, you'll need to download the collection locally and import the collection through Postman, which are available here: [Postman Collection Examples](../resources/Conformance-as-Postman.postman_collection.json).
+To use the Postman collection, you'll need to download the collection locally and import the collection through Postman, which are available here: [Postman Collection Examples](../resources/Conformance-as-Postman.postman_collection.json). In the collection when you are asked to specify the base url, it is the full url of your service appended with the version (ex. `https://<app_service_url>/v<version>/`) For more information on versioning visit the [Api Versioning Documentation](../api-versioning.md). 
 
 ## Summary
 
