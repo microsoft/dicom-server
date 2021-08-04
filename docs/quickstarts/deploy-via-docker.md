@@ -60,7 +60,7 @@ docker run -d \
 
 ## Next steps
 
-Once deployment is complete you can access your Medical Imaging Server at `https://localhost:63839` or `https://localhost:8080` depending on the above mechanism.
+Once deployment is complete you can access your Medical Imaging Server at `https://localhost:63839` or `https://localhost:8080` depending on the above mechanism. Make sure to specify the version as part of the url when making requests. More information can be found in the [Api Versioning Documentation](../api-versioning.md)
 
 * [Use Medical Imaging Server for DICOM APIs](../tutorials/use-the-medical-imaging-server-apis.md)
 * [Upload DICOM files via the Electron Tool](../../tools/dicom-web-electron)

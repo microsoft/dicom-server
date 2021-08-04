@@ -21,6 +21,7 @@ Once you have deployed an instance of the Medical Imaging Server for DICOM, retr
 1. Sign into the [Azure Portal](https://portal.azure.com/).
 1. Search for **App Services** and select your Medical Imaging Server for DICOM App Service.
 1. Copy the **URL** of your App Service.
+1. Note the version of the REST API you would like to use. When creating the `DicomWebClient` below, we recommend to pass the version in to pin the client to a specific version. For more information on versioning visit the [Api Versioning Documentation](../api-versioning.md).
 
 In your application install the following nuget packages:
 
@@ -35,7 +36,7 @@ After you have deployed your Medical Imaging Server for DICOM, you will create a
 string webServerUrl ="{Your DicomWeb Server URL}"
 var httpClient = new HttpClient();
 httpClient.BaseAddress = new Uri(webServerUrl);
-IDicomWebClient client = new DicomWebClient(httpClient);
+IDicomWebClient client = new DicomWebClient(httpClient, "v<version>");
 ```
 
 With the `DicomWebClient` we can now perform Store, Retrieve, Search, and Delete operations.
