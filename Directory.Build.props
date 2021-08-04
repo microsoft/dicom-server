@@ -9,7 +9,7 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <HealthcareSharedPackageVersion>3.1.10</HealthcareSharedPackageVersion>
+    <HealthcareSharedPackageVersion>3.1.12</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
     <LangVersion>Latest</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
