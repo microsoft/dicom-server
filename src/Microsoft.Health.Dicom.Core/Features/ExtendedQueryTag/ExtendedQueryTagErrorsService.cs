@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 errorCode,
                 watermark,
                 createdTime,
-            cancellationToken);
+                cancellationToken);
         }
     }
 }

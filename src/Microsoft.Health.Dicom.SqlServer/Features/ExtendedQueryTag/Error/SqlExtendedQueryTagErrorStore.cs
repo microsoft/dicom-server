@@ -36,10 +36,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
                 cancellationToken);
         }
 
-        public async Task<int> DeleteExtendedQueryTagErrorsAsync(string tagPath, CancellationToken cancellationToken = default)
+        public async Task DeleteExtendedQueryTagErrorsAsync(string tagPath, CancellationToken cancellationToken = default)
         {
             ISqlExtendedQueryTagErrorStore store = await _cache.GetAsync(cancellationToken);
-            return await store.DeleteExtendedQueryTagErrorsAsync(tagPath, cancellationToken);
+            await store.DeleteExtendedQueryTagErrorsAsync(tagPath, cancellationToken);
         }
 
         public async Task<IReadOnlyList<ExtendedQueryTagError>> GetExtendedQueryTagErrorsAsync(string tagPath, CancellationToken cancellationToken = default)

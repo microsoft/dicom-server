@@ -96,14 +96,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
             return results;
         }
 
-        public override async Task<int> DeleteExtendedQueryTagErrorsAsync(string tagPath, CancellationToken cancellationToken = default)
+        public override async Task DeleteExtendedQueryTagErrorsAsync(string tagPath, CancellationToken cancellationToken = default)
         {
             using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
             using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
 
             VLatest.DeleteExtendedQueryTagErrors.PopulateCommand(sqlCommandWrapper, tagPath);
 
-            return await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
+            await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
         }
     }
 }

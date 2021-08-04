@@ -162,19 +162,19 @@ namespace Microsoft.Health.Dicom.Core.Modules
                     .AsImplementedInterfaces();
 
                 services.Add<GetExtendedQueryTagsService>()
-                   .Scoped()
-                   .AsSelf()
-                   .AsImplementedInterfaces();
+                    .Scoped()
+                    .AsSelf()
+                    .AsImplementedInterfaces();
 
                 services.Add<AddExtendedQueryTagService>()
-                   .Scoped()
-                   .AsSelf()
-                   .AsImplementedInterfaces();
+                    .Scoped()
+                    .AsSelf()
+                    .AsImplementedInterfaces();
 
                 services.Add<DeleteExtendedQueryTagService>()
-                     .Scoped()
-                     .AsSelf()
-                     .AsImplementedInterfaces();
+                    .Scoped()
+                    .AsSelf()
+                    .AsImplementedInterfaces();
 
                 services.Add<ExtendedQueryTagErrorsService>()
                     .Scoped()
