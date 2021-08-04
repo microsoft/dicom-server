@@ -5,8 +5,7 @@ BEGIN TRANSACTION
 /*************************************************************
     Extended Query Tag Errors Table
     Stores errors from Extended Query Tag operations
-    TagKey, ErrorCode and Watermark is Primary Key
-    TagKey is Foreign Key
+    TagKey and Watermark is Primary Key
 **************************************************************/
 IF NOT EXISTS (
     SELECT * 
@@ -28,7 +27,6 @@ BEGIN
     CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagError ON dbo.ExtendedQueryTagError
     (
         TagKey,
-        ErrorCode,
         Watermark
     )
 END
@@ -560,7 +558,7 @@ GO
 --     AddExtendedQueryTagError
 --
 -- DESCRIPTION
---    Add an Extended Query Tag Error
+--    Adds an Extended Query Tag Error or Updates it if exists.
 --
 -- PARAMETERS
 --     @tagKey
@@ -590,10 +588,10 @@ AS
         IF NOT EXISTS (SELECT * FROM dbo.ExtendedQueryTag WITH (HOLDLOCK) WHERE TagKey = @tagKey)
             THROW 50404, 'Tag does not exist', 1;
         --Check if error with same @@tagKey and @errorCode already exist
-        IF EXISTS (SELECT * FROM dbo.ExtendedQueryTagError WITH (UPDLOCK) WHERE TagKey = @tagKey AND ErrorCode = @errorCode AND Watermark = @watermark)
-            --THROW 50409, 'this extended query tag error already exist', 2
+        IF EXISTS (SELECT * FROM dbo.ExtendedQueryTagError WITH (UPDLOCK) WHERE TagKey = @tagKey AND Watermark = @watermark)
             UPDATE dbo.ExtendedQueryTagError
-            SET CreatedTime = @createdTime
+            SET CreatedTime = @createdTime,
+                ErrorCode = @errorCode
             OUTPUT INSERTED.TagKey
             WHERE TagKey = @tagKey
 

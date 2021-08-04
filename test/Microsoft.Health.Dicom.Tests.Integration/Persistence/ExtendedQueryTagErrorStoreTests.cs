@@ -83,7 +83,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
-
             dataset.Remove(DicomTag.PatientID);
 
             dataset.Add(DicomTag.PatientID, "pid");
@@ -100,7 +99,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenValidExtendedQueryTagError_WhenAddExtendedQueryTagError_ThenTagShouldBeAdded()
         {
-
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
@@ -139,12 +137,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             ExtendedQueryTagStoreEntry actualTagEntry = await CreateTagInStoreAsync();
 
             await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
-                actualTagEntry.Key, 0, _watermark, _definedNow);
-            await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
                 actualTagEntry.Key, 1, _watermark, _definedNow);
 
             var extendedQueryTagErrorBeforeDelete = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(actualTagEntry.Path);
-            Assert.Equal(2, extendedQueryTagErrorBeforeDelete.Count);
+            Assert.Equal(1, extendedQueryTagErrorBeforeDelete.Count);
 
             await _extendedQueryTagErrorStore.DeleteExtendedQueryTagErrorsAsync(actualTagEntry.Path);
 
