@@ -35,7 +35,5 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The response.</returns>
         public Task<GetExtendedQueryTagErrorsResponse> GetExtendedQueryTagErrorsAsync(string tagPath, CancellationToken cancellationToken = default);
-
-
     }
 }

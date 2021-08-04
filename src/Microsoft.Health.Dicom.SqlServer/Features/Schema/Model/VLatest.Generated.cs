@@ -140,7 +140,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly DateTime2Column CreatedTime = new DateTime2Column("CreatedTime", 7);
             internal readonly Index IXC_ExtendedQueryTagError = new Index("IXC_ExtendedQueryTagError");
-            internal readonly Index IX_ExtendedQueryTagError_TagKey = new Index("IX_ExtendedQueryTagError_TagKey");
         }
 
         internal class ExtendedQueryTagLongTable : Table

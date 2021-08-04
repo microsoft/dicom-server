@@ -32,16 +32,6 @@ BEGIN
         Watermark
     )
 END
-IF NOT EXISTS (
-    SELECT * 
-    FROM sys.indexes 
-    WHERE name='IX_ExtendedQueryTagError_TagKey' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagError'))
-BEGIN
-    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagError_TagKey ON dbo.ExtendedQueryTagError
-    (
-        TagKey
-    )
-END
 GO
 
 /*************************************************************
@@ -510,9 +500,8 @@ AS
     BEGIN TRANSACTION
 
         DECLARE @tagKey     INT
-    
         SELECT @tagKey = TagKey
-        FROM dbo.ExtendedQueryTag WITH(XLOCK)
+        FROM dbo.ExtendedQueryTag WITH(HOLDLOCK)
         WHERE dbo.ExtendedQueryTag.TagPath = @tagPath
 
         -- Check existence
