@@ -48,7 +48,6 @@ stages:
       parameters:
         packageArtifacts: false
         analyzeSecurity: false
-        apiVersioning: true
 
 - stage: UpdateTestEnvironment
   displayName: 'Update Test Environment'
