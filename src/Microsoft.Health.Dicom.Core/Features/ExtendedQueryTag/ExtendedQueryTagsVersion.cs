@@ -10,29 +10,29 @@ using EnsureThat;
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     /// <summary>
-    /// ExtendedQueryTag ETag.
+    /// ExtendedQueryTags version.
     /// </summary>
-    public class ExtendedQueryTagETag
+    public class ExtendedQueryTagsVersion
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ExtendedQueryTagETag"/> class.
+        /// Initializes a new instance of the <see cref="ExtendedQueryTagsVersion"/> class.
         /// </summary>
         /// <param name="tagVersions">The tag versions.</param>        
-        public ExtendedQueryTagETag(IReadOnlyCollection<ExtendedQueryTagVersion> tagVersions)
+        public ExtendedQueryTagsVersion(IReadOnlyCollection<ExtendedQueryTagVersion> tagVersions)
         {
             TagVerions = EnsureArg.IsNotNull(tagVersions, nameof(tagVersions));
-            ETag = tagVersions.Count == 0 ? null : tagVersions.Max();
+            Version = tagVersions.Count == 0 ? null : tagVersions.Max();
         }
 
         /// <summary>
-        /// Create   ExtendedQueryTagETag from QueryTag collection.
+        /// Create <see cref="ExtendedQueryTagsVersion"/> from QueryTag collection.
         /// </summary>
         /// <param name="queryTags">The QueryTag collection.</param>
         /// <returns>The ExtendedQueryTagETag.</returns>
-        public static ExtendedQueryTagETag FromQueryTags(IReadOnlyCollection<QueryTag> queryTags)
+        public static ExtendedQueryTagsVersion FromQueryTags(IReadOnlyCollection<QueryTag> queryTags)
         {
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
-            return new ExtendedQueryTagETag(queryTags
+            return new ExtendedQueryTagsVersion(queryTags
                 .Where(x => x.IsExtendedQueryTag && x.ExtendedQueryTagStoreEntry.Version.HasValue)
                 .Select(x => x.ExtendedQueryTagStoreEntry.Version.Value)
                 .ToList());
@@ -44,8 +44,8 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         public IReadOnlyCollection<ExtendedQueryTagVersion> TagVerions { get; }
 
         /// <summary>
-        /// Gets ETag.
+        /// Gets version of the set of tag versions.
         /// </summary>
-        public ExtendedQueryTagVersion? ETag { get; }
+        public ExtendedQueryTagVersion? Version { get; }
     }
 }

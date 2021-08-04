@@ -386,7 +386,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The extended query tag '{0}' is expected to have VR '{1}' but has '{2}' in file.</value>
     <comment>{0}  dicom tag. {1} expected vr code. {2} vr in file.</comment>
   </data>
-  <data name="ExtendedQueryTagETagMismatch" xml:space="preserve">
-    <value>ETag of extended query tag mismatch.</value>
+  <data name="ExtendedQueryTagsVersionMismatch" xml:space="preserve">
+    <value>Version of extended query tags mismatch.</value>
   </data>
 </root>

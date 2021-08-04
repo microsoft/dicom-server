@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
         }
 
         public override SchemaVersion Version => SchemaVersion.V4;
-        public override async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, ExtendedQueryTagETag extendedQueryTagETag, CancellationToken cancellationToken)
+        public override async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, ExtendedQueryTagsVersion extendedQueryTagETag, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
@@ -67,7 +67,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     instance.GetStringDateAsDate(DicomTag.PatientBirthDate),
                     instance.GetSingleValueOrDefault<string>(DicomTag.ManufacturerModelName),
                     (byte)IndexStatus.Creating,
-                    extendedQueryTagETag.ETag?.ToByteArray(),
+                    extendedQueryTagETag.Version?.ToByteArray(),
                     parameters);
 
                 try
@@ -82,7 +82,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                         {
                             (byte)IndexStatus.Creating => new PendingInstanceException(),
                             (byte)IndexStatus.Created => new InstanceAlreadyExistsException(),
-                            _ => new ExtendedQueryTagETagMismatchException(),
+                            _ => new ExtendedQueryTagsVersionMismatchException(),
                         },
                         _ => new DataStoreException(ex),
                     };

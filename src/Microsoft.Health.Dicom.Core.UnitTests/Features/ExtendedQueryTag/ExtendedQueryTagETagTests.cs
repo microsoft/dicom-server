@@ -11,21 +11,21 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
 {
-    public class ExtendedQueryTagETagTests
+    public class ExtendedQueryTagVersionsTests
     {
         [Fact]
-        public void GivenEmptyTagVersionCollection_WhenGetETag_ShouldReturnNull()
+        public void GivenEmptyTagVersionCollection_WhenGetVersion_ShouldReturnNull()
         {
-            Assert.Null(new ExtendedQueryTagETag(Array.Empty<ExtendedQueryTagVersion>()).ETag);
+            Assert.Null(new ExtendedQueryTagsVersion(Array.Empty<ExtendedQueryTagVersion>()).Version);
         }
 
         [Fact]
-        public void GivenNonEmptyTagVersionCollection_WhenGetETag_ShouldReturnMax()
+        public void GivenNonEmptyTagVersionCollection_WhenGetVersion_ShouldReturnMax()
         {
             ExtendedQueryTagVersion version1 = new ExtendedQueryTagVersion(BitConverter.GetBytes(2L));
             ExtendedQueryTagVersion version2 = new ExtendedQueryTagVersion(BitConverter.GetBytes(1L));
 
-            Assert.Equal(version1, new ExtendedQueryTagETag(new[] { version1, version2 }).ETag);
+            Assert.Equal(version1, new ExtendedQueryTagsVersion(new[] { version1, version2 }).Version);
         }
 
         [Fact]
@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             DicomTag tag3 = DicomTag.AbortReason;
             ExtendedQueryTagStoreEntry storeEntry3 = new ExtendedQueryTagStoreEntry(1, tag3.GetPath(), tag3.GetDefaultVR().Code, null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, new ExtendedQueryTagVersion(BitConverter.GetBytes(2L)));
             QueryTag queryTag3 = new QueryTag(storeEntry3); // custom tag with bigger version
-            Assert.Equal(queryTag3.ExtendedQueryTagStoreEntry.Version, ExtendedQueryTagETag.FromQueryTags(new[] { queryTag1, queryTag2, queryTag3 }).ETag);
+            Assert.Equal(queryTag3.ExtendedQueryTagStoreEntry.Version, ExtendedQueryTagsVersion.FromQueryTags(new[] { queryTag1, queryTag2, queryTag3 }).Version);
         }
     }
 }

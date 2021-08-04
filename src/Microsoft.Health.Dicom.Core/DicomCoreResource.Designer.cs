@@ -170,15 +170,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ETag of extended query tag mismatch..
-        /// </summary>
-        internal static string ExtendedQueryTagETagMismatch {
-            get {
-                return ResourceManager.GetString("ExtendedQueryTagETagMismatch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Extended Query Tag feature is disabled..
         /// </summary>
         internal static string ExtendedQueryTagFeatureDisabled {
@@ -211,6 +202,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string ExtendedQueryTagsExceedsMaxAllowedCount {
             get {
                 return ResourceManager.GetString("ExtendedQueryTagsExceedsMaxAllowedCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Version of extended query tags mismatch..
+        /// </summary>
+        internal static string ExtendedQueryTagsVersionMismatch {
+            get {
+                return ResourceManager.GetString("ExtendedQueryTagsVersionMismatch", resourceCulture);
             }
         }
         

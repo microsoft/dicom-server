@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
         public SqlIndexDataStore(VersionedCache<ISqlIndexDataStore> cache)
             => _cache = EnsureArg.IsNotNull(cache, nameof(cache));
 
-        public async Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, ExtendedQueryTagETag extendedQueryTagETag, CancellationToken cancellationToken = default)
+        public async Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, ExtendedQueryTagsVersion extendedQueryTagETag, CancellationToken cancellationToken = default)
         {
             ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken);
             return await store.CreateInstanceIndexAsync(dicomDataset, queryTags, extendedQueryTagETag, cancellationToken);

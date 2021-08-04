@@ -601,8 +601,8 @@ GO
 --          * PersonName extended query tag data
 --      @initialStatus
 --          * Initial status 
---      @extendedQueryTagETag
---          * ExtendedQueryTag ETag
+--      @extendedQueryTagsVersion
+--          * ExtendedQueryTags Version
 -- RETURN VALUE
 --     The watermark (version).
 ------------------------------------------------------------------------
@@ -626,7 +626,7 @@ ALTER PROCEDURE dbo.AddInstance
     @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1 READONLY,
     @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY,
     @initialStatus                      TINYINT,
-    @extendedQueryTagETag               TIMESTAMP = NULL
+    @extendedQueryTagsVersion           TIMESTAMP = NULL
 AS
     SET NOCOUNT ON
 
@@ -640,8 +640,8 @@ AS
     DECLARE @seriesKey BIGINT
     DECLARE @instanceKey BIGINT
 
-    IF @extendedQueryTagETag <> (SELECT MAX(TagVersion) FROM dbo.ExtendedQueryTag)
-        THROW 50409, 'ETag does not match', 10
+    IF @extendedQueryTagsVersion <> (SELECT MAX(TagVersion) FROM dbo.ExtendedQueryTag)
+        THROW 50409, 'Extended query tags version does not match', 10
 
     SELECT @existingStatus = Status
     FROM dbo.Instance

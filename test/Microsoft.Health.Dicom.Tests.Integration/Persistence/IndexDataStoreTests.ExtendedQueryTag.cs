@@ -67,7 +67,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var extendedQueryTagEntry = element.Tag.BuildAddExtendedQueryTagEntry(level: level);
 
             QueryTag queryTag = await AddExtendedQueryTag(extendedQueryTagEntry);
-            var etag = ExtendedQueryTagETag.FromQueryTags(new[] { queryTag });
+            var etag = ExtendedQueryTagsVersion.FromQueryTags(new[] { queryTag });
             try
             {
                 long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag }, etag);
@@ -292,7 +292,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             QueryTag queryTag = await AddExtendedQueryTag(tag.BuildAddExtendedQueryTagEntry(level: level));
             try
             {
-                long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag }, new ExtendedQueryTagETag(Array.Empty<ExtendedQueryTagVersion>()));
+                long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag }, new ExtendedQueryTagsVersion(Array.Empty<ExtendedQueryTagVersion>()));
                 Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, watermark);
                 long? seriesKey = level != QueryTagLevel.Study ? instance.SeriesKey : null;
                 long? instanceKey = level == QueryTagLevel.Instance ? instance.InstanceKey : null;
@@ -336,7 +336,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             dataset.Add(tag, value);
 
             QueryTag queryTag = await AddExtendedQueryTag(tag.BuildAddExtendedQueryTagEntry(level: level));
-            var etag = ExtendedQueryTagETag.FromQueryTags(new QueryTag[] { queryTag });
+            var etag = ExtendedQueryTagsVersion.FromQueryTags(new QueryTag[] { queryTag });
             try
             {
                 // index extended query tags
@@ -396,7 +396,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             dataset.Add(new DicomFloatingPointDouble(DicomTag.DopplerCorrectionAngle, 1.0 + index));
             dataset.Add(new DicomSignedLong(DicomTag.ReferencePixelX0, 1 + index));
             dataset.Add(new DicomPersonName(DicomTag.DistributionNameRETIRED, "abc^abc" + index));
-            var eTag = ExtendedQueryTagETag.FromQueryTags(queryTags);
+            var eTag = ExtendedQueryTagsVersion.FromQueryTags(queryTags);
             long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, queryTags, eTag);
             return await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, watermark);
         }
