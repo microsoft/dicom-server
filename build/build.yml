@@ -1,8 +1,6 @@
 parameters:
   packageArtifacts: true
   analyzeSecurity: true
-
-variables:
   solution: 'Microsoft.Health.Dicom.sln'
   NUGET_PACKAGES: $(Pipeline.Workspace)/.nuget/packages
 
