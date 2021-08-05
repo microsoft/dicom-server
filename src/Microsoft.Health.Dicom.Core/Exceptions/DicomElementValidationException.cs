@@ -11,7 +11,12 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
 {
     public class DicomElementValidationException : ValidationException
     {
-        public DicomElementValidationException(ValidationErrorCode errorCode, string name, DicomVR vr, string message, string value = null)
+        public DicomElementValidationException(ValidationErrorCode errorCode, string name, DicomVR vr, string message)
+           : this(errorCode, name, vr, message, null)
+        {
+        }
+
+        public DicomElementValidationException(ValidationErrorCode errorCode, string name, DicomVR vr, string message, string value)
            : base(message)
         {
             EnsureArg.IsNotNull(name, nameof(name));
