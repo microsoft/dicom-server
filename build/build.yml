@@ -2,6 +2,10 @@ parameters:
   packageArtifacts: true
   analyzeSecurity: true
 
+variables:
+  solution: 'Microsoft.Health.Dicom.sln'
+  NUGET_PACKAGES: $(Pipeline.Workspace)/.nuget/packages
+
 steps:
   - task: UseDotNet@2
     displayName: 'Use .NET Core sdk (for sql generation)'
@@ -12,6 +16,14 @@ steps:
     displayName: 'Use .NET Core sdk'
     inputs:
       useGlobalJson: true
+
+  - task: Cache@2
+    displayName: Cache NuGet packages
+    inputs:
+      key: 'nuget | "$(Agent.OS)" | **/packages.lock.json,!**/bin/**'
+      restoreKeys: |
+        nuget | "$(Agent.OS)"
+      path: $(NUGET_PACKAGES)
 
   - task: DotNetCoreCLI@2
     displayName: 'dotnet build $(buildConfiguration)'
