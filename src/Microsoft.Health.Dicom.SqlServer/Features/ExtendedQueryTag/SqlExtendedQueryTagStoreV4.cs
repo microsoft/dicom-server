@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,6 +32,40 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         }
 
         public override SchemaVersion Version => SchemaVersion.V4;
+
+        public override async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(string path, CancellationToken cancellationToken = default)
+        {
+            List<ExtendedQueryTagStoreEntry> results = new List<ExtendedQueryTagStoreEntry>();
+
+            using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.GetExtendedQueryTag.PopulateCommand(sqlCommandWrapper, path);
+
+                var executionTimeWatch = Stopwatch.StartNew();
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                {
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus, byte[] tagVersion) = reader.ReadRow(
+                            VLatest.ExtendedQueryTag.TagKey,
+                            VLatest.ExtendedQueryTag.TagPath,
+                            VLatest.ExtendedQueryTag.TagVR,
+                            VLatest.ExtendedQueryTag.TagPrivateCreator,
+                            VLatest.ExtendedQueryTag.TagLevel,
+                            VLatest.ExtendedQueryTag.TagStatus,
+                            VLatest.ExtendedQueryTag.TagVersion);
+
+                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, new ExtendedQueryTagVersion(tagVersion)));
+                    }
+
+                    executionTimeWatch.Stop();
+                    Logger.LogInformation(executionTimeWatch.ElapsedMilliseconds.ToString());
+                }
+            }
+
+            return results;
+        }
 
         public override async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsByOperationAsync(Guid operationId, CancellationToken cancellationToken = default)
         {
@@ -61,6 +96,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
             return results;
         }
+
 
         public override async Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(
             IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries,

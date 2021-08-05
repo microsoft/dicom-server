@@ -4,7 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Buffers.Binary;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
@@ -14,7 +17,32 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     /// </summary>
     public struct ExtendedQueryTagVersion : IEquatable<ExtendedQueryTagVersion>, IComparable<ExtendedQueryTagVersion>
     {
-        private readonly byte[] _version;
+        /// <summary>
+        /// Get extended query tag version for a list of tag versions.
+        /// </summary>
+        /// <param name="tagVersions">The tag version collection.</param>
+        /// <returns>The tag version.</returns>
+        public static ExtendedQueryTagVersion? GetExtendedQueryTagVersion(IReadOnlyCollection<ExtendedQueryTagVersion> tagVersions)
+        {
+            EnsureArg.IsNotNull(tagVersions, nameof(tagVersions));
+            return tagVersions.Count == 0 ? null : tagVersions.Max();
+        }
+
+        /// <summary>
+        /// Get extended query tag version for a list of query tags.
+        /// </summary>
+        /// <param name="queryTags">The query tags.</param>
+        /// <returns>The tag version.</returns>>
+        public static ExtendedQueryTagVersion? GetExtendedQueryTagVersion(IReadOnlyCollection<QueryTag> queryTags)
+        {
+            EnsureArg.IsNotNull(queryTags, nameof(queryTags));
+            return GetExtendedQueryTagVersion(queryTags
+                .Where(x => x.IsExtendedQueryTag && x.ExtendedQueryTagStoreEntry.Version.HasValue)
+                .Select(x => x.ExtendedQueryTagStoreEntry.Version.Value)
+                .ToList());
+        }
+
+        private readonly ulong _version;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ExtendedQueryTagVersion"/> class.
@@ -22,21 +50,14 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <param name="version">The version.</param>        
         public ExtendedQueryTagVersion(byte[] version)
         {
-            _version = EnsureArg.IsNotNull(version, nameof(version));
+            EnsureArg.IsNotNull(version, nameof(version));
             Debug.Assert(version.Length == 8, "Version length should be 8");
+            _version = BinaryPrimitives.ReadUInt64BigEndian(version);
         }
 
         public int CompareTo(ExtendedQueryTagVersion other)
         {
-            Debug.Assert(_version.Length == other._version.Length, "Version should have same length");
-            for (int i = 0; i < _version.Length; i++)
-            {
-                if (_version[i] != other._version[i])
-                {
-                    return _version[i] - other._version[i];
-                }
-            }
-            return 0;
+            return _version.CompareTo(other._version);
         }
 
         public bool Equals(ExtendedQueryTagVersion other)
@@ -83,7 +104,9 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
         public byte[] ToByteArray()
         {
-            return _version;
+            byte[] result = new byte[8];
+            BinaryPrimitives.WriteUInt64BigEndian(result, _version);
+            return result;
         }
     }
 }

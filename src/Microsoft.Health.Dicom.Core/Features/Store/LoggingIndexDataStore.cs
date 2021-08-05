@@ -121,7 +121,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         protected IIndexDataStore IndexDataStore { get; }
 
         /// <inheritdoc />
-        public async Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, ExtendedQueryTagsVersion extendedQueryTagETag, CancellationToken cancellationToken)
+        public async Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, ExtendedQueryTagVersion? extendedQueryTagVersion, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
@@ -129,7 +129,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             try
             {
-                long version = await IndexDataStore.CreateInstanceIndexAsync(dicomDataset, queryTags, extendedQueryTagETag, cancellationToken);
+                long version = await IndexDataStore.CreateInstanceIndexAsync(dicomDataset, queryTags, extendedQueryTagVersion, cancellationToken);
 
                 LogCreateInstanceIndexSucceededDelegate(_logger, version, null);
 

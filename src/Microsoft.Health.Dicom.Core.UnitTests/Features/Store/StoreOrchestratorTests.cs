@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             _dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset);
             _dicomInstanceEntry.GetStreamAsync(DefaultCancellationToken).Returns(_stream);
 
-            _indexDataStore.CreateInstanceIndexAsync(_dicomDataset, Arg.Any<IEnumerable<QueryTag>>(), Arg.Any<ExtendedQueryTagsVersion>(), DefaultCancellationToken).Returns(DefaultVersion);
+            _indexDataStore.CreateInstanceIndexAsync(_dicomDataset, Arg.Any<IEnumerable<QueryTag>>(), Arg.Any<ExtendedQueryTagVersion?>(), DefaultCancellationToken).Returns(DefaultVersion);
             _queryTagService.GetQueryTagsAsync(Arg.Any<CancellationToken>())
                 .Returns(Array.Empty<QueryTag>());
 
