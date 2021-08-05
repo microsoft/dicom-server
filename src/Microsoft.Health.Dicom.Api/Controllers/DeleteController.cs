@@ -19,7 +19,8 @@ using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
-    [ModelStateValidator]
+    [ApiVersion("1.0-prerelease")]
+    [QueryModelStateValidator]
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
     public class DeleteController : Controller
     {
@@ -37,8 +38,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         [HttpDelete]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [VersionedRoute(KnownRoutes.StudyRoute)]
         [Route(KnownRoutes.StudyRoute)]
         [AuditEventType(AuditEventSubType.Delete)]
         public async Task<IActionResult> DeleteStudyAsync(string studyInstanceUid)
@@ -53,8 +55,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         [HttpDelete]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [VersionedRoute(KnownRoutes.SeriesRoute)]
         [Route(KnownRoutes.SeriesRoute)]
         [AuditEventType(AuditEventSubType.Delete)]
         public async Task<IActionResult> DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid)
@@ -69,8 +72,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         [HttpDelete]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [VersionedRoute(KnownRoutes.InstanceRoute)]
         [Route(KnownRoutes.InstanceRoute)]
         [AuditEventType(AuditEventSubType.Delete)]
         public async Task<IActionResult> DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)

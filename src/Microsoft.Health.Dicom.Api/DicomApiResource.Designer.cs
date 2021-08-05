@@ -70,15 +70,6 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The dicom file in the request section exceeded the allowed limit of {0} bytes..
-        /// </summary>
-        internal static string DicomFileLengthLimitExceeded {
-            get {
-                return ResourceManager.GetString("DicomFileLengthLimitExceeded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The server encountered an internal error. Please retry the request. If the issue persists, please contact support..
         /// </summary>
         internal static string InternalServerError {
@@ -102,6 +93,15 @@ namespace Microsoft.Health.Dicom.Api {
         internal static string InvalidMultipartContentType {
             get {
                 return ResourceManager.GetString("InvalidMultipartContentType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The request body is not valid. Details: {0}.
+        /// </summary>
+        internal static string InvalidRequestBody {
+            get {
+                return ResourceManager.GetString("InvalidRequestBody", resourceCulture);
             }
         }
         

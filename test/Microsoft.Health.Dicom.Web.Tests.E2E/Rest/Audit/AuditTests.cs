@@ -127,7 +127,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit
         public async Task GivenSearchRequest_WithValidParamsAndNoMatchingResult_ThenAuditLogEntriesShouldBeCreated()
         {
             await ExecuteAndValidate(
-                () => _client.QueryAsync("/studies?StudyDate=20200101"),
+                () => _client.QueryStudyAsync("StudyDate=20200101"),
                 AuditEventSubType.Query,
                 "studies?StudyDate=20200101",
                 HttpStatusCode.NoContent);
@@ -205,7 +205,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit
 
             var response = await action();
 
-            var expectedUri = new Uri($"http://localhost/{expectedPathSegment}");
+            var expectedUri = new Uri($"http://localhost/{DicomApiVersions.Latest}/{expectedPathSegment}");
 
             Assert.Collection(
                 _auditLogger.GetAuditEntriesByOperationAndRequestUri(expectedAction, expectedUri),

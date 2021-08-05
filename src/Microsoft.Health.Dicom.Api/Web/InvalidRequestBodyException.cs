@@ -7,10 +7,10 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Api.Web
 {
-    public class DicomFileLengthLimitExceededException : ValidationException
+    public class InvalidRequestBodyException : ValidationException
     {
-        public DicomFileLengthLimitExceededException(long maxAllowedLength)
-           : base(string.Format(DicomApiResource.DicomFileLengthLimitExceeded, maxAllowedLength))
+        public InvalidRequestBodyException(string message)
+           : base(string.Format(DicomApiResource.InvalidRequestBody, message))
         {
         }
     }

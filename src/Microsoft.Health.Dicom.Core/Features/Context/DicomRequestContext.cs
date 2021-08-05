@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using EnsureThat;
 using Microsoft.Extensions.Primitives;
@@ -13,36 +14,44 @@ namespace Microsoft.Health.Dicom.Core.Features.Context
 {
     public class DicomRequestContext : IDicomRequestContext
     {
-        private readonly string _uriString;
-        private readonly string _baseUriString;
-
-        private Uri _uri;
-        private Uri _baseUri;
-
+        [Obsolete("Please use the other constructor.")]
+        [SuppressMessage("Design", "CA1054:URI-like parameters should not be strings", Justification = "Legacy constructor.")]
         public DicomRequestContext(
             string method,
             string uriString,
             string baseUriString,
+            string correlationId,
+            IDictionary<string, StringValues> requestHeaders,
+            IDictionary<string, StringValues> responseHeaders)
+            : this(method, new Uri(uriString), new Uri(baseUriString), correlationId, requestHeaders, responseHeaders)
+        { }
+
+        public DicomRequestContext(
+            string method,
+            Uri uri,
+            Uri baseUri,
+            string correlationId,
             IDictionary<string, StringValues> requestHeaders,
             IDictionary<string, StringValues> responseHeaders)
         {
             EnsureArg.IsNotNullOrWhiteSpace(method, nameof(method));
-            EnsureArg.IsNotNullOrWhiteSpace(uriString, nameof(uriString));
-            EnsureArg.IsNotNullOrWhiteSpace(baseUriString, nameof(baseUriString));
+            EnsureArg.IsNotNull(uri, nameof(uri));
+            EnsureArg.IsNotNull(baseUri, nameof(baseUri));
             EnsureArg.IsNotNull(responseHeaders, nameof(responseHeaders));
 
             Method = method;
-            _uriString = uriString;
-            _baseUriString = baseUriString;
+            Uri = uri;
+            BaseUri = baseUri;
+            CorrelationId = correlationId;
             RequestHeaders = requestHeaders;
             ResponseHeaders = responseHeaders;
         }
 
         public string Method { get; }
 
-        public Uri BaseUri => _baseUri ?? (_baseUri = new Uri(_baseUriString));
+        public Uri BaseUri { get; }
 
-        public Uri Uri => _uri ?? (_uri = new Uri(_uriString));
+        public Uri Uri { get; }
 
         public string CorrelationId { get; }
 

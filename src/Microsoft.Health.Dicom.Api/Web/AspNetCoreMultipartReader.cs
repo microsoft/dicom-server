@@ -129,7 +129,12 @@ namespace Microsoft.Health.Dicom.Api.Web
                     contentType,
                     await _seekableStreamConverter.ConvertAsync(section.Body, cancellationToken));
             }
-            catch (InvalidMultipartBodyPartException)
+            catch (InvalidDataException)
+            {
+                // This will result in bad request, we need to handle this differently when we make the processing serial.
+                throw new DicomFileLengthLimitExceededException(_storeConfiguration.Value.MaxAllowedDicomFileSize);
+            }
+            catch (IOException)
             {
                 // We can terminate here because it seems like after it encounters the IOException,
                 // next ReadNextSectionAsync will also throws IOException.

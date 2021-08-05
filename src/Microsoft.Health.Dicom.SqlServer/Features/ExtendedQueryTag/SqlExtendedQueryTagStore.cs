@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -43,7 +44,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             _logger = logger;
         }
 
-        public async Task AddExtendedQueryTagsAsync(IEnumerable<ExtendedQueryTagEntry> extendedQueryTagEntries, CancellationToken cancellationToken = default)
+        public async Task AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, CancellationToken cancellationToken = default)
         {
             if (_schemaInformation.Current < SchemaVersionConstants.SupportExtendedQueryTagSchemaVersion)
             {
@@ -113,9 +114,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             return results;
         }
 
-        private static AddExtendedQueryTagsInputTableTypeV1Row ToAddExtendedQueryTagsInputTableTypeV1Row(ExtendedQueryTagEntry entry)
+        private static AddExtendedQueryTagsInputTableTypeV1Row ToAddExtendedQueryTagsInputTableTypeV1Row(AddExtendedQueryTagEntry entry)
         {
-            return new AddExtendedQueryTagsInputTableTypeV1Row(entry.Path, entry.VR, entry.PrivateCreator, (byte)entry.Level);
+            return new AddExtendedQueryTagsInputTableTypeV1Row(entry.Path, entry.VR, entry.PrivateCreator, (byte)((QueryTagLevel)Enum.Parse(typeof(QueryTagLevel), entry.Level, true)));
         }
 
         public async Task DeleteExtendedQueryTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default)

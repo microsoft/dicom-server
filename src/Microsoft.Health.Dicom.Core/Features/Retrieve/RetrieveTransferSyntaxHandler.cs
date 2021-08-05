@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
            {
                 { ResourceType.Study, DescriptorsForGetNonFrameResource(PayloadTypes.MultipartRelated) },
                 { ResourceType.Series, DescriptorsForGetNonFrameResource(PayloadTypes.MultipartRelated) },
-                { ResourceType.Instance, DescriptorsForGetNonFrameResource(PayloadTypes.SinglePart) },
+                { ResourceType.Instance, DescriptorsForGetNonFrameResource(PayloadTypes.SinglePartOrMultipartRelated) },
                 { ResourceType.Frames, DescriptorsForGetFrame() },
            };
 

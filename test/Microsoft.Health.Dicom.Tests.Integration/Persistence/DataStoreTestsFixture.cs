@@ -54,23 +54,22 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             optionsMonitor.Get(BlobConstants.ContainerConfigurationName).Returns(_blobContainerConfiguration);
             optionsMonitor.Get(MetadataConstants.ContainerConfigurationName).Returns(_metadataContainerConfiguration);
 
-            IBlobClientTestProvider testProvider = new BlobClientReadWriteTestProvider(RecyclableMemoryStreamManager);
+            IBlobClientTestProvider testProvider = new BlobClientReadWriteTestProvider(RecyclableMemoryStreamManager, NullLogger<BlobClientReadWriteTestProvider>.Instance);
 
-            var blobClientInitializer = new BlobClientInitializer(testProvider, NullLogger<BlobClientInitializer>.Instance);
-            _blobClient = blobClientInitializer.CreateBlobClient(_blobDataStoreConfiguration);
+            _blobClient = BlobClientFactory.Create(_blobDataStoreConfiguration);
+
+            var blobClientInitializer = new BlobInitializer(_blobClient, testProvider, NullLogger<BlobInitializer>.Instance);
 
             var blobContainerInitializer = new BlobContainerInitializer(_blobContainerConfiguration.ContainerName, NullLogger<BlobContainerInitializer>.Instance);
             var metadataContainerInitializer = new BlobContainerInitializer(_metadataContainerConfiguration.ContainerName, NullLogger<BlobContainerInitializer>.Instance);
 
             await blobClientInitializer.InitializeDataStoreAsync(
-                                            _blobClient,
-                                            _blobDataStoreConfiguration,
                                             new List<IBlobContainerInitializer> { blobContainerInitializer, metadataContainerInitializer });
 
             var jsonSerializer = new JsonSerializer();
             jsonSerializer.Converters.Add(new JsonDicomConverter());
 
-            FileStore = new BlobFileStore(_blobClient, optionsMonitor, RecyclableMemoryStreamManager, Substitute.For<BlobDataStoreConfiguration>());
+            FileStore = new BlobFileStore(_blobClient, optionsMonitor, Substitute.For<BlobDataStoreConfiguration>());
             MetadataStore = new BlobMetadataStore(_blobClient, jsonSerializer, optionsMonitor, RecyclableMemoryStreamManager);
         }
 

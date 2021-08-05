@@ -390,7 +390,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(queryTag);
             var tableAlias = GetTableAlias(dicomTagSqlEntry, queryTag.IsExtendedQueryTag ? queryTag.ExtendedQueryTagStoreEntry.Key : null);
 
-           var fuzzyMatchString = $"\"{fuzzyMatchCondition.Value}*\"";
+            var fuzzyMatchString = $"\"{fuzzyMatchCondition.Value}*\"";
             _stringBuilder
                 .Append("AND ");
 

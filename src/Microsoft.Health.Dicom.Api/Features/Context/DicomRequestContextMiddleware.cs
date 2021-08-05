@@ -3,11 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
-using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.Dicom.Api.Features.Context
 {
@@ -28,24 +29,25 @@ namespace Microsoft.Health.Dicom.Api.Features.Context
             EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
             HttpRequest request = context.Request;
 
-            string baseUriInString = UriHelper.BuildAbsolute(
+            var baseUri = new Uri(UriHelper.BuildAbsolute(
                 request.Scheme,
                 request.Host,
-                request.PathBase);
+                request.PathBase));
 
-            string uriInString = UriHelper.BuildAbsolute(
+            var uri = new Uri(UriHelper.BuildAbsolute(
                 request.Scheme,
                 request.Host,
                 request.PathBase,
                 request.Path,
-                request.QueryString);
+                request.QueryString));
 
             var dicomRequestContext = new DicomRequestContext(
                 method: request.Method,
-                uriString: uriInString,
-                baseUriString: baseUriInString,
-                requestHeaders: context.Request.Headers,
-                responseHeaders: context.Response.Headers);
+                uri,
+                baseUri,
+                correlationId: System.Diagnostics.Activity.Current?.RootId,
+                context.Request.Headers,
+                context.Response.Headers);
 
             dicomRequestContextAccessor.RequestContext = dicomRequestContext;
 

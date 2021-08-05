@@ -11,9 +11,14 @@ namespace Microsoft.Health.Dicom.Tests.Common.Extensions
 {
     public static class DicomTagExtensions
     {
-        public static ExtendedQueryTagEntry BuildExtendedQueryTagEntry(this DicomTag tag, string vr = null, string privateCreator = null, QueryTagLevel level = QueryTagLevel.Series, ExtendedQueryTagStatus status = ExtendedQueryTagStatus.Ready)
+        public static AddExtendedQueryTagEntry BuildAddExtendedQueryTagEntry(this DicomTag tag, string vr = null, string privateCreator = null, QueryTagLevel level = QueryTagLevel.Series)
         {
-            return new ExtendedQueryTagEntry { Path = tag.GetPath(), VR = vr ?? tag.GetDefaultVR()?.Code, PrivateCreator = privateCreator, Level = level, Status = status };
+            return new AddExtendedQueryTagEntry { Path = tag.GetPath(), VR = vr ?? tag.GetDefaultVR()?.Code, PrivateCreator = privateCreator, Level = level.ToString() };
+        }
+
+        public static GetExtendedQueryTagEntry BuildGetExtendedQueryTagEntry(this DicomTag tag, string vr = null, string privateCreator = null, QueryTagLevel level = QueryTagLevel.Series, ExtendedQueryTagStatus status = ExtendedQueryTagStatus.Ready)
+        {
+            return new GetExtendedQueryTagEntry { Path = tag.GetPath(), VR = vr ?? tag.GetDefaultVR()?.Code, PrivateCreator = privateCreator, Level = level, Status = status };
         }
 
         public static ExtendedQueryTagStoreEntry BuildExtendedQueryTagStoreEntry(this DicomTag tag, int key = 1, string vr = null, string privateCreator = null, QueryTagLevel level = QueryTagLevel.Series, ExtendedQueryTagStatus status = ExtendedQueryTagStatus.Ready)

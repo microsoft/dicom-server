@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -6,16 +6,16 @@
 
   <ItemGroup>
     <PackageReference Include="fo-dicom" Version="4.0.7" />
-    <PackageReference Include="Hl7.Fhir.R4" Version="1.9.0" />
-    <PackageReference Include="Hl7.Fhir.Support" Version="1.9.0" />
-    <PackageReference Include="Hl7.Fhir.Support.Poco" Version="1.9.0" />
+    <PackageReference Include="Hl7.Fhir.R4" Version="$(Hl7FhirPackageVersion)" />
+    <PackageReference Include="Hl7.Fhir.Support" Version="$(Hl7FhirPackageVersion)" />
+    <PackageReference Include="Hl7.Fhir.Support.Poco" Version="$(Hl7FhirPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Core" Version="$(HealthcareSharedPackageVersion)" />
-    <PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="1.0.869" />
+    <PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="$(FhirServerPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Test.Utilities" Version="$(HealthcareSharedPackageVersion)" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
     <PackageReference Include="NSubstitute" Version="4.2.2" />
     <PackageReference Include="Polly" Version="7.2.2" />
     <PackageReference Include="xunit" Version="2.4.1" />

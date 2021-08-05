@@ -20,16 +20,16 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v2.3.4
 
     - name: Setup dotnet (for SQL generation)
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v1.8.1
       if: ${{ matrix.language == 'csharp' }}
       with:
         dotnet-version: '3.1.401'
 
     - name: Setup dotnet (based on Global config)
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v1.8.1
       if: ${{ matrix.language == 'csharp' }}
 
     # Initializes the CodeQL tools for scanning.
@@ -45,9 +45,9 @@ jobs:
     # Build C# solutions manually
     - name: dotnet build
       run: |
-        dotnet build Microsoft.Health.Dicom.sln -c Release -p:ContinuousIntegrationBuild=true
-        dotnet build converter/dicom-cast/Microsoft.Health.DicomCast.sln -c Release -p:ContinuousIntegrationBuild=true
-        dotnet build tools/scale-testing/ScaleTesting.sln -c Release -p:ContinuousIntegrationBuild=true
+        dotnet build Microsoft.Health.Dicom.sln -c Release -p:ContinuousIntegrationBuild=true -warnaserror
+        dotnet build converter/dicom-cast/Microsoft.Health.DicomCast.sln -c Release -p:ContinuousIntegrationBuild=true -warnaserror
+        dotnet build tools/scale-testing/ScaleTesting.sln -c Release -p:ContinuousIntegrationBuild=true -warnaserror
       if: ${{ matrix.language == 'csharp' }}
 
     - name: Perform CodeQL Analysis

@@ -32,7 +32,15 @@ namespace Microsoft.Extensions.DependencyInjection
             EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder));
             IServiceCollection services = dicomServerBuilder.Services;
 
-            services.AddSqlServerBase<SchemaVersion>(configurationRoot);
+            services
+                .AddSqlServerConnection(
+                    config =>
+                    {
+                        configurationRoot?.GetSection(SqlServerDataStoreConfiguration.SectionName).Bind(config);
+                        configureAction?.Invoke(config);
+                    })
+                .AddSqlServerManagement<SchemaVersion>();
+
             services.AddSqlServerApi();
 
             var config = new SqlServerDataStoreConfiguration();
@@ -53,7 +61,12 @@ namespace Microsoft.Extensions.DependencyInjection
             services.Add<SqlIndexDataStoreV1>()
                 .Scoped()
                 .AsImplementedInterfaces();
+
             services.Add<SqlIndexDataStoreV2>()
+                .Scoped()
+                .AsImplementedInterfaces();
+
+            services.Add<SqlIndexDataStoreV3>()
                 .Scoped()
                 .AsImplementedInterfaces();
 

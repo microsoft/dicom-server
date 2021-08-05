@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "952e62f2-7734-4041-9be3-b3018e4069f3",
+		"_postman_id": "17bcaefa-8e28-4062-a1a6-e34e280c1117",
 		"name": "Conformance-as-Postman",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -11,7 +11,6 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "855fa304-6be9-49e9-a2cb-4621bcedfd39",
 						"exec": [
 							""
 						],
@@ -72,7 +71,6 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "56e8a470-994f-4e29-ae98-c31a6a3b939a",
 						"exec": [
 							""
 						],
@@ -133,7 +131,6 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "daaf4159-f132-4e6f-8b6a-6608dba620f3",
 						"exec": [
 							""
 						],
@@ -194,7 +191,6 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "684d82bf-239b-4337-abb0-41062cf284d3",
 						"exec": [
 							""
 						],
@@ -283,7 +279,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "cb7ea544-e203-4315-b704-72be4d775122",
 						"exec": [
 							"pm.test(\"Status code is 200\", function () {\r",
 							"    pm.response.to.have.status(200);\r",
@@ -328,7 +323,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "c1da3890-2a5a-4f3b-98bc-e95f925ca9fa",
 						"exec": [
 							"pm.test(\"Status code is 200\", function () {\r",
 							"    pm.response.to.have.status(200);\r",
@@ -378,7 +372,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "6e257662-2155-479a-be78-039264908531",
 						"exec": [
 							"pm.test(\"Status code is 200\", function () {\r",
 							"    pm.response.to.have.status(200);\r",
@@ -838,7 +831,6 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "51a1cedd-d84d-43c6-8952-166f3a4262c1",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -848,7 +840,6 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "2a90d325-3343-46f3-8251-85c3f20d38fc",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -858,30 +849,24 @@
 	],
 	"variable": [
 		{
-			"id": "195d429b-8341-43de-9694-10c686612653",
 			"key": "baseUrl",
-			"value": "http://{service-name}.azurewebsites.net"
+			"value": "http://{service-name}.azurewebsites.net/v1.0-prerelease"
 		},
 		{
-			"id": "919e2ffd-e824-46ec-a4b9-282e7cf2c4ff",
 			"key": "study1",
 			"value": "1.2.826.0.1.3680043.8.498.13230779778012324449356534479549187420"
 		},
 		{
-			"id": "d923ca04-35f4-46c3-9b24-263333f17e6c",
 			"key": "series1",
 			"value": "1.2.826.0.1.3680043.8.498.45787841905473114233124723359129632652"
 		},
 		{
-			"id": "2031f78b-8259-49e2-b0e9-1fe2e348feda",
 			"key": "instance1",
 			"value": "1.2.826.0.1.3680043.8.498.47359123102728459884412887463296905395"
 		},
 		{
-			"id": "99a4561f-ca42-4777-85ce-a2051b10a074",
 			"key": "instance2",
 			"value": "1.2.826.0.1.3680043.8.498.12714725698140337137334606354172323212\n"
 		}
-	],
-	"protocolProfileBehavior": {}
+	]
 }

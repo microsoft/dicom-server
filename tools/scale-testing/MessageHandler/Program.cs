@@ -27,11 +27,11 @@ namespace MessageHandler
 {
     public static class Program
     {
-        private static string _serviceBusConnectionString;
-        private static string _topicName;
+        private static string s_serviceBusConnectionString;
+        private static string s_topicName;
 
-        private static ISubscriptionClient subscriptionClient;
-        private static IDicomWebClient client;
+        private static ISubscriptionClient s_subscriptionClient;
+        private static IDicomWebClient s_client;
 
         public static async Task Main()
         {
@@ -49,7 +49,7 @@ namespace MessageHandler
 
             KeyVaultSecret secret = client.GetSecret(KnownSecretNames.ServiceBusConnectionString);
 
-            _serviceBusConnectionString = secret.Value;
+            s_serviceBusConnectionString = secret.Value;
 
             secret = client.GetSecret(KnownSecretNames.AppConfigurationConnectionString);
             var builder = new ConfigurationBuilder();
@@ -57,9 +57,9 @@ namespace MessageHandler
 
             IConfigurationRoot config = builder.Build();
             var runType = config[KnownConfigurationNames.RunType];
-            _topicName = runType;
+            s_topicName = runType;
 
-            subscriptionClient = new SubscriptionClient(_serviceBusConnectionString, _topicName, KnownSubscriptions.S1, ReceiveMode.PeekLock);
+            s_subscriptionClient = new SubscriptionClient(s_serviceBusConnectionString, s_topicName, KnownSubscriptions.S1, ReceiveMode.PeekLock);
             using var httpClient = new HttpClient
             {
                 BaseAddress = new Uri(KnownApplicationUrls.DicomServerUrl),
@@ -72,12 +72,12 @@ namespace MessageHandler
 
             Thread.Sleep(TimeSpan.FromSeconds(10000));
 
-            await subscriptionClient.CloseAsync();
+            await s_subscriptionClient.CloseAsync();
         }
 
         private static void SetupDicomWebClient(HttpClient httpClient)
         {
-            client = new DicomWebClient(httpClient);
+            s_client = new DicomWebClient(httpClient);
         }
 
         public static void RegisterOnMessageHandlerAndReceiveMessages()
@@ -96,7 +96,7 @@ namespace MessageHandler
             };
 
             // Register the function that processes messages.
-            subscriptionClient.RegisterMessageHandler(ProcessMessagesAsync, messageHandlerOptions);
+            s_subscriptionClient.RegisterMessageHandler(ProcessMessagesAsync, messageHandlerOptions);
         }
 
         private static async Task ProcessMessagesAsync(Message message, CancellationToken token)
@@ -104,7 +104,7 @@ namespace MessageHandler
             // Process the message.
             Console.WriteLine($"Received message: SequenceNumber:{message.SystemProperties.SequenceNumber} Body:{Encoding.UTF8.GetString(message.Body)}");
 
-            switch (_topicName)
+            switch (s_topicName)
             {
                 case KnownTopics.StowRs:
                 case KnownTopics.StowRsTest:
@@ -128,7 +128,7 @@ namespace MessageHandler
             }
 
             // Complete the message so that it is not received again.
-            await subscriptionClient.CompleteAsync(message.SystemProperties.LockToken);
+            await s_subscriptionClient.CompleteAsync(message.SystemProperties.LockToken);
         }
 
         private static async Task Stow(Message message, CancellationToken token)
@@ -144,7 +144,7 @@ namespace MessageHandler
                         columns: 100,
                         frames: 50);
 
-            DicomWebResponse<DicomDataset> response = await client.StoreAsync(new List<DicomFile>() { dicomFile }, cancellationToken: token);
+            DicomWebResponse<DicomDataset> response = await s_client.StoreAsync(new List<DicomFile>() { dicomFile }, cancellationToken: token);
 
             int statusCode = (int)response.StatusCode;
             if (statusCode != 409 && statusCode < 200 && statusCode > 299)
@@ -161,15 +161,15 @@ namespace MessageHandler
 
             if (sopInstanceUid != null)
             {
-                await client.RetrieveInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken: token);
+                await s_client.RetrieveInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken: token);
             }
             else if (seriesInstanceUid != null)
             {
-                await client.RetrieveSeriesAsync(studyInstanceUid, seriesInstanceUid, cancellationToken: token);
+                await s_client.RetrieveSeriesAsync(studyInstanceUid, seriesInstanceUid, cancellationToken: token);
             }
             else
             {
-                await client.RetrieveStudyAsync(studyInstanceUid, cancellationToken: token);
+                await s_client.RetrieveStudyAsync(studyInstanceUid, cancellationToken: token);
             }
 
             return;
@@ -181,15 +181,15 @@ namespace MessageHandler
 
             if (sopInstanceUid != null)
             {
-                await client.RetrieveInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken: token);
+                await s_client.RetrieveInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken: token);
             }
             else if (seriesInstanceUid != null)
             {
-                await client.RetrieveSeriesMetadataAsync(studyInstanceUid, seriesInstanceUid, cancellationToken: token);
+                await s_client.RetrieveSeriesMetadataAsync(studyInstanceUid, seriesInstanceUid, cancellationToken: token);
             }
             else
             {
-                await client.RetrieveStudyMetadataAsync(studyInstanceUid, cancellationToken: token);
+                await s_client.RetrieveStudyMetadataAsync(studyInstanceUid, cancellationToken: token);
             }
 
             return;
@@ -197,9 +197,8 @@ namespace MessageHandler
 
         private static async Task Qido(Message message, CancellationToken token)
         {
-            string relativeUrl = Encoding.UTF8.GetString(message.Body);
-            await client.QueryAsync(relativeUrl, cancellationToken: token);
-            return;
+            var queryParam = Encoding.UTF8.GetString(message.Body);
+            await s_client.QueryStudyAsync(queryParam, cancellationToken: token);
         }
 
         private static (string, string, string) ParseMessageForUids(Message message)

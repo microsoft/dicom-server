@@ -179,8 +179,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                         ORDER BY {VLatest.DeletedInstance.Watermark}";
 
                     sqlCommand.Parameters.AddWithValue("@studyInstanceUid", studyInstanceUid);
-                    sqlCommand.Parameters.AddWithValue("@seriesInstanceUid", string.IsNullOrEmpty(seriesInstanceUid) ? DBNull.Value : (object)seriesInstanceUid);
-                    sqlCommand.Parameters.AddWithValue("@sopInstanceUid", string.IsNullOrEmpty(sopInstanceUid) ? DBNull.Value : (object)sopInstanceUid);
+                    sqlCommand.Parameters.AddWithValue("@seriesInstanceUid", string.IsNullOrEmpty(seriesInstanceUid) ? DBNull.Value : seriesInstanceUid);
+                    sqlCommand.Parameters.AddWithValue("@sopInstanceUid", string.IsNullOrEmpty(sopInstanceUid) ? DBNull.Value : sopInstanceUid);
 
                     using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync())
                     {
@@ -227,6 +227,23 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 }
 
                 return result;
+            }
+        }
+
+        public async Task ClearDeletedInstanceTable()
+        {
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                await sqlConnection.OpenAsync();
+
+                using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = @$"
+                        DELETE
+                        FROM {VLatest.DeletedInstance.TableName}";
+
+                    await sqlCommand.ExecuteNonQueryAsync();
+                }
             }
         }
 

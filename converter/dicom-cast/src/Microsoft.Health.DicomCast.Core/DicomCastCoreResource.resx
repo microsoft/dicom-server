@@ -186,4 +186,8 @@
   <data name="TransactionFailed" xml:space="preserve">
     <value>The transaction failed. Please examine the OperationOutcome for more detail.</value>
   </data>
+  <data name="UnknownResourceType" xml:space="preserve">
+    <value>The type name '{0}' is not a recognized resource type.</value>
+    <comment>{0} is the type name.</comment>
+  </data>
 </root>

@@ -26,16 +26,16 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             _extendedQueryTagEntryValidator = extendedQueryTagEntryValidator;
         }
 
-        public async Task<AddExtendedQueryTagResponse> AddExtendedQueryTagAsync(IEnumerable<ExtendedQueryTagEntry> extendedQueryTags, CancellationToken cancellationToken)
+        public async Task<AddExtendedQueryTagResponse> AddExtendedQueryTagAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags, CancellationToken cancellationToken)
         {
             _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(extendedQueryTags);
 
-            IEnumerable<ExtendedQueryTagEntry> result = extendedQueryTags.Select(item => item.Normalize(ExtendedQueryTagStatus.Ready));
+            IEnumerable<AddExtendedQueryTagEntry> result = extendedQueryTags.Select(item => item.Normalize());
 
             await _extendedQueryTagStore.AddExtendedQueryTagsAsync(result, cancellationToken);
 
-            // Current solution is synchronouse, no job uri is generated, so always return emtpy.
-            return new AddExtendedQueryTagResponse(job: string.Empty);
+            // Current solution is synchronous, no job uri is generated, so always return blank response.
+            return new AddExtendedQueryTagResponse();
         }
     }
 }

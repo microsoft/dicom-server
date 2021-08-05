@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -36,7 +37,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenSupportedAcceptHeaders_WhenRetrieveFrame_ThenServerShouldReturnExpectedContent(string testDataFolder, string mediaType, string transferSyntax)
         {
             TranscoderTestData transcoderTestData = TranscoderTestDataHelper.GetTestData(testDataFolder);
-            DicomFile inputDicomFile = await DicomFile.OpenAsync(transcoderTestData.InputDicomFile);             
+            DicomFile inputDicomFile = await DicomFile.OpenAsync(transcoderTestData.InputDicomFile);
             var instanceId = RandomizeInstanceIdentifier(inputDicomFile.Dataset);
 
             await InternalStoreAsync(new[] { inputDicomFile });
@@ -48,9 +49,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 instanceId.StudyInstanceUid,
                 instanceId.SeriesInstanceUid,
                 instanceId.SopInstanceUid,
+                frames: new[] { 1 },
                 mediaType,
-                transferSyntax,
-                frames: new[] { 1 });
+                transferSyntax);
 
             int frameIndex = 0;
 
@@ -63,12 +64,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData(true, DicomWebConstants.ApplicationOctetStreamMediaType, DicomWebConstants.OriginalDicomTransferSyntax)] // use single part instead of multiple part
-        [InlineData(false, DicomWebConstants.ImagePngMediaType, DicomWebConstants.OriginalDicomTransferSyntax)] // unsupported media type image/png
-        [InlineData(false, DicomWebConstants.ApplicationOctetStreamMediaType, "1.2.840.10008.1.2.4.100")] // unsupported media type MPEG2
+        [MemberData(nameof(GetUnsupportedAcceptHeadersForFrames))]
         public async Task GivenUnsupportedAcceptHeaders_WhenRetrieveFrame_ThenServerShouldReturnNotAcceptable(bool singlePart, string mediaType, string transferSyntax)
         {
-            var requestUri = new Uri(string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), string.Join("%2C", new int[] { 1 })), UriKind.Relative);
+            var requestUri = new Uri(DicomApiVersions.Latest + string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), string.Join("%2C", new int[] { 1 })), UriKind.Relative);
 
             using HttpRequestMessage request = new HttpRequestMessageBuilder().Build(requestUri, singlePart: singlePart, mediaType, transferSyntax);
             using HttpResponseMessage response = await _client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
@@ -172,18 +171,26 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData("0")]
-        [InlineData("0.6")]
-        [InlineData("-1")]
-        [InlineData("1", "-1")]
-        [InlineData("test")]
-        [InlineData("0", "1", "invalid")]
-        public async Task GivenInvalidFrames_WhenRetrievingFrame_TheServerShouldReturnBadRequest(params string[] frames)
+        [InlineData(0)]
+        [InlineData(-1)]
+        [InlineData(1, -1)]
+        [InlineData(0, 1)]
+        public async Task GivenInvalidFrames_WhenRetrievingFrame_TheServerShouldReturnBadRequest(params int[] frames)
         {
             var requestUri = new Uri(string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), string.Join("%2C", frames)), UriKind.Relative);
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-               () => _client.RetrieveFramesAsync(requestUri));
+               () => _client.RetrieveFramesAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), frames));
             Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
+        }
+
+        public static IEnumerable<object[]> GetUnsupportedAcceptHeadersForFrames
+        {
+            get
+            {
+                yield return new object[] { true, DicomWebConstants.ApplicationOctetStreamMediaType, DicomWebConstants.OriginalDicomTransferSyntax }; // use single part instead of multiple part
+                yield return new object[] { false, DicomWebConstants.ImagePngMediaType, DicomWebConstants.OriginalDicomTransferSyntax }; // unsupported media type image/png
+                yield return new object[] { false, DicomWebConstants.ApplicationOctetStreamMediaType, "1.2.840.10008.1.2.4.100" }; // unsupported media type MPEG2
+            }
         }
     }
 }

@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -29,7 +28,8 @@ using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
-    [ModelStateValidator]
+    [ApiVersion("1.0-prerelease")]
+    [QueryModelStateValidator]
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
     public class RetrieveController : Controller
     {
@@ -46,11 +46,13 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             _logger = logger;
         }
 
-        [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
+        [Produces(KnownContentTypes.MultipartRelated)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
+        [VersionedRoute(KnownRoutes.StudyRoute, Name = KnownRouteNames.VersionedRetrieveStudy)]
         [Route(KnownRoutes.StudyRoute, Name = KnownRouteNames.RetrieveStudy)]
         [AuditEventType(AuditEventSubType.Retrieve)]
         public async Task<IActionResult> GetStudyAsync(string studyInstanceUid)
@@ -63,12 +65,14 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+        [Produces(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType((int)HttpStatusCode.NotModified)]
         [HttpGet]
+        [VersionedRoute(KnownRoutes.StudyMetadataRoute)]
         [Route(KnownRoutes.StudyMetadataRoute)]
         [AuditEventType(AuditEventSubType.RetrieveMetadata)]
         public async Task<IActionResult> GetStudyMetadataAsync([FromHeader(Name = IfNoneMatch)] string ifNoneMatch, string studyInstanceUid)
@@ -80,12 +84,14 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
-        [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
+        [Produces(KnownContentTypes.MultipartRelated)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
-        [Route(KnownRoutes.SeriesRoute)]
+        [VersionedRoute(KnownRoutes.SeriesRoute, Name = KnownRouteNames.VersionedRetrieveSeries)]
+        [Route(KnownRoutes.SeriesRoute, Name = KnownRouteNames.RetrieveSeries)]
         [AuditEventType(AuditEventSubType.Retrieve)]
         public async Task<IActionResult> GetSeriesAsync(
             string studyInstanceUid,
@@ -100,12 +106,14 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
-        [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
+        [Produces(KnownContentTypes.ApplicationDicomJson)]
+        [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType((int)HttpStatusCode.NotModified)]
         [HttpGet]
+        [VersionedRoute(KnownRoutes.SeriesMetadataRoute)]
         [Route(KnownRoutes.SeriesMetadataRoute)]
         [AuditEventType(AuditEventSubType.RetrieveMetadata)]
         public async Task<IActionResult> GetSeriesMetadataAsync([FromHeader(Name = IfNoneMatch)] string ifNoneMatch, string studyInstanceUid, string seriesInstanceUid)
@@ -118,11 +126,13 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
-        [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
+        [Produces(KnownContentTypes.ApplicationDicom, KnownContentTypes.MultipartRelated)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
+        [VersionedRoute(KnownRoutes.InstanceRoute, Name = KnownRouteNames.VersionedRetrieveInstance)]
         [Route(KnownRoutes.InstanceRoute, Name = KnownRouteNames.RetrieveInstance)]
         [AuditEventType(AuditEventSubType.Retrieve)]
         public async Task<IActionResult> GetInstanceAsync(
@@ -142,12 +152,14 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
-        [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
+        [Produces(KnownContentTypes.ApplicationDicomJson)]
+        [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType((int)HttpStatusCode.NotModified)]
         [HttpGet]
+        [VersionedRoute(KnownRoutes.InstanceMetadataRoute)]
         [Route(KnownRoutes.InstanceMetadataRoute)]
         [AuditEventType(AuditEventSubType.RetrieveMetadata)]
         public async Task<IActionResult> GetInstanceMetadataAsync(
@@ -164,19 +176,20 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return CreateResult(response);
         }
 
-        [ProducesResponseType(typeof(Stream), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(IEnumerable<Stream>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
+        [Produces(KnownContentTypes.MultipartRelated)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
-        [Route(KnownRoutes.FrameRoute)]
+        [VersionedRoute(KnownRoutes.FrameRoute, Name = KnownRouteNames.VersionedRetrieveFrame)]
+        [Route(KnownRoutes.FrameRoute, Name = KnownRouteNames.RetrieveFrame)]
         [AuditEventType(AuditEventSubType.Retrieve)]
         public async Task<IActionResult> GetFramesAsync(
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
-            [ModelBinder(typeof(IntArrayModelBinder))] int[] frames)
+            [FromRoute][ModelBinder(typeof(IntArrayModelBinder))] int[] frames)
         {
             _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: {studyInstanceUid}, series: {seriesInstanceUid}, instance: {sopInstanceUid}, frames: {frames}.", studyInstanceUid, seriesInstanceUid, sopInstanceUid, string.Join(", ", frames ?? Array.Empty<int>()));
             RetrieveResourceResponse response = await _mediator.RetrieveDicomFramesAsync(

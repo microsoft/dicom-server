@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using Hl7.Fhir.Model;
+using Hl7.Fhir.Utility;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using Xunit;
 
@@ -16,7 +17,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         private const string DefaultResourceId = "r123";
         private const string ResourceReference = "Patient/r123";
 
-        private ServerResourceId _serverResourceId = new ServerResourceId(DefaultResourceType, DefaultResourceId);
+        private static readonly ServerResourceId ServerResourceId = new ServerResourceId(DefaultResourceType, DefaultResourceId);
 
         public static IEnumerable<object[]> GetDifferentServerResourceIdCombinations()
         {
@@ -28,14 +29,14 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [Fact]
         public void GivenTheSystem_WhenNewServerResourceIdIsGenerated_ThenCorrectValuesShouldBeSet()
         {
-            Assert.Equal(DefaultResourceType, _serverResourceId.ResourceType);
-            Assert.Equal(DefaultResourceId, _serverResourceId.ResourceId);
+            Assert.Equal(EnumUtility.GetLiteral(ResourceType.Patient), ServerResourceId.TypeName);
+            Assert.Equal(DefaultResourceId, ServerResourceId.ResourceId);
         }
 
         [Fact]
         public void GivenAServerResourceId_WhenConvertedToResourceReference_ThenCorrectResourceReferenceShouldBeCreated()
         {
-            ResourceReference resourceReference = _serverResourceId.ToResourceReference();
+            ResourceReference resourceReference = ServerResourceId.ToResourceReference();
 
             Assert.NotNull(resourceReference);
             Assert.Equal(ResourceReference, resourceReference.Reference);
@@ -46,7 +47,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         {
             var newServerResourceId = new ServerResourceId(DefaultResourceType, DefaultResourceId);
 
-            Assert.Equal(_serverResourceId.GetHashCode(), newServerResourceId.GetHashCode());
+            Assert.Equal(ServerResourceId.GetHashCode(), newServerResourceId.GetHashCode());
         }
 
         [Theory]
@@ -55,63 +56,63 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         {
             var newServerResourceId = new ServerResourceId(resourceType, resourceId);
 
-            Assert.NotEqual(_serverResourceId.GetHashCode(), newServerResourceId.GetHashCode());
+            Assert.NotEqual(ServerResourceId.GetHashCode(), newServerResourceId.GetHashCode());
         }
 
         [Fact]
         public void GivenAServerResourceId_WhenCheckingEqualToNullUsingObjectEquals_ThenFalseShouldBeReturned()
         {
-            Assert.False(_serverResourceId.Equals((object)null));
+            Assert.False(ServerResourceId.Equals((object)null));
         }
 
         [Fact]
         public void GivenAServerResourceId_WhenCheckingEqualToSameServerResourceIdUsingObjectEquals_ThenFalseShouldBeReturned()
         {
-            Assert.True(_serverResourceId.Equals((object)_serverResourceId));
+            Assert.True(ServerResourceId.Equals((object)ServerResourceId));
         }
 
         [Fact]
         public void GivenAServerResourceId_WhenCheckingEqualToSameServerResourceIdUsingObjectEquals_ThenTrueShouldBeReturned()
         {
-            Assert.True(_serverResourceId.Equals((object)new ServerResourceId(DefaultResourceType, DefaultResourceId)));
+            Assert.True(ServerResourceId.Equals((object)new ServerResourceId(DefaultResourceType, DefaultResourceId)));
         }
 
         [Theory]
         [MemberData(nameof(GetDifferentServerResourceIdCombinations))]
         public void GivenAServerResourceId_WhenCheckingEqualToDifferentServerResourceIdUsingObjectEquals_ThenFalseShouldBeReturned(ResourceType resourceType, string resourceId)
         {
-            Assert.False(_serverResourceId.Equals((object)new ServerResourceId(resourceType, resourceId)));
+            Assert.False(ServerResourceId.Equals((object)new ServerResourceId(resourceType, resourceId)));
         }
 
         [Fact]
         public void GivenAServerResourceId_WhenCheckingEqualToNullUsingIEquatableEquals_ThenFalseShouldBeReturned()
         {
-            Assert.False(_serverResourceId.Equals(null));
+            Assert.False(ServerResourceId.Equals(null));
         }
 
         [Fact]
         public void GivenAServerResourceId_WhenCheckingEqualToSameServerResourceIdUsingIEquatableEquals_ThenFalseShouldBeReturned()
         {
-            Assert.True(_serverResourceId.Equals(_serverResourceId));
+            Assert.True(ServerResourceId.Equals(ServerResourceId));
         }
 
         [Fact]
         public void GivenAServerResourceId_WhenCheckingEqualToSameServerResourceIdUsingIEquatableEquals_ThenTrueShouldBeReturned()
         {
-            Assert.True(_serverResourceId.Equals(new ServerResourceId(DefaultResourceType, DefaultResourceId)));
+            Assert.True(ServerResourceId.Equals(new ServerResourceId(DefaultResourceType, DefaultResourceId)));
         }
 
         [Theory]
         [MemberData(nameof(GetDifferentServerResourceIdCombinations))]
         public void GivenAServerResourceId_WhenCheckingEqualToDifferentServerResourceIdUsingIEquatableEquals_ThenFalseShouldBeReturned(ResourceType resourceType, string resourceId)
         {
-            Assert.False(_serverResourceId.Equals(new ServerResourceId(resourceType, resourceId)));
+            Assert.False(ServerResourceId.Equals(new ServerResourceId(resourceType, resourceId)));
         }
 
         [Fact]
         public void GivenAServerResourceId_WhenConvertedToString_ThenCorrectValueShouldBeReturned()
         {
-            Assert.Equal(ResourceReference, _serverResourceId.ToString());
+            Assert.Equal(ResourceReference, ServerResourceId.ToString());
         }
     }
 }

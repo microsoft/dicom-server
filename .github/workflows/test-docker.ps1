@@ -2,7 +2,7 @@
 
 #region start docker
 <#[SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="random test password for sql")]#>
-$env:SAPASSWORD='123!@#passforCI#$' 
+$env:SAPASSWORD='123!@#passforCI#$'
 docker-compose  -f samples/docker/docker-compose.yaml up -d
 echo 'docker up'
 #endregion
@@ -11,7 +11,7 @@ echo 'docker up'
 do {
     sleep 1
     curl localhost:8080/health/check -f
-} while($LASTEXITCODE -ne 0)     
+} while($LASTEXITCODE -ne 0)
 echo 'dicom-api healthy'
 #endregion
 

@@ -6,9 +6,9 @@
 namespace Microsoft.Health.Dicom.Client.Models
 {
     /// <summary>
-    /// External representation of a extended query tag entry.
+    /// External representation of a extended query tag entry when retrieving.
     /// </summary>
-    public class ExtendedQueryTag
+    public class GetExtendedQueryTagEntry
     {
         /// <summary>
         /// Path of this tag. Normally it's composed of groupid and elementid.

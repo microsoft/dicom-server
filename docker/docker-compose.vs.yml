@@ -1,0 +1,23 @@
+version: "3.4"
+
+services:
+  microsoft.health.dicom.web:
+    image: ${DOCKER_REGISTRY-}microsofthealthdicomweb
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "https://+:8080"
+      DicomServer__Security__Enabled: "false"
+      # [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Password is only used for development.")]
+      SqlServer__ConnectionString: "Server=tcp:sql,1433;Initial Catalog=DICOM;Persist Security Info=False;User ID=sa;Password=${SAPASSWORD:-L0ca1P@ssw0rd};MultipleActiveResultSets=False;Connection Timeout=30;"
+    user: root
+    ports:
+      - "63839:8080"
+    volumes:
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+  sql:
+    environment:
+      # [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Password is only used for development.")]
+      SA_PASSWORD: ${SAPASSWORD:-L0ca1P@ssw0rd}
+    healthcheck:
+      # [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Password is only used for development.")]
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd","-U sa -P ${SAPASSWORD:-L0ca1P@ssw0rd} -Q 'SELECT * FROM INFORMATION_SCHEMA.TABLES'"]

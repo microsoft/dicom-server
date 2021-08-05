@@ -12,6 +12,8 @@ Additionally, the following non-standard API(s) are supported:
 
 - [Delete](#delete)
 
+Our service also makes use of REST Api versioning. For information on how to specify the version when making requests visit the [Api Versioning Documentation](../api-versioning.md).
+
 ## Store (STOW-RS)
 
 This transaction uses the POST method to Store representations of Studies, Series, and Instances contained in the request payload.
@@ -30,6 +32,7 @@ The following `Accept` header(s) for the response are supported:
 The following `Content-Type` header(s) are supported:
 
 - `multipart/related; type="application/dicom"`
+- `application/dicom`
 
 > Note: The Server will <u>not</u> coerce or replace attributes that conflict with existing data. All data will be stored as provided.
 
@@ -181,9 +184,13 @@ The following `Accept` header(s) are supported for retrieving instances within a
 The following `Accept` header(s) are supported for retrieving a specific instance:
 
 - `application/dicom; transfer-syntax=*`
+- `multipart/related; type="application/dicom"; transfer-syntax=*`
 - `application/dicom;` (when transfer-syntax is not specified, 1.2.840.10008.1.2.1 is used as default)
+- `multipart/related; type="application/dicom"` (when transfer-syntax is not specified, 1.2.840.10008.1.2.1 is used as default)
 - `application/dicom; transfer-syntax=1.2.840.10008.1.2.1`
+- `multipart/related; type="application/dicom"; transfer-syntax=1.2.840.10008.1.2.1`
 - `application/dicom; transfer-syntax=1.2.840.10008.1.2.4.90`
+- `multipart/related; type="application/dicom"; transfer-syntax=1.2.840.10008.1.2.4.90`
 
 ### Retrieve Frames
 
@@ -286,6 +293,7 @@ We support searching on below attributes and search type.
 | StudyInstanceUID | X | X | X |
 | PatientName | X | X | X |
 | PatientID | X | X | X |
+| PatientBirthDate | X | X | X |
 | AccessionNumber | X | X | X |
 | ReferringPhysicianName | X | X | X |
 | StudyDate | X | X | X |
@@ -293,6 +301,7 @@ We support searching on below attributes and search type.
 | SeriesInstanceUID |  | X | X |
 | Modality |  | X | X |
 | PerformedProcedureStepStartDate |  | X | X |
+| ManufacturerModelName | | X | X |
 | SOPInstanceUID |  |  | X |
 
 #### Search Matching
@@ -301,9 +310,9 @@ We support below matching types.
 
 | Search Type | Supported Attribute | Example |
 | :---------- | :------------------ | :------ |
-| Range Query | StudyDate | {attributeID}={value1}-{value2}. For date/ time values, we supported an inclusive range on the tag. This will be mapped to `attributeID >= {value1} AND attributeID <= {value2}`. |
+| Range Query | StudyDate, PatientBirthDate | {attributeID}={value1}-{value2}. For date/ time values, we supported an inclusive range on the tag. This will be mapped to `attributeID >= {value1} AND attributeID <= {value2}`. |
 | Exact Match | All supported attributes | {attributeID}={value1} |
-| Fuzzy Match | PatientName | Matches any component of the patient name which starts with the value. |
+| Fuzzy Match | PatientName, ReferringPhysicianName | Matches any component of the name which starts with the value. |
 
 #### Attribute ID
 

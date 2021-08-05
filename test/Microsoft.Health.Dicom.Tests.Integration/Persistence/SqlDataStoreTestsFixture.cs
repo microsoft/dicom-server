@@ -10,6 +10,7 @@ using EnsureThat;
 using MediatR;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -56,35 +57,37 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 },
             };
 
+            IOptions<SqlServerDataStoreConfiguration> configOptions = Options.Create(config);
+
             var scriptProvider = new ScriptProvider<SchemaVersion>();
 
             var baseScriptProvider = new BaseScriptProvider();
 
             var mediator = Substitute.For<IMediator>();
 
-            var sqlConnectionStringProvider = new DefaultSqlConnectionStringProvider(config);
+            var sqlConnectionStringProvider = new DefaultSqlConnectionStringProvider(configOptions);
 
             var sqlConnectionFactory = new DefaultSqlConnectionFactory(sqlConnectionStringProvider);
 
             var schemaManagerDataStore = new SchemaManagerDataStore(sqlConnectionFactory);
 
-            var schemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, baseScriptProvider, mediator, NullLogger<SchemaUpgradeRunner>.Instance, sqlConnectionFactory, schemaManagerDataStore);
+            SchemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, baseScriptProvider, NullLogger<SchemaUpgradeRunner>.Instance, sqlConnectionFactory, schemaManagerDataStore);
 
-            var schemaInformation = new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max);
+            SchemaInformation = new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max);
 
-            _schemaInitializer = new SchemaInitializer(config, schemaUpgradeRunner, schemaInformation, sqlConnectionFactory, sqlConnectionStringProvider, NullLogger<SchemaInitializer>.Instance);
+            _schemaInitializer = new SchemaInitializer(configOptions, schemaManagerDataStore, SchemaUpgradeRunner, SchemaInformation, sqlConnectionFactory, sqlConnectionStringProvider, mediator, NullLogger<SchemaInitializer>.Instance);
 
             SqlTransactionHandler = new SqlTransactionHandler();
 
             SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(SqlTransactionHandler, new SqlCommandWrapperFactory(), sqlConnectionFactory);
 
             SqlIndexDataStoreFactory = new SqlIndexDataStoreFactory(
-                schemaInformation,
-                new[] { new SqlIndexDataStoreV1(SqlConnectionWrapperFactory), new SqlIndexDataStoreV2(SqlConnectionWrapperFactory) });
+                SchemaInformation,
+                new[] { new SqlIndexDataStoreV1(SqlConnectionWrapperFactory), new SqlIndexDataStoreV2(SqlConnectionWrapperFactory), new SqlIndexDataStoreV3(SqlConnectionWrapperFactory) });
 
             InstanceStore = new SqlInstanceStore(SqlConnectionWrapperFactory);
 
-            ExtendedQueryTagStore = new SqlExtendedQueryTagStore(SqlConnectionWrapperFactory, schemaInformation, NullLogger<SqlExtendedQueryTagStore>.Instance);
+            ExtendedQueryTagStore = new SqlExtendedQueryTagStore(SqlConnectionWrapperFactory, SchemaInformation, NullLogger<SqlExtendedQueryTagStore>.Instance);
 
             TestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
         }
@@ -100,6 +103,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public IIndexDataStoreFactory SqlIndexDataStoreFactory { get; }
 
+        public SchemaUpgradeRunner SchemaUpgradeRunner { get; }
+
         public string TestConnectionString { get; }
 
         public IIndexDataStore IndexDataStore { get => SqlIndexDataStoreFactory.GetInstance(); }
@@ -109,6 +114,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public IExtendedQueryTagStore ExtendedQueryTagStore { get; }
 
         public SqlIndexDataStoreTestHelper TestHelper { get; }
+
+        public SchemaInformation SchemaInformation { get; set; }
 
         public static string GenerateDatabaseName(string prefix = "DICOMINTEGRATIONTEST_")
         {

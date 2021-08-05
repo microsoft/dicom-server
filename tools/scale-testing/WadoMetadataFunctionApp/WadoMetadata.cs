@@ -16,10 +16,10 @@ namespace WadoMetadataFunctionApp
 {
     public static class WadoMetadata
     {
-        private static IDicomWebClient client;
+        private static IDicomWebClient s_client;
 
         [FunctionName("WadoMetadata")]
-        public static void Run([ServiceBusTrigger(KnownTopics.WadoRs, KnownSubscriptions.S1, Connection = "ServiceBusConnectionString")]byte[] message, ILogger log)
+        public static void Run([ServiceBusTrigger(KnownTopics.WadoRs, KnownSubscriptions.S1, Connection = "ServiceBusConnectionString")] byte[] message, ILogger log)
         {
             log.LogInformation($"C# ServiceBus topic trigger function processed message: {message}");
             using var httpClient = new HttpClient
@@ -41,22 +41,22 @@ namespace WadoMetadataFunctionApp
 
         private static void SetupDicomWebClient(HttpClient httpClient)
         {
-            client = new DicomWebClient(httpClient);
+            s_client = new DicomWebClient(httpClient);
         }
 
         private static void RetrieveInstanceMetadata(string studyUid, string seriesUid, string instanceUid)
         {
-            DicomWebClientExtensions.RetrieveInstanceMetadataAsync(client, studyUid, seriesUid, instanceUid).Wait();
+            s_client.RetrieveInstanceMetadataAsync(studyUid, seriesUid, instanceUid).Wait();
         }
 
         private static void RetrieveSeriesMetadata(string studyUid, string seriesUid)
         {
-            DicomWebClientExtensions.RetrieveSeriesMetadataAsync(client, studyUid, seriesUid).Wait();
+            s_client.RetrieveSeriesMetadataAsync(studyUid, seriesUid).Wait();
         }
 
         private static void RetrieveStudyMetadata(string studyUid)
         {
-            DicomWebClientExtensions.RetrieveStudyMetadataAsync(client, studyUid).Wait();
+            s_client.RetrieveStudyMetadataAsync(studyUid).Wait();
         }
 
         private static void ProcessMessage(byte[] message, ILogger log)

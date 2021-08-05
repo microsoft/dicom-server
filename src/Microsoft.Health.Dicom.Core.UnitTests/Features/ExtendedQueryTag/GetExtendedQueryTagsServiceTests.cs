@@ -19,9 +19,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
 {
     public class GetExtendedQueryTagsServiceTests
     {
-        private IExtendedQueryTagStore _extendedQueryTagStore;
-        private IDicomTagParser _dicomTagParser;
-        private IGetExtendedQueryTagsService _getExtendedQueryTagsService;
+        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
+        private readonly IDicomTagParser _dicomTagParser;
+        private readonly IGetExtendedQueryTagsService _getExtendedQueryTagsService;
 
         public GetExtendedQueryTagsServiceTests()
         {
@@ -50,7 +50,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             _extendedQueryTagStore.GetExtendedQueryTagsAsync(default).Returns(storedEntries);
             GetAllExtendedQueryTagsResponse response = await _getExtendedQueryTagsService.GetAllExtendedQueryTagsAsync();
 
-            var expected = new ExtendedQueryTagEntry[] { tag1.ToExtendedQueryTagEntry(), tag2.ToExtendedQueryTagEntry() };
+            var expected = new GetExtendedQueryTagEntry[] { tag1.ToExtendedQueryTagEntry(), tag2.ToExtendedQueryTagEntry() };
 
             Assert.Equal(expected, response.ExtendedQueryTags, ExtendedQueryTagEntryEqualityComparer.Default);
         }

@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -24,8 +25,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         private const ushort ValidationFailedFailureCode = 43264;
         private const ushort SopInstanceAlreadyExistsFailureCode = 45070;
         private const ushort MismatchStudyInstanceUidFailureCode = 43265;
-
-        private static readonly Uri StudiesUri = new Uri("studies", UriKind.Relative);
 
         private readonly IDicomWebClient _client;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
@@ -58,11 +57,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData("application/data")]
-        [InlineData("application/dicom")]
+        [MemberData(nameof(GetIncorrectAcceptHeaders))]
         public async Task GivenAnIncorrectAcceptHeader_WhenStoring_TheServerShouldReturnNotAcceptable(string acceptHeader)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, StudiesUri);
+            using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(DicomApiVersions.Latest + DicomWebConstants.StudiesUriString, UriKind.Relative));
             request.Headers.Add(HeaderNames.Accept, acceptHeader);
 
             using HttpResponseMessage response = await _client.HttpClient.SendAsync(request);
@@ -73,7 +71,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenAnNonMultipartRequest_WhenStoring_TheServerShouldReturnUnsupportedMediaType()
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, StudiesUri);
+            using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(DicomApiVersions.Latest + DicomWebConstants.StudiesUriString, UriKind.Relative));
             request.Headers.Add(HeaderNames.Accept, DicomWebConstants.MediaTypeApplicationDicomJson.MediaType);
 
             var multiContent = new MultipartContent("form");
@@ -91,7 +89,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var multiContent = new MultipartContent("related");
             multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebConstants.MediaTypeApplicationDicom.MediaType}\""));
 
-            using DicomWebResponse response = await _client.StoreAsync(StudiesUri, multiContent);
+            using DicomWebResponse response = await _client.StoreAsync(multiContent);
 
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
@@ -107,7 +105,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             multiContent.Add(byteContent);
 
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-                () => _client.StoreAsync(StudiesUri, multiContent));
+                () => _client.StoreAsync(multiContent));
 
             Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
         }
@@ -137,7 +135,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                     multiContent.Add(validByteContent);
                 }
 
-                using DicomWebResponse<DicomDataset> response = await _client.StoreAsync(StudiesUri, multiContent);
+                using DicomWebResponse<DicomDataset> response = await _client.StoreAsync(multiContent);
 
                 Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
@@ -171,7 +169,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                     multiContent.Add(byteContent);
                 }
 
-                using DicomWebResponse<DicomDataset> response = await _client.StoreAsync(StudiesUri, multiContent);
+                using DicomWebResponse<DicomDataset> response = await _client.StoreAsync(multiContent);
 
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -323,15 +321,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [InlineData("11|")]
         public async Task GivenDatasetWithInvalidUid_WhenStoring_TheServerShouldReturnConflict(string studyInstanceUID)
         {
-#pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = false;
-#pragma warning restore CS0618 // Type or member is obsolete
-
-            DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUID);
-
-#pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = true;
-#pragma warning restore CS0618 // Type or member is obsolete
+            DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUID, validateItems: false);
 
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(new[] { dicomFile1 }));
 
@@ -367,13 +357,22 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
+        public static IEnumerable<object[]> GetIncorrectAcceptHeaders
+        {
+            get
+            {
+                yield return new object[] { "application/dicom" };
+                yield return new object[] { "application/data" };
+            }
+        }
+
         private (string SopInstanceUid, string RetrieveUri, string SopClassUid) ConvertToReferencedSopSequenceEntry(DicomDataset dicomDataset)
         {
             string studyInstanceUid = dicomDataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
             string seriesInstanceUid = dicomDataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
             string sopInstanceUid = dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
 
-            string relativeUri = $"/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}";
+            string relativeUri = $"{DicomApiVersions.Latest}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}";
 
             return (dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
                 new Uri(_client.HttpClient.BaseAddress, relativeUri).ToString(),

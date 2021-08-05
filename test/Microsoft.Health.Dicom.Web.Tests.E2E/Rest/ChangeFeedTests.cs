@@ -17,6 +17,7 @@ using ChangeFeedState = Microsoft.Health.Dicom.Client.Models.ChangeFeedState;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
+    [CollectionDefinition("Non-Parallel Collection", DisableParallelization = true)]
     public class ChangeFeedTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
         private readonly IDicomWebClient _client;

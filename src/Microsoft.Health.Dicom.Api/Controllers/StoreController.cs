@@ -22,7 +22,8 @@ using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
-    [ModelStateValidator]
+    [ApiVersion("1.0-prerelease")]
+    [QueryModelStateValidator]
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
     public class StoreController : Controller
     {
@@ -39,19 +40,47 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+        [Produces(KnownContentTypes.ApplicationDicomJson)]
+        [Consumes(KnownContentTypes.ApplicationDicom, KnownContentTypes.MultipartRelated)]
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Accepted)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Conflict)]
-        [ProducesResponseType((int)HttpStatusCode.UnsupportedMediaType)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.UnsupportedMediaType)]
         [HttpPost]
-        [Route(KnownRoutes.StoreRoute)]
+        [VersionedRoute(KnownRoutes.StoreInstancesRoute)]
+        [Route(KnownRoutes.StoreInstancesRoute)]
         [AuditEventType(AuditEventSubType.Store)]
-        public async Task<IActionResult> PostAsync(string studyInstanceUid = null)
+        public async Task<IActionResult> PostInstanceAsync()
         {
-            _logger.LogInformation("DICOM Web Store Transaction request received, with study instance UID {studyInstanceUid}.", studyInstanceUid);
+            return await PostAsync(null);
+        }
+
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+        [Produces(KnownContentTypes.ApplicationDicomJson)]
+        [Consumes(KnownContentTypes.ApplicationDicom, KnownContentTypes.MultipartRelated)]
+        [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Accepted)]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
+        [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Conflict)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.UnsupportedMediaType)]
+        [HttpPost]
+        [VersionedRoute(KnownRoutes.StoreInstancesInStudyRoute)]
+        [Route(KnownRoutes.StoreInstancesInStudyRoute)]
+        [AuditEventType(AuditEventSubType.Store)]
+        public async Task<IActionResult> PostInstanceInStudyAsync(string studyInstanceUid)
+        {
+            return await PostAsync(studyInstanceUid);
+        }
+
+        private async Task<IActionResult> PostAsync(string studyInstanceUid)
+        {
+            long fileSize = Request.ContentLength ?? 0;
+            _logger.LogInformation("DICOM Web Store Transaction request received, with study instance UID {studyInstanceUid} and file size of {fileSize} bytes", studyInstanceUid, fileSize);
 
             StoreResponse storeResponse = await _mediator.StoreDicomResourcesAsync(
                 Request.Body,

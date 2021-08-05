@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         private const string RequestOriginalContentTestFolder = TestFileFolder + "RequestOriginalContent";
 
         private readonly IDicomWebClient _client;
-        private HashSet<string> _studiesToClean = new HashSet<string>();
+        private readonly HashSet<string> _studiesToClean = new HashSet<string>();
 
         public RetrieveTransactionResourceTests(HttpIntegrationTestFixture<Startup> fixture)
         {
@@ -73,6 +73,16 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             }
 
             _studiesToClean.Clear();
+        }
+
+        public static IEnumerable<object[]> GetUnsupportedAcceptHeadersForStudiesAndSeries
+        {
+            get
+            {
+                yield return new object[] { true, DicomWebConstants.ApplicationDicomMediaType, DicomWebConstants.OriginalDicomTransferSyntax }; // use single part instead of multiple part
+                yield return new object[] { false, DicomWebConstants.ApplicationOctetStreamMediaType, DicomWebConstants.OriginalDicomTransferSyntax }; // unsupported media type image/png
+                yield return new object[] { false, DicomWebConstants.ApplicationDicomMediaType, "1.2.840.10008.1.2.4.100" }; // unsupported media type MPEG2
+            }
         }
     }
 }

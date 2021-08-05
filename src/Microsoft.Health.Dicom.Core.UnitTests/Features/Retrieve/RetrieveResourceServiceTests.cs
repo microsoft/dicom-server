@@ -21,6 +21,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
+using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.IO;
 using NSubstitute;
@@ -187,8 +188,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                 DefaultCancellationToken));
         }
 
-        [Fact]
-        public async Task GivenStoredInstances_WhenRetrieveRequestForInstance_ThenInstanceIsRetrievedSuccessfully()
+        [Theory]
+        [InlineData(PayloadTypes.SinglePart)]
+        [InlineData(PayloadTypes.MultipartRelated)]
+        public async Task GivenStoredInstances_WhenRetrieveRequestForInstance_ThenInstanceIsRetrievedSuccessfully(PayloadTypes payloadTypes)
         {
             // Add multiple instances to validate that we return the requested instance and ignore the other(s).
             List<VersionedInstanceIdentifier> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Instance);
@@ -202,11 +205,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                        _studyInstanceUid,
                        _firstSeriesInstanceUid,
                        _sopInstanceUid,
-                       new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance() }),
+                       new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance(payloadTypes: payloadTypes) }),
                    DefaultCancellationToken);
 
             // Validate response status code and ensure response stream has expected file - it should be equivalent to what the store was set up to return.
             ValidateResponseStreams(new List<DicomFile>() { streamAndStoredFile.Key }, response.ResponseStreams);
+
+            // Validate content type
+            Assert.Equal(KnownContentTypes.ApplicationDicom, response.ContentType);
 
             // Dispose created streams.
             streamAndStoredFile.Value.Dispose();

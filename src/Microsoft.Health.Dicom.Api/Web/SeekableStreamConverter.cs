@@ -10,8 +10,6 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Api.Web
@@ -23,15 +21,12 @@ namespace Microsoft.Health.Dicom.Api.Web
     {
         private const int DefaultBufferThreshold = 1024 * 30000; // 30MB
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IOptions<StoreConfiguration> _storeConfiguration;
 
-        public SeekableStreamConverter(IHttpContextAccessor httpContextAccessor, IOptions<StoreConfiguration> storeConfiguration)
+        public SeekableStreamConverter(IHttpContextAccessor httpContextAccessor)
         {
             EnsureArg.IsNotNull(httpContextAccessor, nameof(httpContextAccessor));
-            EnsureArg.IsNotNull(storeConfiguration?.Value, nameof(storeConfiguration));
 
             _httpContextAccessor = httpContextAccessor;
-            _storeConfiguration = storeConfiguration;
         }
 
         /// <inheritdoc />
@@ -45,21 +40,9 @@ namespace Microsoft.Health.Dicom.Api.Web
 
             if (!stream.CanSeek)
             {
-                try
-                {
-                    seekableStream = new FileBufferingReadStream(stream, bufferThreshold, bufferLimit, AspNetCoreTempDirectory.TempDirectoryFactory);
-                    _httpContextAccessor.HttpContext?.Response.RegisterForDisposeAsync(seekableStream);
-                    await seekableStream.DrainAsync(cancellationToken);
-                }
-                catch (InvalidDataException)
-                {
-                    // This will result in bad request, we need to handle this differently when we make the processing serial.
-                    throw new DicomFileLengthLimitExceededException(_storeConfiguration.Value.MaxAllowedDicomFileSize);
-                }
-                catch (IOException ex)
-                {
-                    throw new InvalidMultipartBodyPartException(ex);
-                }
+                seekableStream = new FileBufferingReadStream(stream, bufferThreshold, bufferLimit, AspNetCoreTempDirectory.TempDirectoryFactory);
+                _httpContextAccessor.HttpContext?.Response.RegisterForDisposeAsync(seekableStream);
+                await seekableStream.DrainAsync(cancellationToken);
             }
             else
             {
@@ -67,36 +50,34 @@ namespace Microsoft.Health.Dicom.Api.Web
             }
 
             seekableStream.Seek(0, SeekOrigin.Begin);
+
             return seekableStream;
         }
 
         private static class AspNetCoreTempDirectory
         {
-            private static string _tempDirectory;
+            private static string s_tempDirectory;
 
-            public static string TempDirectory
+            public static Func<string> TempDirectoryFactory => GetTempDirectory;
+
+            private static string GetTempDirectory()
             {
-                get
+                if (s_tempDirectory == null)
                 {
-                    if (_tempDirectory == null)
+                    // Look for folders in the following order.
+                    // ASPNETCORE_TEMP - User set temporary location.
+                    string temp = Environment.GetEnvironmentVariable("ASPNETCORE_TEMP") ?? Path.GetTempPath();
+
+                    if (!Directory.Exists(temp))
                     {
-                        // Look for folders in the following order.
-                        string temp = Environment.GetEnvironmentVariable("ASPNETCORE_TEMP") ?? // ASPNETCORE_TEMP - User set temporary location.
-                                      Path.GetTempPath();                                      // Fall back.
-
-                        if (!Directory.Exists(temp))
-                        {
-                            throw new DirectoryNotFoundException(temp);
-                        }
-
-                        _tempDirectory = temp;
+                        throw new DirectoryNotFoundException(temp);
                     }
 
-                    return _tempDirectory;
+                    s_tempDirectory = temp;
                 }
-            }
 
-            public static Func<string> TempDirectoryFactory => () => TempDirectory;
+                return s_tempDirectory;
+            }
         }
     }
 }

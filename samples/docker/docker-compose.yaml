@@ -1,9 +1,9 @@
 version: "3"
 services:
   dicom-api:
-    build: 
+    build:
       context: ./../../
-      dockerfile: ./build/docker/Dockerfile
+      dockerfile: ./src/Microsoft.Health.Dicom.Web/Dockerfile
     restart: always
     environment:
       DicomServer__Security__Enabled: "false"
@@ -12,38 +12,30 @@ services:
       SqlServer__Initialize: "true"
       BlobStore__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
       DataStore: "SqlServer"
-    ports:     
+    ports:
       - "8080:8080"
     depends_on:
       - sql
       - azurite
+
   azurite:
-    image: mcr.microsoft.com/azure-storage/azurite
+    image: mcr.microsoft.com/azure-storage/azurite:3.13.0@sha256:349f106b240c5fd5ecb146c3aa121c531c8a1080badb762099d886703bc39fa0
     restart: always
-    # # uncomment if you want to expose azure storage explorer against localhost
+    # # Uncomment if you want to expose azure storage explorer against localhost
     # ports:
     #   - "10001:10001"
     #   - "10000:10000"
-  #Currently using azurite v2 for table storage as azurite v3 only supports blob and queue storage and v2 supports table storage. Once v3 supports queue storage this can be removed.
-  tableazurite:
-    build:
-      context: ../Azurite
-      dockerfile: ./Dockerfile
-    restart: always
-    environment: 
-      executable: table
-    # # uncomment if you want to expose azure storage explorer against localhost
-    # ports:
     #   - "10002:10002"
+
   sql:
-    build: 
+    build:
       context: ./../../
-      dockerfile: ./build/docker/sql/Dockerfile
+      dockerfile: ./docker/sql/Dockerfile
     restart: always
     environment:
       SA_PASSWORD: ${SAPASSWORD}
       ACCEPT_EULA: "Y"
-    # # uncomment if you want to expose sql management studio against localhost
+    # # Uncomment if you want to expose sql management studio against localhost
     # ports:
     #   - "1433:1433"
     healthcheck:
@@ -51,14 +43,14 @@ services:
         interval: 10s
         timeout: 10s
         retries: 6
-  
+
   # deploy optional component dicom-cast
   dicom-cast:
-    build: 
+    build:
       context: ./../../
       dockerfile: ./converter/dicom-cast/build/docker/Dockerfile
     environment:
-      TableStore__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;TableEndpoint=http://tableazurite:10002/devstoreaccount1;"
+      TableStore__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;TableEndpoint=http://azurite:10002/devstoreaccount1;"
       Fhir__Endpoint: http://fhir:8080
       DicomWeb__endpoint: http://dicom-api:8080
       DicomCastWorker__PollInterval: "00:00:05"
@@ -66,7 +58,6 @@ services:
     depends_on:
       - dicom-api
       - azurite
-      - tableazurite
       - fhir
     restart: always
 
@@ -81,9 +72,7 @@ services:
       SqlServer__Initialize: "true"
       SqlServer__SchemaOptions__AutomaticUpdatesEnabled: "true"
       DataStore: "SqlServer"
-    # # uncomment if you want to expose fhir against localhost
-    ports:     
-      - "8081:8080"
+    ports:
+     - "8081:8080"
     depends_on:
       - sql
-

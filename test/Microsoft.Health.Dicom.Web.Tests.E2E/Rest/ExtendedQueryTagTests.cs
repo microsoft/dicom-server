@@ -3,8 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
@@ -12,7 +16,6 @@ using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Tests.Common;
-using Microsoft.Health.Dicom.Web.Tests.E2E.Comparers;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
@@ -21,6 +24,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
     {
         private readonly IDicomWebClient _client;
         private const string PrivateCreatorName = "PrivateCreator1";
+
         public ExtendedQueryTagTests(HttpIntegrationTestFixture<Startup> fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
@@ -39,17 +43,17 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomElement identificationCodeElement = new DicomLongString(identificationCodeTag, PrivateCreatorName);
 
             DicomTag privateTag = new DicomTag(0x0407, 0x1001, PrivateCreatorName);
-            ExtendedQueryTag privateQueryTag = new ExtendedQueryTag { Path = privateTag.GetPath(), VR = DicomVRCode.SS, Level = QueryTagLevel.Instance, PrivateCreator = privateTag.PrivateCreator.Creator };
+            AddExtendedQueryTagEntry privateQueryTag = new AddExtendedQueryTagEntry { Path = privateTag.GetPath(), VR = DicomVRCode.SS, Level = QueryTagLevel.Instance, PrivateCreator = privateTag.PrivateCreator.Creator };
 
             // One is standard tag on Series level
-            DicomTag standardTagSeries = DicomTag.ManufacturerModelName;
-            ExtendedQueryTag standardTagSeriesQueryTag = new ExtendedQueryTag { Path = standardTagSeries.GetPath(), VR = standardTagSeries.GetDefaultVR().Code, Level = QueryTagLevel.Series };
+            DicomTag standardTagSeries = DicomTag.SeriesNumber;
+            AddExtendedQueryTagEntry standardTagSeriesQueryTag = new AddExtendedQueryTagEntry { Path = standardTagSeries.GetPath(), VR = standardTagSeries.GetDefaultVR().Code, Level = QueryTagLevel.Series };
 
             // One is standard tag on Study level
             DicomTag standardTagStudy = DicomTag.PatientSex;
-            ExtendedQueryTag standardTagStudyQueryTag = new ExtendedQueryTag { Path = standardTagStudy.GetPath(), VR = standardTagStudy.GetDefaultVR().Code, Level = QueryTagLevel.Study };
+            AddExtendedQueryTagEntry standardTagStudyQueryTag = new AddExtendedQueryTagEntry { Path = standardTagStudy.GetPath(), VR = standardTagStudy.GetDefaultVR().Code, Level = QueryTagLevel.Study };
 
-            ExtendedQueryTag[] queryTags = new ExtendedQueryTag[] { privateQueryTag, standardTagSeriesQueryTag, standardTagStudyQueryTag };
+            AddExtendedQueryTagEntry[] queryTags = new AddExtendedQueryTagEntry[] { privateQueryTag, standardTagSeriesQueryTag, standardTagStudyQueryTag };
 
             // Create 3 test files on same studyUid.
             string studyUid = TestUidGenerator.Generate();
@@ -63,21 +67,21 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset dataset1 = Samples.CreateRandomInstanceDataset(studyInstanceUid: studyUid, seriesInstanceUid: seriesUid1, sopInstanceUid: instanceUid1);
             dataset1.Add(identificationCodeElement);
             dataset1.AddOrUpdate(new DicomSignedShort(privateTag, 1));
-            dataset1.Add(standardTagSeries, "ManufacturerModelName1");
+            dataset1.Add(standardTagSeries, "123");
             dataset1.Add(standardTagStudy, "0");
 
             // One is on seriesUid1 and instanceUid2
             DicomDataset dataset2 = Samples.CreateRandomInstanceDataset(studyInstanceUid: studyUid, seriesInstanceUid: seriesUid1, sopInstanceUid: instanceUid2);
             dataset2.Add(identificationCodeElement);
             dataset2.AddOrUpdate(new DicomSignedShort(privateTag, 2));
-            dataset2.Add(standardTagSeries, "ManufacturerModelName2");
+            dataset2.Add(standardTagSeries, "345");
             dataset2.Add(standardTagStudy, "0");
 
             // One is on seriesUid2 and instanceUid3
             DicomDataset dataset3 = Samples.CreateRandomInstanceDataset(studyInstanceUid: studyUid, seriesInstanceUid: seriesUid2, sopInstanceUid: instanceUid3);
             dataset3.Add(identificationCodeElement);
             dataset3.AddOrUpdate(new DicomSignedShort(privateTag, 3));
-            dataset3.Add(standardTagSeries, "ManufacturerModelName3");
+            dataset3.Add(standardTagSeries, "678");
             dataset3.Add(standardTagStudy, "1");
             try
             {
@@ -88,8 +92,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 {
                     foreach (var queryTag in queryTags)
                     {
-                        ExtendedQueryTag returnTag = await (await _client.GetExtendedQueryTagAsync(queryTag.Path)).GetValueAsync();
-                        Assert.Equal(queryTag, returnTag, new ExtendedQueryTagEqualityComparer(true));
+                        GetExtendedQueryTagEntry returnTag = await (await _client.GetExtendedQueryTagAsync(queryTag.Path)).GetValueAsync();
+                        CompareExtendedQueryTagEntries(queryTag, returnTag);
                     }
 
                     // Upload test files
@@ -98,19 +102,19 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                     await _client.StoreAsync(dicomFiles, studyInstanceUid: string.Empty, cancellationToken: default);
 
                     // Query on instance for private tag
-                    DicomWebAsyncEnumerableResponse<DicomDataset> queryInstanceResponse = await _client.QueryAsync($"/instances?{privateTag.GetPath()}=3", cancellationToken: default);
+                    DicomWebAsyncEnumerableResponse<DicomDataset> queryInstanceResponse = await _client.QueryInstancesAsync($"{privateTag.GetPath()}=3", cancellationToken: default);
                     DicomDataset[] instanceResult = await queryInstanceResponse.ToArrayAsync();
                     Assert.Single(instanceResult);
                     Assert.Equal(instanceUid3, instanceResult[0].GetSingleValue<string>(DicomTag.SOPInstanceUID));
 
                     // Query on series for standardTagSeries
-                    DicomWebAsyncEnumerableResponse<DicomDataset> querySeriesResponse = await _client.QueryAsync($"/series?{standardTagSeries.GetPath()}=ManufacturerModelName2", cancellationToken: default);
+                    DicomWebAsyncEnumerableResponse<DicomDataset> querySeriesResponse = await _client.QuerySeriesAsync($"{standardTagSeries.GetPath()}=345", cancellationToken: default);
                     DicomDataset[] seriesResult = await querySeriesResponse.ToArrayAsync();
                     Assert.Single(seriesResult);
                     Assert.Equal(seriesUid1, seriesResult[0].GetSingleValue<string>(DicomTag.SeriesInstanceUID));
 
                     // Query on study for standardTagStudy
-                    DicomWebAsyncEnumerableResponse<DicomDataset> queryStudyResponse = await _client.QueryAsync($"/studies?{standardTagStudy.GetPath()}=1", cancellationToken: default);
+                    DicomWebAsyncEnumerableResponse<DicomDataset> queryStudyResponse = await _client.QueryStudyAsync($"{standardTagStudy.GetPath()}=1", cancellationToken: default);
                     DicomDataset[] studyResult = await queryStudyResponse.ToArrayAsync();
                     Assert.Single(studyResult);
                     Assert.Equal(studyUid, seriesResult[0].GetSingleValue<string>(DicomTag.StudyInstanceUID));
@@ -132,6 +136,60 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                     }
                 }
             }
+        }
+
+        [Theory]
+        [MemberData(nameof(GetRequestBodyWithMissingProperty))]
+        public async Task GivenMissingPropertyInRequestBody_WhenCallingPostAsync_ThenShouldThrowException(string requestBody, string missingProperty)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{DicomApiVersions.Latest}/extendedquerytags");
+            {
+                request.Content = new StringContent(requestBody);
+                request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType);
+            }
+
+            HttpResponseMessage response = await _client.HttpClient.SendAsync(request, default(CancellationToken))
+                .ConfigureAwait(false);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Contains(string.Format("The request body is not valid. Details: \r\nThe Dicom Tag Property {0} must be specified and must not be null, empty or whitespace", missingProperty), response.Content.ReadAsStringAsync().Result);
+        }
+
+        [Fact]
+        public async Task GivenInvalidTagLevelInRequestBody_WhenCallingPostAync_ThenShouldThrowException()
+        {
+            string requestBody = "[{\"Path\":\"00100040\",\"Level\":\"Studys\"}]";
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{DicomApiVersions.Latest}/extendedquerytags");
+            {
+                request.Content = new StringContent(requestBody);
+                request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType);
+            }
+
+            HttpResponseMessage response = await _client.HttpClient.SendAsync(request, default(CancellationToken))
+                .ConfigureAwait(false);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal("The request body is not valid. Details: \r\nInput Dicom Tag Level 'Studys' is invalid. It must have value 'Study', 'Series' or 'Instance'.", response.Content.ReadAsStringAsync().Result);
+        }
+
+        public static IEnumerable<object[]> GetRequestBodyWithMissingProperty
+        {
+            get
+            {
+                yield return new object[] { "[{\"Path\":\"00100040\"}]", "Level" };
+                yield return new object[] { "[{\"Path\":\"\",\"Level\":\"Study\"}]", "Path" };
+            }
+        }
+
+        private void CompareExtendedQueryTagEntries(AddExtendedQueryTagEntry addedTag, GetExtendedQueryTagEntry returnedTag)
+        {
+            if (addedTag == null || returnedTag == null)
+            {
+                Assert.True(addedTag == null && returnedTag == null);
+                return;
+            }
+
+            Assert.True(string.Equals(returnedTag.Path, addedTag.Path, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(addedTag.VR, returnedTag.VR, StringComparison.OrdinalIgnoreCase)
+                && addedTag.Level.Equals(returnedTag.Level));
         }
     }
 }

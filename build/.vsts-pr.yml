@@ -56,6 +56,13 @@ stages:
   jobs:
   - template: deploy.yml
 
+- stage: ValidateAPIVersioning
+  displayName: 'Detect Breaking Changes In API'
+  dependsOn:
+  - BuildRunUnitTests
+  jobs:
+  - template: versioning.yml
+
 - stage: RunIntegrationTests
   displayName: 'Integration tests'
   dependsOn:

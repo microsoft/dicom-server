@@ -1,7 +1,7 @@
 <Project>
 
   <PropertyGroup>
-    <Authors>Microsot Health Team</Authors>
+    <Authors>Microsoft Health Team</Authors>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <Company>Microsoft Corporation</Company>
     <Copyright>Copyright © Microsoft Corporation. All rights reserved.</Copyright>
@@ -9,30 +9,24 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <HealthcareSharedPackageVersion>2.1.9</HealthcareSharedPackageVersion>
+    <HealthcareSharedPackageVersion>3.1.13</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
     <LangVersion>Latest</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Product>Microsoft Health</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <SdkPackageVersion>5.0.0</SdkPackageVersion>
+    <FhirServerPackageVersion>2.0.55</FhirServerPackageVersion>
+    <Hl7FhirPackageVersion>3.3.0</Hl7FhirPackageVersion>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <!-- CA1031 - Allow Exception to be caught -->
-    <!-- CA1305 - Allow the current locale settings to be used by default in string.Format -->
-    <!-- NU5104 - Allow pre-release dependencies -->
-    <NoWarn>$(NoWarn);CA1031;CA1305;NU5104</NoWarn>
   </PropertyGroup>
 
   <Choose>
     <When Condition="$(MSBuildProjectName.Contains('Test'))">
       <PropertyGroup>
         <IsPackable>false</IsPackable>
-        <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)\CustomAnalysisRules.Test.ruleset</CodeAnalysisRuleSet>
       </PropertyGroup>
     </When>
     <Otherwise>
@@ -40,12 +34,13 @@
         <AnalysisLevel>5.0</AnalysisLevel>
         <AnalysisMode>AllEnabledByDefault</AnalysisMode>
         <IsPackable>true</IsPackable>
-        <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)\CustomAnalysisRules.ruleset</CodeAnalysisRuleSet>
       </PropertyGroup>
     </Otherwise>
   </Choose>
 
-  <ItemGroup>
+  <!-- Dotnet CLI throws errors on restore if package references are included in docker compose projects -->
+  <!-- See microsoft/DockerTools#209 for details -->
+  <ItemGroup Condition="'$(MSBuildProjectExtension)' != '.dcproj'">
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
 

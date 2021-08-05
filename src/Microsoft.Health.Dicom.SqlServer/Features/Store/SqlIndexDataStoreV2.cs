@@ -49,11 +49,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 // Build parameter for extended query tag.
-                VLatest.AddInstanceTableValuedParameters parameters = AddInstanceTableValuedParametersBuilder.Build(
+                V2.AddInstanceTableValuedParameters parameters = AddInstanceTableValuedParametersBuilder.BuildV2(
                     instance,
                     queryTags.Where(tag => tag.IsExtendedQueryTag));
 
-                VLatest.AddInstance.PopulateCommand(
+                V2.AddInstance.PopulateCommand(
                 sqlCommandWrapper,
                 instance.GetString(DicomTag.StudyInstanceUID),
                 instance.GetString(DicomTag.SeriesInstanceUID),
@@ -75,17 +75,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                 }
                 catch (SqlException ex)
                 {
-                    switch (ex.Number)
+                    if (ex.Number == SqlErrorCodes.Conflict)
                     {
-                        case SqlErrorCodes.Conflict:
-                            {
-                                if (ex.State == (byte)IndexStatus.Creating)
-                                {
-                                    throw new PendingInstanceException();
-                                }
+                        if (ex.State == (byte)IndexStatus.Creating)
+                        {
+                            throw new PendingInstanceException();
+                        }
 
-                                throw new InstanceAlreadyExistsException();
-                            }
+                        throw new InstanceAlreadyExistsException();
                     }
 
                     throw new DataStoreException(ex);

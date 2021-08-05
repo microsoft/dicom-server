@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
             {
                 MaxAllowedDicomFileSize = 1000000,
             });
-            _seekableStreamConverter = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), configuration);
+            _seekableStreamConverter = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>());
         }
 
         [Fact]
@@ -45,11 +45,11 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Web
         }
 
         [Fact]
-        public async Task GivenAnIOExceptionReadingStream_WhenConverted_ThenInvalidMultipartBodyPartExceptionShouldBeThrown()
+        public async Task GivenAnIOExceptionReadingStream_WhenConverted_ThenIOExceptionShouldBeRethrown()
         {
             Stream nonseekableStream = SetupNonSeekableStreamException<IOException>();
 
-            await Assert.ThrowsAsync<InvalidMultipartBodyPartException>(
+            await Assert.ThrowsAsync<IOException>(
                 () => _seekableStreamConverter.ConvertAsync(nonseekableStream, CancellationToken.None));
         }
 

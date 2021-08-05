@@ -18,6 +18,6 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <param name="extendedQueryTags">The extended query tags.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The response.</returns>
-        public Task<AddExtendedQueryTagResponse> AddExtendedQueryTagAsync(IEnumerable<ExtendedQueryTagEntry> extendedQueryTags, CancellationToken cancellationToken = default);
+        public Task<AddExtendedQueryTagResponse> AddExtendedQueryTagAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags, CancellationToken cancellationToken = default);
     }
 }

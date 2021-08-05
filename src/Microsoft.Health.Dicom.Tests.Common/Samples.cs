@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
 {
     public static class Samples
     {
-        private static readonly Random _random = new Random();
+        private static readonly Random Rng = new Random();
 
         public static IEnumerable<DicomFile> GetDicomFilesForTranscoding()
         {
@@ -155,9 +155,10 @@ namespace Microsoft.Health.Dicom.Tests.Common
         public static DicomFile CreateRandomDicomFile(
                     string studyInstanceUid = null,
                     string seriesInstanceUid = null,
-                    string sopInstanceUid = null)
+                    string sopInstanceUid = null,
+                    bool validateItems = true)
         {
-            return new DicomFile(CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
+            return new DicomFile(CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid, validateItems: validateItems));
         }
 
         public static DicomFile CreateRandomDicomFileWithInvalidVr(
@@ -165,24 +166,14 @@ namespace Microsoft.Health.Dicom.Tests.Common
                    string seriesInstanceUid = null,
                    string sopInstanceUid = null)
         {
-            DicomFile file = new DicomFile(CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
-
-#pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = false;
-#pragma warning restore CS0618 // Type or member is obsolete
-
+            DicomFile file = new DicomFile(CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid, validateItems: false));
             file.Dataset.Add(GenerateNewDataSetWithInvalidVr());
-
-#pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = true;
-#pragma warning restore CS0618 // Type or member is obsolete
-
             return file;
         }
 
         private static DicomDataset GenerateNewDataSetWithInvalidVr()
         {
-            var dicomDataset = new DicomDataset();
+            var dicomDataset = new DicomDataset().NotValidated();
 
             // CS VR type, char length should be less than or equal to 16
             dicomDataset.Add(DicomTag.Modality, "123456789ABCDEFGHIJK");
@@ -194,19 +185,23 @@ namespace Microsoft.Health.Dicom.Tests.Common
             string studyInstanceUid = null,
             string seriesInstanceUid = null,
             string sopInstanceUid = null,
-            string sopClassUid = null)
+            string sopClassUid = null,
+            bool validateItems = true)
         {
-            var ds = new DicomDataset(DicomTransferSyntax.ExplicitVRLittleEndian)
-            {
-                { DicomTag.StudyInstanceUID, studyInstanceUid ?? TestUidGenerator.Generate() },
-                { DicomTag.SeriesInstanceUID, seriesInstanceUid ?? TestUidGenerator.Generate() },
-                { DicomTag.SOPInstanceUID, sopInstanceUid ?? TestUidGenerator.Generate() },
-                { DicomTag.SOPClassUID, sopClassUid ?? TestUidGenerator.Generate() },
-                { DicomTag.BitsAllocated, (ushort)8 },
-                { DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value },
-                { DicomTag.PatientID, TestUidGenerator.Generate() },
-            };
+            var ds = new DicomDataset(DicomTransferSyntax.ExplicitVRLittleEndian);
 
+            if (!validateItems)
+            {
+                ds = ds.NotValidated();
+            }
+
+            ds.Add(DicomTag.StudyInstanceUID, studyInstanceUid ?? TestUidGenerator.Generate());
+            ds.Add(DicomTag.SeriesInstanceUID, seriesInstanceUid ?? TestUidGenerator.Generate());
+            ds.Add(DicomTag.SOPInstanceUID, sopInstanceUid ?? TestUidGenerator.Generate());
+            ds.Add(DicomTag.SOPClassUID, sopClassUid ?? TestUidGenerator.Generate());
+            ds.Add(DicomTag.BitsAllocated, (ushort)8);
+            ds.Add(DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value);
+            ds.Add(DicomTag.PatientID, TestUidGenerator.Generate());
             return ds;
         }
 
@@ -215,7 +210,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
             var result = new byte[pixelDataSize];
             for (var i = 0; i < pixelDataSize; i++)
             {
-                result[i] = (byte)_random.Next(0, 255);
+                result[i] = (byte)Rng.Next(0, 255);
             }
 
             return new MemoryByteBuffer(result);
