@@ -1,7 +1,7 @@
 <Project>
 
   <PropertyGroup>
-    <Authors>Microsot Health Team</Authors>
+    <Authors>Microsoft Health Team</Authors>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <Company>Microsoft Corporation</Company>
     <Copyright>Copyright © Microsoft Corporation. All rights reserved.</Copyright>
