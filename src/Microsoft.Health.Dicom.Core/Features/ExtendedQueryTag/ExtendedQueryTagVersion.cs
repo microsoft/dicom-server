@@ -15,6 +15,11 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     /// <summary>
     /// ExtendedQueryTag version.
     /// </summary>
+    /// <remarks>
+    /// We use SQL ROWVERSION to track changes on extended query tags. Every time the tag is changed, a new version is assigned to.
+    /// We use max version amoung all extended query tags as version of ExtendedQueryTagTable, since ROWVERSION keep increasing and never falls back.
+    /// The version is used to indicate if extended query tags we are using are same as ExtendedQueryTagTable.
+    /// </remarks>
     public struct ExtendedQueryTagVersion : IEquatable<ExtendedQueryTagVersion>, IComparable<ExtendedQueryTagVersion>
     {
         /// <summary>
