@@ -3,6 +3,7 @@
   <PropertyGroup>
     <Description>Common primitives and utilities used by Microsoft's DICOMweb APIs.</Description>
     <TargetFramework>net5.0</TargetFramework>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
 
   <ItemGroup>

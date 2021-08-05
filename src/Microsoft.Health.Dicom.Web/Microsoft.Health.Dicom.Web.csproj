@@ -4,6 +4,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <IsPackable>true</IsPackable>
     <UserSecretsId>5af726e8-ef4d-4c66-9d3a-25b8d546261e</UserSecretsId>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
 
   <ItemGroup>

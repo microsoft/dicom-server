@@ -3,6 +3,7 @@
   <PropertyGroup>
     <Description>Common components, such as controllers, for Microsoft's DICOMweb APIs using ASP.NET Core.</Description>
     <TargetFramework>net5.0</TargetFramework>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
 
   <ItemGroup>

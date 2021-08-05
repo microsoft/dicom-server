@@ -3,6 +3,7 @@
   <PropertyGroup>
     <Description>Utilities for managing a metadata store for use within Microsoft's DICOMweb APIs.</Description>
     <TargetFramework>net5.0</TargetFramework>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
 
   <ItemGroup>
