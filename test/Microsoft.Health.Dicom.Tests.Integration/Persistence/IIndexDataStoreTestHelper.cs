@@ -23,6 +23,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         Task<IReadOnlyList<ChangeFeedRow>> GetChangeFeedRowsAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid);
 
-        Task ClearDeletedInstanceTable();
+        Task ClearDeletedInstanceTableAsync();
+
+        Task ClearIndexTablesAsync();
     }
 }

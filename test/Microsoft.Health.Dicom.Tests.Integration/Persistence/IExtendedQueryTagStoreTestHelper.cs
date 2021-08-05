@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
     public interface IExtendedQueryTagStoreTestHelper
     {
-        Task ClearExtendedQueryTagTables();
+        Task ClearExtendedQueryTagTablesAsync();
 
         internal Task<IReadOnlyList<ExtendedQueryTagDataRow>> GetExtendedQueryTagDataAsync(
             ExtendedQueryTagDataType dataType,

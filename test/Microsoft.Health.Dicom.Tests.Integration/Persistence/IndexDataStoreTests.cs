@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     /// <summary>
     ///  Tests for IndexDataStore.
     /// </summary>
-    public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixture>
+    public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixture>, IAsyncLifetime
     {
         private readonly IIndexDataStore _indexDataStore;
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
@@ -444,7 +444,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenNoDeletedInstances_NumMatchRetryCountShouldBe0()
         {
-            await _testHelper.ClearDeletedInstanceTable();
+            await _testHelper.ClearDeletedInstanceTableAsync();
             var numMatchRetryCount = await _indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(0);
             Assert.Equal(0, numMatchRetryCount);
         }
@@ -452,7 +452,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenFewDeletedInstances_NumMatchRetryCountShouldBeCorrect()
         {
-            await _testHelper.ClearDeletedInstanceTable();
+            await _testHelper.ClearDeletedInstanceTableAsync();
 
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
@@ -473,7 +473,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenNoDeletedInstances_OldestDeletedIsCurrentTime()
         {
-            await _testHelper.ClearDeletedInstanceTable();
+            await _testHelper.ClearDeletedInstanceTableAsync();
 
             Assert.InRange(await _indexDataStore.GetOldestDeletedAsync(), Clock.UtcNow.AddSeconds(-1), Clock.UtcNow.AddSeconds(1));
         }
@@ -481,7 +481,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenMultipleDeletedInstances_OldestDeletedIsCorrect()
         {
-            await _testHelper.ClearDeletedInstanceTable();
+            await _testHelper.ClearDeletedInstanceTableAsync();
 
             DateTimeOffset start = Clock.UtcNow;
 
@@ -500,6 +500,33 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid2, Clock.UtcNow);
 
             Assert.InRange(await _indexDataStore.GetOldestDeletedAsync(), start.AddSeconds(-1), start.AddSeconds(1));
+        }
+
+        [Fact]
+        public async Task GivenNoExtendedQueryTags_WhenCreateIndex_ThenShouldSucceed()
+        {
+            var extendedTags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync();
+            // make sure there is no extended query tags
+            Assert.Empty(extendedTags);
+
+            DicomDataset dataset = Samples.CreateRandomInstanceDataset();
+            long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, QueryTagService.CoreQueryTags, null);
+        }
+
+        [Fact]
+        public async Task GivenTagVersionNotMatch_WhenCreateIndex_ThenShouldThrowException()
+        {
+            DicomTag tag = DicomTag.PatientAge;
+            AddExtendedQueryTagEntry extendedQueryTagEntry = tag.BuildAddExtendedQueryTagEntry();
+            await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new[] { extendedQueryTagEntry }, maxAllowedCount: 128, ready: true);
+            var tags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync();
+            var queryTags = tags.Select(tag => new QueryTag(tag)).ToList();
+            var version = ExtendedQueryTagVersion.GetExtendedQueryTagVersion(queryTags);
+            byte[] bytes = version.Value.ToByteArray();
+            bytes[0]++;
+            var mismatchVersion = new ExtendedQueryTagVersion(bytes);
+            DicomDataset dataset = Samples.CreateRandomInstanceDataset();
+            await Assert.ThrowsAsync<ExtendedQueryTagVersionMismatchException>(() => _indexDataStore.CreateInstanceIndexAsync(dataset, queryTags, mismatchVersion));
         }
 
         private static void ValidateStudyMetadata(
@@ -587,6 +614,17 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version);
             Assert.Equal(sopInstanceUid, instance.SopInstanceUid);
             return instance;
+        }
+
+
+        public Task InitializeAsync()
+        {
+            return Task.CompletedTask;
+        }
+
+        public async Task DisposeAsync()
+        {
+            await _testHelper.ClearIndexTablesAsync();
         }
     }
 }

@@ -206,11 +206,11 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Version of extended query tags mismatch..
+        ///   Looks up a localized string similar to Version of extended query tag mismatch..
         /// </summary>
-        internal static string ExtendedQueryTagsVersionMismatch {
+        internal static string ExtendedQueryTagVersionMismatch {
             get {
-                return ResourceManager.GetString("ExtendedQueryTagsVersionMismatch", resourceCulture);
+                return ResourceManager.GetString("ExtendedQueryTagVersionMismatch", resourceCulture);
             }
         }
         

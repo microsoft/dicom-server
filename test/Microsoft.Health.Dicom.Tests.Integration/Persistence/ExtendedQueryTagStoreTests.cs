@@ -264,7 +264,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public async Task DisposeAsync()
         {
-            await _extendedQueryTagStoreTestHelper.ClearExtendedQueryTagTables();
+            await _extendedQueryTagStoreTestHelper.ClearExtendedQueryTagTablesAsync();
         }
 
         private Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(

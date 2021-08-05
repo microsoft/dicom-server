@@ -17,6 +17,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     {
         private readonly string _connectionString;
 
+        private readonly SqlTestHelper _sqlTestHelper;
+
         private static readonly IReadOnlyDictionary<ExtendedQueryTagDataType, string> DateTypeAndTableNameMapping = new Dictionary<ExtendedQueryTagDataType, string>()
             {
                 { ExtendedQueryTagDataType.StringData, VLatest.ExtendedQueryTagString.TableName },
@@ -29,6 +31,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public SqlIndexDataStoreTestHelper(string connectionString)
         {
             _connectionString = connectionString;
+            _sqlTestHelper = new SqlTestHelper(_connectionString);
         }
 
         public async Task<IReadOnlyList<StudyMetadata>> GetStudyMetadataAsync(string studyInstanceUid)
@@ -229,22 +232,16 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
         }
 
-        public async Task ClearDeletedInstanceTable()
+        public async Task ClearDeletedInstanceTableAsync()
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
-            {
-                await sqlConnection.OpenAsync();
-
-                using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
-                {
-                    sqlCommand.CommandText = @$"
-                        DELETE
-                        FROM {VLatest.DeletedInstance.TableName}";
-
-                    await sqlCommand.ExecuteNonQueryAsync();
-                }
-            }
+            await _sqlTestHelper.ClearTableAsync(VLatest.DeletedInstance.TableName);
         }
 
+        public async Task ClearIndexTablesAsync()
+        {
+            await _sqlTestHelper.ClearTableAsync(VLatest.Instance.TableName);
+            await _sqlTestHelper.ClearTableAsync(VLatest.Series.TableName);
+            await _sqlTestHelper.ClearTableAsync(VLatest.Study.TableName);
+        }
     }
 }

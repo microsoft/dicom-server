@@ -82,7 +82,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                         {
                             (byte)IndexStatus.Creating => new PendingInstanceException(),
                             (byte)IndexStatus.Created => new InstanceAlreadyExistsException(),
-                            _ => new ExtendedQueryTagsVersionMismatchException(),
+                            _ => new ExtendedQueryTagVersionMismatchException(),
                         },
                         _ => new DataStoreException(ex),
                     };

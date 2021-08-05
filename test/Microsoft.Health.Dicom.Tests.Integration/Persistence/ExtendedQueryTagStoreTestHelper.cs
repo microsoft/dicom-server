@@ -17,6 +17,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     public class ExtendedQueryTagStoreTestHelper : IExtendedQueryTagStoreTestHelper
     {
         private readonly string _connectionString;
+        private readonly SqlTestHelper _sqlTestHelper;
 
         private static readonly IReadOnlyDictionary<ExtendedQueryTagDataType, string> DateTypeAndTableNameMapping = new Dictionary<ExtendedQueryTagDataType, string>()
             {
@@ -30,6 +31,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public ExtendedQueryTagStoreTestHelper(string connectionString)
         {
             _connectionString = connectionString;
+            _sqlTestHelper = new SqlTestHelper(_connectionString);
         }
 
         async Task<IReadOnlyList<ExtendedQueryTagDataRow>> IExtendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(
@@ -123,31 +125,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             return results;
         }
 
-        public async Task ClearExtendedQueryTagTables()
+        public async Task ClearExtendedQueryTagTablesAsync()
         {
-            await ClearTable(VLatest.ExtendedQueryTag.TableName);
-            await ClearTable(VLatest.ExtendedQueryTagString.TableName);
-            await ClearTable(VLatest.ExtendedQueryTagDouble.TableName);
-            await ClearTable(VLatest.ExtendedQueryTagPersonName.TableName);
-            await ClearTable(VLatest.ExtendedQueryTagLong.TableName);
-            await ClearTable(VLatest.ExtendedQueryTagDateTime.TableName);
-        }
-
-        private async Task ClearTable(string tableName)
-        {
-            using (var sqlConnection = new SqlConnection(_connectionString))
-            {
-                await sqlConnection.OpenAsync();
-
-                using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
-                {
-                    sqlCommand.CommandText = @$"
-                        DELETE
-                        FROM {tableName}";
-
-                    await sqlCommand.ExecuteNonQueryAsync();
-                }
-            }
+            await _sqlTestHelper.ClearTableAsync(VLatest.ExtendedQueryTag.TableName);
+            await _sqlTestHelper.ClearTableAsync(VLatest.ExtendedQueryTagString.TableName);
+            await _sqlTestHelper.ClearTableAsync(VLatest.ExtendedQueryTagDouble.TableName);
+            await _sqlTestHelper.ClearTableAsync(VLatest.ExtendedQueryTagPersonName.TableName);
+            await _sqlTestHelper.ClearTableAsync(VLatest.ExtendedQueryTagLong.TableName);
+            await _sqlTestHelper.ClearTableAsync(VLatest.ExtendedQueryTagDateTime.TableName);
         }
     }
 }
