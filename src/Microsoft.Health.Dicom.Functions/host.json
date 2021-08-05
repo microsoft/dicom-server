@@ -13,9 +13,9 @@
       "BatchSize": 2,
       "ParallelBatches": 2,
       "RetryOptions": {
-        "BackoffCoefficient": 2,
-        "FirstRetryInterval": "00:00:01",
-        "MaxNumberOfAttempts": 10
+        "BackoffCoefficient": 3,
+        "FirstRetryInterval": "00:01:00",
+        "MaxNumberOfAttempts": 3
       }
     },
     "PurgeHistory": {

@@ -7,7 +7,6 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Functions.Durable;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing
@@ -67,9 +66,6 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                     BackoffCoefficient = value.BackoffCoefficient,
                     MaxRetryInterval = value.MaxRetryInterval,
                     RetryTimeout = value.RetryTimeout,
-
-                    // TODO: In .NET 5 we'll be able to leverage SQlException.IsTransient as well
-                    Handle = e => e is DataStoreException,
                 };
         }
     }
