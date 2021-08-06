@@ -21,8 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         public GetExtendedQueryTagErrorsHandler(IAuthorizationService<DataActions> authorizationService, IExtendedQueryTagErrorsService getExtendedQueryTagErrorsService)
             : base(authorizationService)
         {
-            EnsureArg.IsNotNull(getExtendedQueryTagErrorsService, nameof(getExtendedQueryTagErrorsService));
-            _getExtendedQueryTagErrorsService = getExtendedQueryTagErrorsService;
+            _getExtendedQueryTagErrorsService = EnsureArg.IsNotNull(getExtendedQueryTagErrorsService, nameof(getExtendedQueryTagErrorsService));
         }
 
         public async Task<GetExtendedQueryTagErrorsResponse> Handle(GetExtendedQueryTagErrorsRequest request, CancellationToken cancellationToken)

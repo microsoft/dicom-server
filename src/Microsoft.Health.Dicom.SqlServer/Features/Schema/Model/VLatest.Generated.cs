@@ -33,7 +33,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static CompleteReindexingProcedure CompleteReindexing = new CompleteReindexingProcedure();
         internal readonly static DeleteDeletedInstanceProcedure DeleteDeletedInstance = new DeleteDeletedInstanceProcedure();
         internal readonly static DeleteExtendedQueryTagProcedure DeleteExtendedQueryTag = new DeleteExtendedQueryTagProcedure();
-        internal readonly static DeleteExtendedQueryTagErrorsProcedure DeleteExtendedQueryTagErrors = new DeleteExtendedQueryTagErrorsProcedure();
         internal readonly static DeleteInstanceProcedure DeleteInstance = new DeleteInstanceProcedure();
         internal readonly static GetChangeFeedProcedure GetChangeFeed = new GetChangeFeedProcedure();
         internal readonly static GetChangeFeedLatestProcedure GetChangeFeedLatest = new GetChangeFeedLatestProcedure();
@@ -136,7 +135,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             internal readonly IntColumn TagKey = new IntColumn("TagKey");
-            internal readonly IntColumn ErrorCode = new IntColumn("ErrorCode");
+            internal readonly SmallIntColumn ErrorCode = new SmallIntColumn("ErrorCode");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly DateTime2Column CreatedTime = new DateTime2Column("CreatedTime", 7);
             internal readonly Index IXC_ExtendedQueryTagError = new Index("IXC_ExtendedQueryTagError");
@@ -579,22 +578,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 command.CommandText = "dbo.DeleteExtendedQueryTag";
                 _tagPath.AddParameter(command.Parameters, tagPath);
                 _dataType.AddParameter(command.Parameters, dataType);
-            }
-        }
-
-        internal class DeleteExtendedQueryTagErrorsProcedure : StoredProcedure
-        {
-            internal DeleteExtendedQueryTagErrorsProcedure() : base("dbo.DeleteExtendedQueryTagErrors")
-            {
-            }
-
-            private readonly ParameterDefinition<System.String> _tagPath = new ParameterDefinition<System.String>("@tagPath", global::System.Data.SqlDbType.VarChar, false, 64);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.DeleteExtendedQueryTagErrors";
-                _tagPath.AddParameter(command.Parameters, tagPath);
             }
         }
 

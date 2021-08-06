@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
+    /// <summary>
+    /// The error store saving extended query tag errors.
+    /// </summary>
     public interface IExtendedQueryTagErrorStore
     {
         /// <summary>
@@ -28,20 +31,12 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <param name="errorCode">Error code.</param>
         /// <param name="watermark">Watermark.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The tag key.</returns>
+        /// <returns>A task. The value of the task is the TagKey.</returns>
         public Task<int> AddExtendedQueryTagErrorAsync(
             int tagKey,
-            int errorCode,
+            short errorCode,
             long watermark,
             DateTime createdTime,
             CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Delete extended query tags errors by tag path.
-        /// </summary>
-        /// <param name="tagPath">The tag path.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The Task.</returns>
-        Task DeleteExtendedQueryTagErrorsAsync(string tagPath, CancellationToken cancellationToken = default);
     }
 }

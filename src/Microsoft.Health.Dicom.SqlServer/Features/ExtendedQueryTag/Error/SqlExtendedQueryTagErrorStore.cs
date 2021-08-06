@@ -22,7 +22,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
 
         public async Task<int> AddExtendedQueryTagErrorAsync(
             int tagKey,
-            int errorCode,
+            short errorCode,
             long watermark,
             DateTime createdTime,
             CancellationToken cancellationToken = default)
@@ -34,12 +34,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
                 watermark,
                 createdTime,
                 cancellationToken);
-        }
-
-        public async Task DeleteExtendedQueryTagErrorsAsync(string tagPath, CancellationToken cancellationToken = default)
-        {
-            ISqlExtendedQueryTagErrorStore store = await _cache.GetAsync(cancellationToken);
-            await store.DeleteExtendedQueryTagErrorsAsync(tagPath, cancellationToken);
         }
 
         public async Task<IReadOnlyList<ExtendedQueryTagError>> GetExtendedQueryTagErrorsAsync(string tagPath, CancellationToken cancellationToken = default)

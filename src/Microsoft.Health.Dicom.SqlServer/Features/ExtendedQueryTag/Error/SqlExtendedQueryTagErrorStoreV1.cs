@@ -19,15 +19,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
 
         public virtual Task<int> AddExtendedQueryTagErrorAsync(
             int tagKey,
-            int errorCode,
+            short errorCode,
             long watermark,
             DateTime createdTime,
             CancellationToken cancellationToken = default)
-        {
-            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
-        }
-
-        public virtual Task DeleteExtendedQueryTagErrorsAsync(string tagPath, CancellationToken cancellationToken = default)
         {
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }

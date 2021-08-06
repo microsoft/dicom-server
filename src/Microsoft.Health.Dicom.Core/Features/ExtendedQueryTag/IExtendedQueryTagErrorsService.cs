@@ -10,6 +10,9 @@ using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
+    /// <summary>
+    /// The service for interacting with extended query tag error store.
+    /// </summary>
     public interface IExtendedQueryTagErrorsService
     {
         /// <summary>
@@ -23,7 +26,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <returns>The tag key.</returns>
         public Task<int> AddExtendedQueryTagErrorAsync(
             int tagKey,
-            int errorCode,
+            short errorCode,
             long watermark,
             DateTime createdTime,
             CancellationToken cancellationToken = default);

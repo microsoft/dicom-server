@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -26,11 +27,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
            ILogger<SqlExtendedQueryTagErrorStoreV4> logger)
         {
-            EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
-            EnsureArg.IsNotNull(logger, nameof(logger));
-
-            ConnectionWrapperFactory = sqlConnectionWrapperFactory;
-            Logger = logger;
+            ConnectionWrapperFactory = EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory)); ;
+            Logger = EnsureArg.IsNotNull(logger, nameof(logger)); ;
         }
 
         public override SchemaVersion Version => SchemaVersion.V4;
@@ -41,7 +39,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
 
         public override async Task<int> AddExtendedQueryTagErrorAsync(
             int tagKey,
-            int errorCode,
+            short errorCode,
             long watermark,
             DateTime createdTime,
             CancellationToken cancellationToken = default)
@@ -54,6 +52,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
                 errorCode,
                 watermark,
                 createdTime);
+
             try
             {
                 return (int)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
@@ -61,7 +60,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
             catch (SqlException e)
             {
                 if (e.Number == SqlErrorCodes.NotFound)
-                    throw new ExtendedQueryTagNotFoundException("Attempted to add error on non existing query tag.");
+                {
+                    throw new ExtendedQueryTagNotFoundException(
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            DicomSqlServerResource.ExtendedQueryTagNotFoundWhenAddingError,
+                            tagKey));
+                }
 
                 throw new DataStoreException(e);
             }
@@ -76,34 +81,37 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
 
             VLatest.GetExtendedQueryTagErrors.PopulateCommand(sqlCommandWrapper, tagPath);
 
-            using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
-            while (await reader.ReadAsync(cancellationToken))
+            try
             {
-                (int tagkey, int errorCode, DateTime createdTime, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid) = reader.ReadRow(
-                    VLatest.ExtendedQueryTagError.TagKey,
-                    VLatest.ExtendedQueryTagError.ErrorCode,
-                    VLatest.ExtendedQueryTagError.CreatedTime,
-                    VLatest.Instance.StudyInstanceUid,
-                    VLatest.Instance.SeriesInstanceUid,
-                    VLatest.Instance.SopInstanceUid);
+                using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
+                while (await reader.ReadAsync(cancellationToken))
+                {
+                    (int tagkey, int errorCode, DateTime createdTime, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid) = reader.ReadRow(
+                        VLatest.ExtendedQueryTagError.TagKey,
+                        VLatest.ExtendedQueryTagError.ErrorCode,
+                        VLatest.ExtendedQueryTagError.CreatedTime,
+                        VLatest.Instance.StudyInstanceUid,
+                        VLatest.Instance.SeriesInstanceUid,
+                        VLatest.Instance.SopInstanceUid);
 
-                //TODO: build the error message here
-                string errorMessage = "error: " + errorCode;
+                    //TODO: build the error message here
+                    string errorMessage = "error: " + errorCode;
 
-                results.Add(new ExtendedQueryTagError(createdTime, studyInstanceUid, seriesInstanceUid, sopInstanceUid, errorMessage));
+                    results.Add(new ExtendedQueryTagError(createdTime, studyInstanceUid, seriesInstanceUid, sopInstanceUid, errorMessage));
+                }
+            }
+            catch (SqlException e)
+            {
+                if (e.Number == SqlErrorCodes.NotFound)
+                {
+                    throw new ExtendedQueryTagNotFoundException(
+                        string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.ExtendedQueryTagNotFound, tagPath));
+                }
+
+                throw new DataStoreException(e);
             }
 
             return results;
-        }
-
-        public override async Task DeleteExtendedQueryTagErrorsAsync(string tagPath, CancellationToken cancellationToken = default)
-        {
-            using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
-            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
-
-            VLatest.DeleteExtendedQueryTagErrors.PopulateCommand(sqlCommandWrapper, tagPath);
-
-            await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
         }
     }
 }

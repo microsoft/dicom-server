@@ -37,16 +37,16 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         [Fact]
         public async Task GivenValidInput_WhenAddingExtendedQueryTag_ThenShouldSucceed()
         {
-            int tagKey = 7;
-            int errorCode = 2;
-            long watermark = 30;
+            const int tagKey = 7;
+            const short errorCode = 2;
+            const long watermark = 30;
 
             await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
-                Arg.Is(tagKey),
-                Arg.Is(errorCode),
-                Arg.Is(watermark),
-                Arg.Is(_definedNow),
-                Arg.Is(_tokenSource.Token));
+                Arg.Any<int>(),
+                Arg.Any<short>(),
+                Arg.Any<long>(),
+                Arg.Any<DateTime>(),
+                Arg.Any<CancellationToken>());
 
             var actual = await _extendedQueryTagErrorsService.AddExtendedQueryTagErrorAsync(
                 tagKey,
@@ -58,11 +58,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             await _extendedQueryTagErrorStore
                 .Received(1)
                 .AddExtendedQueryTagErrorAsync(
-                Arg.Is(tagKey),
-                Arg.Is(errorCode),
-                Arg.Is(watermark),
-                Arg.Is(_definedNow),
-                Arg.Is(_tokenSource.Token));
+                    Arg.Is(tagKey),
+                    Arg.Is(errorCode),
+                    Arg.Is(watermark),
+                    Arg.Is(_definedNow),
+                    Arg.Is(_tokenSource.Token));
         }
 
         [Fact]
@@ -80,6 +80,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
 
             _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tagPath).Returns(new List<ExtendedQueryTagError>());
             GetExtendedQueryTagErrorsResponse response = await _extendedQueryTagErrorsService.GetExtendedQueryTagErrorsAsync(tagPath);
+
+            _dicomTagParser.Received(1).TryParse(
+                Arg.Is(tagPath),
+                out Arg.Any<DicomTag[]>());
 
             Assert.Empty(response.ExtendedQueryTagErrors);
         }
@@ -100,6 +104,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tagPath).Returns(new List<ExtendedQueryTagError>());
             await _extendedQueryTagErrorsService.GetExtendedQueryTagErrorsAsync(tagPath);
             await _extendedQueryTagErrorStore.Received(1).GetExtendedQueryTagErrorsAsync(tagPath);
+            _dicomTagParser.Received(1).TryParse(
+                Arg.Is(tagPath),
+                out Arg.Any<DicomTag[]>());
         }
 
         [Fact]
@@ -107,7 +114,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         {
             string tagPath = DicomTag.DeviceID.GetPath();
 
-            var expected = new List<ExtendedQueryTagError> { CreateExtendedQueryTagError("fake error message", Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), DateTime.UtcNow) };
+            var expected = new List<ExtendedQueryTagError> { new ExtendedQueryTagError(
+                DateTime.UtcNow,
+                Guid.NewGuid().ToString(),
+                Guid.NewGuid().ToString(),
+                Guid.NewGuid().ToString(),
+                "fake error message") };
 
             DicomTag[] parsedTags = new DicomTag[] { DicomTag.DeviceID };
 
@@ -120,18 +132,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tagPath).Returns(expected);
             GetExtendedQueryTagErrorsResponse response = await _extendedQueryTagErrorsService.GetExtendedQueryTagErrorsAsync(tagPath);
             await _extendedQueryTagErrorStore.Received(1).GetExtendedQueryTagErrorsAsync(tagPath);
-
+            _dicomTagParser.Received(1).TryParse(
+                Arg.Is(tagPath),
+                out Arg.Any<DicomTag[]>());
             Assert.Equal(expected, response.ExtendedQueryTagErrors);
-        }
-
-        private static ExtendedQueryTagError CreateExtendedQueryTagError(
-            string errorMessage,
-            string studyInstanceUid,
-            string seriesInstanceUid,
-            string sopInstanceUid,
-            DateTime timestamp)
-        {
-            return new ExtendedQueryTagError(timestamp, studyInstanceUid, seriesInstanceUid, sopInstanceUid, errorMessage);
         }
     }
 }

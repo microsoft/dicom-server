@@ -1,4 +1,3 @@
-
 -- Style guide: please see: https://github.com/ktaranov/sqlserver-kit/blob/master/SQL%20Server%20Name%20Convention%20and%20T-SQL%20Programming%20Style.md
 /*************************************************************
 Wrapping up in the multiple transactions except CREATE FULLTEXT INDEX which is non-transactional script.
@@ -412,7 +411,7 @@ IF NOT EXISTS (
 BEGIN
     CREATE TABLE dbo.ExtendedQueryTagError (
         TagKey                  INT             NOT NULL, --FK
-        ErrorCode               INT             NOT NULL,
+        ErrorCode               SMALLINT        NOT NULL,
         Watermark               BIGINT          NOT NULL,
         CreatedTime             DATETIME2(7)    NOT NULL,
     )
@@ -1579,7 +1578,7 @@ AS
     SET XACT_ABORT  ON
     BEGIN TRANSACTION
 
-        DECLARE @tagKey     INT
+        DECLARE @tagKey INT
         SELECT @tagKey = TagKey
         FROM dbo.ExtendedQueryTag WITH(HOLDLOCK)
         WHERE dbo.ExtendedQueryTag.TagPath = @tagPath
@@ -1596,7 +1595,7 @@ AS
             SeriesInstanceUid,
             SopInstanceUid
         FROM dbo.ExtendedQueryTagError AS XQTE
-        INNER JOIN dbo.Instance AS instance ON XQTE.Watermark = instance.Watermark
+        INNER JOIN dbo.Instance AS I ON XQTE.Watermark = I.Watermark
         WHERE TagKey = @tagKey
 
     COMMIT TRANSACTION
@@ -1734,21 +1733,24 @@ AS
     SET XACT_ABORT  ON
     BEGIN TRANSACTION
 
+        --Check if instance exists
+        IF NOT EXISTS (SELECT * FROM dbo.Instance WITH (HOLDLOCK) WHERE Watermark = @watermark AND Status = 1)
+            THROW 50404, 'Instance does not exist or has not been created', 1;
+
         --Check if tag exists
         IF NOT EXISTS (SELECT * FROM dbo.ExtendedQueryTag WITH (HOLDLOCK) WHERE TagKey = @tagKey)
             THROW 50404, 'Tag does not exist', 1;
-        --Check if error with same @@tagKey and @errorCode already exist
-        IF EXISTS (SELECT * FROM dbo.ExtendedQueryTagError WITH (UPDLOCK) WHERE TagKey = @tagKey AND Watermark = @watermark)
-            UPDATE dbo.ExtendedQueryTagError
-            SET CreatedTime = @createdTime,
-                ErrorCode = @errorCode
-            OUTPUT INSERTED.TagKey
-            WHERE TagKey = @tagKey
 
-        ELSE
-            INSERT INTO dbo.ExtendedQueryTagError (TagKey, ErrorCode, Watermark, CreatedTime)
-            OUTPUT INSERTED.TagKey
+        MERGE dbo.ExtendedQueryTagError WITH (HOLDLOCK) as tgt
+        USING (SELECT @tagKey TagKey, @errorCode ErrorCode, @watermark Watermark, @createdTime CreatedTime) as src
+        ON src.TagKey = tgt.TagKey AND src.WaterMark = tgt.Watermark
+        WHEN MATCHED THEN UPDATE
+        SET CreatedTime = @createdTime,
+            ErrorCode = @errorCode
+        WHEN NOT MATCHED THEN 
+            INSERT (TagKey, ErrorCode, Watermark, CreatedTime)
             VALUES (@tagKey, @errorCode, @watermark, @createdTime)
+        OUTPUT INSERTED.TagKey;
 
     COMMIT TRANSACTION
 GO
@@ -1879,7 +1881,7 @@ AS
             AND SopInstanceUid = @sopInstanceUid
 
         IF @@ROWCOUNT = 0
-            THROW 50404, 'Instance not exists', 1
+            THROW 50404, 'Instance does not exists', 1
         IF @status <> 1 -- Created
             THROW 50409, 'Instance is not been stored succssfully', 1
 
@@ -2148,39 +2150,6 @@ AS
         INNER JOIN dbo.ExtendedQueryTag AS XQT ON XQTO.TagKey = XQT.TagKey
         INNER JOIN @extendedQueryTagKeys AS input ON XQT.TagKey = input.TagKey
         WHERE TagStatus = 1
-
-    COMMIT TRANSACTION
-GO
-
-/***************************************************************************************/
--- STORED PROCEDURE
---    DeleteExtendedQueryTagErrors
---
--- DESCRIPTION
---    Delete errors for specified extended query tag
---
--- PARAMETERS
---     @tagPath
---         * The extended query tag path
-/***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.DeleteExtendedQueryTagErrors (@tagPath VARCHAR(64))
-AS
-    SET NOCOUNT     ON
-    SET XACT_ABORT  ON
-    BEGIN TRANSACTION
-
-        DECLARE @tagKey INT
-
-        SELECT @tagKey = TagKey
-        FROM dbo.ExtendedQueryTag WITH(XLOCK)
-        WHERE dbo.ExtendedQueryTag.TagPath = @tagPath
-
-        -- Check existence
-        IF (@@ROWCOUNT = 0)
-            THROW 50404, 'extended query tag not found', 1 
-
-        DELETE FROM dbo.ExtendedQueryTagError
-        WHERE TagKey = @tagKey
 
     COMMIT TRANSACTION
 GO

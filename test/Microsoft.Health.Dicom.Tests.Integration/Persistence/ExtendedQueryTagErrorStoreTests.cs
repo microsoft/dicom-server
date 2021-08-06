@@ -4,12 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
@@ -22,8 +23,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private readonly IExtendedQueryTagErrorStore _extendedQueryTagErrorStore;
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly IIndexDataStore _indexDataStore;
+        private readonly IIndexDataStoreTestHelper _testHelper;
         private readonly DateTime _definedNow;
-        private long _watermark;
 
         public ExtendedQueryTagErrorStoreTests(SqlDataStoreTestsFixture fixture)
         {
@@ -32,89 +33,34 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             _extendedQueryTagErrorStore = EnsureArg.IsNotNull(fixture.ExtendedQueryTagErrorStore, nameof(fixture.ExtendedQueryTagErrorStore));
             _indexDataStore = EnsureArg.IsNotNull(fixture.IndexDataStore, nameof(fixture.IndexDataStore));
             _definedNow = DateTime.UtcNow;
+            _testHelper = EnsureArg.IsNotNull(fixture.TestHelper, nameof(fixture.TestHelper));
         }
+
         public async Task DisposeAsync()
         {
-            await CleanupTagErrorsAsync();
-        }
-
-        private async Task CleanupTagErrorsAsync()
-        {
-            var tags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync();
-            foreach (var tag in tags)
-            {
-                await _extendedQueryTagErrorStore.DeleteExtendedQueryTagErrorsAsync(tag.Path);
-                await _extendedQueryTagStore.DeleteExtendedQueryTagAsync(tag.Path, tag.VR);
-            }
-        }
-
-        private async Task<ExtendedQueryTagStoreEntry> CreateTagInStoreAsync(string studyInstanceUid = null, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
-        {
-            DicomTag tag1 = DicomTag.DeviceSerialNumber;
-            AddExtendedQueryTagEntry extendedQueryTagEntry1 = tag1.BuildAddExtendedQueryTagEntry();
-
-            DicomDataset dataset = CreateTestDicomDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-            _watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset);
-
-            await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry1 }, 128, ready: true, cancellationToken: cancellationToken);
-
-            var actualExtendedQueryTagEntries = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(extendedQueryTagEntry1.Path);
-
-            Assert.Equal(actualExtendedQueryTagEntries[0].Path, extendedQueryTagEntry1.Path);
-            return actualExtendedQueryTagEntries[0];
-        }
-
-        private static DicomDataset CreateTestDicomDataset(string studyInstanceUid = null, string seriesInstanceUid = null, string sopInstanceUid = null)
-        {
-            if (string.IsNullOrEmpty(studyInstanceUid))
-            {
-                studyInstanceUid = TestUidGenerator.Generate();
-            }
-
-            if (string.IsNullOrEmpty(seriesInstanceUid))
-            {
-                seriesInstanceUid = TestUidGenerator.Generate();
-            }
-
-            if (string.IsNullOrEmpty(sopInstanceUid))
-            {
-                sopInstanceUid = TestUidGenerator.Generate();
-            }
-
-            DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
-
-            dataset.Remove(DicomTag.PatientID);
-
-            dataset.Add(DicomTag.PatientID, "pid");
-            dataset.Add(DicomTag.PatientName, "pname");
-            dataset.Add(DicomTag.ReferringPhysicianName, "rname");
-            dataset.Add(DicomTag.StudyDate, "20200301");
-            dataset.Add(DicomTag.StudyDescription, "sd");
-            dataset.Add(DicomTag.AccessionNumber, "an");
-            dataset.Add(DicomTag.Modality, "M");
-            dataset.Add(DicomTag.PerformedProcedureStepStartDate, "20200302");
-            return dataset;
+            await _testHelper.ClearExtendedQueryTagErrorTable();
         }
 
         [Fact]
-        public async Task GivenValidExtendedQueryTagError_WhenAddExtendedQueryTagError_ThenTagShouldBeAdded()
+        public async Task GivenValidExtendedQueryTagError_WhenAddExtendedQueryTagError_ThenTagErrorShouldBeAdded()
         {
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
 
-            ExtendedQueryTagStoreEntry actualTagEntry = await CreateTagInStoreAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-            int actualErrorCode = 3;
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+            long watermark = await AddInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            int tagKey = await AddTagAsync(tag);
 
             int outputTagKey = await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
-                actualTagEntry.Key,
-                actualErrorCode,
-                _watermark,
+                tagKey,
+                3,
+                watermark,
                 _definedNow);
 
-            Assert.Equal(outputTagKey, actualTagEntry.Key);
+            Assert.Equal(outputTagKey, tagKey);
 
-            var extendedQueryTagError = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(actualTagEntry.Path);
+            var extendedQueryTagError = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath());
 
             Assert.Equal(extendedQueryTagError[0].CreatedTime, _definedNow);
             Assert.Equal(extendedQueryTagError[0].StudyInstanceUid, studyInstanceUid);
@@ -127,30 +73,28 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             var extendedQueryTag = await _extendedQueryTagStore.GetExtendedQueryTagsAsync();
             Assert.Equal(0, extendedQueryTag.Count);
-            await Assert.ThrowsAsync<ExtendedQueryTagNotFoundException>(() => _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
-                0, 1, 0, _definedNow));
-        }
-
-        [Fact]
-        public async Task GivenExistingQueryTagError_WhenDeletingExtendedQueryTagErrors_ThenShouldDeleteAllErrorsForTag()
-        {
-            ExtendedQueryTagStoreEntry actualTagEntry = await CreateTagInStoreAsync();
-
-            await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
-                actualTagEntry.Key, 1, _watermark, _definedNow);
-
-            var extendedQueryTagErrorBeforeDelete = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(actualTagEntry.Path);
-            Assert.Equal(1, extendedQueryTagErrorBeforeDelete.Count);
-
-            await _extendedQueryTagErrorStore.DeleteExtendedQueryTagErrorsAsync(actualTagEntry.Path);
-
-            var extendedQueryTagErrorAfterDelete = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(actualTagEntry.Path);
-            Assert.Equal(0, extendedQueryTagErrorAfterDelete.Count);
+            await Assert.ThrowsAsync<ExtendedQueryTagNotFoundException>(
+                () => _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(1, 1, 1, _definedNow));
         }
 
         public Task InitializeAsync()
         {
             return Task.CompletedTask;
+        }
+
+        private async Task<long> AddInstanceAsync(string studyId, string seriesId, string sopInstanceId)
+        {
+            DicomDataset dataset = Samples.CreateRandomInstanceDataset(studyId, seriesId, sopInstanceId);
+            long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset);
+            await _indexDataStore.UpdateInstanceIndexStatusAsync(new VersionedInstanceIdentifier(studyId, seriesId, sopInstanceId, watermark), Core.Models.IndexStatus.Created);
+            return watermark;
+        }
+
+        private async Task<int> AddTagAsync(DicomTag tag)
+        {
+            AddExtendedQueryTagEntry extendedQueryTagEntry = tag.BuildAddExtendedQueryTagEntry();
+            var list = await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry }, 128, ready: true);
+            return list[0];
         }
     }
 }

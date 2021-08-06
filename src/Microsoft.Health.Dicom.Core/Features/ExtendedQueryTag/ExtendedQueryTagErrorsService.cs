@@ -20,6 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     {
         private readonly IExtendedQueryTagErrorStore _extendedQueryTagErrorStore;
         private readonly IDicomTagParser _dicomTagParser;
+
         public ExtendedQueryTagErrorsService(IExtendedQueryTagErrorStore extendedQueryTagStore, IDicomTagParser dicomTagParser)
         {
             _extendedQueryTagErrorStore = EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
@@ -33,11 +34,10 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 : throw new InvalidExtendedQueryTagPathException(string.Format(DicomCoreResource.InvalidExtendedQueryTag, tagPath ?? string.Empty));
 
             IReadOnlyList<ExtendedQueryTagError> extendedQueryTagErrors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(numericalTagPath, cancellationToken);
-
             return new GetExtendedQueryTagErrorsResponse(extendedQueryTagErrors);
         }
 
-        public Task<int> AddExtendedQueryTagErrorAsync(int tagKey, int errorCode, long watermark, DateTime createdTime, CancellationToken cancellationToken = default)
+        public Task<int> AddExtendedQueryTagErrorAsync(int tagKey, short errorCode, long watermark, DateTime createdTime, CancellationToken cancellationToken = default)
         {
             return _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
                 tagKey,
