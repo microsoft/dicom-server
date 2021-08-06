@@ -25,7 +25,7 @@ steps:
     inputs:
       command: test
       projects: '**/*UnitTests/*.csproj'
-      arguments: '--configuration $(buildConfiguration) --no-build --publishTestCoverage'
+      arguments: '--configuration $(buildConfiguration) --no-build --publishTestResults'
 
   - ${{ if eq(parameters.packageArtifacts, 'true') }}:
     - template: package.yml
