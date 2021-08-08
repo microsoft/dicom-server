@@ -3,7 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Text.Json;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
@@ -34,7 +36,10 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             _instanceReindexer = Substitute.For<IInstanceReindexer>();
             _schemaVersionResolver = Substitute.For<ISchemaVersionResolver>();
             _jsonSerializerOptions = new JsonSerializerOptions();
-            _options = new QueryTagIndexingOptions();
+            _options = new QueryTagIndexingOptions
+            {
+                ActivityRetryOptions = new RetryOptions(TimeSpan.FromSeconds(5), 10),
+            };
             _reindexDurableFunction = new ReindexDurableFunction(
                 _guidFactory,
                 _extendedQueryTagStore,
