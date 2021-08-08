@@ -15,7 +15,7 @@
       "RetryOptions": {
         "BackoffCoefficient": 3,
         "FirstRetryInterval": "00:01:00",
-        "MaxNumberOfAttempts": 3
+        "MaxNumberOfAttempts": 4
       }
     },
     "PurgeHistory": {

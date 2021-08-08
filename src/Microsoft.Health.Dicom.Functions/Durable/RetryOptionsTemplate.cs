@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Functions.Durable
     {
         public TimeSpan FirstRetryInterval { get; set; } = TimeSpan.Zero;
 
-        public TimeSpan MaxRetryInterval { get; set; } = TimeSpan.FromDays(6.0);
+        public TimeSpan MaxRetryInterval { get; set; } = TimeSpan.FromDays(6.0); // Durable Function Maximum
 
         public double BackoffCoefficient { get; set; } = 1;
 
