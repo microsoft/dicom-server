@@ -28,9 +28,9 @@ steps:
       arguments: '--configuration $(buildConfiguration) --no-build --collect "Code coverage"'
 
   - task: PublishTestResults@2
-  inputs:
-    testRunner: VSTest
-    testResultsFiles: '**/*.trx'
+    inputs:
+      testRunner: VSTest
+      testResultsFiles: '**/*.trx'
 
   - ${{ if eq(parameters.packageArtifacts, 'true') }}:
     - template: package.yml
