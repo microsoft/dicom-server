@@ -36,10 +36,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         {
             EnsureArg.IsNotNull(entries, nameof(entries));
             EnsureArg.IsNotNull(versionedInstanceId, nameof(versionedInstanceId));
-            if (entries.Count == 0)
-            {
-                return;
-            }
 
             DicomDataset dataset = await _metadataStore.GetInstanceMetadataAsync(versionedInstanceId, cancellationToken);
 

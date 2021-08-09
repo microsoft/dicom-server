@@ -17,11 +17,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     public enum ValidationErrorCode
     {
         /// <summary>
-        /// No error.
-        /// </summary>
-        None = 0,
-
-        /// <summary>
         /// Dicom element has multiple values -- we only support indexing single value dicom element.
         /// </summary>
         ElementHasMultipleValues = 1,
