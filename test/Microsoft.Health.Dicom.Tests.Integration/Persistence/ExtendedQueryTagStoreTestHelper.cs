@@ -17,7 +17,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     public class ExtendedQueryTagStoreTestHelper : IExtendedQueryTagStoreTestHelper
     {
         private readonly string _connectionString;
-        private readonly SqlTestHelper _sqlTestHelper;
 
         private static readonly IReadOnlyDictionary<ExtendedQueryTagDataType, string> DateTypeAndTableNameMapping = new Dictionary<ExtendedQueryTagDataType, string>()
             {
@@ -31,7 +30,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public ExtendedQueryTagStoreTestHelper(string connectionString)
         {
             _connectionString = connectionString;
-            _sqlTestHelper = new SqlTestHelper(_connectionString);
         }
 
         async Task<IReadOnlyList<ExtendedQueryTagDataRow>> IExtendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(
@@ -127,12 +125,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public async Task ClearExtendedQueryTagTablesAsync()
         {
-            await _sqlTestHelper.ClearTableAsync(VLatest.ExtendedQueryTag.TableName);
-            await _sqlTestHelper.ClearTableAsync(VLatest.ExtendedQueryTagString.TableName);
-            await _sqlTestHelper.ClearTableAsync(VLatest.ExtendedQueryTagDouble.TableName);
-            await _sqlTestHelper.ClearTableAsync(VLatest.ExtendedQueryTagPersonName.TableName);
-            await _sqlTestHelper.ClearTableAsync(VLatest.ExtendedQueryTagLong.TableName);
-            await _sqlTestHelper.ClearTableAsync(VLatest.ExtendedQueryTagDateTime.TableName);
+            await SqlTestUtils.ClearTableAsync(_connectionString, VLatest.ExtendedQueryTag.TableName);
+            await SqlTestUtils.ClearTableAsync(_connectionString, VLatest.ExtendedQueryTagString.TableName);
+            await SqlTestUtils.ClearTableAsync(_connectionString, VLatest.ExtendedQueryTagDouble.TableName);
+            await SqlTestUtils.ClearTableAsync(_connectionString, VLatest.ExtendedQueryTagPersonName.TableName);
+            await SqlTestUtils.ClearTableAsync(_connectionString, VLatest.ExtendedQueryTagLong.TableName);
+            await SqlTestUtils.ClearTableAsync(_connectionString, VLatest.ExtendedQueryTagDateTime.TableName);
         }
     }
 }

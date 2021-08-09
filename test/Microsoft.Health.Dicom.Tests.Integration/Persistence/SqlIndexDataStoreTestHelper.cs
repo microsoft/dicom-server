@@ -16,12 +16,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     {
         private readonly string _connectionString;
 
-        private readonly SqlTestHelper _sqlTestHelper;
-
         public SqlIndexDataStoreTestHelper(string connectionString)
         {
             _connectionString = connectionString;
-            _sqlTestHelper = new SqlTestHelper(_connectionString);
         }
 
         public async Task<IReadOnlyList<StudyMetadata>> GetStudyMetadataAsync(string studyInstanceUid)
@@ -224,14 +221,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public async Task ClearDeletedInstanceTableAsync()
         {
-            await _sqlTestHelper.ClearTableAsync(VLatest.DeletedInstance.TableName);
+            await SqlTestUtils.ClearTableAsync(_connectionString, VLatest.DeletedInstance.TableName);
         }
 
         public async Task ClearIndexTablesAsync()
         {
-            await _sqlTestHelper.ClearTableAsync(VLatest.Instance.TableName);
-            await _sqlTestHelper.ClearTableAsync(VLatest.Series.TableName);
-            await _sqlTestHelper.ClearTableAsync(VLatest.Study.TableName);
+            await SqlTestUtils.ClearTableAsync(_connectionString, VLatest.Instance.TableName);
+            await SqlTestUtils.ClearTableAsync(_connectionString, VLatest.Series.TableName);
+            await SqlTestUtils.ClearTableAsync(_connectionString, VLatest.Study.TableName);
         }
     }
 }
