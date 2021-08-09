@@ -41,7 +41,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
             int tagKey,
             short errorCode,
             long watermark,
-            DateTime createdTime,
             CancellationToken cancellationToken = default)
         {
             using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
@@ -50,8 +49,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
                 sqlCommandWrapper,
                 tagKey,
                 errorCode,
-                watermark,
-                createdTime);
+                watermark);
 
             try
             {

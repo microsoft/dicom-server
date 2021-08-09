@@ -284,16 +284,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.Int32> _tagKey = new ParameterDefinition<System.Int32>("@tagKey", global::System.Data.SqlDbType.Int, false);
             private readonly ParameterDefinition<System.Int32> _errorCode = new ParameterDefinition<System.Int32>("@errorCode", global::System.Data.SqlDbType.Int, false);
             private readonly ParameterDefinition<System.Int64> _watermark = new ParameterDefinition<System.Int64>("@watermark", global::System.Data.SqlDbType.BigInt, false);
-            private readonly ParameterDefinition<System.DateTime> _createdTime = new ParameterDefinition<System.DateTime>("@createdTime", global::System.Data.SqlDbType.DateTime2, false, 7);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 tagKey, System.Int32 errorCode, System.Int64 watermark, System.DateTime createdTime)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 tagKey, System.Int32 errorCode, System.Int64 watermark)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.AddExtendedQueryTagError";
                 _tagKey.AddParameter(command.Parameters, tagKey);
                 _errorCode.AddParameter(command.Parameters, errorCode);
                 _watermark.AddParameter(command.Parameters, watermark);
-                _createdTime.AddParameter(command.Parameters, createdTime);
             }
         }
 

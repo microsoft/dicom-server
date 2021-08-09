@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +26,6 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// Asynchronously adds an error for a specified Extended Query Tag.
         /// </summary>
         /// <param name="tagKey">TagKey of the extended query tag to which an error will be added.</param>
-        /// <param name="createdTime">Time at which the error was created.</param>
         /// <param name="errorCode">Error code.</param>
         /// <param name="watermark">Watermark.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -36,7 +34,6 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             int tagKey,
             short errorCode,
             long watermark,
-            DateTime createdTime,
             CancellationToken cancellationToken = default);
     }
 }

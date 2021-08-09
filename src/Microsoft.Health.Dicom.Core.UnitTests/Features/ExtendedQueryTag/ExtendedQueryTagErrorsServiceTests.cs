@@ -45,7 +45,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
                 Arg.Any<int>(),
                 Arg.Any<short>(),
                 Arg.Any<long>(),
-                Arg.Any<DateTime>(),
                 Arg.Any<CancellationToken>());
 
             var actual = await _extendedQueryTagErrorsService.AddExtendedQueryTagErrorAsync(
@@ -61,7 +60,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
                     Arg.Is(tagKey),
                     Arg.Is(errorCode),
                     Arg.Is(watermark),
-                    Arg.Is(_definedNow),
                     Arg.Is(_tokenSource.Token));
         }
 

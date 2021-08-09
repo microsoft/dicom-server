@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +23,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
             int tagKey,
             short errorCode,
             long watermark,
-            DateTime createdTime,
             CancellationToken cancellationToken = default)
         {
             ISqlExtendedQueryTagErrorStore store = await _cache.GetAsync(cancellationToken);
@@ -32,7 +30,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
                 tagKey,
                 errorCode,
                 watermark,
-                createdTime,
                 cancellationToken);
         }
 

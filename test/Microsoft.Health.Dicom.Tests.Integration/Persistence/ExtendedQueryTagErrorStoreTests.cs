@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
@@ -24,7 +23,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly IIndexDataStore _indexDataStore;
         private readonly IIndexDataStoreTestHelper _testHelper;
-        private readonly DateTime _definedNow;
 
         public ExtendedQueryTagErrorStoreTests(SqlDataStoreTestsFixture fixture)
         {
@@ -32,7 +30,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             _extendedQueryTagStore = EnsureArg.IsNotNull(fixture.ExtendedQueryTagStore, nameof(fixture.ExtendedQueryTagStore));
             _extendedQueryTagErrorStore = EnsureArg.IsNotNull(fixture.ExtendedQueryTagErrorStore, nameof(fixture.ExtendedQueryTagErrorStore));
             _indexDataStore = EnsureArg.IsNotNull(fixture.IndexDataStore, nameof(fixture.IndexDataStore));
-            _definedNow = DateTime.UtcNow;
             _testHelper = EnsureArg.IsNotNull(fixture.TestHelper, nameof(fixture.TestHelper));
         }
 
@@ -55,14 +52,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             int outputTagKey = await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
                 tagKey,
                 3,
-                watermark,
-                _definedNow);
+                watermark);
 
             Assert.Equal(outputTagKey, tagKey);
 
             var extendedQueryTagError = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath());
 
-            Assert.Equal(extendedQueryTagError[0].CreatedTime, _definedNow);
             Assert.Equal(extendedQueryTagError[0].StudyInstanceUid, studyInstanceUid);
             Assert.Equal(extendedQueryTagError[0].SeriesInstanceUid, seriesInstanceUid);
             Assert.Equal(extendedQueryTagError[0].SopInstanceUid, sopInstanceUid);
@@ -74,7 +69,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var extendedQueryTag = await _extendedQueryTagStore.GetExtendedQueryTagsAsync();
             Assert.Equal(0, extendedQueryTag.Count);
             await Assert.ThrowsAsync<ExtendedQueryTagNotFoundException>(
-                () => _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(1, 1, 1, _definedNow));
+                () => _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(1, 1, 1));
         }
 
         public Task InitializeAsync()
