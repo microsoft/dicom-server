@@ -493,31 +493,31 @@ GO
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrors (@tagPath VARCHAR(64))
 AS
+BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
-    BEGIN TRANSACTION
 
-        DECLARE @tagKey INT
-        SELECT @tagKey = TagKey
-        FROM dbo.ExtendedQueryTag WITH(HOLDLOCK)
-        WHERE dbo.ExtendedQueryTag.TagPath = @tagPath
+    DECLARE @tagKey INT
+    SELECT @tagKey = TagKey
+    FROM dbo.ExtendedQueryTag WITH(HOLDLOCK)
+    WHERE dbo.ExtendedQueryTag.TagPath = @tagPath
 
-        -- Check existence
-        IF (@@ROWCOUNT = 0)
-            THROW 50404, 'extended query tag not found', 1 
+    -- Check existence
+    IF (@@ROWCOUNT = 0)
+        THROW 50404, 'extended query tag not found', 1 
 
-        SELECT
-            TagKey,
-            ErrorCode,
-            CreatedTime,
-            StudyInstanceUid,
-            SeriesInstanceUid,
-            SopInstanceUid
-        FROM dbo.ExtendedQueryTagError AS XQTE
-        INNER JOIN dbo.Instance AS I ON XQTE.Watermark = I.Watermark
-        WHERE TagKey = @tagKey
-
-    COMMIT TRANSACTION
+    SELECT
+        TagKey,
+        ErrorCode,
+        CreatedTime,
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid
+    FROM dbo.ExtendedQueryTagError AS XQTE
+    INNER JOIN dbo.Instance AS I
+    ON XQTE.Watermark = I.Watermark
+    WHERE TagKey = @tagKey
+END
 GO
 
 /***************************************************************************************/
@@ -551,7 +551,7 @@ AS
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
 
         --Check if instance exists
-        IF NOT EXISTS (SELECT * FROM dbo.Instance WITH (HOLDLOCK) WHERE Watermark = @watermark AND Status = 1)
+        IF NOT EXISTS (SELECT * FROM dbo.Instance WITH (UPDLOCK) WHERE Watermark = @watermark AND Status = 1)
             THROW 50404, 'Instance does not exist or has not been created', 1;
 
         --Check if tag exists
