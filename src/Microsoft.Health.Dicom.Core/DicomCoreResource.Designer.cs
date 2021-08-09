@@ -206,7 +206,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Version of extended query tag mismatch..
+        ///   Looks up a localized string similar to One or more extended query tags have been modified..
         /// </summary>
         internal static string ExtendedQueryTagVersionMismatch {
             get {

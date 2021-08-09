@@ -388,7 +388,7 @@ CREATE TABLE dbo.ExtendedQueryTag (
     TagPrivateCreator       NVARCHAR(64)         NULL, 
     TagLevel                TINYINT              NOT NULL,
     TagStatus               TINYINT              NOT NULL,
-    TagVersion              ROWVERSION           NOT NULL,
+    TagVersion              ROWVERSION           NOT NULL
 )
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
@@ -760,7 +760,7 @@ AS
     DECLARE @seriesKey BIGINT
     DECLARE @instanceKey BIGINT
 
-    IF @extendedQueryTagsVersion <> (SELECT MAX(TagVersion) FROM dbo.ExtendedQueryTag)
+    IF @extendedQueryTagsVersion <> (SELECT MAX(TagVersion) FROM dbo.ExtendedQueryTag WITH (HOLDLOCK))
         THROW 50409, 'Extended query tags version does not match', 10
 
     SELECT @existingStatus = Status

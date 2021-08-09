@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     /// We use max version amoung all extended query tags as version of ExtendedQueryTagTable, since ROWVERSION keep increasing and never falls back.
     /// The version is used to indicate if extended query tags we are using are same as ExtendedQueryTagTable.
     /// </remarks>
-    public struct ExtendedQueryTagVersion : IEquatable<ExtendedQueryTagVersion>, IComparable<ExtendedQueryTagVersion>
+    public readonly struct ExtendedQueryTagVersion : IEquatable<ExtendedQueryTagVersion>, IComparable<ExtendedQueryTagVersion>
     {
         /// <summary>
         /// Get extended query tag version for a list of tag versions.
@@ -72,10 +72,16 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
         public override bool Equals(object obj)
         {
-            return obj is ExtendedQueryTagVersion && Equals((ExtendedQueryTagVersion)obj);
+            return obj is ExtendedQueryTagVersion version && Equals(version);
         }
 
         public override int GetHashCode() => HashCode.Combine(_version);
+        public byte[] ToByteArray()
+        {
+            byte[] result = new byte[8];
+            BinaryPrimitives.WriteUInt64BigEndian(result, _version);
+            return result;
+        }
 
         public static bool operator ==(ExtendedQueryTagVersion left, ExtendedQueryTagVersion right)
         {
@@ -107,11 +113,5 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             return left.CompareTo(right) >= 0;
         }
 
-        public byte[] ToByteArray()
-        {
-            byte[] result = new byte[8];
-            BinaryPrimitives.WriteUInt64BigEndian(result, _version);
-            return result;
-        }
     }
 }

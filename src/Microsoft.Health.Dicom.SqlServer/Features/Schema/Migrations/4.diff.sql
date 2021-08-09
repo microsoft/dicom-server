@@ -640,7 +640,7 @@ AS
     DECLARE @seriesKey BIGINT
     DECLARE @instanceKey BIGINT
 
-    IF @extendedQueryTagsVersion <> (SELECT MAX(TagVersion) FROM dbo.ExtendedQueryTag)
+    IF @extendedQueryTagsVersion <> (SELECT MAX(TagVersion) FROM dbo.ExtendedQueryTag WITH (HOLDLOCK))
         THROW 50409, 'Extended query tags version does not match', 10
 
     SELECT @existingStatus = Status

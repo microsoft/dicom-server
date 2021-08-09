@@ -97,7 +97,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             return results;
         }
 
-
         public override async Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(
             IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries,
             int maxAllowedCount,
