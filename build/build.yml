@@ -25,8 +25,12 @@ steps:
     inputs:
       command: test
       projects: '**/*UnitTests/*.csproj'
-      arguments: '--configuration $(buildConfiguration) --no-build'
-      publishTestResults: true
+      arguments: '--configuration $(buildConfiguration) --no-build --collect "Code coverage"'
+
+  - task: PublishTestResults@2
+  inputs:
+    testRunner: VSTest
+    testResultsFiles: '**/*.trx'
 
   - ${{ if eq(parameters.packageArtifacts, 'true') }}:
     - template: package.yml
