@@ -88,7 +88,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private async Task<int> AddTagAsync(DicomTag tag)
         {
             AddExtendedQueryTagEntry extendedQueryTagEntry = tag.BuildAddExtendedQueryTagEntry();
-            var list = await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry }, 128, ready: true);
+            var list = await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry }, 128);
             return list[0];
         }
     }

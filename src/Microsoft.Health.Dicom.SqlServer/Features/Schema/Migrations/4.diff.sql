@@ -555,7 +555,7 @@ AS
             THROW 50404, 'Instance does not exist or has not been created', 1;
 
         --Check if tag exists
-        IF NOT EXISTS (SELECT * FROM dbo.ExtendedQueryTag WITH (HOLDLOCK) WHERE TagKey = @tagKey)
+        IF NOT EXISTS (SELECT * FROM dbo.ExtendedQueryTag WITH (HOLDLOCK) WHERE TagKey = @tagKey AND TagStatus = 0)
             THROW 50404, 'Tag does not exist', 1;
 
         MERGE dbo.ExtendedQueryTagError WITH (HOLDLOCK) as tgt

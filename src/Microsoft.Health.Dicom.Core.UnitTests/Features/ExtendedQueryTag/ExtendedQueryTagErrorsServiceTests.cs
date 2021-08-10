@@ -41,11 +41,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             const short errorCode = 2;
             const long watermark = 30;
 
-            await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
+            _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
                 Arg.Any<int>(),
                 Arg.Any<short>(),
                 Arg.Any<long>(),
-                Arg.Any<CancellationToken>());
+                Arg.Any<CancellationToken>())
+            .Returns(tagKey);
 
             var actual = await _extendedQueryTagErrorsService.AddExtendedQueryTagErrorAsync(
                 tagKey,
