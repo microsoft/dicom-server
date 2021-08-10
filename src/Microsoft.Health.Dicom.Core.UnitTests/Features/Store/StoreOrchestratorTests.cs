@@ -9,6 +9,9 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
@@ -17,6 +20,7 @@ using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Models;
 using NSubstitute;
+using NSubstitute.Core;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
 
@@ -63,7 +67,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             _queryTagService.GetQueryTagsAsync(Arg.Any<CancellationToken>())
                 .Returns(Array.Empty<QueryTag>());
 
-            _storeOrchestrator = new StoreOrchestrator(_fileStore, _metadataStore, _indexDataStore, _deleteService, _queryTagService);
+            _storeOrchestrator = new StoreOrchestrator(_fileStore, _metadataStore, _indexDataStore, _deleteService, _queryTagService, Options.Create(new StoreConfiguration()));
         }
 
         [Fact]
@@ -122,6 +126,26 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             _indexDataStore.DeleteInstanceIndexAsync(default, default, default, default, default).ThrowsForAnyArgs(new InvalidOperationException());
 
             await Assert.ThrowsAsync<ArgumentException>(() => _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken));
+        }
+
+        [Fact]
+        public async Task GivenVersionMismatchExceptionWhenStore_WhenRetryNotExceedMax_ThenShouldSucceed()
+        {
+            Func<CallInfo, long> exceptionFunc = new Func<CallInfo, long>(x => throw new ExtendedQueryTagVersionMismatchException());
+            _indexDataStore.CreateInstanceIndexAsync(default, default, default, default)
+                .ReturnsForAnyArgs(exceptionFunc, exceptionFunc, x => 1);
+
+            await _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken);
+        }
+
+        [Fact]
+        public async Task GivenVersionMismatchExceptionWhenStore_WhenRetryExceedMax_ThenShouldFail()
+        {
+            Func<CallInfo, long> exceptionFunc = new Func<CallInfo, long>(x => throw new ExtendedQueryTagVersionMismatchException());
+            _indexDataStore.CreateInstanceIndexAsync(default, default, default, default)
+                .ReturnsForAnyArgs(exceptionFunc, exceptionFunc, exceptionFunc);
+
+            await Assert.ThrowsAsync<ExtendedQueryTagVersionMismatchException>(() => _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken));
         }
 
         private async Task ValidateStatusUpdateAsync()

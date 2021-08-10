@@ -9,6 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Delete;
@@ -16,6 +19,7 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Models;
+using Polly;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
@@ -29,25 +33,29 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         private readonly IIndexDataStore _indexDataStore;
         private readonly IDeleteService _deleteService;
         private readonly IQueryTagService _queryTagService;
+        private readonly IOptions<StoreConfiguration> _storeConfiguration;
 
         public StoreOrchestrator(
             IFileStore fileStore,
             IMetadataStore metadataStore,
             IIndexDataStore indexDataStore,
             IDeleteService deleteService,
-            IQueryTagService queryTagService)
+            IQueryTagService queryTagService,
+            IOptions<StoreConfiguration> storeConfiguration)
         {
             EnsureArg.IsNotNull(fileStore, nameof(fileStore));
             EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
             EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
             EnsureArg.IsNotNull(deleteService, nameof(deleteService));
             EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
+            EnsureArg.IsNotNull(storeConfiguration, nameof(storeConfiguration));
 
             _fileStore = fileStore;
             _metadataStore = metadataStore;
             _deleteService = deleteService;
             _queryTagService = queryTagService;
             _indexDataStore = indexDataStore;
+            _storeConfiguration = storeConfiguration;
         }
 
         /// <inheritdoc />
@@ -58,8 +66,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
 
             DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
-            var queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken);
-            long version = await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, queryTags, ExtendedQueryTagVersion.GetExtendedQueryTagVersion(queryTags), cancellationToken);
+
+            // Retry when ExtendedQuryTagVersion mismatch.
+            var retryPolicy = Policy.Handle<ExtendedQueryTagVersionMismatchException>()
+                .RetryAsync(_storeConfiguration.Value.MaxRetriesWhenTagVersionMismatch);
+            long version = await retryPolicy.ExecuteAsync(async () =>
+            {
+                var queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken);
+                return await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, queryTags, ExtendedQueryTagVersion.GetExtendedQueryTagVersion(queryTags), cancellationToken);
+            });
 
             var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version);
 
