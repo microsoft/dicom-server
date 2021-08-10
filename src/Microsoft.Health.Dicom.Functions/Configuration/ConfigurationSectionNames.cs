@@ -5,10 +5,12 @@
 
 namespace Microsoft.Health.Dicom.Functions.Configuration
 {
-    internal static class DicomFunctionsConfiguration
+    internal static class ConfigurationSectionNames
     {
-        public const string HostSectionName = "AzureFunctionsJobHost";
+        public const string Host = "AzureFunctionsJobHost";
 
-        public const string SectionName = "DicomFunctions";
+        public const string DicomFunctions = "DicomFunctions";
+
+        public const string Security = "Security";
     }
 }

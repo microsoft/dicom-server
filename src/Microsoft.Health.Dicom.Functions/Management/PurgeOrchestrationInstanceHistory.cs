@@ -22,8 +22,8 @@ namespace Microsoft.Health.Dicom.Functions.Management
         private readonly Func<DateTime> _getUtcNow;
 
         public const string PurgeFrequencyVariable = "%"
-            + DicomFunctionsConfiguration.HostSectionName + ":"
-            + DicomFunctionsConfiguration.SectionName + ":"
+            + ConfigurationSectionNames.Host + ":"
+            + ConfigurationSectionNames.DicomFunctions + ":"
             + PurgeHistoryOptions.SectionName + ":"
             + nameof(PurgeHistoryOptions.Frequency) + "%";
 

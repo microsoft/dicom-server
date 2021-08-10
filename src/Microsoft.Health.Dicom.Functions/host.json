@@ -19,6 +19,13 @@
       "Frequency": "0 0 * * *"
     }
   },
+  "Security": {
+    "Enabled": false,
+    "Authentication": {
+      "Audience": null,
+      "Authority": null
+    }
+  },
   "BlobStore": {
     "ConnectionString": null,
     "Containers": {

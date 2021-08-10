@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Api.Modules
 
             if (_securityConfiguration.Enabled)
             {
-                string[] validAudiences = GetValidAudiences();
+                string[] validAudiences = _securityConfiguration.Authentication.GetValidAudiences();
                 string challengeAudience = validAudiences?.FirstOrDefault();
 
                 services.AddAuthentication(options =>
@@ -94,24 +94,6 @@ namespace Microsoft.Health.Dicom.Api.Modules
                 .AsService<IDicomRequestContextAccessor>();
 
             services.AddSingleton<IClaimsExtractor, PrincipalClaimsExtractor>();
-        }
-
-        internal string[] GetValidAudiences()
-        {
-            if (_securityConfiguration.Authentication.Audiences != null)
-            {
-                return _securityConfiguration.Authentication.Audiences.ToArray();
-            }
-
-            if (!string.IsNullOrWhiteSpace(_securityConfiguration.Authentication.Audience))
-            {
-                return new[]
-                {
-                    _securityConfiguration.Authentication.Audience,
-                };
-            }
-
-            return null;
         }
     }
 }

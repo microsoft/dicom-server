@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Functions
             IConfiguration config = builder
                 .GetContext()
                 .Configuration
-                .GetSection(DicomFunctionsConfiguration.HostSectionName);
+                .GetSection(ConfigurationSectionNames.Host);
 
             // Common DICOM Services
             builder.Services
@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.Functions
                 .AddFunctionsOptions<QueryTagIndexingOptions>(config, QueryTagIndexingOptions.SectionName)
                 .AddFunctionsOptions<PurgeHistoryOptions>(config, PurgeHistoryOptions.SectionName)
                 .AddDurableFunctionServices()
-                .AddHttpServices();
+                .AddHttpServices(config.GetSection(ConfigurationSectionNames.Security).Get<SecurityConfiguration>());
 
             // TODO: the FeatureConfiguration should be removed once we moved the logic to add tags into database out of Azure Function
             new ServiceModule(new FeatureConfiguration { EnableExtendedQueryTags = true }).Load(builder.Services);

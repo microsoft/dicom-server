@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.Health.Dicom.Core.Configs
 {
@@ -14,5 +15,20 @@ namespace Microsoft.Health.Dicom.Core.Configs
         public IEnumerable<string> Audiences { get; set; }
 
         public string Authority { get; set; }
+
+        public string[] GetValidAudiences()
+        {
+            if (Audiences != null)
+            {
+                return Audiences.ToArray();
+            }
+
+            if (!string.IsNullOrWhiteSpace(Audience))
+            {
+                return new string[] { Audience };
+            }
+
+            return null;
+        }
     }
 }

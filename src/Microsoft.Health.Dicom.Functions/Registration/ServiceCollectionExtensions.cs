@@ -4,17 +4,23 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using EnsureThat;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Blob.Configs;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Functions.Configuration;
 using Microsoft.Health.Dicom.Functions.Durable;
 using Microsoft.Health.Dicom.Functions.Registration;
 using Microsoft.Health.SqlServer.Configs;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.IO;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -32,7 +38,7 @@ namespace Microsoft.Extensions.DependencyInjection
             EnsureArg.IsNotEmptyOrWhiteSpace(sectionName, nameof(sectionName));
 
             services.Configure<T>(configuration
-                .GetSection(DicomFunctionsConfiguration.SectionName)
+                .GetSection(ConfigurationSectionNames.DicomFunctions)
                 .GetSection(sectionName));
 
             return services;
@@ -74,11 +80,12 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        public static IServiceCollection AddHttpServices(this IServiceCollection services)
+        public static IServiceCollection AddHttpServices(this IServiceCollection services, SecurityConfiguration securityConfiguration)
         {
             EnsureArg.IsNotNull(services, nameof(services));
 
             services
+                .AddTriggerAuthentication(securityConfiguration)
                 .AddControllers()
                 .AddJsonSerializerOptions(x => x.Converters.Add(new JsonStringEnumConverter()));
 
@@ -94,6 +101,44 @@ namespace Microsoft.Extensions.DependencyInjection
             //builder.AddJsonOptions(o => configure(o.JsonSerializerOptions));
             builder.Services.Configure(configure);
             return builder;
+        }
+
+        private static IServiceCollection AddTriggerAuthentication(this IServiceCollection services, SecurityConfiguration config)
+        {
+            if (config.Enabled)
+            {
+                services
+                    .AddAuthentication(options =>
+                    {
+                        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                    })
+                    .AddJwtBearer(options =>
+                    {
+                        string[] validAudiences = config.Authentication.GetValidAudiences();
+                        string challengeAudience = validAudiences?.FirstOrDefault();
+
+                        options.Authority = options.Authority;
+                        options.RequireHttpsMetadata = true;
+                        options.Challenge = $"Bearer authorization_uri=\"{options.Authority}\", resource_id=\"{challengeAudience}\", realm=\"{challengeAudience}\"";
+                        options.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidAudiences = validAudiences,
+                        };
+                    });
+
+                services.AddControllers(mvcOptions =>
+                {
+                    AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
+                        .RequireAuthenticatedUser()
+                        .Build();
+
+                    mvcOptions.Filters.Add(new AuthorizeFilter(policy));
+                });
+            }
+
+            return services;
         }
     }
 }
