@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Functions.Durable
         /// Gets the default <see cref="IGuidFactory"/> that uses <see cref="Guid.NewGuid"/>.
         /// </summary>
         /// <value>The singleton <see cref="GuidFactory"/> instance.</value>
-        public static IGuidFactory Default { get; }
+        public static IGuidFactory Default { get; } = new GuidFactory();
 
         /// <inheritdoc />
         public Guid Create()

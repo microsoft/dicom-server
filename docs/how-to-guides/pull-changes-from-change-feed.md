@@ -12,7 +12,7 @@ Sample C# code using the provided DICOM client package:
 public async Task<IReadOnlyList<ChangeFeedEntry>> RetrieveChangeFeedAsync(long offset, CancellationToken cancellationToken)
 {
     var _dicomWebClient = new DicomWebClient(
-                    new HttpClient { BaseAddress = dicomWebConfiguration.Endpoint },
+                    new HttpClient { BaseAddress = dicomWebConfiguration.Endpoint/v<version> },
                     sp.GetRequiredService<RecyclableMemoryStreamManager>(),
                     tokenUri: null);
     DicomWebResponse<IReadOnlyList<ChangeFeedEntry>> result = await _dicomWebClient.GetChangeFeed(
