@@ -404,30 +404,17 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath ON dbo.ExtendedQuer
     Stores errors from Extended Query Tag operations
     TagKey and Watermark is Primary Key
 **************************************************************/
-IF NOT EXISTS (
-    SELECT * 
-    FROM sys.tables
-    WHERE name = 'ExtendedQueryTagError')
-BEGIN
-    CREATE TABLE dbo.ExtendedQueryTagError (
-        TagKey                  INT             NOT NULL, --FK
-        ErrorCode               SMALLINT        NOT NULL,
-        Watermark               BIGINT          NOT NULL,
-        CreatedTime             DATETIME2(7)    NOT NULL,
-    )
-END
-IF NOT EXISTS (
-    SELECT * 
-    FROM sys.indexes 
-    WHERE name='IXC_ExtendedQueryTagError' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagError'))
-BEGIN
-    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagError ON dbo.ExtendedQueryTagError
-    (
-        TagKey,
-        Watermark
-    )
-END
-GO
+CREATE TABLE dbo.ExtendedQueryTagError (
+    TagKey                  INT             NOT NULL, --FK
+    ErrorCode               SMALLINT        NOT NULL,
+    Watermark               BIGINT          NOT NULL,
+    CreatedTime             DATETIME2(7)    NOT NULL,
+)
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagError ON dbo.ExtendedQueryTagError
+(
+    TagKey,
+    Watermark
+)
 
 /*************************************************************
     Extended Query Tag Operation Table
