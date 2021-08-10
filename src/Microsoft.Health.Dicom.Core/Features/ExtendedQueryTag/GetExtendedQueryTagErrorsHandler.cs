@@ -18,6 +18,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     public class GetExtendedQueryTagErrorsHandler : BaseHandler, IRequestHandler<GetExtendedQueryTagErrorsRequest, GetExtendedQueryTagErrorsResponse>
     {
         private readonly IExtendedQueryTagErrorsService _getExtendedQueryTagErrorsService;
+
         public GetExtendedQueryTagErrorsHandler(IAuthorizationService<DataActions> authorizationService, IExtendedQueryTagErrorsService getExtendedQueryTagErrorsService)
             : base(authorizationService)
         {

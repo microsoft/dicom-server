@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <param name="watermark">Watermark.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task. The value of the task is the TagKey.</returns>
-        public Task<int> AddExtendedQueryTagErrorAsync(
+        Task<int> AddExtendedQueryTagErrorAsync(
             int tagKey,
             short errorCode,
             long watermark,
