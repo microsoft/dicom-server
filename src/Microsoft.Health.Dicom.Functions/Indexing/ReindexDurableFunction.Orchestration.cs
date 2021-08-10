@@ -46,13 +46,8 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                 return;
             }
 
-            // Determine the set of query tags that should be indexed and only continue if there is at least 1.
-            // For the first time this orchestration executes, assign all of the tags in the input to the operation,
-            // otherwise simply fetch the tags from the database for this operation.
-            IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags = input.Completed.Count == 0
-                ? await context.CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(nameof(AssignReindexingOperationAsync), input.QueryTagKeys)
-                : await context.CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(nameof(GetQueryTagsAsync), null);
-
+            // Fetch the set of query tags that require re-indexing
+            IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags = await GetOperationQueryTagsAsync(context, input);
             logger.LogInformation(
                 "Found {Count} extended query tag paths to re-index {{{TagPaths}}}.",
                 queryTags.Count,
@@ -69,8 +64,9 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
 
                     logger.LogInformation("Beginning to re-index the range {Range}.", batchRange);
                     await Task.WhenAll(batches
-                        .Select(x => context.CallActivityAsync(
+                        .Select(x => context.CallActivityWithRetryAsync(
                             nameof(ReindexBatchAsync),
+                            _options.ActivityRetryOptions,
                             new ReindexBatch { QueryTags = queryTags, WatermarkRange = x })));
 
                     // Create a new orchestration with the same instance ID to process the remaining data
@@ -85,8 +81,9 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                 }
                 else
                 {
-                    IReadOnlyList<int> completed = await context.CallActivityAsync<IReadOnlyList<int>>(
+                    IReadOnlyList<int> completed = await context.CallActivityWithRetryAsync<IReadOnlyList<int>>(
                         nameof(CompleteReindexingAsync),
+                        _options.ActivityRetryOptions,
                         queryTagKeys);
 
                     logger.LogInformation(
@@ -101,6 +98,20 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                     context.InstanceId);
             }
         }
+
+        private Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetOperationQueryTagsAsync(IDurableOrchestrationContext context, ReindexInput input)
+            // Determine the set of query tags that should be indexed and only continue if there is at least 1.
+            // For the first time this orchestration executes, assign all of the tags in the input to the operation,
+            // otherwise simply fetch the tags from the database for this operation.
+            => input.Completed.Count == 0
+                ? context.CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                    nameof(AssignReindexingOperationAsync),
+                    _options.ActivityRetryOptions,
+                    input.QueryTagKeys)
+                : context.CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                    nameof(GetQueryTagsAsync),
+                    _options.ActivityRetryOptions,
+                    null);
 
         private async Task<List<WatermarkRange>> GetBatchesAsync(
             IDurableOrchestrationContext context,
@@ -117,8 +128,13 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             }
             else
             {
-                end = (await context.CallActivityAsync<long>(nameof(GetMaxInstanceWatermarkAsync), null)) + 1;
-                logger.LogInformation("Found maximum watermark {Max}.", end - 1);
+                long maxWatermark = await context.CallActivityWithRetryAsync<long>(
+                    nameof(GetMaxInstanceWatermarkAsync),
+                    _options.ActivityRetryOptions,
+                    null);
+
+                end = maxWatermark + 1;
+                logger.LogInformation("Found maximum watermark {Max}.", maxWatermark);
             }
 
             // Note that the watermark sequence starts at 1!

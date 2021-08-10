@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Functions
 
             // Function Services
             builder.Services
-                .AddFunctionsOptions<QueryTagIndexingOptions>(config, QueryTagIndexingOptions.SectionName)
+                .AddFunctionsOptions<QueryTagIndexingOptions>(config, QueryTagIndexingOptions.SectionName, bindNonPublicProperties: true)
                 .AddFunctionsOptions<PurgeHistoryOptions>(config, PurgeHistoryOptions.SectionName)
                 .AddDurableFunctionServices()
                 .AddHttpServices(config.GetSection(ConfigurationSectionNames.Security).Get<SecurityConfiguration>());
