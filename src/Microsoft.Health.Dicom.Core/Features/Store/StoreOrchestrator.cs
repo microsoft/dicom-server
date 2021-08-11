@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
             EnsureArg.IsNotNull(deleteService, nameof(deleteService));
             EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
-            EnsureArg.IsNotNull(storeConfiguration, nameof(storeConfiguration));
+            EnsureArg.IsNotNull(storeConfiguration?.Value, nameof(storeConfiguration));
 
             _fileStore = fileStore;
             _metadataStore = metadataStore;
@@ -67,9 +67,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
-            // Retry when ExtendedQuryTagVersion mismatch.
+            // Retry when max ExtendedQuryTagVersion mismatch.
             var retryPolicy = Policy.Handle<MaxExtendedQueryTagVersionMismatchException>()
-                .RetryAsync(_storeConfiguration.Value.MaxRetriesWhenTagVersionMismatch);
+                .RetryAsync(_storeConfiguration.Value.MaxRetriesWhenMaxTagVersionMismatch);
             long version = await retryPolicy.ExecuteAsync(async () =>
             {
                 var queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken);

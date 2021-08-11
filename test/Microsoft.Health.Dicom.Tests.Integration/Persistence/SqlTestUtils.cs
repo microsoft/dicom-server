@@ -11,6 +11,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
     internal static class SqlTestUtils
     {
+        /// <summary>
+        /// Clear table content asynchronously.
+        /// </summary>
+        /// <param name="connectionString">Database connection string.</param>
+        /// <param name="tableName">Name of table to be cleared.</param>
+        /// <returns>The task.</returns>
         public static async Task ClearTableAsync(string connectionString, string tableName)
         {
             EnsureArg.IsNotNullOrWhiteSpace(connectionString, nameof(connectionString));

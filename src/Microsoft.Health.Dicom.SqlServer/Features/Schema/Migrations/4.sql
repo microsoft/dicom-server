@@ -681,48 +681,48 @@ GO
 **************************************************************/
 --
 -- STORED PROCEDURE
---      AddInstance
+--     AddInstance
 --
 -- DESCRIPTION
---      Adds a DICOM instance.
+--     Adds a DICOM instance.
 --
 -- PARAMETERS
---      @studyInstanceUid
---          * The study instance UID.
---      @seriesInstanceUid
---          * The series instance UID.
---      @sopInstanceUid
---          * The SOP instance UID.
---      @patientId
---          * The Id of the patient.
---      @patientName
---          * The name of the patient.
---      @referringPhysicianName
---          * The referring physician name.
---      @studyDate
---          * The study date.
---      @studyDescription
---          * The study description.
---      @accessionNumber
---          * The accession number associated for the study.
---      @modality
---          * The modality associated for the series.
---      @performedProcedureStepStartDate
---          * The date when the procedure for the series was performed.
---      @stringExtendedQueryTags
---          * String extended query tag data
---      @longExtendedQueryTags
---          * Long extended query tag data
---      @doubleExtendedQueryTags
---          * Double extended query tag data
---      @dateTimeExtendedQueryTags
---          * DateTime extended query tag data
---      @personNameExtendedQueryTags
---          * PersonName extended query tag data
---      @initialStatus
---          * Initial status 
---      @maxTagVersion
---          * Max ExtendedQueryTag version
+--     @studyInstanceUid
+--         * The study instance UID.
+--     @seriesInstanceUid
+--         * The series instance UID.
+--     @sopInstanceUid
+--         * The SOP instance UID.
+--     @patientId
+--         * The Id of the patient.
+--     @patientName
+--         * The name of the patient.
+--     @referringPhysicianName
+--         * The referring physician name.
+--     @studyDate
+--         * The study date.
+--     @studyDescription
+--         * The study description.
+--     @accessionNumber
+--         * The accession number associated for the study.
+--     @modality
+--         * The modality associated for the series.
+--     @performedProcedureStepStartDate
+--         * The date when the procedure for the series was performed.
+--     @stringExtendedQueryTags
+--         * String extended query tag data
+--     @longExtendedQueryTags
+--         * Long extended query tag data
+--     @doubleExtendedQueryTags
+--         * Double extended query tag data
+--     @dateTimeExtendedQueryTags
+--         * DateTime extended query tag data
+--     @personNameExtendedQueryTags
+--         * PersonName extended query tag data
+--     @initialStatus
+--         * Initial status 
+--     @maxTagVersion
+--         * Max ExtendedQueryTag version
 -- RETURN VALUE
 --     The watermark (version).
 ------------------------------------------------------------------------
@@ -746,10 +746,9 @@ CREATE PROCEDURE dbo.AddInstance
     @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1 READONLY,
     @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY,
     @initialStatus                      TINYINT,
-    @maxTagVersion           TIMESTAMP = NULL
+    @maxTagVersion                      TIMESTAMP = NULL
 AS
     SET NOCOUNT ON
-
     SET XACT_ABORT ON
     BEGIN TRANSACTION
 
@@ -761,7 +760,7 @@ AS
     DECLARE @instanceKey BIGINT
 
     IF @maxTagVersion <> (SELECT MAX(TagVersion) FROM dbo.ExtendedQueryTag WITH (HOLDLOCK))
-        THROW 50409, 'Max Extended query tag version does not match', 10
+        THROW 50409, 'Max extended query tag version does not match', 10
 
     SELECT @existingStatus = Status
     FROM dbo.Instance
