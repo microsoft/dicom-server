@@ -1584,7 +1584,7 @@ BEGIN
     FROM dbo.ExtendedQueryTagError AS XQTE
     INNER JOIN dbo.Instance AS I
     ON XQTE.Watermark = I.Watermark
-    WHERE TagKey = @tagKey
+    WHERE XQTE.TagKey = @tagKey
 END
 GO
 
@@ -1719,13 +1719,13 @@ AS
 
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
 
-        --Check if instance exists
+        --Check if instance with given watermark and Created status.
         IF NOT EXISTS (SELECT * FROM dbo.Instance WITH (UPDLOCK) WHERE Watermark = @watermark AND Status = 1)
-            THROW 50404, 'Instance does not exist or has not been created', 1;
+            THROW 50404, 'Instance does not exist or has not been created.', 1;
 
-        --Check if tag exists
+        --Check if tag exists and in Adding status.
         IF NOT EXISTS (SELECT * FROM dbo.ExtendedQueryTag WITH (HOLDLOCK) WHERE TagKey = @tagKey AND TagStatus = 0)
-            THROW 50404, 'Tag does not exist', 1;
+            THROW 50404, 'Tag does not exist or is not being added.', 1;
 
         MERGE dbo.ExtendedQueryTagError WITH (HOLDLOCK) as tgt
         USING (SELECT @tagKey TagKey, @errorCode ErrorCode, @watermark Watermark) as src
