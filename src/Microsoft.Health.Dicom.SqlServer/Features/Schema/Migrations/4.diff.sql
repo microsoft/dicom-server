@@ -14,7 +14,7 @@ IF NOT EXISTS (
 BEGIN
     CREATE TABLE dbo.ExtendedQueryTagError (
         TagKey                  INT             NOT NULL, --FK
-        ErrorMessage            VARCHAR(128)    NOT NULL,
+        ErrorMessage            NVARCHAR(128)   NOT NULL,
         Watermark               BIGINT          NOT NULL,
         CreatedTime             DATETIME2(7)    NOT NULL,
     )
@@ -540,7 +540,7 @@ GO
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTagError (
     @tagKey INT,
-    @errorMessage VARCHAR(128),
+    @errorMessage NVARCHAR(128),
     @watermark BIGINT
 )
 AS
