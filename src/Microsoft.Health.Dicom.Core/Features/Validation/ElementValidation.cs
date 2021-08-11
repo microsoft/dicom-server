@@ -25,7 +25,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 if (dicomElement.Count > 1)
                 {
                     throw new DicomElementValidationException(
-                        ElementValidationErrorCode.ElementHasMultipleValues,
                         dicomElement.Tag.GetFriendlyName(),
                         vr,
                         DicomCoreResource.DicomElementHasMultipleValues);

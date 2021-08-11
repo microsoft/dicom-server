@@ -37,7 +37,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             if (value?.Length > maxLength)
             {
                 throw new DicomElementValidationException(
-                    ElementValidationErrorCode.ValueLengthExceedsMaxLength,
                     name,
                     vr,
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthExceedsMaxLength, maxLength),

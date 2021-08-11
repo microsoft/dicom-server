@@ -45,7 +45,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                     {
 
                         var exception = new DicomElementValidationException(
-                                ElementValidationErrorCode.ElementHasWrongVR,
                                 queryTag.Tag.GetFriendlyName(),
                                 queryTag.VR,
                                 string.Format(

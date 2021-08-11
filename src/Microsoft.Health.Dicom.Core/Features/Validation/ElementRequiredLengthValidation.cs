@@ -56,7 +56,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             if (value?.Size != RequiredLength)
             {
                 throw new DicomElementValidationException(
-                    ElementValidationErrorCode.ValueLengthIsNotRequiredLength,
                     name,
                     dicomVR,
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthIsNotRequiredLength, RequiredLength));
@@ -80,7 +79,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             if (value?.Length != RequiredLength)
             {
                 throw new DicomElementValidationException(
-                    ElementValidationErrorCode.ValueLengthIsNotRequiredLength,
                     name,
                     dicomVR,
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthIsNotRequiredLength, RequiredLength),

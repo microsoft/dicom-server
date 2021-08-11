@@ -5,36 +5,31 @@
 
 using Dicom;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
     public class DicomElementValidationException : ValidationException
     {
-        public DicomElementValidationException(ElementValidationErrorCode errorCode, string name, DicomVR vr, string message)
+        public DicomElementValidationException(string name, DicomVR vr, string message)
             : base(message)
         {
             EnsureArg.IsNotNull(name, nameof(name));
             EnsureArg.IsNotNull(vr, nameof(vr));
-            ErrorCode = errorCode;
             Name = name;
             VR = vr;
         }
 
-        public DicomElementValidationException(ElementValidationErrorCode errorCode, string name, DicomVR vr, string message, string value)
+        public DicomElementValidationException(string name, DicomVR vr, string message, string value)
            : base(message)
         {
             EnsureArg.IsNotNull(name, nameof(name));
             EnsureArg.IsNotNull(vr, nameof(vr));
             EnsureArg.IsNotNull(value, nameof(value));
 
-            ErrorCode = errorCode;
             Name = name;
             VR = vr;
             Value = value;
         }
-
-        public ElementValidationErrorCode ErrorCode { get; }
 
         public override string Message => Value == null
             ? string.Format(DicomCoreResource.DicomElementValidationFailed, Name, VR.Code, base.Message)
