@@ -10,10 +10,10 @@ using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    public class DicomElementMinimumValidator : IDicomElementMinimumValidator
+    public class ElementMinimumValidator : IElementMinimumValidator
     {
 
-        private static readonly IReadOnlyDictionary<DicomVR, IDicomElementValidation> Validations = new Dictionary<DicomVR, IDicomElementValidation>
+        private static readonly IReadOnlyDictionary<DicomVR, IElementValidation> Validations = new Dictionary<DicomVR, IElementValidation>
         {
             { DicomVR.AE, new ElementMaxLengthValidation(16) },
             { DicomVR.AS, new ElementRequiredLengthValidation(4) },
@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             {
                 Debug.Fail("Dicom VR type should not be null");
             }
-            if (Validations.TryGetValue(vr, out IDicomElementValidation validationRule))
+            if (Validations.TryGetValue(vr, out IElementValidation validationRule))
             {
                 validationRule.Validate(dicomElement);
             }

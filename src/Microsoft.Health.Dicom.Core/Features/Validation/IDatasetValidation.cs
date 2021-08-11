@@ -7,8 +7,15 @@ using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    public interface IDatasetValidation
+    /// <summary>
+    /// Validation on Dicom Dataset.
+    /// </summary>
+    internal interface IDatasetValidation
     {
+        /// <summary>
+        /// Validate dicom dataset.
+        /// </summary>
+        /// <param name="dataset">The dataset.</param>
         void Validate(DicomDataset dataset);
     }
 }

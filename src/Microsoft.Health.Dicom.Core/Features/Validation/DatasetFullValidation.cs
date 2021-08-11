@@ -9,9 +9,11 @@ using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    public class DatasetFullValidation : IDatasetValidation
+    /// <summary>
+    /// Full Validation on Dicom dataset.
+    /// </summary>
+    internal class DatasetFullValidation : IDatasetValidation
     {
-
         public void Validate(DicomDataset dataset)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));

@@ -11,14 +11,17 @@ using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    public class DatasetCoreTagsValidation : IDatasetValidation
+    /// <summary>
+    ///  Validates core tags on Dicom Dataset.
+    /// </summary>
+    internal class DatasetCoreTagsValidation : IDatasetValidation
     {
+        private readonly string _requiredStudyInstanceUid;
+
         public DatasetCoreTagsValidation(string requiredStudyInstanceUid)
         {
-            RequiredStudyInstanceUid = requiredStudyInstanceUid;
+            _requiredStudyInstanceUid = requiredStudyInstanceUid;
         }
-
-        public string RequiredStudyInstanceUid { get; }
 
         public void Validate(DicomDataset dataset)
         {
@@ -43,8 +46,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             }
 
             // If the requestedStudyInstanceUid is specified, then the StudyInstanceUid must match.
-            if (RequiredStudyInstanceUid != null &&
-                !studyInstanceUid.Equals(RequiredStudyInstanceUid, StringComparison.OrdinalIgnoreCase))
+            if (_requiredStudyInstanceUid != null &&
+                !studyInstanceUid.Equals(_requiredStudyInstanceUid, StringComparison.OrdinalIgnoreCase))
             {
                 throw new DatasetValidationException(
                     FailureReasonCodes.MismatchStudyInstanceUid,
@@ -52,7 +55,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                         CultureInfo.InvariantCulture,
                         DicomCoreResource.MismatchStudyInstanceUid,
                         studyInstanceUid,
-                        RequiredStudyInstanceUid));
+                        _requiredStudyInstanceUid));
             }
         }
 

@@ -8,7 +8,10 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    public interface IDicomElementMinimumValidator
+    /// <summary>
+    /// Minimum validator on Dicom Element
+    /// </summary>
+    public interface IElementMinimumValidator
     {
         /// <summary>
         /// Validate Dicom Element.

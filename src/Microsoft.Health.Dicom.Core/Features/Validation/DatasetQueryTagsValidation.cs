@@ -14,7 +14,10 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    public class DatasetQueryTagsValidation : IDatasetValidation
+    /// <summary>
+    /// Validate Query tags on Dicom Dataset.
+    /// </summary>
+    internal class DatasetQueryTagsValidation : IDatasetValidation
     {
         private readonly IReadOnlyCollection<QueryTag> _queryTags;
         private readonly IElementMinimumValidator _minimumValidator;
