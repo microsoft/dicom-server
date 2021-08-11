@@ -10,16 +10,16 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
-using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
-using Newtonsoft.Json;
 using NSubstitute;
 using Xunit;
 
@@ -53,16 +53,17 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         [Fact]
         public async Task GivenExtendedQueryTagConflict_WhenStartingToReindexInstances_ThenReturnConflict()
         {
-            string instanceId = Guid.NewGuid().ToString();
+            Guid instanceId = Guid.NewGuid();
             var expectedTagKeys = new List<int> { 1, 2, 3 };
             IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
 
+            _guidFactory.Create().Returns(instanceId);
             client
                 .StartNewAsync(
                     nameof(ReindexDurableFunction.ReindexInstancesAsync),
+                    OperationId.ToString(instanceId),
                     Arg.Is<ReindexInput>(x => x.QueryTagKeys.SequenceEqual(expectedTagKeys)))
-                .Returns(instanceId);
-
+                .Returns(OperationId.ToString(instanceId));
             _extendedQueryTagStore
                 .AssignReindexingOperationAsync(
                     Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedTagKeys)),
@@ -77,10 +78,13 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 NullLogger.Instance);
 
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+
+            _guidFactory.Received(1).Create();
             await client
                 .Received(1)
                 .StartNewAsync(
                     nameof(ReindexDurableFunction.ReindexInstancesAsync),
+                    OperationId.ToString(instanceId),
                     Arg.Is<ReindexInput>(x => x.QueryTagKeys.SequenceEqual(expectedTagKeys)));
             await _extendedQueryTagStore
                 .Received(1)
@@ -94,16 +98,17 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         [Fact]
         public async Task GivenExtendedQueryTagKeys_WhenStartingToReindexInstances_ThenReturnOperationId()
         {
-            string instanceId = Guid.NewGuid().ToString();
+            Guid instanceId = Guid.NewGuid();
             var expectedTagKeys = new List<int> { 1, 2, 3 };
             IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
 
+            _guidFactory.Create().Returns(instanceId);
             client
                 .StartNewAsync(
                     nameof(ReindexDurableFunction.ReindexInstancesAsync),
+                    OperationId.ToString(instanceId),
                     Arg.Is<ReindexInput>(x => x.QueryTagKeys.SequenceEqual(expectedTagKeys)))
-                .Returns(instanceId);
-
+                .Returns(OperationId.ToString(instanceId));
             _extendedQueryTagStore
                 .AssignReindexingOperationAsync(
                     Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedTagKeys)),
@@ -121,12 +126,16 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 client,
                 NullLogger.Instance);
 
+            var content = response.Content as StringContent;
             Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
-            Assert.Equal(instanceId, await response.Content.ReadAsStringAsync());
+            Assert.Equal(OperationId.ToString(instanceId), await response.Content.ReadAsStringAsync());
+
+            _guidFactory.Received(1).Create();
             await client
                 .Received(1)
                 .StartNewAsync(
                     nameof(ReindexDurableFunction.ReindexInstancesAsync),
+                    OperationId.ToString(instanceId),
                     Arg.Is<ReindexInput>(x => x.QueryTagKeys.SequenceEqual(expectedTagKeys)));
             await _extendedQueryTagStore
                 .Received(1)
@@ -137,9 +146,9 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     cancellationToken: Arg.Any<CancellationToken>());
         }
 
-        private static HttpRequest CreateRequest(IReadOnlyCollection<int> tagKeys)
+        private HttpRequest CreateRequest(IReadOnlyCollection<int> tagKeys)
         {
-            byte[] buffer = tagKeys == null ? Array.Empty<byte>() : Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(tagKeys));
+            byte[] buffer = tagKeys == null ? Array.Empty<byte>() : JsonSerializer.SerializeToUtf8Bytes(tagKeys, _jsonSerializerOptions);
 
             var context = new DefaultHttpContext();
             context.Request.Method = HttpMethod.Post.Method;

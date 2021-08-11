@@ -12,6 +12,8 @@ Additionally, the following non-standard API(s) are supported:
 
 - [Delete](#delete)
 
+Our service also makes use of REST Api versioning. For information on how to specify the version when making requests visit the [Api Versioning Documentation](../api-versioning.md).
+
 ## Store (STOW-RS)
 
 This transaction uses the POST method to Store representations of Studies, Series, and Instances contained in the request payload.

@@ -11,7 +11,12 @@
   "DicomFunctions": {
     "Indexing": {
       "BatchSize": 2,
-      "ParallelBatches": 2
+      "ParallelBatches": 2,
+      "RetryOptions": {
+        "BackoffCoefficient": 3,
+        "FirstRetryInterval": "00:01:00",
+        "MaxNumberOfAttempts": 4
+      }
     },
     "PurgeHistory": {
       "RuntimeStatuses": [ "Completed" ],
@@ -21,6 +26,9 @@
   },
   "BlobStore": {
     "ConnectionString": null,
+    "Containers": {
+      "Metadata": "metadatacontainer"
+    },
     "RequestOptions": {
       "ExponentialRetryBackoffDeltaInSeconds": 4,
       "ExponentialRetryMaxAttempts": 6,

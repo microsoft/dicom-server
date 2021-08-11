@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.Functions.Extensions;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing
@@ -49,7 +50,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
 
             return _extendedQueryTagStore.AssignReindexingOperationAsync(
                 tagKeys,
-                context.InstanceId,
+                context.GetInstanceGuid(),
                 returnIfCompleted: false,
                 cancellationToken: CancellationToken.None);
         }
@@ -77,7 +78,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                 context.InstanceId);
 
             return _extendedQueryTagStore.GetExtendedQueryTagsByOperationAsync(
-                context.InstanceId,
+                context.GetInstanceGuid(),
                 cancellationToken: CancellationToken.None);
         }
 

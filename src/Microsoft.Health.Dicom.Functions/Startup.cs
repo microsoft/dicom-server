@@ -6,12 +6,12 @@
 using EnsureThat;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Modules;
 using Microsoft.Health.Dicom.Functions.Configuration;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Management;
-using Microsoft.Health.Dicom.Functions.Registration;
 
 [assembly: FunctionsStartup(typeof(Microsoft.Health.Dicom.Functions.Startup))]
 namespace Microsoft.Health.Dicom.Functions
@@ -27,10 +27,17 @@ namespace Microsoft.Health.Dicom.Functions
                 .Configuration
                 .GetSection(DicomFunctionsConfiguration.HostSectionName);
 
+            // Common DICOM Services
             builder.Services
-                .AddFunctionsOptions<QueryTagIndexingOptions>(config, QueryTagIndexingOptions.SectionName)
+                .AddRecyclableMemoryStreamManager()
+                .AddDicomJsonNetSerialization()
+                .AddStorageServices(config);
+
+            // Function Services
+            builder.Services
+                .AddFunctionsOptions<QueryTagIndexingOptions>(config, QueryTagIndexingOptions.SectionName, bindNonPublicProperties: true)
                 .AddFunctionsOptions<PurgeHistoryOptions>(config, PurgeHistoryOptions.SectionName)
-                .AddStorageServices(config)
+                .AddDurableFunctionServices()
                 .AddHttpServices();
 
             // TODO: the FeatureConfiguration should be removed once we moved the logic to add tags into database out of Azure Function

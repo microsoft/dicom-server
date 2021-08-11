@@ -27,6 +27,10 @@ The DICOM standards has been fixed at version 3.0 since 1993. However, the stand
 
 No single product, including the Medical Imaging Server for DICOM, fully supports the DICOM standard. Instead, each product includes a DICOM Conformance document that specifies exactly what is supported. (Unsupported features are traditionally not called out explicitly.) The Conformance document is available [here](conformance-statement.md).
 
+## What is REST API versioning in the Medical Imaging Server for DICOM?
+
+The Medical Imaging Server for DICOM has versions for the REST API used to access the server. The version is specified as a URL path in the requests. For more information visit the [Api Versioning Documentation](../api-versioning.md).
+
 ## Does the Medical Imaging Server for DICOM store any PHI?
 
 Absolutely. One of the core objectives for the Medical Imaging Server for DICOM is to support standard and innovating radiologist workflows. These workflows demand the use of PHI data.

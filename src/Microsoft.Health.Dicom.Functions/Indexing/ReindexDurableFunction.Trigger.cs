@@ -3,12 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -19,16 +20,14 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Extensions;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
-using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing
 {
     public partial class ReindexDurableFunction
     {
-        private static readonly JsonSerializer DefaultJsonSerializer = JsonSerializer.CreateDefault();
-
         /// <summary>
         /// Asynchronously starts the creation of an index for the provided query tags over the previously added data.
         /// </summary>
@@ -60,17 +59,18 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
 
             // TODO: In .NET 5, use HttpRequestJsonExtensions.ReadFromJsonAsync which can gracefully handle different
             //       encodings. Here we'll expect a UTF-8 encoding which we can control as the client.
-            // We use Newtonsoft here for consistency across our other serializers
-            // (Although we could leverage the PipeReader if we used System.Text.Json)
             IReadOnlyList<int> extendedQueryTagKeys;
-            using (StreamReader streamReader = new StreamReader(request.Body, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true))
-            using (JsonReader reader = new JsonTextReader(streamReader))
+            try
             {
-                extendedQueryTagKeys = DefaultJsonSerializer.Deserialize<IReadOnlyList<int>>(reader);
+                extendedQueryTagKeys = await JsonSerializer.DeserializeAsync<IReadOnlyList<int>>(request.Body, _jsonOptions, source.Token);
+                if (extendedQueryTagKeys == null || extendedQueryTagKeys.Count == 0)
+                {
+                    throw new JsonException("Expected a JSON array with at least 1 element.");
+                }
             }
-
-            if (extendedQueryTagKeys == null || extendedQueryTagKeys.Count == 0)
+            catch (JsonException e)
             {
+                logger.LogError(e, "Cannot deserialize extended query tag keys.");
                 return new HttpResponseMessage { StatusCode = HttpStatusCode.BadRequest };
             }
 
@@ -79,8 +79,10 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                 string.Join(", ", extendedQueryTagKeys));
 
             // Start the re-indexing orchestration
+            Guid instanceGuid = _guidFactory.Create();
             string instanceId = await client.StartNewAsync(
                 nameof(ReindexInstancesAsync),
+                OperationId.ToString(instanceGuid),
                 new ReindexInput
                 {
                     QueryTagKeys = extendedQueryTagKeys,
@@ -92,7 +94,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             // Associate the tags to the operation and confirm their processing
             IReadOnlyList<ExtendedQueryTagStoreEntry> confirmedTags = await _extendedQueryTagStore.AssignReindexingOperationAsync(
                 extendedQueryTagKeys,
-                instanceId,
+                instanceGuid,
                 returnIfCompleted: true,
                 cancellationToken: source.Token);
 

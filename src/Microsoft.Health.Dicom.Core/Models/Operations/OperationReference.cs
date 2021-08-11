@@ -4,7 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Text.Json.Serialization;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Serialization;
 
 namespace Microsoft.Health.Dicom.Core.Models.Operations
 {
@@ -22,19 +24,20 @@ namespace Microsoft.Health.Dicom.Core.Models.Operations
         /// <paramref name="href"/> is empty or consists of white space characters.
         /// </exception>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="id"/> or <paramref name="href"/> is <see langword="null"/>.
+        /// <paramref name="href"/> is <see langword="null"/>.
         /// </exception>
-        public OperationReference(string id, Uri href)
+        public OperationReference(Guid id, Uri href)
         {
-            Id = EnsureArg.IsNotNullOrWhiteSpace(id);
-            Href = EnsureArg.IsNotNull(href);
+            Id = id;
+            Href = EnsureArg.IsNotNull(href, nameof(href));
         }
 
         /// <summary>
         /// Gets the operation ID.
         /// </summary>
         /// <value>The unique ID that denotes a particular long-running operation.</value>
-        public string Id { get; }
+        [JsonConverter(typeof(OperationIdJsonConverter))]
+        public Guid Id { get; }
 
         /// <summary>
         /// Gets the resource reference for the operation.

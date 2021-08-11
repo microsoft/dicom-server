@@ -12,6 +12,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 using NSubstitute;
@@ -37,21 +38,26 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             _options.MaxParallelBatches = 3;
 
             // Arrange the input
-            IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
+            IDurableOrchestrationContext context = CreateContext();
             context
                 .GetInput<ReindexInput>()
                 .Returns(expectedInput);
             context
-                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.AssignReindexingOperationAsync),
+                    _options.ActivityRetryOptions,
                     expectedInput.QueryTagKeys)
                 .Returns(expectedTags);
             context
-                .CallActivityAsync<long>(nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync), input: null)
+                .CallActivityWithRetryAsync<long>(
+                    nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync),
+                    _options.ActivityRetryOptions,
+                    input: null)
                 .Returns(49);
             context
-                .CallActivityAsync(
+                .CallActivityWithRetryAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
+                    _options.ActivityRetryOptions,
                     Arg.Any<ReindexBatch>())
                 .Returns(Task.CompletedTask);
 
@@ -64,36 +70,45 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .GetInput<ReindexInput>();
             await context
                 .Received(1)
-                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.AssignReindexingOperationAsync),
+                    _options.ActivityRetryOptions,
                     expectedInput.QueryTagKeys);
             await context
                 .DidNotReceive()
-                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.GetQueryTagsAsync),
+                    _options.ActivityRetryOptions,
                     Arg.Any<object>());
             await context
                 .Received(1)
-                .CallActivityAsync<long>(nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync), input: null);
+                .CallActivityWithRetryAsync<long>(
+                    nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync),
+                    _options.ActivityRetryOptions,
+                    input: null);
             await context
                 .Received(1)
-                .CallActivityAsync(
+                .CallActivityWithRetryAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
+                    _options.ActivityRetryOptions,
                     Arg.Is(GetReindexBatchPredicate(expectedTags, 45, 50)));
             await context
                 .Received(1)
-                .CallActivityAsync(
+                .CallActivityWithRetryAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
+                    _options.ActivityRetryOptions,
                     Arg.Is(GetReindexBatchPredicate(expectedTags, 40, 45)));
             await context
                  .Received(1)
-                 .CallActivityAsync(
+                 .CallActivityWithRetryAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
+                    _options.ActivityRetryOptions,
                     Arg.Is(GetReindexBatchPredicate(expectedTags, 35, 40)));
             await context
                 .DidNotReceive()
-                .CallActivityAsync<IReadOnlyList<int>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<int>>(
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
+                    _options.ActivityRetryOptions,
                     Arg.Any<object>());
             context
                 .Received(1)
@@ -122,18 +137,20 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             _options.MaxParallelBatches = 2;
 
             // Arrange the input
-            IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
+            IDurableOrchestrationContext context = CreateContext();
             context
                 .GetInput<ReindexInput>()
                 .Returns(expectedInput);
             context
-                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.GetQueryTagsAsync),
+                    _options.ActivityRetryOptions,
                     input: null)
                 .Returns(expectedTags);
             context
-                .CallActivityAsync(
+                .CallActivityWithRetryAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
+                    _options.ActivityRetryOptions,
                     Arg.Any<ReindexBatch>())
                 .Returns(Task.CompletedTask);
 
@@ -146,31 +163,39 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .GetInput<ReindexInput>();
             await context
                 .DidNotReceive()
-                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.AssignReindexingOperationAsync),
+                    _options.ActivityRetryOptions,
                     Arg.Any<object>());
             await context
                 .Received(1)
-                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.GetQueryTagsAsync),
+                    _options.ActivityRetryOptions,
                     input: null);
             await context
                 .DidNotReceive()
-                .CallActivityAsync<long>(nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync), Arg.Any<object>());
+                .CallActivityWithRetryAsync<long>(
+                    nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync),
+                    _options.ActivityRetryOptions,
+                    Arg.Any<object>());
             await context
                 .Received(1)
-                .CallActivityAsync(
+                .CallActivityWithRetryAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
+                    _options.ActivityRetryOptions,
                     Arg.Is(GetReindexBatchPredicate(expectedTags, 33, 36)));
             await context
                 .Received(1)
-                .CallActivityAsync(
+                .CallActivityWithRetryAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
+                    _options.ActivityRetryOptions,
                     Arg.Is(GetReindexBatchPredicate(expectedTags, 30, 33)));
             await context
                 .DidNotReceive()
-                .CallActivityAsync<IReadOnlyList<int>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<int>>(
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
+                    _options.ActivityRetryOptions,
                     Arg.Any<object>());
             context
                 .Received(1)
@@ -191,21 +216,26 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             };
 
             // Arrange the input
-            IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
+            IDurableOrchestrationContext context = CreateContext();
             context
                 .GetInput<ReindexInput>()
                 .Returns(expectedInput);
             context
-                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.AssignReindexingOperationAsync),
+                    _options.ActivityRetryOptions,
                     expectedInput.QueryTagKeys)
                 .Returns(expectedTags);
             context
-                .CallActivityAsync<long>(nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync), input: null)
+                .CallActivityWithRetryAsync<long>(
+                    nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync),
+                    _options.ActivityRetryOptions,
+                    input: null)
                 .Returns(0);
             context
-                .CallActivityAsync<IReadOnlyList<int>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<int>>(
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
+                    _options.ActivityRetryOptions,
                     Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedTags.Select(x => x.Key))))
                 .Returns(expectedTags.Select(x => x.Key).ToList());
 
@@ -218,26 +248,33 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .GetInput<ReindexInput>();
             await context
                 .Received(1)
-                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.AssignReindexingOperationAsync),
+                    _options.ActivityRetryOptions,
                     expectedInput.QueryTagKeys);
             await context
                 .DidNotReceive()
-                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.GetQueryTagsAsync),
+                    _options.ActivityRetryOptions,
                     Arg.Any<object>());
             await context
                 .Received(1)
-                .CallActivityAsync<long>(nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync), input: null);
+                .CallActivityWithRetryAsync<long>(
+                    nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync),
+                    _options.ActivityRetryOptions,
+                    input: null);
             await context
                 .DidNotReceive()
-                .CallActivityAsync(
+                .CallActivityWithRetryAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
+                    _options.ActivityRetryOptions,
                     Arg.Any<object>());
             await context
                 .Received(1)
-                .CallActivityAsync<IReadOnlyList<int>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<int>>(
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
+                    _options.ActivityRetryOptions,
                     Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedTags.Select(x => x.Key))));
             context
                 .DidNotReceiveWithAnyArgs()
@@ -260,18 +297,20 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             };
 
             // Arrange the input
-            IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
+            IDurableOrchestrationContext context = CreateContext();
             context
                 .GetInput<ReindexInput>()
                 .Returns(expectedInput);
             context
-                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.GetQueryTagsAsync),
+                    _options.ActivityRetryOptions,
                     input: null)
                 .Returns(expectedTags);
             context
-                .CallActivityAsync<IReadOnlyList<int>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<int>>(
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
+                    _options.ActivityRetryOptions,
                     Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedTags.Select(x => x.Key))))
                 .Returns(expectedTags.Select(x => x.Key).ToList());
 
@@ -284,26 +323,33 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .GetInput<ReindexInput>();
             await context
                 .DidNotReceive()
-                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.AssignReindexingOperationAsync),
+                    _options.ActivityRetryOptions,
                     Arg.Any<object>());
             await context
                 .Received(1)
-                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.GetQueryTagsAsync),
+                    _options.ActivityRetryOptions,
                     input: null);
             await context
                 .DidNotReceive()
-                .CallActivityAsync<long>(nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync), Arg.Any<object>());
+                .CallActivityWithRetryAsync<long>(
+                    nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync),
+                    _options.ActivityRetryOptions,
+                    Arg.Any<object>());
             await context
                 .DidNotReceive()
-                .CallActivityAsync(
+                .CallActivityWithRetryAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
+                    _options.ActivityRetryOptions,
                     Arg.Any<object>());
             await context
                 .Received(1)
-                .CallActivityAsync<IReadOnlyList<int>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<int>>(
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
+                    _options.ActivityRetryOptions,
                     Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedTags.Select(x => x.Key))));
             context
                 .DidNotReceiveWithAnyArgs()
@@ -317,13 +363,14 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             var expectedTags = new List<ExtendedQueryTagStoreEntry>();
 
             // Arrange the input
-            IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
+            IDurableOrchestrationContext context = CreateContext();
             context
                 .GetInput<ReindexInput>()
                 .Returns(expectedInput);
             context
-                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.AssignReindexingOperationAsync),
+                    _options.ActivityRetryOptions,
                     expectedInput.QueryTagKeys)
                 .Returns(expectedTags);
 
@@ -336,30 +383,44 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .GetInput<ReindexInput>();
             await context
                 .Received(1)
-                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.AssignReindexingOperationAsync),
+                    _options.ActivityRetryOptions,
                     expectedInput.QueryTagKeys);
             await context
                 .DidNotReceive()
-                .CallActivityAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.GetQueryTagsAsync),
+                    _options.ActivityRetryOptions,
                     Arg.Any<object>());
             await context
                 .DidNotReceive()
-                .CallActivityAsync<long>(nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync), Arg.Any<object>());
+                .CallActivityWithRetryAsync<long>(
+                    nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync),
+                    _options.ActivityRetryOptions,
+                    Arg.Any<object>());
             await context
                 .DidNotReceive()
-                .CallActivityAsync(
+                .CallActivityWithRetryAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
+                    _options.ActivityRetryOptions,
                     Arg.Any<object>());
             await context
                 .DidNotReceive()
-                .CallActivityAsync<IReadOnlyList<int>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<int>>(
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
+                    _options.ActivityRetryOptions,
                     Arg.Any<object>());
             context
                 .DidNotReceiveWithAnyArgs()
                 .ContinueAsNew(default, default);
+        }
+
+        private static IDurableOrchestrationContext CreateContext(Guid? instanceId = null)
+        {
+            IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
+            context.InstanceId.Returns(OperationId.ToString(instanceId ?? Guid.NewGuid()));
+            return context;
         }
 
         private static Expression<Predicate<ReindexBatch>> GetReindexBatchPredicate(

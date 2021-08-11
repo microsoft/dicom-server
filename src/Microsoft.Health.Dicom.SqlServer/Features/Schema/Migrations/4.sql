@@ -407,7 +407,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath ON dbo.ExtendedQuer
 **************************************************************/
 CREATE TABLE dbo.ExtendedQueryTagOperation (
     TagKey                  INT                  NOT NULL, --PK
-    OperationId             VARCHAR(32)          NOT NULL -- TODO: Use uniqueidentifier
+    OperationId             uniqueidentifier     NOT NULL
 )
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagOperation ON dbo.ExtendedQueryTagOperation
@@ -1543,7 +1543,7 @@ GO
 --     The set of extended query tags assigned to the operation.
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagsByOperation (
-    @operationId VARCHAR(32)
+    @operationId uniqueidentifier
 )
 AS
 BEGIN
@@ -1602,7 +1602,7 @@ AS
         -- Check if tag with same path already exist
         -- Because the web client may fail between the addition of the tag and the starting of re-indexing operation,
         -- the stored procedure allows tags that are not assigned to an operation to be overwritten
-        DECLARE @existingTags TABLE(TagKey INT, TagStatus TINYINT, OperationId VARCHAR(32) NULL)
+        DECLARE @existingTags TABLE(TagKey INT, TagStatus TINYINT, OperationId uniqueidentifier NULL)
 
         INSERT INTO @existingTags
             (TagKey, TagStatus, OperationId)
@@ -1950,7 +1950,7 @@ GO
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.AssignReindexingOperation (
     @extendedQueryTagKeys dbo.ExtendedQueryTagKeyTableType_1 READONLY,
-    @operationId VARCHAR(32),
+    @operationId uniqueidentifier,
     @returnIfCompleted BIT = 0
 )
 AS
@@ -1959,7 +1959,7 @@ AS
 
     BEGIN TRANSACTION
 
-        MERGE INTO dbo.ExtendedQueryTagOperation AS XQTO
+        MERGE INTO dbo.ExtendedQueryTagOperation WITH(HOLDLOCK) AS XQTO
         USING
         (
             SELECT input.TagKey

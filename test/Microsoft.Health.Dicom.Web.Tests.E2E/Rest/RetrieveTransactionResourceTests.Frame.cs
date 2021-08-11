@@ -49,9 +49,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 instanceId.StudyInstanceUid,
                 instanceId.SeriesInstanceUid,
                 instanceId.SopInstanceUid,
+                frames: new[] { 1 },
                 mediaType,
-                transferSyntax,
-                frames: new[] { 1 });
+                transferSyntax);
 
             int frameIndex = 0;
 
@@ -64,10 +64,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [MemberData(nameof(GetVersionsAndUnsupportedAcceptHeadersForFrames))]
-        public async Task GivenUnsupportedAcceptHeaders_WhenRetrieveFrame_ThenServerShouldReturnNotAcceptable(bool singlePart, string mediaType, string transferSyntax, string versionPath)
+        [MemberData(nameof(GetUnsupportedAcceptHeadersForFrames))]
+        public async Task GivenUnsupportedAcceptHeaders_WhenRetrieveFrame_ThenServerShouldReturnNotAcceptable(bool singlePart, string mediaType, string transferSyntax)
         {
-            var requestUri = new Uri(versionPath + string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), string.Join("%2C", new int[] { 1 })), UriKind.Relative);
+            var requestUri = new Uri(DicomApiVersions.Latest + string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), string.Join("%2C", new int[] { 1 })), UriKind.Relative);
 
             using HttpRequestMessage request = new HttpRequestMessageBuilder().Build(requestUri, singlePart: singlePart, mediaType, transferSyntax);
             using HttpResponseMessage response = await _client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
@@ -171,30 +171,25 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Theory]
-        [InlineData("0")]
-        [InlineData("0.6")]
-        [InlineData("-1")]
-        [InlineData("1", "-1")]
-        [InlineData("test")]
-        [InlineData("0", "1", "invalid")]
-        public async Task GivenInvalidFrames_WhenRetrievingFrame_TheServerShouldReturnBadRequest(params string[] frames)
+        [InlineData(0)]
+        [InlineData(-1)]
+        [InlineData(1, -1)]
+        [InlineData(0, 1)]
+        public async Task GivenInvalidFrames_WhenRetrievingFrame_TheServerShouldReturnBadRequest(params int[] frames)
         {
             var requestUri = new Uri(string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), string.Join("%2C", frames)), UriKind.Relative);
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-               () => _client.RetrieveFramesAsync(requestUri));
+               () => _client.RetrieveFramesAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), frames));
             Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
         }
 
-        public static IEnumerable<object[]> GetVersionsAndUnsupportedAcceptHeadersForFrames
+        public static IEnumerable<object[]> GetUnsupportedAcceptHeadersForFrames
         {
             get
             {
-                foreach (object[] version in VersionAPIData.VersionSegmentData)
-                {
-                    yield return new object[] { true, DicomWebConstants.ApplicationOctetStreamMediaType, DicomWebConstants.OriginalDicomTransferSyntax, version[0] }; // use single part instead of multiple part
-                    yield return new object[] { false, DicomWebConstants.ImagePngMediaType, DicomWebConstants.OriginalDicomTransferSyntax, version[0] }; // unsupported media type image/png
-                    yield return new object[] { false, DicomWebConstants.ApplicationOctetStreamMediaType, "1.2.840.10008.1.2.4.100", version[0] }; // unsupported media type MPEG2
-                }
+                yield return new object[] { true, DicomWebConstants.ApplicationOctetStreamMediaType, DicomWebConstants.OriginalDicomTransferSyntax }; // use single part instead of multiple part
+                yield return new object[] { false, DicomWebConstants.ImagePngMediaType, DicomWebConstants.OriginalDicomTransferSyntax }; // unsupported media type image/png
+                yield return new object[] { false, DicomWebConstants.ApplicationOctetStreamMediaType, "1.2.840.10008.1.2.4.100" }; // unsupported media type MPEG2
             }
         }
     }

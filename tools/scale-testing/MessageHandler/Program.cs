@@ -197,8 +197,8 @@ namespace MessageHandler
 
         private static async Task Qido(Message message, CancellationToken token)
         {
-            var relativeUrl = new Uri(Encoding.UTF8.GetString(message.Body));
-            await s_client.QueryAsync(relativeUrl, cancellationToken: token);
+            var queryParam = Encoding.UTF8.GetString(message.Body);
+            await s_client.QueryStudyAsync(queryParam, cancellationToken: token);
         }
 
         private static (string, string, string) ParseMessageForUids(Message message)

@@ -73,6 +73,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // Add SQL-specific implementations
             services
+                .AddSqlIndexDataStores()
                 .AddSqlInstanceStores()
                 .AddSqlExtendedQueryTagStores();
 

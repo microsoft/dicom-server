@@ -5,6 +5,11 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Net;
+using System.Net.Http;
+using System.Net.Mime;
+using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -14,6 +19,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Extensions;
@@ -23,9 +29,14 @@ namespace Microsoft.Health.Dicom.Functions.Management
     /// <summary>
     /// Represents a set of Azure Functions that servce as a proxy for the <see cref="IDurableOrchestrationClient"/>.
     /// </summary>
-    public static class DurableClientProxyFunctions
+    public class DurableClientProxy
     {
         internal static readonly ImmutableHashSet<OperationType> PublicOperationTypes = ImmutableHashSet.Create(OperationType.Reindex);
+
+        private readonly JsonSerializerOptions _jsonOptions;
+
+        public DurableClientProxy(IOptions<JsonSerializerOptions> jsonOptions)
+            => _jsonOptions = EnsureArg.IsNotNull(jsonOptions?.Value, nameof(jsonOptions));
 
         /// <summary>
         /// Gets the status of an orchestration instance.
@@ -42,8 +53,8 @@ namespace Microsoft.Health.Dicom.Functions.Management
         /// The default value is <see cref="CancellationToken.None"/>.
         /// </param>
         /// <returns>
-        /// A task representing the <see cref="GetStatusAsync(HttpRequest, IDurableOrchestrationClient, string, ILogger, CancellationToken)"/>
-        /// operation. The value of its <see cref="Task{TResult}.Result"/> property contains the status of the DICOM operation
+        /// A task representing the <see cref="GetStatusAsync"/> operation. The value of its
+        /// <see cref="Task{TResult}.Result"/> property contains the status of the DICOM operation
         /// with the specified <paramref name="instanceId"/>, if found; otherwise <see cref="BadRequestResult"/>.
         /// </returns>
         /// <exception cref="ArgumentException">
@@ -52,10 +63,10 @@ namespace Microsoft.Health.Dicom.Functions.Management
         /// <exception cref="OperationCanceledException">The host is shutting down or the connection was aborted.</exception>
         // TODO: Replace Anonymous with auth for all HTTP endpoints
         [FunctionName(nameof(GetStatusAsync))]
-        public static async Task<IActionResult> GetStatusAsync(
+        public async Task<HttpResponseMessage> GetStatusAsync(
             [HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "Orchestrations/Instances/{instanceId}")] HttpRequest request,
             [DurableClient] IDurableOrchestrationClient client,
-            string instanceId,
+            Guid instanceId,
             ILogger logger,
             CancellationToken hostCancellationToken = default)
         {
@@ -67,27 +78,26 @@ namespace Microsoft.Health.Dicom.Functions.Management
 
             logger.LogInformation("Querying orchestration instance with ID '{InstanceId}'", instanceId);
 
-            if (string.IsNullOrWhiteSpace(instanceId))
-            {
-                return new BadRequestResult();
-            }
-
             // GetStatusAsync doesn't accept a token, so the best we can do is cancel before execution
             source.Token.ThrowIfCancellationRequested();
 
             OperationStatusResponse status = await GetOperationStatusAsync(client, instanceId);
             return status != null && PublicOperationTypes.Contains(status.Type)
-                ? new OkObjectResult(status)
-                : new NotFoundResult();
+                ? new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(JsonSerializer.Serialize(status, _jsonOptions), Encoding.UTF8, MediaTypeNames.Application.Json),
+                }
+                : new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound };
         }
 
-        private static async Task<OperationStatusResponse> GetOperationStatusAsync(IDurableOrchestrationClient client, string instanceId)
+        private static async Task<OperationStatusResponse> GetOperationStatusAsync(IDurableOrchestrationClient client, Guid instanceId)
         {
-            DurableOrchestrationStatus status = await client.GetStatusAsync(instanceId, showInput: false);
-            return status == null
+            DurableOrchestrationStatus status = await client.GetStatusAsync(OperationId.ToString(instanceId), showInput: false);
+            return status == null || !Guid.TryParse(status.InstanceId, out Guid instanceGuid)
                 ? null
                 : new OperationStatusResponse(
-                    status.InstanceId,
+                    instanceGuid,
                     status.GetOperationType(),
                     status.CreatedTime,
                     status.LastUpdatedTime,
