@@ -9,7 +9,6 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Validation;
-using Microsoft.Health.Dicom.Core.Features.Validation.Dataset;
 
 namespace Microsoft.Health.Dicom.Core.Features.Indexing
 {

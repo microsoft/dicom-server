@@ -5,7 +5,7 @@
 
 using Dicom;
 
-namespace Microsoft.Health.Dicom.Core.Features.Validation.Dataset
+namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
     public interface IDatasetValidation
     {

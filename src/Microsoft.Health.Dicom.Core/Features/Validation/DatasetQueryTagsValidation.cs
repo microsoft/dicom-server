@@ -12,7 +12,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
-namespace Microsoft.Health.Dicom.Core.Features.Validation.Dataset
+namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
     public class DatasetQueryTagsValidation : IDatasetValidation
     {
