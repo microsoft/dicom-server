@@ -19,6 +19,8 @@ using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.SqlServer.Extensions;
+using System.Buffers.Binary;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 {
@@ -34,10 +36,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
         }
 
         public override SchemaVersion Version => SchemaVersion.V4;
-        public override async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, ExtendedQueryTagVersion? extendedQueryTagVersion, CancellationToken cancellationToken)
+        public override async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
+
+            // Use maxTagVersion to track tag addition -- if new tag is added, max tag version increases.
+            ulong? maxTagVersion = queryTags.Where(x => x.IsExtendedQueryTag).Select(x => x.ExtendedQueryTagStoreEntry).MaxTagVersion();
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
@@ -67,7 +72,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     instance.GetStringDateAsDate(DicomTag.PatientBirthDate),
                     instance.GetSingleValueOrDefault<string>(DicomTag.ManufacturerModelName),
                     (byte)IndexStatus.Creating,
-                    extendedQueryTagVersion?.ToByteArray(),
+                    UlongToRowVersion(maxTagVersion),
                     parameters);
 
                 try
@@ -82,7 +87,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                         {
                             (byte)IndexStatus.Creating => new PendingInstanceException(),
                             (byte)IndexStatus.Created => new InstanceAlreadyExistsException(),
-                            _ => new ExtendedQueryTagVersionMismatchException(),
+                            _ => new MaxExtendedQueryTagVersionMismatchException(),
                         },
                         _ => new DataStoreException(ex),
                     };
@@ -129,6 +134,18 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
                 }
             }
+        }
+
+        private static byte[] UlongToRowVersion(ulong? value)
+        {
+            if (!value.HasValue)
+            {
+                return null;
+            }
+
+            byte[] result = new byte[8];
+            BinaryPrimitives.WriteUInt64BigEndian(result, value.Value);
+            return result;
         }
     }
 }

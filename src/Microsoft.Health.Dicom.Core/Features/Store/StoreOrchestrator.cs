@@ -68,12 +68,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
             // Retry when ExtendedQuryTagVersion mismatch.
-            var retryPolicy = Policy.Handle<ExtendedQueryTagVersionMismatchException>()
+            var retryPolicy = Policy.Handle<MaxExtendedQueryTagVersionMismatchException>()
                 .RetryAsync(_storeConfiguration.Value.MaxRetriesWhenTagVersionMismatch);
             long version = await retryPolicy.ExecuteAsync(async () =>
             {
                 var queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken);
-                return await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, queryTags, ExtendedQueryTagVersion.GetExtendedQueryTagVersion(queryTags), cancellationToken);
+                return await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, queryTags, cancellationToken);
             });
 
             var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version);

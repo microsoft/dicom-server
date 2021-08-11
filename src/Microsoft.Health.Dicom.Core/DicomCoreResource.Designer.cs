@@ -206,15 +206,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to One or more extended query tags have been modified..
-        /// </summary>
-        internal static string ExtendedQueryTagVersionMismatch {
-            get {
-                return ResourceManager.GetString("ExtendedQueryTagVersionMismatch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Authorization failed..
         /// </summary>
         internal static string Forbidden {
@@ -410,6 +401,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string ItemNotFound {
             get {
                 return ResourceManager.GetString("ItemNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to One or more extended query tags have been modified..
+        /// </summary>
+        internal static string MaxExtendedQueryTagVersionMismatch {
+            get {
+                return ResourceManager.GetString("MaxExtendedQueryTagVersionMismatch", resourceCulture);
             }
         }
         

@@ -67,10 +67,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var extendedQueryTagEntry = element.Tag.BuildAddExtendedQueryTagEntry(level: level);
 
             QueryTag queryTag = await AddExtendedQueryTag(extendedQueryTagEntry);
-            var version = ExtendedQueryTagVersion.GetExtendedQueryTagVersion(new[] { queryTag });
             try
             {
-                long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag }, version);
+                long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag });
                 Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, watermark);
                 IReadOnlyList<ExtendedQueryTagDataRow> rows = await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(dataType, queryTag.ExtendedQueryTagStoreEntry.Key, instance.StudyKey);
                 Assert.Single(rows);
@@ -292,7 +291,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             QueryTag queryTag = await AddExtendedQueryTag(tag.BuildAddExtendedQueryTagEntry(level: level));
             try
             {
-                long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag }, null);
+                long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag });
                 Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, watermark);
                 long? seriesKey = level != QueryTagLevel.Study ? instance.SeriesKey : null;
                 long? instanceKey = level == QueryTagLevel.Instance ? instance.InstanceKey : null;
@@ -336,11 +335,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             dataset.Add(tag, value);
 
             QueryTag queryTag = await AddExtendedQueryTag(tag.BuildAddExtendedQueryTagEntry(level: level));
-            var etag = ExtendedQueryTagVersion.GetExtendedQueryTagVersion(new QueryTag[] { queryTag });
             try
             {
                 // index extended query tags
-                await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag }, etag);
+                await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag });
 
                 // update
                 value = "NEWSYN";
@@ -354,7 +352,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 }
 
                 // index new instance
-                long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag }, etag);
+                long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag });
                 Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, watermark);
                 long? seriesKey = level != QueryTagLevel.Study ? instance.SeriesKey : null;
                 var stringRows = await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, queryTag.ExtendedQueryTagStoreEntry.Key, instance.StudyKey, seriesKey);
@@ -396,8 +394,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             dataset.Add(new DicomFloatingPointDouble(DicomTag.DopplerCorrectionAngle, 1.0 + index));
             dataset.Add(new DicomSignedLong(DicomTag.ReferencePixelX0, 1 + index));
             dataset.Add(new DicomPersonName(DicomTag.DistributionNameRETIRED, "abc^abc" + index));
-            var eTag = ExtendedQueryTagVersion.GetExtendedQueryTagVersion(queryTags);
-            long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, queryTags, eTag);
+            long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, queryTags);
             return await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, watermark);
         }
 

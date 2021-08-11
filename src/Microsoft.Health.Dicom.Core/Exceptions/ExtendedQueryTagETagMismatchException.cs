@@ -6,13 +6,13 @@
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
     /// <summary>
-    /// Exception thrown when version of a set of extended query tags mismatch.
+    /// Exception thrown when max extended query tag version mismatch.
     /// </summary>
-    public class ExtendedQueryTagVersionMismatchException
+    public class MaxExtendedQueryTagVersionMismatchException
         : DicomServerException
     {
-        public ExtendedQueryTagVersionMismatchException()
-            : base(DicomCoreResource.ExtendedQueryTagVersionMismatch)
+        public MaxExtendedQueryTagVersionMismatchException()
+            : base(DicomCoreResource.MaxExtendedQueryTagVersionMismatch)
         {
         }
     }

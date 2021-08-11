@@ -510,7 +510,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Empty(extendedTags);
 
             DicomDataset dataset = Samples.CreateRandomInstanceDataset();
-            long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, QueryTagService.CoreQueryTags, null);
+            long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, QueryTagService.CoreQueryTags);
         }
 
         [Fact]
@@ -519,14 +519,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             DicomTag tag = DicomTag.PatientAge;
             AddExtendedQueryTagEntry extendedQueryTagEntry = tag.BuildAddExtendedQueryTagEntry();
             await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new[] { extendedQueryTagEntry }, maxAllowedCount: 128, ready: true);
-            var tags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync();
-            var queryTags = tags.Select(tag => new QueryTag(tag)).ToList();
-            var version = ExtendedQueryTagVersion.GetExtendedQueryTagVersion(queryTags);
-            byte[] bytes = version.Value.ToByteArray();
-            bytes[0]++;
-            var mismatchVersion = new ExtendedQueryTagVersion(bytes);
+            var tagEntry = (await _extendedQueryTagStore.GetExtendedQueryTagsAsync())[0];
+            var modifiedTagEntry = new ExtendedQueryTagStoreEntry(tagEntry.Key, tagEntry.Path, tagEntry.VR, tagEntry.PrivateCreator, tagEntry.Level, tagEntry.Status, tagEntry.Version + 1);
+            var queryTags = new[] { new QueryTag(modifiedTagEntry) };
             DicomDataset dataset = Samples.CreateRandomInstanceDataset();
-            await Assert.ThrowsAsync<ExtendedQueryTagVersionMismatchException>(() => _indexDataStore.CreateInstanceIndexAsync(dataset, queryTags, mismatchVersion));
+            await Assert.ThrowsAsync<MaxExtendedQueryTagVersionMismatchException>(() => _indexDataStore.CreateInstanceIndexAsync(dataset, queryTags));
         }
 
         private static void ValidateStudyMetadata(

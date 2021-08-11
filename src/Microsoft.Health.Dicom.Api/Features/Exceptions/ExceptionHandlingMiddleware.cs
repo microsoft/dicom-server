@@ -84,7 +84,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                     break;
                 case InstanceAlreadyExistsException _:
                 case ExtendedQueryTagsAlreadyExistsException _:
-                case ExtendedQueryTagVersionMismatchException _:
+                case MaxExtendedQueryTagVersionMismatchException _:
                     statusCode = HttpStatusCode.Conflict;
                     break;
                 case UnsupportedMediaTypeException _:

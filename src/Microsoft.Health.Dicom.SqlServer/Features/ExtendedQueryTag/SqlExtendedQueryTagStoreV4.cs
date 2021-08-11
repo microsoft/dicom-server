@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -56,7 +57,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                             VLatest.ExtendedQueryTag.TagStatus,
                             VLatest.ExtendedQueryTag.TagVersion);
 
-                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, new ExtendedQueryTagVersion(tagVersion)));
+                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, RowVersionToUlong(tagVersion)));
                     }
 
                     executionTimeWatch.Stop();
@@ -89,7 +90,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                             VLatest.ExtendedQueryTag.TagStatus,
                             VLatest.ExtendedQueryTag.TagVersion);
 
-                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, new ExtendedQueryTagVersion(tagVersion)));
+                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, RowVersionToUlong(tagVersion)));
                     }
                 }
             }
@@ -171,7 +172,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                         tagPrivateCreator,
                         (QueryTagLevel)tagLevel,
                         (ExtendedQueryTagStatus)tagStatus,
-                        new ExtendedQueryTagVersion(tagVersion)));
+                        RowVersionToUlong(tagVersion)));
                 }
 
                 return queryTags;
@@ -208,5 +209,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 throw new DataStoreException(ex);
             }
         }
+
+        private static ulong? RowVersionToUlong(byte[] rowVersion)
+        {
+            Debug.Assert(rowVersion == null || rowVersion.Length == 8, "Row vesion could either be null or length of 8");
+            return rowVersion == null ? null : BinaryPrimitives.ReadUInt64BigEndian(rowVersion);
+        }
+
     }
 }
