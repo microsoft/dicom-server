@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             sopClassUid: "13");
 
         private readonly IStoreResponseBuilder _storeResponseBuilder = Substitute.For<IStoreResponseBuilder>();
-        private readonly IDicomDatasetValidator _dicomDatasetValidator = Substitute.For<IDicomDatasetValidator>();
+        private readonly IStoreDatasetValidator _dicomDatasetValidator = Substitute.For<IStoreDatasetValidator>();
         private readonly IStoreOrchestrator _storeOrchestrator = Substitute.For<IStoreOrchestrator>();
         private readonly StoreService _storeService;
 

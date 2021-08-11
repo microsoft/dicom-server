@@ -47,7 +47,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 "Failed to dispose the DICOM instance entry at index '{DicomInstanceEntryIndex}'.");
 
         private readonly IStoreResponseBuilder _storeResponseBuilder;
-        private readonly IDicomDatasetValidator _dicomDatasetValidator;
+        private readonly IStoreDatasetValidator _dicomDatasetValidator;
         private readonly IStoreOrchestrator _storeOrchestrator;
         private readonly ILogger _logger;
 
@@ -56,7 +56,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
         public StoreService(
             IStoreResponseBuilder storeResponseBuilder,
-            IDicomDatasetValidator dicomDatasetValidator,
+            IStoreDatasetValidator dicomDatasetValidator,
             IStoreOrchestrator storeOrchestrator,
             ILogger<StoreService> logger)
         {

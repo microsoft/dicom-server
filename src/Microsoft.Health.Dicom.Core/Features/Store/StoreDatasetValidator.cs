@@ -3,9 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -14,20 +12,19 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Validation;
-using Microsoft.Health.Dicom.Core.Features.Validation.Dataset;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
     /// <summary>
     /// Provides functionality to validate a <see cref="DicomDataset"/> to make sure it meets the minimum requirement.
     /// </summary>
-    public class DicomDatasetValidator : IDicomDatasetValidator
+    public class DicomDatasetStoreValidator : IDicomDatasetStoreValidator
     {
         private readonly bool _enableFullDicomItemValidation;
         private readonly IDicomElementMinimumValidator _minimumValidator;
         private readonly IQueryTagService _queryTagService;
 
-        public DicomDatasetValidator(IOptions<FeatureConfiguration> featureConfiguration, IDicomElementMinimumValidator minimumValidator, IQueryTagService queryTagService)
+        public DicomDatasetStoreValidator(IOptions<FeatureConfiguration> featureConfiguration, IDicomElementMinimumValidator minimumValidator, IQueryTagService queryTagService)
         {
             EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
             EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
@@ -44,7 +41,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             new DatasetCoreTagsValidation(requiredStudyInstanceUid).Validate(dicomDataset);
 
-            // validate input data elements
             if (_enableFullDicomItemValidation)
             {
                 new DatasetFullValidation().Validate(dicomDataset);

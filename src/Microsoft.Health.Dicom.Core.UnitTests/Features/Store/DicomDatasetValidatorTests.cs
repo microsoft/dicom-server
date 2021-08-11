@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         private const ushort ValidationFailedFailureCode = 43264;
         private const ushort MismatchStudyInstanceUidFailureCode = 43265;
 
-        private IDicomDatasetValidator _dicomDatasetValidator;
+        private IStoreDatasetValidator _dicomDatasetValidator;
 
         private readonly DicomDataset _dicomDataset = Samples.CreateRandomInstanceDataset().NotValidated();
         private readonly IQueryTagService _queryTagService;
@@ -54,7 +54,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _queryTags.Clear();
             _queryTags.Add(new QueryTag(tag.BuildExtendedQueryTagStoreEntry()));
-            IDicomElementMinimumValidator validator = Substitute.For<IDicomElementMinimumValidator>();
+            IElementMinimumValidator validator = Substitute.For<IElementMinimumValidator>();
             _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, validator, _queryTagService);
             await AssertThrowsAsyncWithMessage<DatasetValidationException>(
                 () => _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null),

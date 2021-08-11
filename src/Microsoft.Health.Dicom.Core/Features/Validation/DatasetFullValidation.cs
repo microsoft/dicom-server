@@ -7,7 +7,7 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Store;
 
-namespace Microsoft.Health.Dicom.Core.Features.Validation.Dataset
+namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
     public class DatasetFullValidation : IDatasetValidation
     {

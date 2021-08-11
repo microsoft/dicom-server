@@ -12,11 +12,11 @@ using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Features.Indexing
 {
-    public class DicomDatasetReindexValidator : IDicomDatasetReindexValidator
+    public class ReindexDatasetValidator : IReindexDatasetValidator
     {
         private readonly IDicomElementMinimumValidator _minimumValidator;
 
-        public DicomDatasetReindexValidator(IDicomElementMinimumValidator minimumValidator)
+        public ReindexDatasetValidator(IDicomElementMinimumValidator minimumValidator)
         {
             _minimumValidator = EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
         }

@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
 {
     public class DicomElementMinimumValidatorTests
     {
-        private readonly IDicomElementMinimumValidator _validator;
+        private readonly IElementMinimumValidator _validator;
 
         public DicomElementMinimumValidatorTests()
         {

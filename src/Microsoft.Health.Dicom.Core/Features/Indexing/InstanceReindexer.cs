@@ -23,9 +23,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
     {
         private readonly IMetadataStore _metadataStore;
         private readonly IIndexDataStore _indexDataStore;
-        private readonly IDicomDatasetReindexValidator _dicomDatasetReindexValidator;
+        private readonly IReindexDatasetValidator _dicomDatasetReindexValidator;
 
-        public InstanceReindexer(IMetadataStore metadataStore, IIndexDataStore indexDataStore, IDicomDatasetReindexValidator dicomDatasetReindexValidator)
+        public InstanceReindexer(IMetadataStore metadataStore, IIndexDataStore indexDataStore, IReindexDatasetValidator dicomDatasetReindexValidator)
         {
             _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
             _indexDataStore = EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));

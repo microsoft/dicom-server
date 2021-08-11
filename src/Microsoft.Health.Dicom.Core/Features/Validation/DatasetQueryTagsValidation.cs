@@ -17,10 +17,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     public class DatasetQueryTagsValidation : IDatasetValidation
     {
         private readonly IReadOnlyCollection<QueryTag> _queryTags;
-        private readonly IDicomElementMinimumValidator _minimumValidator;
+        private readonly IElementMinimumValidator _minimumValidator;
         private readonly Func<QueryTag, DicomElementValidationException, bool> _onValidationFailure;
 
-        public DatasetQueryTagsValidation(IReadOnlyCollection<QueryTag> queryTags, IDicomElementMinimumValidator minimumValidator, Func<QueryTag, DicomElementValidationException, bool> onValidationFailure = null)
+        public DatasetQueryTagsValidation(IReadOnlyCollection<QueryTag> queryTags, IElementMinimumValidator minimumValidator, Func<QueryTag, DicomElementValidationException, bool> onValidationFailure = null)
         {
             _queryTags = EnsureArg.IsNotNull(queryTags, nameof(queryTags));
             _minimumValidator = EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));

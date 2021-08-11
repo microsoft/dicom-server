@@ -11,7 +11,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    internal class ElementValidation : IDicomElementValidation
+    internal class ElementValidation : IElementValidation
     {
         public virtual void Validate(DicomElement dicomElement)
         {
