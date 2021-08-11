@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
     /// <summary>
     /// Validator that validates DicomDataset for reindexing.
     /// </summary>
-    public interface IDicomDatasetReindexValidator
+    public interface IReindexDatasetValidator
     {
         /// <summary>
         /// Validate <paramref name="dicomDataset"/>.

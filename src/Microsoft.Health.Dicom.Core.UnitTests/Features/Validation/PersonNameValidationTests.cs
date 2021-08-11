@@ -10,14 +10,14 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
 {
-    public class DicomPersonNameValidationTests
+    public class PersonNameValidationTests
     {
 
         [Fact]
         public void GivenValidatePersonName_WhenValidating_ThenShouldPass()
         {
             DicomElement element = new DicomPersonName(DicomTag.PatientName, "abc^xyz=abc^xyz^xyz^xyz^xyz=abc^xyz");
-            new DicomPersonNameValidation().Validate(element);
+            new PersonNameValidation().Validate(element);
         }
 
         [Theory]
@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         public void GivenInvalidPatientName_WhenValidating_ThenShouldThrow(string value)
         {
             DicomElement element = new DicomPersonName(DicomTag.PatientName, value);
-            Assert.Throws<DicomElementValidationException>(() => new DicomPersonNameValidation().Validate(element));
+            Assert.Throws<DicomElementValidationException>(() => new PersonNameValidation().Validate(element));
 
         }
 

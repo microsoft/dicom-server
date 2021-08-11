@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             {
                 ElementMaxLengthValidation.Validate(group, 64, $"{name} Group", dicomElement.ValueRepresentation);
 
-                if (group.ToCharArray().Any(IsControlExceptESC))
+                if (ContainsControlExceptEsc(group))
                 {
                     throw new DicomElementValidationException(ElementValidationErrorCode.ValueContainsInvalidCharacters, name, DicomVR.PN, DicomCoreResource.ValueContainsInvalidCharacter, value);
                 }

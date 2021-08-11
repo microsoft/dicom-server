@@ -14,9 +14,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
 {
     public class ReindexDatasetValidator : IReindexDatasetValidator
     {
-        private readonly IDicomElementMinimumValidator _minimumValidator;
+        private readonly IElementMinimumValidator _minimumValidator;
 
-        public ReindexDatasetValidator(IDicomElementMinimumValidator minimumValidator)
+        public ReindexDatasetValidator(IElementMinimumValidator minimumValidator)
         {
             _minimumValidator = EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
         }
@@ -27,13 +27,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
 
             HashSet<DicomTag> invalidTags = new HashSet<DicomTag>();
             var validation = new DatasetQueryTagsValidation(queryTags, _minimumValidator, (queryTag, exception) =>
-           {
-               invalidTags.Add(queryTag.Tag);
-               // TODO: log failure
+            {
+                invalidTags.Add(queryTag.Tag);
+                // TODO: log failure
 
-               // continue validating next tag.
-               return false;
-           });
+                // continue validating next tag.
+                return false;
+            });
 
             if (invalidTags.Count == 0)
             {

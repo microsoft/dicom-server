@@ -10,9 +10,9 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
 {
-    public class DicomDateValidationTests
+    public class DateValidationTests
     {
-        private readonly DateValidation _validation = new DicomDateValidation();
+        private readonly DateValidation _validation = new DateValidation();
 
         [Theory]
         [InlineData("20100141")]

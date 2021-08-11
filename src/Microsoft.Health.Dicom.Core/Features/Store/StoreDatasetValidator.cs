@@ -18,13 +18,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     /// <summary>
     /// Provides functionality to validate a <see cref="DicomDataset"/> to make sure it meets the minimum requirement.
     /// </summary>
-    public class DicomDatasetStoreValidator : IDicomDatasetStoreValidator
+    public class StoreDatasetValidator : IStoreDatasetValidator
     {
         private readonly bool _enableFullDicomItemValidation;
-        private readonly IDicomElementMinimumValidator _minimumValidator;
+        private readonly IElementMinimumValidator _minimumValidator;
         private readonly IQueryTagService _queryTagService;
 
-        public DicomDatasetStoreValidator(IOptions<FeatureConfiguration> featureConfiguration, IDicomElementMinimumValidator minimumValidator, IQueryTagService queryTagService)
+        public StoreDatasetValidator(IOptions<FeatureConfiguration> featureConfiguration, IElementMinimumValidator minimumValidator, IQueryTagService queryTagService)
         {
             EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
             EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));

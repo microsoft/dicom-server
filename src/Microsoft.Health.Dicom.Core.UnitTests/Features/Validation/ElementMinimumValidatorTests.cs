@@ -11,13 +11,13 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
 {
-    public class DicomElementMinimumValidatorTests
+    public class ElementMinimumValidatorTests
     {
         private readonly IElementMinimumValidator _validator;
 
-        public DicomElementMinimumValidatorTests()
+        public ElementMinimumValidatorTests()
         {
-            _validator = new DicomElementMinimumValidator();
+            _validator = new ElementMinimumValidator();
         }
 
         [Theory]

@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 {
     // Run these tests exclusively serial since they change the global autovalidation
     [CollectionDefinition("Non-Parallel Collection", DisableParallelization = true)]
-    public class DicomDatasetValidatorTests
+    public class StoreDatasetValidatorTests
     {
         private const ushort ValidationFailedFailureCode = 43264;
         private const ushort MismatchStudyInstanceUidFailureCode = 43265;
@@ -34,14 +34,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         private readonly IQueryTagService _queryTagService;
         private readonly List<QueryTag> _queryTags;
 
-        public DicomDatasetValidatorTests()
+        public StoreDatasetValidatorTests()
         {
             var featureConfiguration = Options.Create(new FeatureConfiguration() { EnableFullDicomItemValidation = false });
-            var minValidator = new DicomElementMinimumValidator();
+            var minValidator = new ElementMinimumValidator();
             _queryTagService = Substitute.For<IQueryTagService>();
             _queryTags = new List<QueryTag>(QueryTagService.CoreQueryTags);
             _queryTagService.GetQueryTagsAsync(Arg.Any<CancellationToken>()).Returns(_queryTags);
-            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, minValidator, _queryTagService);
+            _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, minValidator, _queryTagService);
         }
 
         [Fact]
@@ -55,10 +55,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             _queryTags.Clear();
             _queryTags.Add(new QueryTag(tag.BuildExtendedQueryTagStoreEntry()));
             IElementMinimumValidator validator = Substitute.For<IElementMinimumValidator>();
-            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, validator, _queryTagService);
-            await AssertThrowsAsyncWithMessage<DatasetValidationException>(
-                () => _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null),
-                expectedMessage: $"The extended query tag '{tag}' is expected to have VR 'DA' but has 'DT' in file.");
+            _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, validator, _queryTagService);
+            await Assert.ThrowsAsync<DicomElementValidationException>(
+                () => _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null));
             validator.DidNotReceive().Validate(Arg.Any<DicomElement>());
         }
 
@@ -149,9 +148,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             {
                 EnableFullDicomItemValidation = true,
             });
-            var minValidator = new DicomElementMinimumValidator();
+            var minValidator = new ElementMinimumValidator();
 
-            _dicomDatasetValidator = new DicomDatasetValidator(featureConfiguration, minValidator, _queryTagService);
+            _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, minValidator, _queryTagService);
 
             // LO VR, invalid characters
             _dicomDataset.Add(DicomTag.SeriesDescription, "CT1 abdomen\u0000");

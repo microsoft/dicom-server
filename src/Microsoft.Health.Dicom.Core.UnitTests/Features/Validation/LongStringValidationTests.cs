@@ -10,13 +10,13 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
 {
-    public class DicomLongStringValidationTests
+    public class LongStringValidationTests
     {
 
         [Fact]
         public void GivenValidateLongString_WhenValidating_ThenShouldPass()
         {
-            new DicomLongStringValidation().Validate(new DicomLongString(DicomTag.WindowCenterWidthExplanation, "012345678912"));
+            new LongStringValidation().Validate(new DicomLongString(DicomTag.WindowCenterWidthExplanation, "012345678912"));
         }
 
         [Theory]
@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         public void GivenInvalidLongString_WhenValidating_ThenShouldThrow(string value)
         {
             DicomElement element = new DicomLongString(DicomTag.WindowCenterWidthExplanation, value);
-            Assert.Throws<DicomElementValidationException>(() => new DicomLongStringValidation().Validate(element));
+            Assert.Throws<DicomElementValidationException>(() => new LongStringValidation().Validate(element));
 
         }
 

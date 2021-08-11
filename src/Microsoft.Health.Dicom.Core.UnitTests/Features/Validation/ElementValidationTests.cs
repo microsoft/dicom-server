@@ -10,19 +10,19 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
 {
-    public class DicomElementValidationTests
+    public class ElementValidationTests
     {
 
         [Fact]
         public void GivenSingleValueElement_WhenValidating_ThenShouldPass()
         {
-            new DicomElementValidation().Validate(new DicomIntegerString(DicomTag.DoseReferenceNumber, "012345678912"));
+            new ElementValidation().Validate(new DicomIntegerString(DicomTag.DoseReferenceNumber, "012345678912"));
         }
 
         [Fact]
         public void GivenZeroValueElement_WhenValidating_ThenShouldPass()
         {
-            new DicomElementValidation().Validate(new DicomIntegerString(DicomTag.DoseReferenceNumber, new string[0]));
+            new ElementValidation().Validate(new DicomIntegerString(DicomTag.DoseReferenceNumber, new string[0]));
 
         }
         [Fact]
@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         {
 
             Assert.Throws<DicomElementValidationException>(() =>
-                new DicomElementValidation().Validate(new DicomIntegerString(DicomTag.DoseReferenceNumber, "012345678912", "012345678913")));
+                new ElementValidation().Validate(new DicomIntegerString(DicomTag.DoseReferenceNumber, "012345678912", "012345678913")));
         }
 
     }

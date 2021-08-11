@@ -4,13 +4,15 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Linq;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
+    /// <summary>
+    /// Validate Dicom VR LO 
+    /// </summary>
     internal class LongStringValidation : ElementValidation
     {
         public override void Validate(DicomElement dicomElement)
@@ -31,7 +33,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
             ElementMaxLengthValidation.Validate(value, 64, name, DicomVR.LO);
 
-            if (value.Contains("\\", StringComparison.OrdinalIgnoreCase) || value.ToCharArray().Any(IsControlExceptESC))
+            if (value.Contains("\\", StringComparison.OrdinalIgnoreCase) || ContainsControlExceptEsc(value))
             {
                 throw new DicomElementValidationException(ElementValidationErrorCode.ValueContainsInvalidCharacters, name, DicomVR.LO, DicomCoreResource.ValueContainsInvalidCharacter, value);
             }

@@ -10,20 +10,20 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
 {
-    public class DicomElementMaxLengthValidationTests
+    public class ElementMaxLengthValidationTests
     {
 
         [Fact]
         public void GivenValueExceedMaxLength_WhenValidating_ThenShouldThrows()
         {
             Assert.Throws<DicomElementValidationException>(() =>
-                new DicomElementMaxLengthValidation(12).Validate(new DicomIntegerString(DicomTag.DoseReferenceNumber, "0123456789121")));
+                new ElementMaxLengthValidation(12).Validate(new DicomIntegerString(DicomTag.DoseReferenceNumber, "0123456789121")));
         }
 
         [Fact]
         public void GivenValueInRange_WhenValidating_ThenShouldPass()
         {
-            new DicomElementMaxLengthValidation(12).Validate(new DicomIntegerString(DicomTag.DoseReferenceNumber, "012345678912"));
+            new ElementMaxLengthValidation(12).Validate(new DicomIntegerString(DicomTag.DoseReferenceNumber, "012345678912"));
         }
     }
 }

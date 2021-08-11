@@ -4,10 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Diagnostics;
+using System.Linq;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
@@ -17,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         {
             EnsureArg.IsNotNull(dicomElement, nameof(dicomElement));
             DicomVR vr = dicomElement.ValueRepresentation;
-            if (ValidationLimits.SupportedVRs.Contains(vr))
+            if (ExtendedQueryTagEntryValidator.SupportedVRCodes.Contains(vr.Code))
             {
                 // only works for single value dicom element ( Since we accept empty/null value, Count = 0 is accepted).
                 if (dicomElement.Count > 1)
@@ -35,7 +37,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             }
         }
 
-        protected static bool IsControlExceptESC(char c)
-        => char.IsControl(c) && (c != '\u001b');
+        protected static bool ContainsControlExceptEsc(string text)
+        {
+            return text == null ? false : text.Any(c => char.IsControl(c) && (c != '\u001b'));
+        }
+
     }
 }

@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         public void GivenValidateUid_WhenValidating_ThenShouldPass(string value)
         {
             DicomElement element = new DicomUniqueIdentifier(DicomTag.DigitalSignatureUID, value);
-            new DicomUidValidation().Validate(element);
+            new UidValidation().Validate(element);
         }
 
         [Theory]
@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         public void GivenInvalidUidWhenValidating_ThenShouldThrow(string value)
         {
             DicomElement element = new DicomUniqueIdentifier(DicomTag.DigitalSignatureUID, value);
-            Assert.Throws<InvalidIdentifierException>(() => new DicomUidValidation().Validate(element));
+            Assert.Throws<InvalidIdentifierException>(() => new UidValidation().Validate(element));
         }
 
     }

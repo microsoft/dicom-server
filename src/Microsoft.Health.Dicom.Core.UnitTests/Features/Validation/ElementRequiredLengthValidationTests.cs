@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
 {
-    public class DicomElementRequiredLengthValidationTests
+    public class ElementRequiredLengthValidationTests
     {
 
         [Fact]
@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         {
             DicomElement element = new DicomSignedShort(DicomTag.LargestImagePixelValue, ByteConverter.ToByteBuffer(new int[] { int.MaxValue }));
             Assert.Throws<DicomElementValidationException>(() =>
-              new DicomElementRequiredLengthValidation(4).Validate(element));
+              new ElementRequiredLengthValidation(4).Validate(element));
         }
 
         [Fact]
@@ -27,21 +27,21 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         {
             DicomElement element = new DicomAgeString(DicomTag.PatientAge, "012W1");
             Assert.Throws<DicomElementValidationException>(() =>
-              new DicomElementRequiredLengthValidation(4).Validate(element));
+              new ElementRequiredLengthValidation(4).Validate(element));
         }
 
         [Fact]
         public void GivenBinaryValueOfRequiredLength_WhenValidating_ThenShouldPass()
         {
             DicomElement element = new DicomSignedShort(DicomTag.LargestImagePixelValue, short.MaxValue);
-            new DicomElementRequiredLengthValidation(2).Validate(element);
+            new ElementRequiredLengthValidation(2).Validate(element);
         }
 
         [Fact]
         public void GivenStringValueOfRequiredLength_WhenValidating_ThenShouldThrows()
         {
             DicomElement element = new DicomAgeString(DicomTag.PatientAge, "012W");
-            new DicomElementRequiredLengthValidation(4).Validate(element);
+            new ElementRequiredLengthValidation(4).Validate(element);
         }
     }
 }
