@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
 
         public virtual Task<int> AddExtendedQueryTagErrorAsync(
             int tagKey,
-            short errorCode,
+            string errorMessage,
             long watermark,
             CancellationToken cancellationToken = default)
         {

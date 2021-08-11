@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,11 +36,11 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             return new GetExtendedQueryTagErrorsResponse(extendedQueryTagErrors);
         }
 
-        public Task<int> AddExtendedQueryTagErrorAsync(int tagKey, short errorCode, long watermark, DateTime createdTime, CancellationToken cancellationToken = default)
+        public Task<int> AddExtendedQueryTagErrorAsync(int tagKey, string errorMessage, long watermark, CancellationToken cancellationToken = default)
         {
             return _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
                 tagKey,
-                errorCode,
+                errorMessage,
                 watermark,
                 cancellationToken);
         }

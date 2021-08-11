@@ -14,7 +14,7 @@ IF NOT EXISTS (
 BEGIN
     CREATE TABLE dbo.ExtendedQueryTagError (
         TagKey                  INT             NOT NULL, --FK
-        ErrorCode               SMALLINT        NOT NULL,
+        ErrorMessage            VARCHAR(128)    NOT NULL,
         Watermark               BIGINT          NOT NULL,
         CreatedTime             DATETIME2(7)    NOT NULL,
     )
@@ -508,7 +508,7 @@ BEGIN
 
     SELECT
         TagKey,
-        ErrorCode,
+        ErrorMessage,
         CreatedTime,
         StudyInstanceUid,
         SeriesInstanceUid,
@@ -530,8 +530,8 @@ GO
 -- PARAMETERS
 --     @tagKey
 --         * The related extended query tag's key
---     @errorCode
---         * The error code
+--     @errorMessage
+--         * The error message
 --     @watermark
 --         * The watermark
 --
@@ -540,7 +540,7 @@ GO
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTagError (
     @tagKey INT,
-    @errorCode INT,
+    @errorMessage VARCHAR(128),
     @watermark BIGINT
 )
 AS
@@ -559,14 +559,14 @@ AS
             THROW 50404, 'Tag does not exist or is not being added.', 1;
 
         MERGE dbo.ExtendedQueryTagError WITH (HOLDLOCK) as tgt
-        USING (SELECT @tagKey TagKey, @errorCode ErrorCode, @watermark Watermark) as src
+        USING (SELECT @tagKey TagKey, @errorMessage ErrorMessage, @watermark Watermark) as src
         ON src.TagKey = tgt.TagKey AND src.WaterMark = tgt.Watermark
         WHEN MATCHED THEN UPDATE
         SET CreatedTime = @currentDate,
-            ErrorCode = @errorCode
+            ErrorMessage = @errorMessage
         WHEN NOT MATCHED THEN 
-            INSERT (TagKey, ErrorCode, Watermark, CreatedTime)
-            VALUES (@tagKey, @errorCode, @watermark, @currentDate)
+            INSERT (TagKey, ErrorMessage, Watermark, CreatedTime)
+            VALUES (@tagKey, @errorMessage, @watermark, @currentDate)
         OUTPUT INSERTED.TagKey;
 
     COMMIT TRANSACTION

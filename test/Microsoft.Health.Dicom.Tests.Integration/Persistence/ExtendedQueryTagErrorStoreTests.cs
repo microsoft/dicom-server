@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             int outputTagKey = await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
                 tagKey,
-                3,
+                "fake error message.",
                 watermark);
 
             Assert.Equal(outputTagKey, tagKey);
@@ -69,7 +69,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var extendedQueryTag = await _extendedQueryTagStore.GetExtendedQueryTagsAsync();
             Assert.Equal(0, extendedQueryTag.Count);
             await Assert.ThrowsAsync<ExtendedQueryTagNotFoundException>(
-                () => _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(1, 1, 1));
+                () => _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(1, "fake error message.", 1));
         }
 
         public Task InitializeAsync()

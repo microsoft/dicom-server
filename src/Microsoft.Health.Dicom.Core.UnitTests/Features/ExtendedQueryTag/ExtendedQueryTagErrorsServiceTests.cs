@@ -38,28 +38,27 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         public async Task GivenValidInput_WhenAddingExtendedQueryTag_ThenShouldSucceed()
         {
             const int tagKey = 7;
-            const short errorCode = 2;
+            const string errorMessage = "fake error message.";
             const long watermark = 30;
 
             _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
                 Arg.Any<int>(),
-                Arg.Any<short>(),
+                Arg.Any<string>(),
                 Arg.Any<long>(),
                 Arg.Any<CancellationToken>())
             .Returns(tagKey);
 
             var actual = await _extendedQueryTagErrorsService.AddExtendedQueryTagErrorAsync(
                 tagKey,
-                errorCode,
+                errorMessage,
                 watermark,
-                _definedNow,
                 _tokenSource.Token);
 
             await _extendedQueryTagErrorStore
                 .Received(1)
                 .AddExtendedQueryTagErrorAsync(
                     Arg.Is(tagKey),
-                    Arg.Is(errorCode),
+                    Arg.Is(errorMessage),
                     Arg.Is(watermark),
                     Arg.Is(_tokenSource.Token));
         }

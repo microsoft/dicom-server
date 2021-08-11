@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
 
         public override async Task<int> AddExtendedQueryTagErrorAsync(
             int tagKey,
-            short errorCode,
+            string errorMessage,
             long watermark,
             CancellationToken cancellationToken = default)
         {
@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
             VLatest.AddExtendedQueryTagError.PopulateCommand(
                 sqlCommandWrapper,
                 tagKey,
-                errorCode,
+                errorMessage,
                 watermark);
 
             try
@@ -84,16 +84,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
                 using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
                 while (await reader.ReadAsync(cancellationToken))
                 {
-                    (int tagkey, int errorCode, DateTime createdTime, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid) = reader.ReadRow(
+                    (int tagkey, string errorMessage, DateTime createdTime, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid) = reader.ReadRow(
                         VLatest.ExtendedQueryTagError.TagKey,
-                        VLatest.ExtendedQueryTagError.ErrorCode,
+                        VLatest.ExtendedQueryTagError.ErrorMessage,
                         VLatest.ExtendedQueryTagError.CreatedTime,
                         VLatest.Instance.StudyInstanceUid,
                         VLatest.Instance.SeriesInstanceUid,
                         VLatest.Instance.SopInstanceUid);
-
-                    //TODO: build the error message here
-                    string errorMessage = "error: " + errorCode;
 
                     results.Add(new ExtendedQueryTagError(createdTime, studyInstanceUid, seriesInstanceUid, sopInstanceUid, errorMessage));
                 }

@@ -21,14 +21,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
 
         public async Task<int> AddExtendedQueryTagErrorAsync(
             int tagKey,
-            short errorCode,
+            string errorMessage,
             long watermark,
             CancellationToken cancellationToken = default)
         {
             ISqlExtendedQueryTagErrorStore store = await _cache.GetAsync(cancellationToken);
             return await store.AddExtendedQueryTagErrorAsync(
                 tagKey,
-                errorCode,
+                errorMessage,
                 watermark,
                 cancellationToken);
         }
