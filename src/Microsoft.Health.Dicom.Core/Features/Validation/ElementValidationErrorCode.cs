@@ -14,7 +14,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     /// [200,300) => Error for DA.
     /// Each VR could have up to 100 error code.
     /// </summary>
-    public enum ValidationErrorCode
+    public enum ElementValidationErrorCode
     {
         /// <summary>
         /// No errors.
@@ -40,6 +40,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         /// Value contains invalid characters.
         /// </summary>
         ValueContainsInvalidCharacters = 4,
+
+        /// <summary>
+        /// Element has wrong VR.
+        /// </summary>
+        ElementHasWrongVR = 5,
 
         /// <summary>
         /// Patient name has too many groups.

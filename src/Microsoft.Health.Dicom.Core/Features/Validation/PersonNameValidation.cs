@@ -10,7 +10,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    internal class DicomPersonNameValidation : DicomElementValidation
+    internal class PersonNameValidation : ElementValidation
     {
         public override void Validate(DicomElement dicomElement)
         {
@@ -27,23 +27,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             var groups = value.Split('=');
             if (groups.Length > 3)
             {
-                throw new DicomElementValidationException(ValidationErrorCode.PatientNameHasTooManyGroups, name, DicomVR.PN, DicomCoreResource.ValueExceedsAllowedGroups, value);
+                throw new DicomElementValidationException(ElementValidationErrorCode.PatientNameHasTooManyGroups, name, DicomVR.PN, DicomCoreResource.ValueExceedsAllowedGroups, value);
             }
 
             foreach (var group in groups)
             {
-                DicomElementMaxLengthValidation.Validate(group, 64, $"{name} Group", dicomElement.ValueRepresentation);
+                ElementMaxLengthValidation.Validate(group, 64, $"{name} Group", dicomElement.ValueRepresentation);
 
                 if (group.ToCharArray().Any(IsControlExceptESC))
                 {
-                    throw new DicomElementValidationException(ValidationErrorCode.ValueContainsInvalidCharacters, name, DicomVR.PN, DicomCoreResource.ValueContainsInvalidCharacter, value);
+                    throw new DicomElementValidationException(ElementValidationErrorCode.ValueContainsInvalidCharacters, name, DicomVR.PN, DicomCoreResource.ValueContainsInvalidCharacter, value);
                 }
             }
 
             var groupcomponents = groups.Select(group => group.Split('^').Length);
             if (groupcomponents.Any(l => l > 5))
             {
-                throw new DicomElementValidationException(ValidationErrorCode.PatientNameHasTooManyComponents, name, DicomVR.PN, DicomCoreResource.ValueExceedsAllowedComponents, value);
+                throw new DicomElementValidationException(ElementValidationErrorCode.PatientNameHasTooManyComponents, name, DicomVR.PN, DicomCoreResource.ValueExceedsAllowedComponents, value);
             }
         }
     }

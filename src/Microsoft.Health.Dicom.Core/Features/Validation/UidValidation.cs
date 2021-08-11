@@ -10,7 +10,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    internal class DicomUidValidation : DicomElementValidation
+    internal class UidValidation : ElementValidation
     {
         private static readonly Regex ValidIdentifierCharactersFormat = new Regex("^[0-9\\.]*[0-9]$", RegexOptions.Compiled);
 

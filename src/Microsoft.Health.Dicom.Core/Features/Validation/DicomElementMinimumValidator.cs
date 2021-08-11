@@ -15,22 +15,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
         private static readonly IReadOnlyDictionary<DicomVR, IDicomElementValidation> Validations = new Dictionary<DicomVR, IDicomElementValidation>
         {
-            { DicomVR.AE, new DicomElementMaxLengthValidation(16) },
-            { DicomVR.AS, new DicomElementRequiredLengthValidation(4) },
-            { DicomVR.CS, new DicomElementMaxLengthValidation(16) },
-            { DicomVR.DA, new DicomDateValidation() },
-            { DicomVR.DS, new DicomElementMaxLengthValidation(16) },
-            { DicomVR.FL, new DicomElementRequiredLengthValidation(4) },
-            { DicomVR.FD, new DicomElementRequiredLengthValidation(8) },
-            { DicomVR.IS, new DicomElementMaxLengthValidation(12) },
-            { DicomVR.LO, new DicomLongStringValidation() },
-            { DicomVR.PN, new DicomPersonNameValidation() },
-            { DicomVR.SH, new DicomElementMaxLengthValidation(16) },
-            { DicomVR.SL, new DicomElementRequiredLengthValidation(4) },
-            { DicomVR.SS, new DicomElementRequiredLengthValidation(2) },
-            { DicomVR.UI, new DicomUidValidation() },
-            { DicomVR.UL, new DicomElementRequiredLengthValidation(4) },
-            { DicomVR.US, new DicomElementRequiredLengthValidation(2) },
+            { DicomVR.AE, new ElementMaxLengthValidation(16) },
+            { DicomVR.AS, new ElementRequiredLengthValidation(4) },
+            { DicomVR.CS, new ElementMaxLengthValidation(16) },
+            { DicomVR.DA, new DateValidation() },
+            { DicomVR.DS, new ElementMaxLengthValidation(16) },
+            { DicomVR.FL, new ElementRequiredLengthValidation(4) },
+            { DicomVR.FD, new ElementRequiredLengthValidation(8) },
+            { DicomVR.IS, new ElementMaxLengthValidation(12) },
+            { DicomVR.LO, new LongStringValidation() },
+            { DicomVR.PN, new PersonNameValidation() },
+            { DicomVR.SH, new ElementMaxLengthValidation(16) },
+            { DicomVR.SL, new ElementRequiredLengthValidation(4) },
+            { DicomVR.SS, new ElementRequiredLengthValidation(2) },
+            { DicomVR.UI, new UidValidation() },
+            { DicomVR.UL, new ElementRequiredLengthValidation(4) },
+            { DicomVR.US, new ElementRequiredLengthValidation(2) },
         };
 
         public void Validate(DicomElement dicomElement)

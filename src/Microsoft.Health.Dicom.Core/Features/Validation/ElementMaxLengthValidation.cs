@@ -12,9 +12,9 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    internal class DicomElementMaxLengthValidation : DicomElementValidation
+    internal class ElementMaxLengthValidation : ElementValidation
     {
-        public DicomElementMaxLengthValidation(int maxLength)
+        public ElementMaxLengthValidation(int maxLength)
         {
             Debug.Assert(maxLength > 0, "MaxLength should be positive number.");
             MaxLength = maxLength;
@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             if (value?.Length > maxLength)
             {
                 throw new DicomElementValidationException(
-                    ValidationErrorCode.ValueLengthExceedsMaxLength,
+                    ElementValidationErrorCode.ValueLengthExceedsMaxLength,
                     name,
                     vr,
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthExceedsMaxLength, maxLength),

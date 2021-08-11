@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
 {
     public class DicomDateValidationTests
     {
-        private readonly DicomDateValidation _validation = new DicomDateValidation();
+        private readonly DateValidation _validation = new DicomDateValidation();
 
         [Theory]
         [InlineData("20100141")]

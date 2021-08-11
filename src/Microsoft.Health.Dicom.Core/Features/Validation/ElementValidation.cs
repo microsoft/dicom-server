@@ -11,7 +11,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    internal class DicomElementValidation : IDicomElementValidation
+    internal class ElementValidation : IDicomElementValidation
     {
         public virtual void Validate(DicomElement dicomElement)
         {
@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 if (dicomElement.Count > 1)
                 {
                     throw new DicomElementValidationException(
-                        ValidationErrorCode.ElementHasMultipleValues,
+                        ElementValidationErrorCode.ElementHasMultipleValues,
                         dicomElement.Tag.GetFriendlyName(),
                         vr,
                         DicomCoreResource.DicomElementHasMultipleValues);

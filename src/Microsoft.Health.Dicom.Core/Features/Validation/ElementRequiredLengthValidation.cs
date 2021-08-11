@@ -11,11 +11,11 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    internal class DicomElementRequiredLengthValidation : DicomElementValidation
+    internal class ElementRequiredLengthValidation : ElementValidation
     {
         public int RequiredLength { get; }
 
-        public DicomElementRequiredLengthValidation(int requiredLength)
+        public ElementRequiredLengthValidation(int requiredLength)
         {
             RequiredLength = requiredLength;
         }
@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             if (value?.Size != RequiredLength)
             {
                 throw new DicomElementValidationException(
-                    ValidationErrorCode.ValueLengthIsNotRequiredLength,
+                    ElementValidationErrorCode.ValueLengthIsNotRequiredLength,
                     name,
                     dicomVR,
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthIsNotRequiredLength, RequiredLength));
@@ -50,7 +50,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             if (value?.Length != RequiredLength)
             {
                 throw new DicomElementValidationException(
-                    ValidationErrorCode.ValueLengthIsNotRequiredLength,
+                    ElementValidationErrorCode.ValueLengthIsNotRequiredLength,
                     name,
                     dicomVR,
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthIsNotRequiredLength, RequiredLength),

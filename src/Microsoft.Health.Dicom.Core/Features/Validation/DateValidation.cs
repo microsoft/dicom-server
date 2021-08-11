@@ -11,7 +11,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    internal class DicomDateValidation : DicomElementValidation
+    internal class DateValidation : ElementValidation
     {
         private const string DateFormatDA = "yyyyMMdd";
         public override void Validate(DicomElement dicomElement)
@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
             if (!DateTime.TryParseExact(value, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out _))
             {
-                throw new DicomElementValidationException(ValidationErrorCode.InvalidDate, name, DicomVR.DA, DicomCoreResource.ValueIsInvalidDate, value);
+                throw new DicomElementValidationException(ElementValidationErrorCode.InvalidDate, name, DicomVR.DA, DicomCoreResource.ValueIsInvalidDate, value);
             }
         }
     }

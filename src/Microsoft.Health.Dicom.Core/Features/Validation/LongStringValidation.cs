@@ -11,7 +11,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    internal class DicomLongStringValidation : DicomElementValidation
+    internal class LongStringValidation : ElementValidation
     {
         public override void Validate(DicomElement dicomElement)
         {
@@ -29,11 +29,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 return;
             }
 
-            DicomElementMaxLengthValidation.Validate(value, 64, name, DicomVR.LO);
+            ElementMaxLengthValidation.Validate(value, 64, name, DicomVR.LO);
 
             if (value.Contains("\\", StringComparison.OrdinalIgnoreCase) || value.ToCharArray().Any(IsControlExceptESC))
             {
-                throw new DicomElementValidationException(ValidationErrorCode.ValueContainsInvalidCharacters, name, DicomVR.LO, DicomCoreResource.ValueContainsInvalidCharacter, value);
+                throw new DicomElementValidationException(ElementValidationErrorCode.ValueContainsInvalidCharacters, name, DicomVR.LO, DicomCoreResource.ValueContainsInvalidCharacter, value);
             }
         }
     }

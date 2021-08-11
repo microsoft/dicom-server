@@ -5,15 +5,10 @@
 
 using Dicom;
 
-namespace Microsoft.Health.Dicom.Core.Features.Validation
+namespace Microsoft.Health.Dicom.Core.Features.Validation.Dataset
 {
-    internal interface IDicomElementValidation
+    public interface IDatasetValidation
     {
-        /// <summary>
-        /// Validate DicomElement
-        /// </summary>
-        /// <param name="dicomElement">The dicom element</param>
-        /// <exception cref="ElementValidation"/>
-        void Validate(DicomElement dicomElement);
+        void Validate(DicomDataset dataset);
     }
 }

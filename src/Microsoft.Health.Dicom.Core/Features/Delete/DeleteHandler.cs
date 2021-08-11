@@ -61,16 +61,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
 
         private static void ValidateDeleteResourcesRequest(DeleteResourcesRequest request)
         {
-            DicomUidValidation.Validate(request.StudyInstanceUid, nameof(request.StudyInstanceUid));
+            UidValidation.Validate(request.StudyInstanceUid, nameof(request.StudyInstanceUid));
 
             switch (request.ResourceType)
             {
                 case ResourceType.Series:
-                    DicomUidValidation.Validate(request.SeriesInstanceUid, nameof(request.SeriesInstanceUid));
+                    UidValidation.Validate(request.SeriesInstanceUid, nameof(request.SeriesInstanceUid));
                     break;
                 case ResourceType.Instance:
-                    DicomUidValidation.Validate(request.SeriesInstanceUid, nameof(request.SeriesInstanceUid));
-                    DicomUidValidation.Validate(request.SopInstanceUid, nameof(request.SopInstanceUid));
+                    UidValidation.Validate(request.SeriesInstanceUid, nameof(request.SeriesInstanceUid));
+                    UidValidation.Validate(request.SopInstanceUid, nameof(request.SopInstanceUid));
                     break;
             }
         }

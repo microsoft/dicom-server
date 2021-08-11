@@ -4,11 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using Dicom;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Validation;
+using Microsoft.Health.Dicom.Core.Features.Validation.Dataset;
 
 namespace Microsoft.Health.Dicom.Core.Features.Indexing
 {
@@ -25,34 +26,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
-            List<QueryTag> validTags = new List<QueryTag>();
-            foreach (QueryTag queryTag in queryTags)
+            HashSet<DicomTag> invalidTags = new HashSet<DicomTag>();
+            var validation = new DatasetQueryTagsValidation(queryTags, _minimumValidator, (queryTag, exception) =>
+           {
+               invalidTags.Add(queryTag.Tag);
+               // TODO: log failure
+
+               // continue validating next tag.
+               return false;
+           });
+
+            if (invalidTags.Count == 0)
             {
-                DicomElement dicomElement = dicomDataset.GetDicomItem<DicomElement>(queryTag.Tag);
-
-                if (dicomElement != null)
-                {
-                    if (dicomElement.ValueRepresentation != queryTag.VR)
-                    {
-                        // TODO: log error in error store
-                        continue;
-                    }
-
-                    try
-                    {
-                        _minimumValidator.Validate(dicomElement);
-                    }
-                    catch (DicomElementValidationException)
-                    {
-                        // TODO: log error in error store
-                        continue;
-                    }
-
-                    validTags.Add(queryTag);
-                }
+                return queryTags;
             }
 
-            return validTags;
+            return queryTags.Where(x => !invalidTags.Contains(x.Tag)).ToList();
         }
+
     }
 }

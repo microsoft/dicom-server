@@ -14,6 +14,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Validation;
+using Microsoft.Health.Dicom.Core.Features.Validation.Dataset;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
@@ -41,101 +42,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-            // Ensure required tags are present.
-            EnsureRequiredTagIsPresent(DicomTag.PatientID);
-            EnsureRequiredTagIsPresent(DicomTag.SOPClassUID);
-
-            // The format of the identifiers will be validated by fo-dicom.
-            string studyInstanceUid = EnsureRequiredTagIsPresent(DicomTag.StudyInstanceUID);
-            string seriesInstanceUid = EnsureRequiredTagIsPresent(DicomTag.SeriesInstanceUID);
-            string sopInstanceUid = EnsureRequiredTagIsPresent(DicomTag.SOPInstanceUID);
-
-            // Ensure the StudyInstanceUid != SeriesInstanceUid != sopInstanceUid
-            if (studyInstanceUid == seriesInstanceUid ||
-                studyInstanceUid == sopInstanceUid ||
-                seriesInstanceUid == sopInstanceUid)
-            {
-                throw new DatasetValidationException(
-                    FailureReasonCodes.ValidationFailure,
-                    DicomCoreResource.DuplicatedUidsNotAllowed);
-            }
-
-            // If the requestedStudyInstanceUid is specified, then the StudyInstanceUid must match.
-            if (requiredStudyInstanceUid != null &&
-                !studyInstanceUid.Equals(requiredStudyInstanceUid, StringComparison.OrdinalIgnoreCase))
-            {
-                throw new DatasetValidationException(
-                    FailureReasonCodes.MismatchStudyInstanceUid,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        DicomCoreResource.MismatchStudyInstanceUid,
-                        studyInstanceUid,
-                        requiredStudyInstanceUid));
-            }
-
-            string EnsureRequiredTagIsPresent(DicomTag dicomTag)
-            {
-                if (dicomDataset.TryGetSingleValue(dicomTag, out string value))
-                {
-                    return value;
-                }
-
-                throw new DatasetValidationException(
-                    FailureReasonCodes.ValidationFailure,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        DicomCoreResource.MissingRequiredTag,
-                        dicomTag.ToString()));
-            }
+            new DatasetCoreTagsValidation(requiredStudyInstanceUid).Validate(dicomDataset);
 
             // validate input data elements
             if (_enableFullDicomItemValidation)
             {
-                ValidateAllItems(dicomDataset);
+                new DatasetFullValidation().Validate(dicomDataset);
             }
             else
             {
-                await ValidateIndexedItems(dicomDataset, cancellationToken);
+                IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken);
+                new DatasetQueryTagsValidation(queryTags, _minimumValidator).Validate(dicomDataset);
             }
-        }
-
-        private async Task ValidateIndexedItems(DicomDataset dicomDataset, CancellationToken cancellationToken)
-        {
-            IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken);
-            ValidateTags(dicomDataset, queryTags);
-        }
-
-        private void ValidateTags(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags)
-        {
-            foreach (QueryTag queryTag in queryTags)
-            {
-                DicomElement dicomElement = dicomDataset.GetDicomItem<DicomElement>(queryTag.Tag);
-
-                if (dicomElement != null)
-                {
-                    if (dicomElement.ValueRepresentation != queryTag.VR)
-                    {
-                        throw new DatasetValidationException(
-                           FailureReasonCodes.ValidationFailure,
-                           string.Format(
-                               CultureInfo.InvariantCulture,
-                               DicomCoreResource.MismatchVR,
-                               queryTag.Tag,
-                               queryTag.VR,
-                               dicomElement.ValueRepresentation));
-                    }
-
-                    _minimumValidator.Validate(dicomElement);
-                }
-            }
-        }
-
-        private static void ValidateAllItems(DicomDataset dicomDataset)
-        {
-            dicomDataset.Each(item =>
-            {
-                item.ValidateDicomItem();
-            });
         }
     }
 }
