@@ -400,6 +400,23 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath ON dbo.ExtendedQuer
 )
 
 /*************************************************************
+    Extended Query Tag Errors Table
+    Stores errors from Extended Query Tag operations
+    TagKey and Watermark is Primary Key
+**************************************************************/
+CREATE TABLE dbo.ExtendedQueryTagError (
+    TagKey                  INT             NOT NULL, --FK
+    ErrorMessage            NVARCHAR(128)   NOT NULL,
+    Watermark               BIGINT          NOT NULL,
+    CreatedTime             DATETIME2(7)    NOT NULL,
+)
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagError ON dbo.ExtendedQueryTagError
+(
+    TagKey,
+    Watermark
+)
+
+/*************************************************************
     Extended Query Tag Operation Table
     Stores the association between tags and their reindexing operation
     TagKey is the primary key and foreign key for the row in dbo.ExtendedQueryTag
@@ -1530,6 +1547,49 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
+--     GetExtendedQueryTagErrors
+--
+-- DESCRIPTION
+--     Gets the extended query tag errors by tag path.
+--
+-- PARAMETERS
+--     @tagPath
+--         * The TagPath for the extended query tag for which we retrieve error(s).
+--
+-- RETURN VALUE
+--     The tag error fields and the corresponding instance UIDs.
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrors (@tagPath VARCHAR(64))
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    DECLARE @tagKey INT
+    SELECT @tagKey = TagKey
+    FROM dbo.ExtendedQueryTag WITH(HOLDLOCK)
+    WHERE dbo.ExtendedQueryTag.TagPath = @tagPath
+
+    -- Check existence
+    IF (@@ROWCOUNT = 0)
+        THROW 50404, 'extended query tag not found', 1 
+
+    SELECT
+        TagKey,
+        ErrorMessage,
+        CreatedTime,
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid
+    FROM dbo.ExtendedQueryTagError AS XQTE
+    INNER JOIN dbo.Instance AS I
+    ON XQTE.Watermark = I.Watermark
+    WHERE XQTE.TagKey = @tagKey
+END
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
 --     GetExtendedQueryTagsByOperation
 --
 -- DESCRIPTION
@@ -1625,6 +1685,58 @@ AS
             (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus)
         OUTPUT INSERTED.TagKey
         SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, @ready FROM @extendedQueryTags
+
+    COMMIT TRANSACTION
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     AddExtendedQueryTagError
+--
+-- DESCRIPTION
+--    Adds an Extended Query Tag Error or Updates it if exists.
+--
+-- PARAMETERS
+--     @tagKey
+--         * The related extended query tag's key
+--     @errorMessage
+--         * The error message
+--     @watermark
+--         * The watermark
+--
+-- RETURN VALUE
+--     The tag key of the error added.
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTagError (
+    @tagKey INT,
+    @errorMessage NVARCHAR(128),
+    @watermark BIGINT
+)
+AS
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+    BEGIN TRANSACTION
+
+        DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
+
+        --Check if instance with given watermark and Created status.
+        IF NOT EXISTS (SELECT * FROM dbo.Instance WITH (UPDLOCK) WHERE Watermark = @watermark AND Status = 1)
+            THROW 50404, 'Instance does not exist or has not been created.', 1;
+
+        --Check if tag exists and in Adding status.
+        IF NOT EXISTS (SELECT * FROM dbo.ExtendedQueryTag WITH (HOLDLOCK) WHERE TagKey = @tagKey AND TagStatus = 0)
+            THROW 50404, 'Tag does not exist or is not being added.', 1;
+
+        MERGE dbo.ExtendedQueryTagError WITH (HOLDLOCK) as XQTE
+        USING (SELECT @tagKey TagKey, @errorMessage ErrorMessage, @watermark Watermark) as src
+        ON src.TagKey = XQTE.TagKey AND src.WaterMark = XQTE.Watermark
+        WHEN MATCHED THEN UPDATE
+        SET CreatedTime = @currentDate,
+            ErrorMessage = @errorMessage
+        WHEN NOT MATCHED THEN 
+            INSERT (TagKey, ErrorMessage, Watermark, CreatedTime)
+            VALUES (@tagKey, @errorMessage, @watermark, @currentDate)
+        OUTPUT INSERTED.TagKey;
 
     COMMIT TRANSACTION
 GO
@@ -1755,7 +1867,7 @@ AS
             AND SopInstanceUid = @sopInstanceUid
 
         IF @@ROWCOUNT = 0
-            THROW 50404, 'Instance not exists', 1
+            THROW 50404, 'Instance does not exists', 1
         IF @status <> 1 -- Created
             THROW 50409, 'Instance is not been stored succssfully', 1
 

@@ -247,6 +247,23 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
         }
 
+        public async Task ClearExtendedQueryTagErrorTable()
+        {
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                await sqlConnection.OpenAsync();
+
+                using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = @$"
+                        DELETE
+                        FROM {VLatest.ExtendedQueryTagError.TableName}";
+
+                    await sqlCommand.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
         async Task<IReadOnlyList<ExtendedQueryTagDataRow>> IIndexDataStoreTestHelper.GetExtendedQueryTagDataAsync(
             ExtendedQueryTagDataType dataType,
             int tagKey,
