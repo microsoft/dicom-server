@@ -9,7 +9,10 @@ using System.Globalization;
 using System.Linq;
 using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Extensions
 {
@@ -158,6 +161,41 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             if (value != null)
             {
                 dicomDataset.Add(dicomTag, value);
+            }
+        }
+
+        /// <summary>
+        /// Validate query tag in Dicom dataset.
+        /// </summary>
+        /// <param name="dataset">The dicom dataset.</param>
+        /// <param name="queryTag">The query tag.</param>
+        /// <param name="minimumValidator">The minimum validator.</param>
+        public static void ValidateQueryTag(this DicomDataset dataset, QueryTag queryTag, IElementMinimumValidator minimumValidator)
+        {
+            EnsureArg.IsNotNull(dataset, nameof(dataset));
+            EnsureArg.IsNotNull(queryTag, nameof(queryTag));
+            EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
+            DicomElement dicomElement = dataset.GetDicomItem<DicomElement>(queryTag.Tag);
+
+            if (dicomElement != null)
+            {
+                if (dicomElement.ValueRepresentation != queryTag.VR)
+                {
+
+                    throw new DicomElementValidationException(
+                            queryTag.Tag.GetFriendlyName(),
+                            queryTag.VR,
+                            string.Format(
+                                CultureInfo.InvariantCulture,
+                                DicomCoreResource.MismatchVR,
+                                queryTag.Tag,
+                                queryTag.VR,
+                                dicomElement.ValueRepresentation));
+
+                }
+
+                minimumValidator.Validate(dicomElement);
+
             }
         }
     }

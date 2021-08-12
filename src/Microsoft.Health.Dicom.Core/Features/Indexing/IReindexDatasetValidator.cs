@@ -15,11 +15,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
     public interface IReindexDatasetValidator
     {
         /// <summary>
-        /// Validate <paramref name="dicomDataset"/>.
+        /// Validate <paramref name="dataset"/>.
         /// </summary>
-        /// <param name="dicomDataset">The dicom Dataset.</param>
+        /// <param name="dataset">The dicom Dataset.</param>
         /// <param name="queryTags">The query tags.</param>
         /// <returns>Valid query tags.</returns>
-        IReadOnlyCollection<QueryTag> Validate(DicomDataset dicomDataset, IReadOnlyCollection<QueryTag> queryTags);
+        IReadOnlyCollection<QueryTag> Validate(DicomDataset dataset, IReadOnlyCollection<QueryTag> queryTags);
     }
 }

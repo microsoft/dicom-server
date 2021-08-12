@@ -4,9 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Linq;
 using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
@@ -20,25 +21,25 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         {
             _minimumValidator = EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
         }
-        public IReadOnlyCollection<QueryTag> Validate(DicomDataset dicomDataset, IReadOnlyCollection<QueryTag> queryTags)
+        public IReadOnlyCollection<QueryTag> Validate(DicomDataset dataset, IReadOnlyCollection<QueryTag> queryTags)
         {
-            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(dataset, nameof(dataset));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
-            HashSet<DicomTag> invalidTags = new HashSet<DicomTag>();
-            var validation = new DatasetQueryTagsValidation(queryTags, _minimumValidator);
-            validation.ValidationFailed += (queryTag, exception) =>
+            List<QueryTag> validTags = new List<QueryTag>();
+            foreach (var queryTag in queryTags)
             {
-                invalidTags.Add(queryTag.Tag);
-                // TODO: log failure
-            };
-
-            if (invalidTags.Count == 0)
-            {
-                return queryTags;
+                try
+                {
+                    dataset.ValidateQueryTag(queryTag, _minimumValidator);
+                    validTags.Add(queryTag);
+                }
+                catch (DicomElementValidationException)
+                {
+                    // TODO: log failure
+                }
             }
-
-            return queryTags.Where(x => !invalidTags.Contains(x.Tag)).ToList();
+            return validTags;
         }
     }
 }
