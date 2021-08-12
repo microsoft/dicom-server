@@ -17,7 +17,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Extensions
         [Fact]
         public void GivenNoEntries_WhenGetMaxVersion_ShouldReturnNull()
         {
-            Assert.Null(Array.Empty<ExtendedQueryTagStoreEntry>().MaxTagVersion());
+            Assert.Null(Array.Empty<ExtendedQueryTagStoreEntry>().GetMaxTagVersion());
         }
 
         [Fact]
@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Extensions
             ExtendedQueryTagStoreEntry entry0 = new ExtendedQueryTagStoreEntry(1, tag.GetPath(), tag.GetDefaultVR().Code, string.Empty, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, null);
             ExtendedQueryTagStoreEntry entry1 = new ExtendedQueryTagStoreEntry(1, tag.GetPath(), tag.GetDefaultVR().Code, string.Empty, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, 1);
             ExtendedQueryTagStoreEntry entry2 = new ExtendedQueryTagStoreEntry(1, tag.GetPath(), tag.GetDefaultVR().Code, string.Empty, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, 2);
-            Assert.Equal((ulong)2, new[] { entry0, entry1, entry2 }.MaxTagVersion());
+            Assert.Equal((ulong)2, new[] { entry0, entry1, entry2 }.GetMaxTagVersion());
         }
 
         [Fact]
@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Extensions
             ExtendedQueryTagStoreEntry entry0 = new ExtendedQueryTagStoreEntry(1, tag.GetPath(), tag.GetDefaultVR().Code, string.Empty, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, null);
             ExtendedQueryTagStoreEntry entry1 = new ExtendedQueryTagStoreEntry(1, tag.GetPath(), tag.GetDefaultVR().Code, string.Empty, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, null);
 
-            Assert.Null(new[] { entry0, entry1 }.MaxTagVersion());
+            Assert.Null(new[] { entry0, entry1 }.GetMaxTagVersion());
         }
     }
 }

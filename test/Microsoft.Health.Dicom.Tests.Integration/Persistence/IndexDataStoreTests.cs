@@ -523,7 +523,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var modifiedTagEntry = new ExtendedQueryTagStoreEntry(tagEntry.Key, tagEntry.Path, tagEntry.VR, tagEntry.PrivateCreator, tagEntry.Level, tagEntry.Status, tagEntry.Version + 1);
             var queryTags = new[] { new QueryTag(modifiedTagEntry) };
             DicomDataset dataset = Samples.CreateRandomInstanceDataset();
-            await Assert.ThrowsAsync<MaxExtendedQueryTagVersionMismatchException>(() => _indexDataStore.CreateInstanceIndexAsync(dataset, queryTags));
+            await Assert.ThrowsAsync<ExtendedQueryTagVersionMismatchException>(() => _indexDataStore.CreateInstanceIndexAsync(dataset, queryTags));
         }
 
         private static void ValidateStudyMetadata(

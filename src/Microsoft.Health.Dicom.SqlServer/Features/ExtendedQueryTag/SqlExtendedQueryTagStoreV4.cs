@@ -210,10 +210,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             }
         }
 
-        private static ulong? RowVersionToUlong(byte[] rowVersion)
+        private static ulong RowVersionToUlong(byte[] rowVersion)
         {
-            Debug.Assert(rowVersion == null || rowVersion.Length == 8, "Row vesion could either be null or length of 8");
-            return rowVersion == null ? null : BinaryPrimitives.ReadUInt64BigEndian(rowVersion);
+            Debug.Assert(rowVersion.Length == 8, "Row vesion is length of 8");
+            return BinaryPrimitives.ReadUInt64BigEndian(rowVersion);
         }
 
     }

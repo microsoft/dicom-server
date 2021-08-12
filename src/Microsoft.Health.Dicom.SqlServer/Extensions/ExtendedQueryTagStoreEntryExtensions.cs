@@ -20,11 +20,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Extensions
         /// </summary>
         /// <param name="entries">The collection of <see cref="ExtendedQueryTagStoreEntry"/></param>
         /// <returns>The max tag version. Return null if collection if empty</returns>
-        public static ulong? MaxTagVersion(this IEnumerable<ExtendedQueryTagStoreEntry> entries)
+        public static ulong? GetMaxTagVersion(this IEnumerable<ExtendedQueryTagStoreEntry> entries)
         {
             EnsureArg.IsNotNull(entries, nameof(entries));
-            var versions = entries.Where(x => x.Version.HasValue).Select(x => x.Version.Value);
-            return versions.Any() ? versions.Max() : null;
+            return entries.Select(x => x.Version).DefaultIfEmpty(null).Max();
         }
     }
 }

@@ -34,6 +34,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         private readonly IDeleteService _deleteService;
         private readonly IQueryTagService _queryTagService;
         private readonly IOptions<StoreConfiguration> _storeConfiguration;
+        private readonly IAsyncPolicy<long> _retryPolicy;
 
         public StoreOrchestrator(
             IFileStore fileStore,
@@ -56,6 +57,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             _queryTagService = queryTagService;
             _indexDataStore = indexDataStore;
             _storeConfiguration = storeConfiguration;
+            _retryPolicy = Policy<long>.Handle<ExtendedQueryTagVersionMismatchException>()
+                .RetryAsync(_storeConfiguration.Value.MaxRetriesWhenTagVersionMismatch);
         }
 
         /// <inheritdoc />
@@ -68,13 +71,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
             // Retry when max ExtendedQuryTagVersion mismatch.
-            var retryPolicy = Policy.Handle<MaxExtendedQueryTagVersionMismatchException>()
-                .RetryAsync(_storeConfiguration.Value.MaxRetriesWhenMaxTagVersionMismatch);
-            long version = await retryPolicy.ExecuteAsync(async () =>
+            long version = await _retryPolicy.ExecuteAsync(async (CancellationToken cancellationToken) =>
             {
                 var queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken);
                 return await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, queryTags, cancellationToken);
-            });
+
+            }, cancellationToken);
 
             var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version);
 

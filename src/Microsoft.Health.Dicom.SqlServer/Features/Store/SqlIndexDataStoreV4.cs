@@ -3,24 +3,24 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Buffers.Binary;
 using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
+using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.SqlServer.Extensions;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
-using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Models;
-using Microsoft.Health.Dicom.SqlServer.Extensions;
-using System.Buffers.Binary;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 {
@@ -36,13 +36,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
         }
 
         public override SchemaVersion Version => SchemaVersion.V4;
+
         public override async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
             // Use maxTagVersion to track tag addition -- if new tag is added, max tag version increases.
-            ulong? maxTagVersion = queryTags.Where(x => x.IsExtendedQueryTag).Select(x => x.ExtendedQueryTagStoreEntry).MaxTagVersion();
+            ulong? maxTagVersion = queryTags.Where(x => x.IsExtendedQueryTag).Select(x => x.ExtendedQueryTagStoreEntry).GetMaxTagVersion();
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
@@ -87,7 +88,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                         {
                             (byte)IndexStatus.Creating => new PendingInstanceException(),
                             (byte)IndexStatus.Created => new InstanceAlreadyExistsException(),
-                            _ => new MaxExtendedQueryTagVersionMismatchException(),
+                            _ => new ExtendedQueryTagVersionMismatchException(),
                         },
                         _ => new DataStoreException(ex),
                     };
