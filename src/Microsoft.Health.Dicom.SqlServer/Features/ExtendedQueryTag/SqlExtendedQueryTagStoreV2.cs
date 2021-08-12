@@ -91,7 +91,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.GetExtendedQueryTag.PopulateCommand(sqlCommandWrapper, path);
+                V2.GetExtendedQueryTag.PopulateCommand(sqlCommandWrapper, path);
 
                 var executionTimeWatch = Stopwatch.StartNew();
                 using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
@@ -99,14 +99,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                     while (await reader.ReadAsync(cancellationToken))
                     {
                         (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus) = reader.ReadRow(
-                            VLatest.ExtendedQueryTag.TagKey,
-                            VLatest.ExtendedQueryTag.TagPath,
-                            VLatest.ExtendedQueryTag.TagVR,
-                            VLatest.ExtendedQueryTag.TagPrivateCreator,
-                            VLatest.ExtendedQueryTag.TagLevel,
-                            VLatest.ExtendedQueryTag.TagStatus);
+                            V2.ExtendedQueryTag.TagKey,
+                            V2.ExtendedQueryTag.TagPath,
+                            V2.ExtendedQueryTag.TagVR,
+                            V2.ExtendedQueryTag.TagPrivateCreator,
+                            V2.ExtendedQueryTag.TagLevel,
+                            V2.ExtendedQueryTag.TagStatus);
 
-                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus));
+                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, null));
                     }
 
                     executionTimeWatch.Stop();

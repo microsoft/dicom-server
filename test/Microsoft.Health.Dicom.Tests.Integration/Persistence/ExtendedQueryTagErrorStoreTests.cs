@@ -22,7 +22,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private readonly IExtendedQueryTagErrorStore _extendedQueryTagErrorStore;
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly IIndexDataStore _indexDataStore;
-        private readonly IIndexDataStoreTestHelper _testHelper;
+        private readonly IExtendedQueryTagErrorStoreTestHelper _errorStoreTestHelper;
 
         public ExtendedQueryTagErrorStoreTests(SqlDataStoreTestsFixture fixture)
         {
@@ -30,12 +30,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             _extendedQueryTagStore = EnsureArg.IsNotNull(fixture.ExtendedQueryTagStore, nameof(fixture.ExtendedQueryTagStore));
             _extendedQueryTagErrorStore = EnsureArg.IsNotNull(fixture.ExtendedQueryTagErrorStore, nameof(fixture.ExtendedQueryTagErrorStore));
             _indexDataStore = EnsureArg.IsNotNull(fixture.IndexDataStore, nameof(fixture.IndexDataStore));
-            _testHelper = EnsureArg.IsNotNull(fixture.TestHelper, nameof(fixture.TestHelper));
+            _errorStoreTestHelper = EnsureArg.IsNotNull(fixture.ExtendedQueryTagErrorStoreTestHelper, nameof(fixture.ExtendedQueryTagErrorStoreTestHelper));
         }
 
         public async Task DisposeAsync()
         {
-            await _testHelper.ClearExtendedQueryTagErrorTable();
+            await _errorStoreTestHelper.ClearExtendedQueryTagErrorTableAsync();
         }
 
         [Fact]

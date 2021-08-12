@@ -378,7 +378,8 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopIn
     TagPath is represented without any delimiters and each level takes 8 bytes
     TagLevel can be 0, 1 or 2 to represent Instance, Series or Study level
     TagPrivateCreator is identification code of private tag implementer, only apply to private tag.
-    TagStatus can be 0, 1 or 2 to represent Adding, Ready or Deleting    
+    TagStatus can be 0, 1 or 2 to represent Adding, Ready or Deleting.
+    TagVersion is version of the tag. Nullable for backward compatibility.
 **************************************************************/
 CREATE TABLE dbo.ExtendedQueryTag (
     TagKey                  INT                  NOT NULL, --PK
@@ -386,7 +387,8 @@ CREATE TABLE dbo.ExtendedQueryTag (
     TagVR                   VARCHAR(2)           NOT NULL,
     TagPrivateCreator       NVARCHAR(64)         NULL, 
     TagLevel                TINYINT              NOT NULL,
-    TagStatus               TINYINT              NOT NULL
+    TagStatus               TINYINT              NOT NULL,
+    TagVersion              ROWVERSION           NOT NULL
 )
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
@@ -734,10 +736,14 @@ GO
 --         * DateTime extended query tag data
 --     @personNameExtendedQueryTags
 --         * PersonName extended query tag data
+--     @initialStatus
+--         * Initial status 
+--     @maxTagVersion
+--         * Max ExtendedQueryTag version
 -- RETURN VALUE
 --     The watermark (version).
 ------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.AddInstance
+CREATE PROCEDURE dbo.AddInstance
     @studyInstanceUid                   VARCHAR(64),
     @seriesInstanceUid                  VARCHAR(64),
     @sopInstanceUid                     VARCHAR(64),
@@ -756,10 +762,10 @@ CREATE OR ALTER PROCEDURE dbo.AddInstance
     @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY,
     @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1 READONLY,
     @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY,
-    @initialStatus                      TINYINT
+    @initialStatus                      TINYINT,
+    @maxTagVersion                      TIMESTAMP = NULL
 AS
     SET NOCOUNT ON
-
     SET XACT_ABORT ON
     BEGIN TRANSACTION
 
@@ -769,6 +775,9 @@ AS
     DECLARE @studyKey BIGINT
     DECLARE @seriesKey BIGINT
     DECLARE @instanceKey BIGINT
+
+    IF @maxTagVersion <> (SELECT MAX(TagVersion) FROM dbo.ExtendedQueryTag WITH (HOLDLOCK))
+        THROW 50409, 'Max extended query tag version does not match', 10
 
     SELECT @existingStatus = Status
     FROM dbo.Instance
@@ -992,7 +1001,6 @@ AS
 
     COMMIT TRANSACTION
 GO
-
 
 /*************************************************************
     Stored procedures for updating an instance status.
@@ -1526,7 +1534,7 @@ GO
 --     @tagPath
 --         * The TagPath for the extended query tag to retrieve.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTag (
+CREATE PROCEDURE dbo.GetExtendedQueryTag (
     @tagPath  VARCHAR(64) = NULL
 )
 AS
@@ -1539,7 +1547,8 @@ BEGIN
             TagVR,
             TagPrivateCreator,
             TagLevel,
-            TagStatus
+            TagStatus,
+            TagVersion
     FROM    dbo.ExtendedQueryTag
     WHERE   TagPath                 = ISNULL(@tagPath, TagPath)
 END
@@ -1615,7 +1624,8 @@ BEGIN
            TagVR,
            TagPrivateCreator,
            TagLevel,
-           TagStatus
+           TagStatus,
+           TagVersion
     FROM dbo.ExtendedQueryTag AS XQT
     INNER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
     WHERE OperationId = @operationId
@@ -2089,7 +2099,8 @@ AS
                TagVR,
                TagPrivateCreator,
                TagLevel,
-               TagStatus
+               TagStatus,
+               TagVersion
         FROM @extendedQueryTagKeys AS input
         INNER JOIN dbo.ExtendedQueryTag AS XQT WITH(HOLDLOCK) ON input.TagKey = XQT.TagKey
         LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO WITH(HOLDLOCK) ON XQT.TagKey = XQTO.TagKey

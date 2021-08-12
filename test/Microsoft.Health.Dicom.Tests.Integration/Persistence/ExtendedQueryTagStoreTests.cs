@@ -28,17 +28,18 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     {
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly IIndexDataStore _indexDataStore;
-        private readonly IIndexDataStoreTestHelper _testHelper;
+
+        private readonly IExtendedQueryTagStoreTestHelper _extendedQueryTagStoreTestHelper;
 
         public ExtendedQueryTagStoreTests(SqlDataStoreTestsFixture fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
             EnsureArg.IsNotNull(fixture.ExtendedQueryTagStore, nameof(fixture.ExtendedQueryTagStore));
             EnsureArg.IsNotNull(fixture.IndexDataStore, nameof(fixture.IndexDataStore));
-            EnsureArg.IsNotNull(fixture.TestHelper, nameof(fixture.TestHelper));
+            EnsureArg.IsNotNull(fixture.ExtendedQueryTagStoreTestHelper, nameof(fixture.ExtendedQueryTagStoreTestHelper));
             _extendedQueryTagStore = fixture.ExtendedQueryTagStore;
             _indexDataStore = fixture.IndexDataStore;
-            _testHelper = fixture.TestHelper;
+            _extendedQueryTagStoreTestHelper = fixture.ExtendedQueryTagStoreTestHelper;
         }
 
         [Fact]
@@ -132,7 +133,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             ExtendedQueryTagStoreEntry storeEntry = (await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: tag.GetPath()))[0];
             QueryTag queryTag = new QueryTag(storeEntry);
             await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag });
-            var extendedQueryTagIndexData = await _testHelper.GetExtendedQueryTagDataForTagKeyAsync(ExtendedQueryTagDataType.StringData, storeEntry.Key);
+            var extendedQueryTagIndexData = await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataForTagKeyAsync(ExtendedQueryTagDataType.StringData, storeEntry.Key);
             Assert.NotEmpty(extendedQueryTagIndexData);
 
             // Delete tag
@@ -140,7 +141,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await VerifyTagNotExist(storeEntry.Path);
 
             // Verify index data is removed
-            extendedQueryTagIndexData = await _testHelper.GetExtendedQueryTagDataForTagKeyAsync(ExtendedQueryTagDataType.StringData, storeEntry.Key);
+            extendedQueryTagIndexData = await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataForTagKeyAsync(ExtendedQueryTagDataType.StringData, storeEntry.Key);
             Assert.Empty(extendedQueryTagIndexData);
         }
 
@@ -263,25 +264,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public async Task DisposeAsync()
         {
-            var tags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync();
-
-            var pendingTags = tags
-                .Where(x => x.Status == ExtendedQueryTagStatus.Adding)
-                .Select(x => x.Key)
-                .ToList();
-
-            if (pendingTags.Count > 0)
-            {
-                // Pretend that any pending tags that do not have an associated operation are being indexed.
-                // Afterwards, "complete" the re-indexing for all the tags such that they can be deleted.
-                await _extendedQueryTagStore.AssignReindexingOperationAsync(pendingTags, Guid.NewGuid());
-                await _extendedQueryTagStore.CompleteReindexingAsync(pendingTags);
-            }
-
-            foreach (var tag in tags)
-            {
-                await _extendedQueryTagStore.DeleteExtendedQueryTagAsync(tag.Path, tag.VR);
-            }
+            await _extendedQueryTagStoreTestHelper.ClearExtendedQueryTagTablesAsync();
         }
 
         private Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(
