@@ -2,6 +2,45 @@ SET XACT_ABORT ON
 
 BEGIN TRANSACTION
 
+IF NOT EXISTS (
+    SELECT *
+    FROM sys.columns
+    WHERE object_id = OBJECT_ID('dbo.ExtendedQueryTag') AND name = 'TagVersion')
+BEGIN
+    ALTER TABLE dbo.ExtendedQueryTag
+    ADD TagVersion  ROWVERSION   NOT NULL
+END
+
+/*************************************************************
+    Extended Query Tag Errors Table
+    Stores errors from Extended Query Tag operations
+    TagKey and Watermark is Primary Key
+**************************************************************/
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.tables
+    WHERE name = 'ExtendedQueryTagError')
+BEGIN
+    CREATE TABLE dbo.ExtendedQueryTagError (
+        TagKey                  INT             NOT NULL, --FK
+        ErrorMessage            NVARCHAR(128)   NOT NULL,
+        Watermark               BIGINT          NOT NULL,
+        CreatedTime             DATETIME2(7)    NOT NULL,
+    )
+END
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.indexes 
+    WHERE name='IXC_ExtendedQueryTagError' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagError'))
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagError ON dbo.ExtendedQueryTagError
+    (
+        TagKey,
+        Watermark
+    )
+END
+GO
+
 /*************************************************************
     Extended Query Tag Operation Table
     Stores the association between tags and their reindexing operation
@@ -139,7 +178,8 @@ BEGIN
            TagVR,
            TagPrivateCreator,
            TagLevel,
-           TagStatus
+           TagStatus,
+           TagVersion
     FROM dbo.ExtendedQueryTag AS XQT
     INNER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
     WHERE OperationId = @operationId
@@ -272,7 +312,7 @@ AS
             AND SopInstanceUid = @sopInstanceUid
 
         IF @@ROWCOUNT = 0
-            THROW 50404, 'Instance not exists', 1
+            THROW 50404, 'Instance does not exists', 1
         IF @status <> 1 -- Created
             THROW 50409, 'Instance is not been stored succssfully', 1
 
@@ -449,6 +489,101 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
+--     GetExtendedQueryTagErrors
+--
+-- DESCRIPTION
+--     Gets the extended query tag errors by tag path.
+--
+-- PARAMETERS
+--     @tagPath
+--         * The TagPath for the extended query tag for which we retrieve error(s).
+--
+-- RETURN VALUE
+--     The tag error fields and the corresponding instance UIDs.
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrors (@tagPath VARCHAR(64))
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    DECLARE @tagKey INT
+    SELECT @tagKey = TagKey
+    FROM dbo.ExtendedQueryTag WITH(HOLDLOCK)
+    WHERE dbo.ExtendedQueryTag.TagPath = @tagPath
+
+    -- Check existence
+    IF (@@ROWCOUNT = 0)
+        THROW 50404, 'extended query tag not found', 1 
+
+    SELECT
+        TagKey,
+        ErrorMessage,
+        CreatedTime,
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid
+    FROM dbo.ExtendedQueryTagError AS XQTE
+    INNER JOIN dbo.Instance AS I
+    ON XQTE.Watermark = I.Watermark
+    WHERE XQTE.TagKey = @tagKey
+END
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     AddExtendedQueryTagError
+--
+-- DESCRIPTION
+--    Adds an Extended Query Tag Error or Updates it if exists.
+--
+-- PARAMETERS
+--     @tagKey
+--         * The related extended query tag's key
+--     @errorMessage
+--         * The error message
+--     @watermark
+--         * The watermark
+--
+-- RETURN VALUE
+--     The tag key of the error added.
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTagError (
+    @tagKey INT,
+    @errorMessage NVARCHAR(128),
+    @watermark BIGINT
+)
+AS
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+    BEGIN TRANSACTION
+
+        DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
+
+        --Check if instance with given watermark and Created status.
+        IF NOT EXISTS (SELECT * FROM dbo.Instance WITH (UPDLOCK) WHERE Watermark = @watermark AND Status = 1)
+            THROW 50404, 'Instance does not exist or has not been created.', 1;
+
+        --Check if tag exists and in Adding status.
+        IF NOT EXISTS (SELECT * FROM dbo.ExtendedQueryTag WITH (HOLDLOCK) WHERE TagKey = @tagKey AND TagStatus = 0)
+            THROW 50404, 'Tag does not exist or is not being added.', 1;
+
+        MERGE dbo.ExtendedQueryTagError WITH (HOLDLOCK) as XQTE
+        USING (SELECT @tagKey TagKey, @errorMessage ErrorMessage, @watermark Watermark) as src
+        ON src.TagKey = XQTE.TagKey AND src.WaterMark = XQTE.Watermark
+        WHEN MATCHED THEN UPDATE
+        SET CreatedTime = @currentDate,
+            ErrorMessage = @errorMessage
+        WHEN NOT MATCHED THEN 
+            INSERT (TagKey, ErrorMessage, Watermark, CreatedTime)
+            VALUES (@tagKey, @errorMessage, @watermark, @currentDate)
+        OUTPUT INSERTED.TagKey;
+
+    COMMIT TRANSACTION
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
 --     AssignReindexingOperation
 --
 -- DESCRIPTION
@@ -494,7 +629,8 @@ AS
                TagVR,
                TagPrivateCreator,
                TagLevel,
-               TagStatus
+               TagStatus,
+               TagVersion
         FROM @extendedQueryTagKeys AS input
         INNER JOIN dbo.ExtendedQueryTag AS XQT WITH(HOLDLOCK) ON input.TagKey = XQT.TagKey
         LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO WITH(HOLDLOCK) ON XQT.TagKey = XQTO.TagKey
@@ -541,6 +677,417 @@ AS
         INNER JOIN dbo.ExtendedQueryTag AS XQT ON XQTO.TagKey = XQT.TagKey
         INNER JOIN @extendedQueryTagKeys AS input ON XQT.TagKey = input.TagKey
         WHERE TagStatus = 1
+
+    COMMIT TRANSACTION
+GO
+
+/*************************************************************
+    Stored procedures for adding an instance.
+**************************************************************/
+--
+-- STORED PROCEDURE
+--     AddInstance
+--
+-- DESCRIPTION
+--     Adds a DICOM instance.
+--
+-- PARAMETERS
+--     @studyInstanceUid
+--         * The study instance UID.
+--     @seriesInstanceUid
+--         * The series instance UID.
+--     @sopInstanceUid
+--         * The SOP instance UID.
+--     @patientId
+--         * The Id of the patient.
+--     @patientName
+--         * The name of the patient.
+--     @referringPhysicianName
+--         * The referring physician name.
+--     @studyDate
+--         * The study date.
+--     @studyDescription
+--         * The study description.
+--     @accessionNumber
+--         * The accession number associated for the study.
+--     @modality
+--         * The modality associated for the series.
+--     @performedProcedureStepStartDate
+--         * The date when the procedure for the series was performed.
+--     @stringExtendedQueryTags
+--         * String extended query tag data
+--     @longExtendedQueryTags
+--         * Long extended query tag data
+--     @doubleExtendedQueryTags
+--         * Double extended query tag data
+--     @dateTimeExtendedQueryTags
+--         * DateTime extended query tag data
+--     @personNameExtendedQueryTags
+--         * PersonName extended query tag data
+--     @initialStatus
+--         * Initial status 
+--     @maxTagVersion
+--         * Max ExtendedQueryTag version
+-- RETURN VALUE
+--     The watermark (version).
+------------------------------------------------------------------------
+ALTER PROCEDURE dbo.AddInstance
+    @studyInstanceUid                   VARCHAR(64),
+    @seriesInstanceUid                  VARCHAR(64),
+    @sopInstanceUid                     VARCHAR(64),
+    @patientId                          NVARCHAR(64),
+    @patientName                        NVARCHAR(325) = NULL,
+    @referringPhysicianName             NVARCHAR(325) = NULL,
+    @studyDate                          DATE = NULL,
+    @studyDescription                   NVARCHAR(64) = NULL,
+    @accessionNumber                    NVARCHAR(64) = NULL,
+    @modality                           NVARCHAR(16) = NULL,
+    @performedProcedureStepStartDate    DATE = NULL,
+    @patientBirthDate                   DATE = NULL,
+    @manufacturerModelName              NVARCHAR(64) = NULL,
+    @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY,    
+    @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY,
+    @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY,
+    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1 READONLY,
+    @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY,
+    @initialStatus                      TINYINT,
+    @maxTagVersion                      TIMESTAMP = NULL
+AS
+    SET NOCOUNT ON
+    SET XACT_ABORT ON
+    BEGIN TRANSACTION
+
+    DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
+    DECLARE @existingStatus TINYINT
+    DECLARE @newWatermark BIGINT
+    DECLARE @studyKey BIGINT
+    DECLARE @seriesKey BIGINT
+    DECLARE @instanceKey BIGINT
+
+    IF @maxTagVersion <> (SELECT MAX(TagVersion) FROM dbo.ExtendedQueryTag WITH (HOLDLOCK))
+        THROW 50409, 'Max extended query tag version does not match', 10
+
+    SELECT @existingStatus = Status
+    FROM dbo.Instance
+    WHERE StudyInstanceUid = @studyInstanceUid
+        AND SeriesInstanceUid = @seriesInstanceUid
+        AND SopInstanceUid = @sopInstanceUid
+
+    IF @@ROWCOUNT <> 0    
+        -- The instance already exists. Set the state = @existingStatus to indicate what state it is in.
+        THROW 50409, 'Instance already exists', @existingStatus;    
+
+    -- The instance does not exist, insert it.
+    SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence
+    SET @instanceKey = NEXT VALUE FOR dbo.InstanceKeySequence
+
+    -- Insert Study
+    SELECT @studyKey = StudyKey
+    FROM dbo.Study WITH(UPDLOCK)
+    WHERE StudyInstanceUid = @studyInstanceUid
+
+    IF @@ROWCOUNT = 0
+    BEGIN
+        SET @studyKey = NEXT VALUE FOR dbo.StudyKeySequence
+
+        INSERT INTO dbo.Study
+            (StudyKey, StudyInstanceUid, PatientId, PatientName, PatientBirthDate, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
+        VALUES
+            (@studyKey, @studyInstanceUid, @patientId, @patientName, @patientBirthDate, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
+    END
+    ELSE
+    BEGIN
+        -- Latest wins
+        UPDATE dbo.Study
+        SET PatientId = @patientId, PatientName = @patientName, PatientBirthDate = @patientBirthDate, ReferringPhysicianName = @referringPhysicianName, StudyDate = @studyDate, StudyDescription = @studyDescription, AccessionNumber = @accessionNumber
+        WHERE StudyKey = @studyKey
+    END
+
+    -- Insert Series
+    SELECT @seriesKey = SeriesKey
+    FROM dbo.Series WITH(UPDLOCK)
+    WHERE StudyKey = @studyKey
+    AND SeriesInstanceUid = @seriesInstanceUid
+
+    IF @@ROWCOUNT = 0
+    BEGIN
+        SET @seriesKey = NEXT VALUE FOR dbo.SeriesKeySequence
+
+        INSERT INTO dbo.Series
+            (StudyKey, SeriesKey, SeriesInstanceUid, Modality, PerformedProcedureStepStartDate, ManufacturerModelName)
+        VALUES
+            (@studyKey, @seriesKey, @seriesInstanceUid, @modality, @performedProcedureStepStartDate, @manufacturerModelName)
+    END
+    ELSE
+    BEGIN
+        -- Latest wins
+        UPDATE dbo.Series
+        SET Modality = @modality, PerformedProcedureStepStartDate = @performedProcedureStepStartDate, ManufacturerModelName = @manufacturerModelName
+        WHERE SeriesKey = @seriesKey
+        AND StudyKey = @studyKey
+    END
+
+    -- Insert Instance
+    INSERT INTO dbo.Instance
+        (StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
+    VALUES
+        (@studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
+
+    -- Insert Extended Query Tags
+
+    -- String Key tags
+    IF EXISTS (SELECT 1 FROM @stringExtendedQueryTags)
+    BEGIN      
+        MERGE INTO dbo.ExtendedQueryTagString AS T
+        USING 
+        (
+            SELECT input.TagKey, input.TagValue, input.TagLevel 
+            FROM @stringExtendedQueryTags input
+            INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD) 
+            ON dbo.ExtendedQueryTag.TagKey = input.TagKey
+            -- Not merge on extended query tag which is being deleted.
+            AND dbo.ExtendedQueryTag.TagStatus <> 2     
+        ) AS S
+        ON T.TagKey = S.TagKey        
+            AND T.StudyKey = @studyKey
+            -- Null SeriesKey indicates a Study level tag, no need to compare SeriesKey
+            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey      
+            -- Null InstanceKey indicates a Study/Series level tag, no to compare InstanceKey
+            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+        WHEN MATCHED THEN 
+            UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
+        WHEN NOT MATCHED THEN 
+            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+            VALUES(
+            S.TagKey,
+            S.TagValue,
+            @studyKey,
+            -- When TagLevel is not Study, we should fill SeriesKey
+            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+            -- When TagLevel is Instance, we should fill InstanceKey
+            (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+            @newWatermark);        
+    END
+
+    -- Long Key tags
+    IF EXISTS (SELECT 1 FROM @longExtendedQueryTags)
+    BEGIN      
+        MERGE INTO dbo.ExtendedQueryTagLong AS T
+        USING 
+        (
+            SELECT input.TagKey, input.TagValue, input.TagLevel 
+            FROM @longExtendedQueryTags input
+            INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD) 
+            ON dbo.ExtendedQueryTag.TagKey = input.TagKey            
+            AND dbo.ExtendedQueryTag.TagStatus <> 2     
+        ) AS S
+        ON T.TagKey = S.TagKey        
+            AND T.StudyKey = @studyKey            
+            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey           
+            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+        WHEN MATCHED THEN 
+            UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
+        WHEN NOT MATCHED THEN 
+            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+            VALUES(
+            S.TagKey,
+            S.TagValue,
+            @studyKey,            
+            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),            
+            (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+            @newWatermark);        
+    END
+
+    -- Double Key tags
+    IF EXISTS (SELECT 1 FROM @doubleExtendedQueryTags)
+    BEGIN      
+        MERGE INTO dbo.ExtendedQueryTagDouble AS T
+        USING 
+        (
+            SELECT input.TagKey, input.TagValue, input.TagLevel 
+            FROM @doubleExtendedQueryTags input
+            INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD) 
+            ON dbo.ExtendedQueryTag.TagKey = input.TagKey            
+            AND dbo.ExtendedQueryTag.TagStatus <> 2     
+        ) AS S
+        ON T.TagKey = S.TagKey        
+            AND T.StudyKey = @studyKey            
+            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey           
+            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+        WHEN MATCHED THEN 
+            UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
+        WHEN NOT MATCHED THEN 
+            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+            VALUES(
+            S.TagKey,
+            S.TagValue,
+            @studyKey,            
+            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),            
+            (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+            @newWatermark);        
+    END
+
+    -- DateTime Key tags
+    IF EXISTS (SELECT 1 FROM @dateTimeExtendedQueryTags)
+    BEGIN      
+        MERGE INTO dbo.ExtendedQueryTagDateTime AS T
+        USING 
+        (
+            SELECT input.TagKey, input.TagValue, input.TagLevel 
+            FROM @dateTimeExtendedQueryTags input
+            INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD) 
+            ON dbo.ExtendedQueryTag.TagKey = input.TagKey            
+            AND dbo.ExtendedQueryTag.TagStatus <> 2     
+        ) AS S
+        ON T.TagKey = S.TagKey        
+            AND T.StudyKey = @studyKey            
+            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey           
+            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+        WHEN MATCHED THEN 
+            UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
+        WHEN NOT MATCHED THEN 
+            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+            VALUES(
+            S.TagKey,
+            S.TagValue,
+            @studyKey,            
+            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),            
+            (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+            @newWatermark);        
+    END
+
+    -- PersonName Key tags
+    IF EXISTS (SELECT 1 FROM @personNameExtendedQueryTags)
+    BEGIN      
+        MERGE INTO dbo.ExtendedQueryTagPersonName AS T
+        USING 
+        (
+            SELECT input.TagKey, input.TagValue, input.TagLevel 
+            FROM @personNameExtendedQueryTags input
+            INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD) 
+            ON dbo.ExtendedQueryTag.TagKey = input.TagKey            
+            AND dbo.ExtendedQueryTag.TagStatus <> 2     
+        ) AS S
+        ON T.TagKey = S.TagKey        
+            AND T.StudyKey = @studyKey            
+            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey           
+            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+        WHEN MATCHED THEN 
+            UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
+        WHEN NOT MATCHED THEN 
+            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+            VALUES(
+            S.TagKey,
+            S.TagValue,
+            @studyKey,            
+            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),            
+            (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+            @newWatermark);        
+    END
+
+    SELECT @newWatermark
+
+    COMMIT TRANSACTION
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     GetExtendedQueryTag(s)
+--
+-- DESCRIPTION
+--     Gets all extended query tags or given extended query tag by tag path
+--
+-- PARAMETERS
+--     @tagPath
+--         * The TagPath for the extended query tag to retrieve.
+/***************************************************************************************/
+ALTER PROCEDURE dbo.GetExtendedQueryTag (
+    @tagPath  VARCHAR(64) = NULL
+)
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    SELECT  TagKey,
+            TagPath,
+            TagVR,
+            TagPrivateCreator,
+            TagLevel,
+            TagStatus,
+            TagVersion
+    FROM    dbo.ExtendedQueryTag
+    WHERE   TagPath                 = ISNULL(@tagPath, TagPath)
+END
+GO
+
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--    DeleteExtendedQueryTag
+--
+-- DESCRIPTION
+--    Delete specific extended query tag
+--
+-- PARAMETERS
+--     @tagPath
+--         * The extended query tag path
+--     @dataType
+--         * the data type of extended query tag. 0 -- String, 1 -- Long, 2 -- Double, 3 -- DateTime, 4 -- PersonName
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.DeleteExtendedQueryTag (
+    @tagPath VARCHAR(64),
+    @dataType TINYINT
+)
+AS
+
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    BEGIN TRANSACTION
+        
+        DECLARE @tagStatus TINYINT
+        DECLARE @tagKey INT
+ 
+        SELECT @tagKey = TagKey, @tagStatus = TagStatus
+        FROM dbo.ExtendedQueryTag WITH(XLOCK)
+        WHERE dbo.ExtendedQueryTag.TagPath = @tagPath
+
+        -- Check existence
+        IF @@ROWCOUNT = 0
+            THROW 50404, 'extended query tag not found', 1
+
+        -- check if status is Ready or Adding
+        IF @tagStatus = 2
+            THROW 50412, 'extended query tag is not in Ready or Adding status', 1
+
+        -- Update status to Deleting
+        UPDATE dbo.ExtendedQueryTag
+        SET TagStatus = 2
+        WHERE dbo.ExtendedQueryTag.TagKey = @tagKey
+
+    COMMIT TRANSACTION
+
+    BEGIN TRANSACTION
+
+        -- Delete index data
+        IF @dataType = 0
+            DELETE FROM dbo.ExtendedQueryTagString WHERE TagKey = @tagKey
+        ELSE IF @dataType = 1
+            DELETE FROM dbo.ExtendedQueryTagLong WHERE TagKey = @tagKey
+        ELSE IF @dataType = 2
+            DELETE FROM dbo.ExtendedQueryTagDouble WHERE TagKey = @tagKey
+        ELSE IF @dataType = 3
+            DELETE FROM dbo.ExtendedQueryTagDateTime WHERE TagKey = @tagKey
+        ELSE
+            DELETE FROM dbo.ExtendedQueryTagPersonName WHERE TagKey = @tagKey
+
+        -- Delete tag
+        DELETE FROM dbo.ExtendedQueryTag 
+        WHERE TagKey = @tagKey
+
+        DELETE FROM dbo.ExtendedQueryTagError
+        WHERE TagKey = @tagKey
 
     COMMIT TRANSACTION
 GO

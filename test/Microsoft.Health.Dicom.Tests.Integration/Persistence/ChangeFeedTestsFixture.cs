@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public IIndexDataStore DicomIndexDataStore => _sqlDataStoreTestsFixture.IndexDataStore;
 
-        public IIndexDataStoreTestHelper DicomIndexDataStoreTestHelper => _sqlDataStoreTestsFixture.TestHelper;
+        public IIndexDataStoreTestHelper DicomIndexDataStoreTestHelper => _sqlDataStoreTestsFixture.IndexDataStoreTestHelper;
 
         public async Task InitializeAsync()
         {

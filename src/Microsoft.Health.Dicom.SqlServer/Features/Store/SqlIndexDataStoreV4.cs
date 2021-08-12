@@ -3,15 +3,19 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Buffers.Binary;
 using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
+using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.SqlServer.Extensions;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
@@ -32,6 +36,65 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
         }
 
         public override SchemaVersion Version => SchemaVersion.V4;
+
+        public override async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(instance, nameof(instance));
+            EnsureArg.IsNotNull(queryTags, nameof(queryTags));
+
+            // Use maxTagVersion to track tag addition -- if new tag is added, max tag version increases.
+            ulong? maxTagVersion = queryTags.Where(x => x.IsExtendedQueryTag).Select(x => x.ExtendedQueryTagStoreEntry).GetMaxTagVersion();
+
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags.Where(tag => tag.IsExtendedQueryTag));
+                VLatest.AddInstanceTableValuedParameters parameters = new VLatest.AddInstanceTableValuedParameters(
+                    rows.StringRows,
+                    rows.LongRows,
+                    rows.DoubleRows,
+                    rows.DateTimeRows,
+                    rows.PersonNameRows
+                );
+
+                VLatest.AddInstance.PopulateCommand(
+                    sqlCommandWrapper,
+                    instance.GetString(DicomTag.StudyInstanceUID),
+                    instance.GetString(DicomTag.SeriesInstanceUID),
+                    instance.GetString(DicomTag.SOPInstanceUID),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.PatientID),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.PatientName),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.ReferringPhysicianName),
+                    instance.GetStringDateAsDate(DicomTag.StudyDate),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.StudyDescription),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
+                    instance.GetStringDateAsDate(DicomTag.PerformedProcedureStepStartDate),
+                    instance.GetStringDateAsDate(DicomTag.PatientBirthDate),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.ManufacturerModelName),
+                    (byte)IndexStatus.Creating,
+                    UlongToRowVersion(maxTagVersion),
+                    parameters);
+
+                try
+                {
+                    return (long)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken));
+                }
+                catch (SqlException ex)
+                {
+                    throw ex.Number switch
+                    {
+                        SqlErrorCodes.Conflict => ex.State switch
+                        {
+                            (byte)IndexStatus.Creating => new PendingInstanceException(),
+                            (byte)IndexStatus.Created => new InstanceAlreadyExistsException(),
+                            _ => new ExtendedQueryTagVersionMismatchException(),
+                        },
+                        _ => new DataStoreException(ex),
+                    };
+                }
+            }
+        }
 
         public override async Task ReindexInstanceAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
         {
@@ -72,6 +135,18 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
                 }
             }
+        }
+
+        private static byte[] UlongToRowVersion(ulong? value)
+        {
+            if (!value.HasValue)
+            {
+                return null;
+            }
+
+            byte[] result = new byte[8];
+            BinaryPrimitives.WriteUInt64BigEndian(result, value.Value);
+            return result;
         }
     }
 }

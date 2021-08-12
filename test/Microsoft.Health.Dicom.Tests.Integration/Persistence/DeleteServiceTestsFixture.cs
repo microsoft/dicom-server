@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public IIndexDataStore IndexDataStore => _sqlDataStoreTestsFixture.IndexDataStore;
 
-        public IIndexDataStoreTestHelper IndexDataStoreTestHelper => _sqlDataStoreTestsFixture.TestHelper;
+        public IIndexDataStoreTestHelper IndexDataStoreTestHelper => _sqlDataStoreTestsFixture.IndexDataStoreTestHelper;
 
         public IFileStore FileStore => _blobStorageTestsFixture.FileStore;
 

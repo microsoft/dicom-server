@@ -378,7 +378,8 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopIn
     TagPath is represented without any delimiters and each level takes 8 bytes
     TagLevel can be 0, 1 or 2 to represent Instance, Series or Study level
     TagPrivateCreator is identification code of private tag implementer, only apply to private tag.
-    TagStatus can be 0, 1 or 2 to represent Adding, Ready or Deleting    
+    TagStatus can be 0, 1 or 2 to represent Adding, Ready or Deleting.
+    TagVersion is version of the tag. Nullable for backward compatibility.
 **************************************************************/
 CREATE TABLE dbo.ExtendedQueryTag (
     TagKey                  INT                  NOT NULL, --PK
@@ -386,7 +387,8 @@ CREATE TABLE dbo.ExtendedQueryTag (
     TagVR                   VARCHAR(2)           NOT NULL,
     TagPrivateCreator       NVARCHAR(64)         NULL, 
     TagLevel                TINYINT              NOT NULL,
-    TagStatus               TINYINT              NOT NULL
+    TagStatus               TINYINT              NOT NULL,
+    TagVersion              ROWVERSION           NOT NULL
 )
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
@@ -397,6 +399,23 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
 CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath ON dbo.ExtendedQueryTag
 (
     TagPath
+)
+
+/*************************************************************
+    Extended Query Tag Errors Table
+    Stores errors from Extended Query Tag operations
+    TagKey and Watermark is Primary Key
+**************************************************************/
+CREATE TABLE dbo.ExtendedQueryTagError (
+    TagKey                  INT             NOT NULL, --FK
+    ErrorMessage            NVARCHAR(128)   NOT NULL,
+    Watermark               BIGINT          NOT NULL,
+    CreatedTime             DATETIME2(7)    NOT NULL,
+)
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagError ON dbo.ExtendedQueryTagError
+(
+    TagKey,
+    Watermark
 )
 
 /*************************************************************
@@ -717,10 +736,14 @@ GO
 --         * DateTime extended query tag data
 --     @personNameExtendedQueryTags
 --         * PersonName extended query tag data
+--     @initialStatus
+--         * Initial status 
+--     @maxTagVersion
+--         * Max ExtendedQueryTag version
 -- RETURN VALUE
 --     The watermark (version).
 ------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.AddInstance
+CREATE PROCEDURE dbo.AddInstance
     @studyInstanceUid                   VARCHAR(64),
     @seriesInstanceUid                  VARCHAR(64),
     @sopInstanceUid                     VARCHAR(64),
@@ -739,10 +762,10 @@ CREATE OR ALTER PROCEDURE dbo.AddInstance
     @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY,
     @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1 READONLY,
     @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY,
-    @initialStatus                      TINYINT
+    @initialStatus                      TINYINT,
+    @maxTagVersion                      TIMESTAMP = NULL
 AS
     SET NOCOUNT ON
-
     SET XACT_ABORT ON
     BEGIN TRANSACTION
 
@@ -752,6 +775,9 @@ AS
     DECLARE @studyKey BIGINT
     DECLARE @seriesKey BIGINT
     DECLARE @instanceKey BIGINT
+
+    IF @maxTagVersion <> (SELECT MAX(TagVersion) FROM dbo.ExtendedQueryTag WITH (HOLDLOCK))
+        THROW 50409, 'Max extended query tag version does not match', 10
 
     SELECT @existingStatus = Status
     FROM dbo.Instance
@@ -975,7 +1001,6 @@ AS
 
     COMMIT TRANSACTION
 GO
-
 
 /*************************************************************
     Stored procedures for updating an instance status.
@@ -1509,7 +1534,7 @@ GO
 --     @tagPath
 --         * The TagPath for the extended query tag to retrieve.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTag (
+CREATE PROCEDURE dbo.GetExtendedQueryTag (
     @tagPath  VARCHAR(64) = NULL
 )
 AS
@@ -1522,9 +1547,53 @@ BEGIN
             TagVR,
             TagPrivateCreator,
             TagLevel,
-            TagStatus
+            TagStatus,
+            TagVersion
     FROM    dbo.ExtendedQueryTag
     WHERE   TagPath                 = ISNULL(@tagPath, TagPath)
+END
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     GetExtendedQueryTagErrors
+--
+-- DESCRIPTION
+--     Gets the extended query tag errors by tag path.
+--
+-- PARAMETERS
+--     @tagPath
+--         * The TagPath for the extended query tag for which we retrieve error(s).
+--
+-- RETURN VALUE
+--     The tag error fields and the corresponding instance UIDs.
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrors (@tagPath VARCHAR(64))
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    DECLARE @tagKey INT
+    SELECT @tagKey = TagKey
+    FROM dbo.ExtendedQueryTag WITH(HOLDLOCK)
+    WHERE dbo.ExtendedQueryTag.TagPath = @tagPath
+
+    -- Check existence
+    IF (@@ROWCOUNT = 0)
+        THROW 50404, 'extended query tag not found', 1 
+
+    SELECT
+        TagKey,
+        ErrorMessage,
+        CreatedTime,
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid
+    FROM dbo.ExtendedQueryTagError AS XQTE
+    INNER JOIN dbo.Instance AS I
+    ON XQTE.Watermark = I.Watermark
+    WHERE XQTE.TagKey = @tagKey
 END
 GO
 
@@ -1555,7 +1624,8 @@ BEGIN
            TagVR,
            TagPrivateCreator,
            TagLevel,
-           TagStatus
+           TagStatus,
+           TagVersion
     FROM dbo.ExtendedQueryTag AS XQT
     INNER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
     WHERE OperationId = @operationId
@@ -1631,6 +1701,58 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
+--     AddExtendedQueryTagError
+--
+-- DESCRIPTION
+--    Adds an Extended Query Tag Error or Updates it if exists.
+--
+-- PARAMETERS
+--     @tagKey
+--         * The related extended query tag's key
+--     @errorMessage
+--         * The error message
+--     @watermark
+--         * The watermark
+--
+-- RETURN VALUE
+--     The tag key of the error added.
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTagError (
+    @tagKey INT,
+    @errorMessage NVARCHAR(128),
+    @watermark BIGINT
+)
+AS
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+    BEGIN TRANSACTION
+
+        DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
+
+        --Check if instance with given watermark and Created status.
+        IF NOT EXISTS (SELECT * FROM dbo.Instance WITH (UPDLOCK) WHERE Watermark = @watermark AND Status = 1)
+            THROW 50404, 'Instance does not exist or has not been created.', 1;
+
+        --Check if tag exists and in Adding status.
+        IF NOT EXISTS (SELECT * FROM dbo.ExtendedQueryTag WITH (HOLDLOCK) WHERE TagKey = @tagKey AND TagStatus = 0)
+            THROW 50404, 'Tag does not exist or is not being added.', 1;
+
+        MERGE dbo.ExtendedQueryTagError WITH (HOLDLOCK) as XQTE
+        USING (SELECT @tagKey TagKey, @errorMessage ErrorMessage, @watermark Watermark) as src
+        ON src.TagKey = XQTE.TagKey AND src.WaterMark = XQTE.Watermark
+        WHEN MATCHED THEN UPDATE
+        SET CreatedTime = @currentDate,
+            ErrorMessage = @errorMessage
+        WHEN NOT MATCHED THEN 
+            INSERT (TagKey, ErrorMessage, Watermark, CreatedTime)
+            VALUES (@tagKey, @errorMessage, @watermark, @currentDate)
+        OUTPUT INSERTED.TagKey;
+
+    COMMIT TRANSACTION
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
 --    DeleteExtendedQueryTag
 --
 -- DESCRIPTION
@@ -1664,9 +1786,9 @@ AS
         IF @@ROWCOUNT = 0
             THROW 50404, 'extended query tag not found', 1
 
-        -- check if status is Ready
-        IF @tagStatus <> 1
-            THROW 50412, 'extended query tag is not in Ready status', 1
+        -- check if status is Ready or Adding
+        IF @tagStatus = 2
+            THROW 50412, 'extended query tag is not in Ready or Adding status', 1
 
         -- Update status to Deleting
         UPDATE dbo.ExtendedQueryTag
@@ -1691,6 +1813,9 @@ AS
 
         -- Delete tag
         DELETE FROM dbo.ExtendedQueryTag 
+        WHERE TagKey = @tagKey
+
+        DELETE FROM dbo.ExtendedQueryTagError
         WHERE TagKey = @tagKey
 
     COMMIT TRANSACTION
@@ -1755,7 +1880,7 @@ AS
             AND SopInstanceUid = @sopInstanceUid
 
         IF @@ROWCOUNT = 0
-            THROW 50404, 'Instance not exists', 1
+            THROW 50404, 'Instance does not exists', 1
         IF @status <> 1 -- Created
             THROW 50409, 'Instance is not been stored succssfully', 1
 
@@ -1977,7 +2102,8 @@ AS
                TagVR,
                TagPrivateCreator,
                TagLevel,
-               TagStatus
+               TagStatus,
+               TagVersion
         FROM @extendedQueryTagKeys AS input
         INNER JOIN dbo.ExtendedQueryTag AS XQT WITH(HOLDLOCK) ON input.TagKey = XQT.TagKey
         LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO WITH(HOLDLOCK) ON XQT.TagKey = XQTO.TagKey
