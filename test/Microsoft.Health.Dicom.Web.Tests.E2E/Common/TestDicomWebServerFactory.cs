@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using Microsoft.Health.Dicom.Tests.Common;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
 {
@@ -11,7 +12,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
     {
         public static TestDicomWebServer GetTestDicomWebServer(Type startupType)
         {
-            string environmentUrl = GetEnvironmentUrl();
+            string environmentUrl = TestEnvironmentHelpers.GetTestEnvironmentUrl();
 
             if (string.IsNullOrEmpty(environmentUrl))
             {
@@ -24,11 +25,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
             }
 
             return new RemoteTestDicomWebServer(new Uri(environmentUrl));
-        }
-
-        private static string GetEnvironmentUrl()
-        {
-            return Environment.GetEnvironmentVariable("TestEnvironmentUrl");
         }
     }
 }

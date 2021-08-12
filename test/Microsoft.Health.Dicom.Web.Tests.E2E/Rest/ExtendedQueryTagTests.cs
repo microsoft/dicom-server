@@ -32,9 +32,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             _client = fixture.Client;
         }
 
-        [Fact(Skip = "Re-enable after implementing feature end-to-end")]
+        [Fact]
         public async Task GivenValidExtendedQueryTags_WhenGoThroughEndToEndScenario_ThenShouldSucceed()
         {
+            if (!TestEnvironmentHelpers.IsTestEnvionrment())
+            {
+                // Pass this test locally before able to setup local Azure Function test environment
+                return;
+            }
             // Prepare 3 extended query tags.
             // One is private tag on Instance level
             // To add private tag, need to add identification code element at first.
