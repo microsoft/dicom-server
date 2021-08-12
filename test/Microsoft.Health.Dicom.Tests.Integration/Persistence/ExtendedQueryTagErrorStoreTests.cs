@@ -97,7 +97,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             await Assert.ThrowsAsync<ExtendedQueryTagNotFoundException>(
                 () => _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath()));
-            Assert.False(await _testHelper.DoesExtendedQueryTagErrorExistAsync(tagKey));
+            Assert.False(await _errorStoreTestHelper.DoesExtendedQueryTagErrorExistAsync(tagKey));
 
             var extendedQueryTagAfterTagDeletion = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(tag.GetPath());
             Assert.Equal(0, extendedQueryTagAfterTagDeletion.Count);
