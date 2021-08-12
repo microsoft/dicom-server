@@ -36,6 +36,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             CancellationToken cancellationToken = default);
 
         internal Task<IReadOnlyList<ExtendedQueryTagDataRow>> GetExtendedQueryTagDataForTagKeyAsync(ExtendedQueryTagDataType dataType, int tagKey, CancellationToken cancellationToken = default);
+
         Task ClearExtendedQueryTagErrorTable();
     }
 }

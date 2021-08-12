@@ -1717,7 +1717,7 @@ AS
     SET XACT_ABORT  ON
     BEGIN TRANSACTION
 
-    DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
+        DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
 
         --Check if instance with given watermark and Created status.
         IF NOT EXISTS (SELECT * FROM dbo.Instance WITH (UPDLOCK) WHERE Watermark = @watermark AND Status = 1)
@@ -1727,9 +1727,9 @@ AS
         IF NOT EXISTS (SELECT * FROM dbo.ExtendedQueryTag WITH (HOLDLOCK) WHERE TagKey = @tagKey AND TagStatus = 0)
             THROW 50404, 'Tag does not exist or is not being added.', 1;
 
-        MERGE dbo.ExtendedQueryTagError WITH (HOLDLOCK) as tgt
+        MERGE dbo.ExtendedQueryTagError WITH (HOLDLOCK) as XQTE
         USING (SELECT @tagKey TagKey, @errorMessage ErrorMessage, @watermark Watermark) as src
-        ON src.TagKey = tgt.TagKey AND src.WaterMark = tgt.Watermark
+        ON src.TagKey = XQTE.TagKey AND src.WaterMark = XQTE.Watermark
         WHEN MATCHED THEN UPDATE
         SET CreatedTime = @currentDate,
             ErrorMessage = @errorMessage
