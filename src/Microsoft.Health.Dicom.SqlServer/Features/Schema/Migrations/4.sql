@@ -1234,6 +1234,17 @@ AS
         THROW 50404, 'Instance not found', 1;
     END
 
+    -- Deleting tag errors
+    DECLARE @wm BIGINT
+    SELECT  @wm = Watermark from @deletedInstances
+    WHERE   StudyInstanceUid = @studyInstanceUid
+    AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
+    AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
+
+    DELETE
+    FROM    dbo.ExtendedQueryTagError
+    WHERE   Watermark = @wm
+
     -- Deleting indexed instance tags
     DELETE
     FROM    dbo.ExtendedQueryTagString

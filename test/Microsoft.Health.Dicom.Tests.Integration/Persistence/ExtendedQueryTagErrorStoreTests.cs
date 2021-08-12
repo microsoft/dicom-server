@@ -3,9 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
+using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
@@ -13,6 +15,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
+using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
@@ -23,6 +26,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly IIndexDataStore _indexDataStore;
         private readonly IExtendedQueryTagErrorStoreTestHelper _errorStoreTestHelper;
+        private readonly IIndexDataStoreTestHelper _indexDataStoreTestHelper;
 
         public ExtendedQueryTagErrorStoreTests(SqlDataStoreTestsFixture fixture)
         {
@@ -31,6 +35,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             _extendedQueryTagErrorStore = EnsureArg.IsNotNull(fixture.ExtendedQueryTagErrorStore, nameof(fixture.ExtendedQueryTagErrorStore));
             _indexDataStore = EnsureArg.IsNotNull(fixture.IndexDataStore, nameof(fixture.IndexDataStore));
             _errorStoreTestHelper = EnsureArg.IsNotNull(fixture.ExtendedQueryTagErrorStoreTestHelper, nameof(fixture.ExtendedQueryTagErrorStoreTestHelper));
+            _indexDataStoreTestHelper = EnsureArg.IsNotNull(fixture.IndexDataStoreTestHelper, nameof(fixture.IndexDataStoreTestHelper));
         }
 
         public async Task DisposeAsync()
@@ -82,7 +87,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             DicomTag tag = DicomTag.DeviceSerialNumber;
             long watermark = await AddInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
             int tagKey = await AddTagAsync(tag);
-            int outputTagKey = await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
+            await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
                 tagKey,
                 "fake error message.",
                 watermark);
@@ -101,6 +106,36 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var extendedQueryTagAfterTagDeletion = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(tag.GetPath());
             Assert.Equal(0, extendedQueryTagAfterTagDeletion.Count);
+        }
+
+        [Fact]
+        public async Task GivenExistingInstanceandExtendedQueryTagandTagError_WhenDeleteInstance_ThenTagErrorShouldAlsoBeRemoved()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+            long watermark = await AddInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            int tagKey = await AddTagAsync(tag);
+            await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
+                tagKey,
+                "fake error message.",
+                watermark);
+
+            var extendedQueryTagErrorBeforeTagDeletion = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath());
+            Assert.Equal(1, extendedQueryTagErrorBeforeTagDeletion.Count);
+
+            IReadOnlyList<Instance> instanceBeforeDeletion = await _indexDataStoreTestHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            Assert.Equal(1, instanceBeforeDeletion.Count);
+
+            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+
+            Assert.Empty(await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath()));
+            Assert.False(await _errorStoreTestHelper.DoesExtendedQueryTagErrorExistAsync(tagKey));
+
+            IReadOnlyList<Instance> instanceAfterDeletion = await _indexDataStoreTestHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            Assert.Equal(0, instanceAfterDeletion.Count);
         }
 
         public Task InitializeAsync()
