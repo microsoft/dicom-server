@@ -1786,9 +1786,9 @@ AS
         IF @@ROWCOUNT = 0
             THROW 50404, 'extended query tag not found', 1
 
-        -- check if status is Ready
-        IF @tagStatus <> 1
-            THROW 50412, 'extended query tag is not in Ready status', 1
+        -- check if status is Ready or Adding
+        IF @tagStatus = 2
+            THROW 50412, 'extended query tag is not in Ready or Adding status', 1
 
         -- Update status to Deleting
         UPDATE dbo.ExtendedQueryTag
@@ -1813,6 +1813,9 @@ AS
 
         -- Delete tag
         DELETE FROM dbo.ExtendedQueryTag 
+        WHERE TagKey = @tagKey
+
+        DELETE FROM dbo.ExtendedQueryTagError
         WHERE TagKey = @tagKey
 
     COMMIT TRANSACTION
