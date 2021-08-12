@@ -15,6 +15,7 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Store;
@@ -131,6 +132,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public IInstanceStore InstanceStore { get; }
 
         public IExtendedQueryTagStore ExtendedQueryTagStore { get; }
+
+        public IExtendedQueryTagErrorStore ExtendedQueryTagErrorStore { get; }
 
         public SchemaUpgradeRunner SchemaUpgradeRunner { get; }
         public string TestConnectionString { get; }
