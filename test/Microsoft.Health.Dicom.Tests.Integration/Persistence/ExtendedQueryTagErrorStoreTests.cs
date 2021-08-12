@@ -72,6 +72,37 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 () => _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(1, "fake error message.", 1));
         }
 
+        [Fact]
+        public async Task GivenExistingExtendedQueryTagandTagError_WhenDeleteExtendedQueryTag_ThenTagErrorShouldAlsoBeRemoved()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+            long watermark = await AddInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            int tagKey = await AddTagAsync(tag);
+            int outputTagKey = await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
+                tagKey,
+                "fake error message.",
+                watermark);
+
+            var extendedQueryTagErrorBeforeTagDeletion = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath());
+            Assert.Equal(1, extendedQueryTagErrorBeforeTagDeletion.Count);
+
+            var extendedQueryTagBeforeTagDeletion = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(tag.GetPath());
+            Assert.Equal(1, extendedQueryTagBeforeTagDeletion.Count);
+
+            await _extendedQueryTagStore.DeleteExtendedQueryTagAsync(tag.GetPath(), tag.GetDefaultVR().Code);
+
+            await Assert.ThrowsAsync<ExtendedQueryTagNotFoundException>(
+                () => _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath()));
+            Assert.False(await _errorStoreTestHelper.DoesExtendedQueryTagErrorExistAsync(tagKey));
+
+            var extendedQueryTagAfterTagDeletion = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(tag.GetPath());
+            Assert.Equal(0, extendedQueryTagAfterTagDeletion.Count);
+        }
+
         public Task InitializeAsync()
         {
             return Task.CompletedTask;

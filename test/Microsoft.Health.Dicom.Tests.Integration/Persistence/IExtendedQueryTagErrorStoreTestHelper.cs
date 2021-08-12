@@ -10,5 +10,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     public interface IExtendedQueryTagErrorStoreTestHelper
     {
         Task ClearExtendedQueryTagErrorTableAsync();
+
+        Task<bool> DoesExtendedQueryTagErrorExistAsync(int tagKey);
     }
 }
