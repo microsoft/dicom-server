@@ -181,7 +181,6 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             {
                 if (dicomElement.ValueRepresentation != queryTag.VR)
                 {
-
                     throw new DicomElementValidationException(
                             queryTag.Tag.GetFriendlyName(),
                             queryTag.VR,
@@ -195,7 +194,6 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                 }
 
                 minimumValidator.Validate(dicomElement);
-
             }
         }
     }
