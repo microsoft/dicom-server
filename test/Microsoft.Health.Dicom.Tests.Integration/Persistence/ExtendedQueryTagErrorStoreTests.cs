@@ -87,17 +87,20 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 "fake error message.",
                 watermark);
 
-            // not sure if necessary
             var extendedQueryTagErrorBeforeTagDeletion = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath());
             Assert.Equal(1, extendedQueryTagErrorBeforeTagDeletion.Count);
+
+            var extendedQueryTagBeforeTagDeletion = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(tag.GetPath());
+            Assert.Equal(1, extendedQueryTagBeforeTagDeletion.Count);
 
             await _extendedQueryTagStore.DeleteExtendedQueryTagAsync(tag.GetPath(), tag.GetDefaultVR().Code);
 
             await Assert.ThrowsAsync<ExtendedQueryTagNotFoundException>(
                 () => _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath()));
+            Assert.False(await _testHelper.DoesExtendedQueryTagErrorExistAsync(tagKey));
 
-            bool exists = await _testHelper.DoesExtendedQueryTagErrorExistAsync(tagKey);
-            Assert.True(!exists);
+            var extendedQueryTagAfterTagDeletion = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(tag.GetPath());
+            Assert.Equal(0, extendedQueryTagAfterTagDeletion.Count);
         }
 
         public Task InitializeAsync()
