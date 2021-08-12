@@ -17,12 +17,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         public void Validate(DicomDataset dataset)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
-            dataset.Each(item =>
+            foreach (var item in dataset)
             {
                 item.ValidateDicomItem();
-            });
+            }
         }
-
-
     }
 }

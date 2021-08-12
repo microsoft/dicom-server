@@ -21,19 +21,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     {
         private readonly IReadOnlyCollection<QueryTag> _queryTags;
         private readonly IElementMinimumValidator _minimumValidator;
-        private readonly Func<QueryTag, DicomElementValidationException, bool> _onValidationFailure;
+        private readonly bool _throwOnFailure;
 
-        public DatasetQueryTagsValidation(IReadOnlyCollection<QueryTag> queryTags, IElementMinimumValidator minimumValidator, Func<QueryTag, DicomElementValidationException, bool> onValidationFailure = null)
+        public DatasetQueryTagsValidation(IReadOnlyCollection<QueryTag> queryTags, IElementMinimumValidator minimumValidator, bool throwOnFailure = true)
         {
             _queryTags = EnsureArg.IsNotNull(queryTags, nameof(queryTags));
             _minimumValidator = EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
-            _onValidationFailure = onValidationFailure;
+            _throwOnFailure = throwOnFailure;
         }
+
+        protected virtual void OnValidationFailure(QueryTag queryTag, DicomElementValidationException exception)
+                => ValidationFailed?.Invoke(queryTag, exception);
+
+        public event Action<QueryTag, DicomElementValidationException> ValidationFailed;
 
         public void Validate(DicomDataset dataset)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
-            List<QueryTag> validTags = new List<QueryTag>();
 
             foreach (QueryTag queryTag in _queryTags)
             {
@@ -54,7 +58,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                                     queryTag.VR,
                                     dicomElement.ValueRepresentation));
 
-                        if (_onValidationFailure == null || _onValidationFailure.Invoke(queryTag, exception))
+                        OnValidationFailure(queryTag, exception);
+                        if (_throwOnFailure)
                         {
                             throw exception;
                         }
@@ -66,7 +71,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                     }
                     catch (DicomElementValidationException exception)
                     {
-                        if (_onValidationFailure == null || _onValidationFailure.Invoke(queryTag, exception))
+                        OnValidationFailure(queryTag, exception);
+                        if (_throwOnFailure)
                         {
                             throw;
                         }

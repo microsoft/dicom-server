@@ -26,14 +26,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
             HashSet<DicomTag> invalidTags = new HashSet<DicomTag>();
-            var validation = new DatasetQueryTagsValidation(queryTags, _minimumValidator, (queryTag, exception) =>
+            var validation = new DatasetQueryTagsValidation(queryTags, _minimumValidator);
+            validation.ValidationFailed += (queryTag, exception) =>
             {
                 invalidTags.Add(queryTag.Tag);
                 // TODO: log failure
-
-                // continue validating next tag.
-                return false;
-            });
+            };
 
             if (invalidTags.Count == 0)
             {
@@ -42,6 +40,5 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
 
             return queryTags.Where(x => !invalidTags.Contains(x.Tag)).ToList();
         }
-
     }
 }
