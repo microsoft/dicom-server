@@ -34,20 +34,33 @@ stages:
     majorMinorPatch: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.MajorMinorPatch']]
     nuGetVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.SemVer']]
   jobs:
-  - job: Windows
-    pool:
-      vmImage: $(windowsVmImage)
-    steps:
-    - template: build.yml
-
   - job: Linux
     pool:
      vmImage: 'ubuntu-latest'
     steps:
     - template: build.yml
       parameters:
-        packageArtifacts: false
+        packageArtifacts: true
         analyzeSecurity: false
+
+- stage: SecurityScan
+  displayName: 'Security analyze'
+  dependsOn:
+  - UpdateVersion
+  variables:
+    assemblySemVer: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.AssemblySemVer']]
+    assemblySemFileVer: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.AssemblySemFileVer']]
+    informationalVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.InformationalVersion']]
+    majorMinorPatch: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.MajorMinorPatch']]
+    nuGetVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.SemVer']]
+  jobs:
+  - job: Windows
+    pool:
+      vmImage: $(windowsVmImage)
+    steps:
+    - template: build.yml
+        packageArtifacts: false
+        analyzeSecurity: true
 
 - stage: DeployTestEnvironment
   displayName: 'Deploy Test Environment'
