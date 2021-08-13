@@ -44,7 +44,7 @@ stages:
         analyzeSecurity: false
         packageNugets: false
 
-- stage: SecurityScan
+- stage: SecurityAnalyze
   displayName: 'Security analyze'
   dependsOn:
   - UpdateVersion
