@@ -59,6 +59,7 @@ stages:
       vmImage: $(windowsVmImage)
     steps:
     - template: build.yml
+      parameters:
         packageArtifacts: false
         analyzeSecurity: true
 
