@@ -1158,15 +1158,10 @@ AS
     END
 
     -- Deleting tag errors
-    DECLARE @wm BIGINT
-    SELECT  @wm = Watermark from @deletedInstances
-    WHERE   StudyInstanceUid = @studyInstanceUid
-    AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
-    AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
-
-    DELETE
-    FROM    dbo.ExtendedQueryTagError
-    WHERE   Watermark = @wm
+    DELETE XQTE
+    FROM dbo.ExtendedQueryTagError as XQTE
+    INNER JOIN @deletedInstances as d
+    ON XQTE.Watermark = d.Watermark
 
     -- Deleting indexed instance tags
     DELETE
