@@ -42,6 +42,7 @@ stages:
       parameters:
         packageArtifacts: true
         analyzeSecurity: false
+        packageNugets: false
 
 - stage: SecurityScan
   displayName: 'Security analyze'
@@ -62,6 +63,7 @@ stages:
       parameters:
         packageArtifacts: false
         analyzeSecurity: true
+        packageNugets: false
 
 - stage: DeployTestEnvironment
   displayName: 'Deploy Test Environment'
