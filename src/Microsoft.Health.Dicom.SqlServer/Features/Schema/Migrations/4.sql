@@ -1234,6 +1234,12 @@ AS
         THROW 50404, 'Instance not found', 1;
     END
 
+    -- Deleting tag errors
+    DELETE XQTE
+    FROM dbo.ExtendedQueryTagError as XQTE
+    INNER JOIN @deletedInstances as d
+    ON XQTE.Watermark = d.Watermark
+
     -- Deleting indexed instance tags
     DELETE
     FROM    dbo.ExtendedQueryTagString
