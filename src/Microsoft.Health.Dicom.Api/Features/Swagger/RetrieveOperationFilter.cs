@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace Microsoft.Health.Dicom.Api.Registration.Swagger
+namespace Microsoft.Health.Dicom.Api.Features.Swagger
 {
     public class RetrieveOperationFilter : IOperationFilter
     {
