@@ -11,6 +11,14 @@ steps:
       publishWebProjects: false
 
   - task: DotNetCoreCLI@2
+    displayName: 'dotnet publish functions'
+    inputs:
+      command: publish
+      projects: '**/Microsoft.Health.Dicom.Functions.csproj'
+      arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)/functions --no-build'
+      publishWebProjects: false
+
+  - task: DotNetCoreCLI@2
     displayName: 'dotnet publish Integration Tests'
     inputs:
       command: publish
@@ -40,6 +48,13 @@ steps:
     displayName: 'publish web artifacts'
     inputs:
       pathToPublish: '$(build.artifactStagingDirectory)/web'
+      artifactName: 'deploy'
+      artifactType: 'container'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'publish function artifacts'
+    inputs:
+      pathToPublish: '$(build.artifactStagingDirectory)/functions'
       artifactName: 'deploy'
       artifactType: 'container'
 
