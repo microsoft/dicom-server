@@ -18,22 +18,7 @@ steps:
       arguments: '--configuration $(buildConfiguration) --output "$(build.binariesdirectory)/IntegrationTests" --no-build'
       publishWebProjects: false
       zipAfterPublish: false
-
-  # Package nugets
-
-  - task: DotNetCoreCLI@2
-    displayName: 'dotnet pack nugets'
-    inputs:
-      command: pack
-      configuration: '$(buildConfiguration)'
-      packagesToPack: '**/*.csproj;!**/*.UnitTests.csproj'
-      packDirectory: '$(build.artifactStagingDirectory)/nupkgs'
-      versioningScheme: byEnvVar
-      versionEnvVar: 'nuget_version'
-      nobuild: true
-    env:
-      nuget_version: $(nuGetVersion)
-
+ 
   # Publish artifacts
 
   - task: PublishBuildArtifacts@1
@@ -71,13 +56,6 @@ steps:
       pathToPublish: './test/configuration/'
       artifactName: 'deploy'
       artifactType: 'container'
-
-  - task: PublishBuildArtifacts@1
-    displayName: 'publish nuget artifacts'
-    inputs:
-      pathtoPublish: '$(build.artifactStagingDirectory)/nupkgs'
-      artifactName: 'nuget'
-      publishLocation: 'container'
 
   - task: PublishBuildArtifacts@1
     displayName: 'publish Integration Tests'

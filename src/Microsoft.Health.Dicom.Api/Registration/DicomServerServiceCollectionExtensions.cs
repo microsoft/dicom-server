@@ -26,7 +26,7 @@ using Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 using Microsoft.Health.Dicom.Api.Features.Context;
 using Microsoft.Health.Dicom.Api.Features.Formatters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
-using Microsoft.Health.Dicom.Api.Registration.Swagger;
+using Microsoft.Health.Dicom.Api.Features.Swagger;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Routing;
@@ -80,6 +80,7 @@ namespace Microsoft.AspNetCore.Builder
             services.AddSingleton(Options.Create(dicomServerConfiguration.Services.StoreServiceSettings));
             services.AddSingleton(Options.Create(dicomServerConfiguration.Services.ExtendedQueryTag));
             services.AddSingleton(Options.Create(dicomServerConfiguration.Audit));
+            services.AddSingleton(Options.Create(dicomServerConfiguration.Swagger));
 
             services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
             services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerConfiguration);
@@ -178,7 +179,7 @@ namespace Microsoft.AspNetCore.Builder
 
                     app.UseSwagger(c =>
                     {
-                        c.RouteTemplate = "{documentName}/api.yaml";
+                        c.RouteTemplate = "{documentName}/api.{json|yaml}";
                     });
 
                     //Disabling swagger ui until accesability team gets back to us
