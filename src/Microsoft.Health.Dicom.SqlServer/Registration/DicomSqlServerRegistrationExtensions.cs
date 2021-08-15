@@ -13,6 +13,7 @@ using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error;
 using Microsoft.Health.Dicom.SqlServer.Features.Query;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
@@ -131,6 +132,18 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagStore, SqlExtendedQueryTagStoreV2>());
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagStore, SqlExtendedQueryTagStoreV3>());
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagStore, SqlExtendedQueryTagStoreV4>());
+
+            return services;
+        }
+
+        private static IServiceCollection AddSqlExtendedQueryTagErrorStores(this IServiceCollection services)
+        {
+            services.TryAddScoped<IExtendedQueryTagErrorStore, SqlExtendedQueryTagErrorStore>();
+            services.TryAddScoped<VersionedCache<ISqlExtendedQueryTagErrorStore>>();
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagErrorStore, SqlExtendedQueryTagErrorStoreV1>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagErrorStore, SqlExtendedQueryTagErrorStoreV2>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagErrorStore, SqlExtendedQueryTagErrorStoreV3>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagErrorStore, SqlExtendedQueryTagErrorStoreV4>());
 
             return services;
         }

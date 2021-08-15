@@ -15,6 +15,7 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Store;
@@ -113,7 +114,18 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     new SqlExtendedQueryTagStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV4>.Instance),
                 }));
 
-            TestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
+            ExtendedQueryTagErrorStore = new SqlExtendedQueryTagErrorStore(new VersionedCache<ISqlExtendedQueryTagErrorStore>(
+               schemaResolver,
+               new[]
+               {
+                    new SqlExtendedQueryTagErrorStoreV1(),
+                    new SqlExtendedQueryTagErrorStoreV2(),
+                    new SqlExtendedQueryTagErrorStoreV3(),
+                    new SqlExtendedQueryTagErrorStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV4>.Instance),
+               }));
+            IndexDataStoreTestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
+            ExtendedQueryTagStoreTestHelper = new ExtendedQueryTagStoreTestHelper(TestConnectionString);
+            ExtendedQueryTagErrorStoreTestHelper = new ExtendedQueryTagErrorStoreTestHelper(TestConnectionString);
         }
 
         public SqlDataStoreTestsFixture()
@@ -131,10 +143,16 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public IExtendedQueryTagStore ExtendedQueryTagStore { get; }
 
+        public IExtendedQueryTagErrorStore ExtendedQueryTagErrorStore { get; }
+
         public SchemaUpgradeRunner SchemaUpgradeRunner { get; }
         public string TestConnectionString { get; }
 
-        public IIndexDataStoreTestHelper TestHelper { get; }
+        public IIndexDataStoreTestHelper IndexDataStoreTestHelper { get; }
+
+        public IExtendedQueryTagStoreTestHelper ExtendedQueryTagStoreTestHelper { get; }
+
+        public IExtendedQueryTagErrorStoreTestHelper ExtendedQueryTagErrorStoreTestHelper { get; }
 
         public SchemaInformation SchemaInformation { get; set; }
 

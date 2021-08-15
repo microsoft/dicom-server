@@ -4,8 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,6 +34,40 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         public override SchemaVersion Version => SchemaVersion.V4;
 
+        public override async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(string path, CancellationToken cancellationToken = default)
+        {
+            List<ExtendedQueryTagStoreEntry> results = new List<ExtendedQueryTagStoreEntry>();
+
+            using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.GetExtendedQueryTag.PopulateCommand(sqlCommandWrapper, path);
+
+                var executionTimeWatch = Stopwatch.StartNew();
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                {
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus, byte[] tagVersion) = reader.ReadRow(
+                            VLatest.ExtendedQueryTag.TagKey,
+                            VLatest.ExtendedQueryTag.TagPath,
+                            VLatest.ExtendedQueryTag.TagVR,
+                            VLatest.ExtendedQueryTag.TagPrivateCreator,
+                            VLatest.ExtendedQueryTag.TagLevel,
+                            VLatest.ExtendedQueryTag.TagStatus,
+                            VLatest.ExtendedQueryTag.TagVersion);
+
+                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, RowVersionToUlong(tagVersion)));
+                    }
+
+                    executionTimeWatch.Stop();
+                    Logger.LogInformation(executionTimeWatch.ElapsedMilliseconds.ToString());
+                }
+            }
+
+            return results;
+        }
+
         public override async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsByOperationAsync(Guid operationId, CancellationToken cancellationToken = default)
         {
             var results = new List<ExtendedQueryTagStoreEntry>();
@@ -45,15 +81,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus) = reader.ReadRow(
+                        (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus, byte[] tagVersion) = reader.ReadRow(
                             VLatest.ExtendedQueryTag.TagKey,
                             VLatest.ExtendedQueryTag.TagPath,
                             VLatest.ExtendedQueryTag.TagVR,
                             VLatest.ExtendedQueryTag.TagPrivateCreator,
                             VLatest.ExtendedQueryTag.TagLevel,
-                            VLatest.ExtendedQueryTag.TagStatus);
+                            VLatest.ExtendedQueryTag.TagStatus,
+                            VLatest.ExtendedQueryTag.TagVersion);
 
-                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus));
+                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, RowVersionToUlong(tagVersion)));
                     }
                 }
             }
@@ -119,13 +156,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken);
                 while (await reader.ReadAsync(cancellationToken))
                 {
-                    (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, byte tagLevel, byte tagStatus) = reader.ReadRow(
+                    (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, byte tagLevel, byte tagStatus, byte[] tagVersion) = reader.ReadRow(
                         VLatest.ExtendedQueryTag.TagKey,
                         VLatest.ExtendedQueryTag.TagPath,
                         VLatest.ExtendedQueryTag.TagVR,
                         VLatest.ExtendedQueryTag.TagPrivateCreator,
                         VLatest.ExtendedQueryTag.TagLevel,
-                        VLatest.ExtendedQueryTag.TagStatus);
+                        VLatest.ExtendedQueryTag.TagStatus,
+                        VLatest.ExtendedQueryTag.TagVersion);
 
                     queryTags.Add(new ExtendedQueryTagStoreEntry(
                         tagKey,
@@ -133,7 +171,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                         tagVR,
                         tagPrivateCreator,
                         (QueryTagLevel)tagLevel,
-                        (ExtendedQueryTagStatus)tagStatus));
+                        (ExtendedQueryTagStatus)tagStatus,
+                        RowVersionToUlong(tagVersion)));
                 }
 
                 return queryTags;
@@ -170,5 +209,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 throw new DataStoreException(ex);
             }
         }
+
+        private static ulong RowVersionToUlong(byte[] rowVersion)
+        {
+            Debug.Assert(rowVersion.Length == 8, "Row vesion is length of 8");
+            return BinaryPrimitives.ReadUInt64BigEndian(rowVersion);
+        }
+
     }
 }

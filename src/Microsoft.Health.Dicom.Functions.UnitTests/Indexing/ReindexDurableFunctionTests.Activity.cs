@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             var expectedInput = new List<int> { 1, 2, 3, 4, 5 };
             var expectedOutput = new List<ExtendedQueryTagStoreEntry>
             {
-                new ExtendedQueryTagStoreEntry(1, "01010101", "AS", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding)
+                new ExtendedQueryTagStoreEntry(1, "01010101", "AS", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding, null)
             };
 
             // Arrange input
@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             Guid operationId = Guid.NewGuid();
             var expectedOutput = new List<ExtendedQueryTagStoreEntry>
             {
-                new ExtendedQueryTagStoreEntry(1, "01010101", "AS", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding)
+                new ExtendedQueryTagStoreEntry(1, "01010101", "AS", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding, null)
             };
 
             // Arrange input
@@ -108,9 +108,9 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             {
                 QueryTags = new List<ExtendedQueryTagStoreEntry>
                 {
-                    new ExtendedQueryTagStoreEntry(1, "01", "DT", "foo", QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding),
-                    new ExtendedQueryTagStoreEntry(2, "02", "DT", null, QueryTagLevel.Series, ExtendedQueryTagStatus.Adding),
-                    new ExtendedQueryTagStoreEntry(3, "03", "AS", "bar", QueryTagLevel.Study, ExtendedQueryTagStatus.Adding),
+                    new ExtendedQueryTagStoreEntry(1, "01", "DT", "foo", QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding, null),
+                    new ExtendedQueryTagStoreEntry(2, "02", "DT", null, QueryTagLevel.Series, ExtendedQueryTagStatus.Adding, null),
+                    new ExtendedQueryTagStoreEntry(3, "03", "AS", "bar", QueryTagLevel.Study, ExtendedQueryTagStatus.Adding, null),
                 },
                 WatermarkRange = WatermarkRange.Between(5, 10),
             };

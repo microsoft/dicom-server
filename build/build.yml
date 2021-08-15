@@ -1,7 +1,8 @@
 parameters:
   packageArtifacts: true
   analyzeSecurity: true
-
+  packageNugets: true
+  
 steps:
   - task: UseDotNet@2
     displayName: 'Use .NET Core sdk'
@@ -30,6 +31,9 @@ steps:
 
   - ${{ if eq(parameters.packageArtifacts, 'true') }}:
     - template: package.yml
+
+  - ${{ if eq(parameters.packageNugets, 'true') }}:
+    - template: package-nugets.yml
 
   - ${{ if eq(parameters.analyzeSecurity, 'true') }}:
     - template: analyze.yml

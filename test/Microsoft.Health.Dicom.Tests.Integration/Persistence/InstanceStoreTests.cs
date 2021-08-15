@@ -31,13 +31,15 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private readonly IIndexDataStore _indexDataStore;
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly IIndexDataStoreTestHelper _indexDataStoreTestHelper;
+        private readonly IExtendedQueryTagStoreTestHelper _extendedQueryTagStoreTestHelper;
 
         public InstanceStoreTests(SqlDataStoreTestsFixture fixture)
         {
             _instanceStore = EnsureArg.IsNotNull(fixture?.InstanceStore, nameof(fixture.InstanceStore));
             _indexDataStore = EnsureArg.IsNotNull(fixture?.IndexDataStore, nameof(fixture.IndexDataStore));
             _extendedQueryTagStore = EnsureArg.IsNotNull(fixture?.ExtendedQueryTagStore, nameof(fixture.ExtendedQueryTagStore));
-            _indexDataStoreTestHelper = EnsureArg.IsNotNull(fixture?.TestHelper, nameof(fixture.TestHelper));
+            _indexDataStoreTestHelper = EnsureArg.IsNotNull(fixture?.IndexDataStoreTestHelper, nameof(fixture.IndexDataStoreTestHelper));
+            _extendedQueryTagStoreTestHelper = EnsureArg.IsNotNull(fixture?.ExtendedQueryTagStoreTestHelper, nameof(fixture.ExtendedQueryTagStoreTestHelper));
         }
 
         [Fact]
@@ -91,7 +93,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _indexDataStore.ReindexInstanceAsync(dataset1, new[] { queryTag });
             await _indexDataStore.ReindexInstanceAsync(dataset2, new[] { queryTag });
 
-            var row = (await _indexDataStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, null, null)).First();
+            var row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, null, null)).First();
             Assert.Equal(tagValue2, row.TagValue);
         }
 
@@ -118,7 +120,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _indexDataStore.ReindexInstanceAsync(dataset2, new[] { queryTag });
             await _indexDataStore.ReindexInstanceAsync(dataset1, new[] { queryTag });
 
-            var row = (await _indexDataStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, null)).First();
+            var row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, null)).First();
             Assert.Equal(tagValue2, row.TagValue);
         }
 
@@ -137,7 +139,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             await _indexDataStore.ReindexInstanceAsync(dataset, new[] { new QueryTag(tagStoreEntry) });
 
-            var row = (await _indexDataStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance.StudyKey, instance.SeriesKey, instance.InstanceKey)).First();
+            var row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance.StudyKey, instance.SeriesKey, instance.InstanceKey)).First();
             Assert.Equal(tagValue, row.TagValue);
         }
 
@@ -154,7 +156,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             await _indexDataStore.ReindexInstanceAsync(dataset, new[] { new QueryTag(tagStoreEntry) });
 
-            var row = (await _indexDataStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance.StudyKey, instance.SeriesKey, instance.InstanceKey)).First();
+            var row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance.StudyKey, instance.SeriesKey, instance.InstanceKey)).First();
             Assert.Equal(tagValue, row.TagValue);
 
         }

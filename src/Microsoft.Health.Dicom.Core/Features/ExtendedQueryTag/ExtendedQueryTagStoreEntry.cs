@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using EnsureThat;
+
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     /// <summary>
@@ -10,30 +12,36 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     /// </summary>
     public class ExtendedQueryTagStoreEntry : ExtendedQueryTagEntry
     {
-        public ExtendedQueryTagStoreEntry(int key, string path, string vr, string privateCreator, QueryTagLevel level, ExtendedQueryTagStatus status)
+        public ExtendedQueryTagStoreEntry(int key, string path, string vr, string privateCreator, QueryTagLevel level, ExtendedQueryTagStatus status, ulong? version)
         {
             Key = key;
-            Path = path;
-            VR = vr;
+            Path = EnsureArg.IsNotNullOrWhiteSpace(path);
+            VR = EnsureArg.IsNotNullOrWhiteSpace(vr);
             PrivateCreator = privateCreator;
             Level = level;
             Status = status;
+            Version = version;
         }
 
         /// <summary>
         /// Key of this extended query tag entry.
         /// </summary>
-        public int Key { get; set; }
+        public int Key { get; }
 
         /// <summary>
         /// Status of this tag.
         /// </summary>
-        public ExtendedQueryTagStatus Status { get; set; }
+        public ExtendedQueryTagStatus Status { get; }
 
         /// <summary>
         /// Level of this tag. Could be Study, Series or Instance.
         /// </summary>
-        public QueryTagLevel Level { get; set; }
+        public QueryTagLevel Level { get; }
+
+        /// <summary>
+        /// ExtendedQueryTag Version
+        /// </summary>
+        public ulong? Version { get; }
 
         /// <summary>
         /// Convert to  <see cref="GetExtendedQueryTagEntry"/>.

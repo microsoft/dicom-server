@@ -21,5 +21,7 @@ namespace Microsoft.Health.Dicom.Api.Configs
         public ServicesConfiguration Services { get; } = new ServicesConfiguration();
 
         public AuditConfiguration Audit { get; } = new AuditConfiguration("X-MS-AZUREDICOM-AUDIT-");
+
+        public SwaggerConfiguration Swagger { get; } = new SwaggerConfiguration();
     }
 }
