@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Api.Configs
     {
         public Uri ServerUri { get; set; }
 
-        public string Title { get; } = "Medical Imaging Server for DICOM";
+        public string Title { get; set; } = "Medical Imaging Server for DICOM";
 
         public OpenApiLicense License { get; } = new OpenApiLicense();
     }
