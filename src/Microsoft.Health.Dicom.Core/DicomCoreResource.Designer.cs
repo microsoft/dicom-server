@@ -106,11 +106,29 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; with value &apos;{1}&apos; does not validate VR &apos;{2}&apos;: {3}..
+        ///   Looks up a localized string similar to Dicom element has multiple values. We only support indexing single value element..
+        /// </summary>
+        internal static string DicomElementHasMultipleValues {
+            get {
+                return ResourceManager.GetString("DicomElementHasMultipleValues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; failed validation for VR &apos;{1}&apos;: {2}..
         /// </summary>
         internal static string DicomElementValidationFailed {
             get {
                 return ResourceManager.GetString("DicomElementValidationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; with value &apos;{1}&apos; failed validation for VR &apos;{2}&apos;: {3}..
+        /// </summary>
+        internal static string DicomElementValidationFailedWithValue {
+            get {
+                return ResourceManager.GetString("DicomElementValidationFailedWithValue", resourceCulture);
             }
         }
         
@@ -711,38 +729,11 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Value length is above {0}..
+        ///   Looks up a localized string similar to Value length exceeds maximum length of {0}..
         /// </summary>
-        internal static string ValueLengthAboveMaxLength {
+        internal static string ValueLengthExceedsMaxLength {
             get {
-                return ResourceManager.GetString("ValueLengthAboveMaxLength", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Value length is below {0}..
-        /// </summary>
-        internal static string ValueLengthBelowMinLength {
-            get {
-                return ResourceManager.GetString("ValueLengthBelowMinLength", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Value exceeds maximum length of 16 characters..
-        /// </summary>
-        internal static string ValueLengthExceeds16Characters {
-            get {
-                return ResourceManager.GetString("ValueLengthExceeds16Characters", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Value exceeds maximum length of 64 characters..
-        /// </summary>
-        internal static string ValueLengthExceeds64Characters {
-            get {
-                return ResourceManager.GetString("ValueLengthExceeds64Characters", resourceCulture);
+                return ResourceManager.GetString("ValueLengthExceedsMaxLength", resourceCulture);
             }
         }
         

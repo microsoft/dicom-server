@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<DicomDatasetValidator>()
+            services.Add<StoreDatasetValidator>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
@@ -130,7 +130,7 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<DicomElementMinimumValidator>()
+            services.Add<ElementMinimumValidator>()
                 .Singleton()
                 .AsSelf()
                 .AsImplementedInterfaces();
