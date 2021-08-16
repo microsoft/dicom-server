@@ -52,6 +52,7 @@ Replace all variable values wrapped in { } with your own values. Additionally, v
 ```python
 dicom_server_name = "{server-name}"
 path_to_dicoms_dir = "{path to the folder that includes green-square.dcm and other dcm files}"
+version = "{version of rest api to use}"
 
 base_url = f"https://{dicom_server_name}.azurewebsites.net/v{version}"
 
