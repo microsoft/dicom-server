@@ -261,12 +261,8 @@ GO
 --    Reidex instance
 --
 -- PARAMETERS
---     @studyInstanceUid
---         * The study instance UID.
---     @seriesInstanceUid
---         * The series instance UID.
---     @sopInstanceUid
---         * The SOP instance UID.
+--     @watermark
+--         * The Dicom instance watermark.
 --     @stringExtendedQueryTags
 --         * String extended query tag data
 --     @longExtendedQueryTags
@@ -280,14 +276,12 @@ GO
 
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.ReindexInstance
-    @studyInstanceUid       VARCHAR(64),
-    @seriesInstanceUid      VARCHAR(64),
-    @sopInstanceUid         VARCHAR(64),
-    @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY,
-    @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY,
-    @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY,
-    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1 READONLY,
-    @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
+    @watermark                                                                      BIGINT,
+    @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1            READONLY,
+    @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1                READONLY,
+    @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1            READONLY,
+    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1        READONLY,
+    @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1    READONLY
 AS
     SET NOCOUNT    ON
     SET XACT_ABORT ON
@@ -296,7 +290,6 @@ AS
         DECLARE @studyKey BIGINT
         DECLARE @seriesKey BIGINT
         DECLARE @instanceKey BIGINT
-        DECLARE @watermark BIGINT
 
         -- Add lock so that the instance won't be removed
         DECLARE @status TINYINT
@@ -304,12 +297,9 @@ AS
             @studyKey = StudyKey,
             @seriesKey = SeriesKey,
             @instanceKey = InstanceKey,
-            @watermark = Watermark,
             @status = Status
         FROM dbo.Instance WITH (HOLDLOCK) 
-        WHERE StudyInstanceUid = @studyInstanceUid
-            AND SeriesInstanceUid = @seriesInstanceUid
-            AND SopInstanceUid = @sopInstanceUid
+        WHERE Watermark = @watermark
 
         IF @@ROWCOUNT = 0
             THROW 50404, 'Instance does not exists', 1

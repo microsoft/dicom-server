@@ -22,7 +22,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
             _minimumValidator = EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
         }
 
-        public IReadOnlyCollection<QueryTag> Validate(DicomDataset dataset, IReadOnlyCollection<QueryTag> queryTags)
+        public IReadOnlyCollection<QueryTag> Validate(DicomDataset dataset, long watermark, IReadOnlyCollection<QueryTag> queryTags)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));

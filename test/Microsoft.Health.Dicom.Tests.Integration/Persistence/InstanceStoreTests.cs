@@ -90,8 +90,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Study));
             QueryTag queryTag = new QueryTag(tagStoreEntry);
 
-            await _indexDataStore.ReindexInstanceAsync(dataset1, new[] { queryTag });
-            await _indexDataStore.ReindexInstanceAsync(dataset2, new[] { queryTag });
+            await _indexDataStore.ReindexInstanceAsync(dataset1, instance1.Watermark, new[] { queryTag });
+            await _indexDataStore.ReindexInstanceAsync(dataset2, instance2.Watermark, new[] { queryTag });
 
             var row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, null, null)).First();
             Assert.Equal(tagValue2, row.TagValue);
@@ -117,8 +117,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Series));
             QueryTag queryTag = new QueryTag(tagStoreEntry);
 
-            await _indexDataStore.ReindexInstanceAsync(dataset2, new[] { queryTag });
-            await _indexDataStore.ReindexInstanceAsync(dataset1, new[] { queryTag });
+            await _indexDataStore.ReindexInstanceAsync(dataset2, instance2.Watermark, new[] { queryTag });
+            await _indexDataStore.ReindexInstanceAsync(dataset1, instance1.Watermark, new[] { queryTag });
 
             var row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, null)).First();
             Assert.Equal(tagValue2, row.TagValue);
@@ -137,7 +137,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Instance));
 
-            await _indexDataStore.ReindexInstanceAsync(dataset, new[] { new QueryTag(tagStoreEntry) });
+            await _indexDataStore.ReindexInstanceAsync(dataset, instance.Watermark, new[] { new QueryTag(tagStoreEntry) });
 
             var row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance.StudyKey, instance.SeriesKey, instance.InstanceKey)).First();
             Assert.Equal(tagValue, row.TagValue);
@@ -154,7 +154,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             dataset.Add(tag, tagValue);
             var instance = await CreateInstanceIndexAsync(dataset, IndexStatus.Created);
 
-            await _indexDataStore.ReindexInstanceAsync(dataset, new[] { new QueryTag(tagStoreEntry) });
+            await _indexDataStore.ReindexInstanceAsync(dataset, instance.Watermark, new[] { new QueryTag(tagStoreEntry) });
 
             var row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance.StudyKey, instance.SeriesKey, instance.InstanceKey)).First();
             Assert.Equal(tagValue, row.TagValue);
@@ -168,7 +168,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Instance));
 
             DicomDataset dataset = Samples.CreateRandomInstanceDataset();
-            await Assert.ThrowsAsync<InstanceNotFoundException>(() => _indexDataStore.ReindexInstanceAsync(dataset, new[] { new QueryTag(tagStoreEntry) }));
+            await Assert.ThrowsAsync<InstanceNotFoundException>(() => _indexDataStore.ReindexInstanceAsync(dataset, 0, new[] { new QueryTag(tagStoreEntry) }));
         }
 
         [Fact]
@@ -179,8 +179,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomDataset dataset = Samples.CreateRandomInstanceDataset();
 
-            await CreateInstanceIndexAsync(dataset, IndexStatus.Creating);
-            await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.ReindexInstanceAsync(dataset, new[] { new QueryTag(tagStoreEntry) }));
+            var instance = await CreateInstanceIndexAsync(dataset, IndexStatus.Creating);
+            await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.ReindexInstanceAsync(dataset, instance.Watermark, new[] { new QueryTag(tagStoreEntry) }));
         }
 
 

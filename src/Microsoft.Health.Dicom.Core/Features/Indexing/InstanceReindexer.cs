@@ -40,8 +40,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
             DicomDataset dataset = await _metadataStore.GetInstanceMetadataAsync(versionedInstanceId, cancellationToken);
 
             // Only reindex on valid query tags
-            var validQueryTags = _dicomDatasetReindexValidator.Validate(dataset, entries.Select(x => new QueryTag(x)).ToList());
-            await _indexDataStore.ReindexInstanceAsync(dataset, validQueryTags, cancellationToken);
+            var validQueryTags = _dicomDatasetReindexValidator.Validate(dataset, versionedInstanceId.Version, entries.Select(x => new QueryTag(x)).ToList());
+            await _indexDataStore.ReindexInstanceAsync(dataset, versionedInstanceId.Version, validQueryTags, cancellationToken);
         }
     }
 }

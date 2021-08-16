@@ -66,10 +66,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             return await store.IncrementDeletedInstanceRetryAsync(versionedInstanceIdentifier, cleanupAfter, cancellationToken);
         }
 
-        public async Task ReindexInstanceAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
+        public async Task ReindexInstanceAsync(DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
         {
             ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken);
-            await store.ReindexInstanceAsync(dicomDataset, queryTags, cancellationToken);
+            await store.ReindexInstanceAsync(dicomDataset, watermark, queryTags, cancellationToken);
         }
 
         public async Task<IEnumerable<VersionedInstanceIdentifier>> RetrieveDeletedInstancesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default)
