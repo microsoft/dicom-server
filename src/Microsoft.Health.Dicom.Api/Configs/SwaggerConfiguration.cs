@@ -3,12 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
+using System;
+using Microsoft.OpenApi.Models;
+
+namespace Microsoft.Health.Dicom.Api.Configs
 {
-    public static class SchemaVersionConstants
+    public class SwaggerConfiguration
     {
-        public const int Min = (int)SchemaVersion.V2;
-        public const int Max = (int)SchemaVersion.V3;
-        public const int SupportExtendedQueryTagSchemaVersion = (int)SchemaVersion.V3;
+        public Uri ServerUri { get; set; }
+
+        public string Title { get; set; } = "Medical Imaging Server for DICOM";
+
+        public OpenApiLicense License { get; } = new OpenApiLicense();
     }
 }
