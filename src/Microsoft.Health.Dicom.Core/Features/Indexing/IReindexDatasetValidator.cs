@@ -18,8 +18,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         /// Validate <paramref name="dataset"/>.
         /// </summary>
         /// <param name="dataset">The dicom Dataset.</param>
+        /// <param name="watermark">The Dicom instance watermark.</param>
         /// <param name="queryTags">The query tags.</param>
         /// <returns>Valid query tags.</returns>
-        IReadOnlyCollection<QueryTag> Validate(DicomDataset dataset, IReadOnlyCollection<QueryTag> queryTags);
+        IReadOnlyCollection<QueryTag> Validate(DicomDataset dataset, long watermark, IReadOnlyCollection<QueryTag> queryTags);
     }
 }

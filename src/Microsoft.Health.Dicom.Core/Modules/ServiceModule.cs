@@ -181,6 +181,11 @@ namespace Microsoft.Health.Dicom.Core.Modules
                     .AsSelf()
                     .AsImplementedInterfaces();
 
+                services.Add<ReindexDatasetValidator>()
+                    .Scoped()
+                    .AsSelf()
+                    .AsImplementedInterfaces();
+
                 services.Add<InstanceReindexer>()
                     .Scoped()
                     .AsSelf()
