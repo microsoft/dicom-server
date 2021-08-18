@@ -3,25 +3,21 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-
 namespace Microsoft.Health.Dicom.Client.Models
 {
     /// <summary>
-    /// Represents a reference to an existing long-running oepration.
+    /// Specifies the category of a DICOM operation.
     /// </summary>
-    public class OperationReference
+    public enum OperationType
     {
         /// <summary>
-        /// Gets the operation ID.
+        /// Specifies an operation whose type is missing or unrecognized.
         /// </summary>
-        /// <value>The unique ID that denotes a particular long-running operation.</value>
-        public string Id { get; set; }
+        Unknown,
 
         /// <summary>
-        /// Gets the resource reference for the operation.
+        /// Specifies a reindexing operation that updates the indicies for previously added data based on new tags.
         /// </summary>
-        /// <value>The unique resource URL for the operation.</value>
-        public Uri Href { get; set; }
+        Reindex,
     }
 }
