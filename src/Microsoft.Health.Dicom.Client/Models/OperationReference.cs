@@ -13,13 +13,13 @@ namespace Microsoft.Health.Dicom.Client.Models
     public class OperationReference
     {
         /// <summary>
-        /// Gets the operation ID.
+        /// Gets or sets the operation ID.
         /// </summary>
         /// <value>The unique ID that denotes a particular long-running operation.</value>
         public string Id { get; set; }
 
         /// <summary>
-        /// Gets the resource reference for the operation.
+        /// Gets or sets the resource reference for the operation.
         /// </summary>
         /// <value>The unique resource URL for the operation.</value>
         public Uri Href { get; set; }
