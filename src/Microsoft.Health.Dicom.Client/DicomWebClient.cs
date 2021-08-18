@@ -56,6 +56,11 @@ namespace Microsoft.Health.Dicom.Client
         /// </remarks>
         public Func<MemoryStream> GetMemoryStream { get; set; }
 
+        private async Task<T> ValueFactory<T>(HttpContent content)
+        {
+            string contentText = await content.ReadAsStringAsync().ConfigureAwait(false);
+            return JsonConvert.DeserializeObject<T>(contentText, _jsonSerializerSettings);
+        }
 
         [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Callers will dispose of the StreamContent")]
         private static MultipartContent ConvertStreamsToMultipartContent(IEnumerable<Stream> streams)

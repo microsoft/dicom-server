@@ -145,13 +145,7 @@ namespace Microsoft.Health.Dicom.Client
                 })
                 .ConfigureAwait(false);
 
-            return new DicomWebResponse<DicomDataset>(
-                response,
-                async content =>
-                {
-                    string contentText = await content.ReadAsStringAsync().ConfigureAwait(false);
-                    return JsonConvert.DeserializeObject<DicomDataset>(contentText, _jsonSerializerSettings);
-                });
+            return new DicomWebResponse<DicomDataset>(response, ValueFactory<DicomDataset>);
         }
     }
 }

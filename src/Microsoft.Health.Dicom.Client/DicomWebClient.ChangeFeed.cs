@@ -4,24 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
-using Dicom.Serialization;
-using EnsureThat;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Health.Dicom.Client.Models;
-using Microsoft.Net.Http.Headers;
-using Newtonsoft.Json;
-using MediaTypeHeaderValue = Microsoft.Net.Http.Headers.MediaTypeHeaderValue;
-using NameValueHeaderValue = System.Net.Http.Headers.NameValueHeaderValue;
 
 namespace Microsoft.Health.Dicom.Client
 {
@@ -54,13 +40,7 @@ namespace Microsoft.Health.Dicom.Client
 
             await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
 
-            return new DicomWebResponse<ChangeFeedEntry>(
-                response,
-                async content =>
-                {
-                    string contentText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    return JsonConvert.DeserializeObject<ChangeFeedEntry>(contentText, _jsonSerializerSettings);
-                });
+            return new DicomWebResponse<ChangeFeedEntry>(response, ValueFactory<ChangeFeedEntry>);
         }
     }
 }
