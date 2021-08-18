@@ -5,10 +5,7 @@
 
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Health.Development.IdentityProvider.Registration;
 
 namespace Microsoft.Health.Dicom.Web
@@ -22,20 +19,12 @@ namespace Microsoft.Health.Dicom.Web
                 {
                     IConfigurationRoot builtConfig = builder.Build();
 
-                    var keyVaultEndpoint = builtConfig["KeyVault:Endpoint"];
                     var userAssignedAppId = builtConfig["DicomServer:ServerIdentity:UserAssignedAppId"];
                     string tokenProviderConnectionString = null;
 
                     if (!string.IsNullOrEmpty(userAssignedAppId))
                     {
                         tokenProviderConnectionString = $"RunAs=App;AppId={userAssignedAppId}";
-                    }
-
-                    if (!string.IsNullOrEmpty(keyVaultEndpoint))
-                    {
-                        var azureServiceTokenProvider = new AzureServiceTokenProvider(connectionString: tokenProviderConnectionString);
-                        var keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
-                        builder.AddAzureKeyVault(keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
                     }
 
                     builder.AddDevelopmentAuthEnvironmentIfConfigured(builtConfig, "DicomServer");

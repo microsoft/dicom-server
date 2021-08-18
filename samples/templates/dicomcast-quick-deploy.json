@@ -60,7 +60,7 @@
                 "sqlLocation":{"value": "[resourceGroup().location]"},
                 "deployOhifViewer":{"value": true},
                 "solutionType":{"value": "DicomServerSqlServer"},
-                "deployPackage":{"value": true}
+                "deployPackages":{"value": true}
                 }
             }
         },

@@ -148,7 +148,7 @@
                 "description": "The type of the solution"
             }
         },
-        "deployPackage": {
+        "deployPackages": {
             "type": "bool",
             "defaultValue": true,
             "metadata": {
@@ -179,21 +179,25 @@
         "appServicePlanResourceId": "[resourceId(variables('appServicePlanResourceGroup'), 'Microsoft.Web/serverfarms/', variables('appServicePlanName'))]",
         "appServiceResourceId": "[resourceId('Microsoft.Web/sites', variables('serviceName'))]",
         "functionAppServiceResourceId": "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
+        "functionAppUrl": "[concat('https://', variables('functionAppName'), '.azurewebsites.net')]",
         "deployAppInsights": "[and(parameters('deployApplicationInsights'),not(variables('isMAG')))]",
         "appInsightsName": "[concat('AppInsights-', variables('serviceName'))]",
+        "aadDeploymentScriptName": "createFunctionAadApp",
         "securityAuthenticationEnabled": "[and(not(empty(parameters('securityAuthenticationAuthority'))),not(empty(parameters('securityAuthenticationAudience'))))]",
         "staticDicomServerConfigProperties": {
             "APPINSIGHTS_PORTALINFO": "ASP.NETCORE",
             "APPINSIGHTS_PROFILERFEATURE_VERSION": "1.0.0",
             "APPINSIGHTS_SNAPSHOTFEATURE_VERSION": "1.0.0",
             "WEBSITE_NODE_DEFAULT_VERSION": "6.9.4",
-            "KeyVault:Endpoint": "[variables('keyVaultEndpoint')]",
-            "SqlServer:Initialize": "true",
-            "DicomServer:Features:EnableOhifViewer": "[parameters('deployOhifViewer')]",
-            "DicomServer:Security:Enabled": "[variables('securityAuthenticationEnabled')]",
-            "DicomServer:Security:Authentication:Authority": "[parameters('securityAuthenticationAuthority')]",
-            "DicomServer:Security:Authentication:Audience": "[parameters('securityAuthenticationAudience')]"
+            "SqlServer__Initialize": "true",
+            "DicomFunctions__BaseAddress": "[concat(variables('functionAppUrl'), '/api/')]",
+            "DicomServer__Features__EnableOhifViewer": "[parameters('deployOhifViewer')]",
+            "DicomServer__Features__EnableExtendedQueryTags": "true",
+            "DicomServer__Security__Enabled": "[variables('securityAuthenticationEnabled')]",
+            "DicomServer__Security__Authentication__Authority": "[parameters('securityAuthenticationAuthority')]",
+            "DicomServer__Security__Authentication__Audience": "[parameters('securityAuthenticationAudience')]"
         },
+        // See the following for Azure Function App settings: https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings
         "staticDicomFunctionAppConfigProperties": {
             "AzureWebJobsDisableHomepage": "true",
             "FUNCTIONS_EXTENSION_VERSION": "~3",
@@ -206,7 +210,6 @@
         "dicomDatabaseName": "Dicom",
         "storageAccountName": "[concat(substring(replace(variables('serviceName'), '-', ''), 0, min(11, length(replace(variables('serviceName'), '-', '')))), uniquestring(resourceGroup().id))]",
         "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-        "keyVaultEndpoint": "[if(variables('isMAG'), concat('https://', variables('serviceName'), '.vault.usgovcloudapi.net/'), concat('https://', variables('serviceName'), '.vault.azure.net/'))]",
         "keyVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', variables('serviceName'))]",
         "defaultWebDeployPackageUrl": "https://dcmcistorage.blob.core.windows.net/cibuild/Microsoft.Health.Dicom.Web.zip",
         "defaultFunctionAppDeployPackageUrl": "https://dcmcistorage.blob.core.windows.net/cibuild/Microsoft.Health.Dicom.Functions.zip",
@@ -215,11 +218,69 @@
         "sqlServerConnectionStringName": "SqlServerConnectionString",
         "azureStorageConnectionStringName": "AzureStorageConnectionString",
         "appInsightsInstrumentationKeyName": "AppInsightsInstrumentationKey",
+        "functionAppClientSecretName": "FunctionAppClientSecret",
         "sqlServerConnectionStringResourceId": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('serviceName'), variables('sqlServerConnectionStringName'))]",
         "azureStorageConnectionStringResourceId": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('serviceName'), variables('azureStorageConnectionStringName'))]",
-        "appInsightsInstrumentationKeyResourceId": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('serviceName'), variables('appInsightsInstrumentationKeyName'))]"
+        "appInsightsInstrumentationKeyResourceId": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('serviceName'), variables('appInsightsInstrumentationKeyName'))]",
+        "functionAppClientSecretResourceId": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('serviceName'), variables('functionAppClientSecretName'))]"
     },
     "resources": [
+        {
+            "type": "Microsoft.Resources/deploymentScripts",
+            "apiVersion": "2020-10-01",
+            "name": "[variables('aadDeploymentScriptName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[variables('appServiceResourceId')]"
+            ],
+            "kind": "AzurePowerShell",
+            "properties": {
+                "forceUpdateTag": "1",
+                "azPowerShellVersion": "6.3.0",
+                "arguments": "[concat('-appName', ' ', concat(parameters('functionAppName'), '-app'), ' ', '-appUrl', variables('functionAppUrl'), ' ', '-userObjectId', reference(variables('appServiceResourceId'), '2015-08-01', 'Full').Identity.tenantId)]",
+                "scriptContent": "
+                    param
+                    (
+                        [Parameter(Mandatory=$True)]
+                        [string]
+                        $AppName,
+                    
+                        [Parameter(Mandatory=$True)]
+                        [string]
+                        $AppUrl,
+                    
+                        [Parameter(Mandatory=$True)]
+                        [string]
+                        $UserObjectId
+                    )
+
+                    $app = Get-AzureADApplication -Filter \"DisplayName eq '$AppName'\"
+                    if (-Not $app)
+                    {
+                        # Create the app if it doesn't exist already
+                        Write-Output \"Creating application '$AppName' for URL '$AppUrl'\"
+                        $app = New-AzureADApplication -DisplayName $AppUrl -IdentifierUris $AppUrl
+                    }
+
+                    Set-AzureADServicePrincipal -ObjectId $app.ObjectId -AppRoleAssignmentRequired $True
+
+                    $user = Get-AzureADUserAppRoleAssignment -ObjectId $UserObjectId
+                    if (-not $user)
+                    {
+                        # Add user with default role
+                        Write-Output \"Adding user '$UserObjectId' to application '$AppName'\"
+                        $user = New-AzureADUserAppRoleAssignment -ObjectId $UserObjectId -PrincipalId $UserObjectId -ResourceId $app.ObjectId -Id ([Guid]::Empty)
+                    }
+
+                    Write-Output \"Successfully set up application '$AppName' with user '$UserObjectId'\"
+                    $DeploymentScriptOutputs = @{}
+                    $DeploymentScriptOutputs['clientId'] = $app.AppId
+                    $DeploymentScriptOutputs['clientSecret'] = Get-AzureADServicePrincipalKeyCredential -ObjectId $ServicePrincipalId
+                ",
+                "timeout": "PT10M",
+                "cleanupPreference": "Always"
+            }
+        },
         {
             "condition": "[empty(parameters('appServicePlanResourceGroup'))]",
             "apiVersion": "2015-08-01",
@@ -287,7 +348,7 @@
                     "apiVersion": "2015-08-01",
                     "type": "extensions",
                     "name": "MSDeploy",
-                    "condition": "[parameters('deployPackage')]",
+                    "condition": "[parameters('deployPackages')]",
                     "dependsOn": [
                         "[variables('appServiceResourceId')]",
                         "[concat(variables('appServiceResourceId'), '/siteextensions/AspNetCoreRuntime.5.0.x64')]"
@@ -332,14 +393,30 @@
                         "[variables('appInsightsInstrumentationKeyResourceId')]",
                         "[concat(variables('appServiceResourceId'), '/extensions/MSDeploy')]"
                     ],
-                    // See the following for Azure Function App settings: https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings
                     "properties": "[union(if(variables('deployAppInsights'), json(concat('{\"APPINSIGHTS_INSTRUMENTATIONKEY\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsInstrumentationKeyResourceId')).secretUriWithVersion, ')'), '\"}')), json('{}')), json(concat('{\"AzureFunctionsJobHost__BlobStore__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"AzureFunctionsJobHost__SqlServer__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('sqlServerConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"AzureWebJobsStorage\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), variables('combinedDicomFunctionAppConfigProperties'))]"
+                },
+                {
+                    "name": "authsettings",
+                    "type": "config",
+                    "apiVersion": "2020-12-01",
+                    "dependsOn": [
+                        "[variables('functionAppServiceResourceId')]",
+                        "[variables('aadDeploymentScriptName')]"
+                    ],
+                    "properties": {
+                        "enabled": true,
+                        "tokenStoreEnabled": false,
+                        "clientId": "[reference(variables('aadDeploymentScriptName')).outputs.clientId]",
+                        "clientSecret": "[reference(variables('aadDeploymentScriptName')).outputs.clientSecret]",
+                        "issuer": "[concat('https://sts.windows.net/', subscription().tenantId, '/v2.0')]",
+                        "validateIssuer": true
+                    }
                 },
                 {
                     "apiVersion": "2015-08-01",
                     "type": "extensions",
                     "name": "MSDeploy",
-                    "condition": "[parameters('deployPackage')]",
+                    "condition": "[parameters('deployPackages')]",
                     "dependsOn": [
                         "[variables('functionAppServiceResourceId')]"
                     ],
@@ -507,6 +584,18 @@
                     "dependsOn": [
                         "[variables('keyVaultResourceId')]",
                         "[resourceId('Microsoft.Insights/components/', variables('appInsightsName'))]"
+                    ]
+                },
+                {
+                    "type": "secrets",
+                    "name": "[variables('functionAppClientSecretName')]",
+                    "apiVersion": "2015-06-01",
+                    "properties": {
+                        "contentType": "text/plain",
+                        "value": "[reference(variables('aadDeploymentScriptName')).outputs.clientSecret]"
+                    },
+                    "dependsOn": [
+                        "[variables('aadDeploymentScriptName')]"
                     ]
                 }
             ]
