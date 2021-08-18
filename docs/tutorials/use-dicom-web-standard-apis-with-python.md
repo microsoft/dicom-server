@@ -1,6 +1,6 @@
 # Use DICOMweb&trade; Standard APIs with Python
 
-> This document is a Markdown export from a Jupyter Notebook found [here](../resources/use-dicom-web-standard-apes-with-python.ipynb). By opening the notebook in Jupyter, you can walk through the examples in a fully interactive experience. 
+> This document is a Markdown export from a Jupyter Notebook found [here](../resources/use-dicom-web-standard-apis-with-python.ipynb). By opening the notebook in Jupyter, you can walk through the examples in a fully interactive experience. 
 
 This tutorial uses Python to demonstrate working with the Medical Imaging Server for DICOM.
 
@@ -52,6 +52,7 @@ Replace all variable values wrapped in { } with your own values. Additionally, v
 ```python
 dicom_server_name = "{server-name}"
 path_to_dicoms_dir = "{path to the folder that includes green-square.dcm and other dcm files}"
+version = "{version of rest api to use}"
 
 base_url = f"https://{dicom_server_name}.azurewebsites.net/v{version}"
 

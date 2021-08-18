@@ -29,8 +29,8 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.5" />
     <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="6.1.5" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.12.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.1.22" PrivateAssets="All" />
-    <PackageReference Include="System.Text.Encodings.Web" Version="4.7.2" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" PrivateAssets="All" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="5.0.1" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
