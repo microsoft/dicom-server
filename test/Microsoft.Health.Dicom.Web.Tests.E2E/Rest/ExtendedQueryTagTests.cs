@@ -32,7 +32,19 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             _client = fixture.Client;
         }
 
-        [Fact(Skip = "Re-enable after implementing feature end-to-end")]
+        [Fact]
+        public async Task Test()
+        {
+            DicomTag standardTagSeries = DicomTag.SeriesNumber;
+            AddExtendedQueryTagEntry addExtendedQueryTagEntry = new AddExtendedQueryTagEntry { Path = standardTagSeries.GetPath(), VR = standardTagSeries.GetDefaultVR().Code, Level = QueryTagLevel.Series };
+            AddExtendedQueryTagEntry[] queryTags = new AddExtendedQueryTagEntry[] { addExtendedQueryTagEntry };
+
+            var response = await _client.AddExtendedQueryTagAsync(queryTags);
+            var operationRef = await response.GetValueAsync();
+
+        }
+
+        [Fact]
         public async Task GivenValidExtendedQueryTags_WhenGoThroughEndToEndScenario_ThenShouldSucceed()
         {
             // Prepare 3 extended query tags.
