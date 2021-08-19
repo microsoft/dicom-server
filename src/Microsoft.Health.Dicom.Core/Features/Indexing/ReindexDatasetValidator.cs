@@ -16,10 +16,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
     public class ReindexDatasetValidator : IReindexDatasetValidator
     {
         private readonly IElementMinimumValidator _minimumValidator;
+        private readonly IExtendedQueryTagErrorStore _extendedQueryTagErrorStore;
 
-        public ReindexDatasetValidator(IElementMinimumValidator minimumValidator)
+        public ReindexDatasetValidator(IElementMinimumValidator minimumValidator, IExtendedQueryTagErrorStore extendedQueryTagErrorStore)
         {
             _minimumValidator = EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
+            _extendedQueryTagErrorStore = EnsureArg.IsNotNull(extendedQueryTagErrorStore, nameof(extendedQueryTagErrorStore));
         }
 
         public IReadOnlyCollection<QueryTag> Validate(DicomDataset dataset, long watermark, IReadOnlyCollection<QueryTag> queryTags)
@@ -35,9 +37,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
                     dataset.ValidateQueryTag(queryTag, _minimumValidator);
                     validTags.Add(queryTag);
                 }
-                catch (DicomElementValidationException)
+                catch (DicomElementValidationException e)
                 {
-                    // TODO: log failure
+                    _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
+                        queryTag.ExtendedQueryTagStoreEntry.Key,
+                        e.Message,
+                        watermark);
                 }
             }
             return validTags;
