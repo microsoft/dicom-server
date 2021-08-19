@@ -259,7 +259,7 @@
                 }
             },
             "dependsOn": [
-                "[variables('appServicePlanResourceId')]"
+                "[resourceId('Microsoft.Web/serverfarms/', variables('appServicePlanName'))]"
             ],
             "resources": [
                 {
@@ -323,8 +323,7 @@
                 }
             },
             "dependsOn": [
-                "[variables('appServicePlanResourceId')]",
-                "[variables('storageResourceId')]"
+                "[resourceId('Microsoft.Web/serverfarms/', variables('appServicePlanName'))]"
             ],
             "resources": [
                 {
