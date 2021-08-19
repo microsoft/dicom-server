@@ -3,21 +3,21 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    public static class UidValidator
+    /// <summary>
+    /// Minimum validator on Dicom Element
+    /// </summary>
+    public interface IElementMinimumValidator
     {
-        public static void Validate(string value, string name)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                throw new InvalidIdentifierException(value, name);
-            }
-
-            // validate the value
-            DicomElementMinimumValidation.ValidateUI(value, name);
-        }
+        /// <summary>
+        /// Validate Dicom Element.
+        /// </summary>
+        /// <param name="dicomElement">The Dicom Element</param>
+        /// <exception cref="DicomElementValidationException"/>
+        void Validate(DicomElement dicomElement);
     }
 }

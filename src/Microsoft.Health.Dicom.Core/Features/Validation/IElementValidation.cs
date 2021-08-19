@@ -7,8 +7,16 @@ using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
-    public interface IDicomElementMinimumValidator
+    /// <summary>
+    /// Validation on Dicom Element.
+    /// </summary>
+    internal interface IElementValidation
     {
-        void Validate(DicomElement element);
+        /// <summary>
+        /// Validate DicomElement
+        /// </summary>
+        /// <param name="dicomElement">The dicom element</param>
+        /// <exception cref="ElementValidation"/>
+        void Validate(DicomElement dicomElement);
     }
 }

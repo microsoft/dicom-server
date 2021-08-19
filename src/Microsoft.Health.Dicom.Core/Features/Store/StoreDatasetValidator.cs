@@ -12,21 +12,22 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
     /// <summary>
-    /// Provides functionality to validate a <see cref="DicomDataset"/> to make sure it meets the minimum requirement.
+    /// Provides functionality to validate a <see cref="DicomDataset"/> to make sure it meets the minimum requirement when storing.
     /// </summary>
-    public class DicomDatasetValidator : IDicomDatasetValidator
+    public class StoreDatasetValidator : IStoreDatasetValidator
     {
         private readonly bool _enableFullDicomItemValidation;
-        private readonly IDicomElementMinimumValidator _minimumValidator;
+        private readonly IElementMinimumValidator _minimumValidator;
         private readonly IQueryTagService _queryTagService;
 
-        public DicomDatasetValidator(IOptions<FeatureConfiguration> featureConfiguration, IDicomElementMinimumValidator minimumValidator, IQueryTagService queryTagService)
+        public StoreDatasetValidator(IOptions<FeatureConfiguration> featureConfiguration, IElementMinimumValidator minimumValidator, IQueryTagService queryTagService)
         {
             EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
             EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
@@ -41,6 +42,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
+            ValidateCoreTags(dicomDataset, requiredStudyInstanceUid);
+
+            // validate input data elements
+            if (_enableFullDicomItemValidation)
+            {
+                ValidateAllItems(dicomDataset);
+            }
+            else
+            {
+                await ValidateIndexedItems(dicomDataset, cancellationToken);
+            }
+        }
+
+        private static void ValidateCoreTags(DicomDataset dicomDataset, string requiredStudyInstanceUid)
+        {
             // Ensure required tags are present.
             EnsureRequiredTagIsPresent(DicomTag.PatientID);
             EnsureRequiredTagIsPresent(DicomTag.SOPClassUID);
@@ -87,46 +103,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                         DicomCoreResource.MissingRequiredTag,
                         dicomTag.ToString()));
             }
-
-            // validate input data elements
-            if (_enableFullDicomItemValidation)
-            {
-                ValidateAllItems(dicomDataset);
-            }
-            else
-            {
-                await ValidateIndexedItems(dicomDataset, cancellationToken);
-            }
         }
 
         private async Task ValidateIndexedItems(DicomDataset dicomDataset, CancellationToken cancellationToken)
         {
             IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken);
-            ValidateTags(dicomDataset, queryTags);
-        }
-
-        private void ValidateTags(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags)
-        {
             foreach (QueryTag queryTag in queryTags)
             {
-                DicomElement dicomElement = dicomDataset.GetDicomItem<DicomElement>(queryTag.Tag);
-
-                if (dicomElement != null)
-                {
-                    if (dicomElement.ValueRepresentation != queryTag.VR)
-                    {
-                        throw new DatasetValidationException(
-                           FailureReasonCodes.ValidationFailure,
-                           string.Format(
-                               CultureInfo.InvariantCulture,
-                               DicomCoreResource.MismatchVR,
-                               queryTag.Tag,
-                               queryTag.VR,
-                               dicomElement.ValueRepresentation));
-                    }
-
-                    _minimumValidator.Validate(dicomElement);
-                }
+                dicomDataset.ValidateQueryTag(queryTag, _minimumValidator);
             }
         }
 

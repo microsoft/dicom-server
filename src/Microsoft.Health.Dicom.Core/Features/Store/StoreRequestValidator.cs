@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// </summary>
         /// <param name="request">The request to validate.</param>
         /// <exception cref="BadRequestException">Thrown when request body is missing.</exception>
-        /// <exception cref="UidValidator">Thrown when the specified StudyInstanceUID is not a valid identifier.</exception>
+        /// <exception cref="UidValidation">Thrown when the specified StudyInstanceUID is not a valid identifier.</exception>
         // TODO cleanup this method with Unit tests #72595
         public static void ValidateRequest(StoreRequest request)
         {
@@ -30,10 +30,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 throw new BadRequestException(DicomCoreResource.MissingRequestBody);
             }
 
-            if (request.StudyInstanceUid != null)
-            {
-                DicomElementMinimumValidation.ValidateUI(request.StudyInstanceUid, nameof(request.StudyInstanceUid));
-            }
+            UidValidation.Validate(request.StudyInstanceUid, nameof(request.StudyInstanceUid), allowEmpty: true);
         }
     }
 }

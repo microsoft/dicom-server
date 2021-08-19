@@ -23,19 +23,25 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
     {
         private readonly IMetadataStore _metadataStore;
         private readonly IIndexDataStore _indexDataStore;
+        private readonly IReindexDatasetValidator _dicomDatasetReindexValidator;
 
-        public InstanceReindexer(IMetadataStore metadataStore, IIndexDataStore indexDataStore)
+        public InstanceReindexer(IMetadataStore metadataStore, IIndexDataStore indexDataStore, IReindexDatasetValidator dicomDatasetReindexValidator)
         {
             _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
             _indexDataStore = EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
+            _dicomDatasetReindexValidator = EnsureArg.IsNotNull(dicomDatasetReindexValidator, nameof(dicomDatasetReindexValidator));
         }
 
         public async Task ReindexInstanceAsync(IReadOnlyCollection<ExtendedQueryTagStoreEntry> entries, VersionedInstanceIdentifier versionedInstanceId, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(entries, nameof(entries));
             EnsureArg.IsNotNull(versionedInstanceId, nameof(versionedInstanceId));
+
             DicomDataset dataset = await _metadataStore.GetInstanceMetadataAsync(versionedInstanceId, cancellationToken);
-            await _indexDataStore.ReindexInstanceAsync(dataset, entries.Select(x => new QueryTag(x)), cancellationToken);
+
+            // Only reindex on valid query tags
+            var validQueryTags = _dicomDatasetReindexValidator.Validate(dataset, versionedInstanceId.Version, entries.Select(x => new QueryTag(x)).ToList());
+            await _indexDataStore.ReindexInstanceAsync(dataset, versionedInstanceId.Version, validQueryTags, cancellationToken);
         }
     }
 }

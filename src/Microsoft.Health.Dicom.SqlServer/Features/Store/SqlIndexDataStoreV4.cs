@@ -96,7 +96,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             }
         }
 
-        public override async Task ReindexInstanceAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
+        public override async Task ReindexInstanceAsync(DicomDataset instance, long watermark, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
@@ -115,9 +115,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
                 VLatest.ReindexInstance.PopulateCommand(
                     sqlCommandWrapper,
-                    instance.GetString(DicomTag.StudyInstanceUID),
-                    instance.GetString(DicomTag.SeriesInstanceUID),
-                    instance.GetString(DicomTag.SOPInstanceUID),
+                    watermark,
                     parameters);
 
                 try

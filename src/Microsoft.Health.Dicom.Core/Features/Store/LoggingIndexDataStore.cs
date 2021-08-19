@@ -144,14 +144,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task ReindexInstanceAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+        public async Task ReindexInstanceAsync(DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomDataset);
             LogReindexIndexDelegate(_logger, dicomDataset.ToInstanceIdentifier(), null);
 
             try
             {
-                await IndexDataStore.ReindexInstanceAsync(dicomDataset, queryTags, cancellationToken);
+                await IndexDataStore.ReindexInstanceAsync(dicomDataset, watermark, queryTags, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
 

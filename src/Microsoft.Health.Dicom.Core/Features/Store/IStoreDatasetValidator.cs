@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     /// <summary>
     /// Provides functionality to validate a <see cref="DicomDataset"/> to make sure it meets the requirement.
     /// </summary>
-    public interface IDicomDatasetValidator
+    public interface IStoreDatasetValidator
     {
         /// <summary>
         /// Validates the <paramref name="dicomDataset"/>.
