@@ -23,5 +23,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.Configs
 
         [Range(0, 10000)]
         public int MinRetryDelayMilliseconds { get; set; }
+
+        public string FunctionAccessKey { get; set; }
     }
 }
