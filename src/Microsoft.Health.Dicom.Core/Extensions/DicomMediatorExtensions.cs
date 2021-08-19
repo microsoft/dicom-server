@@ -24,10 +24,10 @@ namespace Microsoft.Health.Dicom.Core.Extensions
     public static class DicomMediatorExtensions
     {
         public static Task<StoreResponse> StoreDicomResourcesAsync(
-            this IMediator mediator, Stream requestBody, string requestContentType, string studyInstanceUid, CancellationToken cancellationToken)
+            this IMediator mediator, Stream requestBody, string requestContentType, string studyInstanceUid, string partitionId, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
-            return mediator.Send(new StoreRequest(requestBody, requestContentType, studyInstanceUid), cancellationToken);
+            return mediator.Send(new StoreRequest(requestBody, requestContentType, studyInstanceUid, partitionId), cancellationToken);
         }
 
         public static Task<RetrieveResourceResponse> RetrieveDicomStudyAsync(

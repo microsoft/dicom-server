@@ -53,9 +53,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [VersionedRoute(KnownRoutes.StoreInstancesRoute)]
         [Route(KnownRoutes.StoreInstancesRoute)]
         [AuditEventType(AuditEventSubType.Store)]
-        public async Task<IActionResult> PostInstanceAsync()
+        public async Task<IActionResult> PostInstanceAsync(string partitionId)
         {
-            return await PostAsync(null);
+            return await PostAsync(null, partitionId);
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
@@ -74,10 +74,10 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AuditEventType(AuditEventSubType.Store)]
         public async Task<IActionResult> PostInstanceInStudyAsync(string studyInstanceUid)
         {
-            return await PostAsync(studyInstanceUid);
+            return await PostAsync(studyInstanceUid, null);
         }
 
-        private async Task<IActionResult> PostAsync(string studyInstanceUid)
+        private async Task<IActionResult> PostAsync(string studyInstanceUid, string partitionId)
         {
             long fileSize = Request.ContentLength ?? 0;
             _logger.LogInformation("DICOM Web Store Transaction request received, with study instance UID {studyInstanceUid} and file size of {fileSize} bytes", studyInstanceUid, fileSize);
@@ -86,6 +86,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
                 Request.Body,
                 Request.ContentType,
                 studyInstanceUid,
+                partitionId,
                 HttpContext.RequestAborted);
 
             return StatusCode(

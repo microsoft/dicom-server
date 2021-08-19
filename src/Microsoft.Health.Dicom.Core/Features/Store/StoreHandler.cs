@@ -64,7 +64,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                     cancellationToken);
 
             // Process list of entries.
-            return await _storeService.ProcessAsync(instanceEntries, request.StudyInstanceUid, cancellationToken);
+            return await _storeService.ProcessAsync(instanceEntries, request.StudyInstanceUid, cancellationToken, request.PartitionId);
         }
     }
 }

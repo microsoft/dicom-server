@@ -75,7 +75,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         public async Task<StoreResponse> ProcessAsync(
             IReadOnlyList<IDicomInstanceEntry> instanceEntries,
             string requiredStudyInstanceUid,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            string partitionId = null)
         {
             if (instanceEntries != null)
             {
@@ -86,7 +87,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 {
                     try
                     {
-                        await ProcessDicomInstanceEntryAsync(index, cancellationToken);
+                        await ProcessDicomInstanceEntryAsync(index, partitionId, cancellationToken);
                     }
                     finally
                     {
@@ -101,7 +102,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             return _storeResponseBuilder.BuildResponse(requiredStudyInstanceUid);
         }
 
-        private async Task ProcessDicomInstanceEntryAsync(int index, CancellationToken cancellationToken)
+        private async Task ProcessDicomInstanceEntryAsync(int index, string partitionId, CancellationToken cancellationToken)
         {
             IDicomInstanceEntry dicomInstanceEntry = _dicomInstanceEntries[index];
 
@@ -145,7 +146,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 // Store the instance.
                 await _storeOrchestrator.StoreDicomInstanceEntryAsync(
                     dicomInstanceEntry,
-                    cancellationToken);
+                    cancellationToken,
+                    partitionId);
 
                 LogSuccessfullyStoredDelegate(_logger, index, null);
 

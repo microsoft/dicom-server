@@ -53,15 +53,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <inheritdoc />
         public async Task StoreDicomInstanceEntryAsync(
             IDicomInstanceEntry dicomInstanceEntry,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            string partitionId = null)
         {
             EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
 
             DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
             var queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken);
-            long version = await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, queryTags, cancellationToken);
+            long version = await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, queryTags, partitionId, cancellationToken);
 
-            var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version);
+            var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version, partitionId);
 
             try
             {
@@ -69,7 +70,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 Task[] tasks = new[]
                 {
                     StoreFileAsync(versionedInstanceIdentifier, dicomInstanceEntry, cancellationToken),
-                    StoreInstanceMetadataAsync(dicomDataset, version, cancellationToken),
+                    StoreInstanceMetadataAsync(dicomDataset, version, partitionId, cancellationToken),
                 };
 
                 await Task.WhenAll(tasks);
@@ -101,8 +102,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         private Task StoreInstanceMetadataAsync(
             DicomDataset dicomDataset,
             long version,
+            string partitionId,
             CancellationToken cancellationToken)
-            => _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version, cancellationToken);
+            => _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version, partitionId, cancellationToken);
 
         private async Task TryCleanupInstanceIndexAsync(VersionedInstanceIdentifier versionedInstanceIdentifier)
         {

@@ -24,13 +24,13 @@ using Microsoft.Health.SqlServer.Features.Storage;
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 {
     /// <summary>
-    /// Sql IndexDataStore version 2.
+    /// Sql IndexDataStore version 3.
     /// </summary>
-    internal class SqlIndexDataStoreV2 : SqlIndexDataStoreV1
+    internal class SqlIndexDataStoreV4 : SqlIndexDataStoreV3
     {
         private readonly SqlConnectionWrapperFactory _sqlConnectionFactoryWrapper;
 
-        public SqlIndexDataStoreV2(
+        public SqlIndexDataStoreV4(
             SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
             : base(sqlConnectionWrapperFactory)
         {
@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             _sqlConnectionFactoryWrapper = sqlConnectionWrapperFactory;
         }
 
-        public override SchemaVersion Version => SchemaVersion.V2;
+        public override SchemaVersion Version => SchemaVersion.V4;
 
         public override async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, string partitionId = null, CancellationToken cancellationToken = default)
         {
@@ -49,12 +49,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 // Build parameter for extended query tag.
-                V2.AddInstanceTableValuedParameters parameters = AddInstanceTableValuedParametersBuilder.BuildV2(
+                VLatest.AddInstanceTableValuedParameters parameters = AddInstanceTableValuedParametersBuilder.Build(
                     instance,
                     queryTags.Where(tag => tag.IsExtendedQueryTag));
 
-                V2.AddInstance.PopulateCommand(
+                VLatest.AddInstance.PopulateCommand(
                 sqlCommandWrapper,
+                partitionId,
                 instance.GetString(DicomTag.StudyInstanceUID),
                 instance.GetString(DicomTag.SeriesInstanceUID),
                 instance.GetString(DicomTag.SOPInstanceUID),
@@ -66,6 +67,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                 instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
                 instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
                 instance.GetStringDateAsDate(DicomTag.PerformedProcedureStepStartDate),
+                instance.GetStringDateAsDate(DicomTag.PatientBirthDate),
+                instance.GetSingleValueOrDefault<string>(DicomTag.ManufacturerModelName),
                 (byte)IndexStatus.Creating,
                 parameters);
 

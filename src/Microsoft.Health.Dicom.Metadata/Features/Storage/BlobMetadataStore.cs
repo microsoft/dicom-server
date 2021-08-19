@@ -61,14 +61,15 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         public async Task StoreInstanceMetadataAsync(
             DicomDataset dicomDataset,
             long version,
-            CancellationToken cancellationToken)
+            string partitionId = null,
+            CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
             // Creates a copy of the dataset with bulk data removed.
             DicomDataset dicomDatasetWithoutBulkData = dicomDataset.CopyWithoutBulkDataItems();
 
-            BlockBlobClient blob = GetInstanceBlockBlob(dicomDatasetWithoutBulkData.ToVersionedInstanceIdentifier(version));
+            BlockBlobClient blob = GetInstanceBlockBlob(dicomDatasetWithoutBulkData.ToVersionedInstanceIdentifier(version, partitionId));
 
             try
             {

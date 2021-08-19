@@ -62,7 +62,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             _indexDataStoreFactory.GetInstance().Returns(_indexDataStore);
 
-            _indexDataStore.CreateInstanceIndexAsync(_dicomDataset, DefaultCancellationToken).Returns(DefaultVersion);
+            _indexDataStore.CreateInstanceIndexAsync(_dicomDataset, null, DefaultCancellationToken).Returns(DefaultVersion);
             _queryTagService.GetQueryTagsAsync(Arg.Any<CancellationToken>())
                 .Returns(Array.Empty<QueryTag>());
 
@@ -101,6 +101,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             _metadataStore.StoreInstanceMetadataAsync(
                 _dicomDataset,
                 DefaultVersion,
+                null,
                 DefaultCancellationToken)
                 .Throws(new Exception());
 
@@ -119,6 +120,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             _metadataStore.StoreInstanceMetadataAsync(
                 _dicomDataset,
                 DefaultVersion,
+                null,
                 DefaultCancellationToken)
                 .Throws(new ArgumentException());
 

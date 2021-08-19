@@ -15,7 +15,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
         public InstanceIdentifier(
             string studyInstanceUid,
             string seriesInstanceUid,
-            string sopInstanceUid)
+            string sopInstanceUid,
+            string partitionId = null)
         {
             EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
@@ -24,6 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
             SopInstanceUid = sopInstanceUid;
+            PartitionId = partitionId;
         }
 
         public string StudyInstanceUid { get; }
@@ -32,11 +34,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
 
         public string SopInstanceUid { get; }
 
+        public string PartitionId { get; }
+
         public override bool Equals(object obj)
         {
             if (obj is InstanceIdentifier identifier)
             {
-                return StudyInstanceUid.Equals(identifier.StudyInstanceUid, EqualsStringComparison) &&
+                return PartitionId.Equals(identifier.PartitionId, EqualsStringComparison) &&
+                        StudyInstanceUid.Equals(identifier.StudyInstanceUid, EqualsStringComparison) &&
                         SeriesInstanceUid.Equals(identifier.SeriesInstanceUid, EqualsStringComparison) &&
                         SopInstanceUid.Equals(identifier.SopInstanceUid, EqualsStringComparison);
             }
@@ -45,9 +50,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
         }
 
         public override int GetHashCode()
-            => (StudyInstanceUid + SeriesInstanceUid + SopInstanceUid).GetHashCode(EqualsStringComparison);
+            => (PartitionId + StudyInstanceUid + SeriesInstanceUid + SopInstanceUid).GetHashCode(EqualsStringComparison);
 
         public override string ToString()
-            => $"StudyInstanceUID: {StudyInstanceUid}, SeriesInstanceUID: {SeriesInstanceUid}, SOPInstanceUID: {SopInstanceUid}";
+            => $"PartitionId: {PartitionId}, StudyInstanceUID: {StudyInstanceUid}, SeriesInstanceUID: {SeriesInstanceUid}, SOPInstanceUID: {SopInstanceUid}";
     }
 }

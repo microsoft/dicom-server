@@ -66,13 +66,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         }
 
         /// <inheritdoc />
-        public async Task StoreInstanceMetadataAsync(DicomDataset dicomDataset, long version, CancellationToken cancellationToken)
+        public async Task StoreInstanceMetadataAsync(DicomDataset dicomDataset, long version, string partitionId, CancellationToken cancellationToken)
         {
-            LogStoreInstanceMetadataDelegate(_logger, dicomDataset.ToVersionedInstanceIdentifier(version).ToString(), null);
+            LogStoreInstanceMetadataDelegate(_logger, dicomDataset.ToVersionedInstanceIdentifier(version, partitionId).ToString(), null);
 
             try
             {
-                await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version, cancellationToken);
+                await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version, partitionId, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }

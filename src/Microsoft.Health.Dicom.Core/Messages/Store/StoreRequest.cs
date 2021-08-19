@@ -13,11 +13,13 @@ namespace Microsoft.Health.Dicom.Core.Messages.Store
         public StoreRequest(
             Stream requestBody,
             string requestContentType,
-            string studyInstanceUid = null)
+            string studyInstanceUid = null,
+            string partitionId = null)
         {
             StudyInstanceUid = studyInstanceUid;
             RequestBody = requestBody;
             RequestContentType = requestContentType;
+            PartitionId = partitionId;
         }
 
         public string StudyInstanceUid { get; }
@@ -25,5 +27,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Store
         public Stream RequestBody { get; }
 
         public string RequestContentType { get; }
+
+        public string PartitionId { get; }
     }
 }

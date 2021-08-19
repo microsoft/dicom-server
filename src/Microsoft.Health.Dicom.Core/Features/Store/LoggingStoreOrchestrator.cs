@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task StoreDicomInstanceEntryAsync(IDicomInstanceEntry dicomInstanceEntry, CancellationToken cancellationToken)
+        public async Task StoreDicomInstanceEntryAsync(IDicomInstanceEntry dicomInstanceEntry, CancellationToken cancellationToken, string partitionId = null)
         {
             EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
 
@@ -63,7 +63,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             try
             {
-                await _storeOrchestrator.StoreDicomInstanceEntryAsync(dicomInstanceEntry, cancellationToken);
+                await _storeOrchestrator.StoreDicomInstanceEntryAsync(dicomInstanceEntry, cancellationToken, partitionId);
 
                 LogSuccessfullyPersistedDicomInstanceEntryDelegate(_logger, dicomInstanceIdentifier, null);
             }

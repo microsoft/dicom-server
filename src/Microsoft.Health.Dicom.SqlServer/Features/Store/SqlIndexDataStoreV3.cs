@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
         public override SchemaVersion Version => SchemaVersion.V3;
 
-        public override async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+        public override async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, string partitionId = null, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
@@ -55,6 +55,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
                 VLatest.AddInstance.PopulateCommand(
                 sqlCommandWrapper,
+                partitionId,
                 instance.GetString(DicomTag.StudyInstanceUID),
                 instance.GetString(DicomTag.SeriesInstanceUID),
                 instance.GetString(DicomTag.SOPInstanceUID),

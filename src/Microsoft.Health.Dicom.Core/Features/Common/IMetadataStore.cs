@@ -21,10 +21,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         /// <param name="dicomDataset">The DICOM instance.</param>
         /// <param name="version">The version.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
+        /// <param name="partitionId">Data partitionId</param>
         /// <returns>A task that represents the asynchronous add operation.</returns>
         Task StoreInstanceMetadataAsync(
             DicomDataset dicomDataset,
             long version,
+            string partitionId = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>

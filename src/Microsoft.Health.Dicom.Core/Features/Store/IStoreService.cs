@@ -26,10 +26,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <param name="instanceEntries">The list of <see cref="IDicomInstanceEntry"/> to process.</param>
         /// <param name="requiredStudyInstanceUid">An optional value for the StudyInstanceUID tag.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
+        /// <param name="partitionId">Partition Id</param>
         /// <returns>A task that represents the asynchronous process operation.</returns>
         Task<StoreResponse> ProcessAsync(
             IReadOnlyList<IDicomInstanceEntry> instanceEntries,
             string requiredStudyInstanceUid,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken,
+            string partitionId = null);
     }
 }

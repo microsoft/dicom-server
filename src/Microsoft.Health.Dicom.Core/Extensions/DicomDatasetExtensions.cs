@@ -112,8 +112,9 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         /// Creates an instance of <see cref="InstanceIdentifier"/> from <see cref="DicomDataset"/>.
         /// </summary>
         /// <param name="dicomDataset">The DICOM dataset to get the identifiers from.</param>
+        /// <param name="partitionId">Data partitionId</param>
         /// <returns>An instance of <see cref="InstanceIdentifier"/> representing the <paramref name="dicomDataset"/>.</returns>
-        public static InstanceIdentifier ToInstanceIdentifier(this DicomDataset dicomDataset)
+        public static InstanceIdentifier ToInstanceIdentifier(this DicomDataset dicomDataset, string partitionId = null)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
@@ -121,16 +122,18 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             return new InstanceIdentifier(
                 dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
                 dicomDataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
-                dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty));
+                dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
+                partitionId);
         }
 
         /// <summary>
         /// Creates an instance of <see cref="VersionedInstanceIdentifier"/> from <see cref="DicomDataset"/>.
         /// </summary>
         /// <param name="dicomDataset">The DICOM dataset to get the identifiers from.</param>
+        /// <param name="partitionId">Data partitionId</param>
         /// <param name="version">The version.</param>
         /// <returns>An instance of <see cref="InstanceIdentifier"/> representing the <paramref name="dicomDataset"/>.</returns>
-        public static VersionedInstanceIdentifier ToVersionedInstanceIdentifier(this DicomDataset dicomDataset, long version)
+        public static VersionedInstanceIdentifier ToVersionedInstanceIdentifier(this DicomDataset dicomDataset, long version, string partitionId = null)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
@@ -139,7 +142,8 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                 dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
                 dicomDataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
                 dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
-                version);
+                version,
+                partitionId);
         }
 
         /// <summary>
