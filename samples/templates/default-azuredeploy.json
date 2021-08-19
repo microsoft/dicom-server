@@ -14,7 +14,7 @@
             "type": "string",
             "defaultValue": "",
             "minLength": 0,
-            "maxLength": 24,
+            "maxLength": 36,
             "metadata": {
                 "description": "Name of the DICOM service Web App."
             }
