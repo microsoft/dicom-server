@@ -10,8 +10,8 @@
   },
   "DicomFunctions": {
     "Indexing": {
-      "BatchSize": 2,
-      "ParallelBatches": 2,
+      "BatchSize": 50,
+      "MaxParallelBatches": 2,
       "RetryOptions": {
         "BackoffCoefficient": 3,
         "FirstRetryInterval": "00:01:00",
