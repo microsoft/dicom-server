@@ -1,7 +1,0 @@
-version: "3.4"
-
-services:
-  microsoft.health.dicom.web:
-    build:
-      context: ./..
-      dockerfile: src/Microsoft.Health.Dicom.Web/Dockerfile

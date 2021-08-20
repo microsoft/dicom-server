@@ -11,8 +11,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		global.json = global.json
 	EndProjectSection
 EndProject
-Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker\docker-compose.dcproj", "{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Api", "src\Microsoft.Health.Dicom.Api\Microsoft.Health.Dicom.Api.csproj", "{B0570D75-E376-44AC-870B-87ECB54F0AE3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Api.UnitTests", "src\Microsoft.Health.Dicom.Api.UnitTests\Microsoft.Health.Dicom.Api.UnitTests.csproj", "{D7B538E5-8B3B-487C-8F6A-475F80C50DFE}"
@@ -57,10 +55,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B0570D75-E376-44AC-870B-87ECB54F0AE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B0570D75-E376-44AC-870B-87ECB54F0AE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B0570D75-E376-44AC-870B-87ECB54F0AE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
