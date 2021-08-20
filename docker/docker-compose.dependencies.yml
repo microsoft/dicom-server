@@ -1,0 +1,49 @@
+version: "3.4"
+
+services:
+  microsoft.health.dicom.web:
+    environment:
+      SqlServer__ConnectionString: "Server=tcp:sql,1433;Initial Catalog=DICOM;Persist Security Info=False;User ID=sa;Password=${SAPASSWORD};MultipleActiveResultSets=False;Connection Timeout=30;"
+      SqlServer__AllowDatabaseCreation: "true"
+      SqlServer__Initialize: "true"
+      BlobStore__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
+      DataStore: "SqlServer"
+    depends_on:
+      - functions
+      - azurite
+      - sql
+  functions:
+    build:
+      # VS Container Tools does not currently support automatically attaching a debugger to Azure Functions
+      # for Docker Compose, so the Dockerfile cannot be in the same folder as the csproj
+      context: ./..
+      dockerfile: docker/functions/Dockerfile
+    environment:
+      # By default Azure Durable Functions will re-use the same connection string
+      AzureWebJobsStorage: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;"
+      AZURE_FUNCTIONS_ENVIRONMENT: "Development"
+    depends_on:
+      - azurite
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:3.13.0@sha256:349f106b240c5fd5ecb146c3aa121c531c8a1080badb762099d886703bc39fa0
+    # # These port bindings [source]:[dest] can be uncommented to connect to the storage emulator via Microsoft Azure Storage Explorer
+    # # Note that the source ports may need to change if a storage emulator is already running on localhost
+    # ports:
+    #   - "10001:10001"
+    #   - "10000:10000"
+    #   - "10002:10002"
+  sql:
+    build:
+      context: ./..
+      dockerfile: docker/sql/Dockerfile
+    environment:
+      SA_PASSWORD: ${SAPASSWORD}
+      ACCEPT_EULA: "Y"
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd","-U sa -P ${SAPASSWORD} -Q 'SELECT * FROM INFORMATION_SCHEMA.TABLES'"]
+      interval: 10s
+      timeout: 10s
+      retries: 6
+    # # These port bindings [source]:[dest] can be uncommented to connect to SQL Server via Microsoft SQL Management Studio
+    # ports:
+    #   - "1433:1433"
