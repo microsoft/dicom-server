@@ -146,12 +146,12 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
 
             var actual = await controller.PostAsync(input) as ObjectResult;
             Assert.NotNull(actual);
-            Assert.IsType<AddExtendedQueryTagResponse>(actual.Value);
+            Assert.IsType<OperationReference>(actual.Value);
             Assert.True(controller.Response.Headers.TryGetValue(HeaderNames.Location, out StringValues header));
             Assert.Single(header);
 
             Assert.Equal((int)HttpStatusCode.Accepted, actual.StatusCode);
-            Assert.Same(expected, actual.Value);
+            Assert.Same(expected.Operation, actual.Value);
             Assert.Equal("https://dicom.contoso.io/unit/test/Operations/" + id, header[0]);
 
             await mediator.Received(1).Send(

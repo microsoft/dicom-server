@@ -67,7 +67,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             AddExtendedQueryTagResponse response = await _mediator.AddExtendedQueryTagsAsync(extendedQueryTags, HttpContext.RequestAborted);
 
             Response.AddLocationHeader(response.Operation.Href);
-            return StatusCode((int)HttpStatusCode.Accepted, response);
+            return StatusCode((int)HttpStatusCode.Accepted, response.Operation);
         }
 
         [Produces(KnownContentTypes.ApplicationJson)]

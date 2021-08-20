@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -15,128 +14,52 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
-    public class ExtendedQueryTagTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
+    public class ExtendedQueryTagTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
     {
         private readonly IDicomWebClient _client;
-        private const string PrivateCreatorName = "PrivateCreator1";
+        private readonly DicomTagsManager _tagManager;
+        private readonly DicomInstancesManager _instanceManager;
 
         public ExtendedQueryTagTests(HttpIntegrationTestFixture<Startup> fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
             EnsureArg.IsNotNull(fixture.Client, nameof(fixture.Client));
             _client = fixture.Client;
+            _tagManager = new DicomTagsManager(_client);
+            _instanceManager = new DicomInstancesManager(_client);
         }
 
-        [Fact(Skip = "Re-enable after implementing feature end-to-end")]
-        public async Task GivenValidExtendedQueryTags_WhenGoThroughEndToEndScenario_ThenShouldSucceed()
+        [Fact(Skip = "Skip until test environment setup completes.")]
+        public async Task GivenValidExtendedQueryTag_WhenGoThroughEndToEndScenario_ThenShouldSucceed()
         {
-            // Prepare 3 extended query tags.
-            // One is private tag on Instance level
-            // To add private tag, need to add identification code element at first.
-            DicomTag identificationCodeTag = new DicomTag(0x0407, 0x0010);
+            DicomTag tag = DicomTag.SeriesNumber;
 
-            DicomElement identificationCodeElement = new DicomLongString(identificationCodeTag, PrivateCreatorName);
+            // upload file
+            string tagValue = "123";
+            DicomDataset dataset = Samples.CreateRandomInstanceDataset();
+            dataset.Add(tag, tagValue);
+            await _instanceManager.StoreAsync(new DicomFile(dataset));
+            InstanceIdentifier instanceId = dataset.ToInstanceIdentifier();
 
-            DicomTag privateTag = new DicomTag(0x0407, 0x1001, PrivateCreatorName);
-            AddExtendedQueryTagEntry privateQueryTag = new AddExtendedQueryTagEntry { Path = privateTag.GetPath(), VR = DicomVRCode.SS, Level = QueryTagLevel.Instance, PrivateCreator = privateTag.PrivateCreator.Creator };
+            // add tag
+            AddExtendedQueryTagEntry addExtendedQueryTagEntry = new AddExtendedQueryTagEntry { Path = tag.GetPath(), VR = tag.GetDefaultVR().Code, Level = QueryTagLevel.Instance };
+            var operationStatus = await _tagManager.AddTagsAsync(new[] { addExtendedQueryTagEntry });
+            Assert.Equal(OperationRuntimeStatus.Completed, operationStatus.Status);
 
-            // One is standard tag on Series level
-            DicomTag standardTagSeries = DicomTag.SeriesNumber;
-            AddExtendedQueryTagEntry standardTagSeriesQueryTag = new AddExtendedQueryTagEntry { Path = standardTagSeries.GetPath(), VR = standardTagSeries.GetDefaultVR().Code, Level = QueryTagLevel.Series };
-
-            // One is standard tag on Study level
-            DicomTag standardTagStudy = DicomTag.PatientSex;
-            AddExtendedQueryTagEntry standardTagStudyQueryTag = new AddExtendedQueryTagEntry { Path = standardTagStudy.GetPath(), VR = standardTagStudy.GetDefaultVR().Code, Level = QueryTagLevel.Study };
-
-            AddExtendedQueryTagEntry[] queryTags = new AddExtendedQueryTagEntry[] { privateQueryTag, standardTagSeriesQueryTag, standardTagStudyQueryTag };
-
-            // Create 3 test files on same studyUid.
-            string studyUid = TestUidGenerator.Generate();
-            string seriesUid1 = TestUidGenerator.Generate();
-            string seriesUid2 = TestUidGenerator.Generate();
-            string instanceUid1 = TestUidGenerator.Generate();
-            string instanceUid2 = TestUidGenerator.Generate();
-            string instanceUid3 = TestUidGenerator.Generate();
-
-            // One is on seriesUid1 and instanceUid1
-            DicomDataset dataset1 = Samples.CreateRandomInstanceDataset(studyInstanceUid: studyUid, seriesInstanceUid: seriesUid1, sopInstanceUid: instanceUid1);
-            dataset1.Add(identificationCodeElement);
-            dataset1.AddOrUpdate(new DicomSignedShort(privateTag, 1));
-            dataset1.Add(standardTagSeries, "123");
-            dataset1.Add(standardTagStudy, "0");
-
-            // One is on seriesUid1 and instanceUid2
-            DicomDataset dataset2 = Samples.CreateRandomInstanceDataset(studyInstanceUid: studyUid, seriesInstanceUid: seriesUid1, sopInstanceUid: instanceUid2);
-            dataset2.Add(identificationCodeElement);
-            dataset2.AddOrUpdate(new DicomSignedShort(privateTag, 2));
-            dataset2.Add(standardTagSeries, "345");
-            dataset2.Add(standardTagStudy, "0");
-
-            // One is on seriesUid2 and instanceUid3
-            DicomDataset dataset3 = Samples.CreateRandomInstanceDataset(studyInstanceUid: studyUid, seriesInstanceUid: seriesUid2, sopInstanceUid: instanceUid3);
-            dataset3.Add(identificationCodeElement);
-            dataset3.AddOrUpdate(new DicomSignedShort(privateTag, 3));
-            dataset3.Add(standardTagSeries, "678");
-            dataset3.Add(standardTagStudy, "1");
-            try
-            {
-                // Add extended query tags
-
-                await _client.AddExtendedQueryTagAsync(queryTags);
-                try
-                {
-                    foreach (var queryTag in queryTags)
-                    {
-                        GetExtendedQueryTagEntry returnTag = await (await _client.GetExtendedQueryTagAsync(queryTag.Path)).GetValueAsync();
-                        CompareExtendedQueryTagEntries(queryTag, returnTag);
-                    }
-
-                    // Upload test files
-                    IEnumerable<DicomFile> dicomFiles = new DicomDataset[] { dataset1, dataset2, dataset3 }.Select(dataset => new DicomFile(dataset));
-
-                    await _client.StoreAsync(dicomFiles, studyInstanceUid: string.Empty, cancellationToken: default);
-
-                    // Query on instance for private tag
-                    DicomWebAsyncEnumerableResponse<DicomDataset> queryInstanceResponse = await _client.QueryInstancesAsync($"{privateTag.GetPath()}=3", cancellationToken: default);
-                    DicomDataset[] instanceResult = await queryInstanceResponse.ToArrayAsync();
-                    Assert.Single(instanceResult);
-                    Assert.Equal(instanceUid3, instanceResult[0].GetSingleValue<string>(DicomTag.SOPInstanceUID));
-
-                    // Query on series for standardTagSeries
-                    DicomWebAsyncEnumerableResponse<DicomDataset> querySeriesResponse = await _client.QuerySeriesAsync($"{standardTagSeries.GetPath()}=345", cancellationToken: default);
-                    DicomDataset[] seriesResult = await querySeriesResponse.ToArrayAsync();
-                    Assert.Single(seriesResult);
-                    Assert.Equal(seriesUid1, seriesResult[0].GetSingleValue<string>(DicomTag.SeriesInstanceUID));
-
-                    // Query on study for standardTagStudy
-                    DicomWebAsyncEnumerableResponse<DicomDataset> queryStudyResponse = await _client.QueryStudyAsync($"{standardTagStudy.GetPath()}=1", cancellationToken: default);
-                    DicomDataset[] studyResult = await queryStudyResponse.ToArrayAsync();
-                    Assert.Single(studyResult);
-                    Assert.Equal(studyUid, seriesResult[0].GetSingleValue<string>(DicomTag.StudyInstanceUID));
-                }
-                finally
-                {
-                    await _client.DeleteStudyAsync(studyUid);
-                }
-            }
-            finally
-            {
-                // Cleanup extended query tags, also verify GetExtendedQueryTagsAsync.
-                var responseQueryTags = await (await _client.GetExtendedQueryTagsAsync()).GetValueAsync();
-                foreach (var rTag in responseQueryTags)
-                {
-                    if (queryTags.Any(tag => tag.Path == rTag.Path))
-                    {
-                        await _client.DeleteExtendedQueryTagAsync(rTag.Path);
-                    }
-                }
-            }
+            // QIDO
+            // Query on series for standardTagSeries
+            DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryInstancesAsync($"{tag.GetPath()}={tagValue}", cancellationToken: default);
+            DicomDataset[] instances = await queryResponse.ToArrayAsync();
+            Assert.Contains(instances, instance => instance.ToInstanceIdentifier().Equals(instanceId));
         }
+
 
         [Theory]
         [MemberData(nameof(GetRequestBodyWithMissingProperty))]
@@ -179,17 +102,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             }
         }
 
-        private void CompareExtendedQueryTagEntries(AddExtendedQueryTagEntry addedTag, GetExtendedQueryTagEntry returnedTag)
+        public Task InitializeAsync()
         {
-            if (addedTag == null || returnedTag == null)
-            {
-                Assert.True(addedTag == null && returnedTag == null);
-                return;
-            }
+            return Task.CompletedTask;
+        }
 
-            Assert.True(string.Equals(returnedTag.Path, addedTag.Path, StringComparison.OrdinalIgnoreCase)
-                && string.Equals(addedTag.VR, returnedTag.VR, StringComparison.OrdinalIgnoreCase)
-                && addedTag.Level.Equals(returnedTag.Level));
+        public async Task DisposeAsync()
+        {
+            await _tagManager.DisposeAsync();
+            await _instanceManager.DisposeAsync();
         }
     }
 }
