@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Extensions
 {
     internal static class OperationStatusExtensions
     {
-        private static readonly HashSet<OperationRuntimeStatus> InProgressStatuses = new HashSet<OperationRuntimeStatus>() {
+        private static readonly HashSet<OperationRuntimeStatus> InProgressStatuses = new HashSet<OperationRuntimeStatus> {
             OperationRuntimeStatus.Pending,
             OperationRuntimeStatus.Running
         };

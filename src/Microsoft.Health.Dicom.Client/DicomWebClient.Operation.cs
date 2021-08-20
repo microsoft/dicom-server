@@ -19,8 +19,7 @@ namespace Microsoft.Health.Dicom.Client
             EnsureArg.IsNotNullOrWhiteSpace(operationId, nameof(operationId));
             var uri = new Uri($"/{_apiVersion}{DicomWebConstants.BaseOperationUri}/{operationId}", UriKind.Relative);
             using var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
-                .ConfigureAwait(false);
+            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
             await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
             return new DicomWebResponse<OperationStatus>(response, ValueFactory<OperationStatus>);
         }
