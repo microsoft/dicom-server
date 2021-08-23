@@ -23,7 +23,7 @@ IF NOT EXISTS (
 BEGIN
     CREATE TABLE dbo.ExtendedQueryTagError (
         TagKey                  INT             NOT NULL, --FK
-        ErrorMessage            NVARCHAR(128)   NOT NULL,
+        ErrorMessage            NVARCHAR(200)   NOT NULL,
         Watermark               BIGINT          NOT NULL,
         CreatedTime             DATETIME2(7)    NOT NULL,
     )

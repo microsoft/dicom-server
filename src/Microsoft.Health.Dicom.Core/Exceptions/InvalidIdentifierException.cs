@@ -3,12 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Dicom;
+
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    public class InvalidIdentifierException : ValidationException
+    public class InvalidIdentifierException : DicomElementValidationException
     {
-        public InvalidIdentifierException(string value, string name)
-            : base(string.Format(DicomCoreResource.InvalidDicomIdentifier, name, value))
+        public InvalidIdentifierException(string value, string name, string message)
+            : base(name, DicomVR.UI, message, value)
         {
         }
     }

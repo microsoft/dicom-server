@@ -15,6 +15,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     /// </summary>
     internal class LongStringValidation : ElementValidation
     {
+        private const int MaxLength = 64;
         public override void Validate(DicomElement dicomElement)
         {
             base.Validate(dicomElement);
@@ -31,11 +32,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 return;
             }
 
-            ElementMaxLengthValidation.Validate(value, 64, name, DicomVR.LO);
+            ElementMaxLengthValidation.Validate(value, MaxLength, name, DicomVR.LO);
 
             if (value.Contains("\\", StringComparison.OrdinalIgnoreCase) || ContainsControlExceptEsc(value))
             {
-                throw new DicomElementValidationException(name, DicomVR.LO, DicomCoreResource.ValueContainsInvalidCharacter, value);
+                throw new DicomElementValidationException(name, DicomVR.LO, DicomCoreResource.ValueContainsInvalidCharacter, value.Truncate(MaxLength));
             }
         }
     }

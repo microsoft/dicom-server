@@ -12,6 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
     internal class PersonNameValidation : ElementValidation
     {
+        private const int ValueTruncationLength = 64;
         public override void Validate(DicomElement dicomElement)
         {
             base.Validate(dicomElement);
@@ -27,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             var groups = value.Split('=');
             if (groups.Length > 3)
             {
-                throw new DicomElementValidationException(name, DicomVR.PN, DicomCoreResource.ValueExceedsAllowedGroups, value);
+                throw new DicomElementValidationException(name, DicomVR.PN, DicomCoreResource.ValueExceedsAllowedGroups, value.Truncate(ValueTruncationLength));
             }
 
             foreach (var group in groups)
@@ -36,14 +37,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
                 if (ContainsControlExceptEsc(group))
                 {
-                    throw new DicomElementValidationException(name, DicomVR.PN, DicomCoreResource.ValueContainsInvalidCharacter, value);
+                    throw new DicomElementValidationException(name, DicomVR.PN, DicomCoreResource.ValueContainsInvalidCharacter, value.Truncate(ValueTruncationLength));
                 }
             }
 
             var groupcomponents = groups.Select(group => group.Split('^').Length);
             if (groupcomponents.Any(l => l > 5))
             {
-                throw new DicomElementValidationException(name, DicomVR.PN, DicomCoreResource.ValueExceedsAllowedComponents, value);
+                throw new DicomElementValidationException(name, DicomVR.PN, DicomCoreResource.ValueExceedsAllowedComponents, value.Truncate(ValueTruncationLength));
             }
         }
     }

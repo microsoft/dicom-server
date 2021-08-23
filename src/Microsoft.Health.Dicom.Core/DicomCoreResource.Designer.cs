@@ -142,6 +142,33 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Dicom Identifier should only contain characters in &apos;0&apos;-&apos;9&apos; and &apos;.&apos;, and each component must start with non-zero number..
+        /// </summary>
+        internal static string DicomIdentifierContainsInvalidCharacter {
+            get {
+                return ResourceManager.GetString("DicomIdentifierContainsInvalidCharacter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dicom Identifier exceeds max length..
+        /// </summary>
+        internal static string DicomIdentifierExceedsMaxLength {
+            get {
+                return ResourceManager.GetString("DicomIdentifierExceedsMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dicom Identifier is required..
+        /// </summary>
+        internal static string DicomIdentifierIsRequired {
+            get {
+                return ResourceManager.GetString("DicomIdentifierIsRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique..
         /// </summary>
         internal static string DuplicatedUidsNotAllowed {
@@ -174,6 +201,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string DuplicateRoleNames {
             get {
                 return ResourceManager.GetString("DuplicateRoleNames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error message has length of &apos;{0}&apos; which exceeds max length &apos;{1}&apos; : {2}.
+        /// </summary>
+        internal static string ErrorMessageExceedsMaxLength {
+            get {
+                return ResourceManager.GetString("ErrorMessageExceedsMaxLength", resourceCulture);
             }
         }
         

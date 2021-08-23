@@ -16,5 +16,10 @@ namespace Microsoft.Health.Dicom.Core.Configs
         /// Maximum retries when extended query tag version mismatches.
         /// </summary>
         public int MaxRetriesWhenTagVersionMismatch { get; set; } = 3;
+
+        /// <summary>
+        /// Maxium error message length.
+        /// </summary>
+        public int MaxErrorMessageLength { get; set; } = 200;
     }
 }

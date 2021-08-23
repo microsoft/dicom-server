@@ -82,7 +82,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                     name,
                     dicomVR,
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthIsNotRequiredLength, RequiredLength),
-                    value);
+                    value.Truncate(RequiredLength));
             }
         }
     }

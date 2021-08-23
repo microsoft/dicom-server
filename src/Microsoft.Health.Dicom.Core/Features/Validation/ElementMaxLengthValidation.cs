@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                     name,
                     vr,
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthExceedsMaxLength, maxLength),
-                    value);
+                    value.Truncate(maxLength));
             }
         }
     }
