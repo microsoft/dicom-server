@@ -3,15 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.IO;
-using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Client.Models;
 
 namespace Microsoft.Health.Dicom.Client
 {
     public partial interface IDicomWebClient
     {
-        Func<MemoryStream> GetMemoryStream { get; set; }
-        HttpClient HttpClient { get; }
+        Task<DicomWebAsyncEnumerableResponse<ChangeFeedEntry>> GetChangeFeed(string queryString = "", CancellationToken cancellationToken = default);
+        Task<DicomWebResponse<ChangeFeedEntry>> GetChangeFeedLatest(string queryString = "", CancellationToken cancellationToken = default);
     }
 }
