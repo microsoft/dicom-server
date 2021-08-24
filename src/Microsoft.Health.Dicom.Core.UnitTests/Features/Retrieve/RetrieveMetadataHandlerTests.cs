@@ -10,6 +10,7 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -31,17 +32,20 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         }
 
         [Theory]
-        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
-        [InlineData("345%^&")]
-        [InlineData("()")]
-        public async Task GivenARequestWithInvalidStudyInstanceIdentifier_WhenHandlerIsExecuted_ThenDicomInvalidIdentifierExceptionIsThrown(string studyInstanceUid)
+        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "Dicom element 'StudyInstanceUid' with value 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...' failed validation for VR 'UI': Dicom Identifier exceeds max length.")]
+        [InlineData("345%^&",
+            "Dicom element 'StudyInstanceUid' with value '345%^&' failed validation for VR 'UI': Dicom Identifier should only contain characters in '0'-'9' and '.', and each component must start with non-zero number.")]
+        [InlineData("()",
+            "Dicom element 'StudyInstanceUid' with value '()' failed validation for VR 'UI': Dicom Identifier should only contain characters in '0'-'9' and '.', and each component must start with non-zero number.")]
+
+        public async Task GivenARequestWithInvalidStudyInstanceIdentifier_WhenHandlerIsExecuted_ThenDicomInvalidIdentifierExceptionIsThrown(string studyInstanceUid, string expectedMessage)
         {
             EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
             string ifNoneMatch = null;
             RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, ifNoneMatch);
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
-
-            Assert.Equal($"DICOM Identifier 'StudyInstanceUid' value '{studyInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
+            Assert.Equal(expectedMessage, ex.Message);
         }
 
         [Theory]
@@ -55,23 +59,25 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             string ifNoneMatch = null;
             RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, ifNoneMatch);
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
-
-            Assert.Equal($"DICOM Identifier 'StudyInstanceUid' value '{studyInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
+            Assert.Equal($"Dicom element 'StudyInstanceUid' with value '{studyInstanceUid.Truncate(64)}' failed validation for VR 'UI': Dicom Identifier should only contain characters in '0'-'9' and '.', and each component must start with non-zero number.", ex.Message);
         }
 
         [Theory]
-        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
-        [InlineData("345%^&")]
-        [InlineData("aaaa-bbbb")]
-        [InlineData("()")]
-        public async Task GivenARequestWithInvalidSeriesIdentifier_WhenRetrievingSeriesMetadata_ThenDicomInvalidIdentifierExceptionIsThrown(string seriesInstanceUid)
+        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "Dicom element 'SeriesInstanceUid' with value 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...' failed validation for VR 'UI': Dicom Identifier exceeds max length.")]
+        [InlineData("345%^&",
+            "Dicom element 'SeriesInstanceUid' with value '345%^&' failed validation for VR 'UI': Dicom Identifier should only contain characters in '0'-'9' and '.', and each component must start with non-zero number.")]
+        [InlineData("aaaa-bbbb",
+            "Dicom element 'SeriesInstanceUid' with value 'aaaa-bbbb' failed validation for VR 'UI': Dicom Identifier should only contain characters in '0'-'9' and '.', and each component must start with non-zero number.")]
+        [InlineData("()",
+            "Dicom element 'SeriesInstanceUid' with value '()' failed validation for VR 'UI': Dicom Identifier should only contain characters in '0'-'9' and '.', and each component must start with non-zero number.")]
+        public async Task GivenARequestWithInvalidSeriesIdentifier_WhenRetrievingSeriesMetadata_ThenDicomInvalidIdentifierExceptionIsThrown(string seriesInstanceUid, string expectedMessage)
         {
             EnsureArg.IsNotNull(seriesInstanceUid, nameof(seriesInstanceUid));
             string ifNoneMatch = null;
             RetrieveMetadataRequest request = new RetrieveMetadataRequest(TestUidGenerator.Generate(), seriesInstanceUid, ifNoneMatch);
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
-
-            Assert.Equal($"DICOM Identifier 'SeriesInstanceUid' value '{seriesInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
+            Assert.Equal(expectedMessage, ex.Message);
         }
 
         [Theory]
@@ -85,8 +91,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             string ifNoneMatch = null;
             RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch);
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
-
-            Assert.Equal($"DICOM Identifier 'StudyInstanceUid' value '{studyInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
+            Assert.Equal($"Dicom element 'StudyInstanceUid' with value '{studyInstanceUid.Truncate(64)}' failed validation for VR 'UI': Dicom Identifier should only contain characters in '0'-'9' and '.', and each component must start with non-zero number.", ex.Message);
         }
 
         [Theory]
@@ -100,23 +105,25 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             string ifNoneMatch = null;
             RetrieveMetadataRequest request = new RetrieveMetadataRequest(TestUidGenerator.Generate(), seriesInstanceUid, sopInstanceUid, ifNoneMatch);
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
-
-            Assert.Equal($"DICOM Identifier 'SeriesInstanceUid' value '{seriesInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
+            Assert.Equal($"Dicom element 'SeriesInstanceUid' with value '{seriesInstanceUid.Truncate(64)}' failed validation for VR 'UI': Dicom Identifier should only contain characters in '0'-'9' and '.', and each component must start with non-zero number.", ex.Message);
         }
 
         [Theory]
-        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
-        [InlineData("345%^&")]
-        [InlineData("aaaa-bbbb")]
-        [InlineData("()")]
-        public async Task GivenARequestWithInvalidSopInstanceIdentifier_WhenRetrievingInstanceMetadata_ThenDicomInvalidIdentifierExceptionIsThrown(string sopInstanceUid)
+        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "Dicom element 'SopInstanceUid' with value 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...' failed validation for VR 'UI': Dicom Identifier exceeds max length.")]
+        [InlineData("345%^&",
+            "Dicom element 'SopInstanceUid' with value '345%^&' failed validation for VR 'UI': Dicom Identifier should only contain characters in '0'-'9' and '.', and each component must start with non-zero number.")]
+        [InlineData("aaaa-bbbb",
+            "Dicom element 'SopInstanceUid' with value 'aaaa-bbbb' failed validation for VR 'UI': Dicom Identifier should only contain characters in '0'-'9' and '.', and each component must start with non-zero number.")]
+        [InlineData("()",
+            "Dicom element 'SopInstanceUid' with value '()' failed validation for VR 'UI': Dicom Identifier should only contain characters in '0'-'9' and '.', and each component must start with non-zero number.")]
+        public async Task GivenARequestWithInvalidSopInstanceIdentifier_WhenRetrievingInstanceMetadata_ThenDicomInvalidIdentifierExceptionIsThrown(string sopInstanceUid, string expectedMessage)
         {
             EnsureArg.IsNotNull(sopInstanceUid, nameof(sopInstanceUid));
             string ifNoneMatch = null;
             RetrieveMetadataRequest request = new RetrieveMetadataRequest(TestUidGenerator.Generate(), TestUidGenerator.Generate(), sopInstanceUid, ifNoneMatch);
             var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
-
-            Assert.Equal($"DICOM Identifier 'SopInstanceUid' value '{sopInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
+            Assert.Equal(expectedMessage, ex.Message);
         }
 
         [Theory]

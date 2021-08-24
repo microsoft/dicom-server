@@ -115,7 +115,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; failed validation for VR &apos;{1}&apos;: {2}..
+        ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; failed validation for VR &apos;{1}&apos;: {2}.
         /// </summary>
         internal static string DicomElementValidationFailed {
             get {
@@ -124,7 +124,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; with value &apos;{1}&apos; failed validation for VR &apos;{2}&apos;: {3}..
+        ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; with value &apos;{1}&apos; failed validation for VR &apos;{2}&apos;: {3}.
         /// </summary>
         internal static string DicomElementValidationFailedWithValue {
             get {

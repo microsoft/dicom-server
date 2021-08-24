@@ -17,39 +17,48 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
     public class RetrieveRequestValidatorTests
     {
         [Theory]
-        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
-        [InlineData("345%^&")]
-        public void GivenAnInvalidStudyInstanceIdentifier_WhenValidatedForRequestedResourceTypeStudy_ThenInvalidIdentifierExceptionIsThrown(string studyInstanceUid)
+        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "Dicom element 'StudyInstanceUid' with value 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...' failed validation for VR 'UI': Dicom Identifier exceeds max length.")]
+        [InlineData("345%^&",
+            "Dicom element 'StudyInstanceUid' with value '345%^&' failed validation for VR 'UI': Dicom Identifier should only contain characters in '0'-'9' and '.', and each component must start with non-zero number.")]
+        public void GivenAnInvalidStudyInstanceIdentifier_WhenValidatedForRequestedResourceTypeStudy_ThenInvalidIdentifierExceptionIsThrown(string studyInstanceUid, string expectedMessage)
         {
             EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
             var ex = Assert.Throws<InvalidIdentifierException>(() => RetrieveRequestValidator.ValidateInstanceIdentifiers(ResourceType.Study, studyInstanceUid));
-            Assert.Equal($"DICOM Identifier 'StudyInstanceUid' value '{studyInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
+            Assert.Equal(expectedMessage, ex.Message);
         }
 
         [Theory]
-        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
-        [InlineData("345%^&")]
-        [InlineData("aaaa-bbbb")]
-        [InlineData("()")]
-        public void GivenAnInvalidSeriesInstanceIdentifier_WhenValidatedForRequestedResourceTypeSeries_ThenInvalidIdentifierExceptionIsThrown(string seriesInstanceUid)
+        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "Dicom element 'SeriesInstanceUid' with value 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...' failed validation for VR 'UI': Dicom Identifier exceeds max length.")]
+        [InlineData("345%^&",
+            "Dicom element 'SeriesInstanceUid' with value '345%^&' failed validation for VR 'UI': Dicom Identifier should only contain characters in '0'-'9' and '.', and each component must start with non-zero number.")]
+        [InlineData("aaaa-bbbb",
+            "Dicom element 'SeriesInstanceUid' with value 'aaaa-bbbb' failed validation for VR 'UI': Dicom Identifier should only contain characters in '0'-'9' and '.', and each component must start with non-zero number.")]
+        [InlineData("()",
+            "Dicom element 'SeriesInstanceUid' with value '()' failed validation for VR 'UI': Dicom Identifier should only contain characters in '0'-'9' and '.', and each component must start with non-zero number.")]
+        public void GivenAnInvalidSeriesInstanceIdentifier_WhenValidatedForRequestedResourceTypeSeries_ThenInvalidIdentifierExceptionIsThrown(string seriesInstanceUid, string expectedMessage)
         {
             EnsureArg.IsNotNull(seriesInstanceUid, nameof(seriesInstanceUid));
             var ex = Assert.Throws<InvalidIdentifierException>(() => RetrieveRequestValidator.ValidateInstanceIdentifiers(ResourceType.Series, TestUidGenerator.Generate(), seriesInstanceUid));
-            Assert.Equal($"DICOM Identifier 'SeriesInstanceUid' value '{seriesInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", ex.Message);
+            Assert.Equal(expectedMessage, ex.Message);
         }
 
         [Theory]
-        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
-        [InlineData("345%^&")]
-        [InlineData("aaaa-bbbb")]
-        [InlineData("()")]
-        public void GivenAnInvalidInstanceIdentifier_WhenValidatedForRequestedResourceTypeInstance_ThenInvalidIdentifierExceptionIsThrown(string sopInstanceUid)
+        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "Dicom element 'SopInstanceUid' with value 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...' failed validation for VR 'UI': Dicom Identifier exceeds max length.")]
+        [InlineData("345%^&",
+            "Dicom element 'SopInstanceUid' with value '345%^&' failed validation for VR 'UI': Dicom Identifier should only contain characters in '0'-'9' and '.', and each component must start with non-zero number.")]
+        [InlineData("aaaa-bbbb",
+            "Dicom element 'SopInstanceUid' with value 'aaaa-bbbb' failed validation for VR 'UI': Dicom Identifier should only contain characters in '0'-'9' and '.', and each component must start with non-zero number.")]
+        [InlineData("()",
+            "Dicom element 'SopInstanceUid' with value '()' failed validation for VR 'UI': Dicom Identifier should only contain characters in '0'-'9' and '.', and each component must start with non-zero number.")]
+
+        public void GivenAnInvalidInstanceIdentifier_WhenValidatedForRequestedResourceTypeInstance_ThenInvalidIdentifierExceptionIsThrown(string sopInstanceUid, string expectedMessage)
         {
             EnsureArg.IsNotNull(sopInstanceUid, nameof(sopInstanceUid));
-            string expectedErrorMessage = $"DICOM Identifier 'SopInstanceUid' value '{sopInstanceUid.Trim()}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.";
-
             var ex = Assert.Throws<InvalidIdentifierException>(() => RetrieveRequestValidator.ValidateInstanceIdentifiers(ResourceType.Instance, TestUidGenerator.Generate(), TestUidGenerator.Generate(), sopInstanceUid));
-            Assert.Equal(expectedErrorMessage, ex.Message);
+            Assert.Equal(expectedMessage, ex.Message);
         }
 
         [Theory]

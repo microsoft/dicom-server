@@ -136,7 +136,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             internal readonly IntColumn TagKey = new IntColumn("TagKey");
-            internal readonly NVarCharColumn ErrorMessage = new NVarCharColumn("ErrorMessage", 128);
+            internal readonly NVarCharColumn ErrorMessage = new NVarCharColumn("ErrorMessage", 200);
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly DateTime2Column CreatedTime = new DateTime2Column("CreatedTime", 7);
             internal readonly Index IXC_ExtendedQueryTagError = new Index("IXC_ExtendedQueryTagError");

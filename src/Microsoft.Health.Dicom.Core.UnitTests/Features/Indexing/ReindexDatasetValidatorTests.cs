@@ -70,13 +70,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Indexing
         [Fact]
         public void GivenMismatchVR_WhenRecordErrorMessage_ThenShouldNotTruncate()
         {
-            DicomDataset dataset = Samples.CreateRandomInstanceDataset();
-#pragma warning disable CS0618 // Type or member is obsolete
-            dataset.AutoValidate = false;
-#pragma warning restore CS0618 // Type or member is obsolete
+            DicomDataset dataset = Samples.CreateRandomInstanceDataset().NotValidated();
             DicomTag tag = DicomTag.DeviceSerialNumber;
             QueryTag queryTag = new QueryTag(tag.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study, vr: DicomVR.PN.Code));
             dataset.Add(tag, "SN");
+
+            // Validate throws exception when truncate
             _validator.Validate(dataset, 1, new[] { queryTag });
         }
 
@@ -85,13 +84,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Indexing
         [MemberData(nameof(GetElementForValidation))]
         public void GivenValidationFailure_WhenRecordErrorMessage_ThenShouldNotTruncate(DicomElement element)
         {
-            DicomDataset dataset = new DicomDataset();
-#pragma warning disable CS0618 // Type or member is obsolete
-            dataset.AutoValidate = false;
-#pragma warning restore CS0618 // Type or member is obsolete
+            DicomDataset dataset = new DicomDataset().NotValidated();
             DicomTag tag = element.Tag;
             QueryTag queryTag = new QueryTag(tag.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study, vr: element.ValueRepresentation.Code));
             dataset.Add(element);
+
+            // Validate throws exception when truncate
             _validator.Validate(dataset, 1, new[] { queryTag });
         }
 
