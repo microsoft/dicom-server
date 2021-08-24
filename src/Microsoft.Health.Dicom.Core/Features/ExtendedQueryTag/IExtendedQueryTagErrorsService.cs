@@ -5,6 +5,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
@@ -35,5 +36,14 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The response.</returns>
         Task<GetExtendedQueryTagErrorsResponse> GetExtendedQueryTagErrorsAsync(string tagPath, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Asynchronously acknowledge error for a specified tag on DICOM instance.
+        /// </summary>
+        /// <param name="tagPath">The tag path.</param>
+        /// <param name="instanceId">The instance identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        Task<ExtendedQueryTagError> AcknowledgeExtendedQueryTagErrorAsync(string tagPath, InstanceIdentifier instanceId, CancellationToken cancellationToken = default);
     }
 }

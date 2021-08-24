@@ -23,9 +23,8 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         /// <returns>Normalize extended query tag entry.</returns>
         public static AddExtendedQueryTagEntry Normalize(this AddExtendedQueryTagEntry extendedQueryTagEntry)
         {
-            DicomTagParser dicomTagParser = new DicomTagParser();
             DicomTag[] tags;
-            if (!dicomTagParser.TryParse(extendedQueryTagEntry.Path, out tags, supportMultiple: false))
+            if (!DicomTagParser.TryParse(extendedQueryTagEntry.Path, out tags, supportMultiple: false))
             {
                 // not a valid dicom tag path
                 throw new ExtendedQueryTagEntryValidationException(

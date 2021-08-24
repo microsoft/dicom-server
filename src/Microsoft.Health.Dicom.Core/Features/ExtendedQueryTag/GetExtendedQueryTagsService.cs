@@ -20,22 +20,17 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     public class GetExtendedQueryTagsService : IGetExtendedQueryTagsService
     {
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
-        private readonly IDicomTagParser _dicomTagParser;
-
-        public GetExtendedQueryTagsService(IExtendedQueryTagStore extendedQueryTagStore, IDicomTagParser dicomTagParser)
+        public GetExtendedQueryTagsService(IExtendedQueryTagStore extendedQueryTagStore)
         {
             EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
-            EnsureArg.IsNotNull(dicomTagParser, nameof(dicomTagParser));
-
             _extendedQueryTagStore = extendedQueryTagStore;
-            _dicomTagParser = dicomTagParser;
         }
 
         public async Task<GetExtendedQueryTagResponse> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken)
         {
             string numericalTagPath = null;
             DicomTag[] tags;
-            if (_dicomTagParser.TryParse(tagPath, out tags, supportMultiple: false))
+            if (DicomTagParser.TryParse(tagPath, out tags, supportMultiple: false))
             {
                 if (tags.Length > 1)
                 {

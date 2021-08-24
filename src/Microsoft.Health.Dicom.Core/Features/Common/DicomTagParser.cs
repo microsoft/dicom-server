@@ -12,9 +12,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
     /// <summary>
     /// Provides functionality to parse dicom tag path
     /// </summary>
-    public class DicomTagParser : IDicomTagParser
+    public static class DicomTagParser
     {
-        public bool TryParse(string dicomTagPath, out DicomTag[] dicomTags, bool supportMultiple = false)
+        public static bool TryParse(string dicomTagPath, out DicomTag[] dicomTags, bool supportMultiple = false)
         {
             dicomTags = null;
             if (supportMultiple)

@@ -18,13 +18,17 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
-            string errorMessage)
+            string errorMessage,
+            ExtendedQueryTagErrorStatus status,
+            DateTime acknowledgedTime)
         {
             StudyInstanceUid = EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid);
             SeriesInstanceUid = EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid);
             SopInstanceUid = EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid);
             CreatedTime = createdTime;
             ErrorMessage = EnsureArg.IsNotNullOrWhiteSpace(errorMessage);
+            Status = EnsureArg.EnumIsDefined(status);
+            AcknowledgedTime = acknowledgedTime;
         }
 
         public string StudyInstanceUid { get; }
@@ -36,5 +40,10 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         public DateTime CreatedTime { get; }
 
         public string ErrorMessage { get; }
+
+        public ExtendedQueryTagErrorStatus Status { get; }
+
+        public DateTime AcknowledgedTime { get; }
+
     }
 }
