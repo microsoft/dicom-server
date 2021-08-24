@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 using NSubstitute;
@@ -20,7 +19,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
     public class ExtendedQueryTagErrorsServiceTests
     {
         private readonly IExtendedQueryTagErrorStore _extendedQueryTagErrorStore;
-        private readonly IDicomTagParser _dicomTagParser;
         private readonly IExtendedQueryTagErrorsService _extendedQueryTagErrorsService;
         private readonly CancellationTokenSource _tokenSource;
         private readonly DateTime _definedNow;
@@ -28,8 +26,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         public ExtendedQueryTagErrorsServiceTests()
         {
             _extendedQueryTagErrorStore = Substitute.For<IExtendedQueryTagErrorStore>();
-            _dicomTagParser = Substitute.For<IDicomTagParser>();
-            _extendedQueryTagErrorsService = new ExtendedQueryTagErrorsService(_extendedQueryTagErrorStore, _dicomTagParser);
+            _extendedQueryTagErrorsService = new ExtendedQueryTagErrorsService(_extendedQueryTagErrorStore);
             _tokenSource = new CancellationTokenSource();
             _definedNow = DateTime.UtcNow;
         }
@@ -69,20 +66,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             string tagPath = DicomTag.DeviceID.GetPath();
 
             DicomTag[] parsedTags = new DicomTag[] { DicomTag.DeviceID };
-
-            _dicomTagParser.TryParse(tagPath, out Arg.Any<DicomTag[]>()).Returns(x =>
-            {
-                x[1] = parsedTags;
-                return true;
-            });
-
             _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tagPath).Returns(new List<ExtendedQueryTagError>());
             GetExtendedQueryTagErrorsResponse response = await _extendedQueryTagErrorsService.GetExtendedQueryTagErrorsAsync(tagPath);
-
-            _dicomTagParser.Received(1).TryParse(
-                Arg.Is(tagPath),
-                out Arg.Any<DicomTag[]>());
-
             Assert.Empty(response.ExtendedQueryTagErrors);
         }
 
@@ -93,18 +78,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
 
             DicomTag[] parsedTags = new DicomTag[] { DicomTag.DeviceID };
 
-            _dicomTagParser.TryParse(tagPath, out Arg.Any<DicomTag[]>()).Returns(x =>
-            {
-                x[1] = parsedTags;
-                return true;
-            });
-
             _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tagPath).Returns(new List<ExtendedQueryTagError>());
             await _extendedQueryTagErrorsService.GetExtendedQueryTagErrorsAsync(tagPath);
             await _extendedQueryTagErrorStore.Received(1).GetExtendedQueryTagErrorsAsync(tagPath);
-            _dicomTagParser.Received(1).TryParse(
-                Arg.Is(tagPath),
-                out Arg.Any<DicomTag[]>());
         }
 
         [Fact]
@@ -117,22 +93,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
                 Guid.NewGuid().ToString(),
                 Guid.NewGuid().ToString(),
                 Guid.NewGuid().ToString(),
-                "fake error message") };
+                "fake error message",
+                 ExtendedQueryTagErrorStatus.Unacknowledged,
+                 DateTime.UtcNow) };
 
             DicomTag[] parsedTags = new DicomTag[] { DicomTag.DeviceID };
-
-            _dicomTagParser.TryParse(tagPath, out Arg.Any<DicomTag[]>()).Returns(x =>
-            {
-                x[1] = parsedTags;
-                return true;
-            });
 
             _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tagPath).Returns(expected);
             GetExtendedQueryTagErrorsResponse response = await _extendedQueryTagErrorsService.GetExtendedQueryTagErrorsAsync(tagPath);
             await _extendedQueryTagErrorStore.Received(1).GetExtendedQueryTagErrorsAsync(tagPath);
-            _dicomTagParser.Received(1).TryParse(
-                Arg.Is(tagPath),
-                out Arg.Any<DicomTag[]>());
             Assert.Equal(expected, response.ExtendedQueryTagErrors);
         }
     }

@@ -93,7 +93,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
                         VLatest.Instance.SeriesInstanceUid,
                         VLatest.Instance.SopInstanceUid);
 
-                    results.Add(new ExtendedQueryTagError(createdTime, studyInstanceUid, seriesInstanceUid, sopInstanceUid, errorMessage));
+                    // TODO: fill value correctly
+                    results.Add(new ExtendedQueryTagError(createdTime, studyInstanceUid, seriesInstanceUid, sopInstanceUid, errorMessage, ExtendedQueryTagErrorStatus.Acknowledged, default));
                 }
             }
             catch (SqlException e)

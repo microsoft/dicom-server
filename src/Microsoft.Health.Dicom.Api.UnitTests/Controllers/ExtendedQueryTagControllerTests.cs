@@ -85,9 +85,9 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
             var expected = new GetExtendedQueryTagErrorsResponse(
                 new List<ExtendedQueryTagError>
                 {
-                    new ExtendedQueryTagError(DateTime.UtcNow, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), "Error 1"),
-                    new ExtendedQueryTagError(DateTime.UtcNow, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), "Error 2"),
-                    new ExtendedQueryTagError(DateTime.UtcNow, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), "Error 3"),
+                    new ExtendedQueryTagError(DateTime.UtcNow, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), "Error 1", ExtendedQueryTagErrorStatus.Unacknowledged, default),
+                    new ExtendedQueryTagError(DateTime.UtcNow, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), "Error 2", ExtendedQueryTagErrorStatus.Unacknowledged, default),
+                    new ExtendedQueryTagError(DateTime.UtcNow, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), "Error 3", ExtendedQueryTagErrorStatus.Unacknowledged, default),
                 });
 
             mediator

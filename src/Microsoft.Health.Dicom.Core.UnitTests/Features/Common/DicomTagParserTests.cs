@@ -13,19 +13,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Common
 {
     public class DicomTagParserTests
     {
-        private readonly IDicomTagParser _dicomTagParser;
-
-        public DicomTagParserTests()
-        {
-            _dicomTagParser = new DicomTagParser();
-        }
-
         [MemberData(nameof(GetValidTags))]
         [Theory]
         public void GivenValidTag_WhenParse_ThenShouldReturnCorrectValue(string dicomTagPath, DicomTag expectedTag)
         {
             DicomTag[] tags;
-            bool succeed = _dicomTagParser.TryParse(dicomTagPath, out tags, supportMultiple: false);
+            bool succeed = DicomTagParser.TryParse(dicomTagPath, out tags, supportMultiple: false);
             Assert.True(succeed);
             Assert.Single(tags);
             Assert.Equal(tags[0], expectedTag);
@@ -36,7 +29,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Common
         public void GivenInvalidTag_WhenParse_ThenShouldReturnFalse(string dicomTagPath)
         {
             DicomTag[] tags;
-            bool succeed = _dicomTagParser.TryParse(dicomTagPath, out tags, supportMultiple: false);
+            bool succeed = DicomTagParser.TryParse(dicomTagPath, out tags, supportMultiple: false);
             Assert.False(succeed);
         }
 

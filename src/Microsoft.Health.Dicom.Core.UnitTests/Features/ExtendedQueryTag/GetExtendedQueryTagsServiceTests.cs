@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Tests.Common.Comparers;
@@ -20,14 +19,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
     public class GetExtendedQueryTagsServiceTests
     {
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
-        private readonly IDicomTagParser _dicomTagParser;
+
         private readonly IGetExtendedQueryTagsService _getExtendedQueryTagsService;
 
         public GetExtendedQueryTagsServiceTests()
         {
             _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
-            _dicomTagParser = Substitute.For<IDicomTagParser>();
-            _getExtendedQueryTagsService = new GetExtendedQueryTagsService(_extendedQueryTagStore, _dicomTagParser);
+            _getExtendedQueryTagsService = new GetExtendedQueryTagsService(_extendedQueryTagStore);
         }
 
         [Fact]
@@ -62,12 +60,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         {
             DicomTag[] parsedTags = new DicomTag[] { DicomTag.DeviceID };
 
-            _dicomTagParser.TryParse(tagPath, out Arg.Any<DicomTag[]>()).Returns(x =>
-            {
-                x[1] = parsedTags;
-                return true;
-            });
-
             _extendedQueryTagStore.GetExtendedQueryTagsAsync(tagPath, default).Returns(new List<ExtendedQueryTagStoreEntry>());
             var exception = await Assert.ThrowsAsync<ExtendedQueryTagNotFoundException>(() => _getExtendedQueryTagsService.GetExtendedQueryTagAsync(tagPath));
 
@@ -80,12 +72,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             string tagPath = DicomTag.DeviceID.GetPath();
             ExtendedQueryTagStoreEntry stored = CreateExtendedQueryTagEntry(5, tagPath, DicomVRCode.AE.ToString());
             DicomTag[] parsedTags = new DicomTag[] { DicomTag.DeviceID };
-
-            _dicomTagParser.TryParse(tagPath, out Arg.Any<DicomTag[]>()).Returns(x =>
-            {
-                x[1] = parsedTags;
-                return true;
-            });
 
             _extendedQueryTagStore.GetExtendedQueryTagsAsync(tagPath, default).Returns(new List<ExtendedQueryTagStoreEntry> { stored });
             GetExtendedQueryTagResponse response = await _getExtendedQueryTagsService.GetExtendedQueryTagAsync(tagPath);
