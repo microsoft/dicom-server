@@ -11,7 +11,8 @@
   "DicomFunctions": {
     "Indexing": {
       "BatchSize": 100,
-      "ParallelBatches": 3,
+      "BatchThreadCount": 5,
+      "MaxParallelBatches": 10,
       "RetryOptions": {
         "BackoffCoefficient": 3,
         "FirstRetryInterval": "00:01:00",
