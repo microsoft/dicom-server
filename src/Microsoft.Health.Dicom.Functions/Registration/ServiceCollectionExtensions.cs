@@ -85,13 +85,13 @@ namespace Microsoft.Extensions.DependencyInjection
             EnsureArg.IsNotNull(services, nameof(services));
 
             services
-                .AddControllers()
+                .AddMvcCore()
                 .AddJsonSerializerOptions(x => x.Converters.Add(new JsonStringEnumConverter()));
 
             return services;
         }
 
-        public static IMvcBuilder AddJsonSerializerOptions(this IMvcBuilder builder, Action<JsonSerializerOptions> configure)
+        private static IMvcCoreBuilder AddJsonSerializerOptions(this IMvcCoreBuilder builder, Action<JsonSerializerOptions> configure)
         {
             EnsureArg.IsNotNull(builder, nameof(builder));
             EnsureArg.IsNotNull(configure, nameof(configure));

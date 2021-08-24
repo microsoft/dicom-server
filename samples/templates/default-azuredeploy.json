@@ -7,7 +7,7 @@
             "minLength": 3,
             "maxLength": 24,
             "metadata": {
-                "description": "Name of the DICOM service Web App."
+                "description": "Name of the DICOM Service Web App."
             }
         },
         "functionAppName": {
@@ -16,7 +16,7 @@
             "minLength": 0,
             "maxLength": 36,
             "metadata": {
-                "description": "Name of the DICOM service Web App."
+                "description": "Name of the DICOM Function App used for long-running operations."
             }
         },
         "appServicePlanResourceGroup": {
@@ -201,7 +201,7 @@
             "AzureWebJobsDisableHomepage": "true",
             "FUNCTIONS_EXTENSION_VERSION": "~3",
             "FUNCTIONS_WORKER_RUNTIME": "dotnet",
-            "WEBSITE_ENABLE_SYNC_UPDATE_SITE": "true"
+            "WEBSITE_ENABLE_SYNC_UPDATE_SITE": "1"
         },
         "combinedDicomServerConfigProperties": "[union(variables('staticDicomServerConfigProperties'), parameters('additionalDicomServerConfigProperties'))]",
         "combinedDicomFunctionAppConfigProperties": "[union(variables('staticDicomFunctionAppConfigProperties'), parameters('additionalDicomFunctionAppConfigProperties'))]",
@@ -217,10 +217,12 @@
         "sqlServerConnectionStringName": "SqlServerConnectionString",
         "azureStorageConnectionStringName": "AzureStorageConnectionString",
         "appInsightsInstrumentationKeyName": "AppInsightsInstrumentationKey",
+        "appInsightsConnectionStringName": "AppInsightsConnectionString",
         "functionAccessKeyName": "FunctionAccessKey",
         "sqlServerConnectionStringResourceId": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('serviceName'), variables('sqlServerConnectionStringName'))]",
         "azureStorageConnectionStringResourceId": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('serviceName'), variables('azureStorageConnectionStringName'))]",
         "appInsightsInstrumentationKeyResourceId": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('serviceName'), variables('appInsightsInstrumentationKeyName'))]",
+        "appInsightsConnectionStringResourceId": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('serviceName'), variables('appInsightsConnectionStringName'))]",
         "functionAccessKeyResourceId": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('serviceName'), variables('functionAccessKeyName'))]"
     },
     "resources": [
@@ -297,9 +299,9 @@
                         "[variables('appServiceResourceId')]",
                         "[concat(variables('appServiceResourceId'), '/siteextensions/AspNetCoreRuntime.5.0.x64')]"
                     ],
-                    "properties": {
-                        "packageUri": "[variables('deployWebPackageUrl')]"
-                    }
+                  "properties": {
+                    "packageUri": "[variables('deployWebPackageUrl')]"
+                  }
                 }
             ]
         },
@@ -319,11 +321,13 @@
                 "clientAffinityEnabled": false,
                 "serverFarmId": "[variables('appServicePlanResourceId')]",
                 "siteConfig":{
+                    "alwaysOn": true,
                     "use32BitWorkerProcess": false
                 }
             },
             "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms/', variables('appServicePlanName'))]"
+                "[resourceId('Microsoft.Web/serverfarms/', variables('appServicePlanName'))]",
+                "[variables('storageResourceId')]"
             ],
             "resources": [
                 {
@@ -335,9 +339,9 @@
                         "[variables('sqlServerConnectionStringResourceId')]",
                         "[variables('azureStorageConnectionStringResourceId')]",
                         "[variables('appInsightsInstrumentationKeyResourceId')]",
-                        "[concat(variables('appServiceResourceId'), '/extensions/MSDeploy')]"
+                        "[variables('appInsightsConnectionStringResourceId')]"
                     ],
-                    "properties": "[union(if(variables('deployAppInsights'), json(concat('{\"APPINSIGHTS_INSTRUMENTATIONKEY\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsInstrumentationKeyResourceId')).secretUriWithVersion, ')'), '\"}')), json('{}')), json(concat('{\"AzureFunctionsJobHost__BlobStore__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"AzureFunctionsJobHost__SqlServer__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('sqlServerConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"AzureWebJobsStorage\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), variables('combinedDicomFunctionAppConfigProperties'))]"
+                    "properties": "[union(if(variables('deployAppInsights'), json(concat('{\"APPINSIGHTS_INSTRUMENTATIONKEY\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsInstrumentationKeyResourceId')).secretUriWithVersion, ')'), '\" ,\"APPLICATIONINSIGHTS_CONNECTION_STRING\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json('{}')), json(concat('{\"AzureFunctionsJobHost__BlobStore__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"AzureFunctionsJobHost__SqlServer__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('sqlServerConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"AzureWebJobsStorage\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), variables('combinedDicomFunctionAppConfigProperties'))]"
                 },
                 {
                     "apiVersion": "2015-08-01",
@@ -345,11 +349,12 @@
                     "name": "MSDeploy",
                     "condition": "[parameters('deployPackages')]",
                     "dependsOn": [
-                        "[variables('functionAppServiceResourceId')]"
+                        "[variables('functionAppServiceResourceId')]",
+                        "[concat(variables('appServiceResourceId'), '/config/appsettings')]"
                     ],
-                    "properties": {
-                        "packageUri": "[variables('deployFunctionAppPackageUrl')]"
-                    }
+                  "properties": {
+                    "packageUri": "[variables('deployFunctionAppPackageUrl')]"
+                  }
                 }
             ]
         },
@@ -506,6 +511,20 @@
                     "properties": {
                         "contentType": "text/plain",
                         "value": "[reference(resourceId('Microsoft.Insights/components/', variables('appInsightsName'))).instrumentationKey]"
+                    },
+                    "condition": "[variables('deployAppInsights')]",
+                    "dependsOn": [
+                        "[variables('keyVaultResourceId')]",
+                        "[resourceId('Microsoft.Insights/components/', variables('appInsightsName'))]"
+                    ]
+                },
+                {
+                    "type": "secrets",
+                    "name": "[variables('appInsightsConnectionStringName')]",
+                    "apiVersion": "2015-06-01",
+                    "properties": {
+                        "contentType": "text/plain",
+                        "value": "[reference(resourceId('Microsoft.Insights/components/', variables('appInsightsName'))).ConnectionString]"
                     },
                     "condition": "[variables('deployAppInsights')]",
                     "dependsOn": [
