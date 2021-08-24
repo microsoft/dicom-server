@@ -23,6 +23,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Core.Web;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
@@ -54,7 +55,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [BodyModelStateValidator]
         [Produces(KnownContentTypes.ApplicationJson)]
         [Consumes(KnownContentTypes.ApplicationJson)]
-        [ProducesResponseType(typeof(AddExtendedQueryTagResponse), (int)HttpStatusCode.Accepted)]
+        [ProducesResponseType(typeof(OperationReference), (int)HttpStatusCode.Accepted)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [VersionedRoute(KnownRoutes.ExtendedQueryTagRoute)]
         [Route(KnownRoutes.ExtendedQueryTagRoute)]
@@ -148,7 +149,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// </returns>
         [HttpGet]
         [Produces(KnownContentTypes.ApplicationJson)]
-        [ProducesResponseType(typeof(GetExtendedQueryTagErrorsResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IReadOnlyCollection<ExtendedQueryTagError>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
         [VersionedRoute(KnownRoutes.GetExtendedQueryTagErrorsRoute)]
@@ -161,7 +162,25 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             EnsureFeatureIsEnabled();
             GetExtendedQueryTagErrorsResponse response = await _mediator.GetExtendedQueryTagErrorsAsync(tagPath, HttpContext.RequestAborted);
 
-            return StatusCode((int)HttpStatusCode.OK, response);
+            return StatusCode((int)HttpStatusCode.OK, response.ExtendedQueryTagErrors);
+        }
+
+
+        [HttpPost]
+        [Produces(KnownContentTypes.ApplicationJson)]
+        [ProducesResponseType(typeof(ExtendedQueryTagError), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.Conflict)]
+        [VersionedRoute(KnownRoutes.AcknowledgeExtendedQueryTagErrorRoute)]
+        [Route(KnownRoutes.AcknowledgeExtendedQueryTagErrorRoute)]
+        [AuditEventType(AuditEventSubType.AcknowledgeExtendedQueryTagError)]
+        public async Task<IActionResult> AcknowledgeTagErrorAsync(string tagPath, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+        {
+            _logger.LogInformation("DICOM Web Acknowledge Extended Query Tag Error request received, for extended query tag: {tagPath}, study: {studyInstanceUid}, series: {seriesInstanceUid}, instance: {sopInstanceUid}", tagPath, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            EnsureFeatureIsEnabled();
+            AcknowledgeTagErrorResponse response = await _mediator.AcknowledgeTagErrorAsync(tagPath, studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.RequestAborted);
+            return StatusCode((int)HttpStatusCode.OK, response.TagError);
         }
 
         private void EnsureFeatureIsEnabled()
