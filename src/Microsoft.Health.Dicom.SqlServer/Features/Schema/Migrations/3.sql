@@ -538,7 +538,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagK
 CREATE TABLE dbo.Cohort (
     CohortId                UNIQUEIDENTIFIER     NOT NULL,
     ResourceId              NVARCHAR(200)        NOT NULL,
-    ResourceType            NVARCHAR(200)        NOT NULL,
+    ResourceType            SMALLINT             NOT NULL,
     ReferenceURL            NVARCHAR(MAX)        NOT NULL, 
 ) 
 

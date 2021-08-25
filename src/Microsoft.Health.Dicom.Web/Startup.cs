@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Development.IdentityProvider.Registration;
+using Microsoft.Health.Dicom.Core.Features.Cohort;
 using Microsoft.Health.Dicom.Core.Features.Security;
 
 namespace Microsoft.Health.Dicom.Web
@@ -29,6 +30,7 @@ namespace Microsoft.Health.Dicom.Web
                 options.MaxRequestBodySize = int.MaxValue;
             });
             services.AddDevelopmentIdentityProvider<DataActions>(Configuration, "DicomServer");
+            services.AddScoped<ICohortStore, CohortStore>();
 
             // The execution of IHostedServices depends on the order they are added to the dependency injection container, so we
             // need to ensure that the schema is initialized before the background workers are started.
