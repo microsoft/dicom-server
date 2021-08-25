@@ -9,6 +9,7 @@ using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Delete;
+using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.HealthCheck;
 using Microsoft.Health.Dicom.Core.Features.Query;
@@ -119,6 +120,11 @@ namespace Microsoft.Health.Dicom.Core.Modules
             services.AddTransient<IQueryParser, QueryParser>();
 
             services.Add<DeleteService>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<ExportService>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();

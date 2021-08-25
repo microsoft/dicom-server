@@ -10,6 +10,8 @@
     <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="fo-dicom" Version="4.0.7" />
     <PackageReference Include="MediatR" Version="9.0.0" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.9.1" />
+    <PackageReference Include="Azure.Storage.Common" Version="12.8.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.18.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="$(SdkPackageVersion)" />
@@ -32,6 +34,10 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Features\Security\roles.schema.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.Health.Dicom.Anonymizer.Core\Microsoft.Health.Dicom.Anonymizer.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
