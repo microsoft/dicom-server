@@ -23,26 +23,22 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     {
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly IDicomOperationsClient _client;
-        private readonly IExtendedQueryTagEntryValidator _extendedQueryTagEntryValidator;
         private readonly IUrlResolver _uriResolver;
         private readonly int _maxAllowedCount;
 
         public AddExtendedQueryTagService(
             IExtendedQueryTagStore extendedQueryTagStore,
             IDicomOperationsClient client,
-            IExtendedQueryTagEntryValidator extendedQueryTagEntryValidator,
             IUrlResolver uriResolver,
             IOptions<ExtendedQueryTagConfiguration> extendedQueryTagConfiguration)
         {
             EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
             EnsureArg.IsNotNull(client, nameof(client));
-            EnsureArg.IsNotNull(extendedQueryTagEntryValidator, nameof(extendedQueryTagEntryValidator));
             EnsureArg.IsNotNull(uriResolver, nameof(uriResolver));
             EnsureArg.IsNotNull(extendedQueryTagConfiguration?.Value, nameof(extendedQueryTagConfiguration));
 
             _extendedQueryTagStore = extendedQueryTagStore;
             _client = client;
-            _extendedQueryTagEntryValidator = extendedQueryTagEntryValidator;
             _uriResolver = uriResolver;
             _maxAllowedCount = extendedQueryTagConfiguration.Value.MaxAllowedCount;
         }
@@ -51,7 +47,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags,
             CancellationToken cancellationToken = default)
         {
-            _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(extendedQueryTags);
+            ExtendedQueryTagValidator.ValidateAddExtendedQueryTagEntries(extendedQueryTags);
             var normalized = extendedQueryTags
                 .Select(item => item.Normalize())
                 .ToList();

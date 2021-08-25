@@ -3,16 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
@@ -28,22 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
         public async Task<GetExtendedQueryTagResponse> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken)
         {
-            string numericalTagPath = null;
-            DicomTag[] tags;
-            if (DicomTagParser.TryParse(tagPath, out tags, supportMultiple: false))
-            {
-                if (tags.Length > 1)
-                {
-                    throw new NotImplementedException(DicomCoreResource.SequentialDicomTagsNotSupported);
-                }
-
-                numericalTagPath = tags[0].GetPath();
-            }
-            else
-            {
-                throw new InvalidExtendedQueryTagPathException(string.Format(DicomCoreResource.InvalidExtendedQueryTag, tagPath ?? string.Empty));
-            }
-
+            string numericalTagPath = ExtendedQueryTagValidator.ValidateTagPath(tagPath).GetPath();
             IReadOnlyList<ExtendedQueryTagStoreEntry> extendedQueryTags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(numericalTagPath, cancellationToken);
 
             if (!extendedQueryTags.Any())

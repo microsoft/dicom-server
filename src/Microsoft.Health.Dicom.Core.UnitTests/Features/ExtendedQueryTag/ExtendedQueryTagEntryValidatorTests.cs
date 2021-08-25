@@ -14,24 +14,18 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
 {
     public class ExtendedQueryTagEntryValidatorTests
     {
-        private readonly IExtendedQueryTagEntryValidator _extendedQueryTagEntryValidator;
-
-        public ExtendedQueryTagEntryValidatorTests()
-        {
-            _extendedQueryTagEntryValidator = new ExtendedQueryTagEntryValidator();
-        }
 
         [Fact]
         public void GivenNoExtendedQueryTagEntry_WhenValidating_ThenShouldThrowException()
         {
-            Assert.Throws<ExtendedQueryTagEntryValidationException>(() => { _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[0]); });
+            Assert.Throws<ExtendedQueryTagEntryValidationException>(() => { ExtendedQueryTagValidator.ValidateAddExtendedQueryTagEntries(new AddExtendedQueryTagEntry[0]); });
         }
 
         [Fact]
         public void GivenMissingLevel_WhenValidating_ThenShouldThrowException()
         {
             AddExtendedQueryTagEntry entry = new AddExtendedQueryTagEntry { Path = "00101060", VR = "PN" };
-            Assert.Throws<ExtendedQueryTagEntryValidationException>(() => _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry }));
+            Assert.Throws<ExtendedQueryTagEntryValidationException>(() => ExtendedQueryTagValidator.ValidateAddExtendedQueryTagEntries(new AddExtendedQueryTagEntry[] { entry }));
         }
 
         [Theory]
@@ -42,7 +36,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         public void GivenInvalidTag_WhenValidating_ThenShouldThrowException(string path)
         {
             AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(path, DicomVRCode.AE);
-            var ex = Assert.Throws<ExtendedQueryTagEntryValidationException>(() => { _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry }); });
+            var ex = Assert.Throws<ExtendedQueryTagEntryValidationException>(() => { ExtendedQueryTagValidator.ValidateAddExtendedQueryTagEntries(new AddExtendedQueryTagEntry[] { entry }); });
             Assert.Equal(string.Format("The extended query tag '{0}' is invalid as it cannot be parsed into a valid Dicom Tag.", path), ex.Message);
         }
 
@@ -52,7 +46,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         public void GivenValidTag_WhenValidating_ThenShouldSucceed(string path)
         {
             AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(path, DicomVRCode.DS);
-            _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry });
+            ExtendedQueryTagValidator.ValidateAddExtendedQueryTagEntries(new AddExtendedQueryTagEntry[] { entry });
         }
 
         [Theory]
@@ -61,7 +55,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         public void GivenStandardTagWithoutVR_WhenValidating_ThenShouldSucceed(string vr)
         {
             AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(DicomTag.DeviceSerialNumber.GetPath(), vr);
-            _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry });
+            ExtendedQueryTagValidator.ValidateAddExtendedQueryTagEntries(new AddExtendedQueryTagEntry[] { entry });
         }
 
         [Fact]
@@ -70,7 +64,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(DicomTag.DeviceSerialNumber.GetPath(), null, privateCreator: "PrivateCreator");
             Assert.Throws<ExtendedQueryTagEntryValidationException>(() =>
             {
-                _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry });
+                ExtendedQueryTagValidator.ValidateAddExtendedQueryTagEntries(new AddExtendedQueryTagEntry[] { entry });
             });
         }
 
@@ -80,7 +74,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             string tagPath = DicomTag.DeviceSerialNumber.GetPath();
             string vr = "CS"; // expected vr should be LO. CS is not acceptable
             AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(tagPath, vr);
-            var ex = Assert.Throws<ExtendedQueryTagEntryValidationException>(() => { _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry }); });
+            var ex = Assert.Throws<ExtendedQueryTagEntryValidationException>(() => { ExtendedQueryTagValidator.ValidateAddExtendedQueryTagEntries(new AddExtendedQueryTagEntry[] { entry }); });
             Assert.Equal(string.Format("The VR code '{0}' is incorrectly specified for '{1}'. The expected VR code for it is '{2}'. Retry this request either with the correct VR code or without specifying it.", vr, tagPath, "LO"), ex.Message);
         }
 
@@ -90,7 +84,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             string tagPath = DicomTag.DeviceSerialNumber.GetPath();
             string vr = "LOX";
             AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(tagPath, vr);
-            var ex = Assert.Throws<ExtendedQueryTagEntryValidationException>(() => { _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry }); });
+            var ex = Assert.Throws<ExtendedQueryTagEntryValidationException>(() => { ExtendedQueryTagValidator.ValidateAddExtendedQueryTagEntries(new AddExtendedQueryTagEntry[] { entry }); });
             Assert.Equal(string.Format("The VR code '{0}' for tag '{1}' is invalid.", vr, tagPath), ex.Message);
         }
 
@@ -100,7 +94,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         public void GivenUnsupportedVR_WhenValidating_ThenShouldThrowException(string path, string vr, string expectedVR)
         {
             AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(path, vr);
-            var ex = Assert.Throws<ExtendedQueryTagEntryValidationException>(() => { _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry }); });
+            var ex = Assert.Throws<ExtendedQueryTagEntryValidationException>(() => { ExtendedQueryTagValidator.ValidateAddExtendedQueryTagEntries(new AddExtendedQueryTagEntry[] { entry }); });
             Assert.Equal(string.Format("The VR code '{0}' specified for tag '{1}' is not supported.", expectedVR, path), ex.Message);
         }
 
@@ -112,7 +106,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         public void GivenValidVR_WhenValidating_ThenShouldSucceed(string vr)
         {
             AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(DicomTag.DeviceSerialNumber.GetPath(), vr);
-            _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry });
+            ExtendedQueryTagValidator.ValidateAddExtendedQueryTagEntries(new AddExtendedQueryTagEntry[] { entry });
         }
 
         [Fact]
@@ -121,7 +115,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             string path = "12051003";
             string vr = string.Empty;
             AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(path, vr, "PrivateCreator1");
-            var ex = Assert.Throws<ExtendedQueryTagEntryValidationException>(() => _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry }));
+            var ex = Assert.Throws<ExtendedQueryTagEntryValidationException>(() => ExtendedQueryTagValidator.ValidateAddExtendedQueryTagEntries(new AddExtendedQueryTagEntry[] { entry }));
             Assert.Equal(string.Format("The vr for tag '12051003' is missing.", path), ex.Message);
         }
 
@@ -131,7 +125,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             string path = "12051003";
             string vr = DicomVRCode.OB;
             AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(path, vr);
-            var ex = Assert.Throws<ExtendedQueryTagEntryValidationException>(() => { _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry }); });
+            var ex = Assert.Throws<ExtendedQueryTagEntryValidationException>(() => { ExtendedQueryTagValidator.ValidateAddExtendedQueryTagEntries(new AddExtendedQueryTagEntry[] { entry }); });
             Assert.Equal(string.Format("The private creator for private tag '{0}' is missing.", path), ex.Message);
         }
 
@@ -140,21 +134,21 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         {
             // max length of PrivateCreator is 64
             AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry("12051003", DicomVRCode.CS, new string('c', 65));
-            Assert.Throws<ExtendedQueryTagEntryValidationException>(() => _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry }));
+            Assert.Throws<ExtendedQueryTagEntryValidationException>(() => ExtendedQueryTagValidator.ValidateAddExtendedQueryTagEntries(new AddExtendedQueryTagEntry[] { entry }));
         }
 
         [Fact]
         public void GivenPrivateTagWithVR_WhenValidating_ThenShouldSucceed()
         {
             AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry("12051003", DicomVRCode.AE, "PrivateCreator1");
-            _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry });
+            ExtendedQueryTagValidator.ValidateAddExtendedQueryTagEntries(new AddExtendedQueryTagEntry[] { entry });
         }
 
         [Fact]
         public void GivenSupportedTag_WhenValidating_ThenShouldThrowException()
         {
             AddExtendedQueryTagEntry entry = DicomTag.PatientName.BuildAddExtendedQueryTagEntry();
-            var ex = Assert.Throws<ExtendedQueryTagEntryValidationException>(() => _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry }));
+            var ex = Assert.Throws<ExtendedQueryTagEntryValidationException>(() => ExtendedQueryTagValidator.ValidateAddExtendedQueryTagEntries(new AddExtendedQueryTagEntry[] { entry }));
             Assert.Equal(string.Format("The query tag '{0}' is already supported.", entry.Path), ex.Message);
         }
 
@@ -163,14 +157,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         {
             AddExtendedQueryTagEntry invalidEntry = DicomTag.PatientName.BuildAddExtendedQueryTagEntry();
             AddExtendedQueryTagEntry validEntry = DicomTag.DeviceSerialNumber.BuildAddExtendedQueryTagEntry();
-            Assert.Throws<ExtendedQueryTagEntryValidationException>(() => _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { validEntry, invalidEntry }));
+            Assert.Throws<ExtendedQueryTagEntryValidationException>(() => ExtendedQueryTagValidator.ValidateAddExtendedQueryTagEntries(new AddExtendedQueryTagEntry[] { validEntry, invalidEntry }));
         }
 
         [Fact]
         public void GivenDuplicatedTag_WhenValidating_ThenShouldThrowException()
         {
             AddExtendedQueryTagEntry entry = DicomTag.PatientName.BuildAddExtendedQueryTagEntry();
-            Assert.Throws<ExtendedQueryTagEntryValidationException>(() => _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry, entry }));
+            Assert.Throws<ExtendedQueryTagEntryValidationException>(() => ExtendedQueryTagValidator.ValidateAddExtendedQueryTagEntries(new AddExtendedQueryTagEntry[] { entry, entry }));
         }
 
         [Fact]
@@ -178,7 +172,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         {
             DicomTag dicomTag = new DicomTag(0x2201, 0x0010);
             AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(dicomTag.GetPath(), null);
-            _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry });
+            ExtendedQueryTagValidator.ValidateAddExtendedQueryTagEntries(new AddExtendedQueryTagEntry[] { entry });
         }
 
         [Fact]
@@ -186,7 +180,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         {
             DicomTag dicomTag = new DicomTag(0x2201, 0x0010);
             AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(dicomTag.GetPath(), DicomVR.AE.Code);
-            Assert.Throws<ExtendedQueryTagEntryValidationException>(() => _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry }));
+            Assert.Throws<ExtendedQueryTagEntryValidationException>(() => ExtendedQueryTagValidator.ValidateAddExtendedQueryTagEntries(new AddExtendedQueryTagEntry[] { entry }));
         }
 
 

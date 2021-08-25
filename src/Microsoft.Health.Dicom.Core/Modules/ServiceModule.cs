@@ -150,11 +150,6 @@ namespace Microsoft.Health.Dicom.Core.Modules
 
             if (_featureConfiguration.EnableExtendedQueryTags)
             {
-                services.Add<ExtendedQueryTagEntryValidator>()
-                    .Singleton()
-                    .AsSelf()
-                    .AsImplementedInterfaces();
-
                 services.Add<GetExtendedQueryTagsService>()
                     .Scoped()
                     .AsSelf()

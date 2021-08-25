@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         {
             EnsureArg.IsNotNull(dicomElement, nameof(dicomElement));
             DicomVR vr = dicomElement.ValueRepresentation;
-            if (ExtendedQueryTagEntryValidator.SupportedVRCodes.Contains(vr.Code))
+            if (ExtendedQueryTagValidator.SupportedVRCodes.Contains(vr.Code))
             {
                 // only works for single value dicom element ( Since we accept empty/null value, Count = 0 is accepted).
                 if (dicomElement.Count > 1)

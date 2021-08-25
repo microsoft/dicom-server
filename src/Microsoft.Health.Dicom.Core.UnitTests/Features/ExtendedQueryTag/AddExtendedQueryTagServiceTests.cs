@@ -26,7 +26,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
     {
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly IDicomOperationsClient _client;
-        private readonly IExtendedQueryTagEntryValidator _extendedQueryTagEntryValidator;
         private readonly AddExtendedQueryTagService _extendedQueryTagService;
         private readonly IUrlResolver _urlResolver;
         private readonly CancellationTokenSource _tokenSource;
@@ -35,12 +34,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         {
             _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
             _client = Substitute.For<IDicomOperationsClient>();
-            _extendedQueryTagEntryValidator = Substitute.For<IExtendedQueryTagEntryValidator>();
             _urlResolver = Substitute.For<IUrlResolver>();
             _extendedQueryTagService = new AddExtendedQueryTagService(
                 _extendedQueryTagStore,
                 _client,
-                _extendedQueryTagEntryValidator,
                 _urlResolver,
                 Options.Create(new ExtendedQueryTagConfiguration { MaxAllowedCount = 128 }));
 
@@ -52,15 +49,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
             AddExtendedQueryTagEntry entry = tag.BuildAddExtendedQueryTagEntry();
-            var exception = new ExtendedQueryTagEntryValidationException(string.Empty);
 
+            // Invalid Path
+            entry.Path = "";
             var input = new AddExtendedQueryTagEntry[] { entry };
-            _extendedQueryTagEntryValidator.WhenForAnyArgs(v => v.ValidateExtendedQueryTags(input)).Throw(exception);
 
             await Assert.ThrowsAsync<ExtendedQueryTagEntryValidationException>(
                 () => _extendedQueryTagService.AddExtendedQueryTagsAsync(input, _tokenSource.Token));
 
-            _extendedQueryTagEntryValidator.Received(1).ValidateExtendedQueryTags(input);
             await _client.DidNotReceiveWithAnyArgs().StartQueryTagIndexingAsync(default, default);
         }
 
@@ -94,7 +90,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             Assert.Equal(expectedOperationId, actual.Operation.Id);
             Assert.Equal(expectedHref, actual.Operation.Href);
 
-            _extendedQueryTagEntryValidator.Received(1).ValidateExtendedQueryTags(input);
             await _extendedQueryTagStore
                 .Received(1)
                 .AddExtendedQueryTagsAsync(

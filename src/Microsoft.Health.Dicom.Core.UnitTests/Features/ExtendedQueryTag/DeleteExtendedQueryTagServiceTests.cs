@@ -27,9 +27,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         }
 
         [Fact]
-        public async Task GivenInputTagPath_WhenDeleteExtendedQueryTagIsInvoked_ThenShouldThrowException()
+        public async Task GivenInvalidTagPath_WhenDeleteExtendedQueryTagIsInvoked_ThenShouldThrowException()
         {
-            await Assert.ThrowsAsync<InvalidExtendedQueryTagPathException>(() => _extendedQueryTagService.DeleteExtendedQueryTagAsync("0000000A"));
+            await Assert.ThrowsAsync<ExtendedQueryTagEntryValidationException>(() => _extendedQueryTagService.DeleteExtendedQueryTagAsync("0000000A"));
         }
 
         [Fact]

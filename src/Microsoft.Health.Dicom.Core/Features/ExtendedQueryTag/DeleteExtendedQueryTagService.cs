@@ -4,14 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
@@ -27,14 +25,8 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
         public async Task DeleteExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken)
         {
-            DicomTag[] tags;
-            if (!DicomTagParser.TryParse(tagPath, out tags, supportMultiple: false))
-            {
-                throw new InvalidExtendedQueryTagPathException(
-                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidExtendedQueryTag, tagPath ?? string.Empty));
-            }
-
-            string normalizedPath = tags[0].GetPath();
+            DicomTag tag = ExtendedQueryTagValidator.ValidateTagPath(tagPath);
+            string normalizedPath = tag.GetPath();
             IReadOnlyList<ExtendedQueryTagStoreEntry> extendedQueryTagEntries = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(normalizedPath, cancellationToken);
 
             if (extendedQueryTagEntries.Count > 0)

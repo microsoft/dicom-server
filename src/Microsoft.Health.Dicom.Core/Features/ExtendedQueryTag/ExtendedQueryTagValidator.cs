@@ -18,7 +18,7 @@ using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
-    public class ExtendedQueryTagEntryValidator : IExtendedQueryTagEntryValidator
+    public static class ExtendedQueryTagValidator
     {
         /*
          * Unsupported VRCodes:
@@ -44,7 +44,11 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             DicomVRCode.UL,
             DicomVRCode.US);
 
-        public void ValidateExtendedQueryTags(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries)
+        /// <summary>
+        /// Validate if given add extended query tag entries are valid.
+        /// </summary>
+        /// <param name="extendedQueryTagEntries">The extended query tag entries</param>
+        public static void ValidateAddExtendedQueryTagEntries(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries)
         {
             EnsureArg.IsNotNull(extendedQueryTagEntries, nameof(extendedQueryTagEntries));
 
@@ -70,12 +74,28 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         }
 
         /// <summary>
+        /// Validate extended query tag path.
+        /// </summary>
+        /// <param name="tagPath">The tag path</param>
+        /// <returns>The Dicom Tag</returns>
+        public static DicomTag ValidateTagPath(string tagPath)
+        {
+            if (!DicomTagParser.TryParse(tagPath, out DicomTag[] result, supportMultiple: false))
+            {
+                throw new ExtendedQueryTagEntryValidationException(
+                      string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidExtendedQueryTag, tagPath ?? string.Empty));
+            }
+
+            return result[0];
+        }
+
+        /// <summary>
         /// Validate extended query tag entry.
         /// </summary>
         /// <param name="tagEntry">the tag entry.</param>
         private static void ValidateExtendedQueryTagEntry(AddExtendedQueryTagEntry tagEntry)
         {
-            DicomTag tag = ParseTag(tagEntry.Path);
+            DicomTag tag = ValidateTagPath(tagEntry.Path);
 
             // cannot be any tag we already support
             if (QueryLimit.CoreTags.Contains(tag))
@@ -185,17 +205,6 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 throw new ExtendedQueryTagEntryValidationException(
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidVRCode, vrCode, tagPath), ex);
             }
-        }
-
-        private static DicomTag ParseTag(string path)
-        {
-            if (!DicomTagParser.TryParse(path, out DicomTag[] result, supportMultiple: false))
-            {
-                throw new ExtendedQueryTagEntryValidationException(
-                      string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidExtendedQueryTag, path));
-            }
-
-            return result[0];
         }
 
         private static void EnsureVRIsSupported(DicomVR vr, string tagPath)

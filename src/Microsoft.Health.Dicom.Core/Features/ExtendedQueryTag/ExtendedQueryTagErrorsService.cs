@@ -6,11 +6,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
@@ -27,10 +24,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
         public async Task<GetExtendedQueryTagErrorsResponse> GetExtendedQueryTagErrorsAsync(string tagPath, CancellationToken cancellationToken = default)
         {
-            string numericalTagPath = DicomTagParser.TryParse(tagPath, out DicomTag[] tags, supportMultiple: false)
-                ? tags[0].GetPath()
-                : throw new InvalidExtendedQueryTagPathException(string.Format(DicomCoreResource.InvalidExtendedQueryTag, tagPath ?? string.Empty));
-
+            string numericalTagPath = ExtendedQueryTagValidator.ValidateTagPath(tagPath).GetPath();
             IReadOnlyList<ExtendedQueryTagError> extendedQueryTagErrors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(numericalTagPath, cancellationToken);
             return new GetExtendedQueryTagErrorsResponse(extendedQueryTagErrors);
         }

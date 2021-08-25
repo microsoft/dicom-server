@@ -3,10 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Globalization;
 using Dicom;
-using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Extensions
@@ -23,15 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         /// <returns>Normalize extended query tag entry.</returns>
         public static AddExtendedQueryTagEntry Normalize(this AddExtendedQueryTagEntry extendedQueryTagEntry)
         {
-            DicomTag[] tags;
-            if (!DicomTagParser.TryParse(extendedQueryTagEntry.Path, out tags, supportMultiple: false))
-            {
-                // not a valid dicom tag path
-                throw new ExtendedQueryTagEntryValidationException(
-                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidExtendedQueryTag, extendedQueryTagEntry));
-            }
-
-            DicomTag tag = tags[0];
+            DicomTag tag = ExtendedQueryTagValidator.ValidateTagPath(extendedQueryTagEntry.Path);
             string path = tag.GetPath();
             string vr = extendedQueryTagEntry.VR;
             string privateCreator = string.IsNullOrWhiteSpace(extendedQueryTagEntry.PrivateCreator) ? null : extendedQueryTagEntry.PrivateCreator;
