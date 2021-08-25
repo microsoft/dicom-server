@@ -399,4 +399,8 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="DicomIdentifierIsRequired" xml:space="preserve">
     <value>Dicom Identifier is required.</value>
   </data>
+  <data name="DicomElementValidationFailedWithTruncatedValue" xml:space="preserve">
+    <value>Dicom element '{0}' with value starting with '{1}' failed validation for VR '{2}': {3}</value>
+    <comment>Dicom element {0} of truncated value {1} of VR {2}. {3} has more detailed message on why.</comment>
+  </data>
 </root>

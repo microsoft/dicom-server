@@ -13,9 +13,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         [Theory]
         [InlineData("1", 1, "1")] // text.Length <= maxLength
         [InlineData("1", 0, "")] // text.Length > maxLength = 0
-        [InlineData("123", 2, "12")] // text.Length > 3 > maxLength 
-        [InlineData("1234", 3, "1...")] // text.Length > maxLength = 3
-        [InlineData("12345", 4, "12...")] // text.Length > maxLength > 3
+        [InlineData("123", 2, "12")] // text.Length > maxLength > 0 
+        [InlineData("😁", 1, "")] // supplementary multilingual plane 
         public void GivenString_WhenTruncate_ThenShouldBeExpected(string text, int maxLength, string expected)
         {
             Assert.Equal(expected, text.Truncate(maxLength));

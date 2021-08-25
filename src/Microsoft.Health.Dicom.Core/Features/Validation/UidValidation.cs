@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                     return;
                 }
 
-                throw new InvalidIdentifierException(value, name, DicomCoreResource.DicomIdentifierIsRequired);
+                throw new InvalidIdentifierException(name, value, MaxLength, DicomCoreResource.DicomIdentifierIsRequired);
             }
 
             // trailling spaces are allowed
@@ -41,12 +41,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             if (value.Length > MaxLength)
             {
                 // UI value is validated in other cases like params for WADO, DELETE. So keeping the exception specific.
-                throw new InvalidIdentifierException(value.Truncate(MaxLength), name, DicomCoreResource.DicomIdentifierExceedsMaxLength);
+                throw new InvalidIdentifierException(name, value, MaxLength, DicomCoreResource.DicomIdentifierExceedsMaxLength);
             }
 
             if (!ValidIdentifierCharactersFormat.IsMatch(value))
             {
-                throw new InvalidIdentifierException(value.Truncate(MaxLength), name, DicomCoreResource.DicomIdentifierContainsInvalidCharacter);
+                throw new InvalidIdentifierException(name, value, MaxLength, DicomCoreResource.DicomIdentifierContainsInvalidCharacter);
             }
         }
 

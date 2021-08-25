@@ -9,8 +9,8 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
 {
     public class InvalidIdentifierException : DicomElementValidationException
     {
-        public InvalidIdentifierException(string value, string name, string message)
-            : base(name, DicomVR.UI, message, value)
+        public InvalidIdentifierException(string name, string value, int valueTruncationLength, string message)
+            : base(name, DicomVR.UI, value, valueTruncationLength, message)
         {
         }
     }

@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
 
         [Theory]
         [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "Dicom element 'StudyInstanceUid' with value 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...' failed validation for VR 'UI': Dicom Identifier exceeds max length.")]
+            "Dicom element 'StudyInstanceUid' with value  starting with 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' failed validation for VR 'UI': Dicom Identifier exceeds max length.")]
         [InlineData("345%^&",
             "Dicom element 'StudyInstanceUid' with value '345%^&' failed validation for VR 'UI': Dicom Identifier should only contain characters in '0'-'9' and '.', and each component must start with non-zero number.")]
         [InlineData("()",
@@ -64,7 +64,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
 
         [Theory]
         [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "Dicom element 'SeriesInstanceUid' with value 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...' failed validation for VR 'UI': Dicom Identifier exceeds max length.")]
+            "Dicom element 'SeriesInstanceUid' with value starting with 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' failed validation for VR 'UI': Dicom Identifier exceeds max length.")]
         [InlineData("345%^&",
             "Dicom element 'SeriesInstanceUid' with value '345%^&' failed validation for VR 'UI': Dicom Identifier should only contain characters in '0'-'9' and '.', and each component must start with non-zero number.")]
         [InlineData("aaaa-bbbb",
@@ -110,7 +110,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
 
         [Theory]
         [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "Dicom element 'SopInstanceUid' with value 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...' failed validation for VR 'UI': Dicom Identifier exceeds max length.")]
+            "Dicom element 'SopInstanceUid' with value starting with 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' failed validation for VR 'UI': Dicom Identifier exceeds max length.")]
         [InlineData("345%^&",
             "Dicom element 'SopInstanceUid' with value '345%^&' failed validation for VR 'UI': Dicom Identifier should only contain characters in '0'-'9' and '.', and each component must start with non-zero number.")]
         [InlineData("aaaa-bbbb",

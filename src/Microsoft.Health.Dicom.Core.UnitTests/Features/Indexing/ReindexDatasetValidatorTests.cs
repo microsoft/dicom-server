@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using Dicom;
 using Dicom.IO;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Validation;
@@ -29,8 +27,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Indexing
         {
             _extendedQueryTagErrorStore = Substitute.For<IExtendedQueryTagErrorStore>();
             _minimumValidator = new ElementMinimumValidator();
-            IOptions<StoreConfiguration> options = Options.Create(new StoreConfiguration());
-            _validator = new ReindexDatasetValidator(_minimumValidator, _extendedQueryTagErrorStore, options, NullLogger<ReindexDatasetValidator>.Instance);
+            _validator = new ReindexDatasetValidator(_minimumValidator, _extendedQueryTagErrorStore, NullLogger<ReindexDatasetValidator>.Instance);
         }
 
         [Fact]

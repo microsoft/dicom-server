@@ -81,8 +81,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 throw new DicomElementValidationException(
                     name,
                     dicomVR,
-                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthIsNotRequiredLength, RequiredLength),
-                    value.Truncate(RequiredLength));
+                    value,
+                    RequiredLength,
+                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthIsNotRequiredLength, RequiredLength));
             }
         }
     }

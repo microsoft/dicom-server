@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             var groups = value.Split('=');
             if (groups.Length > 3)
             {
-                throw new DicomElementValidationException(name, DicomVR.PN, DicomCoreResource.ValueExceedsAllowedGroups, value.Truncate(ValueTruncationLength));
+                throw new DicomElementValidationException(name, DicomVR.PN, value, ValueTruncationLength, DicomCoreResource.ValueExceedsAllowedGroups);
             }
 
             foreach (var group in groups)
@@ -37,14 +37,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
                 if (ContainsControlExceptEsc(group))
                 {
-                    throw new DicomElementValidationException(name, DicomVR.PN, DicomCoreResource.ValueContainsInvalidCharacter, value.Truncate(ValueTruncationLength));
+                    throw new DicomElementValidationException(name, DicomVR.PN, value, ValueTruncationLength, DicomCoreResource.ValueContainsInvalidCharacter);
                 }
             }
 
             var groupcomponents = groups.Select(group => group.Split('^').Length);
             if (groupcomponents.Any(l => l > 5))
             {
-                throw new DicomElementValidationException(name, DicomVR.PN, DicomCoreResource.ValueExceedsAllowedComponents, value.Truncate(ValueTruncationLength));
+                throw new DicomElementValidationException(name, DicomVR.PN, value, ValueTruncationLength, DicomCoreResource.ValueExceedsAllowedComponents);
             }
         }
     }

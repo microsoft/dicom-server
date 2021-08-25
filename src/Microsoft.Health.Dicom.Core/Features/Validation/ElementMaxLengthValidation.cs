@@ -39,8 +39,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 throw new DicomElementValidationException(
                     name,
                     vr,
-                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthExceedsMaxLength, maxLength),
-                    value.Truncate(maxLength));
+                    value,
+                    maxLength,
+                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthExceedsMaxLength, maxLength));
             }
         }
     }

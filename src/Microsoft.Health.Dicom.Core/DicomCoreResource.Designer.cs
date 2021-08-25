@@ -124,6 +124,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; with value starting with &apos;{1}&apos; failed validation for VR &apos;{2}&apos;: {3}.
+        /// </summary>
+        internal static string DicomElementValidationFailedWithTruncatedValue {
+            get {
+                return ResourceManager.GetString("DicomElementValidationFailedWithTruncatedValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; with value &apos;{1}&apos; failed validation for VR &apos;{2}&apos;: {3}.
         /// </summary>
         internal static string DicomElementValidationFailedWithValue {

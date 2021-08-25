@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
             if (value.Contains("\\", StringComparison.OrdinalIgnoreCase) || ContainsControlExceptEsc(value))
             {
-                throw new DicomElementValidationException(name, DicomVR.LO, DicomCoreResource.ValueContainsInvalidCharacter, value.Truncate(MaxLength));
+                throw new DicomElementValidationException(name, DicomVR.LO, value, MaxLength, DicomCoreResource.ValueContainsInvalidCharacter);
             }
         }
     }

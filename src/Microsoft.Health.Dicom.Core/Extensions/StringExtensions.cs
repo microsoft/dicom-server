@@ -10,34 +10,46 @@ namespace Microsoft.Health.Dicom.Core.Extensions
     /// <summary>
     /// Extension methods for <see cref="string"/>.
     /// </summary>
-    public static class StringExtensions
+    internal static class StringExtensions
     {
         /// <summary>
-        /// Truncate text to max length.
+        /// Truncate text to given length.
         /// </summary>
         /// <param name="text">The text.</param>
-        /// <param name="maxLength">The max length</param>
-        /// <returns>The truncated text.</returns>
-        public static string Truncate(this string text, int maxLength)
+        /// <param name="length">The length to truncate</param>
+        /// <param name="result">Truncated text.</param>
+        /// <returns>True if truncated, false otherwise.</returns>
+        public static bool TryTruncate(this string text, int length, out string result)
         {
+            result = text;
             EnsureArg.IsNotNull(text, nameof(text));
-            EnsureArg.IsGte(maxLength, 0, nameof(maxLength));
-            if (text.Length <= maxLength)
+            EnsureArg.IsGte(length, 0, nameof(length));
+            if (text.Length <= length)
             {
-                return text;
+                result = text;
+                return false;
             }
-            if (maxLength == 0)
+            if (length == 0)
             {
-                return string.Empty;
-            }
-
-            if (text.Length <= 3)
-            {
-                return text.Substring(0, maxLength);
+                result = string.Empty;
+                return true;
             }
 
-            // truncate by replace addtional characters with 3 dots.
-            return text.Substring(0, text.Length - 3) + "...";
+            // Truncate last character if it is high surrogate char to promise readable text.
+            result = text.Substring(0, char.IsHighSurrogate(text[length - 1]) ? length - 1 : length);
+            return true;
+        }
+
+        /// <summary>
+        /// Truncate text to given length.
+        /// </summary>
+        /// <param name="text">The text.</param>
+        /// <param name="length">The length to truncate</param>
+        /// <returns>The truncated text.</returns>
+        public static string Truncate(this string text, int length)
+        {
+            TryTruncate(text, length, out string result);
+            return result;
         }
     }
 }
