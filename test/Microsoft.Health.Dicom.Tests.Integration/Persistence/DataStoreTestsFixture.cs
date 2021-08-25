@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Dicom.Serialization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
@@ -33,11 +34,15 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public DataStoreTestsFixture()
         {
+            IConfiguration environment = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .Build();
+
             _blobContainerConfiguration = new BlobContainerConfiguration { ContainerName = Guid.NewGuid().ToString() };
             _metadataContainerConfiguration = new BlobContainerConfiguration { ContainerName = Guid.NewGuid().ToString() };
             _blobDataStoreConfiguration = new BlobDataStoreConfiguration
             {
-                ConnectionString = Environment.GetEnvironmentVariable("BlobStore:ConnectionString") ?? BlobLocalEmulator.ConnectionString,
+                ConnectionString = environment.GetSection("BlobStore")["ConnectionString"] ?? BlobLocalEmulator.ConnectionString,
             };
             RecyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
         }

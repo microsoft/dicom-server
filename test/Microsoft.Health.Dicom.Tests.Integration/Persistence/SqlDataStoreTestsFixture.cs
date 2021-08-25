@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
@@ -42,9 +43,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         // Only 1 public constructor is allowed for test fixture.
         internal SqlDataStoreTestsFixture(string databaseName)
         {
-            EnsureArg.IsNotNullOrEmpty(databaseName, nameof(databaseName));
-            _databaseName = databaseName;
-            string initialConnectionString = Environment.GetEnvironmentVariable("SqlServer:ConnectionString") ?? LocalConnectionString;
+            _databaseName = EnsureArg.IsNotNullOrEmpty(databaseName, nameof(databaseName));
+
+            IConfiguration environment = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .Build();
+
+            string initialConnectionString = environment.GetSection("SqlServer")["ConnectionString"] ?? LocalConnectionString;
             _masterConnectionString = new SqlConnectionStringBuilder(initialConnectionString) { InitialCatalog = "master" }.ToString();
             TestConnectionString = new SqlConnectionStringBuilder(initialConnectionString) { InitialCatalog = _databaseName }.ToString();
 
