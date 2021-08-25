@@ -41,29 +41,20 @@ stages:
     - template: build.yml
       parameters:
         packageArtifacts: true
-        analyzeSecurity: false
         packageNugets: false
 
-- stage: SecurityAnalyze
-  displayName: 'Security analyze'
+- stage: AnalyzeSecurity
+  displayName: 'Run Security Analysis'
   dependsOn:
-  - UpdateVersion
-  variables:
-    assemblySemVer: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.AssemblySemVer']]
-    assemblySemFileVer: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.AssemblySemFileVer']]
-    informationalVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.InformationalVersion']]
-    majorMinorPatch: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.MajorMinorPatch']]
-    nuGetVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.SemVer']]
+  - BuildRunUnitTests
   jobs:
   - job: Windows
     pool:
       vmImage: $(windowsVmImage)
     steps:
-    - template: build.yml
+    - template: analyze.yml
       parameters:
-        packageArtifacts: false
-        analyzeSecurity: true
-        packageNugets: false
+        analyzePackages: false
 
 - stage: DeployTestEnvironment
   displayName: 'Deploy Test Environment'

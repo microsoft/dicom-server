@@ -24,7 +24,7 @@ stages:
     - template: ./update-semver.yml
 
 - stage: BuildRunUnitTests
-  displayName: 'Build and run unit tests'
+  displayName: 'Build and Test'
   dependsOn:
   - UpdateVersion
   variables:
@@ -34,21 +34,22 @@ stages:
     majorMinorPatch: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.MajorMinorPatch']]
     nuGetVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.SemVer']]
   jobs:
-  - job: Windows
-    pool:
-      vmImage: $(windowsVmImage)
-    steps:
-    - template: build.yml
-
   - job: Linux
     pool:
       vmImage: 'ubuntu-latest'
     steps:
     - template: build.yml
-      parameters:
-        packageArtifacts: false
-        analyzeSecurity: false
-        packageNugets: false
+
+- stage: AnalyzeSecurity
+  displayName: 'Run Security Analysis'
+  dependsOn:
+  - BuildRunUnitTests
+  jobs:
+  - job: Windows
+    pool:
+      vmImage: $(windowsVmImage)
+    steps:
+    - template: analyze.yml
 
 - stage: UpdateTestEnvironment
   displayName: 'Update Test Environment'
@@ -98,6 +99,8 @@ stages:
 - stage: PublishNuget
   displayName: 'Publish Nugets'
   dependsOn:
+  - AnalyzeSecurity
+  - ValidateAPIVersioning
   - RunIntegrationTests
   - RunE2ETests
   jobs:
@@ -110,6 +113,8 @@ stages:
 - stage: PublishContainer
   displayName: 'Publish Docker CI Container'
   dependsOn:
+  - AnalyzeSecurity
+  - ValidateAPIVersioning
   - RunIntegrationTests
   - RunE2ETests
   jobs:
