@@ -21,7 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         /// <summary>
         /// Max length of error message.
         /// </summary>
-        /// <remarks>This limitation is from database.</remarks>
+        /// <remarks>This limitation is from ExtendedQueryTagErrorStore.</remarks>
         public const int MaxErrorMessageLength = 200;
 
         private readonly IElementMinimumValidator _minimumValidator;
@@ -52,16 +52,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
                 }
                 catch (DicomElementValidationException e)
                 {
-                    if (e.Message?.Length > MaxErrorMessageLength)
+                    string message = e.Message ?? string.Empty;
+                    if (message.Length > MaxErrorMessageLength)
                     {
-                        string message = string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageExceedsMaxLength, e.Message.Length, MaxErrorMessageLength, e.Message);
-                        Debug.Fail(message);
-                        _logger.LogWarning(message);
+                        string warning = string.Format(CultureInfo.InvariantCulture,
+                            DicomCoreResource.ErrorMessageExceedsMaxLength, message.Length, MaxErrorMessageLength, message);
+                        Debug.Fail(warning);
+                        _logger.LogWarning(warning);
                     }
 
                     _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
                         queryTag.ExtendedQueryTagStoreEntry.Key,
-                        e.Message?.Truncate(MaxErrorMessageLength),
+                        message.Truncate(MaxErrorMessageLength),
                         watermark);
                 }
             }

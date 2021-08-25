@@ -10,7 +10,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
     /// <summary>
     /// Extension methods for <see cref="string"/>.
     /// </summary>
-    internal static class StringExtensions
+    public static class StringExtensions
     {
         /// <summary>
         /// Truncate text to given length.

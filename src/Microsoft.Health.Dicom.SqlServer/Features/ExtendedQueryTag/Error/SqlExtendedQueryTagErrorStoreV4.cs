@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
             long watermark,
             CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(errorMessage, nameof(errorMessage));
+            EnsureArg.IsNotNull(errorMessage, nameof(errorMessage));
             using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
             using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
             VLatest.AddExtendedQueryTagError.PopulateCommand(
