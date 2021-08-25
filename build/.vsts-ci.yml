@@ -50,36 +50,12 @@ stages:
         analyzeSecurity: false
         packageNugets: false
 
-- stage: UpdateTestEnvironment
-  displayName: 'Update Test Environment'
+- stage: UpdateCIEnvironment
+  displayName: 'Update CI Environment'
   dependsOn:
   - BuildRunUnitTests
   jobs:
-  - job: provision
-    pool:
-      vmImage: $(windowsVmImage)
-    steps:
-    - task: DownloadBuildArtifacts@0
-      inputs:
-        buildType: 'current'
-        downloadType: 'single'
-        downloadPath: '$(System.ArtifactsDirectory)'
-        artifactName: 'deploy'
-    - template: add-aad-test-environment.yml
-    - task: AzureRmWebAppDeployment@3
-      displayName: 'Deploy Dicom Web'
-      inputs:
-        azureSubscription: $(azureSubscriptionName)
-        WebAppName: '$(deploymentName)'
-        Package: '$(System.ArtifactsDirectory)/deploy/Microsoft.Health.Dicom.Web.zip'
-        TakeAppOfflineFlag: true
-    - task: AzureRmWebAppDeployment@3
-      displayName: 'Deploy Dicom Functions'
-      inputs:
-        azureSubscription: $(azureSubscriptionName)
-        WebAppName: '$(deploymentName)-functions'
-        Package: '$(System.ArtifactsDirectory)/deploy/Microsoft.Health.Dicom.Functions.zip'
-        TakeAppOfflineFlag: true
+  - template: deploy.yml
 
 - stage: ValidateAPIVersioning
   displayName: 'Detect Breaking Changes In API'

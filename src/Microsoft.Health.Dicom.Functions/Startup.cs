@@ -12,6 +12,7 @@ using Microsoft.Health.Dicom.Core.Modules;
 using Microsoft.Health.Dicom.Functions.Configuration;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Management;
+using Microsoft.Health.Extensions.DependencyInjection;
 
 [assembly: FunctionsStartup(typeof(Microsoft.Health.Dicom.Functions.Startup))]
 namespace Microsoft.Health.Dicom.Functions
@@ -40,8 +41,7 @@ namespace Microsoft.Health.Dicom.Functions
                 .AddDurableFunctionServices()
                 .AddHttpServices();
 
-            // TODO: the FeatureConfiguration should be removed once we moved the logic to add tags into database out of Azure Function
-            new ServiceModule(new FeatureConfiguration { EnableExtendedQueryTags = true }).Load(builder.Services);
+            builder.Services.RegisterModule<ServiceModule>(new FeatureConfiguration { EnableExtendedQueryTags = true });
         }
     }
 }

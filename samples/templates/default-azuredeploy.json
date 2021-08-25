@@ -148,7 +148,7 @@
                 "description": "The type of the solution"
             }
         },
-        "deployPackages": {
+        "deployPackage": {
             "type": "bool",
             "defaultValue": true,
             "metadata": {
@@ -173,7 +173,7 @@
     "variables": {
         "isMAG": "[or(contains(resourceGroup().location,'usgov'),contains(resourceGroup().location,'usdod'))]",
         "serviceName": "[toLower(parameters('serviceName'))]",
-        "functionAppName": "[if(empty(parameters('functionAppName')), concat(variables('serviceName'),'-functions'), parameters('functionAppName'))]",
+        "functionAppName": "[if(empty(parameters('functionAppName')), concat(variables('serviceName'),'-functions'), toLower(parameters('functionAppName')))]",
         "appServicePlanResourceGroup": "[if(empty(parameters('appServicePlanResourceGroup')), resourceGroup().name, parameters('appServicePlanResourceGroup'))]",
         "appServicePlanName": "[if(empty(parameters('appServicePlanName')), concat(variables('serviceName'),'-asp'), parameters('appServicePlanName'))]",
         "appServicePlanResourceId": "[resourceId(variables('appServicePlanResourceGroup'), 'Microsoft.Web/serverfarms/', variables('appServicePlanName'))]",
@@ -292,7 +292,7 @@
                     "apiVersion": "2015-08-01",
                     "type": "extensions",
                     "name": "MSDeploy",
-                    "condition": "[parameters('deployPackages')]",
+                    "condition": "[parameters('deployPackage')]",
                     "dependsOn": [
                         "[variables('appServiceResourceId')]",
                         "[resourceId('Microsoft.Web/sites/config', variables('serviceName'), 'appsettings')]",
@@ -361,7 +361,7 @@
                     "apiVersion": "2015-08-01",
                     "type": "extensions",
                     "name": "MSDeploy",
-                    "condition": "[parameters('deployPackages')]",
+                    "condition": "[parameters('deployPackage')]",
                     "dependsOn": [
                         "[variables('functionAppServiceResourceId')]",
                         "[resourceId('Microsoft.Web/sites/config', variables('functionAppName'), 'appsettings')]"

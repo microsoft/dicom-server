@@ -338,7 +338,7 @@
                     "securityAuthenticationAuthority": { "value": "[parameters('dicomSecurityAuthenticationAuthority')]" },
                     "securityAuthenticationAudience": { "value": "[parameters('dicomSecurityAuthenticationAudience')]" },
                     "solutionType": { "value": "[parameters('dicomSolutionType')]" },
-                    "deployPackages": { "value": "[parameters('dicomDeployPackages')]" },
+                    "deployPackage": { "value": "[parameters('dicomDeployPackages')]" },
                     "deployWebPackageUrl": { "value": "[parameters('dicomDeployPackageUrl')]" },
                     "deployFunctionAppPackageUrl": { "value": "[parameters('functionDeployPackageUrl')]" }
                 }
