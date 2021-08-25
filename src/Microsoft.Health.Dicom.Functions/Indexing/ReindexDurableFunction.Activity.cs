@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -127,13 +128,16 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             IReadOnlyList<VersionedInstanceIdentifier> instanceIdentifiers =
                 await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(batch.WatermarkRange, IndexStatus.Created);
 
-            var tasks = new List<Task>();
-            foreach (VersionedInstanceIdentifier identifier in instanceIdentifiers)
+            for (int i = 0; i < instanceIdentifiers.Count; i += _options.BatchThreadCount)
             {
-                tasks.Add(_instanceReindexer.ReindexInstanceAsync(batch.QueryTags, identifier));
-            }
+                var tasks = new List<Task>();
+                for (int j = i; j < Math.Min(instanceIdentifiers.Count, i + _options.BatchThreadCount); j++)
+                {
+                    tasks.Add(_instanceReindexer.ReindexInstanceAsync(batch.QueryTags, instanceIdentifiers[j]));
+                }
 
-            await Task.WhenAll(tasks);
+                await Task.WhenAll(tasks);
+            }
         }
 
         /// <summary>
