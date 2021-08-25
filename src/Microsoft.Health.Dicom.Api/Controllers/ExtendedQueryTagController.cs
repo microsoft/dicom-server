@@ -165,7 +165,14 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return StatusCode((int)HttpStatusCode.OK, response.ExtendedQueryTagErrors);
         }
 
-
+        /// <summary>
+        /// Acknowledge specific error.
+        /// </summary>
+        /// <param name="tagPath">Tag path.</param>
+        /// <param name="studyInstanceUid">The study instance uid</param>
+        /// <param name="seriesInstanceUid">The series instance uid.</param>
+        /// <param name="sopInstanceUid">The sop instance uid</param>
+        /// <returns>The result.</returns>
         [HttpPost]
         [Produces(KnownContentTypes.ApplicationJson)]
         [ProducesResponseType(typeof(ExtendedQueryTagError), (int)HttpStatusCode.OK)]

@@ -57,6 +57,5 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         public const string HealthCheck = "/health/check";
 
         public const string OperationInstanceRoute = OperationsSegment + "/{" + KnownActionParameterNames.OperationId + "}";
-
     }
 }

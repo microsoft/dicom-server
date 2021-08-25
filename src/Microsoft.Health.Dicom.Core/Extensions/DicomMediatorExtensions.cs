@@ -12,7 +12,6 @@ using EnsureThat;
 using MediatR;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
@@ -196,7 +195,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
            CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
-            return mediator.Send(new AcknowledgeTagErrorRequest(tagPath, new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid)), cancellationToken);
+            return mediator.Send(new AcknowledgeTagErrorRequest(tagPath, studyInstanceUid, seriesInstanceUid, sopInstanceUid), cancellationToken);
         }
     }
 }

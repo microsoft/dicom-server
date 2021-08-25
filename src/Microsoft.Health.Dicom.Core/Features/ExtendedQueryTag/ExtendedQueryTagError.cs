@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             SopInstanceUid = EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid);
             CreatedTime = createdTime;
             ErrorMessage = EnsureArg.IsNotNullOrWhiteSpace(errorMessage);
-            Status = EnsureArg.EnumIsDefined(status);
+            Status = status;
             AcknowledgedTime = acknowledgedTime;
         }
 
@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
         public ExtendedQueryTagErrorStatus Status { get; }
 
-        public DateTime AcknowledgedTime { get; }
+        public DateTime? AcknowledgedTime { get; }
 
     }
 }

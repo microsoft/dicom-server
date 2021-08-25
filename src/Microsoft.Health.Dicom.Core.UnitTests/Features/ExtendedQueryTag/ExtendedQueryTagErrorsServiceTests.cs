@@ -8,10 +8,12 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 using NSubstitute;
+using NSubstitute.Core;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
@@ -61,23 +63,18 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         }
 
         [Fact]
-        public async Task GivenRequestForExtendedQueryTagError_WhenTagDoesNotExist_ThenReturnEmptyList()
+        public async Task GivenRequestForExtendedQueryTagError_WhenTagDoesNotExist_ThenThrowException()
         {
             string tagPath = DicomTag.DeviceID.GetPath();
+            _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tagPath).Returns(new Func<CallInfo, IReadOnlyList<ExtendedQueryTagError>>(x => throw new ExtendedQueryTagNotFoundException("")));
+            await Assert.ThrowsAsync<ExtendedQueryTagNotFoundException>(() => _extendedQueryTagErrorsService.GetExtendedQueryTagErrorsAsync(tagPath));
 
-            DicomTag[] parsedTags = new DicomTag[] { DicomTag.DeviceID };
-            _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tagPath).Returns(new List<ExtendedQueryTagError>());
-            GetExtendedQueryTagErrorsResponse response = await _extendedQueryTagErrorsService.GetExtendedQueryTagErrorsAsync(tagPath);
-            Assert.Empty(response.ExtendedQueryTagErrors);
         }
 
         [Fact]
         public async Task GivenRequestForExtendedQueryTagError_WhenTagHasNoError_ThenReturnEmptyList()
         {
             string tagPath = DicomTag.DeviceID.GetPath();
-
-            DicomTag[] parsedTags = new DicomTag[] { DicomTag.DeviceID };
-
             _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tagPath).Returns(new List<ExtendedQueryTagError>());
             await _extendedQueryTagErrorsService.GetExtendedQueryTagErrorsAsync(tagPath);
             await _extendedQueryTagErrorStore.Received(1).GetExtendedQueryTagErrorsAsync(tagPath);
@@ -96,9 +93,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
                 "fake error message",
                  ExtendedQueryTagErrorStatus.Unacknowledged,
                  DateTime.UtcNow) };
-
-            DicomTag[] parsedTags = new DicomTag[] { DicomTag.DeviceID };
-
             _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tagPath).Returns(expected);
             GetExtendedQueryTagErrorsResponse response = await _extendedQueryTagErrorsService.GetExtendedQueryTagErrorsAsync(tagPath);
             await _extendedQueryTagErrorStore.Received(1).GetExtendedQueryTagErrorsAsync(tagPath);

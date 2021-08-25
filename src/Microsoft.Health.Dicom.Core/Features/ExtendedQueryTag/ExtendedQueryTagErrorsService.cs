@@ -31,6 +31,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
         public Task<int> AddExtendedQueryTagErrorAsync(int tagKey, string errorMessage, long watermark, CancellationToken cancellationToken = default)
         {
+            EnsureArg.IsNotNullOrWhiteSpace(errorMessage);
             return _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
                 tagKey,
                 errorMessage,
@@ -38,7 +39,13 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 cancellationToken);
         }
 
-        public Task<ExtendedQueryTagError> AcknowledgeExtendedQueryTagErrorAsync(string tagPath, InstanceIdentifier instanceId, CancellationToken cancellationToken = default)
+        /// <inheritdoc/>
+        public Task<ExtendedQueryTagError> AcknowledgeExtendedQueryTagErrorAsync(
+            string tagPath,
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string sopInstanceUid,
+            CancellationToken cancellationToken = default)
         {
             throw new System.NotImplementedException();
         }

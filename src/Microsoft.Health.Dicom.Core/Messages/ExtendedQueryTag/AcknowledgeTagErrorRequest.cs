@@ -3,24 +3,42 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using EnsureThat;
 using MediatR;
-using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
 {
     public class AcknowledgeTagErrorRequest : IRequest<AcknowledgeTagErrorResponse>
     {
-        public AcknowledgeTagErrorRequest(string extendedQueryTagPath, InstanceIdentifier instanceIdentifier)
+        public AcknowledgeTagErrorRequest(
+            string extendedQueryTagPath,
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string sopInstanceUid)
         {
             ExtendedQueryTagPath = extendedQueryTagPath;
-            InstanceIdentifier = EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
+            StudyInstanceUid = studyInstanceUid;
+            SeriesInstanceUid = seriesInstanceUid;
+            SopInstanceUid = sopInstanceUid;
         }
 
         /// <summary>
         /// Path for the extended query tag that is requested.
         /// </summary>
         public string ExtendedQueryTagPath { get; }
-        public InstanceIdentifier InstanceIdentifier { get; }
+
+        /// <summary>
+        /// Study instance uid that is requested.
+        /// </summary>
+        public string StudyInstanceUid { get; }
+
+        /// <summary>
+        /// Series instance uid that is requested.
+        /// </summary>
+        public string SeriesInstanceUid { get; }
+
+        /// <summary>
+        /// Sop instance uid that is requested.
+        /// </summary>
+        public string SopInstanceUid { get; }
     }
 }

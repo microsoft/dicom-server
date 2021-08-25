@@ -41,9 +41,16 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// Asynchronously acknowledge error for a specified tag on DICOM instance.
         /// </summary>
         /// <param name="tagPath">The tag path.</param>
-        /// <param name="instanceId">The instance identifier.</param>
+        /// <param name="studyInstanceUid">The study instance uid of the DICOM instance.</param>
+        /// <param name="seriesInstanceUid">The series instance uid of the DICOM instance.</param>
+        /// <param name="sopInstanceUid">The sop instance uid of the DICOM instance.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        Task<ExtendedQueryTagError> AcknowledgeExtendedQueryTagErrorAsync(string tagPath, InstanceIdentifier instanceId, CancellationToken cancellationToken = default);
+        Task<ExtendedQueryTagError> AcknowledgeExtendedQueryTagErrorAsync(
+            string tagPath,
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string sopInstanceUid,
+            CancellationToken cancellationToken = default);
     }
 }
