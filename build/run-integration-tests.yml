@@ -18,8 +18,8 @@ jobs:
         $sqlConnectionString = Get-AzKeyVaultSecret -VaultName $(deploymentName) -Name "SqlServerConnectionString" -AsPlainText
         $blobConnectionString = Get-AzKeyVaultSecret -VaultName $(deploymentName) -Name "AzureStorageConnectionString" -AsPlainText
 
-        Write-Host "##vso[task.setvariable variable=BlobStore__ConnectionString]$sqlConnectionString"
-        Write-Host "##vso[task.setvariable variable=SqlServer__ConnectionString]$blobConnectionString"
+        Write-Host "##vso[task.setvariable variable=BlobStore__ConnectionString]$blobConnectionString"
+        Write-Host "##vso[task.setvariable variable=SqlServer__ConnectionString]$sqlConnectionString"
 
         dotnet dev-certs https
 
