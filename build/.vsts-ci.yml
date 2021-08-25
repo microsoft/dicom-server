@@ -14,7 +14,7 @@ pr: none
 
 stages:
 - stage: UpdateVersion
-  displayName: 'Determine Semver'
+  displayName: 'Determine Semantic Version'
   dependsOn: []
   jobs:
   - job: Semver
@@ -24,7 +24,7 @@ stages:
     - template: ./update-semver.yml
 
 - stage: BuildRunUnitTests
-  displayName: 'Build and Test'
+  displayName: 'Build and Run Unit Tests'
   dependsOn:
   - UpdateVersion
   variables:
@@ -83,21 +83,21 @@ stages:
   - template: versioning.yml
 
 - stage: RunIntegrationTests
-  displayName: 'Integration tests'
+  displayName: 'Run Integration Tests'
   dependsOn:
   - UpdateTestEnvironment
   jobs:
   - template: run-integration-tests.yml
 
 - stage: RunE2ETests
-  displayName: 'E2E tests'
+  displayName: 'Run E2E Tests'
   dependsOn:
   - UpdateTestEnvironment
   jobs:
   - template: run-e2e-tests.yml
 
 - stage: PublishNuget
-  displayName: 'Publish Nugets'
+  displayName: 'Publish NuGet Packages'
   dependsOn:
   - AnalyzeSecurity
   - ValidateAPIVersioning
