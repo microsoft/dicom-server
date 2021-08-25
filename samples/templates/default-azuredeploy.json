@@ -273,9 +273,7 @@
                         "[variables('sqlServerConnectionStringResourceId')]",
                         "[variables('azureStorageConnectionStringResourceId')]",
                         "[variables('appInsightsInstrumentationKeyResourceId')]",
-                        "[variables('functionAccessKeyResourceId')]",
-                        "[concat(variables('appServiceResourceId'), '/siteextensions/AspNetCoreRuntime.5.0.x64')]",
-                        "[concat(variables('appServiceResourceId'), '/extensions/MSDeploy')]"
+                        "[variables('functionAccessKeyResourceId')]"
                     ],
                     "properties": "[union(if(variables('deployAppInsights'), json(concat('{\"ApplicationInsights__InstrumentationKey\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsInstrumentationKeyResourceId')).secretUriWithVersion, ')'), '\"}')), json('{}')), json(concat('{\"BlobStore__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"DicomFunctions__FunctionAccessKey\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('functionAccessKeyResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"SqlServer__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('sqlServerConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), variables('combinedDicomServerConfigProperties'))]"
                 },
@@ -297,6 +295,7 @@
                     "condition": "[parameters('deployPackages')]",
                     "dependsOn": [
                         "[variables('appServiceResourceId')]",
+                        "[resourceId('Microsoft.Web/sites/config', variables('serviceName'), 'appsettings')]",
                         "[concat(variables('appServiceResourceId'), '/siteextensions/AspNetCoreRuntime.5.0.x64')]"
                     ],
                   "properties": {
@@ -321,6 +320,21 @@
                 "clientAffinityEnabled": false,
                 "serverFarmId": "[variables('appServicePlanResourceId')]",
                 "siteConfig":{
+                    // We need to initially configure the Azure Function App for v3 so that it does not regenerate the function access keys later
+                    "appSettings": [
+                        {
+                            "name": "AzureWebJobsStorage",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ';')]"
+                        },
+                        {
+                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                            "value": "~3"
+                        },
+                        {
+                            "name": "FUNCTIONS_WORKER_RUNTIME",
+                            "value": "dotnet"
+                        }
+                    ],
                     "alwaysOn": true,
                     "use32BitWorkerProcess": false
                 }
@@ -350,7 +364,7 @@
                     "condition": "[parameters('deployPackages')]",
                     "dependsOn": [
                         "[variables('functionAppServiceResourceId')]",
-                        "[concat(variables('appServiceResourceId'), '/config/appsettings')]"
+                        "[resourceId('Microsoft.Web/sites/config', variables('functionAppName'), 'appsettings')]"
                     ],
                   "properties": {
                     "packageUri": "[variables('deployFunctionAppPackageUrl')]"
@@ -542,8 +556,7 @@
                     },
                     "dependsOn": [
                         "[variables('keyVaultResourceId')]",
-                        "[variables('functionAppServiceResourceId')]",
-                        "[resourceId('Microsoft.Web/sites/config', variables('functionAppName'), 'appsettings')]"
+                        "[variables('functionAppServiceResourceId')]"
                     ]
                 }
             ]
