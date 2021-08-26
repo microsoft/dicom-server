@@ -40,6 +40,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.Anonymizer.Core\Microsoft.Health.Dicom.Anonymizer.Core.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Fhir.Anonymizer.R4.Core\Microsoft.Health.Fhir.Anonymizer.R4.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
