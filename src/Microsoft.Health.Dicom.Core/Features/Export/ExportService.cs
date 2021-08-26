@@ -71,7 +71,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Export
                 Stream destinationStream = null;
                 try
                 {
-                    string[] uids = instance.Split('/');
+                    string[] uids = instance.Split('-');
                     string studyInstanceUid = uids[0];
                     string seriesInstanceUid = uids[1];
                     string sopInstanceUid = uids[2];

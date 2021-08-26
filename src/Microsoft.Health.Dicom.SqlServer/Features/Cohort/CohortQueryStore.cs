@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -42,7 +41,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Cohort
                     {
                         await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
                     }
-                    catch (SqlException e)
+                    catch (Exception e)
                     {
                         Console.WriteLine("sos:" + e.ToString());
                     }
