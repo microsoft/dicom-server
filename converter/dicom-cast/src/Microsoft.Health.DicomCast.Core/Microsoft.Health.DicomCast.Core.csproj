@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Common primitives and utilities used by Microsoft's DICOM Cast APIs.</Description>
@@ -10,6 +10,7 @@
     <PackageReference Include="fo-dicom" Version="4.0.7" />
     <PackageReference Include="fo-dicom.Json" Version="4.0.7" NoWarn="NU1701" />
     <PackageReference Include="Hl7.Fhir.R4" Version="$(Hl7FhirPackageVersion)" />
+    <PackageReference Include="Hl7.Fhir.Serialization" Version="3.3.0" />
     <PackageReference Include="Hl7.Fhir.Support" Version="$(Hl7FhirPackageVersion)" />
     <PackageReference Include="Hl7.Fhir.Support.Poco" Version="$(Hl7FhirPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(SdkPackageVersion)" />
