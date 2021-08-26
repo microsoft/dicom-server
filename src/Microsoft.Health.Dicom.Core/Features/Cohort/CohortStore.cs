@@ -37,10 +37,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Cohort
 
                 if (row.Table.Columns.Contains("URI"))
                 {
-                    uri = row["URI"].ToString();
+                    uri = row["URI"]?.ToString();
                 }
 
-                if (row.Table.Columns.Contains("fullUrl"))
+                if (row.Table.Columns.Contains("fullUrl") && string.IsNullOrWhiteSpace(uri))
                 {
                     uri = row["fullUrl"].ToString();
                 }
