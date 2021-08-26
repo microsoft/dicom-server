@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
@@ -20,6 +22,7 @@ using Microsoft.Health.Dicom.Core.Features.Cohort;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
+using Microsoft.Health.Fhir.Anonymizer.Core.AnonymizerConfigurations;
 using Microsoft.IO;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export
@@ -51,15 +54,83 @@ namespace Microsoft.Health.Dicom.Core.Features.Export
             BlobServiceClient blobServiceClient = new BlobServiceClient(destinationBlobConnectionString);
             BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(destinationBlobContainerName);
 
-            if (!string.IsNullOrEmpty(cohortId))
+            try
             {
-                (List<string> fhirInstances, List<string> dicomInstances) = await GetInstanceIdsFromCohort(cohortId);
+                if (!string.IsNullOrEmpty(cohortId))
+                {
+                    (List<string> fhirInstances, List<string> dicomInstances) = await GetInstanceIdsFromCohort(cohortId);
 
-                // Export and deanon DICOM
-                await ExportAndAnonDicomDataAsync(dicomInstances, containerClient);
+                    // Export and deanon DICOM
+                    await ExportAndAnonDicomDataAsync(dicomInstances, containerClient);
+
+                    await GetAndUploadFHIRAsync(fhirInstances, containerClient);
+                }
             }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
 
+#pragma warning disable IDE0060 // Remove unused parameter
+        private async Task GetAndUploadFHIRAsync(List<string> fhirInstances, BlobContainerClient containerClient)
+#pragma warning restore IDE0060 // Remove unused parameter
+        {
+            using var client = new HttpClient();
+            fhirInstances = Enumerable.Repeat<string>("https://sjbdcast6-fhir.azurewebsites.net/Patient/e04a7f3d-6621-4da2-bbb6-6ffc0b9bdbc8", 1).ToList();
+#pragma warning disable CA1062 // Validate arguments of public methods
+            MemoryStream output = null;
+            foreach (var instance in fhirInstances)
+#pragma warning restore CA1062 // Validate arguments of public methods
+            {
+                using var httpResponse = await client.GetAsync(new Uri(instance), HttpCompletionOption.ResponseHeadersRead);
+                httpResponse.EnsureSuccessStatusCode();
 
+                try
+                {
+                    var ms = await httpResponse.Content.ReadAsStreamAsync();
+                    // https://sjbdcast6-fhir.azurewebsites.net/Patient/e04a7f3d-6621-4da2-bbb6-6ffc0b9bdbc8
+#pragma warning disable CA1310 // Specify StringComparison for correctness
+                    var fileName = "FHIR - " + instance.Substring(instance.IndexOf("Patient/") + 8) + ".json";
+#pragma warning restore CA1310 // Specify StringComparison for correctness
+
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                    StreamReader reader = new StreamReader(ms);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                    string resourceJson = reader.ReadToEnd();
+                    try
+                    {
+                        var engine = Fhir.Anonymizer.Core.AnonymizerEngine.CreateWithFileContext("configuration-R4-version.json");
+                        var settings = new AnonymizerSettings()
+                        {
+                            IsPrettyOutput = true,
+                            ValidateInput = false,
+                            ValidateOutput = false
+                        };
+                        var resourceResult = engine.AnonymizeJson(resourceJson, settings);
+                        byte[] byteArray = Encoding.ASCII.GetBytes(resourceResult);
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                        output = new MemoryStream(byteArray);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                        await SaveAsync(fileName, output, containerClient, DefaultAcceptType, CancellationToken.None);
+                    }
+                    catch (Exception innerException)
+                    {
+                        Console.Error.WriteLine($"[{fileName}] Error:\nResource: {resourceJson}\nErrorMessage: {innerException.ToString()}");
+                        throw;
+                    }
+                    finally
+                    {
+#pragma warning disable CA2012 // Use ValueTasks correctly
+                        output?.DisposeAsync();
+#pragma warning restore CA2012 // Use ValueTasks correctly
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
         }
 
         private async Task ExportAndAnonDicomDataAsync(List<string> instances, BlobContainerClient containerClient)
@@ -101,7 +172,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Export
         {
             var cohorts = await _cohortQueryStore.GetCohortResources(Guid.Parse(cohortId), CancellationToken.None);
             var dicomInstances = cohorts.CohortResources.Where(x => x.ResourceType == Models.CohortResourceType.DICOM).Select(x => x.ResourceId).ToList();
-            var fhirInstances = cohorts.CohortResources.Where(x => x.ResourceType == Models.CohortResourceType.FHIR).Select(x => x.ResourceId).ToList();
+            var fhirInstances = cohorts.CohortResources.Where(x => x.ResourceType == Models.CohortResourceType.FHIR).Select(x => x.ReferenceUrl).ToList();
             return (fhirInstances, dicomInstances);
         }
 
@@ -115,7 +186,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Export
             string extension)
         {
             string folder = string.IsNullOrWhiteSpace(label) ? string.Empty : label + "/";
-            return $"{folder}{studyInstanceUid}-{seriesInstanceUid}-{sopInstanceUid}.{extension}";
+            return $"DICOM - {folder}{studyInstanceUid}-{seriesInstanceUid}-{sopInstanceUid}.{extension}";
         }
 
 #pragma warning disable CA1822 // Mark members as static
@@ -129,7 +200,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Export
         {
             var blobClient = containerClient.GetBlockBlobClient(blobName);
 
-            imageStream.Seek(0, SeekOrigin.Begin);
+            // imageStream.Seek(0, SeekOrigin.Begin);
 
             await blobClient.UploadAsync(
                     imageStream,
