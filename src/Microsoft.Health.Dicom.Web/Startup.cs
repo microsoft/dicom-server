@@ -72,7 +72,7 @@ namespace Microsoft.Health.Dicom.Web
         {
             string connectionString = Configuration["ADX:ConnectionString"];
             string clientId = Configuration["ADX:ClientID"];
-            string clientSecret = Configuration["ADXServicePrincipalClientSecret"];
+            string clientSecret = Configuration["ADX:ADXServicePrincipalClientSecret"];
             string dbName = Configuration["ADX:DatabaseName"];
             string tenantId = Configuration["ADX:TenantId"];
             var adxService = new ADXService(connectionString, clientId, clientSecret, dbName, tenantId);
