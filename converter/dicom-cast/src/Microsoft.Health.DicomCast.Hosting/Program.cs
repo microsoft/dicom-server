@@ -41,7 +41,7 @@ namespace Microsoft.Health.DicomCast.Hosting
 
                     services.AddTableStorageDataStore(configuration);
 
-                    //services.AddHostedService<DicomCastBackgroundService>();
+                    services.AddHostedService<DicomCastBackgroundService>();
 
                     services.AddHostedService<FhirResourceToBlobHackService>();
 

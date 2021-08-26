@@ -47,7 +47,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Anonymizer
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Anonymizer.Core", "src\Microsoft.Health.Dicom.Anonymizer.Core\Microsoft.Health.Dicom.Anonymizer.Core.csproj", "{70CC334B-0B0C-42A3-AABB-047999CB9E7A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Anonymizer.R4.Core", "src\Microsoft.Health.Fhir.Anonymizer.R4.Core\Microsoft.Health.Fhir.Anonymizer.R4.Core.csproj", "{E9D333F5-3E64-41CB-B150-892AD4839287}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.Health.Fhir.Anonymizer.Shared.Core", "src\Microsoft.Health.Fhir.Anonymizer.Shared.Core\Microsoft.Health.Fhir.Anonymizer.Shared.Core.shproj", "{8918CE75-F36E-4CB4-8232-12024A1E41AC}"
+EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		src\Microsoft.Health.Fhir.Anonymizer.Shared.Core\Microsoft.Health.Fhir.Anonymizer.Shared.Core.projitems*{8918ce75-f36e-4cb4-8232-12024a1e41ac}*SharedItemsImports = 13
+		src\Microsoft.Health.Fhir.Anonymizer.Shared.Core\Microsoft.Health.Fhir.Anonymizer.Shared.Core.projitems*{e9d333f5-3e64-41cb-b150-892ad4839287}*SharedItemsImports = 5
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -117,6 +125,10 @@ Global
 		{70CC334B-0B0C-42A3-AABB-047999CB9E7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70CC334B-0B0C-42A3-AABB-047999CB9E7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70CC334B-0B0C-42A3-AABB-047999CB9E7A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E9D333F5-3E64-41CB-B150-892AD4839287}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E9D333F5-3E64-41CB-B150-892AD4839287}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E9D333F5-3E64-41CB-B150-892AD4839287}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E9D333F5-3E64-41CB-B150-892AD4839287}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -137,7 +149,7 @@ Global
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
 		RESX_SortFileContentOnSave = True
+		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
 	EndGlobalSection
 EndGlobal

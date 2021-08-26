@@ -1,0 +1,44 @@
+﻿{
+  "fhirVersion": "R4",
+  "fhirPathRules": [
+    {
+      "path": "Resource",
+      "method": "keep"
+    },
+    {
+      "path": "Organization.identifier",
+      "method": "keep"
+    },
+    {
+      "path": "Resource.id",
+      "method": "cryptoHash"
+    },
+    {
+      "path": "Group.name",
+      "method": "redact"
+    }
+  ],
+  "parameters": {
+    "dateShiftKey": "",
+    "cryptoHashKey": "",
+    "enablePartialAgesForRedact": true,
+    "enablePartialDatesForRedact": true,
+    "enablePartialZipCodesForRedact": true,
+    "restrictedZipCodeTabulationAreas": [
+      "036",
+      "059",
+      "102",
+      "203",
+      "205",
+      "369",
+      "556",
+      "692",
+      "821",
+      "823",
+      "878",
+      "879",
+      "884",
+      "893"
+    ]
+  }
+}
