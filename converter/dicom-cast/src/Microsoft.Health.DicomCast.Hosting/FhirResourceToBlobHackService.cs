@@ -46,8 +46,8 @@ namespace Microsoft.Health.DicomCast.Hosting
             {
                 try
                 {
+                    // patients
                     var patients = await FindAll<HL7M.Patient>(stoppingToken);
-
                     foreach (var patient in patients)
                     {
                         if (!_processedResources.Contains(patient.Key))
@@ -57,7 +57,40 @@ namespace Microsoft.Health.DicomCast.Hosting
                         }
                     }
 
-                    await Task.Delay(3000, stoppingToken);
+                    // ImagingStudy
+                    var studies = await FindAll<HL7M.ImagingStudy>(stoppingToken);
+                    foreach (var study in studies)
+                    {
+                        if (!_processedResources.Contains(study.Key))
+                        {
+                            await UploadToBlob(_fhirConfiguration.BlobEndpoint, "fhirimagingstudy", study.Key, study.Value, stoppingToken);
+                            _processedResources.Add(study.Key);
+                        }
+                    }
+
+                    // Consent
+                    var consents = await FindAll<HL7M.Consent>(stoppingToken);
+                    foreach (var consent in consents)
+                    {
+                        if (!_processedResources.Contains(consent.Key))
+                        {
+                            await UploadToBlob(_fhirConfiguration.BlobEndpoint, "fhirconsent", consent.Key, consent.Value, stoppingToken);
+                            _processedResources.Add(consent.Key);
+                        }
+                    }
+
+                    // Diagnostic reports
+                    var diags = await FindAll<HL7M.DiagnosticReport>(stoppingToken);
+                    foreach (var diag in diags)
+                    {
+                        if (!_processedResources.Contains(diag.Key))
+                        {
+                            await UploadToBlob(_fhirConfiguration.BlobEndpoint, "fhirdiagnosticreport", diag.Key, diag.Value, stoppingToken);
+                            _processedResources.Add(diag.Key);
+                        }
+                    }
+
+                    await Task.Delay(10000, stoppingToken);
                 }
                 catch (Exception e)
                 {
@@ -101,7 +134,7 @@ namespace Microsoft.Health.DicomCast.Hosting
 
         private static async Task UploadToBlob(Uri connectionString, string containerName, string id, string jsonContent, CancellationToken stoppingToken)
         {
-            BlobServiceClient blobServiceClient = new BlobServiceClient(connectionString);
+            BlobServiceClient blobServiceClient = new BlobServiceClient(connectionString.ToString());
             BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(containerName);
 
             var blobClient = containerClient.GetBlobClient(id);
