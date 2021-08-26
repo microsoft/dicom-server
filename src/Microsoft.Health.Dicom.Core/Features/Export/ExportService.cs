@@ -16,6 +16,7 @@ using Dicom;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Anonymizer.Core;
 using Microsoft.Health.Dicom.Anonymizer.Core.Models;
+using Microsoft.Health.Dicom.Core.Features.Cohort;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
@@ -29,9 +30,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Export
         private readonly ILogger<ExportService> _logger;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
         private const string DefaultAcceptType = KnownContentTypes.ApplicationDicom;
+        private readonly ICohortQueryStore _cohortQueryStore;
 
-        public ExportService(IRetrieveResourceService retrieveResourceService, ILogger<ExportService> logger, RecyclableMemoryStreamManager recyclableMemoryStreamManager)
+        public ExportService(ICohortQueryStore cohortQueryStore, IRetrieveResourceService retrieveResourceService, ILogger<ExportService> logger, RecyclableMemoryStreamManager recyclableMemoryStreamManager)
         {
+            _cohortQueryStore = cohortQueryStore;
             _retrieveResourceService = retrieveResourceService;
             _logger = logger;
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
@@ -39,6 +42,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Export
 
         public async Task Export(
             IReadOnlyCollection<string> instances,
+            string cohortId,
             string destinationBlobConnectionString,
             string destinationBlobContainerName,
             string contentType = DefaultAcceptType,
@@ -47,6 +51,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Export
             BlobServiceClient blobServiceClient = new BlobServiceClient(destinationBlobConnectionString);
             BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(destinationBlobContainerName);
 
+            if (!string.IsNullOrEmpty(cohortId))
+            {
+                (List<string> fhirInstances, List<string> dicomInstances) = await GetInstanceIdsFromCohort(cohortId);
+
+                // Export and deanon DICOM
+                await ExportAndAnonDicomDataAsync(dicomInstances, containerClient);
+            }
+
+
+        }
+
+        private async Task ExportAndAnonDicomDataAsync(List<string> instances, BlobContainerClient containerClient)
+        {
 #pragma warning disable CA1062 // Validate arguments of public methods
             foreach (string instance in instances)
 #pragma warning restore CA1062 // Validate arguments of public methods
@@ -61,7 +78,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Export
                     var acceptedHeader = new AcceptHeader(KnownContentTypes.ApplicationDicom, PayloadTypes.SinglePart, "*", null);
                     RetrieveResourceRequest retrieve = new RetrieveResourceRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Enumerable.Repeat<AcceptHeader>(acceptedHeader, 1));
 
-                    var response = await _retrieveResourceService.GetInstanceResourceAsync(retrieve, cancellationToken);
+                    var response = await _retrieveResourceService.GetInstanceResourceAsync(retrieve, CancellationToken.None);
                     destinationStream = response.ResponseStreams.First();
                     var fileName = GetFileName(string.Empty, studyInstanceUid, seriesInstanceUid, sopInstanceUid, "dcm");
 
@@ -78,6 +95,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Export
 #pragma warning restore CA2012 // Use ValueTasks correctly
                 }
             }
+        }
+
+        private async Task<(List<string>, List<string>)> GetInstanceIdsFromCohort(string cohortId)
+        {
+            var cohorts = await _cohortQueryStore.GetCohortResources(Guid.Parse(cohortId), CancellationToken.None);
+            var dicomInstances = cohorts.CohortResources.Where(x => x.ResourceType == Models.CohortResourceType.DICOM).Select(x => x.ResourceId).ToList();
+            var fhirInstances = cohorts.CohortResources.Where(x => x.ResourceType == Models.CohortResourceType.FHIR).Select(x => x.ResourceId).ToList();
+            return (fhirInstances, dicomInstances);
         }
 
 #pragma warning disable CA1822 // Mark members as static

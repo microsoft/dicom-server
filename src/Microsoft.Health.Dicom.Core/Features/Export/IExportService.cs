@@ -14,6 +14,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Export
     {
         Task Export(
             IReadOnlyCollection<string> instances,
+            string cohortId,
             string destinationBlobConnectionString,
             string destinationBlobContainerName,
             string contentType = KnownContentTypes.ApplicationDicom,
