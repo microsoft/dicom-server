@@ -22,7 +22,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ADX
                                 tenantID);
         }
 
-        public void ExecuteQueryAsync(string queryText)
+        public DataTable ExecuteQueryAsync(string queryText)
         {
 #pragma warning disable CA2000 // Dispose objects before losing scope
             DataTable resulttable = new DataTable();
@@ -31,6 +31,8 @@ namespace Microsoft.Health.Dicom.Core.Features.ADX
 
             var reader = client.ExecuteQuery(queryText);
             resulttable.Load(reader);
+
+            return resulttable;
         }
     }
 }
