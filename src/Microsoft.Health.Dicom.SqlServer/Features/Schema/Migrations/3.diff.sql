@@ -77,6 +77,47 @@ BEGIN
     )
     WITH (DATA_COMPRESSION = PAGE)
 END
+
+/*************************************************************
+ Cohort table
+**************************************************************/
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.tables
+    WHERE name = 'Cohort')
+BEGIN
+    CREATE TABLE dbo.Cohort (
+        CohortId                NVARCHAR(200)        NOT NULL,
+        ResourceId              NVARCHAR(200)        NOT NULL,
+        ResourceType            SMALLINT             NOT NULL,
+        ReferenceURL            NVARCHAR(MAX)        NOT NULL, 
+    )
+END
+
+IF EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_Cohort' AND object_id = OBJECT_ID('dbo.Cohort'))
+BEGIN
+    DROP INDEX IXC_Cohort ON dbo.Cohort
+    CREATE UNIQUE CLUSTERED INDEX IXC_Cohort ON dbo.Cohort
+    (
+        CohortId,
+        ResourceId
+    ) WITH IGNORE_DUP_KEY
+END
+
+IF NOT EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_Cohort' AND object_id = OBJECT_ID('dbo.Cohort'))
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_Cohort ON dbo.Cohort
+    (
+        CohortId,
+        ResourceId
+    ) WITH IGNORE_DUP_KEY
+END
 GO
 
 /*************************************************************

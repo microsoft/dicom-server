@@ -22,6 +22,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
 
         public const string StoreInstancesRoute = StudiesRouteSegment;
         public const string StoreInstancesInStudyRoute = StudiesRouteSegment + "/{" + KnownActionParameterNames.StudyInstanceUid + "}";
+        public const string CohortRoute = "cohort";
 
         public const string StudyRoute = StudiesRouteSegment + "/" + StudiesInstanceUidRouteSegment;
         public const string SeriesRoute = StudyRoute + "/" + SeriesRouteSegment + "/" + SeriesInstanceUidRouteSegment;

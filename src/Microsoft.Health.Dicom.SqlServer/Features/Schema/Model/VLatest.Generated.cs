@@ -14,6 +14,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     internal class VLatest
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
+        internal readonly static CohortTable Cohort = new CohortTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
         internal readonly static ExtendedQueryTagTable ExtendedQueryTag = new ExtendedQueryTagTable();
         internal readonly static ExtendedQueryTagDateTimeTable ExtendedQueryTagDateTime = new ExtendedQueryTagDateTimeTable();
@@ -53,6 +54,19 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableBigIntColumn CurrentWatermark = new NullableBigIntColumn("CurrentWatermark");
             internal readonly Index IXC_ChangeFeed = new Index("IXC_ChangeFeed");
             internal readonly Index IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
+        }
+
+        internal class CohortTable : Table
+        {
+            internal CohortTable() : base("dbo.Cohort")
+            {
+            }
+
+            internal readonly NVarCharColumn CohortId = new NVarCharColumn("CohortId", 200);
+            internal readonly NVarCharColumn ResourceId = new NVarCharColumn("ResourceId", 200);
+            internal readonly SmallIntColumn ResourceType = new SmallIntColumn("ResourceType");
+            internal readonly NVarCharColumn ReferenceURL = new NVarCharColumn("ReferenceURL", -1);
+            internal readonly Index IXC_Cohort = new Index("IXC_Cohort");
         }
 
         internal class DeletedInstanceTable : Table
