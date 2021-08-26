@@ -55,7 +55,7 @@
 '    { "column" : "fullUrl", "Properties":{"Path":"$.fullUrl"}},'
 '    { "column" : "id", "Properties":{"Path":"$.resource.id"}},'
 '    { "column" : "identifier", "Properties":{"Path":"$.resource.identifier"}},'
-'    { "column" : "patientreference", "Properties":{"Path":"$.resource.subject.reference"}},'
+'    { "column" : "patientreference", "Properties":{"Path":"$.resource.patient.reference"}},'
 '    { "column" : "start", "Properties":{"Path":"$.resource.provision.period.start"}},'
 '    { "column" : "end", "Properties":{"Path":"$.resource.provision.period.end"}},'
 '    { "column" : "full_record", "Properties":{"Path":"$.resource"}},'
