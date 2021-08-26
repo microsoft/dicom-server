@@ -95,6 +95,12 @@
                 "description": "The endpoint of the FHIR server."
             }
         },
+        "5by5FhirBlobEndpoint": {
+            "type": "string",
+            "metadata": {
+                "description": "Blob access key."
+            }
+        },
         "enforceValidationOfTagValues": {
             "defaultValue": false,
             "type": "Bool",
@@ -159,6 +165,10 @@
                                     "name": "DicomCast__Features__EnforceValidationOfTagValues",
                                     "value": "[parameters('enforceValidationOfTagValues')]"
 
+                                },
+                                {
+                                    "name": "Fhir__BlobEndpoint",
+                                    "value": "[parameters('5by5FhirBlobEndpoint')]"
                                 }
                             ]
                         }
