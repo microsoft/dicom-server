@@ -33,13 +33,32 @@ namespace Microsoft.Health.Dicom.Core.Features.Cohort
 
             foreach (DataRow row in searchResultTable.Rows)
             {
-                string uri = row["URI"].ToString();
+                string uri = string.Empty;
 
-                // TODO: handle FHIR data
+                if (row.Table.Columns.Contains("URI"))
+                {
+                    uri = row["URI"].ToString();
+                }
+
+                if (row.Table.Columns.Contains("fullUrl"))
+                {
+                    uri = row["fullUrl"].ToString();
+                }
+
                 var resource = new CohortResource();
                 resource.ReferenceUrl = uri;
-                resource.ResourceId = GetDicomResourceId(uri);
-                resource.ResourceType = CohortResourceType.DICOM;
+
+                var type = FindUriType(uri);
+                resource.ResourceType = type;
+
+                if (type == CohortResourceType.DICOM)
+                {
+                    resource.ResourceId = GetDicomResourceId(uri);
+                }
+                else if (type == CohortResourceType.FHIR)
+                {
+                    resource.ResourceId = GetFhirResourceId(uri);
+                }
 
                 resources.Add(resource);
             }
@@ -49,6 +68,43 @@ namespace Microsoft.Health.Dicom.Core.Features.Cohort
 
             await _cohortQueryStore.AddCohortResources(cohortData, new System.Threading.CancellationToken()).ConfigureAwait(false);
             return cohortData;
+        }
+
+        private static CohortResourceType FindUriType(string uri)
+        {
+            if (uri.Contains("Patient", StringComparison.OrdinalIgnoreCase))
+            {
+                return CohortResourceType.FHIR;
+            }
+
+            if (uri.Contains("studies", StringComparison.OrdinalIgnoreCase) &&
+                uri.Contains("series", StringComparison.OrdinalIgnoreCase) &&
+                uri.Contains("instances", StringComparison.OrdinalIgnoreCase))
+            {
+                return CohortResourceType.DICOM;
+            }
+
+            return CohortResourceType.DICOM;
+        }
+
+        private static string GetFhirResourceId(string uri)
+        {
+            var splitUri = uri.Split('/');
+            bool takeNextPiece = false;
+
+            foreach (string piece in splitUri)
+            {
+                if (takeNextPiece)
+                {
+                    return piece;
+                }
+                else if (piece.Equals("Patient", StringComparison.OrdinalIgnoreCase))
+                {
+                    takeNextPiece = true;
+                }
+            }
+
+            return string.Empty;
         }
 
         private static string GetDicomResourceId(string uri)
