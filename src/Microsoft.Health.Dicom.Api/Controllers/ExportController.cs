@@ -41,6 +41,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             await _exportService.Export(
 #pragma warning disable CA1062 // Validate arguments of public methods
                             request.Instances,
+                            request.CohortId,
 #pragma warning restore CA1062 // Validate arguments of public methods
                             request.DestinationBlobConnectionString,
                 request.DestinationBlobContainerName,
