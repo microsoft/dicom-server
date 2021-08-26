@@ -542,15 +542,6 @@ CREATE TABLE dbo.Cohort (
     ReferenceURL            NVARCHAR(MAX)        NOT NULL, 
 )
 
-IF EXISTS (
-    SELECT * 
-	FROM sys.indexes 
-	WHERE name='IXC_Cohort' AND object_id = OBJECT_ID('dbo.Cohort'))
-BEGIN
-    DROP INDEX IXC_Cohort ON dbo.Cohort
-END
-GO
-
 CREATE UNIQUE CLUSTERED INDEX IXC_Cohort ON dbo.Cohort
 (
     CohortId,
