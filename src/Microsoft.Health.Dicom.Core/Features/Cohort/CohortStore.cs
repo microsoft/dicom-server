@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Features.ADX;
 using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Cohort
@@ -13,16 +14,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Cohort
     public class CohortStore : ICohortStore
     {
         private readonly ICohortQueryStore _cohortQueryStore;
+        private readonly IADXService _aDXService;
 
-        public CohortStore(ICohortQueryStore cohortQueryStore)
+        public CohortStore(ICohortQueryStore cohortQueryStore, IADXService aDXService)
         {
             _cohortQueryStore = cohortQueryStore;
-            // TODO: ADX access?
+            _aDXService = aDXService;
         }
 
         public async Task<CohortData> CreateCohortAsync(string searchQueryText)
         {
             // TODO: search using ADX
+            // _aDXService.ExecuteQueryAsync(searchQueryText);
             // parse output for FHIR & DICOM data
             // create URLS from data
 
