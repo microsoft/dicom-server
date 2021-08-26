@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Cohort
                 using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
                 using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
                 {
-                    sqlCommandWrapper.CommandText = $"INSERT INTO dbo.Cohort (CohortId,ResourceId,ResourceType,ReferenceURL) VALUES ({cohortData.CohortId}, {cohortResource.ResourceId}, {(short)cohortResource.ResourceType}, {cohortResource.ReferenceUrl})";
+                    sqlCommandWrapper.CommandText = $"INSERT INTO dbo.Cohort (CohortId,ResourceId,ResourceType,ReferenceURL) VALUES ('{cohortData.CohortId}', '{cohortResource.ResourceId}', {(short)cohortResource.ResourceType}, '{cohortResource.ReferenceUrl}')";
 
                     try
                     {
@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Cohort
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                sqlCommandWrapper.CommandText = $"SELECT ResourceId, ResourceType, ReferenceURL FROM dbo.Cohort WHERE CohortId = {cohortId}";
+                sqlCommandWrapper.CommandText = $"SELECT ResourceId, ResourceType, ReferenceURL FROM dbo.Cohort WHERE CohortId = '{cohortId}'";
 
                 Microsoft.Data.SqlClient.SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken);
                 while (await reader.ReadAsync(cancellationToken))

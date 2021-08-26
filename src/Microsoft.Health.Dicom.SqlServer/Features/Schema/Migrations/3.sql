@@ -536,22 +536,26 @@ CREATE UNIQUE NONCLUSTERED INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagK
     Cohort
 **************************************************************/
 CREATE TABLE dbo.Cohort (
-    CohortId                UNIQUEIDENTIFIER     NOT NULL,
+    CohortId                NVARCHAR(200)        NOT NULL,
     ResourceId              NVARCHAR(200)        NOT NULL,
     ResourceType            SMALLINT             NOT NULL,
     ReferenceURL            NVARCHAR(MAX)        NOT NULL, 
-) 
+)
+
+IF EXISTS (
+    SELECT * 
+	FROM sys.indexes 
+	WHERE name='IXC_Cohort' AND object_id = OBJECT_ID('dbo.Cohort'))
+BEGIN
+    DROP INDEX IXC_Cohort ON dbo.Cohort
+END
+GO
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Cohort ON dbo.Cohort
 (
-    CohortId
-)
-
-CREATE UNIQUE NONCLUSTERED INDEX IXC_Cohort_CohortId_ResourceId ON dbo.Cohort
-(
     CohortId,
     ResourceId
-)
+) WITH IGNORE_DUP_KEY
 
 /*************************************************************
     The user defined type for AddExtendedQueryTagsInput

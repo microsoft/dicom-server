@@ -62,12 +62,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
-            internal readonly UniqueIdentifierColumn CohortId = new UniqueIdentifierColumn("CohortId");
+            internal readonly NVarCharColumn CohortId = new NVarCharColumn("CohortId", 200);
             internal readonly NVarCharColumn ResourceId = new NVarCharColumn("ResourceId", 200);
             internal readonly SmallIntColumn ResourceType = new SmallIntColumn("ResourceType");
             internal readonly NVarCharColumn ReferenceURL = new NVarCharColumn("ReferenceURL", -1);
             internal readonly Index IXC_Cohort = new Index("IXC_Cohort");
-            internal readonly Index IXC_Cohort_CohortId_ResourceId = new Index("IXC_Cohort_CohortId_ResourceId");
         }
 
         internal class DeletedInstanceTable : Table
