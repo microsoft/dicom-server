@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
 
         [Theory]
         [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "Dicom element 'StudyInstanceUid' with value  starting with 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' failed validation for VR 'UI': Dicom Identifier exceeds max length.")]
+            "Dicom element 'StudyInstanceUid' with value starting with 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' failed validation for VR 'UI': Dicom Identifier exceeds max length.")]
         [InlineData("345%^&",
             "Dicom element 'StudyInstanceUid' with value '345%^&' failed validation for VR 'UI': Dicom Identifier should only contain characters in '0'-'9' and '.', and each component must start with non-zero number.")]
         [InlineData("()",
