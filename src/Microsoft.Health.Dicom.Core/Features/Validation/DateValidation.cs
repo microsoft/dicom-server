@@ -15,6 +15,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     {
         private const string DateFormatDA = "yyyyMMdd";
         private const int ValueTruncationLength = 8;
+
         public override void Validate(DicomElement dicomElement)
         {
             base.Validate(dicomElement);

@@ -14,6 +14,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     {
         private static readonly Regex ValidIdentifierCharactersFormat = new Regex("^[0-9\\.]*[0-9]$", RegexOptions.Compiled);
         private const int MaxLength = 64;
+
         public override void Validate(DicomElement dicomElement)
         {
             base.Validate(dicomElement);

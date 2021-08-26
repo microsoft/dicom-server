@@ -16,6 +16,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     internal class LongStringValidation : ElementValidation
     {
         private const int MaxLength = 64;
+
         public override void Validate(DicomElement dicomElement)
         {
             base.Validate(dicomElement);
