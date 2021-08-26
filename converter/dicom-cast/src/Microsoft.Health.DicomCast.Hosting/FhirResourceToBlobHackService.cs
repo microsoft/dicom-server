@@ -112,7 +112,7 @@ namespace Microsoft.Health.DicomCast.Hosting
             HL7M.Bundle bundle = await _fhirClient.SearchAsync(
                 resourceType,
                 query: null,
-                count: null,
+                count: 1000,
                 cancellationToken);
 
             int matchCount = 0;
