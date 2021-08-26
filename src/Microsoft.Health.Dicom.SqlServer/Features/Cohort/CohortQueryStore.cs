@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -29,7 +28,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Cohort
         public async Task AddCohortResources(CohortData cohortData, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(cohortData, nameof(cohortData));
-            // TODO: Create stored prod to add rows all at once
 
             foreach (var cohortResource in cohortData.CohortResources)
             {
@@ -42,7 +40,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Cohort
                     {
                         await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
                     }
-                    catch (SqlException e)
+                    catch (Exception e)
                     {
                         Console.WriteLine("sos:" + e.ToString());
                     }
@@ -53,7 +51,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Cohort
         public async Task<CohortData> GetCohortResources(Guid cohortId, CancellationToken cancellationToken)
         {
             var result = new CohortData();
-            result.CohortId = cohortId; // TODO: Use string for guid?
+            result.CohortId = cohortId;
             result.CohortResources = new List<CohortResource>();
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))

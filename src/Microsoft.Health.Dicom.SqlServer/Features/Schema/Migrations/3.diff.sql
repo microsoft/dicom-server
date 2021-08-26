@@ -94,19 +94,6 @@ BEGIN
     )
 END
 
-IF EXISTS (
-    SELECT * 
-	FROM sys.indexes 
-	WHERE name='IXC_Cohort' AND object_id = OBJECT_ID('dbo.Cohort'))
-BEGIN
-    DROP INDEX IXC_Cohort ON dbo.Cohort
-    CREATE UNIQUE CLUSTERED INDEX IXC_Cohort ON dbo.Cohort
-    (
-        CohortId,
-        ResourceId
-    ) WITH IGNORE_DUP_KEY
-END
-
 IF NOT EXISTS (
     SELECT * 
 	FROM sys.indexes 

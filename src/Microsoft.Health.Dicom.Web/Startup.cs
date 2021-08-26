@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Development.IdentityProvider.Registration;
+using Microsoft.Health.Dicom.Core.Features.ADX;
 using Microsoft.Health.Dicom.Core.Features.Cohort;
 using Microsoft.Health.Dicom.Core.Features.Security;
 
@@ -41,6 +42,8 @@ namespace Microsoft.Health.Dicom.Web
                 .AddBackgroundWorkers();
 
             AddApplicationInsightsTelemetry(services);
+
+            ADXConnectionConfiguration(services);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -63,6 +66,18 @@ namespace Microsoft.Health.Dicom.Web
                 services.AddApplicationInsightsTelemetry(instrumentationKey);
                 services.AddLogging(loggingBuilder => loggingBuilder.AddApplicationInsights(instrumentationKey));
             }
+        }
+
+        private void ADXConnectionConfiguration(IServiceCollection services)
+        {
+            string connectionString = Configuration["ADX:ConnectionString"];
+            string clientId = Configuration["ADX:ClientID"];
+            string clientSecret = Configuration["ADXServicePrincipalClientSecret"];
+            string dbName = Configuration["ADX:DatabaseName"];
+            string tenantId = Configuration["ADX:TenantId"];
+            var adxService = new ADXService(connectionString, clientId, clientSecret, dbName, tenantId);
+
+            services.AddSingleton<IADXService>(adxService);
         }
     }
 }
