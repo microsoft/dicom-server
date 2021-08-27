@@ -8,18 +8,21 @@
 
 $files = dir '.\FHIR Data\' -Recurse *.json
 $records = @()
+mkdir fhir_convert -ErrorAction Ignore
 foreach($file in $files){
     # $file = $files[0]
     $content = get-content  -Raw $file.fullname
     $name = $file.directory.name + "_" + $file.BaseName
-    $object = ConvertFrom-Json -InputObject $content -AsHashtable -Depth 45
+    $object = ConvertFrom-Json -InputObject $content -AsHashtable -Depth 50
     foreach($entry in $object.entry){
         if($entry.resource.resourceType -eq "Patient"){
             $id = $entry.resource.id
+            $object.entry[0].resource.identifier += @{"system"=''; "value"=$id}
             # write-host "@{`"name`"=`"$name`";`"id`"=`"$id`"},"
             $records += @(@{"name"=$name; "id"=$id})
         }
     }
+    $object | ConvertTo-Json -Depth 50  | Out-File -FilePath "fhir_convert\$name.json"
 }
 #endregion
 
