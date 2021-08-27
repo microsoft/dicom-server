@@ -33,34 +33,39 @@ namespace Microsoft.Health.Dicom.Core.Features.Cohort
 
             foreach (DataRow row in searchResultTable.Rows)
             {
-                string uri = string.Empty;
+                string dicomUri = string.Empty;
+                string fhirUri = string.Empty;
 
                 if (row.Table.Columns.Contains("URI"))
                 {
-                    uri = row["URI"]?.ToString();
+                    dicomUri = row["URI"]?.ToString();
                 }
-
-                if (row.Table.Columns.Contains("fullUrl") && string.IsNullOrWhiteSpace(uri))
+                else
                 {
-                    uri = row["fullUrl"].ToString();
+                    continue;
                 }
 
-                var resource = new CohortResource();
-                resource.ReferenceUrl = uri;
-
-                var type = FindUriType(uri);
-                resource.ResourceType = type;
-
-                if (type == CohortResourceType.DICOM)
+                if (row.Table.Columns.Contains("fullUrl"))
                 {
-                    resource.ResourceId = GetDicomResourceId(uri);
+                    fhirUri = row["fullUrl"].ToString();
                 }
-                else if (type == CohortResourceType.FHIR)
+                else
                 {
-                    resource.ResourceId = GetFhirResourceId(uri);
+                    continue;
                 }
 
-                resources.Add(resource);
+                var dicomResource = new CohortResource();
+                dicomResource.ReferenceUrl = dicomUri;
+                dicomResource.ResourceType = CohortResourceType.DICOM;
+                dicomResource.ResourceId = GetDicomResourceId(dicomUri);
+
+                var fhirResource = new CohortResource();
+                fhirResource.ReferenceUrl = fhirUri;
+                fhirResource.ResourceType = CohortResourceType.FHIR;
+                fhirResource.ResourceId = GetFhirResourceId(fhirUri);
+
+                resources.Add(dicomResource);
+                resources.Add(fhirResource);
             }
 
             cohortData.SearchText = searchQueryText;
