@@ -77,7 +77,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Export
 #pragma warning restore IDE0060 // Remove unused parameter
         {
             using var client = new HttpClient();
-            fhirInstances = Enumerable.Repeat<string>("https://sjbdcast6-fhir.azurewebsites.net/Patient/e04a7f3d-6621-4da2-bbb6-6ffc0b9bdbc8", 1).ToList();
+            // fhirInstances = Enumerable.Repeat<string>("https://sjbdcast6-fhir.azurewebsites.net/Patient/e04a7f3d-6621-4da2-bbb6-6ffc0b9bdbc8", 1).ToList();
 #pragma warning disable CA1062 // Validate arguments of public methods
             MemoryStream output = null;
             foreach (var instance in fhirInstances)

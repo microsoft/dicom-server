@@ -56,6 +56,7 @@ namespace Microsoft.Health.DicomCast.Hosting
                             _processedResources.Add(patient.Key);
                         }
                     }
+                    _logger.LogInformation($"Patients {patients.Count} processed.");
 
                     // ImagingStudy
                     var studies = await FindAll<HL7M.ImagingStudy>(stoppingToken);
@@ -67,6 +68,7 @@ namespace Microsoft.Health.DicomCast.Hosting
                             _processedResources.Add(study.Key);
                         }
                     }
+                    _logger.LogInformation($"studies {studies.Count} processed.");
 
                     // Consent
                     var consents = await FindAll<HL7M.Consent>(stoppingToken);
@@ -78,6 +80,7 @@ namespace Microsoft.Health.DicomCast.Hosting
                             _processedResources.Add(consent.Key);
                         }
                     }
+                    _logger.LogInformation($"consents {consents.Count} processed.");
 
                     // Diagnostic reports
                     var diags = await FindAll<HL7M.DiagnosticReport>(stoppingToken);
@@ -90,11 +93,12 @@ namespace Microsoft.Health.DicomCast.Hosting
                         }
                     }
 
+                    _logger.LogInformation($"DiagnosticReport {diags.Count} processed.");
                     await Task.Delay(10000, stoppingToken);
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    _logger.LogError(e, "failed");
                     break;
                 }
             }
@@ -112,7 +116,7 @@ namespace Microsoft.Health.DicomCast.Hosting
             HL7M.Bundle bundle = await _fhirClient.SearchAsync(
                 resourceType,
                 query: null,
-                count: null,
+                count: 1000,
                 cancellationToken);
 
             int matchCount = 0;
