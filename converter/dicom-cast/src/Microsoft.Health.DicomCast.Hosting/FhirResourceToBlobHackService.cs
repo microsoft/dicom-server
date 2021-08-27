@@ -56,6 +56,7 @@ namespace Microsoft.Health.DicomCast.Hosting
                             _processedResources.Add(patient.Key);
                         }
                     }
+                    Console.WriteLine($"Patients {patients.Count} processed.");
 
                     // ImagingStudy
                     var studies = await FindAll<HL7M.ImagingStudy>(stoppingToken);
@@ -67,6 +68,7 @@ namespace Microsoft.Health.DicomCast.Hosting
                             _processedResources.Add(study.Key);
                         }
                     }
+                    Console.WriteLine($"studies {studies.Count} processed.");
 
                     // Consent
                     var consents = await FindAll<HL7M.Consent>(stoppingToken);
@@ -78,6 +80,7 @@ namespace Microsoft.Health.DicomCast.Hosting
                             _processedResources.Add(consent.Key);
                         }
                     }
+                    Console.WriteLine($"consents {consents.Count} processed.");
 
                     // Diagnostic reports
                     var diags = await FindAll<HL7M.DiagnosticReport>(stoppingToken);
@@ -90,6 +93,7 @@ namespace Microsoft.Health.DicomCast.Hosting
                         }
                     }
 
+                    Console.WriteLine($"DiagnosticReport {diags.Count} processed.");
                     await Task.Delay(10000, stoppingToken);
                 }
                 catch (Exception e)
