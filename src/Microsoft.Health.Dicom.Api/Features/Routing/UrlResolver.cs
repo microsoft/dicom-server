@@ -40,8 +40,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
             _actionContextAccessor = actionContextAccessor;
         }
 
-        private IUrlHelper UrlHelper => _urlHelperFactory.GetUrlHelper(
-            _actionContextAccessor.ActionContext);
+        private IUrlHelper UrlHelper => _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
 
         /// <inheritdoc />
         public Uri ResolveOperationStatusUri(Guid operationId)
@@ -53,6 +52,19 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
                 new RouteValueDictionary
                 {
                     { KnownActionParameterNames.OperationId, OperationId.ToString(operationId) },
+                });
+        }
+
+        /// <inheritdoc />
+        public Uri ResolveQueryTagUri(string tagPath)
+        {
+            var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey("version");
+
+            return RouteUri(
+                hasVersion ? KnownRouteNames.VersionedGetExtendedQueryTag : KnownRouteNames.GetExtendedQueryTag,
+                new RouteValueDictionary
+                {
+                    { KnownActionParameterNames.TagPath, tagPath },
                 });
         }
 

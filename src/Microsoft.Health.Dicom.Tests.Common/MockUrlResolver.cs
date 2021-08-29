@@ -18,6 +18,14 @@ namespace Microsoft.Health.Dicom.Tests.Common
             return new Uri("/" + OperationId.ToString(operationId), UriKind.Relative);
         }
 
+        /// <inheritdoc />
+        public Uri ResolveQueryTagUri(string tagPath)
+        {
+            EnsureArg.IsNotNull(tagPath, nameof(tagPath));
+
+            return new Uri("/" + tagPath, UriKind.Relative);
+        }
+
         public Uri ResolveRetrieveInstanceUri(InstanceIdentifier instanceIdentifier)
         {
             EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));

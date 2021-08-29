@@ -112,6 +112,9 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     Arg.Any<object>());
             context
                 .Received(1)
+                .SetCustomStatus(Arg.Is(GetCustomStatePredicate((int)(15 / 49D * 100), "01010101", "02020202", "04040404")));
+            context
+                .Received(1)
                 .ContinueAsNew(
                     Arg.Is<ReindexInput>(x => GetReindexInputPredicate(expectedTags, 35, 50)(x)),
                     false);
@@ -199,6 +202,9 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     Arg.Any<object>());
             context
                 .Received(1)
+                .SetCustomStatus(Arg.Is(GetCustomStatePredicate((int)(12 / 41D * 100), "01010101", "02020202", "04040404")));
+            context
+                .Received(1)
                 .ContinueAsNew(
                     Arg.Is<ReindexInput>(x => GetReindexInputPredicate(expectedTags, 30, 42)(x)),
                     false);
@@ -277,6 +283,9 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     _options.ActivityRetryOptions,
                     Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedTags.Select(x => x.Key))));
             context
+                .Received(1)
+                .SetCustomStatus(Arg.Is(GetCustomStatePredicate(100, "01010101", "02020202", "04040404")));
+            context
                 .DidNotReceiveWithAnyArgs()
                 .ContinueAsNew(default, default);
         }
@@ -352,6 +361,9 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     _options.ActivityRetryOptions,
                     Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedTags.Select(x => x.Key))));
             context
+                .Received(1)
+                .SetCustomStatus(Arg.Is(GetCustomStatePredicate(100, "01010101", "02020202", "04040404")));
+            context
                 .DidNotReceiveWithAnyArgs()
                 .ContinueAsNew(default, default);
         }
@@ -412,6 +424,9 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     _options.ActivityRetryOptions,
                     Arg.Any<object>());
             context
+                .Received(1)
+                .SetCustomStatus(Arg.Is(GetCustomStatePredicate(100)));
+            context
                 .DidNotReceiveWithAnyArgs()
                 .ContinueAsNew(default, default);
         }
@@ -440,6 +455,12 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             return x => x is ReindexInput r
                 && r.QueryTagKeys.SequenceEqual(queryTags.Select(y => y.Key))
                 && r.Completed == WatermarkRange.Between(start, end);
+        }
+
+        private static Expression<Predicate<OperationCustomStatus>> GetCustomStatePredicate(int percentComplete, params string[] resourceIds)
+        {
+            return x => x.PercentComplete == percentComplete
+                && (resourceIds.Length == 0 ? x.ResourceIds == null : x.ResourceIds.SequenceEqual(resourceIds));
         }
     }
 }

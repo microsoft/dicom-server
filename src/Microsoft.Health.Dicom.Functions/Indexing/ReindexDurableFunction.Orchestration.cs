@@ -13,6 +13,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Extensions;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 
@@ -72,11 +73,22 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                     // Create a new orchestration with the same instance ID to process the remaining data
                     logger.LogInformation("Completed re-indexing the range {Range}. Continuing with new execution...", batchRange);
 
+                    WatermarkRange completed = input.Completed.Count == 0
+                        ? batchRange
+                        : WatermarkRange.Between(batchRange.Start, input.Completed.End);
+
+                    context.SetCustomStatus(
+                        new OperationCustomStatus
+                        {
+                            PercentComplete = (int)((double)(completed.End - completed.Start) / (completed.End - 1) * 100),
+                            ResourceIds = queryTags.Select(x => x.Path).ToList(),
+                        });
+
                     context.ContinueAsNew(
                         new ReindexInput
                         {
                             QueryTagKeys = queryTagKeys,
-                            Completed = input.Completed.Count == 0 ? batchRange : WatermarkRange.Between(batchRange.Start, input.Completed.End),
+                            Completed = completed,
                         });
                 }
                 else
@@ -89,6 +101,13 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                     logger.LogInformation(
                         "Completed re-indexing for the following extended query tags {{{QueryTagKeys}}}.",
                         string.Join(", ", completed));
+
+                    context.SetCustomStatus(
+                        new OperationCustomStatus
+                        {
+                            PercentComplete = 100,
+                            ResourceIds = queryTags.Select(x => x.Path).ToList(),
+                        });
                 }
             }
             else
@@ -96,6 +115,13 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                 logger.LogWarning(
                     "Could not find any query tags for the re-indexing operation '{OperationId}'.",
                     context.InstanceId);
+
+                context.SetCustomStatus(
+                    new OperationCustomStatus
+                    {
+                        PercentComplete = 100,
+                        ResourceIds = null,
+                    });
             }
         }
 

@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -17,7 +18,7 @@ using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Operations;
-using Microsoft.Health.Dicom.Core.Messages.Operations;
+using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Client.Configs;
 using Microsoft.Net.Http.Headers;
@@ -30,6 +31,7 @@ namespace Microsoft.Health.Dicom.Functions.Client
     internal class DicomAzureFunctionsHttpClient : IDicomOperationsClient
     {
         private readonly HttpClient _client;
+        private readonly IUrlResolver _urlResolver;
         private readonly JsonSerializerOptions _jsonSerializerOptions;
         private readonly FunctionsClientOptions _options;
 
@@ -37,18 +39,21 @@ namespace Microsoft.Health.Dicom.Functions.Client
         /// Initializes a new instance of the <see cref="DicomAzureFunctionsHttpClient"/> class.
         /// </summary>
         /// <param name="client">The HTTP client used to communicate with the HTTP triggered functions.</param>
+        /// <param name="urlResolver">A helper for building URLs for other APIs.</param>
         /// <param name="jsonSerializerOptions">Settings to be used when serializing or deserializing JSON.</param>
         /// <param name="options">A configuration that specifies how to communicate with the Azure Functions.</param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="client"/>, <paramref name="jsonSerializerOptions"/>, <paramref name="options"/>, or
-        /// either <see cref="IOptions{TOptions}.Value"/> is <see langword="null"/>.
+        /// <paramref name="client"/>, <paramref name="urlResolver"/>, <paramref name="jsonSerializerOptions"/>,
+        /// <paramref name="options"/>, or its <see cref="IOptions{TOptions}.Value"/> is <see langword="null"/>.
         /// </exception>
         public DicomAzureFunctionsHttpClient(
             HttpClient client,
+            IUrlResolver urlResolver,
             IOptions<JsonSerializerOptions> jsonSerializerOptions,
             IOptions<FunctionsClientOptions> options)
         {
             _client = EnsureArg.IsNotNull(client, nameof(client));
+            _urlResolver = EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
             _jsonSerializerOptions = EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
             _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
 
@@ -56,7 +61,7 @@ namespace Microsoft.Health.Dicom.Functions.Client
         }
 
         /// <inheritdoc/>
-        public async Task<OperationStatusResponse> GetStatusAsync(Guid operationId, CancellationToken cancellationToken = default)
+        public async Task<OperationStatus<Uri>> GetStatusAsync(Guid operationId, CancellationToken cancellationToken = default)
         {
             var statusRoute = new Uri(
                 string.Format(CultureInfo.InvariantCulture, _options.Routes.GetStatusRouteTemplate, OperationId.ToString(operationId)),
@@ -73,7 +78,17 @@ namespace Microsoft.Health.Dicom.Functions.Client
 
             // Re-throw any exceptions we may have encountered when making the HTTP request
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<OperationStatusResponse>(_jsonSerializerOptions, cancellationToken);
+            OperationStatus<string> state = await response.Content.ReadFromJsonAsync<OperationStatus<string>>(_jsonSerializerOptions, cancellationToken);
+            return new OperationStatus<Uri>
+            {
+                CreatedTime = state.CreatedTime,
+                LastUpdatedTime = state.LastUpdatedTime,
+                OperationId = state.OperationId,
+                PercentComplete = state.PercentComplete,
+                Resources = GetResourceUrls(state.Type, state.Resources),
+                Status = state.Status,
+                Type = state.Type,
+            };
         }
 
         /// <inheritdoc/>
@@ -98,5 +113,12 @@ namespace Microsoft.Health.Dicom.Functions.Client
             response.EnsureSuccessStatusCode();
             return Guid.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
         }
+
+        private IReadOnlyCollection<Uri> GetResourceUrls(OperationType type, IReadOnlyCollection<string> resourceIds)
+            => type switch
+            {
+                OperationType.Reindex => resourceIds?.Select(x => _urlResolver.ResolveQueryTagUri(x)).ToList(),
+                _ => throw new ArgumentOutOfRangeException(nameof(type))
+            };
     }
 }

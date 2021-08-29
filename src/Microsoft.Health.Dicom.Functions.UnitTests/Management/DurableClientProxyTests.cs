@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -13,7 +14,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Messages.Operations;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Management;
@@ -111,6 +111,8 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
                 LastUpdatedTime = DateTime.UtcNow,
                 Name = nameof(ReindexDurableFunction.ReindexInstancesAsync),
                 RuntimeStatus = OrchestrationRuntimeStatus.Running,
+                CustomStatus = Newtonsoft.Json.Linq.JToken.FromObject(
+                    new OperationCustomStatus { PercentComplete = 82, ResourceIds = new string[] { "00101010" } }),
             };
 
             IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
@@ -121,13 +123,52 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
             HttpResponseMessage response = await _proxy.GetStatusAsync(context.Request, client, id, NullLogger.Instance);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            var actual = JsonSerializer.Deserialize<OperationStatusResponse>(await response.Content.ReadAsStringAsync(), _jsonOptions);
+            var actual = JsonSerializer.Deserialize<OperationStatus<string>>(await response.Content.ReadAsStringAsync(), _jsonOptions);
             Assert.NotNull(actual);
             Assert.Equal(id, actual.OperationId);
             Assert.Equal(OperationType.Reindex, actual.Type);
             Assert.Equal(expected.CreatedTime, actual.CreatedTime);
             Assert.Equal(expected.LastUpdatedTime, actual.LastUpdatedTime);
             Assert.Equal(OperationRuntimeStatus.Running, actual.Status);
+            Assert.Equal(82, actual.PercentComplete);
+            Assert.Equal("00101010", actual.Resources.Single());
+
+            await client
+                .Received(1)
+                .GetStatusAsync(OperationId.ToString(id), showHistory: false, showHistoryOutput: false, showInput: false);
+        }
+
+        [Fact]
+        public async Task GivenNoCustomStatus_WhenGettingStatus_ThenDefaultValues()
+        {
+            var context = new DefaultHttpContext();
+            Guid id = Guid.NewGuid();
+            var expected = new DurableOrchestrationStatus
+            {
+                InstanceId = OperationId.ToString(id),
+                CreatedTime = DateTime.UtcNow.AddMinutes(-2),
+                LastUpdatedTime = DateTime.UtcNow,
+                Name = nameof(ReindexDurableFunction.ReindexInstancesAsync),
+                RuntimeStatus = OrchestrationRuntimeStatus.Running,
+            };
+
+            IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
+            client
+                .GetStatusAsync(OperationId.ToString(id), showHistory: false, showHistoryOutput: false, showInput: false)
+                .Returns(expected);
+
+            HttpResponseMessage response = await _proxy.GetStatusAsync(context.Request, client, id, NullLogger.Instance);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var actual = JsonSerializer.Deserialize<OperationStatus<string>>(await response.Content.ReadAsStringAsync(), _jsonOptions);
+            Assert.NotNull(actual);
+            Assert.Equal(id, actual.OperationId);
+            Assert.Equal(OperationType.Reindex, actual.Type);
+            Assert.Equal(expected.CreatedTime, actual.CreatedTime);
+            Assert.Equal(expected.LastUpdatedTime, actual.LastUpdatedTime);
+            Assert.Equal(OperationRuntimeStatus.Running, actual.Status);
+            Assert.Equal(0, actual.PercentComplete);
+            Assert.Null(actual.Resources);
 
             await client
                 .Received(1)

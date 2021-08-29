@@ -20,7 +20,6 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Messages.Operations;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Extensions;
 
@@ -81,7 +80,7 @@ namespace Microsoft.Health.Dicom.Functions.Management
             // GetStatusAsync doesn't accept a token, so the best we can do is cancel before execution
             source.Token.ThrowIfCancellationRequested();
 
-            OperationStatusResponse status = await GetOperationStatusAsync(client, instanceId);
+            OperationStatus<string> status = await GetOperationStatusAsync(client, instanceId);
             return status != null && PublicOperationTypes.Contains(status.Type)
                 ? new HttpResponseMessage
                 {
@@ -91,17 +90,26 @@ namespace Microsoft.Health.Dicom.Functions.Management
                 : new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound };
         }
 
-        private static async Task<OperationStatusResponse> GetOperationStatusAsync(IDurableOrchestrationClient client, Guid instanceId)
+        private static async Task<OperationStatus<string>> GetOperationStatusAsync(IDurableOrchestrationClient client, Guid instanceId)
         {
             DurableOrchestrationStatus status = await client.GetStatusAsync(OperationId.ToString(instanceId), showInput: false);
-            return status == null || !Guid.TryParse(status.InstanceId, out Guid instanceGuid)
-                ? null
-                : new OperationStatusResponse(
-                    instanceGuid,
-                    status.GetOperationType(),
-                    status.CreatedTime,
-                    status.LastUpdatedTime,
-                    status.GetOperationRuntimeStatus());
+            if (status == null)
+            {
+                return null;
+            }
+
+            OperationCustomStatus customStatus = status.CustomStatus?.ToObject<OperationCustomStatus>() ?? new OperationCustomStatus();
+            OperationType type = status.GetOperationType();
+            return new OperationStatus<string>
+            {
+                CreatedTime = status.CreatedTime,
+                LastUpdatedTime = status.LastUpdatedTime,
+                OperationId = instanceId,
+                PercentComplete = customStatus.PercentComplete,
+                Resources = customStatus.ResourceIds,
+                Status = status.GetOperationRuntimeStatus(),
+                Type = type,
+            };
         }
     }
 }

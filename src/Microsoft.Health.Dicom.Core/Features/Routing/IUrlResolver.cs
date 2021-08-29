@@ -21,6 +21,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Routing
         Uri ResolveOperationStatusUri(Guid operationId);
 
         /// <summary>
+        /// Resolves the URI for retrieving an extended query tag.
+        /// </summary>
+        /// <param name="tagPath">The extended query tag path.</param>
+        /// <returns>An instance of <see cref="Uri"/> pointing to where the extended query tag can be retrieved.</returns>
+        Uri ResolveQueryTagUri(string tagPath);
+
+        /// <summary>
         /// Resolves the URI to retrieve a study.
         /// </summary>
         /// <param name="studyInstanceUid">The StudyInstanceUID.</param>

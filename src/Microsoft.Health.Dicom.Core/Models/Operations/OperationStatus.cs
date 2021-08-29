@@ -6,18 +6,18 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.Health.Dicom.Client.Models
+namespace Microsoft.Health.Dicom.Core.Models.Operations
 {
     /// <summary>
     /// Represents the metadata for a long-running DICOM operation.
     /// </summary>
-    public class OperationStatus
+    public class OperationStatus<T>
     {
         /// <summary>
         /// Gets or sets the operation ID.
         /// </summary>
         /// <value>The unique ID that denotes a particular operation.</value>
-        public string OperationId { get; set; }
+        public Guid OperationId { get; set; }
 
         /// <summary>
         /// Gets or sets the category of the operation.
@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Client.Models
         /// <remarks>
         /// The set of resources may change until the <see cref="Status"/> indicates completion.
         /// </remarks>
-        /// <value>One or more resources URLs.</value>
-        public IReadOnlyCollection<Uri> Resources { get; set; }
+        /// <value>One or more resources.</value>
+        public IReadOnlyCollection<T> Resources { get; set; }
     }
 }

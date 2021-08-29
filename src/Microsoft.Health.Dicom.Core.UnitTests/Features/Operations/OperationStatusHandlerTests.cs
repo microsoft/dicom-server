@@ -30,10 +30,20 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
             var handler = new OperationStatusHandler(client);
 
             Guid id = Guid.NewGuid();
-            var expected = new OperationStatusResponse(id, OperationType.Reindex, DateTime.UtcNow, DateTime.UtcNow, OperationRuntimeStatus.Completed);
+            var expected = new OperationStatus<Uri>
+            {
+                CreatedTime = DateTime.UtcNow.AddMinutes(-5),
+                LastUpdatedTime = DateTime.UtcNow,
+                OperationId = id,
+                PercentComplete = 100,
+                Resources = new Uri[] { new Uri("https://dicom.contoso.io/unit/test/extendedquerytags/00101010", UriKind.Absolute) },
+                Status = OperationRuntimeStatus.Completed,
+                Type = OperationType.Reindex,
+            };
+
             client.GetStatusAsync(Arg.Is(id), Arg.Is(source.Token)).Returns(expected);
 
-            Assert.Same(expected, await handler.Handle(new OperationStatusRequest(id), source.Token));
+            Assert.Same(expected, (await handler.Handle(new OperationStatusRequest(id), source.Token)).OperationStatus);
 
             await client.Received(1).GetStatusAsync(Arg.Is(id), Arg.Is(source.Token));
         }

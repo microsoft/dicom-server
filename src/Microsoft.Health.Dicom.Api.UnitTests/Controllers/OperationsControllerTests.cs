@@ -67,7 +67,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
         }
 
         [Theory]
-        [InlineData(OperationRuntimeStatus.Pending)]
+        [InlineData(OperationRuntimeStatus.NotStarted)]
         [InlineData(OperationRuntimeStatus.Running)]
         public async Task GivenInProgressStatus_WhenGettingStatus_ThenReturnOk(OperationRuntimeStatus inProgressStatus)
         {
@@ -78,18 +78,22 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
             var controller = new OperationsController(mediator, urlResolver, NullLogger<OperationsController>.Instance);
             controller.ControllerContext.HttpContext = new DefaultHttpContext();
 
-            var expected = new OperationStatusResponse(
-                id,
-                OperationType.Reindex,
-                DateTime.UtcNow.AddMinutes(-1),
-                DateTime.UtcNow,
-                inProgressStatus);
+            var expected = new OperationStatus<Uri>
+            {
+                CreatedTime = DateTime.UtcNow.AddMinutes(-1),
+                LastUpdatedTime = DateTime.UtcNow,
+                OperationId = id,
+                PercentComplete = inProgressStatus == OperationRuntimeStatus.NotStarted ? 0 : 37,
+                Resources = new Uri[] { new Uri("https://dicom.contoso.io/unit/test/extendedquerytags/00101010", UriKind.Absolute) },
+                Status = inProgressStatus,
+                Type = OperationType.Reindex,
+            };
 
             mediator
                 .Send(
                     Arg.Is<OperationStatusRequest>(x => x.OperationId == id),
                     Arg.Is(controller.HttpContext.RequestAborted))
-                .Returns(expected);
+                .Returns(new OperationStatusResponse(expected));
             urlResolver.ResolveOperationStatusUri(id).Returns(new Uri(statusUrl, UriKind.Absolute));
 
             IActionResult response = await controller.GetStatusAsync(id);
@@ -121,18 +125,22 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
             var controller = new OperationsController(mediator, urlResolver, NullLogger<OperationsController>.Instance);
             controller.ControllerContext.HttpContext = new DefaultHttpContext();
 
-            var expected = new OperationStatusResponse(
-                id,
-                OperationType.Reindex,
-                DateTime.UtcNow,
-                DateTime.UtcNow,
-                doneStatus);
+            var expected = new OperationStatus<Uri>
+            {
+                CreatedTime = DateTime.UtcNow.AddMinutes(-5),
+                LastUpdatedTime = DateTime.UtcNow,
+                OperationId = id,
+                PercentComplete = doneStatus == OperationRuntimeStatus.Completed ? 100 : 71,
+                Resources = new Uri[] { new Uri("https://dicom.contoso.io/unit/test/extendedquerytags/00101010", UriKind.Absolute) },
+                Status = doneStatus,
+                Type = OperationType.Reindex,
+            };
 
             mediator
                 .Send(
                     Arg.Is<OperationStatusRequest>(x => x.OperationId == id),
                     Arg.Is(controller.HttpContext.RequestAborted))
-                .Returns(expected);
+                .Returns(new OperationStatusResponse(expected));
 
             IActionResult response = await controller.GetStatusAsync(id);
             Assert.IsType<ObjectResult>(response);
