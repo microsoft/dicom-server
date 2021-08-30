@@ -14,7 +14,7 @@
             "type": "string",
             "defaultValue": "",
             "minLength": 0,
-            "maxLength": 36,
+            "maxLength": 60,
             "metadata": {
                 "description": "Name of the DICOM Function App used for long-running operations."
             }

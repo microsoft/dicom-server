@@ -18,6 +18,7 @@
     <Product>Microsoft Health</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <SdkPackageVersion>5.0.0</SdkPackageVersion>
+    <NetCoreApp3PackageVersion>3.1.16</NetCoreApp3PackageVersion>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
@@ -26,7 +27,7 @@
   <Choose>
     <When Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
       <PropertyGroup>
-        <SdkPackageVersion>3.1.16</SdkPackageVersion>
+        <SdkPackageVersion>$(NetCoreApp3PackageVersion)</SdkPackageVersion>
       </PropertyGroup>
     </When>
     <Otherwise>

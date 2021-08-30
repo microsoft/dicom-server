@@ -26,7 +26,7 @@ jobs:
         $deployPath = "$(System.DefaultWorkingDirectory)/samples/templates"
 
         $additionalProperties = @{
-            "SqlServer__DeleteAllDataOnStartup" = "true"
+            "SqlServer__DeleteAllDataOnStartup" = "$(deleteDataOnStartup)"
             "DicomServer__Security__Authorization__Enabled" = "true"
         }
 
