@@ -181,9 +181,17 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 await AddRandomInstanceAsync(),
                 await AddRandomInstanceAsync(),
                 await AddRandomInstanceAsync(),
+                await AddRandomInstanceAsync(), // Deleted
                 await AddRandomInstanceAsync(),
                 await AddRandomInstanceAsync(),
             };
+
+            // Create a gap within the data
+            await _indexDataStore.DeleteInstanceIndexAsync(
+                new InstanceIdentifier(
+                    instances[^3].StudyInstanceUid,
+                    instances[^3].SeriesInstanceUid,
+                    instances[^3].SopInstanceUid));
 
             IReadOnlyList<WatermarkRange> batches;
 
@@ -191,15 +199,15 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             batches = await _instanceStore.GetInstanceBatchesAsync(3, 2);
 
             Assert.Equal(2, batches.Count);
-            Assert.Equal(new WatermarkRange(instances[^3].Version, instances[^1].Version), batches[0]);
-            Assert.Equal(new WatermarkRange(instances[^6].Version, instances[^4].Version), batches[1]);
+            Assert.Equal(new WatermarkRange(instances[^4].Version, instances[^1].Version), batches[0]);
+            Assert.Equal(new WatermarkRange(instances[^7].Version, instances[^5].Version), batches[1]);
 
             // With Max Watermark
             batches = await _instanceStore.GetInstanceBatchesAsync(3, 2, instances[^1].Version);
 
             Assert.Equal(2, batches.Count);
-            Assert.Equal(new WatermarkRange(instances[^4].Version, instances[^2].Version), batches[0]);
-            Assert.Equal(new WatermarkRange(instances[^7].Version, instances[^5].Version), batches[1]);
+            Assert.Equal(new WatermarkRange(instances[^5].Version, instances[^2].Version), batches[0]);
+            Assert.Equal(new WatermarkRange(instances[^8].Version, instances[^6].Version), batches[1]);
         }
 
         private async Task<ExtendedQueryTagStoreEntry> AddExtendedQueryTagAsync(AddExtendedQueryTagEntry addExtendedQueryTagEntry)
