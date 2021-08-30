@@ -10,24 +10,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
 {
     public class NotRequiredLengthError : ElementValidationError
     {
-        private readonly int _requiredLength;
-
         public NotRequiredLengthError(string name, DicomVR vr, string value, int requiredLength) : base(name, vr, value)
         {
-            _requiredLength = requiredLength;
+            RequiredLength = requiredLength;
         }
 
         public NotRequiredLengthError(string name, DicomVR vr, int requiredLength) : base(name, vr)
         {
-            _requiredLength = requiredLength;
+            RequiredLength = requiredLength;
         }
 
         public override ValidationErrorCode ErrorCode => ValidationErrorCode.NotRequiredLength;
 
+        public int RequiredLength { get; }
 
         protected override string GetInnerMessage()
         {
-            return string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageNotRequiredLength, _requiredLength);
+            return string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageNotRequiredLength, RequiredLength);
         }
     }
 }

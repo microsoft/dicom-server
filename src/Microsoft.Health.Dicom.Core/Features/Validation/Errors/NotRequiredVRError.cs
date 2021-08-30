@@ -11,15 +11,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
 {
     public class NotRequiredVRError : ElementValidationError
     {
-        private readonly DicomVR _requiredVR;
 
         public NotRequiredVRError(string name, DicomVR vr, DicomVR requiredVR) : base(name, vr)
         {
-            _requiredVR = EnsureArg.IsNotNull(requiredVR, nameof(requiredVR));
+            RequiredVR = EnsureArg.IsNotNull(requiredVR, nameof(requiredVR));
         }
 
         public override ValidationErrorCode ErrorCode => ValidationErrorCode.NotRequiredVR;
 
+        public DicomVR RequiredVR { get; }
 
         protected override string GetInnerMessage()
         {
@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
                                CultureInfo.InvariantCulture,
                                DicomCoreResource.ErrorMessageNotRequiredVR,
                                Name,
-                               _requiredVR,
+                               RequiredVR,
                                VR);
         }
     }

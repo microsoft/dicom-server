@@ -10,18 +10,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
 {
     public class ExceedMaxLengthError : ElementValidationError
     {
-        private readonly int _maxlength;
-
         public ExceedMaxLengthError(string name, DicomVR vr, string value, int maxlength) : base(name, vr, value)
         {
-            _maxlength = maxlength;
+            Maxlength = maxlength;
         }
 
         public override ValidationErrorCode ErrorCode => ValidationErrorCode.ExceedMaxLength;
 
+        public int Maxlength { get; }
+
         protected override string GetInnerMessage()
         {
-            return string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageExceedMaxLength, _maxlength);
+            return string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageExceedMaxLength, Maxlength);
         }
     }
 }
