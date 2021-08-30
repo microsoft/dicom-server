@@ -10,6 +10,7 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Validation.Errors;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
@@ -24,10 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 // only works for single value dicom element ( Since we accept empty/null value, Count = 0 is accepted).
                 if (dicomElement.Count > 1)
                 {
-                    throw new DicomElementValidationException(
-                        dicomElement.Tag.GetFriendlyName(),
-                        vr,
-                        DicomCoreResource.DicomElementHasMultipleValues);
+                    throw new DicomElementValidationException(new MultiValuesError(dicomElement.Tag.GetFriendlyName(), vr));
                 }
             }
             else

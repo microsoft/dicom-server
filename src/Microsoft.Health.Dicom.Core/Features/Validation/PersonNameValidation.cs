@@ -7,6 +7,7 @@ using System.Linq;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Validation.Errors;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
@@ -18,6 +19,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
             string value = dicomElement.Get<string>();
             string name = dicomElement.Tag.GetFriendlyName();
+            DicomVR vr = dicomElement.ValueRepresentation;
             if (string.IsNullOrEmpty(value))
             {
                 // empty values allowed
@@ -27,23 +29,34 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             var groups = value.Split('=');
             if (groups.Length > 3)
             {
-                throw new DicomElementValidationException(name, DicomVR.PN, DicomCoreResource.ValueExceedsAllowedGroups, value);
+                throw new DicomElementValidationException(new PersonNameExceedMaxGroupsError(name, vr, value));
             }
 
             foreach (var group in groups)
             {
-                ElementMaxLengthValidation.Validate(group, 64, $"{name} Group", dicomElement.ValueRepresentation);
+                try
+                {
+                    ElementMaxLengthValidation.Validate(group, 64, name, dicomElement.ValueRepresentation);
+                }
+                catch (DicomElementValidationException ex)
+                {
+                    // Reprocess the exception to make more meaningful message
+                    if (ex.Error is ExceedMaxLengthError)
+                    {
+                        throw new DicomElementValidationException(new PersonNameGroupExceedMaxLengthError(name, vr, value));
+                    }
+                }
 
                 if (ContainsControlExceptEsc(group))
                 {
-                    throw new DicomElementValidationException(name, DicomVR.PN, DicomCoreResource.ValueContainsInvalidCharacter, value);
+                    throw new DicomElementValidationException(new PersonNameGroupHasInvalidCharactersError(name, vr, value));
                 }
             }
 
             var groupcomponents = groups.Select(group => group.Split('^').Length);
             if (groupcomponents.Any(l => l > 5))
             {
-                throw new DicomElementValidationException(name, DicomVR.PN, DicomCoreResource.ValueExceedsAllowedComponents, value);
+                throw new DicomElementValidationException(new PersonNameExceedMaxComponentsError(name, vr, value));
             }
         }
     }

@@ -251,16 +251,16 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="UnsupportedTranscoding" xml:space="preserve">
     <value>The specified transcoding is not supported.</value>
   </data>
-  <data name="ValueContainsInvalidCharacter" xml:space="preserve">
+  <data name="HasInvalidCharactersError" xml:space="preserve">
     <value>Value contains invalid character.</value>
   </data>
-  <data name="ValueExceedsAllowedComponents" xml:space="preserve">
+  <data name="PersonNameExceedMaxComponentsError" xml:space="preserve">
     <value>Value contains more than 5 components.</value>
   </data>
-  <data name="ValueExceedsAllowedGroups" xml:space="preserve">
+  <data name="PersonNameExceedMaxGroupsError" xml:space="preserve">
     <value>Value contains more than 3 groups.</value>
   </data>
-  <data name="ValueIsInvalidDate" xml:space="preserve">
+  <data name="DateIsInvalidError" xml:space="preserve">
     <value>Value cannot be parsed as a valid date.</value>
   </data>
   <data name="NotSupportMultipleAcceptHeaders" xml:space="preserve">
@@ -321,11 +321,11 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>Invalid QIDO-RS query. Specified value '{0}' extended query tag with path '{1}' is not a valid long value.</value>
     <comment>{0} long value. {1} extended query tag path.</comment>
   </data>
-  <data name="ValueLengthExceedsMaxLength" xml:space="preserve">
+  <data name="ExceedMaxLengthError" xml:space="preserve">
     <value>Value length exceeds maximum length of {0}.</value>
     <comment>{0} max length.</comment>
   </data>
-  <data name="ValueLengthIsNotRequiredLength" xml:space="preserve">
+  <data name="NotRequiredLengthError" xml:space="preserve">
     <value>Value length is not {0}.</value>
     <comment>{0} required length.</comment>
   </data>
@@ -372,7 +372,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>Extended query tags exceeds max allowed count '{0}'.</value>
     <comment>{0} max allowed count.</comment>
   </data>
-  <data name="MismatchVR" xml:space="preserve">
+  <data name="NotRequiredVRError" xml:space="preserve">
     <value>The extended query tag '{0}' is expected to have VR '{1}' but has '{2}' in file.</value>
     <comment>{0}  dicom tag. {1} expected vr code. {2} vr in file.</comment>
   </data>
@@ -383,7 +383,10 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>Dicom element '{0}' with value '{1}' failed validation for VR '{2}': {3}.</value>
     <comment>Dicom element {0} of value {1} of VR {2}. {3} has more detailed message on why.</comment>
   </data>
-  <data name="DicomElementHasMultipleValues" xml:space="preserve">
+  <data name="MultiValuesError" xml:space="preserve">
     <value>Dicom element has multiple values. We only support indexing single value element.</value>
+  </data>
+  <data name="PersonNameGroupExceedMaxLengthError" xml:space="preserve">
+    <value>One or more group of person name exceeds maxium length of 64.</value>
   </data>
 </root>

@@ -5,11 +5,11 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using Dicom;
 using Dicom.IO.Buffer;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Validation.Errors;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
@@ -55,10 +55,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         {
             if (value?.Size != RequiredLength)
             {
-                throw new DicomElementValidationException(
-                    name,
-                    dicomVR,
-                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthIsNotRequiredLength, RequiredLength));
+                throw new DicomElementValidationException(new NotRequiredLengthError(name, dicomVR, RequiredLength));
             }
         }
 
@@ -76,13 +73,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
         private void ValidateStringLength(DicomVR dicomVR, string name, string value)
         {
-            if (value?.Length != RequiredLength)
+            value = value ?? "";
+            if (value.Length != RequiredLength)
             {
-                throw new DicomElementValidationException(
-                    name,
-                    dicomVR,
-                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthIsNotRequiredLength, RequiredLength),
-                    value);
+                throw new DicomElementValidationException(new NotRequiredLengthError(name, dicomVR, value, RequiredLength));
             }
         }
     }

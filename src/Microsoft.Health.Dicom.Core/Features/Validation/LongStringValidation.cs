@@ -7,6 +7,7 @@ using System;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Validation.Errors;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
@@ -35,7 +36,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
             if (value.Contains("\\", StringComparison.OrdinalIgnoreCase) || ContainsControlExceptEsc(value))
             {
-                throw new DicomElementValidationException(name, DicomVR.LO, DicomCoreResource.ValueContainsInvalidCharacter, value);
+                throw new DicomElementValidationException(new HasInvalidCharactersError(name, DicomVR.LO, value));
             }
         }
     }

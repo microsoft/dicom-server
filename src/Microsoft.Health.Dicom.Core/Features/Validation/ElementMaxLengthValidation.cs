@@ -4,11 +4,11 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Diagnostics;
-using System.Globalization;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Validation.Errors;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
@@ -36,11 +36,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             EnsureArg.IsNotNull(vr, nameof(vr));
             if (value?.Length > maxLength)
             {
-                throw new DicomElementValidationException(
-                    name,
-                    vr,
-                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ValueLengthExceedsMaxLength, maxLength),
-                    value);
+                throw new DicomElementValidationException(new ExceedMaxLengthError(name, vr, value, maxLength));
             }
         }
     }
