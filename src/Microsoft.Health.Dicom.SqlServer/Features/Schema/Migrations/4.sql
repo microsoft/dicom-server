@@ -1163,19 +1163,46 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetMaxInstanceWatermark
+--     GetInstanceBatches
 --
 -- DESCRIPTION
---    Gets the maximum instance watermark, which could alternatively be thought of as an ETag for the state of Instance table
+--     Divides up the instances into a configurable number of batches.
+--
+-- PARAMETERS
+--     @batchSize
+--         * The desired number of instances per batch. Actual number may be smaller.
+--     @batchCount
+--         * The desired number of batches. Actual number may be smaller.
+--     @maxWatermark
+--         * The optional exclusive maximum watermark.
 --
 -- RETURN VALUE
---     The maximum instance watermark in the database
+--     The batches as defined by their inclusive minimum and maximum values.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetMaxInstanceWatermark
+CREATE OR ALTER PROCEDURE dbo.GetInstanceBatches (
+    @batchSize INT,
+    @batchCount INT,
+    @maxWatermark BIGINT = NULL
+)
 AS
-    SET NOCOUNT ON
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
 
-    SELECT MAX(Watermark) AS Watermark FROM dbo.Instance
+    SELECT
+        MIN(Watermark) AS MinWatermark,
+        MAX(Watermark) AS MaxWatermark
+    FROM
+    (
+        SELECT TOP (@batchSize * @batchCount)
+            Watermark,
+            (ROW_NUMBER() OVER(ORDER BY Watermark DESC) - 1) / @batchSize AS Batch
+        FROM dbo.Instance
+        WHERE @maxWatermark IS NULL or Watermark < @maxWatermark
+    ) AS I
+    GROUP BY Batch
+    ORDER BY Batch ASC
+END
 GO
 
 /***************************************************************************************/

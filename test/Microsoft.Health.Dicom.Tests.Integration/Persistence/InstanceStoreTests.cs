@@ -53,22 +53,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await AddRandomInstanceAsync();
 
             IReadOnlyList<VersionedInstanceIdentifier> instances = await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(
-                WatermarkRange.Between(instance1.Version, instance4.Version),
+                new WatermarkRange(instance1.Version, instance4.Version),
                 IndexStatus.Creating);
 
-            Assert.Equal(instances, new[] { instance1, instance2, instance3 });
-        }
-
-        [Fact]
-        public async Task GivenInstances_WhenGettingMaxInstanceWatermark_ThenReturnMaxValue()
-        {
-            // Populate DB and Check
-            await AddRandomInstanceAsync();
-            await AddRandomInstanceAsync();
-            await AddRandomInstanceAsync();
-            var last = await AddRandomInstanceAsync();
-
-            Assert.Equal(last.Version, await _instanceStore.GetMaxInstanceWatermarkAsync());
+            Assert.Equal(instances, new[] { instance1, instance2, instance3, instance4 });
         }
 
         [Fact]
@@ -183,6 +171,36 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.ReindexInstanceAsync(dataset, instance.Watermark, new[] { new QueryTag(tagStoreEntry) }));
         }
 
+        [Fact]
+        public async Task GivenInstances_WhenGettingInstanceBatches_ThenStartAtEnd()
+        {
+            var instances = new List<VersionedInstanceIdentifier>
+            {
+                await AddRandomInstanceAsync(),
+                await AddRandomInstanceAsync(),
+                await AddRandomInstanceAsync(),
+                await AddRandomInstanceAsync(),
+                await AddRandomInstanceAsync(),
+                await AddRandomInstanceAsync(),
+                await AddRandomInstanceAsync(),
+            };
+
+            IReadOnlyList<WatermarkRange> batches;
+
+            // No Max Watermark
+            batches = await _instanceStore.GetInstanceBatchesAsync(3, 2);
+
+            Assert.Equal(2, batches.Count);
+            Assert.Equal(new WatermarkRange(instances[^3].Version, instances[^1].Version), batches[0]);
+            Assert.Equal(new WatermarkRange(instances[^6].Version, instances[^4].Version), batches[1]);
+
+            // With Max Watermark
+            batches = await _instanceStore.GetInstanceBatchesAsync(3, 2, instances[^1].Version);
+
+            Assert.Equal(2, batches.Count);
+            Assert.Equal(new WatermarkRange(instances[^4].Version, instances[^2].Version), batches[0]);
+            Assert.Equal(new WatermarkRange(instances[^7].Version, instances[^5].Version), batches[1]);
+        }
 
         private async Task<ExtendedQueryTagStoreEntry> AddExtendedQueryTagAsync(AddExtendedQueryTagEntry addExtendedQueryTagEntry)
         {

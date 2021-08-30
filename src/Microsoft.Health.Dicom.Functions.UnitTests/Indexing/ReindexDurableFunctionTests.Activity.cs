@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
@@ -85,20 +84,39 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         }
 
         [Fact]
-        public async Task GivenInstances_WhenGettingMaxInstanceWatermark_ThenShouldInvokeCorrectMethod()
+        public async Task GivenNoWatermark_WhenGettingInstanceBatches_ThenShouldInvokeCorrectMethod()
         {
-            IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
-            _instanceStore.GetMaxInstanceWatermarkAsync(CancellationToken.None).Returns(12345);
+            IReadOnlyList<WatermarkRange> expected = new List<WatermarkRange> { new WatermarkRange(12345, 678910) };
+            _instanceStore
+                .GetInstanceBatchesAsync(_options.BatchSize, _options.MaxParallelBatches, null, CancellationToken.None)
+                .Returns(expected);
 
-            long actual = await _reindexDurableFunction.GetMaxInstanceWatermarkAsync(
-                context,
+            IReadOnlyList<WatermarkRange> actual = await _reindexDurableFunction.GetInstanceBatchesAsync(
+                null,
                 NullLogger.Instance);
 
-            Assert.Equal(12345, actual);
-            Assert.False(context.ReceivedCalls().Any());
+            Assert.Same(expected, actual);
             await _instanceStore
                 .Received(1)
-                .GetMaxInstanceWatermarkAsync(CancellationToken.None);
+                .GetInstanceBatchesAsync(_options.BatchSize, _options.MaxParallelBatches, null, CancellationToken.None);
+        }
+
+        [Fact]
+        public async Task GivenWatermark_WhenGettingInstanceBatches_ThenShouldInvokeCorrectMethod()
+        {
+            IReadOnlyList<WatermarkRange> expected = new List<WatermarkRange> { new WatermarkRange(10, 1000) };
+            _instanceStore
+                .GetInstanceBatchesAsync(_options.BatchSize, _options.MaxParallelBatches, 12345L, CancellationToken.None)
+                .Returns(expected);
+
+            IReadOnlyList<WatermarkRange> actual = await _reindexDurableFunction.GetInstanceBatchesAsync(
+                12345L,
+                NullLogger.Instance);
+
+            Assert.Same(expected, actual);
+            await _instanceStore
+                .Received(1)
+                .GetInstanceBatchesAsync(_options.BatchSize, _options.MaxParallelBatches, 12345L, CancellationToken.None);
         }
 
         [Fact]
@@ -112,7 +130,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     new ExtendedQueryTagStoreEntry(2, "02", "DT", null, QueryTagLevel.Series, ExtendedQueryTagStatus.Adding, null),
                     new ExtendedQueryTagStoreEntry(3, "03", "AS", "bar", QueryTagLevel.Study, ExtendedQueryTagStatus.Adding, null),
                 },
-                WatermarkRange = WatermarkRange.Between(3, 10),
+                WatermarkRange = new WatermarkRange(3, 10),
             };
 
             var expected = new List<VersionedInstanceIdentifier>

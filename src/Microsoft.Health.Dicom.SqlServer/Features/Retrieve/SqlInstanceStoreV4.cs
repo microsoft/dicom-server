@@ -3,11 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
+using EnsureThat;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -34,11 +34,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             IndexStatus indexStatus,
             CancellationToken cancellationToken = default)
         {
-            if (watermarkRange.Count == 0)
-            {
-                return Array.Empty<VersionedInstanceIdentifier>();
-            }
-
             var results = new List<VersionedInstanceIdentifier>();
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
@@ -47,7 +42,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
                 VLatest.GetInstancesByWatermarkRange.PopulateCommand(
                     sqlCommandWrapper,
                     watermarkRange.Start,
-                    watermarkRange.End - 1,
+                    watermarkRange.End,
                     (byte)indexStatus);
 
                 using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
@@ -72,17 +67,30 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             return results;
         }
 
-        public override async Task<long> GetMaxInstanceWatermarkAsync(CancellationToken cancellationToken)
+        public override async Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesAsync(
+            int batchSize,
+            int batchCount,
+            long? maxWatermark = null,
+            CancellationToken cancellationToken = default)
         {
+            EnsureArg.IsGt(batchSize, 0, nameof(batchSize));
+            EnsureArg.IsGt(batchCount, 0, nameof(batchCount));
+
             using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
             using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
 
-            VLatest.GetMaxInstanceWatermark.PopulateCommand(sqlCommandWrapper);
+            VLatest.GetInstanceBatches.PopulateCommand(sqlCommandWrapper, batchSize, batchCount, maxWatermark);
 
             try
             {
-                object result = await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
-                return result is DBNull ? 0 : (long)result;
+                var batches = new List<WatermarkRange>();
+                using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken);
+                while (await reader.ReadAsync(cancellationToken))
+                {
+                    batches.Add(new WatermarkRange(reader.GetInt64(0), reader.GetInt64(1)));
+                }
+
+                return batches;
             }
             catch (SqlException ex)
             {

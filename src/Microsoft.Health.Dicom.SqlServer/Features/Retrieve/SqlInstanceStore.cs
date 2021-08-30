@@ -45,10 +45,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             return await store.GetInstanceIdentifiersInStudyAsync(studyInstanceUid, cancellationToken);
         }
 
-        public async Task<long> GetMaxInstanceWatermarkAsync(CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesAsync(int batchSize, int batchCount, long? maxWatermark = null, CancellationToken cancellationToken = default)
         {
             ISqlInstanceStore store = await _cache.GetAsync(cancellationToken);
-            return await store.GetMaxInstanceWatermarkAsync(cancellationToken);
+            return await store.GetInstanceBatchesAsync(batchSize, batchCount, maxWatermark, cancellationToken);
         }
     }
 }

@@ -84,28 +84,35 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         }
 
         /// <summary>
-        /// Asynchronously retrieves the maximum instance watermark.
+        /// Asynchronously retrieves the next set of instance batches based on the configured options.
         /// </summary>
-        /// <remarks>
-        /// Watermark values start at <c>1</c>.
-        /// </remarks>
-        /// <param name="context">The context for the activity.</param>
+        /// <param name="maxWatermark">The optional maximum watermark.</param>
         /// <param name="logger">A diagnostic logger.</param>
         /// <returns>
-        /// A task representing the <see cref="GetMaxInstanceWatermarkAsync"/> operation.
-        /// The value of its <see cref="Task{TResult}.Result"/> property contains the maximum watermark value if found;
-        /// otherwise, <c>0</c>.
+        /// A task representing the asynchronous get operation. The value of its <see cref="Task{TResult}.Result"/>
+        /// property contains a list of batches as defined by their smallest and largest watermark.
         /// </returns>
-        [FunctionName(nameof(GetMaxInstanceWatermarkAsync))]
-        public Task<long> GetMaxInstanceWatermarkAsync(
-            [ActivityTrigger] IDurableActivityContext context,
+        [FunctionName(nameof(GetInstanceBatchesAsync))]
+        public Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesAsync(
+            [ActivityTrigger] long? maxWatermark,
             ILogger logger)
         {
-            EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            logger.LogInformation("Fetching the maximum instance watermark");
-            return _instanceStore.GetMaxInstanceWatermarkAsync(CancellationToken.None);
+            if (maxWatermark.HasValue)
+            {
+                logger.LogInformation("Dividing up the instances into batches starting from {Watermark}.", maxWatermark);
+            }
+            else
+            {
+                logger.LogInformation("Dividing up the instances into batches starting from the end.");
+            }
+
+            return _instanceStore.GetInstanceBatchesAsync(
+                _options.BatchSize,
+                _options.MaxParallelBatches,
+                maxWatermark,
+                CancellationToken.None);
         }
 
         /// <summary>
