@@ -106,7 +106,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; failed validation for VR &apos;{1}&apos;: {2}..
+        ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; failed validation for VR &apos;{1}&apos;: {2}.
         /// </summary>
         internal static string DicomElementValidationFailed {
             get {
@@ -115,7 +115,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; with value &apos;{1}&apos; failed validation for VR &apos;{2}&apos;: {3}..
+        ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; with value &apos;{1}&apos; failed validation for VR &apos;{2}&apos;: {3}.
         /// </summary>
         internal static string DicomElementValidationFailedWithValue {
             get {
@@ -196,7 +196,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Dicom element has multiple values. We only support indexing single value element..
+        ///   Looks up a localized string similar to Dicom element has multiple values. Indexing is only supported on single value element..
         /// </summary>
         internal static string ErrorMessageMultiValues {
             get {
@@ -232,7 +232,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to DICOM Identifier &apos;{0}&apos; value &apos;{1}&apos; is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in &apos;0&apos;-&apos;9&apos; and &apos;.&apos;. Each component must start with non-zero number..
+        ///   Looks up a localized string similar to DICOM Identifier is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in &apos;0&apos;-&apos;9&apos; and &apos;.&apos;. Each component must start with non-zero number..
         /// </summary>
         internal static string ErrorMessageUidIsInvalid {
             get {
@@ -689,15 +689,6 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string SimpleErrorMessageExceedMaxLength {
             get {
                 return ResourceManager.GetString("SimpleErrorMessageExceedMaxLength", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to DICOM Identifier value  is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in &apos;0&apos;-&apos;9&apos; and &apos;.&apos;. Each component must start with non-zero number..
-        /// </summary>
-        internal static string SimpleErrorMessageUidIsInvalid {
-            get {
-                return ResourceManager.GetString("SimpleErrorMessageUidIsInvalid", resourceCulture);
             }
         }
         

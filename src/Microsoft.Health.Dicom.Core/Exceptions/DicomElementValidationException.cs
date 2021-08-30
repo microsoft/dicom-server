@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
     public class DicomElementValidationException : ValidationException
     {
         public DicomElementValidationException(ElementValidationError error)
-            : base(EnsureArg.IsNotNull(error, nameof(error)).Message())
+            : base(EnsureArg.IsNotNull(error, nameof(error)).Message)
         {
             Error = error;
         }

@@ -10,7 +10,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
     public class PersonNameExceedMaxComponentsError : ElementValidationError
     {
 
-        public PersonNameExceedMaxComponentsError(string name, DicomVR vr, string value) : base(name, vr, value)
+        public PersonNameExceedMaxComponentsError(string name, string value) : base(name, DicomVR.PN, value)
         {
         }
 

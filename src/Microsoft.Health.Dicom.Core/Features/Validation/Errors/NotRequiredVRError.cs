@@ -9,25 +9,25 @@ using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
 {
-    public class NotRequiredVRError : ElementValidationError
+    public class UnexpectedVRError : ElementValidationError
     {
 
-        public NotRequiredVRError(string name, DicomVR vr, DicomVR requiredVR) : base(name, vr)
+        public UnexpectedVRError(string name, DicomVR vr, DicomVR expectedVR) : base(name, vr)
         {
-            RequiredVR = EnsureArg.IsNotNull(requiredVR, nameof(requiredVR));
+            ExpectedVR = EnsureArg.IsNotNull(expectedVR, nameof(expectedVR));
         }
 
         public override ValidationErrorCode ErrorCode => ValidationErrorCode.UnexpectedVR;
 
-        public DicomVR RequiredVR { get; }
+        public DicomVR ExpectedVR { get; }
 
         protected override string GetInnerMessage()
         {
             return string.Format(
                                CultureInfo.InvariantCulture,
-                               DicomCoreResource.ErrorMessageNotRequiredVR,
+                               DicomCoreResource.ErrorMessageUnexpectedVR,
                                Name,
-                               RequiredVR,
+                               ExpectedVR,
                                VR);
         }
     }

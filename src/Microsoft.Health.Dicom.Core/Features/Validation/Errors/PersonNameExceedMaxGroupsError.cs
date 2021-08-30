@@ -9,7 +9,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
 {
     public class PersonNameExceedMaxGroupsError : ElementValidationError
     {
-        public PersonNameExceedMaxGroupsError(string name, DicomVR vr, string value) : base(name, vr, value)
+        public PersonNameExceedMaxGroupsError(string name, string value) : base(name, DicomVR.PN, value)
         {
         }
 

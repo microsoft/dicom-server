@@ -9,7 +9,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
 {
     public class DateIsInvalidError : ElementValidationError
     {
-        public DateIsInvalidError(string name, DicomVR vr, string value) : base(name, vr, value)
+        public DateIsInvalidError(string name, string value) : base(name, DicomVR.DA, value)
         {
         }
 

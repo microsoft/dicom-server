@@ -18,9 +18,9 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
             { MultiValues, DicomCoreResource.ErrorMessageMultiValues },
             { ExceedMaxLength, DicomCoreResource.SimpleErrorMessageExceedMaxLength },
-            { UnexpectedLength, DicomCoreResource.SimpleErrorMessageNotRequiredLength },
+            { UnexpectedLength, DicomCoreResource.SimpleErrorMessageUnexpectedLength },
             { InvalidCharacters, DicomCoreResource.ErrorMessageInvalidCharacters },
-            { UnexpectedVR, DicomCoreResource.SimpleErrorMessageNotRequiredVR },
+            { UnexpectedVR, DicomCoreResource.SimpleErrorMessageUnexpectedVR },
 
             { PersonNameExceedMaxGroups, DicomCoreResource.ErrorMessagePersonNameExceedMaxComponents},
             { PersonNameGroupExceedMaxLength, DicomCoreResource.ErrorMessagePersonNameGroupExceedMaxLength },
@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
             { DateIsInvalid, DicomCoreResource.ErrorMessageDateIsInvalid },
 
-            { UidIsInvalid, DicomCoreResource.SimpleErrorMessageUidIsInvalid},
+            { UidIsInvalid, DicomCoreResource.ErrorMessageUidIsInvalid},
 
         };
         public static string GetMessage(this ValidationErrorCode errorCode)

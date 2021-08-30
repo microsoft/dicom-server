@@ -8,25 +8,26 @@ using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
 {
-    public class NotRequiredLengthError : ElementValidationError
+    public class UnexpectedLengthError
+        : ElementValidationError
     {
-        public NotRequiredLengthError(string name, DicomVR vr, string value, int requiredLength) : base(name, vr, value)
+        public UnexpectedLengthError(string name, DicomVR vr, string value, int expectedLength) : base(name, vr, value)
         {
-            RequiredLength = requiredLength;
+            ExpectedLength = expectedLength;
         }
 
-        public NotRequiredLengthError(string name, DicomVR vr, int requiredLength) : base(name, vr)
+        public UnexpectedLengthError(string name, DicomVR vr, int expectedLength) : base(name, vr)
         {
-            RequiredLength = requiredLength;
+            ExpectedLength = expectedLength;
         }
 
         public override ValidationErrorCode ErrorCode => ValidationErrorCode.UnexpectedLength;
 
-        public int RequiredLength { get; }
+        public int ExpectedLength { get; }
 
         protected override string GetInnerMessage()
         {
-            return string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageNotRequiredLength, RequiredLength);
+            return string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageUnexpectedLength, ExpectedLength);
         }
     }
 }

@@ -182,7 +182,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             {
                 if (dicomElement.ValueRepresentation != queryTag.VR)
                 {
-                    throw new DicomElementValidationException(new NotRequiredVRError(dicomElement.Tag.GetFriendlyName(), dicomElement.ValueRepresentation, queryTag.VR));
+                    throw new DicomElementValidationException(new UnexpectedVRError(dicomElement.Tag.GetFriendlyName(), dicomElement.ValueRepresentation, queryTag.VR));
                 }
 
                 minimumValidator.Validate(dicomElement);

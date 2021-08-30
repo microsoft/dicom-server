@@ -29,12 +29,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
            DicomVR.UI,
         };
 
-        public int RequiredLength { get; }
+        public int ExpectedLength { get; }
 
-        public ElementRequiredLengthValidation(int requiredLength)
+        public ElementRequiredLengthValidation(int expectedLength)
         {
-            Debug.Assert(requiredLength >= 0, "Required Length should be none-negative");
-            RequiredLength = requiredLength;
+            Debug.Assert(expectedLength >= 0, "Expected Length should be none-negative");
+            ExpectedLength = expectedLength;
         }
 
         public override void Validate(DicomElement dicomElement)
@@ -53,9 +53,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
         private void ValidateByteBufferLength(DicomVR dicomVR, string name, IByteBuffer value)
         {
-            if (value?.Size != RequiredLength)
+            if (value?.Size != ExpectedLength)
             {
-                throw new DicomElementValidationException(new NotRequiredLengthError(name, dicomVR, RequiredLength));
+                throw new DicomElementValidationException(new UnexpectedLengthError(name, dicomVR, ExpectedLength));
             }
         }
 
@@ -74,9 +74,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         private void ValidateStringLength(DicomVR dicomVR, string name, string value)
         {
             value = value ?? "";
-            if (value.Length != RequiredLength)
+            if (value.Length != ExpectedLength)
             {
-                throw new DicomElementValidationException(new NotRequiredLengthError(name, dicomVR, value, RequiredLength));
+                throw new DicomElementValidationException(new UnexpectedLengthError(name, dicomVR, value, ExpectedLength));
             }
         }
     }

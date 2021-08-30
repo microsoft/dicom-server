@@ -131,7 +131,7 @@
     <value>The data store operation failed.</value>
   </data>
   <data name="DicomElementValidationFailed" xml:space="preserve">
-    <value>Dicom element '{0}' failed validation for VR '{1}': {2}.</value>
+    <value>Dicom element '{0}' failed validation for VR '{1}': {2}</value>
     <comment>Dicom element {0} of VR {1}. {2} has more detailed message on why.</comment>
   </data>
   <data name="DuplicatedUidsNotAllowed" xml:space="preserve">
@@ -171,8 +171,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <comment>{0} Date value. {1} parameter name.</comment>
   </data>
   <data name="ErrorMessageUidIsInvalid" xml:space="preserve">
-    <value>DICOM Identifier '{0}' value '{1}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.</value>
-    <comment>{0} Identifier Parameter name, {1} Value.</comment>
+    <value>DICOM Identifier is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.</value>
   </data>
   <data name="InvalidDicomInstance" xml:space="preserve">
     <value>The DICOM instance is invalid.</value>
@@ -380,11 +379,11 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>One or more extended query tags have been modified.</value>
   </data>
   <data name="DicomElementValidationFailedWithValue" xml:space="preserve">
-    <value>Dicom element '{0}' with value '{1}' failed validation for VR '{2}': {3}.</value>
+    <value>Dicom element '{0}' with value '{1}' failed validation for VR '{2}': {3}</value>
     <comment>Dicom element {0} of value {1} of VR {2}. {3} has more detailed message on why.</comment>
   </data>
   <data name="ErrorMessageMultiValues" xml:space="preserve">
-    <value>Dicom element has multiple values. We only support indexing single value element.</value>
+    <value>Dicom element has multiple values. Indexing is only supported on single value element.</value>
   </data>
   <data name="ErrorMessagePersonNameGroupExceedMaxLength" xml:space="preserve">
     <value>One or more group of person name exceeds maxium length of 64.</value>
@@ -397,8 +396,5 @@ The first part date {1} should be lesser than or equal to the second part date {
   </data>
   <data name="SimpleErrorMessageUnexpectedVR" xml:space="preserve">
     <value>The extended query tag VR is not expected.</value>
-  </data>
-  <data name="SimpleErrorMessageUidIsInvalid" xml:space="preserve">
-    <value>DICOM Identifier value  is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.</value>
   </data>
 </root>
