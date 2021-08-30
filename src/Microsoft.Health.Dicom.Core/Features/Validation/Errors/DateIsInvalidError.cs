@@ -15,8 +15,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
 
         public override ValidationErrorCode ErrorCode => ValidationErrorCode.DateIsInvalid;
 
-        public override string GetBriefMessage() => DicomCoreResource.DateIsInvalidError;
-
-        protected override string GetErrorMessage() => DicomCoreResource.DateIsInvalidError;
+        protected override string GetInnerMessage() => DicomCoreResource.ErrorMessageDateIsInvalid;
     }
 }

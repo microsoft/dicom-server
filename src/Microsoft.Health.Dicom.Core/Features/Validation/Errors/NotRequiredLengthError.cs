@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Globalization;
 using Dicom;
 
@@ -25,14 +24,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
 
         public override ValidationErrorCode ErrorCode => ValidationErrorCode.NotRequiredLength;
 
-        public override string GetBriefMessage()
-        {
-            throw new NotImplementedException();
-        }
 
-        protected override string GetErrorMessage()
+        protected override string GetInnerMessage()
         {
-            return string.Format(CultureInfo.InvariantCulture, DicomCoreResource.NotRequiredLengthError, _requiredLength);
+            return string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageNotRequiredLength, _requiredLength);
         }
     }
 }

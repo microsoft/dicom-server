@@ -16,8 +16,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
 
         public override ValidationErrorCode ErrorCode => ValidationErrorCode.PersonNameExceedMaxGroups;
 
-        public override string GetBriefMessage() => DicomCoreResource.PersonNameExceedMaxGroupsError;
-
-        protected override string GetErrorMessage() => DicomCoreResource.PersonNameExceedMaxGroupsError;
+        protected override string GetInnerMessage() => DicomCoreResource.ErrorMessagePersonNameExceedMaxGroups;
     }
 }

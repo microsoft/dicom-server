@@ -170,7 +170,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>Invalid QIDO-RS query. Specified Date value '{0}' is invalid for parameter '{1}'. Date should be valid and formatted as yyyyMMdd.</value>
     <comment>{0} Date value. {1} parameter name.</comment>
   </data>
-  <data name="InvalidDicomIdentifier" xml:space="preserve">
+  <data name="ErrorMessageUidIsInvalid" xml:space="preserve">
     <value>DICOM Identifier '{0}' value '{1}' is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.</value>
     <comment>{0} Identifier Parameter name, {1} Value.</comment>
   </data>
@@ -251,16 +251,16 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="UnsupportedTranscoding" xml:space="preserve">
     <value>The specified transcoding is not supported.</value>
   </data>
-  <data name="HasInvalidCharactersError" xml:space="preserve">
+  <data name="ErrorMessageInvalidCharacters" xml:space="preserve">
     <value>Value contains invalid character.</value>
   </data>
-  <data name="PersonNameExceedMaxComponentsError" xml:space="preserve">
+  <data name="ErrorMessagePersonNameExceedMaxComponents" xml:space="preserve">
     <value>Value contains more than 5 components.</value>
   </data>
-  <data name="PersonNameExceedMaxGroupsError" xml:space="preserve">
+  <data name="ErrorMessagePersonNameExceedMaxGroups" xml:space="preserve">
     <value>Value contains more than 3 groups.</value>
   </data>
-  <data name="DateIsInvalidError" xml:space="preserve">
+  <data name="ErrorMessageDateIsInvalid" xml:space="preserve">
     <value>Value cannot be parsed as a valid date.</value>
   </data>
   <data name="NotSupportMultipleAcceptHeaders" xml:space="preserve">
@@ -321,11 +321,11 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>Invalid QIDO-RS query. Specified value '{0}' extended query tag with path '{1}' is not a valid long value.</value>
     <comment>{0} long value. {1} extended query tag path.</comment>
   </data>
-  <data name="ExceedMaxLengthError" xml:space="preserve">
+  <data name="ErrorMessageExceedMaxLength" xml:space="preserve">
     <value>Value length exceeds maximum length of {0}.</value>
     <comment>{0} max length.</comment>
   </data>
-  <data name="NotRequiredLengthError" xml:space="preserve">
+  <data name="ErrorMessageNotRequiredLength" xml:space="preserve">
     <value>Value length is not {0}.</value>
     <comment>{0} required length.</comment>
   </data>
@@ -372,7 +372,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>Extended query tags exceeds max allowed count '{0}'.</value>
     <comment>{0} max allowed count.</comment>
   </data>
-  <data name="NotRequiredVRError" xml:space="preserve">
+  <data name="ErrorMessageNotRequiredVR" xml:space="preserve">
     <value>The extended query tag '{0}' is expected to have VR '{1}' but has '{2}' in file.</value>
     <comment>{0}  dicom tag. {1} expected vr code. {2} vr in file.</comment>
   </data>
@@ -383,10 +383,22 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>Dicom element '{0}' with value '{1}' failed validation for VR '{2}': {3}.</value>
     <comment>Dicom element {0} of value {1} of VR {2}. {3} has more detailed message on why.</comment>
   </data>
-  <data name="MultiValuesError" xml:space="preserve">
+  <data name="ErrorMessageMultiValues" xml:space="preserve">
     <value>Dicom element has multiple values. We only support indexing single value element.</value>
   </data>
-  <data name="PersonNameGroupExceedMaxLengthError" xml:space="preserve">
+  <data name="ErrorMessagePersonNameGroupExceedMaxLength" xml:space="preserve">
     <value>One or more group of person name exceeds maxium length of 64.</value>
+  </data>
+  <data name="SimpleErrorMessageExceedMaxLength" xml:space="preserve">
+    <value>Value length exceeds maximum length.</value>
+  </data>
+  <data name="SimpleErrorMessageNotRequiredLength" xml:space="preserve">
+    <value>Value length is not expected.</value>
+  </data>
+  <data name="SimpleErrorMessageNotRequiredVR" xml:space="preserve">
+    <value>The extended query tag VR is not expected.</value>
+  </data>
+  <data name="SimpleErrorMessageUidIsInvalid" xml:space="preserve">
+    <value>DICOM Identifier value  is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.</value>
   </data>
 </root>

@@ -15,8 +15,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
 
         public override ValidationErrorCode ErrorCode => ValidationErrorCode.PersonNameGroupExceedMaxLength;
 
-        public override string GetBriefMessage() => DicomCoreResource.PersonNameGroupExceedMaxLengthError;
-
-        protected override string GetErrorMessage() => DicomCoreResource.PersonNameGroupExceedMaxLengthError;
+        protected override string GetInnerMessage() => DicomCoreResource.ErrorMessagePersonNameGroupExceedMaxLength;
     }
 }

@@ -19,14 +19,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
 
         public override ValidationErrorCode ErrorCode => ValidationErrorCode.ExceedMaxLength;
 
-        public override string GetBriefMessage()
+        protected override string GetInnerMessage()
         {
-            throw new System.NotImplementedException();
-        }
-
-        protected override string GetErrorMessage()
-        {
-            return string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExceedMaxLengthError, _maxlength);
+            return string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageExceedMaxLength, _maxlength);
         }
     }
 }

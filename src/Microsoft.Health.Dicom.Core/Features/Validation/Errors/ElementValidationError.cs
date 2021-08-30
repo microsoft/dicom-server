@@ -31,15 +31,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
 
         public abstract ValidationErrorCode ErrorCode { get; }
 
-        public abstract string GetBriefMessage();
+        protected abstract string GetInnerMessage();
 
-        protected abstract string GetErrorMessage();
-
-        public string GetDetailMessage()
+        public string Message
         {
-            return Value == null
-                ? string.Format(DicomCoreResource.DicomElementValidationFailed, Name, VR.Code, GetErrorMessage())
-                : string.Format(DicomCoreResource.DicomElementValidationFailedWithValue, Name, Value, VR.Code, GetErrorMessage());
+            get
+            {
+                return Value == null
+                    ? string.Format(DicomCoreResource.DicomElementValidationFailed, Name, VR.Code, GetInnerMessage())
+                    : string.Format(DicomCoreResource.DicomElementValidationFailedWithValue, Name, Value, VR.Code, GetInnerMessage());
+            }
         }
     }
 }

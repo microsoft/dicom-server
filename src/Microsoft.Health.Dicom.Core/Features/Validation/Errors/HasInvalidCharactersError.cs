@@ -14,11 +14,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
         {
         }
 
-        public override ValidationErrorCode ErrorCode => ValidationErrorCode.HasInvalidCharacters;
+        public override ValidationErrorCode ErrorCode => ValidationErrorCode.InvalidCharacters;
 
-        public override string GetBriefMessage() => DicomCoreResource.HasInvalidCharactersError;
-
-        protected override string GetErrorMessage() => DicomCoreResource.HasInvalidCharactersError;
+        protected override string GetInnerMessage() => DicomCoreResource.ErrorMessageInvalidCharacters;
 
 
     }

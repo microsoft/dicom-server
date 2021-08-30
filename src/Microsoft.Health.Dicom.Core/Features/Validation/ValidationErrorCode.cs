@@ -24,14 +24,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         MultiValues = 0001,
         ExceedMaxLength = 0002,
         NotRequiredLength = 0003,
-        HasInvalidCharacters = 0004,
+        InvalidCharacters = 0004,
         NotRequiredVR = 0005,
 
         // Patient Name specific errors
         PersonNameExceedMaxGroups = 1000,
         PersonNameGroupExceedMaxLength = 1001,
-        PersonNameGroupHasInvalidCharacters = 1002,
-        PersonNameExceedMaxComponents = 1003,
+        PersonNameExceedMaxComponents = 1002,
 
         // Date specific errors
         DateIsInvalid = 1100,

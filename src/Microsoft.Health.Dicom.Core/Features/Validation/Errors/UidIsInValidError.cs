@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
@@ -16,14 +15,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
         }
         public override ValidationErrorCode ErrorCode => ValidationErrorCode.UidIsInvalid;
 
-        public override string GetBriefMessage()
-        {
-            throw new NotImplementedException();
-        }
 
-        protected override string GetErrorMessage()
-        {
-            return DicomCoreResource.InvalidDicomIdentifier;
-        }
+        protected override string GetInnerMessage() => DicomCoreResource.ErrorMessageUidIsInvalid;
+
     }
 }

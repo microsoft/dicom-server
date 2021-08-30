@@ -15,13 +15,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
 
         public override ValidationErrorCode ErrorCode => ValidationErrorCode.MultiValues;
 
-        public override string GetBriefMessage()
+        protected override string GetInnerMessage()
         {
-            throw new System.NotImplementedException();
-        }
-        protected override string GetErrorMessage()
-        {
-            return DicomCoreResource.MultiValuesError;
+            return DicomCoreResource.ErrorMessageMultiValues;
         }
 
     }

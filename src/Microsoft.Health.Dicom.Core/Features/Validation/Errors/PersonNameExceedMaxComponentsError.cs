@@ -16,8 +16,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
 
         public override ValidationErrorCode ErrorCode => ValidationErrorCode.PersonNameExceedMaxComponents;
 
-        public override string GetBriefMessage() => DicomCoreResource.PersonNameExceedMaxComponentsError;
-
-        protected override string GetErrorMessage() => DicomCoreResource.PersonNameExceedMaxComponentsError;
+        protected override string GetInnerMessage() => DicomCoreResource.ErrorMessagePersonNameExceedMaxComponents;
     }
 }
