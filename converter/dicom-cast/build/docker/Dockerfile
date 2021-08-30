@@ -1,5 +1,5 @@
 # Start from the sdk image
-FROM mcr.microsoft.com/dotnet/sdk:5.0.400-alpine3.13@sha256:eb18b95a4cb2342255f7d8e78e60f5cb268638d23bc2bc400b3e393b1f8f9d82 AS build
+FROM mcr.microsoft.com/dotnet/sdk:5.0.400-alpine3.13@sha256:6eb12ee820b6ddf37c110b42c57074521649ebe512522a283b9d6186b8cbd687 AS build
 
 # Set the working directory to where the source is located
 WORKDIR /dicom-cast/src
@@ -12,7 +12,7 @@ RUN dotnet build "./converter/dicom-cast/src/Microsoft.Health.DicomCast.Hosting/
 RUN dotnet publish "./converter/dicom-cast/src/Microsoft.Health.DicomCast.Hosting/Microsoft.Health.DicomCast.Hosting.csproj" -c Release -o "/.build" --no-build
 
 # Build the runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:5.0.9-alpine3.13@sha256:ec33a278b2b3f5d3637beb2e4861c88a7c11866006b83a2d44fe69ab027fc8ad AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:5.0.9-alpine3.13@sha256:ce1fa12d71192d2ee5918688ae73ede8d3c921045caa04d6bae14575da85ea63 AS runtime
 
 RUN set -x && \
     addgroup nonroot && \

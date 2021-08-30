@@ -16,7 +16,6 @@
     <Component Exclude="List exceptions here to not be scanned, that have been included above">    
     <ExcludeFolder>.gitignore</ExcludeFolder>
     <ExcludeFolder>GeoPol.xml</ExcludeFolder>
-    <ExcludeFolder>THIRDPARTYNOTICES.md</ExcludeFolder>
     <ExcludeFolder>tools\scale-testing\PatientNames.txt</ExcludeFolder>
     <ExcludeFolder>tools\scale-testing\PhysiciansNames.txt</ExcludeFolder>
   </Component>
