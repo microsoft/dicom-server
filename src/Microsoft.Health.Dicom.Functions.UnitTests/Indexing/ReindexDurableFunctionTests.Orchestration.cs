@@ -146,7 +146,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                     nameof(ReindexDurableFunction.GetInstanceBatchesAsync),
                     _options.ActivityRetryOptions,
-                    input: null)
+                    36L)
                 .Returns(expectedBatches);
             context
                 .CallActivityWithRetryAsync(
@@ -174,6 +174,12 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     nameof(ReindexDurableFunction.GetQueryTagsAsync),
                     _options.ActivityRetryOptions,
                     input: null);
+            await context
+                .Received(1)
+                .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
+                    nameof(ReindexDurableFunction.GetInstanceBatchesAsync),
+                    _options.ActivityRetryOptions,
+                    36L);
 
             foreach (WatermarkRange batch in expectedBatches)
             {
@@ -307,7 +313,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                     nameof(ReindexDurableFunction.GetInstanceBatchesAsync),
                     _options.ActivityRetryOptions,
-                    input: null)
+                    5L)
                 .Returns(expectedBatches);
             context
                 .CallActivityWithRetryAsync<IReadOnlyList<int>>(
@@ -340,7 +346,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                     nameof(ReindexDurableFunction.GetInstanceBatchesAsync),
                     _options.ActivityRetryOptions,
-                    expectedBatches);
+                    5L);
             await context
                 .DidNotReceive()
                 .CallActivityWithRetryAsync(
@@ -432,11 +438,8 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             long current = end;
             for (int i = 0; i < _options.MaxParallelBatches && current > 0; i++)
             {
-                for (int j = 0; j < _options.BatchSize && current > 0; j++)
-                {
-                    batches.Add(new WatermarkRange(Math.Max(1, current - _options.BatchSize), current));
-                    current -= _options.BatchSize;
-                }
+                batches.Add(new WatermarkRange(Math.Max(1, current - _options.BatchSize + 1), current));
+                current -= _options.BatchSize;
             }
 
             return batches;
