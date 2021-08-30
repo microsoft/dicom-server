@@ -325,7 +325,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>Value length exceeds maximum length of {0}.</value>
     <comment>{0} max length.</comment>
   </data>
-  <data name="ErrorMessageNotRequiredLength" xml:space="preserve">
+  <data name="ErrorMessageUnexpectedLength" xml:space="preserve">
     <value>Value length is not {0}.</value>
     <comment>{0} required length.</comment>
   </data>
@@ -372,7 +372,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>Extended query tags exceeds max allowed count '{0}'.</value>
     <comment>{0} max allowed count.</comment>
   </data>
-  <data name="ErrorMessageNotRequiredVR" xml:space="preserve">
+  <data name="ErrorMessageUnexpectedVR" xml:space="preserve">
     <value>The extended query tag '{0}' is expected to have VR '{1}' but has '{2}' in file.</value>
     <comment>{0}  dicom tag. {1} expected vr code. {2} vr in file.</comment>
   </data>
@@ -392,10 +392,10 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="SimpleErrorMessageExceedMaxLength" xml:space="preserve">
     <value>Value length exceeds maximum length.</value>
   </data>
-  <data name="SimpleErrorMessageNotRequiredLength" xml:space="preserve">
+  <data name="SimpleErrorMessageUnexpectedLength" xml:space="preserve">
     <value>Value length is not expected.</value>
   </data>
-  <data name="SimpleErrorMessageNotRequiredVR" xml:space="preserve">
+  <data name="SimpleErrorMessageUnexpectedVR" xml:space="preserve">
     <value>The extended query tag VR is not expected.</value>
   </data>
   <data name="SimpleErrorMessageUidIsInvalid" xml:space="preserve">

@@ -18,24 +18,67 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     /// </summary>
     public enum ValidationErrorCode
     {
+        /// <summary>
+        /// No error
+        /// </summary>
         None = 0,
 
         // General Errors
-        MultiValues = 0001,
-        ExceedMaxLength = 0002,
-        NotRequiredLength = 0003,
-        InvalidCharacters = 0004,
-        NotRequiredVR = 0005,
 
-        // Patient Name specific errors
+        /// <summary>
+        /// The dicom element has multiple values.
+        /// </summary>
+        MultiValues = 0001,
+
+        /// <summary>
+        /// The length of dicom element value exceed max allowed.
+        /// </summary>
+        ExceedMaxLength = 0002,
+
+        /// <summary>
+        /// The length of dicom element value is not expected.
+        /// </summary>
+        UnexpectedLength = 0003,
+
+        /// <summary>
+        /// The dicom element value has invalid characters.
+        /// </summary>
+        InvalidCharacters = 0004,
+
+        /// <summary>
+        /// The VR of dicom element is not expected.
+        /// </summary>
+        UnexpectedVR = 0005,
+
+        // Person Name specific errors
+
+        /// <summary>
+        /// Person name element has more than allowed groups.
+        /// </summary>
         PersonNameExceedMaxGroups = 1000,
+
+        /// <summary>
+        /// The length of person name group exceed max allowed.
+        /// </summary>
         PersonNameGroupExceedMaxLength = 1001,
+
+        /// <summary>
+        /// Person name element has more than allowed component.
+        /// </summary>
         PersonNameExceedMaxComponents = 1002,
 
         // Date specific errors
+
+        /// <summary>
+        /// Date element has invalid value.
+        /// </summary>
         DateIsInvalid = 1100,
 
         // Uid specific errors
+
+        /// <summary>
+        /// Uid element has invalid value.
+        /// </summary>
         UidIsInvalid = 1200,
     }
 }

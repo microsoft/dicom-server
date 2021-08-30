@@ -17,7 +17,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
             RequiredVR = EnsureArg.IsNotNull(requiredVR, nameof(requiredVR));
         }
 
-        public override ValidationErrorCode ErrorCode => ValidationErrorCode.NotRequiredVR;
+        public override ValidationErrorCode ErrorCode => ValidationErrorCode.UnexpectedVR;
 
         public DicomVR RequiredVR { get; }
 

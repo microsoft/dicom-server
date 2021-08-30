@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
             RequiredLength = requiredLength;
         }
 
-        public override ValidationErrorCode ErrorCode => ValidationErrorCode.NotRequiredLength;
+        public override ValidationErrorCode ErrorCode => ValidationErrorCode.UnexpectedLength;
 
         public int RequiredLength { get; }
 

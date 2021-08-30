@@ -205,24 +205,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Value length is not {0}..
-        /// </summary>
-        internal static string ErrorMessageNotRequiredLength {
-            get {
-                return ResourceManager.GetString("ErrorMessageNotRequiredLength", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The extended query tag &apos;{0}&apos; is expected to have VR &apos;{1}&apos; but has &apos;{2}&apos; in file..
-        /// </summary>
-        internal static string ErrorMessageNotRequiredVR {
-            get {
-                return ResourceManager.GetString("ErrorMessageNotRequiredVR", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Value contains more than 5 components..
         /// </summary>
         internal static string ErrorMessagePersonNameExceedMaxComponents {
@@ -255,6 +237,24 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string ErrorMessageUidIsInvalid {
             get {
                 return ResourceManager.GetString("ErrorMessageUidIsInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value length is not {0}..
+        /// </summary>
+        internal static string ErrorMessageUnexpectedLength {
+            get {
+                return ResourceManager.GetString("ErrorMessageUnexpectedLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The extended query tag &apos;{0}&apos; is expected to have VR &apos;{1}&apos; but has &apos;{2}&apos; in file..
+        /// </summary>
+        internal static string ErrorMessageUnexpectedVR {
+            get {
+                return ResourceManager.GetString("ErrorMessageUnexpectedVR", resourceCulture);
             }
         }
         
@@ -693,29 +693,29 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to DICOM Identifier value  is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in &apos;0&apos;-&apos;9&apos; and &apos;.&apos;. Each component must start with non-zero number..
+        /// </summary>
+        internal static string SimpleErrorMessageUidIsInvalid {
+            get {
+                return ResourceManager.GetString("SimpleErrorMessageUidIsInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Value length is not expected..
         /// </summary>
-        internal static string SimpleErrorMessageNotRequiredLength {
+        internal static string SimpleErrorMessageUnexpectedLength {
             get {
-                return ResourceManager.GetString("SimpleErrorMessageNotRequiredLength", resourceCulture);
+                return ResourceManager.GetString("SimpleErrorMessageUnexpectedLength", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The extended query tag VR is not expected..
         /// </summary>
-        internal static string SimpleErrorMessageNotRequiredVR {
+        internal static string SimpleErrorMessageUnexpectedVR {
             get {
-                return ResourceManager.GetString("SimpleErrorMessageNotRequiredVR", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to DICOM Identifier value  is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in &apos;0&apos;-&apos;9&apos; and &apos;.&apos;. Each component must start with non-zero number..
-        /// </summary>
-        internal static string SimpleErrorMessageUidIsInvalid {
-            get {
-                return ResourceManager.GetString("SimpleErrorMessageUidIsInvalid", resourceCulture);
+                return ResourceManager.GetString("SimpleErrorMessageUnexpectedVR", resourceCulture);
             }
         }
         

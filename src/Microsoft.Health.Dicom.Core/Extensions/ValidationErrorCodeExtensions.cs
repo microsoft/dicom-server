@@ -18,9 +18,9 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
             { MultiValues, DicomCoreResource.ErrorMessageMultiValues },
             { ExceedMaxLength, DicomCoreResource.SimpleErrorMessageExceedMaxLength },
-            { NotRequiredLength, DicomCoreResource.SimpleErrorMessageNotRequiredLength },
+            { UnexpectedLength, DicomCoreResource.SimpleErrorMessageNotRequiredLength },
             { InvalidCharacters, DicomCoreResource.ErrorMessageInvalidCharacters },
-            { NotRequiredVR, DicomCoreResource.SimpleErrorMessageNotRequiredVR },
+            { UnexpectedVR, DicomCoreResource.SimpleErrorMessageNotRequiredVR },
 
             { PersonNameExceedMaxGroups, DicomCoreResource.ErrorMessagePersonNameExceedMaxComponents},
             { PersonNameGroupExceedMaxLength, DicomCoreResource.ErrorMessagePersonNameGroupExceedMaxLength },
