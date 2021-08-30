@@ -29,8 +29,13 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             { DateIsInvalid, DicomCoreResource.ErrorMessageDateIsInvalid },
 
             { UidIsInvalid, DicomCoreResource.ErrorMessageUidIsInvalid},
-
         };
+
+        /// <summary>
+        /// Get error message for error code.
+        /// </summary>
+        /// <param name="errorCode">The error code</param>
+        /// <returns>The message</returns>
         public static string GetMessage(this ValidationErrorCode errorCode)
         {
             if (MessageMap.TryGetValue(errorCode, out string message))
