@@ -7,10 +7,10 @@ using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
 {
-    public class HasInvalidCharactersError
+    public class InvalidCharactersError
         : ElementValidationError
     {
-        public HasInvalidCharactersError(string name, DicomVR vr, string value) : base(name, vr, value)
+        public InvalidCharactersError(string name, DicomVR vr, string value) : base(name, vr, value)
         {
         }
 

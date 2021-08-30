@@ -32,12 +32,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         }
 
         [Fact]
-        public void GivenHasInvalidCharactersError_WhenGetMessage_ShouldReturnExpected()
+        public void GivenInvalidCharactersError_WhenGetMessage_ShouldReturnExpected()
         {
             var name = "tagname";
             var value = "tagvalue";
             var vr = DicomVR.DA;
-            var error = new HasInvalidCharactersError(name, vr, value);
+            var error = new InvalidCharactersError(name, vr, value);
             Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR '{vr}': Value contains invalid character.", error.Message);
         }
 

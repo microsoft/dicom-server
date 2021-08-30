@@ -49,7 +49,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
                 if (ContainsControlExceptEsc(group))
                 {
-                    throw new DicomElementValidationException(new HasInvalidCharactersError(name, vr, value));
+                    throw new DicomElementValidationException(new InvalidCharactersError(name, vr, value));
                 }
             }
 
