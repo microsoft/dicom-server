@@ -16,20 +16,20 @@ steps:
     inputs:
       buildType: 'current'
       downloadType: 'single'
-      downloadPath: '$(Pipeline.Workspace)/artifacts'
+      downloadPath: '$(Build.SourcesDirectory)/artifacts'
       artifactName: 'nuget'
 
 - task: ExtractFiles@1
   displayName: 'Extract DICOM Web Server Binaries'
   inputs:
     archiveFilePatterns: '$(Agent.TempDirectory)/artifacts/deploy/Microsoft.Health.Dicom.Web.zip'
-    destinationFolder: '$(Pipeline.Workspace)/artifacts/web'
+    destinationFolder: '$(Build.SourcesDirectory)/artifacts/web'
 
 - task: AntiMalware@4
   inputs:
     InputType: 'Basic'
     ScanType: 'CustomScan'
-    FileDirPath: '$(Pipeline.Workspace)/artifacts'
+    FileDirPath: '$(Build.SourcesDirectory)'
     EnableServices: true
     TreatSignatureUpdateFailureAs: 'Standard'
     SignatureFreshness: 'OneDay'
