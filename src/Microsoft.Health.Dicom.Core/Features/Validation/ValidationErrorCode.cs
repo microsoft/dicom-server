@@ -7,15 +7,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
     /// <summary>
     /// Validation Error Code.
-    /// Error Code is  4 letter number. 
+    /// </summary>
+    /// <remarks>Error Code is  4 letter number. 
     /// First 2 letters indicate VR:
     ///  00 - General error for all VR
     ///  01 - Error for PN
     /// Last 2 letters indicate specific errors for VR.
     /// ErrorCode naming convention:
     /// VR specific error code should start with VR name.
-    /// e.g: PatientNameGroupIsTooLong starts with PatientName
-    /// </summary>
+    /// e.g: PatientNameGroupIsTooLong starts with PatientName.
+    /// </remarks>
     public enum ValidationErrorCode
     {
         /// <summary>

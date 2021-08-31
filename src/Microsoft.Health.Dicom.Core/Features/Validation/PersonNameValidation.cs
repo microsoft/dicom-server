@@ -38,13 +38,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 {
                     ElementMaxLengthValidation.Validate(group, 64, name, dicomElement.ValueRepresentation);
                 }
-                catch (DicomElementValidationException ex)
+                catch (DicomElementValidationException ex) when (ex.Error is ExceedMaxLengthError)
                 {
-                    // Reprocess the exception to make more meaningful message
-                    if (ex.Error is ExceedMaxLengthError)
-                    {
-                        throw new DicomElementValidationException(new PersonNameGroupExceedMaxLengthError(name, value));
-                    }
+                    // Reprocess the exception to make more meaningful message                    
+                    throw new DicomElementValidationException(new PersonNameGroupExceedMaxLengthError(name, value));
                 }
 
                 if (ContainsControlExceptEsc(group))

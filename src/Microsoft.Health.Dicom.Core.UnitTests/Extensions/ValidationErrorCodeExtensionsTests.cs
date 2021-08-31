@@ -12,7 +12,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
 {
     public class ValidationErrorCodeExtensionsTests
     {
-
         [Fact]
         public void GivenAnyErrorCode_WhenGetMessage_ThenShouldReturnValue()
         {
