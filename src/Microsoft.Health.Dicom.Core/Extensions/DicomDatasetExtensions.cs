@@ -9,11 +9,10 @@ using System.Globalization;
 using System.Linq;
 using Dicom;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Exceptions.Validation;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Validation;
-using Microsoft.Health.Dicom.Core.Features.Validation.Errors;
 
 namespace Microsoft.Health.Dicom.Core.Extensions
 {
@@ -182,7 +181,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             {
                 if (dicomElement.ValueRepresentation != queryTag.VR)
                 {
-                    throw new DicomElementValidationException(new UnexpectedVRError(dicomElement.Tag.GetFriendlyName(), dicomElement.ValueRepresentation, queryTag.VR));
+                    throw new UnexpectedVRException(dicomElement.Tag.GetFriendlyName(), dicomElement.ValueRepresentation, queryTag.VR);
                 }
 
                 minimumValidator.Validate(dicomElement);

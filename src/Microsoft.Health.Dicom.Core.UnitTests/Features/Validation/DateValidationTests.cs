@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using Dicom;
-using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Exceptions.Validation;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Xunit;
 
@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         public void GivenDAInvalidValue_WhenValidating_ThenShouldThrows(string value)
         {
             DicomDate element = new DicomDate(DicomTag.Date, value);
-            Assert.Throws<DicomElementValidationException>(() => _validation.Validate(element));
+            Assert.Throws<DateIsInvalidException>(() => _validation.Validate(element));
         }
 
         [Theory]

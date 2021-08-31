@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Validation.Errors;
+using Microsoft.Health.Dicom.Core.Exceptions.Validation;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -23,8 +23,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         public void GivenAnInvalidStudyInstanceIdentifier_WhenValidatedForRequestedResourceTypeStudy_ThenInvalidIdentifierExceptionIsThrown(string studyInstanceUid)
         {
             EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
-            var ex = Assert.Throws<InvalidIdentifierException>(() => RetrieveRequestValidator.ValidateInstanceIdentifiers(ResourceType.Study, studyInstanceUid));
-            Assert.IsType<UidIsInValidError>(ex.Error);
+            Assert.Throws<UidIsInValidException>(() => RetrieveRequestValidator.ValidateInstanceIdentifiers(ResourceType.Study, studyInstanceUid));
         }
 
         [Theory]
@@ -35,8 +34,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         public void GivenAnInvalidSeriesInstanceIdentifier_WhenValidatedForRequestedResourceTypeSeries_ThenInvalidIdentifierExceptionIsThrown(string seriesInstanceUid)
         {
             EnsureArg.IsNotNull(seriesInstanceUid, nameof(seriesInstanceUid));
-            var ex = Assert.Throws<InvalidIdentifierException>(() => RetrieveRequestValidator.ValidateInstanceIdentifiers(ResourceType.Series, TestUidGenerator.Generate(), seriesInstanceUid));
-            Assert.IsType<UidIsInValidError>(ex.Error);
+            Assert.Throws<UidIsInValidException>(() => RetrieveRequestValidator.ValidateInstanceIdentifiers(ResourceType.Series, TestUidGenerator.Generate(), seriesInstanceUid));
         }
 
         [Theory]
@@ -47,8 +45,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
         public void GivenAnInvalidInstanceIdentifier_WhenValidatedForRequestedResourceTypeInstance_ThenInvalidIdentifierExceptionIsThrown(string sopInstanceUid)
         {
             EnsureArg.IsNotNull(sopInstanceUid, nameof(sopInstanceUid));
-            var ex = Assert.Throws<InvalidIdentifierException>(() => RetrieveRequestValidator.ValidateInstanceIdentifiers(ResourceType.Instance, TestUidGenerator.Generate(), TestUidGenerator.Generate(), sopInstanceUid));
-            Assert.IsType<UidIsInValidError>(ex.Error);
+            Assert.Throws<UidIsInValidException>(() => RetrieveRequestValidator.ValidateInstanceIdentifiers(ResourceType.Instance, TestUidGenerator.Generate(), TestUidGenerator.Generate(), sopInstanceUid));
         }
 
         [Theory]

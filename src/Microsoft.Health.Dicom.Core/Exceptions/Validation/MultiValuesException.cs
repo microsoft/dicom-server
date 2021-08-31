@@ -3,14 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Dicom.Core.Exceptions.Validation;
+using Dicom;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 
-namespace Microsoft.Health.Dicom.Core.Exceptions
+namespace Microsoft.Health.Dicom.Core.Exceptions.Validation
 {
-    public class InvalidIdentifierException : UidIsInValidException
+    public class MultiValuesException : ElementValidationException
     {
-        public InvalidIdentifierException(string name, string value)
-            : base(name, value)
+        public MultiValuesException(string name, DicomVR vr) : base(name, vr, ValidationErrorCode.MultiValues, DicomCoreResource.ErrorMessageMultiValues)
         {
         }
     }

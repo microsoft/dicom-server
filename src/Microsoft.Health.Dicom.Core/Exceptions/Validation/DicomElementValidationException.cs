@@ -5,22 +5,25 @@
 
 using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 
-namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
+namespace Microsoft.Health.Dicom.Core.Exceptions.Validation
 {
-    public abstract class ElementValidationError
+    public abstract class ElementValidationException : ValidationException
     {
-        protected ElementValidationError(string name, DicomVR vr)
+        protected ElementValidationException(string name, DicomVR vr, ValidationErrorCode errorCode, string message) : base(message)
         {
             Name = EnsureArg.IsNotNull(name, nameof(name));
             VR = EnsureArg.IsNotNull(vr, nameof(vr));
+            ErrorCode = errorCode;
         }
 
-        protected ElementValidationError(string name, DicomVR vr, string value)
+        protected ElementValidationException(string name, DicomVR vr, string value, ValidationErrorCode errorCode, string message) : base(message)
         {
             Name = EnsureArg.IsNotNull(name, nameof(name));
             VR = EnsureArg.IsNotNull(vr, nameof(vr));
             Value = EnsureArg.IsNotNull(value, nameof(value));
+            ErrorCode = errorCode;
         }
 
         public string Name { get; }
@@ -29,17 +32,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
 
         public string Value { get; }
 
-        public abstract ValidationErrorCode ErrorCode { get; }
+        public ValidationErrorCode ErrorCode { get; }
 
-        protected abstract string GetInnerMessage();
-
-        public string Message
+        public override string Message
         {
             get
             {
                 return Value == null
-                    ? string.Format(DicomCoreResource.DicomElementValidationFailed, Name, VR.Code, GetInnerMessage())
-                    : string.Format(DicomCoreResource.DicomElementValidationFailedWithValue, Name, Value, VR.Code, GetInnerMessage());
+                    ? string.Format(DicomCoreResource.DicomElementValidationFailed, Name, VR.Code, base.Message)
+                    : string.Format(DicomCoreResource.DicomElementValidationFailedWithValue, Name, Value, VR.Code, base.Message);
             }
         }
     }

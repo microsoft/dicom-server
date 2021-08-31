@@ -5,9 +5,8 @@
 
 using System.Text.RegularExpressions;
 using Dicom;
-using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Exceptions.Validation;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Validation.Errors;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
@@ -33,7 +32,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                     return;
                 }
 
-                throw new InvalidIdentifierException(new UidIsInValidError(name, value));
+                throw new UidIsInValidException(name, value);
             }
 
             // trailling spaces are allowed
@@ -42,12 +41,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             if (value.Length > 64)
             {
                 // UI value is validated in other cases like params for WADO, DELETE. So keeping the exception specific.
-                throw new InvalidIdentifierException(new UidIsInValidError(name, value));
+                throw new UidIsInValidException(name, value);
             }
 
             if (!ValidIdentifierCharactersFormat.IsMatch(value))
             {
-                throw new InvalidIdentifierException(new UidIsInValidError(name, value));
+                throw new UidIsInValidException(name, value);
             }
         }
 

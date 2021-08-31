@@ -11,6 +11,7 @@ using Dicom;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Exceptions.Validation;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
@@ -46,7 +47,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         {
             var storeRequest = new StoreRequest(Stream.Null, DefaultContentType, "invalid");
 
-            await Assert.ThrowsAsync<InvalidIdentifierException>(() => _storeHandler.Handle(storeRequest, CancellationToken.None));
+            await Assert.ThrowsAsync<UidIsInValidException>(() => _storeHandler.Handle(storeRequest, CancellationToken.None));
         }
 
         [Fact]

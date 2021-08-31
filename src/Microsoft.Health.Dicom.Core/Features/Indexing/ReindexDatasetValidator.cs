@@ -6,7 +6,7 @@
 using System.Collections.Generic;
 using Dicom;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Exceptions.Validation;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Validation;
@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
                     dataset.ValidateQueryTag(queryTag, _minimumValidator);
                     validTags.Add(queryTag);
                 }
-                catch (DicomElementValidationException)
+                catch (ElementValidationException)
                 {
                     // TODO: log failure
                 }

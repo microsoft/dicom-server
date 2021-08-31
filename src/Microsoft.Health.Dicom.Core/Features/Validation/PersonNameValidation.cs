@@ -5,9 +5,8 @@
 
 using System.Linq;
 using Dicom;
-using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Exceptions.Validation;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Validation.Errors;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
@@ -29,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             var groups = value.Split('=');
             if (groups.Length > 3)
             {
-                throw new DicomElementValidationException(new PersonNameExceedMaxGroupsError(name, value));
+                throw new PersonNameExceedMaxGroupsException(name, value);
             }
 
             foreach (var group in groups)
@@ -38,22 +37,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 {
                     ElementMaxLengthValidation.Validate(group, 64, name, dicomElement.ValueRepresentation);
                 }
-                catch (DicomElementValidationException ex) when (ex.Error is ExceedMaxLengthError)
+                catch (ExceedMaxLengthException)
                 {
                     // Reprocess the exception to make more meaningful message                    
-                    throw new DicomElementValidationException(new PersonNameGroupExceedMaxLengthError(name, value));
+                    throw new PersonNameGroupExceedMaxLengthException(name, value);
                 }
 
                 if (ContainsControlExceptEsc(group))
                 {
-                    throw new DicomElementValidationException(new InvalidCharactersError(name, vr, value));
+                    throw new InvalidCharactersException(name, vr, value);
                 }
             }
 
             var groupcomponents = groups.Select(group => group.Split('^').Length);
             if (groupcomponents.Any(l => l > 5))
             {
-                throw new DicomElementValidationException(new PersonNameExceedMaxComponentsError(name, value));
+                throw new PersonNameExceedMaxComponentsException(name, value);
             }
         }
     }

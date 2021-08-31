@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Exceptions.Validation;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Security;
-using Microsoft.Health.Dicom.Core.Features.Validation.Errors;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -40,8 +40,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
             RetrieveResourceRequest request = new RetrieveResourceRequest(studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance() });
-            var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
-            Assert.IsType<UidIsInValidError>(ex.Error);
+            await Assert.ThrowsAsync<UidIsInValidException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
         }
 
         [Theory]
@@ -53,8 +52,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
             RetrieveResourceRequest request = new RetrieveResourceRequest(studyInstanceUid, seriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() });
-            var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
-            Assert.IsType<UidIsInValidError>(ex.Error);
+            await Assert.ThrowsAsync<UidIsInValidException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
         }
 
         [Theory]
@@ -66,8 +64,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             EnsureArg.IsNotNull(seriesInstanceUid, nameof(seriesInstanceUid));
             RetrieveResourceRequest request = new RetrieveResourceRequest(TestUidGenerator.Generate(), seriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() });
-            var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
-            Assert.IsType<UidIsInValidError>(ex.Error);
+            await Assert.ThrowsAsync<UidIsInValidException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
         }
 
         [Theory]
@@ -79,8 +76,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             EnsureArg.IsNotNull(sopInstanceUid, nameof(sopInstanceUid));
             RetrieveResourceRequest request = new RetrieveResourceRequest(TestUidGenerator.Generate(), TestUidGenerator.Generate(), sopInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance() });
-            var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
-            Assert.IsType<UidIsInValidError>(ex.Error);
+            await Assert.ThrowsAsync<UidIsInValidException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
         }
 
         [Theory]
@@ -92,8 +88,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         {
             EnsureArg.IsNotNull(sopInstanceUid, nameof(sopInstanceUid));
             RetrieveResourceRequest request = new RetrieveResourceRequest(TestUidGenerator.Generate(), TestUidGenerator.Generate(), sopInstanceUid, new List<int> { 1 }, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame() });
-            var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
-            Assert.IsType<UidIsInValidError>(ex.Error);
+            await Assert.ThrowsAsync<UidIsInValidException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
         }
 
         [Theory(Skip = "Move this tests to move this tests to RetriveResourceService, since the logic to validate TransferSyntax has moved there")]

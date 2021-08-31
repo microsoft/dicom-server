@@ -5,18 +5,13 @@
 
 using Dicom;
 
-namespace Microsoft.Health.Dicom.Core.Features.Validation.Errors
+namespace Microsoft.Health.Dicom.Core.Exceptions.Validation
 {
-    public class UidIsInValidError : ElementValidationError
+    public class UidIsInValidException : ElementValidationException
     {
-        public UidIsInValidError(string name, string value) : base(name, DicomVR.UI, value)
+        public UidIsInValidException(string name, string value) :
+            base(name, DicomVR.UI, value, Features.Validation.ValidationErrorCode.UidIsInvalid, DicomCoreResource.ErrorMessageUidIsInvalid)
         {
-
         }
-        public override ValidationErrorCode ErrorCode => ValidationErrorCode.UidIsInvalid;
-
-
-        protected override string GetInnerMessage() => DicomCoreResource.ErrorMessageUidIsInvalid;
-
     }
 }

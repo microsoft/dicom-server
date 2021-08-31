@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using Dicom;
-using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Exceptions.Validation;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Xunit;
 
@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         public void GivenInvalidUidWhenValidating_ThenShouldThrow(string value)
         {
             DicomElement element = new DicomUniqueIdentifier(DicomTag.DigitalSignatureUID, value);
-            Assert.Throws<InvalidIdentifierException>(() => new UidValidation().Validate(element));
+            Assert.Throws<UidIsInValidException>(() => new UidValidation().Validate(element));
         }
 
     }

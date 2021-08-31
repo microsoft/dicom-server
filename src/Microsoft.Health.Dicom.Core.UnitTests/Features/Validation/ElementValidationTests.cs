@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using Dicom;
-using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Exceptions.Validation;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Xunit;
 
@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         public void GivenMultiValueElement_WhenValidating_ThenShouldThrow()
         {
 
-            Assert.Throws<DicomElementValidationException>(() =>
+            Assert.Throws<MultiValuesException>(() =>
                 new ElementValidation().Validate(new DicomIntegerString(DicomTag.DoseReferenceNumber, "012345678912", "012345678913")));
         }
 

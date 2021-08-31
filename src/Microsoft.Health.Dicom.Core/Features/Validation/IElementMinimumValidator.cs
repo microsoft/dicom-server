@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using Dicom;
-using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Exceptions.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
@@ -17,7 +17,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         /// Validate Dicom Element.
         /// </summary>
         /// <param name="dicomElement">The Dicom Element</param>
-        /// <exception cref="DicomElementValidationException"/>
+        /// <exception cref="ElementValidationException"/>
         void Validate(DicomElement dicomElement);
     }
 }

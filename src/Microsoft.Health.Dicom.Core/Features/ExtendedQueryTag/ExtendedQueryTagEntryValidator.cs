@@ -11,6 +11,7 @@ using System.Linq;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Exceptions.Validation;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Query;
@@ -173,7 +174,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             {
                 LongStringValidation.Validate(privateCreator, nameof(privateCreator));
             }
-            catch (DicomElementValidationException ex)
+            catch (ElementValidationException ex)
             {
                 throw new ExtendedQueryTagEntryValidationException(
                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.PrivateCreatorNotValidLO, tagPath), ex);

@@ -5,7 +5,7 @@
 
 using Dicom;
 using Dicom.IO;
-using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Exceptions.Validation;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Xunit;
 
@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         public void GivenBinaryValueNotRequiredLength_WhenValidating_ThenShouldThrows()
         {
             DicomElement element = new DicomSignedShort(DicomTag.LargestImagePixelValue, ByteConverter.ToByteBuffer(new int[] { int.MaxValue }));
-            Assert.Throws<DicomElementValidationException>(() =>
+            Assert.Throws<MultiValuesException>(() =>
               new ElementRequiredLengthValidation(4).Validate(element));
         }
 
@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         public void GivenStringValueNotRequiredLength_WhenValidating_ThenShouldThrows()
         {
             DicomElement element = new DicomAgeString(DicomTag.PatientAge, "012W1");
-            Assert.Throws<DicomElementValidationException>(() =>
+            Assert.Throws<UnexpectedLengthException>(() =>
               new ElementRequiredLengthValidation(4).Validate(element));
         }
 

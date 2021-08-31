@@ -5,6 +5,7 @@
 
 using System.IO;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Exceptions.Validation;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 using Xunit;
@@ -39,7 +40,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         {
             StoreRequest request = new StoreRequest(Stream.Null, "application/dicom", studyInstanceUid);
 
-            Assert.Throws<InvalidIdentifierException>(() => StoreRequestValidator.ValidateRequest(request));
+            Assert.Throws<UidIsInValidException>(() => StoreRequestValidator.ValidateRequest(request));
         }
     }
 }

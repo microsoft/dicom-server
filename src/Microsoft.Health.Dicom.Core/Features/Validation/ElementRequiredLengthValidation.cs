@@ -7,9 +7,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Dicom;
 using Dicom.IO.Buffer;
-using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Exceptions.Validation;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Validation.Errors;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
@@ -55,7 +54,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         {
             if (value?.Size != ExpectedLength)
             {
-                throw new DicomElementValidationException(new UnexpectedLengthError(name, dicomVR, ExpectedLength));
+                throw new UnexpectedLengthException(name, dicomVR, ExpectedLength);
             }
         }
 
@@ -76,7 +75,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             value = value ?? "";
             if (value.Length != ExpectedLength)
             {
-                throw new DicomElementValidationException(new UnexpectedLengthError(name, dicomVR, value, ExpectedLength));
+                throw new UnexpectedLengthException(name, dicomVR, value, ExpectedLength);
             }
         }
     }

@@ -4,117 +4,117 @@
 // -------------------------------------------------------------------------------------------------
 
 using Dicom;
-using Microsoft.Health.Dicom.Core.Features.Validation.Errors;
+using Microsoft.Health.Dicom.Core.Exceptions.Validation;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
 {
-    public class ValidationErrorTests
+    public class ValidationExceptionTests
     {
         [Fact]
-        public void GivenDateIsInvalidError_WhenGetMessage_ShouldReturnExpected()
+        public void GivenDateIsInvalidException_WhenGetMessage_ShouldReturnExpected()
         {
             var name = "tagname";
             var value = "tagvalue";
-            var error = new DateIsInvalidError(name, value);
-            Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR 'DA': Value cannot be parsed as a valid date.", error.Message);
+            var exception = new DateIsInvalidException(name, value);
+            Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR 'DA': Value cannot be parsed as a valid date.", exception.Message);
         }
 
         [Fact]
-        public void GivenExceedMaxLengthError_WhenGetMessage_ShouldReturnExpected()
+        public void GivenExceedMaxLengthException_WhenGetMessage_ShouldReturnExpected()
         {
             var name = "tagname";
             var value = "tagvalue";
             var vr = DicomVR.DA;
             int maxLength = 8;
-            var error = new ExceedMaxLengthError(name, vr, value, maxLength);
-            Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR '{vr}': Value length exceeds maximum length of {maxLength}.", error.Message);
+            var exception = new ExceedMaxLengthException(name, vr, value, maxLength);
+            Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR '{vr}': Value length exceeds maximum length of {maxLength}.", exception.Message);
         }
 
         [Fact]
-        public void GivenInvalidCharactersError_WhenGetMessage_ShouldReturnExpected()
+        public void GivenInvalidCharactersException_WhenGetMessage_ShouldReturnExpected()
         {
             var name = "tagname";
             var value = "tagvalue";
             var vr = DicomVR.DA;
-            var error = new InvalidCharactersError(name, vr, value);
-            Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR '{vr}': Value contains invalid character.", error.Message);
+            var exception = new InvalidCharactersException(name, vr, value);
+            Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR '{vr}': Value contains invalid character.", exception.Message);
         }
 
         [Fact]
-        public void GivenMultiValuesError_WhenGetMessage_ShouldReturnExpected()
+        public void GivenMultiValuesException_WhenGetMessage_ShouldReturnExpected()
         {
             var name = "tagname";
             var vr = DicomVR.DA;
-            var error = new MultiValuesError(name, vr);
-            Assert.Equal($"Dicom element '{name}' failed validation for VR '{vr}': Dicom element has multiple values. Indexing is only supported on single value element.", error.Message);
+            var exception = new MultiValuesException(name, vr);
+            Assert.Equal($"Dicom element '{name}' failed validation for VR '{vr}': Dicom element has multiple values. Indexing is only supported on single value element.", exception.Message);
         }
 
         [Fact]
-        public void GivenUnexpectedLengthErrorWithoutValue_WhenGetMessage_ShouldReturnExpected()
+        public void GivenUnexpectedLengthExceptionWithoutValue_WhenGetMessage_ShouldReturnExpected()
         {
             var name = "tagname";
             var vr = DicomVR.DA;
             var expectedLength = 8;
-            var error = new UnexpectedLengthError(name, vr, expectedLength);
-            Assert.Equal($"Dicom element '{name}' failed validation for VR '{vr}': Value length is not {expectedLength}.", error.Message);
+            var exception = new UnexpectedLengthException(name, vr, expectedLength);
+            Assert.Equal($"Dicom element '{name}' failed validation for VR '{vr}': Value length is not {expectedLength}.", exception.Message);
         }
 
         [Fact]
-        public void GivenUnexpectedLengthErrorWithValue_WhenGetMessage_ShouldReturnExpected()
+        public void GivenUnexpectedLengthExceptionWithValue_WhenGetMessage_ShouldReturnExpected()
         {
             var name = "tagname";
             var value = "tagvalue";
             var vr = DicomVR.DA;
             var expectedLength = 8;
-            var error = new UnexpectedLengthError(name, vr, value, expectedLength);
-            Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR '{vr}': Value length is not {expectedLength}.", error.Message);
+            var exception = new UnexpectedLengthException(name, vr, value, expectedLength);
+            Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR '{vr}': Value length is not {expectedLength}.", exception.Message);
         }
 
         [Fact]
-        public void GivenUnexpectedVRError_WhenGetMessage_ShouldReturnExpected()
+        public void GivenUnexpectedVRException_WhenGetMessage_ShouldReturnExpected()
         {
             var name = "tagname";
             var actualVR = DicomVR.DA;
             var expectedVR = DicomVR.DT;
-            var error = new UnexpectedVRError(name, actualVR, expectedVR);
-            Assert.Equal($"Dicom element '{name}' failed validation for VR '{actualVR}': The extended query tag '{name}' is expected to have VR '{expectedVR}' but has '{actualVR}' in file.", error.Message);
+            var exception = new UnexpectedVRException(name, actualVR, expectedVR);
+            Assert.Equal($"Dicom element '{name}' failed validation for VR '{actualVR}': The extended query tag '{name}' is expected to have VR '{expectedVR}' but has '{actualVR}' in file.", exception.Message);
         }
 
         [Fact]
-        public void GivenPersonNameExceedMaxComponentsError_WhenGetMessage_ShouldReturnExpected()
+        public void GivenPersonNameExceedMaxComponentsException_WhenGetMessage_ShouldReturnExpected()
         {
             var name = "tagname";
             var value = "tagvalue";
-            var error = new PersonNameExceedMaxComponentsError(name, value);
-            Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR 'PN': Value contains more than 5 components.", error.Message);
+            var exception = new PersonNameExceedMaxComponentsException(name, value);
+            Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR 'PN': Value contains more than 5 components.", exception.Message);
         }
 
         [Fact]
-        public void GivenPersonNameExceedMaxGroupsError_WhenGetMessage_ShouldReturnExpected()
+        public void GivenPersonNameExceedMaxGroupsException_WhenGetMessage_ShouldReturnExpected()
         {
             var name = "tagname";
             var value = "tagvalue";
-            var error = new PersonNameExceedMaxGroupsError(name, value);
-            Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR 'PN': Value contains more than 3 groups.", error.Message);
+            var exception = new PersonNameExceedMaxGroupsException(name, value);
+            Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR 'PN': Value contains more than 3 groups.", exception.Message);
         }
 
         [Fact]
-        public void GivenPersonNameGroupExceedMaxLengthError_WhenGetMessage_ShouldReturnExpected()
+        public void GivenPersonNameGroupExceedMaxLengthException_WhenGetMessage_ShouldReturnExpected()
         {
             var name = "tagname";
             var value = "tagvalue";
-            var error = new PersonNameGroupExceedMaxLengthError(name, value);
-            Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR 'PN': One or more group of person name exceeds maxium length of 64.", error.Message);
+            var exception = new PersonNameGroupExceedMaxLengthException(name, value);
+            Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR 'PN': One or more group of person name exceeds maxium length of 64.", exception.Message);
         }
 
         [Fact]
-        public void GivenUidIsInValidError_WhenGetMessage_ShouldReturnExpected()
+        public void GivenUidIsInValidException_WhenGetMessage_ShouldReturnExpected()
         {
             var name = "tagname";
             var value = "tagvalue";
-            var error = new UidIsInValidError(name, value);
-            Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR 'UI': DICOM Identifier is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", error.Message);
+            var exception = new UidIsInValidException(name, value);
+            Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR 'UI': DICOM Identifier is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", exception.Message);
         }
     }
 }
