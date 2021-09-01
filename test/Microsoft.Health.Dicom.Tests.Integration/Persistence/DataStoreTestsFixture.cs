@@ -42,7 +42,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             _metadataContainerConfiguration = new BlobContainerConfiguration { ContainerName = Guid.NewGuid().ToString() };
             _blobDataStoreConfiguration = new BlobDataStoreConfiguration
             {
-                ConnectionString = environment.GetSection("BlobStore")["ConnectionString"] ?? BlobLocalEmulator.ConnectionString,
+                ConnectionString = environment["BlobStore:ConnectionString"] ?? BlobLocalEmulator.ConnectionString,
             };
             RecyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
         }

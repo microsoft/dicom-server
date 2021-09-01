@@ -49,7 +49,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 .AddEnvironmentVariables()
                 .Build();
 
-            string initialConnectionString = environment.GetSection("SqlServer")["ConnectionString"] ?? LocalConnectionString;
+            string initialConnectionString = environment["SqlServer:ConnectionString"] ?? LocalConnectionString;
             _masterConnectionString = new SqlConnectionStringBuilder(initialConnectionString) { InitialCatalog = "master" }.ToString();
             TestConnectionString = new SqlConnectionStringBuilder(initialConnectionString) { InitialCatalog = _databaseName }.ToString();
 
