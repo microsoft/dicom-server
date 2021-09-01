@@ -25,6 +25,11 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         [Fact]
         public async Task GivenNewOrchestrationWithWork_WhenReindexingInstances_ThenDivideAndReindexBatches()
         {
+            const int batchSize = 5;
+            _options.BatchSize = batchSize;
+            _options.MaxParallelBatches = 3;
+
+            IReadOnlyList<WatermarkRange> expectedBatches = CreateBatches(50);
             var expectedInput = new ReindexInput { QueryTagKeys = new List<int> { 1, 2, 3, 4, 5 } };
             var expectedTags = new List<ExtendedQueryTagStoreEntry>
             {
@@ -32,10 +37,6 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 new ExtendedQueryTagStoreEntry(2, "02020202", "IS", "foo", QueryTagLevel.Series, ExtendedQueryTagStatus.Adding, null),
                 new ExtendedQueryTagStoreEntry(4, "04040404", "SH", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Adding, null)
             };
-
-            const int batchSize = 5;
-            _options.BatchSize = batchSize;
-            _options.MaxParallelBatches = 3;
 
             // Arrange the input
             IDurableOrchestrationContext context = CreateContext();
@@ -49,11 +50,11 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     expectedInput.QueryTagKeys)
                 .Returns(expectedTags);
             context
-                .CallActivityWithRetryAsync<long>(
-                    nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync),
+                .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
+                    nameof(ReindexDurableFunction.GetInstanceBatchesAsync),
                     _options.ActivityRetryOptions,
                     input: null)
-                .Returns(49);
+                .Returns(expectedBatches);
             context
                 .CallActivityWithRetryAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
@@ -82,28 +83,21 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     Arg.Any<object>());
             await context
                 .Received(1)
-                .CallActivityWithRetryAsync<long>(
-                    nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync),
+                .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
+                    nameof(ReindexDurableFunction.GetInstanceBatchesAsync),
                     _options.ActivityRetryOptions,
                     input: null);
-            await context
-                .Received(1)
-                .CallActivityWithRetryAsync(
-                    nameof(ReindexDurableFunction.ReindexBatchAsync),
-                    _options.ActivityRetryOptions,
-                    Arg.Is(GetReindexBatchPredicate(expectedTags, 45, 50)));
-            await context
-                .Received(1)
-                .CallActivityWithRetryAsync(
-                    nameof(ReindexDurableFunction.ReindexBatchAsync),
-                    _options.ActivityRetryOptions,
-                    Arg.Is(GetReindexBatchPredicate(expectedTags, 40, 45)));
-            await context
-                 .Received(1)
-                 .CallActivityWithRetryAsync(
-                    nameof(ReindexDurableFunction.ReindexBatchAsync),
-                    _options.ActivityRetryOptions,
-                    Arg.Is(GetReindexBatchPredicate(expectedTags, 35, 40)));
+
+            foreach (WatermarkRange batch in expectedBatches)
+            {
+                await context
+                    .Received(1)
+                    .CallActivityWithRetryAsync(
+                        nameof(ReindexDurableFunction.ReindexBatchAsync),
+                        _options.ActivityRetryOptions,
+                        Arg.Is(GetReindexBatchPredicate(expectedTags, batch)));
+            }
+
             await context
                 .DidNotReceive()
                 .CallActivityWithRetryAsync<IReadOnlyList<int>>(
@@ -116,17 +110,22 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             context
                 .Received(1)
                 .ContinueAsNew(
-                    Arg.Is<ReindexInput>(x => GetReindexInputPredicate(expectedTags, 35, 50)(x)),
+                    Arg.Is<ReindexInput>(x => GetReindexInputPredicate(expectedTags, expectedBatches, 50)(x)),
                     false);
         }
 
         [Fact]
         public async Task GivenExistingOrchestrationWithWork_WhenReindexingInstances_ThenDivideAndReindexBatches()
         {
+            const int batchSize = 3;
+            _options.BatchSize = batchSize;
+            _options.MaxParallelBatches = 2;
+
+            IReadOnlyList<WatermarkRange> expectedBatches = CreateBatches(35);
             var expectedInput = new ReindexInput
             {
                 QueryTagKeys = new List<int> { 1, 2, 3, 4, 5 },
-                Completed = WatermarkRange.Between(36, 42),
+                Completed = new WatermarkRange(36, 42),
             };
             var expectedTags = new List<ExtendedQueryTagStoreEntry>
             {
@@ -134,10 +133,6 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 new ExtendedQueryTagStoreEntry(2, "02020202", "IS", "foo", QueryTagLevel.Series, ExtendedQueryTagStatus.Adding, null),
                 new ExtendedQueryTagStoreEntry(4, "04040404", "SH", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Adding, null)
             };
-
-            const int batchSize = 3;
-            _options.BatchSize = batchSize;
-            _options.MaxParallelBatches = 2;
 
             // Arrange the input
             IDurableOrchestrationContext context = CreateContext();
@@ -150,6 +145,12 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     _options.ActivityRetryOptions,
                     input: null)
                 .Returns(expectedTags);
+            context
+                .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
+                    nameof(ReindexDurableFunction.GetInstanceBatchesAsync),
+                    _options.ActivityRetryOptions,
+                    35L)
+                .Returns(expectedBatches);
             context
                 .CallActivityWithRetryAsync(
                     nameof(ReindexDurableFunction.ReindexBatchAsync),
@@ -177,23 +178,22 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     _options.ActivityRetryOptions,
                     input: null);
             await context
-                .DidNotReceive()
-                .CallActivityWithRetryAsync<long>(
-                    nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync),
-                    _options.ActivityRetryOptions,
-                    Arg.Any<object>());
-            await context
                 .Received(1)
-                .CallActivityWithRetryAsync(
-                    nameof(ReindexDurableFunction.ReindexBatchAsync),
+                .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
+                    nameof(ReindexDurableFunction.GetInstanceBatchesAsync),
                     _options.ActivityRetryOptions,
-                    Arg.Is(GetReindexBatchPredicate(expectedTags, 33, 36)));
-            await context
-                .Received(1)
-                .CallActivityWithRetryAsync(
-                    nameof(ReindexDurableFunction.ReindexBatchAsync),
-                    _options.ActivityRetryOptions,
-                    Arg.Is(GetReindexBatchPredicate(expectedTags, 30, 33)));
+                    35L);
+
+            foreach (WatermarkRange batch in expectedBatches)
+            {
+                await context
+                    .Received(1)
+                    .CallActivityWithRetryAsync(
+                        nameof(ReindexDurableFunction.ReindexBatchAsync),
+                        _options.ActivityRetryOptions,
+                        Arg.Is(GetReindexBatchPredicate(expectedTags, batch)));
+            }
+
             await context
                 .DidNotReceive()
                 .CallActivityWithRetryAsync<IReadOnlyList<int>>(
@@ -206,13 +206,14 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             context
                 .Received(1)
                 .ContinueAsNew(
-                    Arg.Is<ReindexInput>(x => GetReindexInputPredicate(expectedTags, 30, 42)(x)),
+                    Arg.Is<ReindexInput>(x => GetReindexInputPredicate(expectedTags, expectedBatches, 42)(x)),
                     false);
         }
 
         [Fact]
         public async Task GivenNoInstances_WhenReindexingInstances_ThenComplete()
         {
+            var expectedBatches = new List<WatermarkRange>();
             var expectedInput = new ReindexInput { QueryTagKeys = new List<int> { 1, 2, 3, 4, 5 } };
             var expectedTags = new List<ExtendedQueryTagStoreEntry>
             {
@@ -233,11 +234,11 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     expectedInput.QueryTagKeys)
                 .Returns(expectedTags);
             context
-                .CallActivityWithRetryAsync<long>(
-                    nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync),
+                .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
+                    nameof(ReindexDurableFunction.GetInstanceBatchesAsync),
                     _options.ActivityRetryOptions,
                     input: null)
-                .Returns(0);
+                .Returns(expectedBatches);
             context
                 .CallActivityWithRetryAsync<IReadOnlyList<int>>(
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
@@ -266,8 +267,8 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     Arg.Any<object>());
             await context
                 .Received(1)
-                .CallActivityWithRetryAsync<long>(
-                    nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync),
+                .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
+                    nameof(ReindexDurableFunction.GetInstanceBatchesAsync),
                     _options.ActivityRetryOptions,
                     input: null);
             await context
@@ -293,10 +294,11 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         [Fact]
         public async Task GivenNoRemainingInstances_WhenReindexingInstances_ThenComplete()
         {
+            var expectedBatches = new List<WatermarkRange>();
             var expectedInput = new ReindexInput
             {
                 QueryTagKeys = new List<int> { 1, 2, 3, 4, 5 },
-                Completed = WatermarkRange.Between(1, 1000),
+                Completed = new WatermarkRange(5, 1000),
             };
             var expectedTags = new List<ExtendedQueryTagStoreEntry>
             {
@@ -316,6 +318,12 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     _options.ActivityRetryOptions,
                     input: null)
                 .Returns(expectedTags);
+            context
+                .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
+                    nameof(ReindexDurableFunction.GetInstanceBatchesAsync),
+                    _options.ActivityRetryOptions,
+                    4L)
+                .Returns(expectedBatches);
             context
                 .CallActivityWithRetryAsync<IReadOnlyList<int>>(
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
@@ -343,11 +351,11 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     _options.ActivityRetryOptions,
                     input: null);
             await context
-                .DidNotReceive()
-                .CallActivityWithRetryAsync<long>(
-                    nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync),
+                .Received(1)
+                .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
+                    nameof(ReindexDurableFunction.GetInstanceBatchesAsync),
                     _options.ActivityRetryOptions,
-                    Arg.Any<object>());
+                    4L);
             await context
                 .DidNotReceive()
                 .CallActivityWithRetryAsync(
@@ -407,8 +415,8 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     Arg.Any<object>());
             await context
                 .DidNotReceive()
-                .CallActivityWithRetryAsync<long>(
-                    nameof(ReindexDurableFunction.GetMaxInstanceWatermarkAsync),
+                .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
+                    nameof(ReindexDurableFunction.GetInstanceBatchesAsync),
                     _options.ActivityRetryOptions,
                     Arg.Any<object>());
             await context
@@ -438,23 +446,36 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             return context;
         }
 
+        private IReadOnlyList<WatermarkRange> CreateBatches(long end)
+        {
+            var batches = new List<WatermarkRange>();
+
+            long current = end;
+            for (int i = 0; i < _options.MaxParallelBatches && current > 0; i++)
+            {
+                batches.Add(new WatermarkRange(Math.Max(1, current - _options.BatchSize + 1), current));
+                current -= _options.BatchSize;
+            }
+
+            return batches;
+        }
+
         private static Expression<Predicate<ReindexBatch>> GetReindexBatchPredicate(
             IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags,
-            long start,
-            long end)
+            WatermarkRange expected)
         {
             return x => ReferenceEquals(x.QueryTags, queryTags)
-                && x.WatermarkRange == WatermarkRange.Between(start, end);
+                && x.WatermarkRange == expected;
         }
 
         private static Predicate<object> GetReindexInputPredicate(
             IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags,
-            long start,
+            IReadOnlyList<WatermarkRange> expectedBatches,
             long end)
         {
             return x => x is ReindexInput r
                 && r.QueryTagKeys.SequenceEqual(queryTags.Select(y => y.Key))
-                && r.Completed == WatermarkRange.Between(start, end);
+                && r.Completed == new WatermarkRange(expectedBatches[expectedBatches.Count - 1].Start, end);
         }
 
         private static Expression<Predicate<OperationCustomStatus>> GetCustomStatePredicate(int percentComplete, params string[] resourceIds)

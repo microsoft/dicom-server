@@ -15,13 +15,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
     [DebuggerDisplay("{ToString(),nq}")]
     public readonly struct WatermarkRange : IEquatable<WatermarkRange>
     {
-        public WatermarkRange(long start, long count)
+        public WatermarkRange(long start, long end)
         {
             Start = EnsureArg.IsGte(start, 0, nameof(start));
-            End = Start + EnsureArg.IsInRange(count, 0, long.MaxValue - start, nameof(count));
+            End = EnsureArg.IsGte(end, start, nameof(end));
         }
-
-        public static WatermarkRange None { get; } = new WatermarkRange(0, 0); // Same as default
 
         /// <summary>
         /// Gets inclusive starting instance watermark.
@@ -29,17 +27,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
         public long Start { get; }
 
         /// <summary>
-        /// Gets exclusive ending instance watermark.
+        /// Gets inclusive ending instance watermark.
         /// </summary>
         public long End { get; }
-
-        /// <summary>
-        /// Gets the maximum number of instances within this range.
-        /// </summary>
-        /// <remarks>
-        /// Some instances may be missing in the range due to previous deletion operations.
-        /// </remarks>
-        public long Count => End - Start;
 
         public override bool Equals(object obj)
             => obj is WatermarkRange other && Equals(other);
@@ -63,9 +53,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
         }
 
         public override string ToString()
-            => "[" + Start + ", " + End + ")";
-
-        public static WatermarkRange Between(long start, long end)
-            => new WatermarkRange(start, EnsureArg.IsGte(end, start, nameof(end)) - start);
+            => "[" + Start + ", " + End + "]";
     }
 }

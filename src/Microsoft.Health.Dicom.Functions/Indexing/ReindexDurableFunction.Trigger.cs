@@ -19,7 +19,6 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Extensions;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
@@ -83,11 +82,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             string instanceId = await client.StartNewAsync(
                 nameof(ReindexInstancesAsync),
                 OperationId.ToString(instanceGuid),
-                new ReindexInput
-                {
-                    QueryTagKeys = extendedQueryTagKeys,
-                    Completed = WatermarkRange.None,
-                });
+                new ReindexInput { QueryTagKeys = extendedQueryTagKeys });
 
             logger.LogInformation("Successfully started new orchestration instance with ID '{InstanceId}'.", instanceId);
 

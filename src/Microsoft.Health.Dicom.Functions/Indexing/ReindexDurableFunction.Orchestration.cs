@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -57,11 +56,15 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             List<int> queryTagKeys = queryTags.Select(x => x.Key).ToList();
             if (queryTags.Count > 0)
             {
-                List<WatermarkRange> batches = await GetBatchesAsync(context, input.Completed, logger);
+                IReadOnlyList<WatermarkRange> batches = await context.CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
+                    nameof(GetInstanceBatchesAsync),
+                    _options.ActivityRetryOptions,
+                    input.Completed?.Start - 1);
+
                 if (batches.Count > 0)
                 {
                     // Note that batches are in reverse order because we start from the highest watermark
-                    var batchRange = WatermarkRange.Between(batches[^1].Start, batches[0].End);
+                    var batchRange = new WatermarkRange(batches[^1].Start, batches[0].End);
 
                     logger.LogInformation("Beginning to re-index the range {Range}.", batchRange);
                     await Task.WhenAll(batches
@@ -73,9 +76,9 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                     // Create a new orchestration with the same instance ID to process the remaining data
                     logger.LogInformation("Completed re-indexing the range {Range}. Continuing with new execution...", batchRange);
 
-                    WatermarkRange completed = input.Completed.Count == 0
-                        ? batchRange
-                        : WatermarkRange.Between(batchRange.Start, input.Completed.End);
+                    WatermarkRange completed = input.Completed.HasValue
+                        ? new WatermarkRange(batchRange.Start, input.Completed.Value.End)
+                        : batchRange
 
                     context.SetCustomStatus(
                         new OperationCustomStatus
@@ -129,49 +132,14 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             // Determine the set of query tags that should be indexed and only continue if there is at least 1.
             // For the first time this orchestration executes, assign all of the tags in the input to the operation,
             // otherwise simply fetch the tags from the database for this operation.
-            => input.Completed.Count == 0
+            => input.Completed.HasValue
                 ? context.CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
-                    nameof(AssignReindexingOperationAsync),
-                    _options.ActivityRetryOptions,
-                    input.QueryTagKeys)
-                : context.CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(GetQueryTagsAsync),
                     _options.ActivityRetryOptions,
-                    null);
-
-        private async Task<List<WatermarkRange>> GetBatchesAsync(
-            IDurableOrchestrationContext context,
-            WatermarkRange completed,
-            ILogger logger)
-        {
-            // If we haven't completed any range yet, fetch the maximum watermark from the database.
-            // Otherwise, create a WatermarkRange based on the latest progress.
-            long end;
-            if (completed.Count > 0)
-            {
-                end = completed.Start;
-                logger.LogInformation("Previous execution finished range {Range}.", completed);
-            }
-            else
-            {
-                long maxWatermark = await context.CallActivityWithRetryAsync<long>(
-                    nameof(GetMaxInstanceWatermarkAsync),
+                    null)
+                : context.CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
+                    nameof(AssignReindexingOperationAsync),
                     _options.ActivityRetryOptions,
-                    null);
-
-                end = maxWatermark + 1;
-                logger.LogInformation("Found maximum watermark {Max}.", maxWatermark);
-            }
-
-            // Note that the watermark sequence starts at 1!
-            var batches = new List<WatermarkRange>();
-            for (; end > 1 && batches.Count < _options.MaxParallelBatches; end -= _options.BatchSize)
-            {
-                int count = (int)Math.Min(end - 1, _options.BatchSize);
-                batches.Add(new WatermarkRange(end - count, count));
-            }
-
-            return batches;
-        }
+                    input.QueryTagKeys);
     }
 }
