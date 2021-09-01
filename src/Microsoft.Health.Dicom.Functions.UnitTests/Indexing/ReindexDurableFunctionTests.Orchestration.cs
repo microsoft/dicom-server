@@ -146,7 +146,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                     nameof(ReindexDurableFunction.GetInstanceBatchesAsync),
                     _options.ActivityRetryOptions,
-                    36L)
+                    35L)
                 .Returns(expectedBatches);
             context
                 .CallActivityWithRetryAsync(
@@ -179,7 +179,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                     nameof(ReindexDurableFunction.GetInstanceBatchesAsync),
                     _options.ActivityRetryOptions,
-                    36L);
+                    35L);
 
             foreach (WatermarkRange batch in expectedBatches)
             {
@@ -313,7 +313,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                     nameof(ReindexDurableFunction.GetInstanceBatchesAsync),
                     _options.ActivityRetryOptions,
-                    5L)
+                    4L)
                 .Returns(expectedBatches);
             context
                 .CallActivityWithRetryAsync<IReadOnlyList<int>>(
@@ -346,7 +346,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                     nameof(ReindexDurableFunction.GetInstanceBatchesAsync),
                     _options.ActivityRetryOptions,
-                    5L);
+                    4L);
             await context
                 .DidNotReceive()
                 .CallActivityWithRetryAsync(

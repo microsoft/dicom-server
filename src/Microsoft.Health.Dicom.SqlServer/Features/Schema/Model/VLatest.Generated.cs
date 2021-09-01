@@ -715,14 +715,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
             private readonly ParameterDefinition<System.Int32> _batchSize = new ParameterDefinition<System.Int32>("@batchSize", global::System.Data.SqlDbType.Int, false);
             private readonly ParameterDefinition<System.Int32> _batchCount = new ParameterDefinition<System.Int32>("@batchCount", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Byte> _status = new ParameterDefinition<System.Byte>("@status", global::System.Data.SqlDbType.TinyInt, false);
             private readonly ParameterDefinition<System.Nullable<System.Int64>> _maxWatermark = new ParameterDefinition<System.Nullable<System.Int64>>("@maxWatermark", global::System.Data.SqlDbType.BigInt, true);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 batchSize, System.Int32 batchCount, System.Nullable<System.Int64> maxWatermark)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 batchSize, System.Int32 batchCount, System.Byte status, System.Nullable<System.Int64> maxWatermark)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetInstanceBatches";
                 _batchSize.AddParameter(command.Parameters, batchSize);
                 _batchCount.AddParameter(command.Parameters, batchCount);
+                _status.AddParameter(command.Parameters, status);
                 _maxWatermark.AddParameter(command.Parameters, maxWatermark);
             }
         }

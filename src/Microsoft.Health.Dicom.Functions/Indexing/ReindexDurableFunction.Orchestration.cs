@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                 IReadOnlyList<WatermarkRange> batches = await context.CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                     nameof(GetInstanceBatchesAsync),
                     _options.ActivityRetryOptions,
-                    input.Completed?.Start);
+                    input.Completed?.Start - 1);
 
                 if (batches.Count > 0)
                 {

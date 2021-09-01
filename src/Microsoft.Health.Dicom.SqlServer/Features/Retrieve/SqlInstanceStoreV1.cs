@@ -106,6 +106,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
         public virtual Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesAsync(
             int batchSize,
             int batchCount,
+            IndexStatus indexStatus,
             long? maxWatermark = null,
             CancellationToken cancellationToken = default)
         {

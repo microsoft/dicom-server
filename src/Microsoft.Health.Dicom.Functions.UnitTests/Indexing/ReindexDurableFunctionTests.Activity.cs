@@ -88,7 +88,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         {
             IReadOnlyList<WatermarkRange> expected = new List<WatermarkRange> { new WatermarkRange(12345, 678910) };
             _instanceStore
-                .GetInstanceBatchesAsync(_options.BatchSize, _options.MaxParallelBatches, null, CancellationToken.None)
+                .GetInstanceBatchesAsync(_options.BatchSize, _options.MaxParallelBatches, IndexStatus.Created, null, CancellationToken.None)
                 .Returns(expected);
 
             IReadOnlyList<WatermarkRange> actual = await _reindexDurableFunction.GetInstanceBatchesAsync(
@@ -98,7 +98,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             Assert.Same(expected, actual);
             await _instanceStore
                 .Received(1)
-                .GetInstanceBatchesAsync(_options.BatchSize, _options.MaxParallelBatches, null, CancellationToken.None);
+                .GetInstanceBatchesAsync(_options.BatchSize, _options.MaxParallelBatches, IndexStatus.Created, null, CancellationToken.None);
         }
 
         [Fact]
@@ -106,7 +106,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         {
             IReadOnlyList<WatermarkRange> expected = new List<WatermarkRange> { new WatermarkRange(10, 1000) };
             _instanceStore
-                .GetInstanceBatchesAsync(_options.BatchSize, _options.MaxParallelBatches, 12345L, CancellationToken.None)
+                .GetInstanceBatchesAsync(_options.BatchSize, _options.MaxParallelBatches, IndexStatus.Created, 12345L, CancellationToken.None)
                 .Returns(expected);
 
             IReadOnlyList<WatermarkRange> actual = await _reindexDurableFunction.GetInstanceBatchesAsync(
@@ -116,7 +116,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             Assert.Same(expected, actual);
             await _instanceStore
                 .Received(1)
-                .GetInstanceBatchesAsync(_options.BatchSize, _options.MaxParallelBatches, 12345L, CancellationToken.None);
+                .GetInstanceBatchesAsync(_options.BatchSize, _options.MaxParallelBatches, IndexStatus.Created, 12345L, CancellationToken.None);
         }
 
         [Fact]

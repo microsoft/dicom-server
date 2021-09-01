@@ -86,7 +86,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// <summary>
         /// Asynchronously retrieves the next set of instance batches based on the configured options.
         /// </summary>
-        /// <param name="maxWatermark">The optional maximum watermark.</param>
+        /// <param name="maxWatermark">The optional inclusive maximum watermark.</param>
         /// <param name="logger">A diagnostic logger.</param>
         /// <returns>
         /// A task representing the asynchronous get operation. The value of its <see cref="Task{TResult}.Result"/>
@@ -111,6 +111,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             return _instanceStore.GetInstanceBatchesAsync(
                 _options.BatchSize,
                 _options.MaxParallelBatches,
+                IndexStatus.Created,
                 maxWatermark,
                 CancellationToken.None);
         }

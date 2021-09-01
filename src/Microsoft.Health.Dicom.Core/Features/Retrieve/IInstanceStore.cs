@@ -46,6 +46,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         /// </summary>
         /// <param name="batchSize">The desired size of each batch.</param>
         /// <param name="batchCount">The maximum number of batches.</param>
+        /// <param name="indexStatus">The index status</param>
         /// <param name="maxWatermark">An optional maximum watermark to consider.</param>
         /// <param name="cancellationToken">
         /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
@@ -62,6 +63,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesAsync(
             int batchSize,
             int batchCount,
+            IndexStatus indexStatus,
             long? maxWatermark = null,
             CancellationToken cancellationToken = default);
     }

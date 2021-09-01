@@ -70,6 +70,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
         public override async Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesAsync(
             int batchSize,
             int batchCount,
+            IndexStatus indexStatus,
             long? maxWatermark = null,
             CancellationToken cancellationToken = default)
         {
@@ -79,7 +80,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
             using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
 
-            VLatest.GetInstanceBatches.PopulateCommand(sqlCommandWrapper, batchSize, batchCount, maxWatermark);
+            VLatest.GetInstanceBatches.PopulateCommand(sqlCommandWrapper, batchSize, batchCount, (byte)indexStatus, maxWatermark);
 
             try
             {
