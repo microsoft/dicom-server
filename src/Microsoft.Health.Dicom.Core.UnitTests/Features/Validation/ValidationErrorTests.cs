@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         {
             var name = "tagname";
             var value = "tagvalue";
-            var exception = ElementValidationExceptions.DateIsInvalidException(name, value);
+            var exception = ElementValidationExceptionFactory.CreateDateIsInvalidException(name, value);
             Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR 'DA': Value cannot be parsed as a valid date.", exception.Message);
         }
 
@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
             var value = "tagvalue";
             var vr = DicomVR.DA;
             int maxLength = 8;
-            var exception = ElementValidationExceptions.ExceedMaxLengthException(name, vr, value, maxLength);
+            var exception = ElementValidationExceptionFactory.CreateExceedMaxLengthException(name, vr, value, maxLength);
             Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR '{vr}': Value length exceeds maximum length of {maxLength}.", exception.Message);
         }
 
@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
             var name = "tagname";
             var value = "tagvalue";
             var vr = DicomVR.DA;
-            var exception = ElementValidationExceptions.InvalidCharactersException(name, vr, value);
+            var exception = ElementValidationExceptionFactory.CreateInvalidCharactersException(name, vr, value);
             Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR '{vr}': Value contains invalid character.", exception.Message);
         }
 
@@ -46,7 +46,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         {
             var name = "tagname";
             var vr = DicomVR.DA;
-            var exception = ElementValidationExceptions.MultiValuesException(name, vr);
+            var exception = ElementValidationExceptionFactory.CreateMultiValuesException(name, vr);
             Assert.Equal($"Dicom element '{name}' failed validation for VR '{vr}': Dicom element has multiple values. Indexing is only supported on single value element.", exception.Message);
         }
 
@@ -56,7 +56,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
             var name = "tagname";
             var vr = DicomVR.DA;
             var expectedLength = 8;
-            var exception = ElementValidationExceptions.UnexpectedLengthException(name, vr, expectedLength);
+            var exception = ElementValidationExceptionFactory.CreateUnexpectedLengthException(name, vr, expectedLength);
             Assert.Equal($"Dicom element '{name}' failed validation for VR '{vr}': Value length is not {expectedLength}.", exception.Message);
         }
 
@@ -67,7 +67,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
             var value = "tagvalue";
             var vr = DicomVR.DA;
             var expectedLength = 8;
-            var exception = ElementValidationExceptions.UnexpectedLengthException(name, vr, value, expectedLength);
+            var exception = ElementValidationExceptionFactory.CreateUnexpectedLengthException(name, vr, value, expectedLength);
             Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR '{vr}': Value length is not {expectedLength}.", exception.Message);
         }
 
@@ -77,7 +77,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
             var name = "tagname";
             var actualVR = DicomVR.DA;
             var expectedVR = DicomVR.DT;
-            var exception = ElementValidationExceptions.UnexpectedVRException(name, actualVR, expectedVR);
+            var exception = ElementValidationExceptionFactory.CreateUnexpectedVRException(name, actualVR, expectedVR);
             Assert.Equal($"Dicom element '{name}' failed validation for VR '{actualVR}': The extended query tag '{name}' is expected to have VR '{expectedVR}' but has '{actualVR}' in file.", exception.Message);
         }
 
@@ -86,7 +86,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         {
             var name = "tagname";
             var value = "tagvalue";
-            var exception = ElementValidationExceptions.PersonNameExceedMaxComponentsException(name, value);
+            var exception = ElementValidationExceptionFactory.CreatePersonNameExceedMaxComponentsException(name, value);
             Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR 'PN': Value contains more than 5 components.", exception.Message);
         }
 
@@ -95,7 +95,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         {
             var name = "tagname";
             var value = "tagvalue";
-            var exception = ElementValidationExceptions.PersonNameExceedMaxGroupsException(name, value);
+            var exception = ElementValidationExceptionFactory.CreatePersonNameExceedMaxGroupsException(name, value);
             Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR 'PN': Value contains more than 3 groups.", exception.Message);
         }
 
@@ -104,7 +104,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         {
             var name = "tagname";
             var value = "tagvalue";
-            var exception = ElementValidationExceptions.PersonNameGroupExceedMaxLengthException(name, value);
+            var exception = ElementValidationExceptionFactory.CreatePersonNameGroupExceedMaxLengthException(name, value);
             Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR 'PN': One or more group of person name exceeds maxium length of 64.", exception.Message);
         }
     }

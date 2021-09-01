@@ -54,7 +54,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         {
             if (value?.Size != ExpectedLength)
             {
-                throw ElementValidationExceptions.UnexpectedLengthException(name, dicomVR, ExpectedLength);
+                throw ElementValidationExceptionFactory.CreateUnexpectedLengthException(name, dicomVR, ExpectedLength);
             }
         }
 
@@ -75,7 +75,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             value = value ?? "";
             if (value.Length != ExpectedLength)
             {
-                throw ElementValidationExceptions.UnexpectedLengthException(name, dicomVR, value, ExpectedLength);
+                throw ElementValidationExceptionFactory.CreateUnexpectedLengthException(name, dicomVR, value, ExpectedLength);
             }
         }
     }

@@ -181,7 +181,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             {
                 if (dicomElement.ValueRepresentation != queryTag.VR)
                 {
-                    throw ElementValidationExceptions.UnexpectedVRException(dicomElement.Tag.GetFriendlyName(), dicomElement.ValueRepresentation, queryTag.VR);
+                    throw ElementValidationExceptionFactory.CreateUnexpectedVRException(dicomElement.Tag.GetFriendlyName(), dicomElement.ValueRepresentation, queryTag.VR);
                 }
 
                 minimumValidator.Validate(dicomElement);

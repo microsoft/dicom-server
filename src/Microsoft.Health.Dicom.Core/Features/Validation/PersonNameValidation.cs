@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             var groups = value.Split('=');
             if (groups.Length > 3)
             {
-                throw ElementValidationExceptions.PersonNameExceedMaxGroupsException(name, value);
+                throw ElementValidationExceptionFactory.CreatePersonNameExceedMaxGroupsException(name, value);
             }
 
             foreach (var group in groups)
@@ -40,19 +40,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 catch (ElementValidationException ex) when (ex.ErrorCode == ValidationErrorCode.ExceedMaxLength)
                 {
                     // Reprocess the exception to make more meaningful message                    
-                    throw ElementValidationExceptions.PersonNameGroupExceedMaxLengthException(name, value);
+                    throw ElementValidationExceptionFactory.CreatePersonNameGroupExceedMaxLengthException(name, value);
                 }
 
                 if (ContainsControlExceptEsc(group))
                 {
-                    throw ElementValidationExceptions.InvalidCharactersException(name, vr, value);
+                    throw ElementValidationExceptionFactory.CreateInvalidCharactersException(name, vr, value);
                 }
             }
 
             var groupcomponents = groups.Select(group => group.Split('^').Length);
             if (groupcomponents.Any(l => l > 5))
             {
-                throw ElementValidationExceptions.PersonNameExceedMaxComponentsException(name, value);
+                throw ElementValidationExceptionFactory.CreatePersonNameExceedMaxComponentsException(name, value);
             }
         }
     }
