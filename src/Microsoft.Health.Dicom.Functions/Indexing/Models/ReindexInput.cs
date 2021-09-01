@@ -12,6 +12,6 @@ namespace Microsoft.Health.Dicom.Functions.Indexing.Models
     {
         public IReadOnlyCollection<int> QueryTagKeys { get; set; }
 
-        public WatermarkRange Completed { get; set; }
+        public WatermarkRange? Completed { get; set; }
     }
 }

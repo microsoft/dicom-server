@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
+
 using System.Collections.Generic;
 using System.Data;
 using System.Threading;
@@ -102,7 +103,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             return results;
         }
 
-        public virtual Task<long> GetMaxInstanceWatermarkAsync(CancellationToken cancellationToken)
+        public virtual Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesAsync(
+            int batchSize,
+            int batchCount,
+            IndexStatus indexStatus,
+            long? maxWatermark = null,
+            CancellationToken cancellationToken = default)
         {
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
