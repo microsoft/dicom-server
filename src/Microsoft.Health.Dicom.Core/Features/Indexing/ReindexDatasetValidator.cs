@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
                 {
                     if (queryTag.IsExtendedQueryTag)
                     {
-                        // We don't support reindex on core tag, so the query tag is alwasy extended query tag.
+                        // We don't support reindex on core tag, so the query tag is always extended query tag.
                         await _extendedQueryTagErrorsService.AddExtendedQueryTagErrorAsync(queryTag.ExtendedQueryTagStoreEntry.Key, ex.ErrorCode, watermark, cancellationToken);
                     }
                 }
