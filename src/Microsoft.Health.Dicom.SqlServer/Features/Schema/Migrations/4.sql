@@ -417,6 +417,7 @@ CREATE TABLE dbo.ExtendedQueryTagError (
     Watermark               BIGINT          NOT NULL,
     CreatedTime             DATETIME2(7)    NOT NULL,
 )
+
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagError ON dbo.ExtendedQueryTagError
 (
     TagKey,
@@ -1760,8 +1761,8 @@ GO
 -- PARAMETERS
 --     @tagKey
 --         * The related extended query tag's key
---     @errorMessage
---         * The error message
+--     @errorCode
+--         * The error code
 --     @watermark
 --         * The watermark
 --

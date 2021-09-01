@@ -11,6 +11,17 @@ BEGIN
     ADD TagVersion  ROWVERSION   NOT NULL
 END
 
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.indexes 
+    WHERE name='IX_ExtendedQueryTag_TagVersion' AND object_id = OBJECT_ID('dbo.ExtendedQueryTag'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagVersion ON dbo.ExtendedQueryTag
+    (
+        TagVersion
+    )
+END
+
 /*************************************************************
     Extended Query Tag Errors Table
     Stores errors from Extended Query Tag operations
@@ -23,7 +34,7 @@ IF NOT EXISTS (
 BEGIN
     CREATE TABLE dbo.ExtendedQueryTagError (
         TagKey                  INT             NOT NULL, --FK
-        ErrorMessage            NVARCHAR(128)   NOT NULL,
+        ErrorCode               SMALLINT        NOT NULL,
         Watermark               BIGINT          NOT NULL,
         CreatedTime             DATETIME2(7)    NOT NULL,
     )
@@ -538,7 +549,7 @@ BEGIN
 
     SELECT
         TagKey,
-        ErrorMessage,
+        ErrorCode,
         CreatedTime,
         StudyInstanceUid,
         SeriesInstanceUid,
@@ -560,8 +571,8 @@ GO
 -- PARAMETERS
 --     @tagKey
 --         * The related extended query tag's key
---     @errorMessage
---         * The error message
+--     @errorCode
+--         * The error code
 --     @watermark
 --         * The watermark
 --
@@ -570,7 +581,7 @@ GO
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTagError (
     @tagKey INT,
-    @errorMessage NVARCHAR(128),
+    @errorCode SMALLINT,
     @watermark BIGINT
 )
 AS
@@ -589,14 +600,14 @@ AS
             THROW 50404, 'Tag does not exist or is not being added.', 1;
 
         MERGE dbo.ExtendedQueryTagError WITH (HOLDLOCK) as XQTE
-        USING (SELECT @tagKey TagKey, @errorMessage ErrorMessage, @watermark Watermark) as src
+        USING (SELECT @tagKey TagKey, @errorCode ErrorCode, @watermark Watermark) as src
         ON src.TagKey = XQTE.TagKey AND src.WaterMark = XQTE.Watermark
         WHEN MATCHED THEN UPDATE
         SET CreatedTime = @currentDate,
-            ErrorMessage = @errorMessage
+            ErrorCode = @errorCode
         WHEN NOT MATCHED THEN 
-            INSERT (TagKey, ErrorMessage, Watermark, CreatedTime)
-            VALUES (@tagKey, @errorMessage, @watermark, @currentDate)
+            INSERT (TagKey, ErrorCode, Watermark, CreatedTime)
+            VALUES (@tagKey, @errorCode, @watermark, @currentDate)
         OUTPUT INSERTED.TagKey;
 
     COMMIT TRANSACTION
