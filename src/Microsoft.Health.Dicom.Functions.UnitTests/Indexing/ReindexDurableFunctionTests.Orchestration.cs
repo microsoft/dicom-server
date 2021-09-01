@@ -30,6 +30,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             _options.MaxParallelBatches = 3;
 
             IReadOnlyList<WatermarkRange> expectedBatches = CreateBatches(50);
+            int expectedPercentage = (int)((double)(50 - expectedBatches[^1].Start) / 49 * 100);
             var expectedInput = new ReindexInput { QueryTagKeys = new List<int> { 1, 2, 3, 4, 5 } };
             var expectedTags = new List<ExtendedQueryTagStoreEntry>
             {
@@ -106,7 +107,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     Arg.Any<object>());
             context
                 .Received(1)
-                .SetCustomStatus(Arg.Is(GetCustomStatePredicate((int)(15 / 49D * 100), "01010101", "02020202", "04040404")));
+                .SetCustomStatus(Arg.Is(GetCustomStatePredicate(expectedPercentage, "01010101", "02020202", "04040404")));
             context
                 .Received(1)
                 .ContinueAsNew(
@@ -122,6 +123,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             _options.MaxParallelBatches = 2;
 
             IReadOnlyList<WatermarkRange> expectedBatches = CreateBatches(35);
+            int expectedPercentage = (int)((double)(42 - expectedBatches[^1].Start) / 41 * 100);
             var expectedInput = new ReindexInput
             {
                 QueryTagKeys = new List<int> { 1, 2, 3, 4, 5 },
@@ -202,7 +204,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     Arg.Any<object>());
             context
                 .Received(1)
-                .SetCustomStatus(Arg.Is(GetCustomStatePredicate((int)(12 / 41D * 100), "01010101", "02020202", "04040404")));
+                .SetCustomStatus(Arg.Is(GetCustomStatePredicate(expectedPercentage, "01010101", "02020202", "04040404")));
             context
                 .Received(1)
                 .ContinueAsNew(

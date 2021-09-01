@@ -17,7 +17,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
     {
         public WatermarkRange(long start, long end)
         {
-            Start = EnsureArg.IsGte(start, 0, nameof(start));
+            Start = EnsureArg.IsGte(start, 1, nameof(start));
             End = EnsureArg.IsGte(end, start, nameof(end));
         }
 

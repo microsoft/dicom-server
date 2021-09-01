@@ -78,12 +78,12 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
 
                     WatermarkRange completed = input.Completed.HasValue
                         ? new WatermarkRange(batchRange.Start, input.Completed.Value.End)
-                        : batchRange
+                        : batchRange;
 
                     context.SetCustomStatus(
                         new OperationCustomStatus
                         {
-                            PercentComplete = (int)((double)(completed.End - completed.Start) / (completed.End - 1) * 100),
+                            PercentComplete = GetPercentComplete(completed),
                             ResourceIds = queryTags.Select(x => x.Path).ToList(),
                         });
 
@@ -141,5 +141,12 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                     nameof(AssignReindexingOperationAsync),
                     _options.ActivityRetryOptions,
                     input.QueryTagKeys);
+
+        private static int GetPercentComplete(WatermarkRange range)
+        {
+            // If we processed a batch, there must be at least one row. And because the Watermark
+            // sequence starts at 1, we know both Start and End must at least be 1.
+            return range.End == 1 ? 100 : (int)((double)(range.End - range.Start) / (range.End - 1) * 100);
+        }
     }
 }
