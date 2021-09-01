@@ -18,6 +18,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
             string value = dicomElement.Get<string>();
             string name = dicomElement.Tag.GetFriendlyName();
+            DicomVR vr = dicomElement.ValueRepresentation;
             if (string.IsNullOrEmpty(value))
             {
                 // empty values allowed
@@ -27,23 +28,31 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             var groups = value.Split('=');
             if (groups.Length > 3)
             {
-                throw new DicomElementValidationException(name, DicomVR.PN, DicomCoreResource.ValueExceedsAllowedGroups, value);
+                throw ElementValidationExceptionFactory.CreatePersonNameExceedMaxGroupsException(name, value);
             }
 
             foreach (var group in groups)
             {
-                ElementMaxLengthValidation.Validate(group, 64, $"{name} Group", dicomElement.ValueRepresentation);
+                try
+                {
+                    ElementMaxLengthValidation.Validate(group, 64, name, dicomElement.ValueRepresentation);
+                }
+                catch (ElementValidationException ex) when (ex.ErrorCode == ValidationErrorCode.ExceedMaxLength)
+                {
+                    // Reprocess the exception to make more meaningful message                    
+                    throw ElementValidationExceptionFactory.CreatePersonNameGroupExceedMaxLengthException(name, value);
+                }
 
                 if (ContainsControlExceptEsc(group))
                 {
-                    throw new DicomElementValidationException(name, DicomVR.PN, DicomCoreResource.ValueContainsInvalidCharacter, value);
+                    throw ElementValidationExceptionFactory.CreateInvalidCharactersException(name, vr, value);
                 }
             }
 
             var groupcomponents = groups.Select(group => group.Split('^').Length);
             if (groupcomponents.Any(l => l > 5))
             {
-                throw new DicomElementValidationException(name, DicomVR.PN, DicomCoreResource.ValueExceedsAllowedComponents, value);
+                throw ElementValidationExceptionFactory.CreatePersonNameExceedMaxComponentsException(name, value);
             }
         }
     }

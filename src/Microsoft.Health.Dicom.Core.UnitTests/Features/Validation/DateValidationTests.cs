@@ -20,7 +20,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         public void GivenDAInvalidValue_WhenValidating_ThenShouldThrows(string value)
         {
             DicomDate element = new DicomDate(DicomTag.Date, value);
-            Assert.Throws<DicomElementValidationException>(() => _validation.Validate(element));
+            var ex = Assert.Throws<ElementValidationException>(() => _validation.Validate(element));
+            Assert.Equal(ValidationErrorCode.DateIsInvalid, ex.ErrorCode);
         }
 
         [Theory]

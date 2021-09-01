@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
                     dataset.ValidateQueryTag(queryTag, _minimumValidator);
                     validTags.Add(queryTag);
                 }
-                catch (DicomElementValidationException)
+                catch (ElementValidationException)
                 {
                     // TODO: log failure
                 }

@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                     return;
                 }
 
-                throw new InvalidIdentifierException(value, name);
+                throw new InvalidIdentifierException(name, value);
             }
 
             // trailling spaces are allowed
@@ -41,12 +41,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             if (value.Length > 64)
             {
                 // UI value is validated in other cases like params for WADO, DELETE. So keeping the exception specific.
-                throw new InvalidIdentifierException(value, name);
+                throw new InvalidIdentifierException(name, value);
             }
 
             if (!ValidIdentifierCharactersFormat.IsMatch(value))
             {
-                throw new InvalidIdentifierException(value, name);
+                throw new InvalidIdentifierException(name, value);
             }
         }
 

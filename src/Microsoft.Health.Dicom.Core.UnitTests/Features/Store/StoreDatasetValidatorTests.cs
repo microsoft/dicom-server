@@ -56,7 +56,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             _queryTags.Add(new QueryTag(tag.BuildExtendedQueryTagStoreEntry()));
             IElementMinimumValidator validator = Substitute.For<IElementMinimumValidator>();
             _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, validator, _queryTagService);
-            await Assert.ThrowsAsync<DicomElementValidationException>(
+            await Assert.ThrowsAsync<ElementValidationException>(
                 () => _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null));
             validator.DidNotReceive().Validate(Arg.Any<DicomElement>());
         }
@@ -163,7 +163,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         {
             // CS VR, > 16 characters is not allowed
             _dicomDataset.Add(DicomTag.Modality, "01234567890123456789");
-            await ExecuteAndValidateException<DicomElementValidationException>(ValidationFailedFailureCode);
+            await ExecuteAndValidateException<ElementValidationException>(ValidationFailedFailureCode);
         }
 
         [Fact]
@@ -183,7 +183,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             QueryTag indextag = new QueryTag(standardTag.BuildExtendedQueryTagStoreEntry());
             _queryTags.Add(indextag);
-            await ExecuteAndValidateException<DicomElementValidationException>(ValidationFailedFailureCode);
+            await ExecuteAndValidateException<ElementValidationException>(ValidationFailedFailureCode);
         }
 
         [Fact]
@@ -200,7 +200,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             _queryTags.Clear();
             _queryTags.Add(indextag);
 
-            await ExecuteAndValidateException<DicomElementValidationException>(ValidationFailedFailureCode);
+            await ExecuteAndValidateException<ElementValidationException>(ValidationFailedFailureCode);
         }
 
         private async Task ExecuteAndValidateException<T>(ushort failureCode, string requiredStudyInstanceUid = null)

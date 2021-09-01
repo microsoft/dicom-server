@@ -28,9 +28,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         [Fact]
         public void GivenMultiValueElement_WhenValidating_ThenShouldThrow()
         {
-
-            Assert.Throws<DicomElementValidationException>(() =>
-                new ElementValidation().Validate(new DicomIntegerString(DicomTag.DoseReferenceNumber, "012345678912", "012345678913")));
+            var ex = Assert.Throws<ElementValidationException>(() =>
+                 new ElementValidation().Validate(new DicomIntegerString(DicomTag.DoseReferenceNumber, "012345678912", "012345678913")));
+            Assert.Equal(ValidationErrorCode.MultiValues, ex.ErrorCode);
         }
 
     }
