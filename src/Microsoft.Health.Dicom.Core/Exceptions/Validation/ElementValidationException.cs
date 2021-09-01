@@ -9,16 +9,16 @@ using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Exceptions.Validation
 {
-    public abstract class ElementValidationException : ValidationException
+    public class ElementValidationException : ValidationException
     {
-        protected ElementValidationException(string name, DicomVR vr, ValidationErrorCode errorCode, string message) : base(message)
+        public ElementValidationException(string name, DicomVR vr, ValidationErrorCode errorCode, string message) : base(message)
         {
             Name = EnsureArg.IsNotNull(name, nameof(name));
             VR = EnsureArg.IsNotNull(vr, nameof(vr));
             ErrorCode = errorCode;
         }
 
-        protected ElementValidationException(string name, DicomVR vr, string value, ValidationErrorCode errorCode, string message) : base(message)
+        public ElementValidationException(string name, DicomVR vr, string value, ValidationErrorCode errorCode, string message) : base(message)
         {
             Name = EnsureArg.IsNotNull(name, nameof(name));
             VR = EnsureArg.IsNotNull(vr, nameof(vr));
