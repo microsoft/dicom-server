@@ -8,7 +8,7 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
-namespace Microsoft.Health.Dicom.Core.Exceptions.Validation
+namespace Microsoft.Health.Dicom.Core.Exceptions
 {
     internal static class ElementValidationExceptions
     {
@@ -67,13 +67,7 @@ namespace Microsoft.Health.Dicom.Core.Exceptions.Validation
 
             return new ElementValidationException(name, DicomVR.PN, value, ValidationErrorCode.PersonNameGroupExceedMaxLength, DicomCoreResource.ErrorMessagePersonNameGroupExceedMaxLength);
         }
-        public static ElementValidationException UidIsInValidException(string name, string value)
-        {
-            EnsureArg.IsNotNull(name, nameof(name));
-            EnsureArg.IsNotNull(value, nameof(value));
 
-            return new ElementValidationException(name, DicomVR.UI, value, Features.Validation.ValidationErrorCode.UidIsInvalid, DicomCoreResource.ErrorMessageUidIsInvalid);
-        }
         public static ElementValidationException UnexpectedLengthException(string name, DicomVR vr, string value, int expectedLength)
         {
             EnsureArg.IsNotNull(name, nameof(name));

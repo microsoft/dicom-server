@@ -10,9 +10,9 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Exceptions.Validation;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Security;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
@@ -40,7 +40,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
             string ifNoneMatch = null;
             RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, ifNoneMatch);
-            await Assert.ThrowsAsync<UidIsInValidException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
+            var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
+            Assert.Equal(ValidationErrorCode.UidIsInvalid, ex.ErrorCode);
         }
 
         [Theory]
@@ -53,7 +54,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
             string ifNoneMatch = null;
             RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, ifNoneMatch);
-            await Assert.ThrowsAsync<UidIsInValidException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
+            var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
+            Assert.Equal(ValidationErrorCode.UidIsInvalid, ex.ErrorCode);
         }
 
         [Theory]
@@ -66,7 +68,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             EnsureArg.IsNotNull(seriesInstanceUid, nameof(seriesInstanceUid));
             string ifNoneMatch = null;
             RetrieveMetadataRequest request = new RetrieveMetadataRequest(TestUidGenerator.Generate(), seriesInstanceUid, ifNoneMatch);
-            await Assert.ThrowsAsync<UidIsInValidException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
+            var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
+            Assert.Equal(ValidationErrorCode.UidIsInvalid, ex.ErrorCode);
         }
 
         [Theory]
@@ -79,7 +82,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
             string ifNoneMatch = null;
             RetrieveMetadataRequest request = new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch);
-            await Assert.ThrowsAsync<UidIsInValidException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
+            var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
+            Assert.Equal(ValidationErrorCode.UidIsInvalid, ex.ErrorCode);
         }
 
         [Theory]
@@ -92,7 +96,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             EnsureArg.IsNotNull(seriesInstanceUid, nameof(seriesInstanceUid));
             string ifNoneMatch = null;
             RetrieveMetadataRequest request = new RetrieveMetadataRequest(TestUidGenerator.Generate(), seriesInstanceUid, sopInstanceUid, ifNoneMatch);
-            await Assert.ThrowsAsync<UidIsInValidException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
+            var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
+            Assert.Equal(ValidationErrorCode.UidIsInvalid, ex.ErrorCode);
         }
 
         [Theory]
@@ -105,7 +110,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             EnsureArg.IsNotNull(sopInstanceUid, nameof(sopInstanceUid));
             string ifNoneMatch = null;
             RetrieveMetadataRequest request = new RetrieveMetadataRequest(TestUidGenerator.Generate(), TestUidGenerator.Generate(), sopInstanceUid, ifNoneMatch);
-            await Assert.ThrowsAsync<UidIsInValidException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
+            var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
+            Assert.Equal(ValidationErrorCode.UidIsInvalid, ex.ErrorCode);
         }
 
         [Theory]

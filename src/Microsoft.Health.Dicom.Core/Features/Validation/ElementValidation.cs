@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Dicom;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Exceptions.Validation;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 // only works for single value dicom element ( Since we accept empty/null value, Count = 0 is accepted).
                 if (dicomElement.Count > 1)
                 {
-                    throw new MultiValuesException(dicomElement.Tag.GetFriendlyName(), vr);
+                    throw ElementValidationExceptions.MultiValuesException(dicomElement.Tag.GetFriendlyName(), vr);
                 }
             }
             else

@@ -6,7 +6,7 @@
 using System;
 using System.Globalization;
 using Dicom;
-using Microsoft.Health.Dicom.Core.Exceptions.Validation;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
             if (!DateTime.TryParseExact(value, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out _))
             {
-                throw new DateIsInvalidException(name, value);
+                throw ElementValidationExceptions.DateIsInvalidException(name, value);
             }
         }
     }

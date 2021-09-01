@@ -3,9 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using Dicom;
-using Microsoft.Health.Dicom.Core.Exceptions.Validation;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Xunit;
 
@@ -21,12 +20,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         }
 
         [Theory]
-        [InlineData("0123456789012345678901234567890123456789012345678901234567890123456789", typeof(ExceedMaxLengthException))] // exceed max length
-        [InlineData("012\n", typeof(InvalidCharactersException))] // contains control character except Esc
-        public void GivenInvalidLongString_WhenValidating_ThenShouldThrow(string value, Type exceptionType)
+        [InlineData("0123456789012345678901234567890123456789012345678901234567890123456789", ValidationErrorCode.ExceedMaxLength)] // exceed max length
+        [InlineData("012\n", ValidationErrorCode.InvalidCharacters)] // contains control character except Esc
+        public void GivenInvalidLongString_WhenValidating_ThenShouldThrow(string value, ValidationErrorCode errorCode)
         {
             DicomElement element = new DicomLongString(DicomTag.WindowCenterWidthExplanation, value);
-            Assert.Throws(exceptionType, () => new LongStringValidation().Validate(element));
+            var ex = Assert.Throws<ElementValidationException>(() => new LongStringValidation().Validate(element));
+            Assert.Equal(ex.ErrorCode, errorCode);
         }
 
     }

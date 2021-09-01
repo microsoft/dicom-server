@@ -51,8 +51,4 @@
     </EmbeddedResource>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Features\Validation\Errors\" />
-  </ItemGroup>
-
 </Project>

@@ -6,7 +6,7 @@
 using System.Diagnostics;
 using Dicom;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Exceptions.Validation;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             EnsureArg.IsNotNull(vr, nameof(vr));
             if (value?.Length > maxLength)
             {
-                throw new ExceedMaxLengthException(name, vr, value, maxLength);
+                throw new ElementValidationExceptions.ExceedMaxLengthException(name, vr, value, maxLength);
             }
         }
     }

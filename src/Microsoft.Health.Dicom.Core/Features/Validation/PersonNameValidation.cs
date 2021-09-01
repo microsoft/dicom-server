@@ -5,7 +5,7 @@
 
 using System.Linq;
 using Dicom;
-using Microsoft.Health.Dicom.Core.Exceptions.Validation;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             var groups = value.Split('=');
             if (groups.Length > 3)
             {
-                throw new PersonNameExceedMaxGroupsException(name, value);
+                throw ElementValidationExceptions.PersonNameExceedMaxGroupsException(name, value);
             }
 
             foreach (var group in groups)
@@ -37,22 +37,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 {
                     ElementMaxLengthValidation.Validate(group, 64, name, dicomElement.ValueRepresentation);
                 }
-                catch (ExceedMaxLengthException)
+                catch (ElementValidationException ex) when (ex.ErrorCode == ValidationErrorCode.ExceedMaxLength)
                 {
                     // Reprocess the exception to make more meaningful message                    
-                    throw new PersonNameGroupExceedMaxLengthException(name, value);
+                    throw ElementValidationExceptions.PersonNameGroupExceedMaxLengthException(name, value);
                 }
 
                 if (ContainsControlExceptEsc(group))
                 {
-                    throw new InvalidCharactersException(name, vr, value);
+                    throw ElementValidationExceptions.InvalidCharactersException(name, vr, value);
                 }
             }
 
             var groupcomponents = groups.Select(group => group.Split('^').Length);
             if (groupcomponents.Any(l => l > 5))
             {
-                throw new PersonNameExceedMaxComponentsException(name, value);
+                throw ElementValidationExceptions.PersonNameExceedMaxComponentsException(name, value);
             }
         }
     }

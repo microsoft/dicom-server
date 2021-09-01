@@ -7,7 +7,7 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
-namespace Microsoft.Health.Dicom.Core.Exceptions.Validation
+namespace Microsoft.Health.Dicom.Core.Exceptions
 {
     public class ElementValidationException : ValidationException
     {
