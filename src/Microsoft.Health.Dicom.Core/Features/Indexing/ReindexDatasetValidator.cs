@@ -18,12 +18,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
     public class ReindexDatasetValidator : IReindexDatasetValidator
     {
         private readonly IElementMinimumValidator _minimumValidator;
-        private readonly IExtendedQueryTagErrorStore _extendedQueryTagErrorStore;
+        private readonly IExtendedQueryTagErrorsService _extendedQueryTagErrorsService;
 
-        public ReindexDatasetValidator(IElementMinimumValidator minimumValidator, IExtendedQueryTagErrorStore extendedQueryTagErrorStore)
+        public ReindexDatasetValidator(IElementMinimumValidator minimumValidator, IExtendedQueryTagErrorsService extendedQueryTagErrorsService)
         {
             _minimumValidator = EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
-            _extendedQueryTagErrorStore = EnsureArg.IsNotNull(extendedQueryTagErrorStore, nameof(extendedQueryTagErrorStore));
+            _extendedQueryTagErrorsService = EnsureArg.IsNotNull(extendedQueryTagErrorsService, nameof(extendedQueryTagErrorsService));
         }
 
         public async Task<IReadOnlyCollection<QueryTag>> ValidateAsync(DicomDataset dataset, long watermark, IReadOnlyCollection<QueryTag> queryTags, CancellationToken cancellationToken)
@@ -43,7 +43,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
                 {
                     if (queryTag.IsExtendedQueryTag)
                     {
-                        await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(queryTag.ExtendedQueryTagStoreEntry.Key, ex.ErrorCode, watermark, cancellationToken);
+                        // We don't support reindex on core tag, so the query tag is alwasy extended query tag.
+                        await _extendedQueryTagErrorsService.AddExtendedQueryTagErrorAsync(queryTag.ExtendedQueryTagStoreEntry.Key, ex.ErrorCode, watermark, cancellationToken);
                     }
                 }
             }

@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
         {
             Name = EnsureArg.IsNotNull(name, nameof(name));
             VR = EnsureArg.IsNotNull(vr, nameof(vr));
-            ErrorCode = errorCode;
+            ErrorCode = EnsureArg.EnumIsDefined(errorCode, nameof(errorCode));
         }
 
         public ElementValidationException(string name, DicomVR vr, string value, ValidationErrorCode errorCode, string message) : base(message)
@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
             Name = EnsureArg.IsNotNull(name, nameof(name));
             VR = EnsureArg.IsNotNull(vr, nameof(vr));
             Value = EnsureArg.IsNotNull(value, nameof(value));
-            ErrorCode = errorCode;
+            ErrorCode = EnsureArg.EnumIsDefined(errorCode, nameof(errorCode));
         }
 
         public string Name { get; }

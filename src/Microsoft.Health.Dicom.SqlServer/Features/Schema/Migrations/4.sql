@@ -379,7 +379,7 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopIn
     TagLevel can be 0, 1 or 2 to represent Instance, Series or Study level
     TagPrivateCreator is identification code of private tag implementer, only apply to private tag.
     TagStatus can be 0, 1 or 2 to represent Adding, Ready or Deleting.
-    TagVersion is version of the tag. Nullable for backward compatibility.
+    TagVersion is version of the tag. 
 **************************************************************/
 CREATE TABLE dbo.ExtendedQueryTag (
     TagKey                  INT                  NOT NULL, --PK
@@ -401,6 +401,11 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath ON dbo.ExtendedQuer
     TagPath
 )
 
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagVersion ON dbo.ExtendedQueryTag
+(
+    TagVersion
+)
+
 /*************************************************************
     Extended Query Tag Errors Table
     Stores errors from Extended Query Tag operations
@@ -408,7 +413,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath ON dbo.ExtendedQuer
 **************************************************************/
 CREATE TABLE dbo.ExtendedQueryTagError (
     TagKey                  INT             NOT NULL, --FK
-    ErrorMessage            NVARCHAR(128)   NOT NULL,
+    ErrorCode               SMALLINT        NOT NULL,
     Watermark               BIGINT          NOT NULL,
     CreatedTime             DATETIME2(7)    NOT NULL,
 )
@@ -1631,7 +1636,7 @@ BEGIN
 
     SELECT
         TagKey,
-        ErrorMessage,
+        ErrorCode,
         CreatedTime,
         StudyInstanceUid,
         SeriesInstanceUid,
@@ -1765,7 +1770,7 @@ GO
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTagError (
     @tagKey INT,
-    @errorMessage NVARCHAR(128),
+    @errorCode SMALLINT,
     @watermark BIGINT
 )
 AS
@@ -1784,14 +1789,14 @@ AS
             THROW 50404, 'Tag does not exist or is not being added.', 1;
 
         MERGE dbo.ExtendedQueryTagError WITH (HOLDLOCK) as XQTE
-        USING (SELECT @tagKey TagKey, @errorMessage ErrorMessage, @watermark Watermark) as src
+        USING (SELECT @tagKey TagKey, @errorCode ErrorCode, @watermark Watermark) as src
         ON src.TagKey = XQTE.TagKey AND src.WaterMark = XQTE.Watermark
         WHEN MATCHED THEN UPDATE
         SET CreatedTime = @currentDate,
-            ErrorMessage = @errorMessage
+            ErrorCode = @errorCode
         WHEN NOT MATCHED THEN 
-            INSERT (TagKey, ErrorMessage, Watermark, CreatedTime)
-            VALUES (@tagKey, @errorMessage, @watermark, @currentDate)
+            INSERT (TagKey, ErrorCode, Watermark, CreatedTime)
+            VALUES (@tagKey, @errorCode, @watermark, @currentDate)
         OUTPUT INSERTED.TagKey;
 
     COMMIT TRANSACTION

@@ -13,7 +13,9 @@ using EnsureThat;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
@@ -37,24 +39,29 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
 
         protected ILogger Logger { get; }
 
-        public override async Task<int> AddExtendedQueryTagErrorAsync(
+        public override async Task AddExtendedQueryTagErrorAsync(
             int tagKey,
-            string errorMessage,
+            ValidationErrorCode errorCode,
             long watermark,
             CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(errorMessage, nameof(errorMessage));
+            EnsureArg.EnumIsDefined(errorCode, nameof(errorCode));
+
+            // ensure errorCode is in range
+            EnsureArg.IsGte((int)errorCode, short.MinValue, nameof(errorCode));
+            EnsureArg.IsLte((int)errorCode, short.MaxValue, nameof(errorCode));
+
             using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
             using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
             VLatest.AddExtendedQueryTagError.PopulateCommand(
                 sqlCommandWrapper,
                 tagKey,
-                errorMessage,
+                (short)errorCode,
                 watermark);
 
             try
             {
-                return (int)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+                await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
             }
             catch (SqlException e)
             {
@@ -85,15 +92,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
                 using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
                 while (await reader.ReadAsync(cancellationToken))
                 {
-                    (int tagkey, string errorMessage, DateTime createdTime, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid) = reader.ReadRow(
+                    (int tagkey, short errorCode, DateTime createdTime, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid) = reader.ReadRow(
                         VLatest.ExtendedQueryTagError.TagKey,
-                        VLatest.ExtendedQueryTagError.ErrorMessage,
+                        VLatest.ExtendedQueryTagError.ErrorCode,
                         VLatest.ExtendedQueryTagError.CreatedTime,
                         VLatest.Instance.StudyInstanceUid,
                         VLatest.Instance.SeriesInstanceUid,
                         VLatest.Instance.SopInstanceUid);
 
-                    results.Add(new ExtendedQueryTagError(createdTime, studyInstanceUid, seriesInstanceUid, sopInstanceUid, errorMessage));
+                    results.Add(new ExtendedQueryTagError(createdTime, studyInstanceUid, seriesInstanceUid, sopInstanceUid, ((ValidationErrorCode)errorCode).GetMessage()));
                 }
             }
             catch (SqlException e)
