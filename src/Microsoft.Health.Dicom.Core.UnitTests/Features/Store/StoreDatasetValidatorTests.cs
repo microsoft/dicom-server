@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
-using Microsoft.Health.Dicom.Core.Exceptions.Validation;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
@@ -56,7 +56,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             _queryTags.Add(new QueryTag(tag.BuildExtendedQueryTagStoreEntry()));
             IElementMinimumValidator validator = Substitute.For<IElementMinimumValidator>();
             _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, validator, _queryTagService);
-            await Assert.ThrowsAsync<UnexpectedVRException>(
+            await Assert.ThrowsAsync<ElementValidationException>(
                 () => _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null));
             validator.DidNotReceive().Validate(Arg.Any<DicomElement>());
         }
@@ -163,7 +163,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         {
             // CS VR, > 16 characters is not allowed
             _dicomDataset.Add(DicomTag.Modality, "01234567890123456789");
-            await ExecuteAndValidateException<ExceedMaxLengthException>(ValidationFailedFailureCode);
+            await ExecuteAndValidateException<ElementValidationException>(ValidationFailedFailureCode);
         }
 
         [Fact]
@@ -183,7 +183,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             QueryTag indextag = new QueryTag(standardTag.BuildExtendedQueryTagStoreEntry());
             _queryTags.Add(indextag);
-            await ExecuteAndValidateException<ExceedMaxLengthException>(ValidationFailedFailureCode);
+            await ExecuteAndValidateException<ElementValidationException>(ValidationFailedFailureCode);
         }
 
         [Fact]
@@ -200,7 +200,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             _queryTags.Clear();
             _queryTags.Add(indextag);
 
-            await ExecuteAndValidateException<ExceedMaxLengthException>(ValidationFailedFailureCode);
+            await ExecuteAndValidateException<ElementValidationException>(ValidationFailedFailureCode);
         }
 
         private async Task ExecuteAndValidateException<T>(ushort failureCode, string requiredStudyInstanceUid = null)

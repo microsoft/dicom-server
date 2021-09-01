@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             EnsureArg.IsNotNull(vr, nameof(vr));
             if (value?.Length > maxLength)
             {
-                throw new ElementValidationExceptions.ExceedMaxLengthException(name, vr, value, maxLength);
+                throw ElementValidationExceptions.ExceedMaxLengthException(name, vr, value, maxLength);
             }
         }
     }

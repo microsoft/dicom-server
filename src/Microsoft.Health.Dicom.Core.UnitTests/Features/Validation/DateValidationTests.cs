@@ -21,7 +21,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         {
             DicomDate element = new DicomDate(DicomTag.Date, value);
             var ex = Assert.Throws<ElementValidationException>(() => _validation.Validate(element));
-            Assert.Equal(ex.ErrorCode, ValidationErrorCode.DateIsInvalid);
+            Assert.Equal(ValidationErrorCode.DateIsInvalid, ex.ErrorCode);
         }
 
         [Theory]

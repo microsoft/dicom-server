@@ -10,7 +10,7 @@ using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    internal static class ElementValidationExceptions
+    public static class ElementValidationExceptions
     {
         public static ElementValidationException DateIsInvalidException(string name, string value)
         {
@@ -76,6 +76,15 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
 
             return new ElementValidationException(name, vr, value, ValidationErrorCode.UnexpectedLength, string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageUnexpectedLength, expectedLength));
         }
+
+        public static ElementValidationException UnexpectedLengthException(string name, DicomVR vr, int expectedLength)
+        {
+            EnsureArg.IsNotNull(name, nameof(name));
+            EnsureArg.IsNotNull(vr, nameof(vr));
+
+            return new ElementValidationException(name, vr, ValidationErrorCode.UnexpectedLength, string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageUnexpectedLength, expectedLength));
+        }
+
         public static ElementValidationException UnexpectedVRException(string name, DicomVR vr, DicomVR expectedVR)
         {
             EnsureArg.IsNotNull(name, nameof(name));
