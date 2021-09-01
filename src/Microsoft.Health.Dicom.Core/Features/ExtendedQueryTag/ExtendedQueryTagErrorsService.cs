@@ -11,6 +11,7 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
@@ -36,11 +37,11 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             return new GetExtendedQueryTagErrorsResponse(extendedQueryTagErrors);
         }
 
-        public Task<int> AddExtendedQueryTagErrorAsync(int tagKey, string errorMessage, long watermark, CancellationToken cancellationToken = default)
+        public Task<int> AddExtendedQueryTagErrorAsync(int tagKey, ValidationErrorCode errorCode, long watermark, CancellationToken cancellationToken)
         {
             return _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
                 tagKey,
-                errorMessage,
+                errorCode,
                 watermark,
                 cancellationToken);
         }

@@ -5,6 +5,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
@@ -18,13 +19,13 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// Asynchronously adds an error for a specified Extended Query Tag.
         /// </summary>
         /// <param name="tagKey">TagKey of the extended query tag to which an error will be added.</param>
-        /// <param name="errorMessage">Error message.</param>
+        /// <param name="errorCode">The validation error code.</param>
         /// <param name="watermark">Watermark.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The tag key.</returns>
         Task<int> AddExtendedQueryTagErrorAsync(
             int tagKey,
-            string errorMessage,
+            ValidationErrorCode errorCode,
             long watermark,
             CancellationToken cancellationToken = default);
 

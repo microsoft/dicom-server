@@ -4,6 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -16,13 +18,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
     public class ReindexDatasetValidator : IReindexDatasetValidator
     {
         private readonly IElementMinimumValidator _minimumValidator;
+        private readonly IExtendedQueryTagErrorStore _extendedQueryTagErrorStore;
 
-        public ReindexDatasetValidator(IElementMinimumValidator minimumValidator)
+        public ReindexDatasetValidator(IElementMinimumValidator minimumValidator, IExtendedQueryTagErrorStore extendedQueryTagErrorStore)
         {
             _minimumValidator = EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
+            _extendedQueryTagErrorStore = EnsureArg.IsNotNull(extendedQueryTagErrorStore, nameof(extendedQueryTagErrorStore));
         }
 
-        public IReadOnlyCollection<QueryTag> Validate(DicomDataset dataset, long watermark, IReadOnlyCollection<QueryTag> queryTags)
+        public async Task<IReadOnlyCollection<QueryTag>> ValidateAsync(DicomDataset dataset, long watermark, IReadOnlyCollection<QueryTag> queryTags, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
@@ -35,9 +39,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
                     dataset.ValidateQueryTag(queryTag, _minimumValidator);
                     validTags.Add(queryTag);
                 }
-                catch (ElementValidationException)
+                catch (ElementValidationException ex)
                 {
-                    // TODO: log failure
+                    if (queryTag.IsExtendedQueryTag)
+                    {
+                        await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(queryTag.ExtendedQueryTagStoreEntry.Key, ex.ErrorCode, watermark, cancellationToken);
+                    }
                 }
             }
             return validTags;
