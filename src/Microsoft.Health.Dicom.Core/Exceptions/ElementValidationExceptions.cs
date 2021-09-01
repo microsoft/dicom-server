@@ -10,7 +10,7 @@ using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    public static class ElementValidationExceptions
+    internal static class ElementValidationExceptions
     {
         public static ElementValidationException DateIsInvalidException(string name, string value)
         {

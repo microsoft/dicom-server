@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         {
             DicomElement element = new DicomSignedShort(DicomTag.LargestImagePixelValue, ByteConverter.ToByteBuffer(new int[] { int.MaxValue }));
             var ex = Assert.Throws<ElementValidationException>(() => new ElementRequiredLengthValidation(4).Validate(element));
-            Assert.Equal(ValidationErrorCode.UnexpectedLength, ex.ErrorCode);
+            Assert.Equal(ValidationErrorCode.MultiValues, ex.ErrorCode);
         }
 
         [Fact]
