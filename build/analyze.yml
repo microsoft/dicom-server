@@ -1,11 +1,29 @@
+parameters:
+  analyzePackages: true
+
 steps:
-- task: ComponentGovernanceComponentDetection@0
+- task: DownloadBuildArtifacts@0
+  displayName: 'Download DICOM Binaries'
   inputs:
-    scanType: 'Register'
-    verbosity: 'Verbose'
-    alertWarningLevel: 'High'
-    failOnAlert: true
-    ignoreDirectories: '$(Build.SourcesDirectory)\samples\Azurite'
+    buildType: 'current'
+    downloadType: 'single'
+    downloadPath: '$(Agent.TempDirectory)/artifacts'
+    artifactName: 'deploy'
+
+- ${{ if eq(parameters.analyzePackages, 'true') }}:
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Download DICOM NuGet Packages'
+    inputs:
+      buildType: 'current'
+      downloadType: 'single'
+      downloadPath: '$(Build.SourcesDirectory)/artifacts'
+      artifactName: 'nuget'
+
+- task: ExtractFiles@1
+  displayName: 'Extract DICOM Web Server Binaries'
+  inputs:
+    archiveFilePatterns: '$(Agent.TempDirectory)/artifacts/deploy/Microsoft.Health.Dicom.Web.zip'
+    destinationFolder: '$(Build.SourcesDirectory)/artifacts/web'
 
 - task: AntiMalware@4
   inputs:
