@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -30,54 +31,46 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
-            ExtendedQueryTagDataRows result = new ExtendedQueryTagDataRows();
+
             var stringRows = new List<InsertStringExtendedQueryTagTableTypeV1Row>();
             var longRows = new List<InsertLongExtendedQueryTagTableTypeV1Row>();
             var doubleRows = new List<InsertDoubleExtendedQueryTagTableTypeV1Row>();
             var dateTimeRows = new List<InsertDateTimeExtendedQueryTagTableTypeV1Row>();
             var personNamRows = new List<InsertPersonNameExtendedQueryTagTableTypeV1Row>();
 
-            foreach (var queryTag in queryTags)
+            ulong? maxVersion = null;
+            foreach (QueryTag queryTag in queryTags.Where(x => x.IsExtendedQueryTag))
             {
+                // Update MaxVersion
+                if (maxVersion == null || queryTag.ExtendedQueryTagStoreEntry.Version > maxVersion)
+                {
+                    maxVersion = queryTag.ExtendedQueryTagStoreEntry.Version;
+                }
+
+                // Create row
                 ExtendedQueryTagDataType dataType = ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[queryTag.VR.Code];
                 switch (dataType)
                 {
-                    case ExtendedQueryTagDataType.StringData:
-                        AddStringRow(instance, stringRows, queryTag);
-
-                        break;
-
-                    case ExtendedQueryTagDataType.LongData:
-                        AddLongRow(instance, longRows, queryTag);
-
-                        break;
-
-                    case ExtendedQueryTagDataType.DoubleData:
-                        AddDoubleRow(instance, doubleRows, queryTag);
-
-                        break;
-
-                    case ExtendedQueryTagDataType.DateTimeData:
-                        AddDateTimeRow(instance, dateTimeRows, queryTag);
-
-                        break;
-
-                    case ExtendedQueryTagDataType.PersonNameData:
-                        AddPersonNameRow(instance, personNamRows, queryTag);
-
-                        break;
-
+                    case ExtendedQueryTagDataType.StringData: AddStringRow(instance, stringRows, queryTag); break;
+                    case ExtendedQueryTagDataType.LongData: AddLongRow(instance, longRows, queryTag); break;
+                    case ExtendedQueryTagDataType.DoubleData: AddDoubleRow(instance, doubleRows, queryTag); break;
+                    case ExtendedQueryTagDataType.DateTimeData: AddDateTimeRow(instance, dateTimeRows, queryTag); break;
+                    case ExtendedQueryTagDataType.PersonNameData: AddPersonNameRow(instance, personNamRows, queryTag); break;
                     default:
                         Debug.Fail($"Not able to handle {dataType}");
                         break;
                 }
             }
-            result.StringRows = stringRows;
-            result.LongRows = longRows;
-            result.DoubleRows = doubleRows;
-            result.DateTimeRows = dateTimeRows;
-            result.PersonNameRows = personNamRows;
-            return result;
+
+            return new ExtendedQueryTagDataRows
+            {
+                StringRows = stringRows,
+                LongRows = longRows,
+                DoubleRows = doubleRows,
+                DateTimeRows = dateTimeRows,
+                PersonNameRows = personNamRows,
+                MaxVersion = maxVersion,
+            };
         }
 
         private static void AddPersonNameRow(DicomDataset instance, List<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNamRows, QueryTag queryTag)

@@ -13,10 +13,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
     /// </summary>
     internal class ExtendedQueryTagDataRows
     {
+        public ulong? MaxVersion { get; set; }
+
         public IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> StringRows { get; set; }
+
         public IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> LongRows { get; set; }
+
         public IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> DoubleRows { get; set; }
+
         public IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV1Row> DateTimeRows { get; set; }
+
         public IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameRows { get; set; }
     }
 }

@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
-using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 using Polly;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
@@ -33,8 +34,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         private readonly IIndexDataStore _indexDataStore;
         private readonly IDeleteService _deleteService;
         private readonly IQueryTagService _queryTagService;
-        private readonly IOptions<StoreConfiguration> _storeConfiguration;
-        private readonly IAsyncPolicy<long> _retryPolicy;
+        private readonly IElementMinimumValidator _minimumValidator;
+        private readonly AsyncPolicy _updatePolicy;
 
         public StoreOrchestrator(
             IFileStore fileStore,
@@ -42,23 +43,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             IIndexDataStore indexDataStore,
             IDeleteService deleteService,
             IQueryTagService queryTagService,
+            IElementMinimumValidator minimumValidator,
             IOptions<StoreConfiguration> storeConfiguration)
         {
-            EnsureArg.IsNotNull(fileStore, nameof(fileStore));
-            EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
-            EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
-            EnsureArg.IsNotNull(deleteService, nameof(deleteService));
-            EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
-            EnsureArg.IsNotNull(storeConfiguration?.Value, nameof(storeConfiguration));
+            _fileStore = EnsureArg.IsNotNull(fileStore, nameof(fileStore));
+            _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
+            _indexDataStore = EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
+            _deleteService = EnsureArg.IsNotNull(deleteService, nameof(deleteService));
+            _queryTagService = EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
+            _minimumValidator = EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
 
-            _fileStore = fileStore;
-            _metadataStore = metadataStore;
-            _deleteService = deleteService;
-            _queryTagService = queryTagService;
-            _indexDataStore = indexDataStore;
-            _storeConfiguration = storeConfiguration;
-            _retryPolicy = Policy<long>.Handle<ExtendedQueryTagVersionMismatchException>()
-                .RetryAsync(_storeConfiguration.Value.MaxRetriesWhenTagVersionMismatch);
+            StoreConfiguration config = EnsureArg.IsNotNull(storeConfiguration?.Value, nameof(storeConfiguration));
+            _updatePolicy = Policy
+                .Handle<ExtendedQueryTagVersionMismatchException>()
+                .RetryAsync(config.MaxRetriesWhenTagVersionMismatch, (e, r, cxt) => OnRetryUpdate(cxt));
         }
 
         /// <inheritdoc />
@@ -71,28 +69,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
             // Retry when max ExtendedQuryTagVersion mismatch.
-            long version = await _retryPolicy.ExecuteAsync(async (CancellationToken cancellationToken) =>
-            {
-                var queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken);
-                return await _indexDataStore.CreateInstanceIndexAsync(dicomDataset, queryTags, cancellationToken);
-
-            }, cancellationToken);
-
-            var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version);
+            IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(forceRefresh: false, cancellationToken: cancellationToken);
+            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dicomDataset, queryTags, cancellationToken);
+            var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(watermark);
 
             try
             {
                 // We have successfully created the index, store the files.
-                Task[] tasks = new[]
-                {
+                await Task.WhenAll(
                     StoreFileAsync(versionedInstanceIdentifier, dicomInstanceEntry, cancellationToken),
-                    StoreInstanceMetadataAsync(dicomDataset, version, cancellationToken),
-                };
+                    StoreInstanceMetadataAsync(dicomDataset, watermark, cancellationToken));
 
-                await Task.WhenAll(tasks);
-
-                // Successfully uploaded the files. Update the status to be available.
-                await _indexDataStore.UpdateInstanceIndexStatusAsync(versionedInstanceIdentifier, IndexStatus.Created, cancellationToken);
+                await EndAddInstanceIndexAsync(dicomDataset, watermark, queryTags, cancellationToken);
             }
             catch (Exception)
             {
@@ -120,6 +108,44 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             long version,
             CancellationToken cancellationToken)
             => _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version, cancellationToken);
+
+        private async Task EndAddInstanceIndexAsync(
+            DicomDataset dicomDataset,
+            long watermark,
+            IReadOnlyCollection<QueryTag> queryTags,
+            CancellationToken cancellationToken)
+        {
+            await _updatePolicy.ExecuteAsync(
+                (context, token) => _indexDataStore.EndCreateInstanceIndexAsync(
+                    context[nameof(DicomDataset)] as DicomDataset,
+                    watermark,
+                    context[nameof(QueryTag)] as IReadOnlyCollection<QueryTag>,
+                    token),
+                new Dictionary<string, object>
+                {
+                    { nameof(DicomDataset), dicomDataset },
+                    { nameof(CancellationToken), cancellationToken },
+                    { nameof(QueryTag), queryTags },
+                },
+                cancellationToken);
+        }
+
+        private async Task OnRetryUpdate(Polly.Context context)
+        {
+            // Bypass the cache with forceRefresh: true
+            CancellationToken token = (CancellationToken)context[nameof(CancellationToken)];
+            IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(forceRefresh: true, cancellationToken: token);
+
+            // Re-validate
+            DicomDataset dicomDataset = context[nameof(DicomDataset)] as DicomDataset;
+            foreach (QueryTag queryTag in queryTags)
+            {
+                dicomDataset.ValidateQueryTag(queryTag, _minimumValidator);
+            }
+
+            // Update context with latest query tag values
+            context[nameof(QueryTag)] = queryTags;
+        }
 
         private async Task TryCleanupInstanceIndexAsync(VersionedInstanceIdentifier versionedInstanceIdentifier)
         {

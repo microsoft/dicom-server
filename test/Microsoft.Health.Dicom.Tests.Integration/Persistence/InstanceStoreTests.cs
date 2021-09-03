@@ -72,8 +72,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             dataset1.Add(tag, tagValue1);
             DicomDataset dataset2 = Samples.CreateRandomInstanceDataset(studyUid);
             dataset2.Add(tag, tagValue2);
-            Instance instance1 = await CreateInstanceIndexAsync(dataset1, IndexStatus.Created);
-            Instance instance2 = await CreateInstanceIndexAsync(dataset2, IndexStatus.Created);
+            Instance instance1 = await CreateInstanceIndexAsync(dataset1);
+            Instance instance2 = await CreateInstanceIndexAsync(dataset2);
 
             var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Study));
             QueryTag queryTag = new QueryTag(tagStoreEntry);
@@ -99,8 +99,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             dataset1.Add(tag, tagValue1);
             DicomDataset dataset2 = Samples.CreateRandomInstanceDataset(studyUid, seriesUid);
             dataset2.Add(tag, tagValue2);
-            Instance instance1 = await CreateInstanceIndexAsync(dataset1, IndexStatus.Created);
-            Instance instance2 = await CreateInstanceIndexAsync(dataset2, IndexStatus.Created);
+            Instance instance1 = await CreateInstanceIndexAsync(dataset1);
+            Instance instance2 = await CreateInstanceIndexAsync(dataset2);
 
             var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Series));
             QueryTag queryTag = new QueryTag(tagStoreEntry);
@@ -121,7 +121,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             DicomDataset dataset = Samples.CreateRandomInstanceDataset();
             dataset.Add(tag, tagValue);
 
-            Instance instance = await CreateInstanceIndexAsync(dataset, IndexStatus.Created);
+            Instance instance = await CreateInstanceIndexAsync(dataset);
 
             var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Instance));
 
@@ -140,7 +140,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomDataset dataset = Samples.CreateRandomInstanceDataset();
             dataset.Add(tag, tagValue);
-            var instance = await CreateInstanceIndexAsync(dataset, IndexStatus.Created);
+            var instance = await CreateInstanceIndexAsync(dataset);
 
             await _indexDataStore.ReindexInstanceAsync(dataset, instance.Watermark, new[] { new QueryTag(tagStoreEntry) });
 
@@ -167,8 +167,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomDataset dataset = Samples.CreateRandomInstanceDataset();
 
-            var instance = await CreateInstanceIndexAsync(dataset, IndexStatus.Creating);
-            await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.ReindexInstanceAsync(dataset, instance.Watermark, new[] { new QueryTag(tagStoreEntry) }));
+            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
+            await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.ReindexInstanceAsync(dataset, watermark, new[] { new QueryTag(tagStoreEntry) }));
         }
 
         [Fact]
@@ -216,16 +216,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             return (await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: addExtendedQueryTagEntry.Path)).First();
         }
 
-        private async Task<Instance> CreateInstanceIndexAsync(DicomDataset dataset, IndexStatus indexStatus)
+        private async Task<Instance> CreateInstanceIndexAsync(DicomDataset dataset)
         {
             string studyUid = dataset.GetString(DicomTag.StudyInstanceUID);
             string seriesUid = dataset.GetString(DicomTag.SeriesInstanceUID);
             string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
-            long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset);
-            if (indexStatus != IndexStatus.Creating)
-            {
-                await _indexDataStore.UpdateInstanceIndexStatusAsync(new VersionedInstanceIdentifier(studyUid, seriesUid, sopInstanceUid, watermark), IndexStatus.Created);
-            }
+            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
+            await _indexDataStore.EndCreateInstanceIndexAsync(dataset, watermark);
 
             return await _indexDataStoreTestHelper.GetInstanceAsync(studyUid, seriesUid, sopInstanceUid, watermark);
         }
@@ -238,7 +235,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             string seriesInstanceUid = dataset.GetString(DicomTag.SeriesInstanceUID);
             string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
 
-            long version = await _indexDataStore.CreateInstanceIndexAsync(dataset);
+            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
             return new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version);
         }
     }
