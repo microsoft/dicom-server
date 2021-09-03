@@ -9,7 +9,7 @@ variables:
 
 stages:
 - stage: UpdateVersion
-  displayName: 'Determine Semver'
+  displayName: 'Determine Semantic Version'
   dependsOn: []
   jobs:
   - job: Semver
@@ -24,7 +24,7 @@ stages:
       name: SetBuildVersion
 
 - stage: BuildRunUnitTests
-  displayName: 'Build and run unit tests'
+  displayName: 'Build and Run Unit Tests'
   dependsOn:
   - UpdateVersion
   variables:
@@ -41,29 +41,20 @@ stages:
     - template: build.yml
       parameters:
         packageArtifacts: true
-        analyzeSecurity: false
         packageNugets: false
 
-- stage: SecurityAnalyze
-  displayName: 'Security analyze'
+- stage: AnalyzeSecurity
+  displayName: 'Run Security Analysis'
   dependsOn:
-  - UpdateVersion
-  variables:
-    assemblySemVer: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.AssemblySemVer']]
-    assemblySemFileVer: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.AssemblySemFileVer']]
-    informationalVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.InformationalVersion']]
-    majorMinorPatch: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.MajorMinorPatch']]
-    nuGetVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.SemVer']]
+  - BuildRunUnitTests
   jobs:
   - job: Windows
     pool:
       vmImage: $(windowsVmImage)
     steps:
-    - template: build.yml
+    - template: analyze.yml
       parameters:
-        packageArtifacts: false
-        analyzeSecurity: true
-        packageNugets: false
+        analyzePackages: false
 
 - stage: DeployTestEnvironment
   displayName: 'Deploy Test Environment'
@@ -73,28 +64,28 @@ stages:
   - template: deploy.yml
 
 - stage: ValidateAPIVersioning
-  displayName: 'Detect Breaking Changes In API'
+  displayName: 'Detect Breaking Changes in REST API'
   dependsOn:
   - BuildRunUnitTests
   jobs:
   - template: versioning.yml
 
 - stage: RunIntegrationTests
-  displayName: 'Integration tests'
+  displayName: 'Run Integration tests'
   dependsOn:
   - DeployTestEnvironment
   jobs:
   - template: run-integration-tests.yml
 
 - stage: RunE2ETests
-  displayName: 'E2E tests'
+  displayName: 'Run E2E tests'
   dependsOn:
   - DeployTestEnvironment
   jobs:
   - template: run-e2e-tests.yml
 
 - stage: Cleanup
-  displayName: 'Cleanup Azure Environment'
+  displayName: 'Clean Up Azure Environment'
   dependsOn:
   - RunIntegrationTests
   - RunE2ETests
