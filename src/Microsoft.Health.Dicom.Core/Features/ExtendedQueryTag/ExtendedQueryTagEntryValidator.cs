@@ -173,7 +173,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             {
                 LongStringValidation.Validate(privateCreator, nameof(privateCreator));
             }
-            catch (DicomElementValidationException ex)
+            catch (ElementValidationException ex)
             {
                 throw new ExtendedQueryTagEntryValidationException(
                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.PrivateCreatorNotValidLO, tagPath), ex);
