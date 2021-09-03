@@ -14,7 +14,7 @@ pr: none
 
 stages:
 - stage: UpdateVersion
-  displayName: 'Determine Semver'
+  displayName: 'Determine Semantic Version'
   dependsOn: []
   jobs:
   - job: Semver
@@ -24,7 +24,7 @@ stages:
     - template: ./update-semver.yml
 
 - stage: BuildRunUnitTests
-  displayName: 'Build and run unit tests'
+  displayName: 'Build and Run Unit Tests'
   dependsOn:
   - UpdateVersion
   variables:
@@ -34,21 +34,22 @@ stages:
     majorMinorPatch: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.MajorMinorPatch']]
     nuGetVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.SemVer']]
   jobs:
-  - job: Windows
-    pool:
-      vmImage: $(windowsVmImage)
-    steps:
-    - template: build.yml
-
   - job: Linux
     pool:
       vmImage: 'ubuntu-latest'
     steps:
     - template: build.yml
-      parameters:
-        packageArtifacts: false
-        analyzeSecurity: false
-        packageNugets: false
+
+- stage: AnalyzeSecurity
+  displayName: 'Run Security Analysis'
+  dependsOn:
+  - BuildRunUnitTests
+  jobs:
+  - job: Windows
+    pool:
+      vmImage: $(windowsVmImage)
+    steps:
+    - template: analyze.yml
 
 - stage: UpdateCIEnvironment
   displayName: 'Update CI Environment'
@@ -65,22 +66,24 @@ stages:
   - template: versioning.yml
 
 - stage: RunIntegrationTests
-  displayName: 'Integration tests'
+  displayName: 'Run Integration Tests'
   dependsOn:
   - UpdateTestEnvironment
   jobs:
   - template: run-integration-tests.yml
 
 - stage: RunE2ETests
-  displayName: 'E2E tests'
+  displayName: 'Run E2E Tests'
   dependsOn:
   - UpdateTestEnvironment
   jobs:
   - template: run-e2e-tests.yml
 
 - stage: PublishNuget
-  displayName: 'Publish Nugets'
+  displayName: 'Publish NuGet Packages'
   dependsOn:
+  - AnalyzeSecurity
+  - ValidateAPIVersioning
   - RunIntegrationTests
   - RunE2ETests
   jobs:
@@ -93,6 +96,8 @@ stages:
 - stage: PublishContainer
   displayName: 'Publish Docker CI Container'
   dependsOn:
+  - AnalyzeSecurity
+  - ValidateAPIVersioning
   - RunIntegrationTests
   - RunE2ETests
   jobs:

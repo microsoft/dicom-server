@@ -106,16 +106,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Dicom element has multiple values. We only support indexing single value element..
-        /// </summary>
-        internal static string DicomElementHasMultipleValues {
-            get {
-                return ResourceManager.GetString("DicomElementHasMultipleValues", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; failed validation for VR &apos;{1}&apos;: {2}..
+        ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; failed validation for VR &apos;{1}&apos;: {2}.
         /// </summary>
         internal static string DicomElementValidationFailed {
             get {
@@ -124,7 +115,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; with value &apos;{1}&apos; failed validation for VR &apos;{2}&apos;: {3}..
+        ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; with value &apos;{1}&apos; failed validation for VR &apos;{2}&apos;: {3}.
         /// </summary>
         internal static string DicomElementValidationFailedWithValue {
             get {
@@ -174,6 +165,96 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string DuplicateRoleNames {
             get {
                 return ResourceManager.GetString("DuplicateRoleNames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value cannot be parsed as a valid date..
+        /// </summary>
+        internal static string ErrorMessageDateIsInvalid {
+            get {
+                return ResourceManager.GetString("ErrorMessageDateIsInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value length exceeds maximum length of {0}..
+        /// </summary>
+        internal static string ErrorMessageExceedMaxLength {
+            get {
+                return ResourceManager.GetString("ErrorMessageExceedMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value contains invalid character..
+        /// </summary>
+        internal static string ErrorMessageInvalidCharacters {
+            get {
+                return ResourceManager.GetString("ErrorMessageInvalidCharacters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dicom element has multiple values. Indexing is only supported on single value element..
+        /// </summary>
+        internal static string ErrorMessageMultiValues {
+            get {
+                return ResourceManager.GetString("ErrorMessageMultiValues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value contains more than 5 components..
+        /// </summary>
+        internal static string ErrorMessagePersonNameExceedMaxComponents {
+            get {
+                return ResourceManager.GetString("ErrorMessagePersonNameExceedMaxComponents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value contains more than 3 groups..
+        /// </summary>
+        internal static string ErrorMessagePersonNameExceedMaxGroups {
+            get {
+                return ResourceManager.GetString("ErrorMessagePersonNameExceedMaxGroups", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to One or more group of person name exceeds maxium length of 64..
+        /// </summary>
+        internal static string ErrorMessagePersonNameGroupExceedMaxLength {
+            get {
+                return ResourceManager.GetString("ErrorMessagePersonNameGroupExceedMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DICOM Identifier is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in &apos;0&apos;-&apos;9&apos; and &apos;.&apos;. Each component must start with non-zero number..
+        /// </summary>
+        internal static string ErrorMessageUidIsInvalid {
+            get {
+                return ResourceManager.GetString("ErrorMessageUidIsInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value length is not {0}..
+        /// </summary>
+        internal static string ErrorMessageUnexpectedLength {
+            get {
+                return ResourceManager.GetString("ErrorMessageUnexpectedLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The extended query tag &apos;{0}&apos; is expected to have VR &apos;{1}&apos; but has &apos;{2}&apos; in file..
+        /// </summary>
+        internal static string ErrorMessageUnexpectedVR {
+            get {
+                return ResourceManager.GetString("ErrorMessageUnexpectedVR", resourceCulture);
             }
         }
         
@@ -293,15 +374,6 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string InvalidDateValue {
             get {
                 return ResourceManager.GetString("InvalidDateValue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to DICOM Identifier &apos;{0}&apos; value &apos;{1}&apos; is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in &apos;0&apos;-&apos;9&apos; and &apos;.&apos;. Each component must start with non-zero number..
-        /// </summary>
-        internal static string InvalidDicomIdentifier {
-            get {
-                return ResourceManager.GetString("InvalidDicomIdentifier", resourceCulture);
             }
         }
         
@@ -437,15 +509,6 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string MismatchStudyInstanceUid {
             get {
                 return ResourceManager.GetString("MismatchStudyInstanceUid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The extended query tag &apos;{0}&apos; is expected to have VR &apos;{1}&apos; but has &apos;{2}&apos; in file..
-        /// </summary>
-        internal static string MismatchVR {
-            get {
-                return ResourceManager.GetString("MismatchVR", resourceCulture);
             }
         }
         
@@ -621,6 +684,33 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Value length exceeds maximum length..
+        /// </summary>
+        internal static string SimpleErrorMessageExceedMaxLength {
+            get {
+                return ResourceManager.GetString("SimpleErrorMessageExceedMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value length is not expected..
+        /// </summary>
+        internal static string SimpleErrorMessageUnexpectedLength {
+            get {
+                return ResourceManager.GetString("SimpleErrorMessageUnexpectedLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The extended query tag VR is not expected..
+        /// </summary>
+        internal static string SimpleErrorMessageUnexpectedVR {
+            get {
+                return ResourceManager.GetString("SimpleErrorMessageUnexpectedVR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified study cannot be found..
         /// </summary>
         internal static string StudyInstanceNotFound {
@@ -689,60 +779,6 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string UnsupportedVRCodeOnTag {
             get {
                 return ResourceManager.GetString("UnsupportedVRCodeOnTag", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Value contains invalid character..
-        /// </summary>
-        internal static string ValueContainsInvalidCharacter {
-            get {
-                return ResourceManager.GetString("ValueContainsInvalidCharacter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Value contains more than 5 components..
-        /// </summary>
-        internal static string ValueExceedsAllowedComponents {
-            get {
-                return ResourceManager.GetString("ValueExceedsAllowedComponents", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Value contains more than 3 groups..
-        /// </summary>
-        internal static string ValueExceedsAllowedGroups {
-            get {
-                return ResourceManager.GetString("ValueExceedsAllowedGroups", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Value cannot be parsed as a valid date..
-        /// </summary>
-        internal static string ValueIsInvalidDate {
-            get {
-                return ResourceManager.GetString("ValueIsInvalidDate", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Value length exceeds maximum length of {0}..
-        /// </summary>
-        internal static string ValueLengthExceedsMaxLength {
-            get {
-                return ResourceManager.GetString("ValueLengthExceedsMaxLength", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Value length is not {0}..
-        /// </summary>
-        internal static string ValueLengthIsNotRequiredLength {
-            get {
-                return ResourceManager.GetString("ValueLengthIsNotRequiredLength", resourceCulture);
             }
         }
     }

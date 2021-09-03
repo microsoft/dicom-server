@@ -16,8 +16,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         [Fact]
         public void GivenValueExceedMaxLength_WhenValidating_ThenShouldThrows()
         {
-            Assert.Throws<DicomElementValidationException>(() =>
-                new ElementMaxLengthValidation(12).Validate(new DicomIntegerString(DicomTag.DoseReferenceNumber, "0123456789121")));
+            var ex = Assert.Throws<ElementValidationException>(() =>
+                  new ElementMaxLengthValidation(12).Validate(new DicomIntegerString(DicomTag.DoseReferenceNumber, "0123456789121")));
+            Assert.Equal(ValidationErrorCode.ExceedMaxLength, ex.ErrorCode);
         }
 
         [Fact]
