@@ -53,18 +53,22 @@ jobs:
       downloadPath: '$(System.ArtifactsDirectory)'
       artifactName: 'deploy'
 
-  - task: AzureWebApp@1
+  - task: AzureRMWebAppDeployment@4
     displayName: 'Deploy Dicom Web App'
     inputs:
-      azureSubscription: '$(azureSubscriptionName)'
-      appName: '$(deploymentName)'
+      connectionType: 'AzureRM'
+      azureSubscription: $(azureSubscriptionName)
+      webAppKind: 'webApp'
+      webAppName: '$(deploymentName)'
       package: '$(System.ArtifactsDirectory)/deploy/Microsoft.Health.Dicom.Web.zip'
-      deploymentMethod: 'runFromPackage'
+      takeAppOfflineFlag: true
 
-  - task: AzureFunctionApp@1
+  - task: AzureRMWebAppDeployment@4
     displayName: 'Deploy Dicom Functions'
     inputs:
-      azureSubscription: '$(azureSubscriptionName)'
-      appName: '$(deploymentName)-functions'
+      connectionType: 'AzureRM'
+      azureSubscription: $(azureSubscriptionName)
+      webAppKind: 'functionApp'
+      webAppName: '$(deploymentName)-functions'
       package: '$(System.ArtifactsDirectory)/deploy/Microsoft.Health.Dicom.Functions.zip'
-      deploymentMethod: 'runFromPackage'
+      takeAppOfflineFlag: true
