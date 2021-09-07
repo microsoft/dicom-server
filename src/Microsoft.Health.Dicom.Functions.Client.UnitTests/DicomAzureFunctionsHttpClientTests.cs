@@ -119,13 +119,13 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
                 Content = new StringContent(
 @$"
 {{
-  ""{nameof(OperationStatus<string>.OperationId)}"": ""{id}"",
-  ""{nameof(OperationStatus<string>.Type)}"": ""{OperationType.Reindex}"",
-  ""{nameof(OperationStatus<string>.CreatedTime)}"": ""{createdDateTime:O}"",
-  ""{nameof(OperationStatus<string>.LastUpdatedTime)}"": ""{createdDateTime.AddMinutes(15):O}"",
-  ""{nameof(OperationStatus<string>.Status)}"": ""{OperationRuntimeStatus.Running}"",
-  ""{nameof(OperationStatus<string>.PercentComplete)}"": 47,
-  ""{nameof(OperationStatus<string>.Resources)}"": [ ""00101010"", ""00100040"" ]
+  ""{nameof(InternalOperationStatus.OperationId)}"": ""{id}"",
+  ""{nameof(InternalOperationStatus.Type)}"": ""{OperationType.Reindex}"",
+  ""{nameof(InternalOperationStatus.CreatedTime)}"": ""{createdDateTime:O}"",
+  ""{nameof(InternalOperationStatus.LastUpdatedTime)}"": ""{createdDateTime.AddMinutes(15):O}"",
+  ""{nameof(InternalOperationStatus.Status)}"": ""{OperationRuntimeStatus.Running}"",
+  ""{nameof(InternalOperationStatus.PercentComplete)}"": 47,
+  ""{nameof(InternalOperationStatus.ResourceIds)}"": [ ""00101010"", ""00100040"" ]
 }}
 "
                 ),
@@ -146,7 +146,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
             resolver.ResolveQueryTagUri("00100040").Returns(expectedResourceUrls[1]);
             handler.SendingAsync += (msg, token) => AssertExpectedStatusRequestAsync(msg, id);
 
-            OperationStatus<Uri> actual = await client.GetStatusAsync(id, source.Token);
+            OperationStatus actual = await client.GetStatusAsync(id, source.Token);
             Assert.Equal(1, handler.SentMessages);
 
             Assert.NotNull(actual);

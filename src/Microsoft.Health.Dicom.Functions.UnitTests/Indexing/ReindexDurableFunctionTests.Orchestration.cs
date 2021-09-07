@@ -470,11 +470,5 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 && r.QueryTags.SequenceEqual(queryTags.Select(y => y.ToReference()))
                 && r.Completed == new WatermarkRange(expectedBatches[expectedBatches.Count - 1].Start, end);
         }
-
-        private static Expression<Predicate<OperationCustomStatus>> GetCustomStatePredicate(int percentComplete, params string[] resourceIds)
-        {
-            return x => x.PercentComplete == percentComplete
-                && (resourceIds.Length == 0 ? x.ResourceIds == null : x.ResourceIds.SequenceEqual(resourceIds));
-        }
     }
 }

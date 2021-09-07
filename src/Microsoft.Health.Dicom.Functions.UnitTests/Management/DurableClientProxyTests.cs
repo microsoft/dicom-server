@@ -134,7 +134,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
             HttpResponseMessage response = await _proxy.GetStatusAsync(context.Request, client, id, NullLogger.Instance);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            var actual = JsonSerializer.Deserialize<OperationStatus<string>>(await response.Content.ReadAsStringAsync(), _jsonOptions);
+            var actual = JsonSerializer.Deserialize<InternalOperationStatus>(await response.Content.ReadAsStringAsync(), _jsonOptions);
             Assert.NotNull(actual);
             Assert.Equal(id, actual.OperationId);
             Assert.Equal(OperationType.Reindex, actual.Type);
@@ -142,7 +142,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
             Assert.Equal(expected.LastUpdatedTime, actual.LastUpdatedTime);
             Assert.Equal(OperationRuntimeStatus.Running, actual.Status);
             Assert.Equal(82, actual.PercentComplete);
-            Assert.Equal("00101010", actual.Resources.Single());
+            Assert.Equal("00101010", actual.ResourceIds.Single());
 
             await client
                 .Received(1)
@@ -150,7 +150,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
         }
 
         [Fact]
-        public async Task GivenNoCustomStatus_WhenGettingStatus_ThenDefaultValues()
+        public async Task GivenNoStatus_WhenGettingStatus_ThenDefaultValues()
         {
             var context = new DefaultHttpContext();
             Guid id = Guid.NewGuid();
@@ -171,7 +171,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
             HttpResponseMessage response = await _proxy.GetStatusAsync(context.Request, client, id, NullLogger.Instance);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            var actual = JsonSerializer.Deserialize<OperationStatus<string>>(await response.Content.ReadAsStringAsync(), _jsonOptions);
+            var actual = JsonSerializer.Deserialize<InternalOperationStatus>(await response.Content.ReadAsStringAsync(), _jsonOptions);
             Assert.NotNull(actual);
             Assert.Equal(id, actual.OperationId);
             Assert.Equal(OperationType.Reindex, actual.Type);
@@ -179,7 +179,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
             Assert.Equal(expected.LastUpdatedTime, actual.LastUpdatedTime);
             Assert.Equal(OperationRuntimeStatus.Running, actual.Status);
             Assert.Equal(0, actual.PercentComplete);
-            Assert.Null(actual.Resources);
+            Assert.Empty(actual.ResourceIds);
 
             await client
                 .Received(1)

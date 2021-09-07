@@ -69,7 +69,7 @@ namespace Microsoft.Health.Dicom.Functions.Client
         }
 
         /// <inheritdoc/>
-        public async Task<OperationStatus<Uri>> GetStatusAsync(Guid operationId, CancellationToken cancellationToken = default)
+        public async Task<OperationStatus> GetStatusAsync(Guid operationId, CancellationToken cancellationToken = default)
         {
             var statusRoute = new Uri(
                 string.Format(CultureInfo.InvariantCulture, _options.Routes.GetStatusRouteTemplate, OperationId.ToString(operationId)),
@@ -86,14 +86,14 @@ namespace Microsoft.Health.Dicom.Functions.Client
 
             // Re-throw any exceptions we may have encountered when making the HTTP request
             response.EnsureSuccessStatusCode();
-            OperationStatus<string> state = await response.Content.ReadFromJsonAsync<OperationStatus<string>>(_jsonSerializerOptions, cancellationToken);
-            return new OperationStatus<Uri>
+            InternalOperationStatus state = await response.Content.ReadFromJsonAsync<InternalOperationStatus>(_jsonSerializerOptions, cancellationToken);
+            return new OperationStatus
             {
                 CreatedTime = state.CreatedTime,
                 LastUpdatedTime = state.LastUpdatedTime,
                 OperationId = state.OperationId,
                 PercentComplete = state.PercentComplete,
-                Resources = GetResourceUrls(state.Type, state.Resources),
+                Resources = GetResourceUrls(state.Type, state.ResourceIds),
                 Status = state.Status,
                 Type = state.Type,
             };

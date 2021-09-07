@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
@@ -30,7 +29,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing.Models
             return new OperationProgress
             {
                 PercentComplete = percentComplete,
-                ResourceIds = QueryTags?.Select(x => x.Path).ToList() ?? (IReadOnlyList<string>)Array.Empty<string>(),
+                ResourceIds = QueryTags?.Select(x => x.Path).ToList(),
             };
         }
 

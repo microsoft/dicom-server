@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing.Models
         {
             OperationProgress progress = new ReindexInput().GetProgress();
             Assert.Equal(0, progress.PercentComplete);
-            Assert.Same(Array.Empty<string>(), progress.ResourceIds);
+            Assert.Null(progress.ResourceIds);
         }
 
         [Fact]
@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing.Models
         {
             OperationProgress progress = new ReindexInput { Completed = new WatermarkRange(1, 1) }.GetProgress();
             Assert.Equal(100, progress.PercentComplete);
-            Assert.Same(Array.Empty<string>(), progress.ResourceIds);
+            Assert.Null(progress.ResourceIds);
         }
 
         [Theory]

@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
         /// with the specified <paramref name="operationId"/>, if found; otherwise <see langword="null"/>.
         /// </returns>
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-        Task<OperationStatus<Uri>> GetStatusAsync(Guid operationId, CancellationToken cancellationToken = default);
+        Task<OperationStatus> GetStatusAsync(Guid operationId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Begins the addition of one or more extended query tags such that they can be used in QIDO.

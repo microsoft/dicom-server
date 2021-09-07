@@ -81,7 +81,7 @@ namespace Microsoft.Health.Dicom.Functions.Management
             // GetStatusAsync doesn't accept a token, so the best we can do is cancel before execution
             source.Token.ThrowIfCancellationRequested();
 
-            OperationStatus<string> status = await GetOperationStatusAsync(client, instanceId);
+            InternalOperationStatus status = await GetOperationStatusAsync(client, instanceId);
             return status != null && PublicOperationTypes.Contains(status.Type)
                 ? new HttpResponseMessage
                 {
@@ -91,7 +91,7 @@ namespace Microsoft.Health.Dicom.Functions.Management
                 : new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound };
         }
 
-        private static async Task<OperationStatus<string>> GetOperationStatusAsync(IDurableOrchestrationClient client, Guid instanceId)
+        private static async Task<InternalOperationStatus> GetOperationStatusAsync(IDurableOrchestrationClient client, Guid instanceId)
         {
             DurableOrchestrationStatus status = await client.GetStatusAsync(OperationId.ToString(instanceId), showInput: true);
             if (status == null)
@@ -101,13 +101,13 @@ namespace Microsoft.Health.Dicom.Functions.Management
 
             OperationType type = status.GetOperationType();
             OperationProgress progress = GetOperationProgress(type, status);
-            return new OperationStatus<string>
+            return new InternalOperationStatus
             {
                 CreatedTime = status.CreatedTime,
                 LastUpdatedTime = status.LastUpdatedTime,
                 OperationId = instanceId,
                 PercentComplete = progress.PercentComplete,
-                Resources = progress.ResourceIds,
+                ResourceIds = progress.ResourceIds ?? Array.Empty<string>(),
                 Status = status.GetOperationRuntimeStatus(),
                 Type = type,
             };
@@ -121,7 +121,7 @@ namespace Microsoft.Health.Dicom.Functions.Management
                     ReindexInput reindexInput = status.Input?.ToObject<ReindexInput>() ?? new ReindexInput();
                     return reindexInput.GetProgress();
                 default:
-                    return default;
+                    return new OperationProgress();
             }
         }
     }

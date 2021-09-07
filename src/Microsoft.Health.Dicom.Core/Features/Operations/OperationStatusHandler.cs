@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
         {
             // TODO: Check for data action
             EnsureArg.IsNotNull(request, nameof(request));
-            OperationStatus<Uri> status = await _client.GetStatusAsync(request.OperationId, cancellationToken);
+            OperationStatus status = await _client.GetStatusAsync(request.OperationId, cancellationToken);
             return status != null ? new OperationStatusResponse(status) : null;
         }
     }
