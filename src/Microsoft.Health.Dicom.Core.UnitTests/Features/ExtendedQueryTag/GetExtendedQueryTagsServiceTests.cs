@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         [Fact]
         public async Task GivenRequestForAllTags_WhenNoTagsAreStored_ThenExceptionShouldBeThrown()
         {
-            _extendedQueryTagStore.GetExtendedQueryTagsAsync((string)default).Returns(new List<ExtendedQueryTagStoreEntry>());
+            _extendedQueryTagStore.GetExtendedQueryTagsAsync(default).Returns(new List<ExtendedQueryTagStoreEntry>());
             GetAllExtendedQueryTagsResponse response = await _getExtendedQueryTagsService.GetAllExtendedQueryTagsAsync();
 
             Assert.Empty(response.ExtendedQueryTags);
@@ -47,7 +47,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
 
             List<ExtendedQueryTagStoreEntry> storedEntries = new List<ExtendedQueryTagStoreEntry>() { tag1, tag2 };
 
-            _extendedQueryTagStore.GetExtendedQueryTagsAsync((string)default).Returns(storedEntries);
+            _extendedQueryTagStore.GetExtendedQueryTagsAsync(default).Returns(storedEntries);
             GetAllExtendedQueryTagsResponse response = await _getExtendedQueryTagsService.GetAllExtendedQueryTagsAsync();
 
             var expected = new GetExtendedQueryTagEntry[] { tag1.ToExtendedQueryTagEntry(), tag2.ToExtendedQueryTagEntry() };

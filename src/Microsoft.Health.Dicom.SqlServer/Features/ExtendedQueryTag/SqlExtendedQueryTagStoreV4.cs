@@ -98,7 +98,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             return results;
         }
 
-        public override async Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(
+        public override async Task<IReadOnlyList<ExtendedQueryTagReference>> AddExtendedQueryTagsAsync(
             IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries,
             int maxAllowedCount,
             bool ready = false,
@@ -115,14 +115,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
             try
             {
-                var keys = new List<int>();
+                var results = new List<ExtendedQueryTagReference>();
                 using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken);
                 while (await reader.ReadAsync(cancellationToken))
                 {
-                    keys.Add(reader.ReadRow(VLatest.ExtendedQueryTagString.TagKey));
+                    (int tagKey, string tagPath) = reader.ReadRow(VLatest.ExtendedQueryTag.TagKey, VLatest.ExtendedQueryTag.TagPath);
+                    results.Add(new ExtendedQueryTagReference { Key = tagKey, Path = tagPath });
                 }
 
-                return keys;
+                return results;
             }
             catch (SqlException ex)
             {

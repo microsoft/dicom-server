@@ -233,7 +233,7 @@ GO
 --         * Indicates whether the new query tags have been fully indexed
 --
 -- RETURN VALUE
---     The keys for the added tags.
+--     The added tags entries.
 /***************************************************************************************/
 ALTER PROCEDURE dbo.AddExtendedQueryTags (
     @extendedQueryTags dbo.AddExtendedQueryTagsInputTableType_1 READONLY,
@@ -277,7 +277,7 @@ AS
         -- Add the new tags with the given status
         INSERT INTO dbo.ExtendedQueryTag
             (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus)
-        OUTPUT INSERTED.TagKey
+        OUTPUT INSERTED.TagKey, INSERTED.TagPath
         SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, @ready FROM @extendedQueryTags
 
     COMMIT TRANSACTION

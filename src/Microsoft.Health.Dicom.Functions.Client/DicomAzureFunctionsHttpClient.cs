@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
@@ -92,14 +93,14 @@ namespace Microsoft.Health.Dicom.Functions.Client
         }
 
         /// <inheritdoc/>
-        public async Task<Guid> StartQueryTagIndexingAsync(IReadOnlyCollection<int> tagKeys, CancellationToken cancellationToken = default)
+        public async Task<Guid> StartQueryTagIndexingAsync(IReadOnlyCollection<ExtendedQueryTagReference> tags, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNull(tagKeys, nameof(tagKeys));
-            EnsureArg.HasItems(tagKeys, nameof(tagKeys));
+            EnsureArg.IsNotNull(tags, nameof(tags));
+            EnsureArg.HasItems(tags, nameof(tags));
 
             using HttpResponseMessage response = await _client.PostAsJsonAsync(
                 _options.Routes.StartQueryTagIndexingRoute,
-                tagKeys,
+                tags,
                 _jsonSerializerOptions,
                 cancellationToken);
 

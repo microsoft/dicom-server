@@ -21,7 +21,9 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Dicom.Functions.Durable;
 using Microsoft.Health.Dicom.Functions.Extensions;
+using Microsoft.Health.Dicom.Functions.Indexing.Models;
 
 namespace Microsoft.Health.Dicom.Functions.Management
 {
@@ -92,24 +94,36 @@ namespace Microsoft.Health.Dicom.Functions.Management
 
         private static async Task<OperationStatus<string>> GetOperationStatusAsync(IDurableOrchestrationClient client, Guid instanceId)
         {
-            DurableOrchestrationStatus status = await client.GetStatusAsync(OperationId.ToString(instanceId), showInput: false);
+            DurableOrchestrationStatus status = await client.GetStatusAsync(OperationId.ToString(instanceId), showInput: true);
             if (status == null)
             {
                 return null;
             }
 
-            OperationCustomStatus customStatus = status.CustomStatus?.ToObject<OperationCustomStatus>() ?? new OperationCustomStatus();
             OperationType type = status.GetOperationType();
+            OperationProgress progress = GetOperationProgress(type, status);
             return new OperationStatus<string>
             {
                 CreatedTime = status.CreatedTime,
                 LastUpdatedTime = status.LastUpdatedTime,
                 OperationId = instanceId,
-                PercentComplete = customStatus.PercentComplete,
-                Resources = customStatus.ResourceIds,
+                PercentComplete = progress.PercentComplete,
+                Resources = progress.ResourceIds,
                 Status = status.GetOperationRuntimeStatus(),
                 Type = type,
             };
+        }
+
+        private static OperationProgress GetOperationProgress(OperationType type, DurableOrchestrationStatus status)
+        {
+            switch (type)
+            {
+                case OperationType.Reindex:
+                    ReindexInput reindexInput = status.Input?.ToObject<ReindexInput>() ?? new ReindexInput();
+                    return reindexInput.GetProgress();
+                default:
+                    return default;
+            }
         }
     }
 }

@@ -216,7 +216,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             AddExtendedQueryTagEntry extendedQueryTagEntry = tag.BuildAddExtendedQueryTagEntry();
             var list = await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry }, 128);
-            return list[0];
+            return list[0].Key;
         }
     }
 }

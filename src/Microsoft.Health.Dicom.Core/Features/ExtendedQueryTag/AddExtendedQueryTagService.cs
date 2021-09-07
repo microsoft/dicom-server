@@ -57,14 +57,14 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 .ToList();
 
             // Add the extended query tags to the DB
-            IReadOnlyList<int> addedKeys = await _extendedQueryTagStore.AddExtendedQueryTagsAsync(
+            IReadOnlyList<ExtendedQueryTagReference> addedEntries = await _extendedQueryTagStore.AddExtendedQueryTagsAsync(
                 normalized,
                 _maxAllowedCount,
                 ready: false,
                 cancellationToken: cancellationToken);
 
             // Start re-indexing
-            Guid operationId = await _client.StartQueryTagIndexingAsync(addedKeys, cancellationToken);
+            Guid operationId = await _client.StartQueryTagIndexingAsync(addedEntries, cancellationToken);
             return new AddExtendedQueryTagResponse(new OperationReference(operationId, _uriResolver.ResolveOperationStatusUri(operationId)));
         }
     }

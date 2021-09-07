@@ -16,6 +16,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Client.Configs;
@@ -180,7 +181,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
             var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), Substitute.For<IUrlResolver>(), _jsonSerializerOptions, DefaultOptions);
 
             await Assert.ThrowsAsync<ArgumentException>(
-                () => client.StartQueryTagIndexingAsync(Array.Empty<int>(), CancellationToken.None));
+                () => client.StartQueryTagIndexingAsync(Array.Empty<ExtendedQueryTagReference>(), CancellationToken.None));
 
             Assert.Equal(0, handler.SentMessages);
         }
@@ -193,8 +194,13 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
         {
             var handler = new MockMessageHandler(new HttpResponseMessage(expected));
             var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), Substitute.For<IUrlResolver>(), _jsonSerializerOptions, DefaultOptions);
+            var input = new List<ExtendedQueryTagReference>
+            {
+                new ExtendedQueryTagReference { Key = 1, Path = "01010101" },
+                new ExtendedQueryTagReference { Key = 2, Path = "02020202" },
+                new ExtendedQueryTagReference { Key = 3, Path = "03030303" },
+            };
 
-            var input = new List<int> { 1, 2, 3 };
             using var source = new CancellationTokenSource();
 
             handler.SendingAsync += (msg, token) => AssertExpectedStartAddRequestAsync(msg, input);
@@ -210,8 +216,13 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
         {
             var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.Conflict));
             var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), Substitute.For<IUrlResolver>(), _jsonSerializerOptions, DefaultOptions);
+            var input = new List<ExtendedQueryTagReference>
+            {
+                new ExtendedQueryTagReference { Key = 1, Path = "01010101" },
+                new ExtendedQueryTagReference { Key = 2, Path = "02020202" },
+                new ExtendedQueryTagReference { Key = 3, Path = "03030303" },
+            };
 
-            var input = new List<int> { 1, 2, 3 };
             using var source = new CancellationTokenSource();
 
             handler.SendingAsync += (msg, token) => AssertExpectedStartAddRequestAsync(msg, input);
@@ -226,9 +237,14 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
             var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(OperationId.ToString(expected)) };
             var handler = new MockMessageHandler(response);
             var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), Substitute.For<IUrlResolver>(), _jsonSerializerOptions, DefaultOptions);
+            var input = new List<ExtendedQueryTagReference>
+            {
+                new ExtendedQueryTagReference { Key = 1, Path = "01010101" },
+                new ExtendedQueryTagReference { Key = 2, Path = "02020202" },
+                new ExtendedQueryTagReference { Key = 3, Path = "03030303" },
+            };
 
             using var source = new CancellationTokenSource();
-            var input = new List<int> { 1, 2, 3 };
 
             handler.SendingAsync += (msg, token) => AssertExpectedStartAddRequestAsync(msg, input);
             Guid actual = await client.StartQueryTagIndexingAsync(input, source.Token);
@@ -243,7 +259,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
             Assert.Equal(MediaTypeNames.Application.Json, msg.Headers.Accept.Single().MediaType);
         }
 
-        private async Task AssertExpectedStartAddRequestAsync(HttpRequestMessage msg, IReadOnlyList<int> tags)
+        private async Task AssertExpectedStartAddRequestAsync(HttpRequestMessage msg, IReadOnlyList<ExtendedQueryTagReference> tags)
         {
             await AssertExpectedRequestAsync(msg, HttpMethod.Post, new Uri("https://dicom.core/unit/tests/Reindex"));
 

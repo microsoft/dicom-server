@@ -10,6 +10,7 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models.Operations;
@@ -31,7 +32,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
 
             IReadOnlyList<WatermarkRange> expectedBatches = CreateBatches(50);
             int expectedPercentage = (int)((double)(50 - expectedBatches[^1].Start + 1) / 50 * 100);
-            var expectedInput = new ReindexInput { QueryTagKeys = new List<int> { 1, 2, 3, 4, 5 } };
+            var expectedInput = new ReindexInput { QueryTags = CreateTagReferences(1, 2, 3, 4, 5) };
             var expectedTags = new List<ExtendedQueryTagStoreEntry>
             {
                 new ExtendedQueryTagStoreEntry(1, "01010101", "AS", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding, null),
@@ -48,7 +49,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.AssignReindexingOperationAsync),
                     _options.ActivityRetryOptions,
-                    expectedInput.QueryTagKeys)
+                    expectedInput.QueryTags)
                 .Returns(expectedTags);
             context
                 .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
@@ -75,7 +76,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.AssignReindexingOperationAsync),
                     _options.ActivityRetryOptions,
-                    expectedInput.QueryTagKeys);
+                    expectedInput.QueryTags);
             await context
                 .DidNotReceive()
                 .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
@@ -107,9 +108,6 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     Arg.Any<object>());
             context
                 .Received(1)
-                .SetCustomStatus(Arg.Is(GetCustomStatePredicate(expectedPercentage, "01010101", "02020202", "04040404")));
-            context
-                .Received(1)
                 .ContinueAsNew(
                     Arg.Is<ReindexInput>(x => GetReindexInputPredicate(expectedTags, expectedBatches, 50)(x)),
                     false);
@@ -126,7 +124,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             int expectedPercentage = (int)((double)(42 - expectedBatches[^1].Start + 1) / 42 * 100);
             var expectedInput = new ReindexInput
             {
-                QueryTagKeys = new List<int> { 1, 2, 3, 4, 5 },
+                QueryTags = CreateTagReferences(1, 2, 3, 4, 5),
                 Completed = new WatermarkRange(36, 42),
             };
             var expectedTags = new List<ExtendedQueryTagStoreEntry>
@@ -204,9 +202,6 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     Arg.Any<object>());
             context
                 .Received(1)
-                .SetCustomStatus(Arg.Is(GetCustomStatePredicate(expectedPercentage, "01010101", "02020202", "04040404")));
-            context
-                .Received(1)
                 .ContinueAsNew(
                     Arg.Is<ReindexInput>(x => GetReindexInputPredicate(expectedTags, expectedBatches, 42)(x)),
                     false);
@@ -216,13 +211,14 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         public async Task GivenNoInstances_WhenReindexingInstances_ThenComplete()
         {
             var expectedBatches = new List<WatermarkRange>();
-            var expectedInput = new ReindexInput { QueryTagKeys = new List<int> { 1, 2, 3, 4, 5 } };
+            var expectedInput = new ReindexInput { QueryTags = CreateTagReferences(1, 2, 3, 4, 5) };
             var expectedTags = new List<ExtendedQueryTagStoreEntry>
             {
                 new ExtendedQueryTagStoreEntry(1, "01010101", "AS", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding, null),
                 new ExtendedQueryTagStoreEntry(2, "02020202", "IS", "foo", QueryTagLevel.Series, ExtendedQueryTagStatus.Adding, null),
                 new ExtendedQueryTagStoreEntry(4, "04040404", "SH", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Adding, null)
             };
+            var expectedTagReferences = expectedTags.Select(x => x.ToReference()).ToList();
 
             // Arrange the input
             IDurableOrchestrationContext context = CreateContext();
@@ -233,7 +229,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.AssignReindexingOperationAsync),
                     _options.ActivityRetryOptions,
-                    expectedInput.QueryTagKeys)
+                    expectedInput.QueryTags)
                 .Returns(expectedTags);
             context
                 .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
@@ -260,7 +256,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.AssignReindexingOperationAsync),
                     _options.ActivityRetryOptions,
-                    expectedInput.QueryTagKeys);
+                    expectedInput.QueryTags);
             await context
                 .DidNotReceive()
                 .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
@@ -281,13 +277,10 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     Arg.Any<object>());
             await context
                 .Received(1)
-                .CallActivityWithRetryAsync<IReadOnlyList<int>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagReference>>(
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
                     _options.ActivityRetryOptions,
-                    Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedTags.Select(x => x.Key))));
-            context
-                .Received(1)
-                .SetCustomStatus(Arg.Is(GetCustomStatePredicate(100, "01010101", "02020202", "04040404")));
+                    Arg.Is<IReadOnlyList<ExtendedQueryTagReference>>(x => x.SequenceEqual(expectedTagReferences)));
             context
                 .DidNotReceiveWithAnyArgs()
                 .ContinueAsNew(default, default);
@@ -299,7 +292,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             var expectedBatches = new List<WatermarkRange>();
             var expectedInput = new ReindexInput
             {
-                QueryTagKeys = new List<int> { 1, 2, 3, 4, 5 },
+                QueryTags = CreateTagReferences(1, 2, 3, 4, 5),
                 Completed = new WatermarkRange(5, 1000),
             };
             var expectedTags = new List<ExtendedQueryTagStoreEntry>
@@ -308,6 +301,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 new ExtendedQueryTagStoreEntry(2, "02020202", "IS", "foo", QueryTagLevel.Series, ExtendedQueryTagStatus.Adding, null),
                 new ExtendedQueryTagStoreEntry(4, "04040404", "SH", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Adding, null)
             };
+            var expectedTagReferences = expectedTags.Select(x => x.ToReference()).ToList();
 
             // Arrange the input
             IDurableOrchestrationContext context = CreateContext();
@@ -327,11 +321,11 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     4L)
                 .Returns(expectedBatches);
             context
-                .CallActivityWithRetryAsync<IReadOnlyList<int>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagReference>>(
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
                     _options.ActivityRetryOptions,
-                    Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedTags.Select(x => x.Key))))
-                .Returns(expectedTags.Select(x => x.Key).ToList());
+                    Arg.Is<IReadOnlyList<ExtendedQueryTagReference>>(x => x.SequenceEqual(expectedTagReferences)))
+                .Returns(expectedTagReferences);
 
             // Invoke the orchestration
             await _reindexDurableFunction.ReindexInstancesAsync(context, NullLogger.Instance);
@@ -366,13 +360,10 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     Arg.Any<object>());
             await context
                 .Received(1)
-                .CallActivityWithRetryAsync<IReadOnlyList<int>>(
+                .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagReference>>(
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
                     _options.ActivityRetryOptions,
-                    Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedTags.Select(x => x.Key))));
-            context
-                .Received(1)
-                .SetCustomStatus(Arg.Is(GetCustomStatePredicate(100, "01010101", "02020202", "04040404")));
+                    Arg.Is<IReadOnlyList<ExtendedQueryTagReference>>(x => x.SequenceEqual(expectedTagReferences)));
             context
                 .DidNotReceiveWithAnyArgs()
                 .ContinueAsNew(default, default);
@@ -381,7 +372,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         [Fact]
         public async Task GivenNoQueryTags_WhenReindexingInstances_ThenComplete()
         {
-            var expectedInput = new ReindexInput { QueryTagKeys = new List<int> { 1, 2, 3, 4, 5 } };
+            var expectedInput = new ReindexInput { QueryTags = CreateTagReferences(1, 2, 3, 4, 5) };
             var expectedTags = new List<ExtendedQueryTagStoreEntry>();
 
             // Arrange the input
@@ -393,7 +384,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.AssignReindexingOperationAsync),
                     _options.ActivityRetryOptions,
-                    expectedInput.QueryTagKeys)
+                    expectedInput.QueryTags)
                 .Returns(expectedTags);
 
             // Invoke the orchestration
@@ -408,7 +399,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(ReindexDurableFunction.AssignReindexingOperationAsync),
                     _options.ActivityRetryOptions,
-                    expectedInput.QueryTagKeys);
+                    expectedInput.QueryTags);
             await context
                 .DidNotReceive()
                 .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
@@ -433,9 +424,6 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
                     _options.ActivityRetryOptions,
                     Arg.Any<object>());
-            context
-                .Received(1)
-                .SetCustomStatus(Arg.Is(GetCustomStatePredicate(100)));
             context
                 .DidNotReceiveWithAnyArgs()
                 .ContinueAsNew(default, default);
@@ -462,6 +450,9 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             return batches;
         }
 
+        private IReadOnlyList<ExtendedQueryTagReference> CreateTagReferences(params int[] keys)
+            => keys.Select(x => new ExtendedQueryTagReference { Key = x, Path = $"{x:D2}{x:D2}{x:D2}{x:D2}" }).ToList();
+
         private static Expression<Predicate<ReindexBatch>> GetReindexBatchPredicate(
             IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags,
             WatermarkRange expected)
@@ -476,7 +467,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             long end)
         {
             return x => x is ReindexInput r
-                && r.QueryTagKeys.SequenceEqual(queryTags.Select(y => y.Key))
+                && r.QueryTags.SequenceEqual(queryTags.Select(y => y.ToReference()))
                 && r.Completed == new WatermarkRange(expectedBatches[expectedBatches.Count - 1].Start, end);
         }
 

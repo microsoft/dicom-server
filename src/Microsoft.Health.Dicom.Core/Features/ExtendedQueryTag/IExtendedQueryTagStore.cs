@@ -26,10 +26,10 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// </param>
         /// <returns>
         /// A task representing the asynchronous add operation. The value of its <see cref="Task{TResult}.Result"/>
-        /// property contains the keys for the <paramref name="extendedQueryTagEntries"/> in the store.
+        /// property contains the newly added entries in the store.
         /// </returns>
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-        Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(
+        Task<IReadOnlyList<ExtendedQueryTagReference>> AddExtendedQueryTagsAsync(
             IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries,
             int maxAllowedCount,
             bool ready = false,
@@ -42,14 +42,6 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Extended Query tag entry/entries with path, VR, level and status.</returns>
         Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(string path = null, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Asynchronously gets extended query tags by keys.
-        /// </summary>
-        /// <param name="tagKeys">The tag keys.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The task.</returns>
-        Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(IReadOnlyList<int> tagKeys, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously gets extended query tags assigned to the <paramref name="operationId"/>.

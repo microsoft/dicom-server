@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
@@ -26,7 +27,8 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         public async Task GivenTagKeys_WhenAssigningReindexingOperation_ThenShouldPassArguments()
         {
             Guid operationId = Guid.NewGuid();
-            var expectedInput = new List<int> { 1, 2, 3, 4, 5 };
+            var expectedInput = CreateTagReferences(1, 2, 3, 4, 5);
+            var expectedStoreInput = expectedInput.Select(x => x.Key).ToList();
             var expectedOutput = new List<ExtendedQueryTagStoreEntry>
             {
                 new ExtendedQueryTagStoreEntry(1, "01010101", "AS", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding, null)
@@ -35,10 +37,14 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             // Arrange input
             IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
             context.InstanceId.Returns(OperationId.ToString(operationId));
-            context.GetInput<IReadOnlyList<int>>().Returns(expectedInput);
+            context.GetInput<IReadOnlyList<ExtendedQueryTagReference>>().Returns(expectedInput);
 
             _extendedQueryTagStore
-                .AssignReindexingOperationAsync(expectedInput, operationId, false, CancellationToken.None)
+                .AssignReindexingOperationAsync(
+                    Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedStoreInput)),
+                    operationId,
+                    false,
+                    CancellationToken.None)
                 .Returns(expectedOutput);
 
             // Call the activity
@@ -48,10 +54,14 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
 
             // Assert behavior
             Assert.Same(expectedOutput, actual);
-            context.Received(1).GetInput<IReadOnlyList<int>>();
+            context.Received(1).GetInput<IReadOnlyList<ExtendedQueryTagReference>>();
             await _extendedQueryTagStore
                 .Received(1)
-                .AssignReindexingOperationAsync(expectedInput, operationId, false, CancellationToken.None);
+                .AssignReindexingOperationAsync(
+                    Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedStoreInput)),
+                    operationId,
+                    false,
+                    CancellationToken.None);
         }
 
         [Fact]
@@ -172,29 +182,31 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
         public async Task GivenTagKeys_WhenCompletingReindexing_ThenShouldPassArguments()
         {
             string operationId = Guid.NewGuid().ToString();
-            var expectedInput = new List<int> { 1, 2, 3, 4, 5 };
-            var expectedOutput = new List<int> { 1, 2, 4, 5 };
+            var expectedInput = CreateTagReferences(1, 2, 3, 4, 5);
+            var expectedOutput = CreateTagReferences(1, 2, 4, 5);
+            var expectedStoreInput = expectedInput.Select(x => x.Key).ToList();
+            var expectedStoreOutput = expectedOutput.Select(x => x.Key).ToList();
 
             // Arrange input
             IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
             context.InstanceId.Returns(operationId);
-            context.GetInput<IReadOnlyList<int>>().Returns(expectedInput);
+            context.GetInput<IReadOnlyList<ExtendedQueryTagReference>>().Returns(expectedInput);
 
             _extendedQueryTagStore
-                .CompleteReindexingAsync(expectedInput, CancellationToken.None)
-                .Returns(expectedOutput);
+                .CompleteReindexingAsync(Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedStoreInput)), CancellationToken.None)
+                .Returns(expectedStoreOutput);
 
             // Call the activity
-            IReadOnlyList<int> actual = await _reindexDurableFunction.CompleteReindexingAsync(
+            IReadOnlyList<ExtendedQueryTagReference> actual = await _reindexDurableFunction.CompleteReindexingAsync(
                 context,
                 NullLogger.Instance);
 
             // Assert behavior
-            Assert.Same(expectedOutput, actual);
-            context.Received(1).GetInput<IReadOnlyList<int>>();
+            Assert.True(actual.SequenceEqual(expectedOutput));
+            context.Received(1).GetInput<IReadOnlyList<ExtendedQueryTagReference>>();
             await _extendedQueryTagStore
                 .Received(1)
-                .CompleteReindexingAsync(expectedInput, CancellationToken.None);
+                .CompleteReindexingAsync(Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedStoreInput)), CancellationToken.None);
         }
     }
 }

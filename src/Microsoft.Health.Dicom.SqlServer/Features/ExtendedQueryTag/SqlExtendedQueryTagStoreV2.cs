@@ -42,7 +42,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         protected ILogger Logger { get; }
 
-        public override async Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(
+        public override async Task<IReadOnlyList<ExtendedQueryTagReference>> AddExtendedQueryTagsAsync(
             IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries,
             int maxCount,
             bool ready = false,
@@ -64,10 +64,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 {
                     await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
                     var allTags = (await GetExtendedQueryTagsAsync(path: null, cancellationToken: cancellationToken))
-                        .ToDictionary(x => x.Path, x => x.Key);
+                        .ToDictionary(x => x.Path);
 
                     return extendedQueryTagEntries
                         .Select(x => allTags[x.Path])
+                        .Select(x => new ExtendedQueryTagReference { Key = x.Key, Path = x.Path })
                         .ToList();
                 }
                 catch (SqlException ex)

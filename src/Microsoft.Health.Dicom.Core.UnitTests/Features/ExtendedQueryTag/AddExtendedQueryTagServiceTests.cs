@@ -12,6 +12,7 @@ using Dicom;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Routing;
@@ -70,6 +71,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             DicomTag tag = DicomTag.DeviceSerialNumber;
             AddExtendedQueryTagEntry entry = tag.BuildAddExtendedQueryTagEntry();
             ExtendedQueryTagStoreEntry storeEntry = tag.BuildExtendedQueryTagStoreEntry();
+            ExtendedQueryTagReference reference = storeEntry.ToReference();
 
             var input = new AddExtendedQueryTagEntry[] { entry };
             Guid expectedOperationId = Guid.NewGuid();
@@ -80,10 +82,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
                     Arg.Is(128),
                     Arg.Is(false),
                     Arg.Is(_tokenSource.Token))
-                .Returns(new List<int> { storeEntry.Key });
+                .Returns(new List<ExtendedQueryTagReference> { reference });
             _client
                 .StartQueryTagIndexingAsync(
-                    Arg.Is<IReadOnlyList<int>>(x => x.Single() == storeEntry.Key),
+                    Arg.Is<IReadOnlyList<ExtendedQueryTagReference>>(x => x.Single() == reference),
                     Arg.Is(_tokenSource.Token))
                 .Returns(expectedOperationId);
             _urlResolver
@@ -105,7 +107,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             await _client
                 .Received(1)
                 .StartQueryTagIndexingAsync(
-                    Arg.Is<IReadOnlyList<int>>(x => x.Single() == storeEntry.Key),
+                    Arg.Is<IReadOnlyList<ExtendedQueryTagReference>>(x => x.Single() == reference),
                     Arg.Is(_tokenSource.Token));
             _urlResolver.Received(1).ResolveOperationStatusUri(expectedOperationId);
         }

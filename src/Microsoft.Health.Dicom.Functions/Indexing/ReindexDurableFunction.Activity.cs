@@ -43,14 +43,14 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            IReadOnlyList<int> tagKeys = context.GetInput<IReadOnlyList<int>>();
-            logger.LogInformation("Assigning {Count} query tags to operation ID '{OperationId}': {{{TagKeys}}}",
-                tagKeys.Count,
+            IReadOnlyList<ExtendedQueryTagReference> queryTags = context.GetInput<IReadOnlyList<ExtendedQueryTagReference>>();
+            logger.LogInformation("Assigning {Count} query tags to operation ID '{OperationId}': {{{QueryTags}}}",
+                queryTags.Count,
                 context.InstanceId,
-                string.Join(", ", tagKeys));
+                string.Join(", ", queryTags.Select(x => x.Path)));
 
             return _extendedQueryTagStore.AssignReindexingOperationAsync(
-                tagKeys,
+                queryTags.Select(x => x.Key).ToList(),
                 context.GetInstanceGuid(),
                 returnIfCompleted: false,
                 cancellationToken: CancellationToken.None);
@@ -128,7 +128,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             EnsureArg.IsNotNull(batch, nameof(batch));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            logger.LogInformation("Re-indexing instances in the range {Range} for the {TagCount} query tags {{{Tags}}}",
+            logger.LogInformation("Re-indexing instances in the range {Range} for the {TagCount} query tags {{{QueryTags}}}",
                 batch.WatermarkRange,
                 batch.QueryTags.Count,
                 string.Join(", ", batch.QueryTags.Select(x => x.Path)));
@@ -159,20 +159,22 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// whose re-indexing should be considered completed.
         /// </returns>
         [FunctionName(nameof(CompleteReindexingAsync))]
-        public Task<IReadOnlyList<int>> CompleteReindexingAsync(
+        public async Task<IReadOnlyList<ExtendedQueryTagReference>> CompleteReindexingAsync(
             [ActivityTrigger] IDurableActivityContext context,
             ILogger logger)
         {
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            IReadOnlyList<int> tagKeys = context.GetInput<IReadOnlyList<int>>();
-            logger.LogInformation("Completing the re-indexing operation {OperationId} for {Count} query tags {{{TagKeys}}}",
+            IReadOnlyList<ExtendedQueryTagReference> queryTags = context.GetInput<IReadOnlyList<ExtendedQueryTagReference>>();
+            logger.LogInformation("Completing the re-indexing operation {OperationId} for {Count} query tags {{{QueryTags}}}",
                 context.InstanceId,
-                tagKeys.Count,
-                string.Join(", ", tagKeys));
+                queryTags.Count,
+                string.Join(", ", queryTags.Select(x => x.Path)));
 
-            return _extendedQueryTagStore.CompleteReindexingAsync(tagKeys, CancellationToken.None);
+            Dictionary<int, ExtendedQueryTagReference> queryTagMap = queryTags.ToDictionary(x => x.Key);
+            IReadOnlyList<int> completed = await _extendedQueryTagStore.CompleteReindexingAsync(queryTags.Select(x => x.Key).ToList(), CancellationToken.None);
+            return completed.Select(x => queryTagMap[x]).ToList();
         }
     }
 }
