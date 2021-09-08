@@ -8,6 +8,7 @@ using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -211,6 +212,33 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             catch (SqlException ex)
             {
                 throw new DataStoreException(ex);
+            }
+        }
+
+        public override async Task UpdateExtendedQueryTagQueryStatusAsync(string tagPath, QueryTagQueryStatus queryStatus, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(tagPath, nameof(tagPath));
+            EnsureArg.EnumIsDefined(queryStatus, nameof(queryStatus));
+
+            using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
+            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
+
+            VLatest.UpdateExtendedQueryTagQueryStatus.PopulateCommand(sqlCommandWrapper, tagPath, (byte)queryStatus);
+
+            try
+            {
+                await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
+            }
+            catch (SqlException ex)
+            {
+                throw ex.Number switch
+                {
+                    SqlErrorCodes.NotFound => new ExtendedQueryTagNotFoundException(string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.ExtendedQueryTagNotFound, tagPath)),
+                    SqlErrorCodes.Conflict => ex.State == 1 ?
+                    new ExtendedQueryTagBusyException(string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.ExtendedQueryTagIsBusy, tagPath)) :
+                    new ExtendedQueryTagInRequestedQueryStatusException(tagPath, queryStatus),
+                    _ => new DataStoreException(ex),
+                };
             }
         }
 

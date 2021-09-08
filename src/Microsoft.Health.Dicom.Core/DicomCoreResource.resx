@@ -397,4 +397,8 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="SimpleErrorMessageUnexpectedVR" xml:space="preserve">
     <value>The extended query tag VR is not expected.</value>
   </data>
+  <data name="ExtendedQueryTagInRequestedQueryStatus" xml:space="preserve">
+    <value>The Extended query  tag '{0}' is already in requested query status '{1}'.</value>
+    <comment>{0} tag path. {1} requested query status.</comment>
+  </data>
 </root>

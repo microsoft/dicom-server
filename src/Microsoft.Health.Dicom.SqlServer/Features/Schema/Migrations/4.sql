@@ -1747,6 +1747,45 @@ AS
     COMMIT TRANSACTION
 GO
 
+CREATE PROCEDURE dbo.UpdateExtendedQueryTagQueryStatus (
+    @tagPath VARCHAR(64),
+    @queryStatus TINYINT
+)
+AS
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    BEGIN TRANSACTION
+
+        DECLARE @tagKey INT
+        DECLARE @currentQueryStatus TINYINT
+        DECLARE @currentTagStatus TINYINT
+
+        -- Check if tag exists
+        SELECT @tagKey = TagKey, @currentQueryStatus = QueryStatus , @currentTagStatus = TagStatus
+        FROM dbo.ExtendedQueryTag WITH (HOLDLOCK)
+        WHERE TagPath = @tagPath
+
+        IF @@ROWCOUNT = 0
+            THROW 50404, 'extended query tag is not found', 1
+
+        -- Check if tag is in Ready status
+        -- 0 - Adding, 1 - Ready, 2 - Deleting
+        IF @currentTagStatus <> 1
+            THROW 50409, 'extended query tag is not ready', 1
+
+        -- Check if tag queryStatus is same as input
+        IF @currentQueryStatus = @queryStatus
+            THROW 50409, 'extended query tag is in required status already', 2
+
+        -- Update QueryStatus
+        UPDATE dbo.ExtendedQueryTag
+        SET QueryStatus = @queryStatus
+        WHERE TagKey = @tagKey 
+
+    COMMIT TRANSACTION
+GO
+
 /***************************************************************************************/
 -- STORED PROCEDURE
 --     AddExtendedQueryTagError
@@ -1765,7 +1804,7 @@ GO
 -- RETURN VALUE
 --     The tag key of the error added.
 /***************************************************************************************/
-CREATE PROCEDURE dbo.AddExtendedQueryTagError (
+CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTagError (
     @tagKey INT,
     @errorMessage NVARCHAR(128),
     @watermark BIGINT
@@ -1819,63 +1858,6 @@ GO
 --         * the data type of extended query tag. 0 -- String, 1 -- Long, 2 -- Double, 3 -- DateTime, 4 -- PersonName
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.DeleteExtendedQueryTag (
-    @tagPath VARCHAR(64),
-    @dataType TINYINT
-)
-AS
-
-    SET NOCOUNT     ON
-    SET XACT_ABORT  ON
-
-    BEGIN TRANSACTION
-        
-        DECLARE @tagStatus TINYINT
-        DECLARE @tagKey INT
- 
-        SELECT @tagKey = TagKey, @tagStatus = TagStatus
-        FROM dbo.ExtendedQueryTag WITH(XLOCK)
-        WHERE dbo.ExtendedQueryTag.TagPath = @tagPath
-
-        -- Check existence
-        IF @@ROWCOUNT = 0
-            THROW 50404, 'extended query tag not found', 1
-
-        -- check if status is Ready or Adding
-        IF @tagStatus = 2
-            THROW 50412, 'extended query tag is not in Ready or Adding status', 1
-
-        -- Update status to Deleting
-        UPDATE dbo.ExtendedQueryTag
-        SET TagStatus = 2
-        WHERE dbo.ExtendedQueryTag.TagKey = @tagKey
-
-    COMMIT TRANSACTION
-
-    BEGIN TRANSACTION
-
-        -- Delete index data
-        IF @dataType = 0
-            DELETE FROM dbo.ExtendedQueryTagString WHERE TagKey = @tagKey
-        ELSE IF @dataType = 1
-            DELETE FROM dbo.ExtendedQueryTagLong WHERE TagKey = @tagKey
-        ELSE IF @dataType = 2
-            DELETE FROM dbo.ExtendedQueryTagDouble WHERE TagKey = @tagKey
-        ELSE IF @dataType = 3
-            DELETE FROM dbo.ExtendedQueryTagDateTime WHERE TagKey = @tagKey
-        ELSE
-            DELETE FROM dbo.ExtendedQueryTagPersonName WHERE TagKey = @tagKey
-
-        -- Delete tag
-        DELETE FROM dbo.ExtendedQueryTag 
-        WHERE TagKey = @tagKey
-
-        DELETE FROM dbo.ExtendedQueryTagError
-        WHERE TagKey = @tagKey
-
-    COMMIT TRANSACTION
-GO
-
-CREATE OR ALTER PROCEDURE dbo.UpdateExtendedQueryTagQueryState (
     @tagPath VARCHAR(64),
     @dataType TINYINT
 )

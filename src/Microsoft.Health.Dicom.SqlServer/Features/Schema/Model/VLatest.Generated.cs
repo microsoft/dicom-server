@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static IncrementDeletedInstanceRetryProcedure IncrementDeletedInstanceRetry = new IncrementDeletedInstanceRetryProcedure();
         internal readonly static ReindexInstanceProcedure ReindexInstance = new ReindexInstanceProcedure();
         internal readonly static RetrieveDeletedInstanceProcedure RetrieveDeletedInstance = new RetrieveDeletedInstanceProcedure();
-        internal readonly static UpdateExtendedQueryTagQueryStateProcedure UpdateExtendedQueryTagQueryState = new UpdateExtendedQueryTagQueryStateProcedure();
+        internal readonly static UpdateExtendedQueryTagQueryStatusProcedure UpdateExtendedQueryTagQueryStatus = new UpdateExtendedQueryTagQueryStatusProcedure();
         internal readonly static UpdateInstanceStatusProcedure UpdateInstanceStatus = new UpdateInstanceStatusProcedure();
 
         internal class ChangeFeedTable : Table
@@ -865,21 +865,21 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class UpdateExtendedQueryTagQueryStateProcedure : StoredProcedure
+        internal class UpdateExtendedQueryTagQueryStatusProcedure : StoredProcedure
         {
-            internal UpdateExtendedQueryTagQueryStateProcedure() : base("dbo.UpdateExtendedQueryTagQueryState")
+            internal UpdateExtendedQueryTagQueryStatusProcedure() : base("dbo.UpdateExtendedQueryTagQueryStatus")
             {
             }
 
             private readonly ParameterDefinition<System.String> _tagPath = new ParameterDefinition<System.String>("@tagPath", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.Byte> _dataType = new ParameterDefinition<System.Byte>("@dataType", global::System.Data.SqlDbType.TinyInt, false);
+            private readonly ParameterDefinition<System.Byte> _queryStatus = new ParameterDefinition<System.Byte>("@queryStatus", global::System.Data.SqlDbType.TinyInt, false);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath, System.Byte dataType)
+            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath, System.Byte queryStatus)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.UpdateExtendedQueryTagQueryState";
+                command.CommandText = "dbo.UpdateExtendedQueryTagQueryStatus";
                 _tagPath.AddParameter(command.Parameters, tagPath);
-                _dataType.AddParameter(command.Parameters, dataType);
+                _queryStatus.AddParameter(command.Parameters, queryStatus);
             }
         }
 
