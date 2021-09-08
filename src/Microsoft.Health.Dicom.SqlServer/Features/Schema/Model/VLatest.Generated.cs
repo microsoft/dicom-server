@@ -95,6 +95,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
             internal readonly TinyIntColumn TagStatus = new TinyIntColumn("TagStatus");
             internal readonly TimestampColumn TagVersion = new TimestampColumn("TagVersion");
+            internal readonly BitColumn DisableQuery = new BitColumn("DisableQuery");
             internal readonly Index IXC_ExtendedQueryTag = new Index("IXC_ExtendedQueryTag");
             internal readonly Index IX_ExtendedQueryTag_TagPath = new Index("IX_ExtendedQueryTag_TagPath");
         }

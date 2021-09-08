@@ -380,6 +380,7 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopIn
     TagPrivateCreator is identification code of private tag implementer, only apply to private tag.
     TagStatus can be 0, 1 or 2 to represent Adding, Ready or Deleting.
     TagVersion is version of the tag. Nullable for backward compatibility.
+    DisableQuery represents whether the tag is disabled on query.
 **************************************************************/
 CREATE TABLE dbo.ExtendedQueryTag (
     TagKey                  INT                  NOT NULL, --PK
@@ -388,7 +389,8 @@ CREATE TABLE dbo.ExtendedQueryTag (
     TagPrivateCreator       NVARCHAR(64)         NULL, 
     TagLevel                TINYINT              NOT NULL,
     TagStatus               TINYINT              NOT NULL,
-    TagVersion              ROWVERSION           NOT NULL
+    TagVersion              ROWVERSION           NOT NULL,
+    DisableQuery            BIT                  NOT NULL,
 )
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag

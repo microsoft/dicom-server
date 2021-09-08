@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     /// </summary>
     public class ExtendedQueryTagStoreEntry : ExtendedQueryTagEntry
     {
-        public ExtendedQueryTagStoreEntry(int key, string path, string vr, string privateCreator, QueryTagLevel level, ExtendedQueryTagStatus status, ulong? version)
+        public ExtendedQueryTagStoreEntry(int key, string path, string vr, string privateCreator, QueryTagLevel level, ExtendedQueryTagStatus status, ulong? version, bool disableQuery)
         {
             Key = key;
             Path = EnsureArg.IsNotNullOrWhiteSpace(path);
@@ -21,6 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             Level = level;
             Status = status;
             Version = version;
+            DisableQuery = disableQuery;
         }
 
         /// <summary>
@@ -44,17 +45,17 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         public ulong? Version { get; }
 
         /// <summary>
+        /// True to disable query on this tag, false otherwise.
+        /// </summary>
+        public bool DisableQuery { get; }
+
+        /// <summary>
         /// Convert to  <see cref="GetExtendedQueryTagEntry"/>.
         /// </summary>
         /// <returns>The extended query tag entry.</returns>
         public GetExtendedQueryTagEntry ToExtendedQueryTagEntry()
         {
             return new GetExtendedQueryTagEntry { Path = Path, VR = VR, PrivateCreator = PrivateCreator, Level = Level, Status = Status };
-        }
-
-        public override string ToString()
-        {
-            return $"Key: {Key}, Path: {Path}, VR:{VR}, PrivateCreator:{PrivateCreator}, Level:{Level}, Status:{Status}";
         }
     }
 }
