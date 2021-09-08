@@ -1596,7 +1596,8 @@ BEGIN
             TagPrivateCreator,
             TagLevel,
             TagStatus,
-            TagVersion
+            TagVersion,
+            QueryStatus
     FROM    dbo.ExtendedQueryTag
     WHERE   TagPath                 = ISNULL(@tagPath, TagPath)
 END

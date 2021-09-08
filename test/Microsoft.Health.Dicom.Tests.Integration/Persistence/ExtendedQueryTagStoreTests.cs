@@ -239,6 +239,50 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.True((await _extendedQueryTagStore.CompleteReindexingAsync(expectedKeys)).SequenceEqual(expectedKeys));
         }
 
+        [Fact]
+        public async Task GivenNotExistingTag_WhenUpdateTagQueryStatus_ThenShouldThrowException()
+        {
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+            await _extendedQueryTagStore.UpdateExtendedQueryTagQueryStatusAsync(tag.GetPath(), QueryTagQueryStatus.Enabled);
+        }
+
+        [Fact]
+        public async Task GivenReindexingTag_WhenUpdateTagQueryStatus_ThenShouldThrowException()
+        {
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+            await AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { tag.BuildAddExtendedQueryTagEntry() }, ready: false);
+            await _extendedQueryTagStore.UpdateExtendedQueryTagQueryStatusAsync(tag.GetPath(), QueryTagQueryStatus.Enabled);
+        }
+
+        [Fact]
+        public async Task GivenTagInRequestedQueryStatus_WhenUpdateTagQueryStatus_ThenShouldThrowException()
+        {
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+            await AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { tag.BuildAddExtendedQueryTagEntry() }, ready: true);
+            // by default it's enabled
+            await _extendedQueryTagStore.UpdateExtendedQueryTagQueryStatusAsync(tag.GetPath(), QueryTagQueryStatus.Enabled);
+        }
+
+        [Fact]
+        public async Task GivenTagNotInRequestedQueryStatus_WhenUpdateTagQueryStatus_ThenShouldSucceed()
+        {
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+            await AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { tag.BuildAddExtendedQueryTagEntry() }, ready: true);
+            await _extendedQueryTagStore.UpdateExtendedQueryTagQueryStatusAsync(tag.GetPath(), QueryTagQueryStatus.Disabled);
+            await _extendedQueryTagStore.UpdateExtendedQueryTagQueryStatusAsync(tag.GetPath(), QueryTagQueryStatus.Enabled);
+        }
+
+
+        [Fact]
+        public async Task GivenValidExtendedQueryTag_WhenAddExtendedQueryTag_ThenTagQueryStatusShouldBeEnabled()
+        {
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+            AddExtendedQueryTagEntry extendedQueryTagEntry = tag.BuildAddExtendedQueryTagEntry();
+            await AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry });
+            var tagEntries = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(tag.GetPath());
+            Assert.Equal(QueryTagQueryStatus.Enabled, tagEntries[0].QueryStatus);
+        }
+
         private async Task VerifyTagIsAdded(int key, AddExtendedQueryTagEntry extendedQueryTagEntry, ExtendedQueryTagStatus status = ExtendedQueryTagStatus.Ready)
         {
             var actualExtendedQueryTagEntries = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(extendedQueryTagEntry.Path);
