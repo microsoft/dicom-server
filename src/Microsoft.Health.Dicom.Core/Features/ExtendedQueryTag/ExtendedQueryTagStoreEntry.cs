@@ -12,16 +12,16 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     /// </summary>
     public class ExtendedQueryTagStoreEntry : ExtendedQueryTagEntry
     {
-        public ExtendedQueryTagStoreEntry(int key, string path, string vr, string privateCreator, QueryTagLevel level, ExtendedQueryTagStatus status, ulong? version, bool disableQuery)
+        public ExtendedQueryTagStoreEntry(int key, string path, string vr, string privateCreator, QueryTagLevel level, ExtendedQueryTagStatus status, ulong? version, QueryTagQueryStatus queryStatus)
         {
             Key = key;
             Path = EnsureArg.IsNotNullOrWhiteSpace(path);
             VR = EnsureArg.IsNotNullOrWhiteSpace(vr);
             PrivateCreator = privateCreator;
-            Level = level;
-            Status = status;
+            Level = EnsureArg.EnumIsDefined(level);
+            Status = EnsureArg.EnumIsDefined(status);
             Version = version;
-            DisableQuery = disableQuery;
+            QueryStatus = EnsureArg.EnumIsDefined(queryStatus);
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <summary>
         /// True to disable query on this tag, false otherwise.
         /// </summary>
-        public bool DisableQuery { get; }
+        public QueryTagQueryStatus QueryStatus { get; }
 
         /// <summary>
         /// Convert to  <see cref="GetExtendedQueryTagEntry"/>.

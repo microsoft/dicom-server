@@ -380,7 +380,7 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopIn
     TagPrivateCreator is identification code of private tag implementer, only apply to private tag.
     TagStatus can be 0, 1 or 2 to represent Adding, Ready or Deleting.
     TagVersion is version of the tag. Nullable for backward compatibility.
-    DisableQuery represents whether the tag is disabled on query.
+    QueryStatus can be 0, or 1 to represent Disabled or Enabled.
 **************************************************************/
 CREATE TABLE dbo.ExtendedQueryTag (
     TagKey                  INT                  NOT NULL, --PK
@@ -390,7 +390,7 @@ CREATE TABLE dbo.ExtendedQueryTag (
     TagLevel                TINYINT              NOT NULL,
     TagStatus               TINYINT              NOT NULL,
     TagVersion              ROWVERSION           NOT NULL,
-    DisableQuery            BIT                  NOT NULL,
+    QueryStatus             TINYINT              DEFAULT 1 NOT NULL,
 )
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
@@ -1785,10 +1785,10 @@ AS
         IF NOT EXISTS (SELECT * FROM dbo.ExtendedQueryTag WITH (HOLDLOCK) WHERE TagKey = @tagKey AND TagStatus = 0)
             THROW 50404, 'Tag does not exist or is not being added.', 1;
 
-        -- DisableQuery on the tag
+        -- Disable query on the tag
         UPDATE dbo.ExtendedQueryTag
-        SET DisableQuery = 1
-        WHERE TagKey = @tagKey AND DisableQuery = 0
+        SET QueryStatus = 0
+        WHERE TagKey = @tagKey AND QueryStatus = 1
 
         -- Add error
         MERGE dbo.ExtendedQueryTagError WITH (HOLDLOCK) as XQTE
@@ -1819,6 +1819,63 @@ GO
 --         * the data type of extended query tag. 0 -- String, 1 -- Long, 2 -- Double, 3 -- DateTime, 4 -- PersonName
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.DeleteExtendedQueryTag (
+    @tagPath VARCHAR(64),
+    @dataType TINYINT
+)
+AS
+
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    BEGIN TRANSACTION
+        
+        DECLARE @tagStatus TINYINT
+        DECLARE @tagKey INT
+ 
+        SELECT @tagKey = TagKey, @tagStatus = TagStatus
+        FROM dbo.ExtendedQueryTag WITH(XLOCK)
+        WHERE dbo.ExtendedQueryTag.TagPath = @tagPath
+
+        -- Check existence
+        IF @@ROWCOUNT = 0
+            THROW 50404, 'extended query tag not found', 1
+
+        -- check if status is Ready or Adding
+        IF @tagStatus = 2
+            THROW 50412, 'extended query tag is not in Ready or Adding status', 1
+
+        -- Update status to Deleting
+        UPDATE dbo.ExtendedQueryTag
+        SET TagStatus = 2
+        WHERE dbo.ExtendedQueryTag.TagKey = @tagKey
+
+    COMMIT TRANSACTION
+
+    BEGIN TRANSACTION
+
+        -- Delete index data
+        IF @dataType = 0
+            DELETE FROM dbo.ExtendedQueryTagString WHERE TagKey = @tagKey
+        ELSE IF @dataType = 1
+            DELETE FROM dbo.ExtendedQueryTagLong WHERE TagKey = @tagKey
+        ELSE IF @dataType = 2
+            DELETE FROM dbo.ExtendedQueryTagDouble WHERE TagKey = @tagKey
+        ELSE IF @dataType = 3
+            DELETE FROM dbo.ExtendedQueryTagDateTime WHERE TagKey = @tagKey
+        ELSE
+            DELETE FROM dbo.ExtendedQueryTagPersonName WHERE TagKey = @tagKey
+
+        -- Delete tag
+        DELETE FROM dbo.ExtendedQueryTag 
+        WHERE TagKey = @tagKey
+
+        DELETE FROM dbo.ExtendedQueryTagError
+        WHERE TagKey = @tagKey
+
+    COMMIT TRANSACTION
+GO
+
+CREATE OR ALTER PROCEDURE dbo.UpdateExtendedQueryTagQueryState (
     @tagPath VARCHAR(64),
     @dataType TINYINT
 )

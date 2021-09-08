@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Extensions
 
         public static ExtendedQueryTagStoreEntry BuildExtendedQueryTagStoreEntry(this DicomTag tag, int key = 1, string vr = null, string privateCreator = null, QueryTagLevel level = QueryTagLevel.Series, ExtendedQueryTagStatus status = ExtendedQueryTagStatus.Ready, ulong? version = null)
         {
-            return new ExtendedQueryTagStoreEntry(key: key, path: tag.GetPath(), vr: vr ?? tag.GetDefaultVR().Code, privateCreator: privateCreator, level: level, status: status, version: version, disableQuery: false);
+            return new ExtendedQueryTagStoreEntry(key: key, path: tag.GetPath(), vr: vr ?? tag.GetDefaultVR().Code, privateCreator: privateCreator, level: level, status: status, version: version, queryStatus: QueryTagQueryStatus.Enabled);
         }
     }
 }

@@ -24,9 +24,9 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Extensions
         public void GivenMultipleEntries_WhenGetMaxVersion_ShouldReturnMaxOne()
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
-            ExtendedQueryTagStoreEntry entry0 = new ExtendedQueryTagStoreEntry(1, tag.GetPath(), tag.GetDefaultVR().Code, string.Empty, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, null, false);
-            ExtendedQueryTagStoreEntry entry1 = new ExtendedQueryTagStoreEntry(1, tag.GetPath(), tag.GetDefaultVR().Code, string.Empty, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, 1, false);
-            ExtendedQueryTagStoreEntry entry2 = new ExtendedQueryTagStoreEntry(1, tag.GetPath(), tag.GetDefaultVR().Code, string.Empty, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, 2, false);
+            ExtendedQueryTagStoreEntry entry0 = new ExtendedQueryTagStoreEntry(1, tag.GetPath(), tag.GetDefaultVR().Code, string.Empty, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, null, QueryTagQueryStatus.Enabled);
+            ExtendedQueryTagStoreEntry entry1 = new ExtendedQueryTagStoreEntry(1, tag.GetPath(), tag.GetDefaultVR().Code, string.Empty, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, 1, QueryTagQueryStatus.Enabled);
+            ExtendedQueryTagStoreEntry entry2 = new ExtendedQueryTagStoreEntry(1, tag.GetPath(), tag.GetDefaultVR().Code, string.Empty, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, 2, QueryTagQueryStatus.Enabled);
             Assert.Equal((ulong)2, new[] { entry0, entry1, entry2 }.GetMaxTagVersion());
         }
 
@@ -34,8 +34,8 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Extensions
         public void GivenMultipleEntriesWithoutTagVersion_WhenGetMaxVersion_ShouldReturnNull()
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
-            ExtendedQueryTagStoreEntry entry0 = new ExtendedQueryTagStoreEntry(1, tag.GetPath(), tag.GetDefaultVR().Code, string.Empty, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, null, false);
-            ExtendedQueryTagStoreEntry entry1 = new ExtendedQueryTagStoreEntry(1, tag.GetPath(), tag.GetDefaultVR().Code, string.Empty, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, null, false);
+            ExtendedQueryTagStoreEntry entry0 = new ExtendedQueryTagStoreEntry(1, tag.GetPath(), tag.GetDefaultVR().Code, string.Empty, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, null, QueryTagQueryStatus.Enabled);
+            ExtendedQueryTagStoreEntry entry1 = new ExtendedQueryTagStoreEntry(1, tag.GetPath(), tag.GetDefaultVR().Code, string.Empty, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, null, QueryTagQueryStatus.Enabled);
 
             Assert.Null(new[] { entry0, entry1 }.GetMaxTagVersion());
         }
