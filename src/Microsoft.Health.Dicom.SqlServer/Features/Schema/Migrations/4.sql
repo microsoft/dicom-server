@@ -1782,6 +1782,7 @@ AS
         -- Update QueryStatus
         UPDATE dbo.ExtendedQueryTag
         SET QueryStatus = @queryStatus
+        OUTPUT INSERTED.TagKey, INSERTED.TagPath, INSERTED.TagVR, INSERTED.TagPrivateCreator, INSERTED.TagLevel, INSERTED.TagStatus, INSERTED.TagVersion ,INSERTED.QueryStatus
         WHERE TagKey = @tagKey 
 
     COMMIT TRANSACTION

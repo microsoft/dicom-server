@@ -215,7 +215,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             }
         }
 
-        public override async Task UpdateExtendedQueryTagQueryStatusAsync(string tagPath, QueryTagQueryStatus queryStatus, CancellationToken cancellationToken)
+        public override async Task<ExtendedQueryTagStoreEntry> UpdateExtendedQueryTagQueryStatusAsync(string tagPath, QueryTagQueryStatus queryStatus, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrWhiteSpace(tagPath, nameof(tagPath));
             EnsureArg.EnumIsDefined(queryStatus, nameof(queryStatus));
@@ -227,7 +227,21 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
             try
             {
-                await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
+                using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken);
+                if (await reader.ReadAsync(cancellationToken))
+                {
+                    (int rTagKey, string rTagPath, string rTagVR, string rTagPrivateCreator, byte rTagLevel, byte rTagStatus, byte[] rTagVersion, byte rQueryStatus) = reader.ReadRow(
+                       VLatest.ExtendedQueryTag.TagKey,
+                        VLatest.ExtendedQueryTag.TagPath,
+                        VLatest.ExtendedQueryTag.TagVR,
+                        VLatest.ExtendedQueryTag.TagPrivateCreator,
+                        VLatest.ExtendedQueryTag.TagLevel,
+                        VLatest.ExtendedQueryTag.TagStatus,
+                        VLatest.ExtendedQueryTag.TagVersion,
+                        VLatest.ExtendedQueryTag.QueryStatus);
+                    return new ExtendedQueryTagStoreEntry(rTagKey, rTagPath, rTagVR, rTagPrivateCreator, (QueryTagLevel)rTagLevel, (ExtendedQueryTagStatus)rTagStatus, RowVersionToUlong(rTagVersion), (QueryTagQueryStatus)rQueryStatus);
+                }
+                return null;
             }
             catch (SqlException ex)
             {
