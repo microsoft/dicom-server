@@ -1765,7 +1765,7 @@ GO
 -- RETURN VALUE
 --     The tag key of the error added.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTagError (
+CREATE PROCEDURE dbo.AddExtendedQueryTagError (
     @tagKey INT,
     @errorMessage NVARCHAR(128),
     @watermark BIGINT
@@ -1785,6 +1785,12 @@ AS
         IF NOT EXISTS (SELECT * FROM dbo.ExtendedQueryTag WITH (HOLDLOCK) WHERE TagKey = @tagKey AND TagStatus = 0)
             THROW 50404, 'Tag does not exist or is not being added.', 1;
 
+        -- DisableQuery on the tag
+        UPDATE dbo.ExtendedQueryTag
+        SET DisableQuery = 1
+        WHERE TagKey = @tagKey AND DisableQuery = 0
+
+        -- Add error
         MERGE dbo.ExtendedQueryTagError WITH (HOLDLOCK) as XQTE
         USING (SELECT @tagKey TagKey, @errorMessage ErrorMessage, @watermark Watermark) as src
         ON src.TagKey = XQTE.TagKey AND src.WaterMark = XQTE.Watermark
