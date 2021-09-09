@@ -13,13 +13,13 @@ using Dicom;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
-using Microsoft.Health.Dicom.Core.Features.Validation;
 using NSubstitute;
 using NSubstitute.Core;
 using NSubstitute.ExceptionExtensions;
@@ -46,12 +46,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         private readonly IIndexDataStore _indexDataStore = Substitute.For<IIndexDataStore>();
         private readonly IDeleteService _deleteService = Substitute.For<IDeleteService>();
         private readonly IQueryTagService _queryTagService = Substitute.For<IQueryTagService>();
-        private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
         private readonly StoreOrchestrator _storeOrchestrator;
 
         private readonly DicomDataset _dicomDataset;
         private readonly Stream _stream = new MemoryStream();
         private readonly IDicomInstanceEntry _dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
+        private readonly List<QueryTagsExpiredEventArgs> _eventInvocations = new List<QueryTagsExpiredEventArgs>();
         private readonly List<QueryTag> _queryTags = new List<QueryTag>
         {
             new QueryTag(new ExtendedQueryTagStoreEntry(1, "00101010", "AS", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Ready, 1L))
@@ -83,8 +83,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                 _indexDataStore,
                 _deleteService,
                 _queryTagService,
-                _minimumValidator,
                 Options.Create(new StoreConfiguration()));
+
+            _storeOrchestrator.QueryTagsExpired += (e, args) => _eventInvocations.Add(args);
         }
 
         [Fact]
@@ -156,6 +157,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                 .ToList();
 
             _queryTagService
+                .GetQueryTagsAsync(false, Arg.Any<CancellationToken>())
+                .Returns(_queryTags, _queryTags, newTags1, newTags2);
+            _queryTagService
                 .GetQueryTagsAsync(true, Arg.Any<CancellationToken>())
                 .Returns(newTags1, newTags2); // Return different tags
             _indexDataStore.EndCreateInstanceIndexAsync(default, default, default, default)
@@ -166,11 +170,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             await _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken);
 
-            await _queryTagService.Received(1).GetQueryTagsAsync(false, DefaultCancellationToken);
+            await _queryTagService.Received(4).GetQueryTagsAsync(false, DefaultCancellationToken);
             await _queryTagService.Received(2).GetQueryTagsAsync(true, DefaultCancellationToken);
             await _indexDataStore.Received(1).EndCreateInstanceIndexAsync(_dicomDataset, DefaultVersion, _queryTags, DefaultCancellationToken);
             await _indexDataStore.Received(1).EndCreateInstanceIndexAsync(_dicomDataset, DefaultVersion, newTags1, DefaultCancellationToken);
             await _indexDataStore.Received(1).EndCreateInstanceIndexAsync(_dicomDataset, DefaultVersion, newTags2, DefaultCancellationToken);
+
+            Assert.Equal(2, _eventInvocations.Count);
+            Assert.Equal("00202020", _eventInvocations[0].NewQueryTags.Single().Tag.GetPath());
+            Assert.Equal("00303030", _eventInvocations[1].NewQueryTags.Single().Tag.GetPath());
         }
 
         [Fact]

@@ -11,7 +11,10 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 using DicomValidationException = Dicom.DicomValidationException;
 
@@ -49,6 +52,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         private readonly IStoreResponseBuilder _storeResponseBuilder;
         private readonly IStoreDatasetValidator _dicomDatasetValidator;
         private readonly IStoreOrchestrator _storeOrchestrator;
+        private readonly IElementMinimumValidator _minimumValidator;
         private readonly ILogger _logger;
 
         private IReadOnlyList<IDicomInstanceEntry> _dicomInstanceEntries;
@@ -58,17 +62,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             IStoreResponseBuilder storeResponseBuilder,
             IStoreDatasetValidator dicomDatasetValidator,
             IStoreOrchestrator storeOrchestrator,
+            IElementMinimumValidator minimumValidator,
             ILogger<StoreService> logger)
         {
-            EnsureArg.IsNotNull(storeResponseBuilder, nameof(storeResponseBuilder));
-            EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
-            EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
-            EnsureArg.IsNotNull(logger, nameof(logger));
+            _storeResponseBuilder = EnsureArg.IsNotNull(storeResponseBuilder, nameof(storeResponseBuilder));
+            _dicomDatasetValidator = EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
+            _storeOrchestrator = EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
+            _minimumValidator = EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
+            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _storeResponseBuilder = storeResponseBuilder;
-            _dicomDatasetValidator = dicomDatasetValidator;
-            _storeOrchestrator = storeOrchestrator;
-            _logger = logger;
+            _storeOrchestrator.QueryTagsExpired += (e, args) => ValidateNewQueryTags(args.DicomDataset, args.NewQueryTags);
         }
 
         /// <inheritdoc />
@@ -169,6 +172,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 LogFailedToStoreDelegate(_logger, index, failureCode, ex);
 
                 _storeResponseBuilder.AddFailure(dicomDataset, failureCode);
+            }
+        }
+
+        private void ValidateNewQueryTags(DicomDataset dicomDataset, IReadOnlyCollection<QueryTag> queryTags)
+        {
+            foreach (QueryTag queryTag in queryTags)
+            {
+                dicomDataset.ValidateQueryTag(queryTag, _minimumValidator);
             }
         }
 
