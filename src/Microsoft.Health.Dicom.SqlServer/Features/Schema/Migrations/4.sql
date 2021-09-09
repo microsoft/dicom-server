@@ -1742,14 +1742,30 @@ AS
 
         -- Add the new tags with the given status
         INSERT INTO dbo.ExtendedQueryTag
-            (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus)
+            (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus)
         OUTPUT INSERTED.TagKey
-        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, @ready FROM @extendedQueryTags
+        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, @ready, 1 FROM @extendedQueryTags
 
     COMMIT TRANSACTION
 GO
 
-CREATE PROCEDURE dbo.UpdateExtendedQueryTagQueryStatus (
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     UpdateExtendedQueryTagQueryStatus
+--
+-- DESCRIPTION
+--    Update QueryStatus of extended query tag
+--
+-- PARAMETERS
+--     @tagPath
+--         * The extended query tag path
+--     @queryStatus
+--         * The query  status
+--
+-- RETURN VALUE
+--     The modified extended query tag.
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.UpdateExtendedQueryTagQueryStatus (
     @tagPath VARCHAR(64),
     @queryStatus TINYINT
 )
