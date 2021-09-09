@@ -103,7 +103,7 @@
                 "description": "The type of the solution"
             }
         },
-        "dicomDeployPackage": {
+        "dicomDeployPackages": {
             "type": "bool",
             "defaultValue": true,
             "metadata": {
@@ -115,6 +115,13 @@
             "defaultValue": "",
             "metadata": {
                 "description": "Webdeploy package to use as deployment code. If blank, the latest CI code package will be deployed."
+            }
+        },
+        "functionDeployPackageUrl": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Azure Function App package to use as deployment code. If blank, the latest CI code package will be deployed."
             }
         },
         "fhirServiceName": {
@@ -287,8 +294,7 @@
     },
     "variables": {
         "appServicePlanResourceGroup": "[if(empty(parameters('appServicePlanResourceGroup')), resourceGroup().name, parameters('appServicePlanResourceGroup'))]",
-        "appServicePlanName": "[if(empty(parameters('appServicePlanName')), concat(parameters('dicomServiceName'),'-asp'), parameters('appServicePlanName'))]",
-        "appServicePlanResourceId": "[resourceId(variables('appServicePlanResourceGroup'), 'Microsoft.Web/serverfarms/', variables('appServicePlanName'))]"
+        "appServicePlanName": "[if(empty(parameters('appServicePlanName')), concat(parameters('dicomServiceName'),'-asp'), parameters('appServicePlanName'))]"
     },
     "resources": [
         {
@@ -307,96 +313,97 @@
                 "name": "[variables('appServicePlanName')]"
             }
         },
-      {
-        "type": "Microsoft.Resources/deployments",
-        "apiVersion": "2015-01-01",
-        "name": "dicomLinkedTemplate",
-        "properties": {
-          "mode": "Incremental",
-          "templateLink": {
-            "uri":"https://raw.githubusercontent.com/microsoft/dicom-server/main/samples/templates/default-azuredeploy.json",
-            "contentVersion":"1.0.0.0"
-            },
-            "parameters":{
-                "serviceName":{"value": "[parameters('dicomServiceName')]"},
-                "appServicePlanResourceGroup":{"value": "[variables('appServicePlanResourceGroup')]"},
-                "appServicePlanName":{"value": "[variables('appServicePlanName')]"},
-                "appServicePlanSku":{"value": "[parameters('appServicePlanSku')]"},                
-                "storageAccountSku":{"value": "[parameters('dicomStorageAccountSku')]"},
-                "deployApplicationInsights":{"value": "[parameters('deployApplicationInsights')]"},
-                "applicationInsightsLocation":{"value": "[parameters('applicationInsightsLocation')]"},
-                "additionalDicomServerConfigProperties":{"value": "[parameters('additionalDicomServerConfigProperties')]"},
-                "sqlAdminPassword":{"value": "[parameters('dicomSqlAdminPassword')]"},
-                "sqlLocation":{"value": "[resourceGroup().location]"},
-                "deployOhifViewer":{"value": "[parameters('deployOhifViewer')]"},
-                "securityAuthenticationAuthority":{"value": "[parameters('dicomSecurityAuthenticationAuthority')]"},
-                "securityAuthenticationAudience":{"value": "[parameters('dicomSecurityAuthenticationAudience')]"},
-                "solutionType":{"value": "[parameters('dicomSolutionType')]"},
-                "deployPackage":{"value": "[parameters('dicomDeployPackage')]"},
-                "deployPackageUrl":{"value": "[parameters('dicomDeployPackageUrl')]"}
-                }
-            }
-        },
-    {
-        "type": "Microsoft.Resources/deployments",
-        "apiVersion": "2015-01-01",
-        "name": "fhirLinkedTemplate",
-        "properties": {
-          "mode": "Incremental",
-          "templateLink": {
-            "uri":"https://raw.githubusercontent.com/microsoft/fhir-server/main/samples/templates/default-azuredeploy.json",
-            "contentVersion":"1.0.0.0"
-            },
-            "parameters":{
-                "serviceName":{"value": "[parameters('fhirServiceName')]"},
-                "appServicePlanResourceGroup":{"value": "[variables('appServicePlanResourceGroup')]"},
-                "appServicePlanName":{"value": "[variables('appServicePlanName')]"},
-                "appServicePlanSku":{"value": "[parameters('appServicePlanSku')]"},
-                "securityAuthenticationAuthority":{"value": "[parameters('fhirSecurityAuthenticationAuthority')]"},
-                "securityAuthenticationAudience":{"value": "[parameters('fhirSecurityAuthenticationAudience')]"},
-                "enableAadSmartOnFhirProxy":{"value": "[parameters('enableAadSmartOnFhirProxy')]"},
-                "msdeployPackageUrl":{"value": "[parameters('msdeployPackageUrl')]"},
-                "deployApplicationInsights":{"value": "[parameters('deployApplicationInsights')]"},
-                "applicationInsightsLocation":{"value": "[parameters('applicationInsightsLocation')]"},
-                "additionalFhirServerConfigProperties":{"value": "[parameters('additionalFhirServerConfigProperties')]"},
-                "solutionType":{"value": "FhirServerSqlServer"},
-                "sqlAdminPassword":{"value": "[parameters('fhirSqlAdminPassword')]"},
-                "sqlLocation":{"value": "[resourceGroup().location]"},
-                "fhirVersion":{"value": "[parameters('fhirVersion')]"},
-                "enableExport":{"value": "[parameters('enableExport')]"},    
-                "enableConvertData":{"value": "[parameters('enableConvertData')]"}, 
-                "enableReindex":{"value": "[parameters('enableReindex')]"}, 
-                "sqlSchemaAutomaticUpdatesEnabled":{"value": "auto"}    
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2015-01-01",
+            "name": "dicomLinkedTemplate",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/microsoft/dicom-server/main/samples/templates/default-azuredeploy.json",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "serviceName": { "value": "[parameters('dicomServiceName')]" },
+                    "appServicePlanResourceGroup": { "value": "[variables('appServicePlanResourceGroup')]" },
+                    "appServicePlanName": { "value": "[variables('appServicePlanName')]" },
+                    "appServicePlanSku": { "value": "[parameters('appServicePlanSku')]" },
+                    "storageAccountSku": { "value": "[parameters('dicomStorageAccountSku')]" },
+                    "deployApplicationInsights": { "value": "[parameters('deployApplicationInsights')]" },
+                    "applicationInsightsLocation": { "value": "[parameters('applicationInsightsLocation')]" },
+                    "additionalDicomServerConfigProperties": { "value": "[parameters('additionalDicomServerConfigProperties')]" },
+                    "sqlAdminPassword": { "value": "[parameters('dicomSqlAdminPassword')]" },
+                    "sqlLocation": { "value": "[resourceGroup().location]" },
+                    "deployOhifViewer": { "value": "[parameters('deployOhifViewer')]" },
+                    "securityAuthenticationAuthority": { "value": "[parameters('dicomSecurityAuthenticationAuthority')]" },
+                    "securityAuthenticationAudience": { "value": "[parameters('dicomSecurityAuthenticationAudience')]" },
+                    "solutionType": { "value": "[parameters('dicomSolutionType')]" },
+                    "deployPackage": { "value": "[parameters('dicomDeployPackages')]" },
+                    "deployWebPackageUrl": { "value": "[parameters('dicomDeployPackageUrl')]" },
+                    "deployFunctionAppPackageUrl": { "value": "[parameters('functionDeployPackageUrl')]" }
                 }
             }
         },
         {
-           "type": "Microsoft.Resources/deployments",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2015-01-01",
+            "name": "fhirLinkedTemplate",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/microsoft/fhir-server/main/samples/templates/default-azuredeploy.json",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "serviceName": { "value": "[parameters('fhirServiceName')]" },
+                    "appServicePlanResourceGroup": { "value": "[variables('appServicePlanResourceGroup')]" },
+                    "appServicePlanName": { "value": "[variables('appServicePlanName')]" },
+                    "appServicePlanSku": { "value": "[parameters('appServicePlanSku')]" },
+                    "securityAuthenticationAuthority": { "value": "[parameters('fhirSecurityAuthenticationAuthority')]" },
+                    "securityAuthenticationAudience": { "value": "[parameters('fhirSecurityAuthenticationAudience')]" },
+                    "enableAadSmartOnFhirProxy": { "value": "[parameters('enableAadSmartOnFhirProxy')]" },
+                    "msdeployPackageUrl": { "value": "[parameters('msdeployPackageUrl')]" },
+                    "deployApplicationInsights": { "value": "[parameters('deployApplicationInsights')]" },
+                    "applicationInsightsLocation": { "value": "[parameters('applicationInsightsLocation')]" },
+                    "additionalFhirServerConfigProperties": { "value": "[parameters('additionalFhirServerConfigProperties')]" },
+                    "solutionType": { "value": "FhirServerSqlServer" },
+                    "sqlAdminPassword": { "value": "[parameters('fhirSqlAdminPassword')]" },
+                    "sqlLocation": { "value": "[resourceGroup().location]" },
+                    "fhirVersion": { "value": "[parameters('fhirVersion')]" },
+                    "enableExport": { "value": "[parameters('enableExport')]" },
+                    "enableConvertData": { "value": "[parameters('enableConvertData')]" },
+                    "enableReindex": { "value": "[parameters('enableReindex')]" },
+                    "sqlSchemaAutomaticUpdatesEnabled": { "value": "auto" }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
             "apiVersion": "2015-01-01",
             "name": "dicomCastLinkedTemplate",
             "properties": {
-              "mode": "Incremental",
+                "mode": "Incremental",
                 "templateLink": {
-                "uri":"https://raw.githubusercontent.com/microsoft/dicom-server/main/converter/dicom-cast/samples/templates/default-azuredeploy.json",
-                "contentVersion":"1.0.0.0"
+                    "uri": "https://raw.githubusercontent.com/microsoft/dicom-server/main/converter/dicom-cast/samples/templates/default-azuredeploy.json",
+                    "contentVersion": "1.0.0.0"
                 },
-                "parameters":{
-                    "serviceName":{"value": "[parameters('dicomCastServiceName')]"},
-                    "image":{"value": "[parameters('image')]"},
-                    "storageAccountSku":{"value": "[parameters('dicomCastStorageAccountSku')]"},
-                    "deployApplicationInsights":{"value": "[parameters('deployApplicationInsights')]"},
-                    "applicationInsightsLocation":{"value": "[parameters('applicationInsightsLocation')]"},
-                    "cpuCores":{"value": "[parameters('dicomCastCpuCores')]"},
-                    "memoryInGb":{"value": "[parameters('dicomCastMemoryInGb')]"},
-                    "location":{"value": "[resourceGroup().location]"},
-                    "restartPolicy":{"value": "[parameters('dicomCastRestartPolicy')]"},
-                    "dicomWebEndpoint":{"value": "[concat('https://',parameters('dicomServiceName'),'.azurewebsites.net')]"},
-                    "fhirEndpoint":{"value": "[concat('https://',parameters('fhirServiceName'),'.azurewebsites.net')]"},
-                    "enforceValidationOfTagValues":{"value": "[parameters('enforceValidationOfTagValues')]"}
-                    }
+                "parameters": {
+                    "serviceName": { "value": "[parameters('dicomCastServiceName')]" },
+                    "image": { "value": "[parameters('image')]" },
+                    "storageAccountSku": { "value": "[parameters('dicomCastStorageAccountSku')]" },
+                    "deployApplicationInsights": { "value": "[parameters('deployApplicationInsights')]" },
+                    "applicationInsightsLocation": { "value": "[parameters('applicationInsightsLocation')]" },
+                    "cpuCores": { "value": "[parameters('dicomCastCpuCores')]" },
+                    "memoryInGb": { "value": "[parameters('dicomCastMemoryInGb')]" },
+                    "location": { "value": "[resourceGroup().location]" },
+                    "restartPolicy": { "value": "[parameters('dicomCastRestartPolicy')]" },
+                    "dicomWebEndpoint": { "value": "[concat('https://',parameters('dicomServiceName'),'.azurewebsites.net')]" },
+                    "fhirEndpoint": { "value": "[concat('https://',parameters('fhirServiceName'),'.azurewebsites.net')]" },
+                    "enforceValidationOfTagValues": { "value": "[parameters('enforceValidationOfTagValues')]" }
                 }
             }
+        }
     ],
     "outputs": {
     }
-  }
+}

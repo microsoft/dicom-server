@@ -29,6 +29,8 @@ namespace Microsoft.Health.Dicom.Functions.Client
     /// </summary>
     internal class DicomAzureFunctionsHttpClient : IDicomOperationsClient
     {
+        internal const string FunctionAccessKeyHeader = "x-functions-key";
+
         private readonly HttpClient _client;
         private readonly JsonSerializerOptions _jsonSerializerOptions;
         private readonly FunctionsClientOptions _options;
@@ -53,6 +55,11 @@ namespace Microsoft.Health.Dicom.Functions.Client
             _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
 
             client.BaseAddress = options.Value.BaseAddress;
+
+            if (!string.IsNullOrEmpty(_options.FunctionAccessKey))
+            {
+                client.DefaultRequestHeaders.Add(FunctionAccessKeyHeader, _options.FunctionAccessKey);
+            }
         }
 
         /// <inheritdoc/>
