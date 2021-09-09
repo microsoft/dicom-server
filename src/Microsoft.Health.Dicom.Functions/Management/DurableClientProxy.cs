@@ -62,10 +62,9 @@ namespace Microsoft.Health.Dicom.Functions.Management
         /// <paramref name="request"/>, <paramref name="client"/>, or <paramref name="logger"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="OperationCanceledException">The host is shutting down or the connection was aborted.</exception>
-        // TODO: Replace Anonymous with auth for all HTTP endpoints
         [FunctionName(nameof(GetStatusAsync))]
         public async Task<HttpResponseMessage> GetStatusAsync(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "Orchestrations/Instances/{instanceId}")] HttpRequest request,
+            [HttpTrigger(AuthorizationLevel.Function, "GET", Route = "Orchestrations/Instances/{instanceId}")] HttpRequest request,
             [DurableClient] IDurableOrchestrationClient client,
             Guid instanceId,
             ILogger logger,

@@ -11,7 +11,9 @@ jobs:
       ScriptType: InlineScript
       Inline: |
         New-AzResourceGroup -Name "$(resourceGroupName)" -Location "$(resourceGroupRegion)" -Force
+
   - template: add-aad-test-environment.yml
+
   - task: AzurePowerShell@4
     displayName: 'New Azure resource group deployment'
     inputs:
@@ -20,28 +22,28 @@ jobs:
       ScriptType: InlineScript
       Inline: |
         Add-Type -AssemblyName System.Web
-        
+
         $deployPath = "$(System.DefaultWorkingDirectory)/samples/templates"
-    
+
         $additionalProperties = @{
-            "SqlServer__DeleteAllDataOnStartup" = "true"
+            "SqlServer__DeleteAllDataOnStartup" = "$(deleteDataOnStartup)"
             "DicomServer__Security__Authorization__Enabled" = "true"
-            "DicomServer__Features__EnableExtendedQueryTags" = "true"
         }
-    
+
         $templateParameters = @{
             appServicePlanResourceGroup = "$(appServicePlanResourceGroup)"
             appServicePlanName = "$(appServicePlanName)"
             serviceName = "$(deploymentName)"
+            functionAppName = "$(deploymentName)-functions"
             additionalDicomServerConfigProperties = $additionalProperties
             sqlAdminPassword = "$(-join((((33,35,37,38,42,43,45,46,95) + (48..57) + (65..90) + (97..122) | Get-Random -Count 20) + ((33,35,37,38,42,43,45,46,95) | Get-Random -Count 1) + ((48..57) | Get-Random -Count 1) + ((65..90) | Get-Random -Count 1) + ((97..122) | Get-Random -Count 1) | Get-Random -Count 24) | % {[char]$_}))"
             securityAuthenticationAuthority = "https://login.microsoftonline.com/$(tenant-id)"
             securityAuthenticationAudience = "$(testEnvironmentUrl)"
             deployPackage = $false
         }
-        
+
         New-AzResourceGroupDeployment -Name "$(deploymentName)" -ResourceGroupName "$(resourceGroupName)" -TemplateFile $deployPath/default-azuredeploy.json -TemplateParameterObject $templateParameters -Verbose
-        
+
         Set-AzKeyVaultAccessPolicy -VaultName "$(deploymentName)" -ObjectId $(azureServiceConnectionOid) -PermissionsToSecrets list,get
 
   - task: DownloadBuildArtifacts@0
@@ -50,11 +52,23 @@ jobs:
       downloadType: 'single'
       downloadPath: '$(System.ArtifactsDirectory)'
       artifactName: 'deploy'
-  
-  - task: AzureRmWebAppDeployment@3
-    displayName: 'Azure app service deployment'
+
+  - task: AzureRMWebAppDeployment@4
+    displayName: 'Deploy Dicom Web App'
     inputs:
+      connectionType: 'AzureRM'
       azureSubscription: $(azureSubscriptionName)
-      WebAppName: '$(deploymentName)'
-      Package: '$(System.ArtifactsDirectory)/deploy/Microsoft.Health.Dicom.Web.zip'
-      TakeAppOfflineFlag: true
+      webAppKind: 'webApp'
+      webAppName: '$(deploymentName)'
+      package: '$(System.ArtifactsDirectory)/deploy/Microsoft.Health.Dicom.Web.zip'
+      takeAppOfflineFlag: true
+
+  - task: AzureRMWebAppDeployment@4
+    displayName: 'Deploy Dicom Functions'
+    inputs:
+      connectionType: 'AzureRM'
+      azureSubscription: $(azureSubscriptionName)
+      webAppKind: 'functionApp'
+      webAppName: '$(deploymentName)-functions'
+      package: '$(System.ArtifactsDirectory)/deploy/Microsoft.Health.Dicom.Functions.zip'
+      takeAppOfflineFlag: true

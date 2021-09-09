@@ -4,9 +4,10 @@ jobs:
     vmImage: $(windowsVmImage)
   steps:
   - task: UseDotNet@2
-    displayName: 'Use .Net Core sdk '
+    displayName: 'Use .Net Core sdk'
     inputs:
       useGlobalJson: true
+
   - task: AzurePowerShell@4
     displayName: 'Prepare for Testing'
     inputs:
@@ -14,26 +15,25 @@ jobs:
       azurePowerShellVersion: latestVersion
       ScriptType: InlineScript
       Inline: |
-        $secrets = Get-AzKeyVaultSecret -VaultName $(deploymentName)
-        
-        foreach ($secret in $secrets)
-        {
-            $environmentVariableName = $secret.Name.Replace("--",":")
-            $secretValue = Get-AzKeyVaultSecret -VaultName $(deploymentName) -Name $secret.Name -AsPlainText
-            Write-Host "##vso[task.setvariable variable=$($environmentVariableName)]$($secretValue)"
-        }
-        
+        $sqlConnectionString = Get-AzKeyVaultSecret -VaultName $(deploymentName) -Name "SqlServerConnectionString" -AsPlainText
+        $blobConnectionString = Get-AzKeyVaultSecret -VaultName $(deploymentName) -Name "AzureStorageConnectionString" -AsPlainText
+
+        Write-Host "##vso[task.setvariable variable=BlobStore__ConnectionString]$blobConnectionString"
+        Write-Host "##vso[task.setvariable variable=SqlServer__ConnectionString]$sqlConnectionString"
+
         dotnet dev-certs https
+
   - task: DownloadBuildArtifacts@0
     inputs:
       buildType: 'current'
       downloadType: 'single'
       downloadPath: '$(System.ArtifactsDirectory)'
       artifactName: 'IntegrationTests'
+
   - task: VSTest@2
     displayName: 'Integration Tests'
     inputs:
       testAssemblyVer2: '**\*Tests.Integration.dll'
       searchFolder: '$(System.ArtifactsDirectory)'
       runInParallel: true
-      
+
