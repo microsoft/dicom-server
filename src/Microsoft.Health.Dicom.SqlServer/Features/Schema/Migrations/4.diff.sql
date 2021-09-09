@@ -194,7 +194,7 @@ GO
 -- RETURN VALUE
 --     The corresponding extended query tags, if any.
 /***************************************************************************************/
-CREATE PROCEDURE dbo.GetExtendedQueryTagsByKey (
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagsByKey (
     @extendedQueryTagKeys dbo.ExtendedQueryTagKeyTableType_1 READONLY
 )
 AS
