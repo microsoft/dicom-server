@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Core" Version="1.19.0" />
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.9.1" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.10.0" />
     <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="MediatR" Version="9.0.0" />
     <PackageReference Include="fo-dicom" Version="4.0.7" />
