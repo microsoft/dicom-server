@@ -71,7 +71,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                         {
                             (byte)IndexStatus.Creating => new PendingInstanceException(),
                             (byte)IndexStatus.Created => new InstanceAlreadyExistsException(),
-                            _ => new ExtendedQueryTagVersionMismatchException(),
+                            _ => new ExtendedQueryTagsOutOfDateException(),
                         },
                         _ => new DataStoreException(ex),
                     };
@@ -83,12 +83,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             DicomDataset instance,
             long watermark,
             IEnumerable<QueryTag> queryTags,
+            bool allowExpiredTags = false,
             CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
-            // Use maxTagVersion to track tag addition -- if new tag is added, max tag version increases.
             var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags);
             VLatest.EndAddInstanceTableValuedParameters parameters = new VLatest.EndAddInstanceTableValuedParameters(
                 rows.StringRows,
@@ -106,7 +106,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     instance.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
                     instance.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
                     watermark,
-                    UlongToRowVersion(rows.MaxVersion),
+                    allowExpiredTags ? null : rows.MaxTagKey, // MaxTagKey helps track if any new tags have been added mid-operation
                     parameters);
 
                 try
@@ -117,7 +117,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                 {
                     throw ex.Number switch
                     {
-                        SqlErrorCodes.Conflict => new ExtendedQueryTagVersionMismatchException(),
+                        SqlErrorCodes.Conflict => new ExtendedQueryTagsOutOfDateException(),
                         SqlErrorCodes.NotFound => new InstanceNotFoundException(),
                         _ => new DataStoreException(ex),
                     };

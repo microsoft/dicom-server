@@ -54,8 +54,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             StoreConfiguration config = EnsureArg.IsNotNull(storeConfiguration?.Value, nameof(storeConfiguration));
             _updatePolicy = Policy
-                .Handle<ExtendedQueryTagVersionMismatchException>()
-                .RetryAsync(config.MaxRetriesWhenTagVersionMismatch);
+                .Handle<ExtendedQueryTagsOutOfDateException>()
+                .RetryAsync(config.MaxRetriesWhenTagsOutOfDate);
         }
 
         /// <inheritdoc />
@@ -67,7 +67,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
-            // Retry when max ExtendedQuryTagVersion mismatch.
             IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(forceRefresh: false, cancellationToken: cancellationToken);
             long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dicomDataset, queryTags, cancellationToken);
             var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(watermark);
@@ -113,6 +112,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             long watermark,
             CancellationToken cancellationToken)
         {
+            // Retry when new extended query tags have been added
             return _updatePolicy.ExecuteAsync(
                 async token =>
                 {
@@ -120,9 +120,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
                     try
                     {
-                        await _indexDataStore.EndCreateInstanceIndexAsync(dicomDataset, watermark, queryTags, token);
+                        await _indexDataStore.EndCreateInstanceIndexAsync(dicomDataset, watermark, queryTags, cancellationToken: token);
                     }
-                    catch (ExtendedQueryTagVersionMismatchException)
+                    catch (ExtendedQueryTagsOutOfDateException)
                     {
                         // Determine which tags have been added
                         IReadOnlyCollection<QueryTag> newTags = await _queryTagService.GetQueryTagsAsync(forceRefresh: true, cancellationToken: token);

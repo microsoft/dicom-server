@@ -379,7 +379,6 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopIn
     TagLevel can be 0, 1 or 2 to represent Instance, Series or Study level
     TagPrivateCreator is identification code of private tag implementer, only apply to private tag.
     TagStatus can be 0, 1 or 2 to represent Adding, Ready or Deleting.
-    TagVersion is version of the tag. Nullable for backward compatibility.
 **************************************************************/
 CREATE TABLE dbo.ExtendedQueryTag (
     TagKey                  INT                  NOT NULL, --PK
@@ -387,8 +386,7 @@ CREATE TABLE dbo.ExtendedQueryTag (
     TagVR                   VARCHAR(2)           NOT NULL,
     TagPrivateCreator       NVARCHAR(64)         NULL, 
     TagLevel                TINYINT              NOT NULL,
-    TagStatus               TINYINT              NOT NULL,
-    TagVersion              ROWVERSION           NOT NULL
+    TagStatus               TINYINT              NOT NULL
 )
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
@@ -1221,6 +1219,8 @@ GO
 --         * The SOP instance UID.
 --     @watermark
 --         * The watermark.
+--     @maxTagKey
+--         * Max ExtendedQueryTag key
 --     @stringExtendedQueryTags
 --         * String extended query tag data
 --     @longExtendedQueryTags
@@ -1231,8 +1231,6 @@ GO
 --         * DateTime extended query tag data
 --     @personNameExtendedQueryTags
 --         * PersonName extended query tag data
---     @maxTagVersion
---         * Max ExtendedQueryTag version
 -- RETURN VALUE
 --     None
 /***************************************************************************************/
@@ -1241,20 +1239,21 @@ CREATE OR ALTER PROCEDURE dbo.EndAddInstance
     @seriesInstanceUid VARCHAR(64),
     @sopInstanceUid    VARCHAR(64),
     @watermark         BIGINT,
+    @maxTagKey         INT = NULL,
     @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1         READONLY,
     @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1             READONLY,
     @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1         READONLY,
     @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1     READONLY,
-    @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY,
-    @maxTagVersion     TIMESTAMP = NULL
+    @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
     SET NOCOUNT ON
 
     SET XACT_ABORT ON
     BEGIN TRANSACTION
 
-        IF @maxTagVersion <> (SELECT MAX(TagVersion) FROM dbo.ExtendedQueryTag WITH (HOLDLOCK))
-            THROW 50409, 'Max extended query tag version does not match', 10
+        -- Note that if @maxTagKey is NULL, <> will return always return False and bypass the check
+        IF @maxTagKey <> (SELECT ISNULL(MAX(TagKey), 0) FROM dbo.ExtendedQueryTag WITH (HOLDLOCK))
+            THROW 50409, 'Max extended query tag key does not match', 10
 
         DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
 
@@ -1805,8 +1804,7 @@ BEGIN
             TagVR,
             TagPrivateCreator,
             TagLevel,
-            TagStatus,
-            TagVersion
+            TagStatus
     FROM    dbo.ExtendedQueryTag
     WHERE   TagPath                 = ISNULL(@tagPath, TagPath)
 END
@@ -1882,8 +1880,7 @@ BEGIN
            TagVR,
            TagPrivateCreator,
            TagLevel,
-           TagStatus,
-           TagVersion
+           TagStatus
     FROM dbo.ExtendedQueryTag AS XQT
     INNER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
     WHERE OperationId = @operationId
@@ -2351,8 +2348,7 @@ AS
                TagVR,
                TagPrivateCreator,
                TagLevel,
-               TagStatus,
-               TagVersion
+               TagStatus
         FROM @extendedQueryTagKeys AS input
         INNER JOIN dbo.ExtendedQueryTag AS XQT WITH(HOLDLOCK) ON input.TagKey = XQT.TagKey
         LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO WITH(HOLDLOCK) ON XQT.TagKey = XQTO.TagKey

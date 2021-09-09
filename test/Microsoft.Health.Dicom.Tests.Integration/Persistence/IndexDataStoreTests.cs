@@ -505,17 +505,20 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Fact]
-        public async Task GivenTagVersionNotMatch_WhenCreateIndex_ThenShouldThrowException()
+        public async Task GivenMaxTagKeyNotMatch_WhenCreateIndex_ThenShouldThrowException()
         {
             AddExtendedQueryTagEntry extendedQueryTagEntry = DicomTag.PatientAge.BuildAddExtendedQueryTagEntry();
             await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new[] { extendedQueryTagEntry }, maxAllowedCount: 128, ready: true);
             var tagEntry = (await _extendedQueryTagStore.GetExtendedQueryTagsAsync())[0];
-            var modifiedTagEntry = new ExtendedQueryTagStoreEntry(tagEntry.Key, tagEntry.Path, tagEntry.VR, tagEntry.PrivateCreator, tagEntry.Level, tagEntry.Status, tagEntry.Version + 1);
+            var modifiedTagEntry = new ExtendedQueryTagStoreEntry(tagEntry.Key, tagEntry.Path, tagEntry.VR, tagEntry.PrivateCreator, tagEntry.Level, tagEntry.Status);
             var queryTags = new[] { new QueryTag(modifiedTagEntry) };
             DicomDataset dataset = Samples.CreateRandomInstanceDataset();
 
+            // Add a new tag
+            await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new[] { DicomTag.PatientName.BuildAddExtendedQueryTagEntry() }, maxAllowedCount: 128, ready: true);
+
             long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset, queryTags);
-            await Assert.ThrowsAsync<ExtendedQueryTagVersionMismatchException>(
+            await Assert.ThrowsAsync<ExtendedQueryTagsOutOfDateException>(
                 () => _indexDataStore.EndCreateInstanceIndexAsync(dataset, watermark, queryTags));
         }
 

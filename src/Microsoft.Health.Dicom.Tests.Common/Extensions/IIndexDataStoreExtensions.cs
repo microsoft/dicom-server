@@ -18,6 +18,6 @@ namespace Microsoft.Health.Dicom.Tests.Common.Extensions
             => indexDataStore.BeginCreateInstanceIndexAsync(dicomDataset, Array.Empty<QueryTag>(), cancellationToken);
 
         public static Task EndCreateInstanceIndexAsync(this IIndexDataStore indexDataStore, DicomDataset dicomDataset, long watermark, CancellationToken cancellationToken = default)
-            => indexDataStore.EndCreateInstanceIndexAsync(dicomDataset, watermark, Array.Empty<QueryTag>(), cancellationToken);
+            => indexDataStore.EndCreateInstanceIndexAsync(dicomDataset, watermark, Array.Empty<QueryTag>(), true, cancellationToken);
     }
 }

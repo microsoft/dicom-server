@@ -2,15 +2,6 @@ SET XACT_ABORT ON
 
 BEGIN TRANSACTION
 
-IF NOT EXISTS (
-    SELECT *
-    FROM sys.columns
-    WHERE object_id = OBJECT_ID('dbo.ExtendedQueryTag') AND name = 'TagVersion')
-BEGIN
-    ALTER TABLE dbo.ExtendedQueryTag
-    ADD TagVersion  ROWVERSION   NOT NULL
-END
-
 /*************************************************************
     Extended Query Tag Errors Table
     Stores errors from Extended Query Tag operations
@@ -253,6 +244,8 @@ GO
 --         * The SOP instance UID.
 --     @watermark
 --         * The watermark.
+--     @maxTagKey
+--         * Max ExtendedQueryTag key
 --     @stringExtendedQueryTags
 --         * String extended query tag data
 --     @longExtendedQueryTags
@@ -263,8 +256,6 @@ GO
 --         * DateTime extended query tag data
 --     @personNameExtendedQueryTags
 --         * PersonName extended query tag data
---     @maxTagVersion
---         * Max ExtendedQueryTag version
 -- RETURN VALUE
 --     None
 /***************************************************************************************/
@@ -273,20 +264,21 @@ CREATE OR ALTER PROCEDURE dbo.EndAddInstance
     @seriesInstanceUid VARCHAR(64),
     @sopInstanceUid    VARCHAR(64),
     @watermark         BIGINT,
+    @maxTagKey         INT = NULL,
     @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1         READONLY,
     @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1             READONLY,
     @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1         READONLY,
     @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1     READONLY,
-    @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY,
-    @maxTagVersion     TIMESTAMP = NULL
+    @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
     SET NOCOUNT ON
 
     SET XACT_ABORT ON
     BEGIN TRANSACTION
 
-        IF @maxTagVersion <> (SELECT MAX(TagVersion) FROM dbo.ExtendedQueryTag WITH (HOLDLOCK))
-            THROW 50409, 'Max extended query tag version does not match', 10
+        -- Note that if @maxTagKey is NULL, <> will return always return False and bypass the check
+        IF @maxTagKey <> (SELECT ISNULL(MAX(TagKey), 0) FROM dbo.ExtendedQueryTag WITH (HOLDLOCK))
+            THROW 50409, 'Max extended query tag key does not match', 10
 
         DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
 
@@ -437,8 +429,7 @@ BEGIN
            TagVR,
            TagPrivateCreator,
            TagLevel,
-           TagStatus,
-           TagVersion
+           TagStatus
     FROM dbo.ExtendedQueryTag AS XQT
     INNER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
     WHERE OperationId = @operationId
@@ -879,8 +870,7 @@ AS
                TagVR,
                TagPrivateCreator,
                TagLevel,
-               TagStatus,
-               TagVersion
+               TagStatus
         FROM @extendedQueryTagKeys AS input
         INNER JOIN dbo.ExtendedQueryTag AS XQT WITH(HOLDLOCK) ON input.TagKey = XQT.TagKey
         LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO WITH(HOLDLOCK) ON XQT.TagKey = XQTO.TagKey
@@ -955,8 +945,7 @@ BEGIN
             TagVR,
             TagPrivateCreator,
             TagLevel,
-            TagStatus,
-            TagVersion
+            TagStatus
     FROM    dbo.ExtendedQueryTag
     WHERE   TagPath                 = ISNULL(@tagPath, TagPath)
 END

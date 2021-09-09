@@ -38,14 +38,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             var dateTimeRows = new List<InsertDateTimeExtendedQueryTagTableTypeV1Row>();
             var personNamRows = new List<InsertPersonNameExtendedQueryTagTableTypeV1Row>();
 
-            ulong? maxVersion = null;
+            int maxVersion = 0;
             foreach (QueryTag queryTag in queryTags.Where(x => x.IsExtendedQueryTag))
             {
                 // Update MaxVersion
-                if (maxVersion == null || queryTag.ExtendedQueryTagStoreEntry.Version > maxVersion)
-                {
-                    maxVersion = queryTag.ExtendedQueryTagStoreEntry.Version;
-                }
+                maxVersion = Math.Max(maxVersion, queryTag.ExtendedQueryTagStoreEntry.Key);
 
                 // Create row
                 ExtendedQueryTagDataType dataType = ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[queryTag.VR.Code];
@@ -69,7 +66,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 DoubleRows = doubleRows,
                 DateTimeRows = dateTimeRows,
                 PersonNameRows = personNamRows,
-                MaxVersion = maxVersion,
+                MaxTagKey = maxVersion,
             };
         }
 

@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
     /// </summary>
     internal class ExtendedQueryTagDataRows
     {
-        public ulong? MaxVersion { get; set; }
+        public int MaxTagKey { get; set; }
 
         public IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> StringRows { get; set; }
 

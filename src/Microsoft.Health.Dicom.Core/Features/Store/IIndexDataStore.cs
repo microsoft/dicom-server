@@ -73,9 +73,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <param name="dicomDataset">The DICOM dataset whose status should be updated.</param>
         /// <param name="watermark">The DICOM instance watermark.</param>
         /// <param name="queryTags">Queryable dicom tags</param>
+        /// <param name="allowExpiredTags">Optionally allow an out-of-date snapshot of <paramref name="queryTags"/>.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous update operation.</returns>
-        Task EndCreateInstanceIndexAsync(DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
+        Task EndCreateInstanceIndexAsync(DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, bool allowExpiredTags = false, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Return a collection of deleted instances.

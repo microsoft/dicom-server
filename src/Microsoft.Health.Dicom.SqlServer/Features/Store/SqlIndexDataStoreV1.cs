@@ -109,6 +109,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             DicomDataset dicomDataset,
             long watermark,
             IEnumerable<QueryTag> queryTags,
+            bool allowExpiredTags = false,
             CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));

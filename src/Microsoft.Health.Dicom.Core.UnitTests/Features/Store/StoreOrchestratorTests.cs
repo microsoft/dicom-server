@@ -54,7 +54,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         private readonly List<QueryTagsExpiredEventArgs> _eventInvocations = new List<QueryTagsExpiredEventArgs>();
         private readonly List<QueryTag> _queryTags = new List<QueryTag>
         {
-            new QueryTag(new ExtendedQueryTagStoreEntry(1, "00101010", "AS", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Ready, 1L))
+            new QueryTag(new ExtendedQueryTagStoreEntry(1, "00101010", "AS", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Ready))
         };
 
         public StoreOrchestratorTests()
@@ -111,7 +111,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             await ValidateCleanupAsync();
 
-            await _indexDataStore.DidNotReceiveWithAnyArgs().EndCreateInstanceIndexAsync(default, default, default, default);
+            await _indexDataStore.DidNotReceiveWithAnyArgs().EndCreateInstanceIndexAsync(default, default, default, default, default);
         }
 
         [Fact]
@@ -129,7 +129,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             await ValidateCleanupAsync();
 
-            await _indexDataStore.DidNotReceiveWithAnyArgs().EndCreateInstanceIndexAsync(default, default, default, default);
+            await _indexDataStore.DidNotReceiveWithAnyArgs().EndCreateInstanceIndexAsync(default, default, default, default, default);
         }
 
         [Fact]
@@ -150,10 +150,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         public async Task GivenVersionMismatchExceptionWhenStore_WhenRetryNotExceedMax_ThenShouldSucceed()
         {
             List<QueryTag> newTags1 = _queryTags
-                .Concat(new QueryTag[] { new QueryTag(new ExtendedQueryTagStoreEntry(2, "00202020", "DT", null, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, 2L)) })
+                .Concat(new QueryTag[] { new QueryTag(new ExtendedQueryTagStoreEntry(2, "00202020", "DT", null, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready)) })
                 .ToList();
             List<QueryTag> newTags2 = newTags1
-                .Concat(new QueryTag[] { new QueryTag(new ExtendedQueryTagStoreEntry(3, "00303030", "DA", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, 3L)) })
+                .Concat(new QueryTag[] { new QueryTag(new ExtendedQueryTagStoreEntry(3, "00303030", "DA", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready)) })
                 .ToList();
 
             _queryTagService
@@ -162,19 +162,19 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             _queryTagService
                 .GetQueryTagsAsync(true, Arg.Any<CancellationToken>())
                 .Returns(newTags1, newTags2); // Return different tags
-            _indexDataStore.EndCreateInstanceIndexAsync(default, default, default, default)
+            _indexDataStore.EndCreateInstanceIndexAsync(default, default, default, default, default)
                 .ReturnsForAnyArgs(
-                    Task.FromException(new ExtendedQueryTagVersionMismatchException()),
-                    Task.FromException(new ExtendedQueryTagVersionMismatchException()),
+                    Task.FromException(new ExtendedQueryTagsOutOfDateException()),
+                    Task.FromException(new ExtendedQueryTagsOutOfDateException()),
                     Task.CompletedTask);
 
             await _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken);
 
             await _queryTagService.Received(4).GetQueryTagsAsync(false, DefaultCancellationToken);
             await _queryTagService.Received(2).GetQueryTagsAsync(true, DefaultCancellationToken);
-            await _indexDataStore.Received(1).EndCreateInstanceIndexAsync(_dicomDataset, DefaultVersion, _queryTags, DefaultCancellationToken);
-            await _indexDataStore.Received(1).EndCreateInstanceIndexAsync(_dicomDataset, DefaultVersion, newTags1, DefaultCancellationToken);
-            await _indexDataStore.Received(1).EndCreateInstanceIndexAsync(_dicomDataset, DefaultVersion, newTags2, DefaultCancellationToken);
+            await _indexDataStore.Received(1).EndCreateInstanceIndexAsync(_dicomDataset, DefaultVersion, _queryTags, false, DefaultCancellationToken);
+            await _indexDataStore.Received(1).EndCreateInstanceIndexAsync(_dicomDataset, DefaultVersion, newTags1, false, DefaultCancellationToken);
+            await _indexDataStore.Received(1).EndCreateInstanceIndexAsync(_dicomDataset, DefaultVersion, newTags2, false, DefaultCancellationToken);
 
             Assert.Equal(2, _eventInvocations.Count);
             Assert.Equal("00202020", _eventInvocations[0].NewQueryTags.Single().Tag.GetPath());
@@ -184,11 +184,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         [Fact]
         public async Task GivenVersionMismatchExceptionWhenStore_WhenRetryExceedMax_ThenShouldFail()
         {
-            Func<CallInfo, long> exceptionFunc = new Func<CallInfo, long>(x => throw new ExtendedQueryTagVersionMismatchException());
+            Func<CallInfo, long> exceptionFunc = new Func<CallInfo, long>(x => throw new ExtendedQueryTagsOutOfDateException());
             _indexDataStore.BeginCreateInstanceIndexAsync(default, default, default)
                 .ReturnsForAnyArgs(exceptionFunc, exceptionFunc, exceptionFunc);
 
-            await Assert.ThrowsAsync<ExtendedQueryTagVersionMismatchException>(
+            await Assert.ThrowsAsync<ExtendedQueryTagsOutOfDateException>(
                 () => _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken));
         }
 
@@ -202,6 +202,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                     _dicomDataset,
                     DefaultVersionedInstanceIdentifier.Version,
                     expectedTags,
+                    false,
                     DefaultCancellationToken);
 
         private Task ValidateCleanupAsync()

@@ -13,8 +13,8 @@ namespace Microsoft.Health.Dicom.Core.Configs
         public long MaxAllowedDicomFileSize { get; set; } = 2147483648;
 
         /// <summary>
-        /// Maximum retries when extended query tag version mismatches.
+        /// Maximum retries when extended query tags are considered out-of-date.
         /// </summary>
-        public int MaxRetriesWhenTagVersionMismatch { get; set; } = 3;
+        public int MaxRetriesWhenTagsOutOfDate { get; set; } = 3;
     }
 }
