@@ -78,7 +78,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
             var controller = new OperationsController(mediator, urlResolver, NullLogger<OperationsController>.Instance);
             controller.ControllerContext.HttpContext = new DefaultHttpContext();
 
-            var expected = new OperationStatus<Uri>
+            var expected = new OperationStatus
             {
                 CreatedTime = DateTime.UtcNow.AddMinutes(-1),
                 LastUpdatedTime = DateTime.UtcNow,
@@ -125,7 +125,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
             var controller = new OperationsController(mediator, urlResolver, NullLogger<OperationsController>.Instance);
             controller.ControllerContext.HttpContext = new DefaultHttpContext();
 
-            var expected = new OperationStatus<Uri>
+            var expected = new OperationStatus
             {
                 CreatedTime = DateTime.UtcNow.AddMinutes(-5),
                 LastUpdatedTime = DateTime.UtcNow,

@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing.Models
         public WatermarkRange WatermarkRange { get; set; }
 
         /// <summary>
-        /// Gets or sets the tag entires.
+        /// Gets or sets the tag entries.
         /// </summary>
         public IReadOnlyCollection<ExtendedQueryTagStoreEntry> QueryTags { get; set; }
     }

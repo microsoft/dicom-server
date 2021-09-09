@@ -21,7 +21,9 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Dicom.Functions.Durable;
 using Microsoft.Health.Dicom.Functions.Extensions;
+using Microsoft.Health.Dicom.Functions.Indexing.Models;
 
 namespace Microsoft.Health.Dicom.Functions.Management
 {
@@ -80,7 +82,7 @@ namespace Microsoft.Health.Dicom.Functions.Management
             // GetStatusAsync doesn't accept a token, so the best we can do is cancel before execution
             source.Token.ThrowIfCancellationRequested();
 
-            OperationStatus<string> status = await GetOperationStatusAsync(client, instanceId);
+            InternalOperationStatus status = await GetOperationStatusAsync(client, instanceId);
             return status != null && PublicOperationTypes.Contains(status.Type)
                 ? new HttpResponseMessage
                 {
@@ -90,26 +92,39 @@ namespace Microsoft.Health.Dicom.Functions.Management
                 : new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound };
         }
 
-        private static async Task<OperationStatus<string>> GetOperationStatusAsync(IDurableOrchestrationClient client, Guid instanceId)
+        private static async Task<InternalOperationStatus> GetOperationStatusAsync(IDurableOrchestrationClient client, Guid instanceId)
         {
-            DurableOrchestrationStatus status = await client.GetStatusAsync(OperationId.ToString(instanceId), showInput: false);
+            DurableOrchestrationStatus status = await client.GetStatusAsync(OperationId.ToString(instanceId), showInput: true);
             if (status == null)
             {
                 return null;
             }
 
-            OperationCustomStatus customStatus = status.CustomStatus?.ToObject<OperationCustomStatus>() ?? new OperationCustomStatus();
             OperationType type = status.GetOperationType();
-            return new OperationStatus<string>
+            OperationRuntimeStatus runtimeStatus = status.GetOperationRuntimeStatus();
+            OperationProgress progress = GetOperationProgress(type, status);
+            return new InternalOperationStatus
             {
                 CreatedTime = status.CreatedTime,
                 LastUpdatedTime = status.LastUpdatedTime,
                 OperationId = instanceId,
-                PercentComplete = customStatus.PercentComplete,
-                Resources = customStatus.ResourceIds,
-                Status = status.GetOperationRuntimeStatus(),
+                PercentComplete = runtimeStatus == OperationRuntimeStatus.Completed ? 100 : progress.PercentComplete,
+                ResourceIds = progress.ResourceIds ?? Array.Empty<string>(),
+                Status = runtimeStatus,
                 Type = type,
             };
+        }
+
+        private static OperationProgress GetOperationProgress(OperationType type, DurableOrchestrationStatus status)
+        {
+            switch (type)
+            {
+                case OperationType.Reindex:
+                    ReindexInput reindexInput = status.Input?.ToObject<ReindexInput>() ?? new ReindexInput();
+                    return reindexInput.GetProgress();
+                default:
+                    return new OperationProgress();
+            }
         }
     }
 }

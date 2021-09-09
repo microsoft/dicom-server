@@ -5,9 +5,9 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.Health.Dicom.Core.Models.Operations
+namespace Microsoft.Health.Dicom.Functions.Durable
 {
-    internal class OperationCustomStatus
+    internal class OperationProgress
     {
         public int PercentComplete { get; set; }
 

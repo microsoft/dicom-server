@@ -3,23 +3,22 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 
 namespace Microsoft.Health.Dicom.Core.Models.Operations
 {
     /// <summary>
-    /// Represents the metadata for a long-running DICOM operation.
+    /// Represents the internal metadata for a long-running DICOM operation.
     /// </summary>
-    public class OperationStatus : CoreOperationStatus
+    internal class InternalOperationStatus : CoreOperationStatus
     {
         /// <summary>
-        /// Gets the collection of resources locations that the operation is creating or manipulating.
+        /// Gets the collection of resources identifiers that the operation is creating or manipulating.
         /// </summary>
         /// <remarks>
         /// The set of resources may change until the <see cref="CoreOperationStatus.Status"/> indicates completion.
         /// </remarks>
-        /// <value>One or more resources URIs.</value>
-        public IReadOnlyCollection<Uri> Resources { get; set; }
+        /// <value>One or more resources identifiers.</value>
+        public IReadOnlyCollection<string> ResourceIds { get; set; }
     }
 }

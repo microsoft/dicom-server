@@ -183,6 +183,40 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
+--     GetExtendedQueryTagsByKey
+--
+-- DESCRIPTION
+--     Gets the extended query tags by their respective keys.
+--
+-- PARAMETERS
+--     @extendedQueryTagKeys
+--         * The list of extended query tag keys.
+-- RETURN VALUE
+--     The corresponding extended query tags, if any.
+/***************************************************************************************/
+CREATE PROCEDURE dbo.GetExtendedQueryTagsByKey (
+    @extendedQueryTagKeys dbo.ExtendedQueryTagKeyTableType_1 READONLY
+)
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    SELECT XQT.TagKey,
+           TagPath,
+           TagVR,
+           TagPrivateCreator,
+           TagLevel,
+           TagStatus,
+           TagVersion
+    FROM dbo.ExtendedQueryTag AS XQT
+    INNER JOIN @extendedQueryTagKeys AS input
+    ON XQT.TagKey = input.TagKey
+END
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
 --     GetExtendedQueryTagsByOperation
 --
 -- DESCRIPTION

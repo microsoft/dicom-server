@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
@@ -32,6 +33,7 @@ namespace Microsoft.Health.Dicom.Functions.Client
     {
         private readonly HttpClient _client;
         private readonly IUrlResolver _urlResolver;
+        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly JsonSerializerOptions _jsonSerializerOptions;
         private readonly FunctionsClientOptions _options;
 
@@ -40,6 +42,7 @@ namespace Microsoft.Health.Dicom.Functions.Client
         /// </summary>
         /// <param name="client">The HTTP client used to communicate with the HTTP triggered functions.</param>
         /// <param name="urlResolver">A helper for building URLs for other APIs.</param>
+        /// <param name="extendedQueryTagStore">An extended query tag store for resolving the query tag IDs.</param>
         /// <param name="jsonSerializerOptions">Settings to be used when serializing or deserializing JSON.</param>
         /// <param name="options">A configuration that specifies how to communicate with the Azure Functions.</param>
         /// <exception cref="ArgumentNullException">
@@ -49,11 +52,13 @@ namespace Microsoft.Health.Dicom.Functions.Client
         public DicomAzureFunctionsHttpClient(
             HttpClient client,
             IUrlResolver urlResolver,
+            IExtendedQueryTagStore extendedQueryTagStore,
             IOptions<JsonSerializerOptions> jsonSerializerOptions,
             IOptions<FunctionsClientOptions> options)
         {
             _client = EnsureArg.IsNotNull(client, nameof(client));
             _urlResolver = EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
+            _extendedQueryTagStore = EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
             _jsonSerializerOptions = EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
             _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
 
@@ -61,7 +66,7 @@ namespace Microsoft.Health.Dicom.Functions.Client
         }
 
         /// <inheritdoc/>
-        public async Task<OperationStatus<Uri>> GetStatusAsync(Guid operationId, CancellationToken cancellationToken = default)
+        public async Task<OperationStatus> GetStatusAsync(Guid operationId, CancellationToken cancellationToken = default)
         {
             var statusRoute = new Uri(
                 string.Format(CultureInfo.InvariantCulture, _options.Routes.GetStatusRouteTemplate, OperationId.ToString(operationId)),
@@ -78,16 +83,16 @@ namespace Microsoft.Health.Dicom.Functions.Client
 
             // Re-throw any exceptions we may have encountered when making the HTTP request
             response.EnsureSuccessStatusCode();
-            OperationStatus<string> state = await response.Content.ReadFromJsonAsync<OperationStatus<string>>(_jsonSerializerOptions, cancellationToken);
-            return new OperationStatus<Uri>
+            InternalOperationStatus status = await response.Content.ReadFromJsonAsync<InternalOperationStatus>(_jsonSerializerOptions, cancellationToken);
+            return new OperationStatus
             {
-                CreatedTime = state.CreatedTime,
-                LastUpdatedTime = state.LastUpdatedTime,
-                OperationId = state.OperationId,
-                PercentComplete = state.PercentComplete,
-                Resources = GetResourceUrls(state.Type, state.Resources),
-                Status = state.Status,
-                Type = state.Type,
+                CreatedTime = status.CreatedTime,
+                LastUpdatedTime = status.LastUpdatedTime,
+                OperationId = status.OperationId,
+                PercentComplete = status.PercentComplete,
+                Resources = await GetResourceUrlsAsync(status.Type, status.ResourceIds, cancellationToken),
+                Status = status.Status,
+                Type = status.Type,
             };
         }
 
@@ -114,11 +119,26 @@ namespace Microsoft.Health.Dicom.Functions.Client
             return Guid.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
         }
 
-        private IReadOnlyCollection<Uri> GetResourceUrls(OperationType type, IReadOnlyCollection<string> resourceIds)
-            => type switch
+        private async Task<IReadOnlyCollection<Uri>> GetResourceUrlsAsync(
+            OperationType type,
+            IReadOnlyCollection<string> resourceIds,
+            CancellationToken cancellationToken)
+        {
+            switch (type)
             {
-                OperationType.Reindex => resourceIds?.Select(x => _urlResolver.ResolveQueryTagUri(x)).ToList(),
-                _ => throw new ArgumentOutOfRangeException(nameof(type))
-            };
+                case OperationType.Reindex:
+                    List<int> tagKeys = resourceIds?.Select(x => int.Parse(x, CultureInfo.InvariantCulture)).ToList();
+
+                    IReadOnlyCollection<ExtendedQueryTagStoreEntry> tagPaths = Array.Empty<ExtendedQueryTagStoreEntry>();
+                    if (tagKeys?.Count > 0)
+                    {
+                        tagPaths = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(tagKeys, cancellationToken);
+                    }
+
+                    return tagPaths.Select(x => _urlResolver.ResolveQueryTagUri(x.Path)).ToList();
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type));
+            }
+        }
     }
 }

@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations
             var handler = new OperationStatusHandler(client);
 
             Guid id = Guid.NewGuid();
-            var expected = new OperationStatus<Uri>
+            var expected = new OperationStatus
             {
                 CreatedTime = DateTime.UtcNow.AddMinutes(-5),
                 LastUpdatedTime = DateTime.UtcNow,
