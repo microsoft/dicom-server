@@ -1674,7 +1674,8 @@ BEGIN
            TagPrivateCreator,
            TagLevel,
            TagStatus,
-           TagVersion
+           TagVersion,
+           QueryStatus
     FROM dbo.ExtendedQueryTag AS XQT
     INNER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
     WHERE OperationId = @operationId
@@ -2188,7 +2189,8 @@ AS
                TagPrivateCreator,
                TagLevel,
                TagStatus,
-               TagVersion
+               TagVersion,
+               QueryStatus
         FROM @extendedQueryTagKeys AS input
         INNER JOIN dbo.ExtendedQueryTag AS XQT WITH(HOLDLOCK) ON input.TagKey = XQT.TagKey
         LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO WITH(HOLDLOCK) ON XQT.TagKey = XQTO.TagKey

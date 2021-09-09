@@ -243,7 +243,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public async Task GivenNotExistingTag_WhenUpdateTagQueryStatus_ThenShouldThrowException()
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
-            await _extendedQueryTagStore.UpdateExtendedQueryTagQueryStatusAsync(tag.GetPath(), QueryTagQueryStatus.Enabled);
+            await Assert.ThrowsAsync<ExtendedQueryTagNotFoundException>(() => _extendedQueryTagStore.UpdateExtendedQueryTagQueryStatusAsync(tag.GetPath(), QueryTagQueryStatus.Enabled));
         }
 
         [Fact]
@@ -251,7 +251,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
             await AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { tag.BuildAddExtendedQueryTagEntry() }, ready: false);
-            await _extendedQueryTagStore.UpdateExtendedQueryTagQueryStatusAsync(tag.GetPath(), QueryTagQueryStatus.Enabled);
+            await Assert.ThrowsAsync<ExtendedQueryTagBusyException>(() => _extendedQueryTagStore.UpdateExtendedQueryTagQueryStatusAsync(tag.GetPath(), QueryTagQueryStatus.Enabled));
         }
 
         [Fact]
@@ -260,16 +260,25 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             DicomTag tag = DicomTag.DeviceSerialNumber;
             await AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { tag.BuildAddExtendedQueryTagEntry() }, ready: true);
             // by default it's enabled
-            await _extendedQueryTagStore.UpdateExtendedQueryTagQueryStatusAsync(tag.GetPath(), QueryTagQueryStatus.Enabled);
+            await Assert.ThrowsAsync<ExtendedQueryTagInRequestedQueryStatusException>(() => _extendedQueryTagStore.UpdateExtendedQueryTagQueryStatusAsync(tag.GetPath(), QueryTagQueryStatus.Enabled));
         }
 
         [Fact]
         public async Task GivenTagNotInRequestedQueryStatus_WhenUpdateTagQueryStatus_ThenShouldSucceed()
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
-            await AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { tag.BuildAddExtendedQueryTagEntry() }, ready: true);
-            await _extendedQueryTagStore.UpdateExtendedQueryTagQueryStatusAsync(tag.GetPath(), QueryTagQueryStatus.Disabled);
-            await _extendedQueryTagStore.UpdateExtendedQueryTagQueryStatusAsync(tag.GetPath(), QueryTagQueryStatus.Enabled);
+            var addEntry = tag.BuildAddExtendedQueryTagEntry();
+            await AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { addEntry }, ready: true);
+            var returnTagStore = await _extendedQueryTagStore.UpdateExtendedQueryTagQueryStatusAsync(tag.GetPath(), QueryTagQueryStatus.Disabled);
+            Assert.Equal(addEntry.Path, returnTagStore.Path);
+            Assert.Equal(addEntry.Level, returnTagStore.Level.ToString());
+            Assert.Equal(addEntry.PrivateCreator, returnTagStore.PrivateCreator);
+            Assert.Equal(addEntry.VR, returnTagStore.VR);
+            Assert.Equal(ExtendedQueryTagStatus.Ready, returnTagStore.Status);
+            Assert.Equal(QueryTagQueryStatus.Disabled, returnTagStore.QueryStatus);
+
+            returnTagStore = await _extendedQueryTagStore.UpdateExtendedQueryTagQueryStatusAsync(tag.GetPath(), QueryTagQueryStatus.Enabled);
+            Assert.Equal(QueryTagQueryStatus.Enabled, returnTagStore.QueryStatus);
         }
 
 
