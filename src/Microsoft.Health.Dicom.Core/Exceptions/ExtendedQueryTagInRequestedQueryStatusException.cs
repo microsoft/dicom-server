@@ -15,7 +15,13 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
     public class ExtendedQueryTagInRequestedQueryStatusException : DicomServerException
     {
         public ExtendedQueryTagInRequestedQueryStatusException(string tagPath, QueryTagQueryStatus queryStatus)
-            : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExtendedQueryTagInRequestedQueryStatus, EnsureArg.IsNotNullOrWhiteSpace(tagPath), EnsureArg.EnumIsDefined(queryStatus)))
+            : base(
+                  string.Format(
+                CultureInfo.InvariantCulture,
+                DicomCoreResource.ExtendedQueryTagInRequestedQueryStatus,
+                EnsureArg.IsNotNullOrWhiteSpace(tagPath),
+                EnsureArg.EnumIsDefined(queryStatus))
+                  )
         {
         }
     }

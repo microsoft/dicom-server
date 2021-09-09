@@ -215,6 +215,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             }
         }
 
+        ///<inheritdoc/>
         public override async Task<ExtendedQueryTagStoreEntry> UpdateExtendedQueryTagQueryStatusAsync(string tagPath, QueryTagQueryStatus queryStatus, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrWhiteSpace(tagPath, nameof(tagPath));

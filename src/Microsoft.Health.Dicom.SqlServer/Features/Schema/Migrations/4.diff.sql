@@ -140,7 +140,7 @@ AS
         -- Check if tag is in Ready status
         -- 0 - Adding, 1 - Ready, 2 - Deleting
         IF @currentTagStatus <> 1
-            THROW 50409, 'extended query tag is not ready', 1
+            THROW 50409, 'extended query tag is not in Ready status', 1
 
         -- Check if tag queryStatus is same as input
         IF @currentQueryStatus = @queryStatus

@@ -62,6 +62,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             return await store.GetExtendedQueryTagsByOperationAsync(operationId, cancellationToken);
         }
 
+        ///<inheritdoc/>
         public async Task<ExtendedQueryTagStoreEntry> UpdateExtendedQueryTagQueryStatusAsync(string tagPath, QueryTagQueryStatus queryStatus, CancellationToken cancellationToken = default)
         {
             ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken);

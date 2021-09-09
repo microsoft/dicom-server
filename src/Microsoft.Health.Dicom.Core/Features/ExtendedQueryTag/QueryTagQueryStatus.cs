@@ -13,8 +13,14 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     [SuppressMessage("Design", "CA1028:Enum Storage should be Int32", Justification = "Vaule is stroed in SQL as TINYINT")]
     public enum QueryTagQueryStatus : byte
     {
+        /// <summary>
+        /// The tag is allowed to be queried.
+        /// </summary>
         Enabled = 1,
 
+        /// <summary>
+        /// The tag is not allowed to be queried.
+        /// </summary>
         Disabled = 0,
     }
 }

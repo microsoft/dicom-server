@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         public ulong? Version { get; }
 
         /// <summary>
-        /// True to disable query on this tag, false otherwise.
+        /// Query status of this tag.
         /// </summary>
         public QueryTagQueryStatus QueryStatus { get; }
 
