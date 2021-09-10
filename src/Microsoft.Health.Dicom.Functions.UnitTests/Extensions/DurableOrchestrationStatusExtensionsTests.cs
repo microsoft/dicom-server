@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Extensions
         [Theory]
         [InlineData((OrchestrationRuntimeStatus)47, OperationRuntimeStatus.Unknown)]
         [InlineData(OrchestrationRuntimeStatus.Unknown, OperationRuntimeStatus.Unknown)]
-        [InlineData(OrchestrationRuntimeStatus.Pending, OperationRuntimeStatus.Pending)]
+        [InlineData(OrchestrationRuntimeStatus.Pending, OperationRuntimeStatus.NotStarted)]
         [InlineData(OrchestrationRuntimeStatus.Running, OperationRuntimeStatus.Running)]
         [InlineData(OrchestrationRuntimeStatus.ContinuedAsNew, OperationRuntimeStatus.Running)]
         [InlineData(OrchestrationRuntimeStatus.Completed, OperationRuntimeStatus.Completed)]
