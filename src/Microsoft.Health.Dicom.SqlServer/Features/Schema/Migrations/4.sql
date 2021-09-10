@@ -391,6 +391,7 @@ CREATE TABLE dbo.ExtendedQueryTag (
     TagStatus               TINYINT              NOT NULL,
     TagVersion              ROWVERSION           NOT NULL,
     QueryStatus             TINYINT              DEFAULT 1 NOT NULL,
+    ErrorCount              INT                  NOT NULL,
 )
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
@@ -1271,16 +1272,8 @@ AS
     AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
     AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
 
-    IF (@@ROWCOUNT = 0)
-    BEGIN
-        THROW 50404, 'Instance not found', 1;
-    END
-
-    -- Deleting tag errors
-    DELETE XQTE
-    FROM dbo.ExtendedQueryTagError as XQTE
-    INNER JOIN @deletedInstances as d
-    ON XQTE.Watermark = d.Watermark
+    IF @@ROWCOUNT = 0    
+        THROW 50404, 'Instance not found', 1
 
     -- Deleting indexed instance tags
     DELETE
@@ -1400,6 +1393,26 @@ AS
         FROM    dbo.ExtendedQueryTagPersonName
         WHERE   StudyKey = @studyKey
     END
+
+    -- Deleting tag errors
+    DECLARE @deletedErrors AS TABLE
+        (
+            TagKey INT,            
+            Watermark BIGINT
+        )
+
+    DELETE XQTE
+        OUTPUT deleted.TagKey, deleted.Watermark
+        INTO @deletedErrors
+    FROM dbo.ExtendedQueryTagError as XQTE        
+    INNER JOIN @deletedInstances as D
+    ON XQTE.Watermark = D.Watermark
+
+    -- Update error count
+    UPDATE XQT 
+    SET ErrorCount = ErrorCount - (SELECT COUNT(*) FROM  @deletedErrors DE WHERE DE.TagKey = XQT.TagKey)
+    FROM dbo.ExtendedQueryTag XQT INNER JOIN @deletedErrors DE
+    ON XQT.TagKey = DE.TagKey
 
     COMMIT TRANSACTION
 GO
@@ -1843,10 +1856,10 @@ AS
         IF NOT EXISTS (SELECT * FROM dbo.ExtendedQueryTag WITH (HOLDLOCK) WHERE TagKey = @tagKey AND TagStatus = 0)
             THROW 50404, 'Tag does not exist or is not being added.', 1;
 
-        -- Disable query on the tag
+        -- Disable query on the tag and increase error count
         UPDATE dbo.ExtendedQueryTag
-        SET QueryStatus = 0
-        WHERE TagKey = @tagKey AND QueryStatus = 1
+        SET QueryStatus = 0, ErrorCount = ErrorCount + 1
+        WHERE TagKey = @tagKey
 
         -- Add error
         MERGE dbo.ExtendedQueryTagError WITH (HOLDLOCK) as XQTE
