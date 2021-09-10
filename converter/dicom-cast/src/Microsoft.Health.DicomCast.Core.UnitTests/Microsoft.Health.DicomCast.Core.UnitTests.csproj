@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="fo-dicom" Version="4.0.7" />
+    <PackageReference Include="fo-dicom" Version="4.0.8" />
     <PackageReference Include="Hl7.Fhir.R4" Version="$(Hl7FhirPackageVersion)" />
     <PackageReference Include="Hl7.Fhir.Support" Version="$(Hl7FhirPackageVersion)" />
     <PackageReference Include="Hl7.Fhir.Support.Poco" Version="$(Hl7FhirPackageVersion)" />
