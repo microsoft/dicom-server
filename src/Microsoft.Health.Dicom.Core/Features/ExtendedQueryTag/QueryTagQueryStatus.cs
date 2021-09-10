@@ -14,13 +14,13 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     public enum QueryTagQueryStatus : byte
     {
         /// <summary>
-        /// The tag is allowed to be queried.
-        /// </summary>
-        Enabled = 1,
-
-        /// <summary>
         /// The tag is not allowed to be queried.
         /// </summary>
         Disabled = 0,
+
+        /// <summary>
+        /// The tag is allowed to be queried.
+        /// </summary>
+        Enabled = 1,
     }
 }

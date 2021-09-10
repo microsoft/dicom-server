@@ -1794,25 +1794,16 @@ AS
 
         -- Check if tag exists
         SELECT @tagKey = TagKey, @currentQueryStatus = QueryStatus , @currentTagStatus = TagStatus
-        FROM dbo.ExtendedQueryTag WITH (HOLDLOCK)
+        FROM dbo.ExtendedQueryTag WITH (UPDLOCK)
         WHERE TagPath = @tagPath
 
         IF @@ROWCOUNT = 0
             THROW 50404, 'extended query tag is not found', 1
 
-        -- Check if tag is in Ready status
-        -- 0 - Adding, 1 - Ready, 2 - Deleting
-        IF @currentTagStatus <> 1
-            THROW 50409, 'extended query tag is not in Ready status', 1
-
-        -- Check if tag queryStatus is same as input
-        IF @currentQueryStatus = @queryStatus
-            THROW 50409, 'extended query tag is in required status already', 2
-
         -- Update QueryStatus
         UPDATE dbo.ExtendedQueryTag
         SET QueryStatus = @queryStatus
-        OUTPUT INSERTED.TagKey, INSERTED.TagPath, INSERTED.TagVR, INSERTED.TagPrivateCreator, INSERTED.TagLevel, INSERTED.TagStatus, INSERTED.TagVersion ,INSERTED.QueryStatus
+        OUTPUT INSERTED.TagKey, INSERTED.TagPath, INSERTED.TagVR, INSERTED.TagPrivateCreator, INSERTED.TagLevel, INSERTED.TagStatus, INSERTED.TagVersion, INSERTED.QueryStatus
         WHERE TagKey = @tagKey 
 
     COMMIT TRANSACTION
