@@ -249,9 +249,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 throw ex.Number switch
                 {
                     SqlErrorCodes.NotFound => new ExtendedQueryTagNotFoundException(string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.ExtendedQueryTagNotFound, tagPath)),
-                    SqlErrorCodes.Conflict => ex.State == 1 ?
-                    new ExtendedQueryTagBusyException(string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.ExtendedQueryTagIsBusy, tagPath)) :
-                    new ExtendedQueryTagInRequestedQueryStatusException(tagPath, queryStatus),
                     _ => new DataStoreException(ex),
                 };
             }
