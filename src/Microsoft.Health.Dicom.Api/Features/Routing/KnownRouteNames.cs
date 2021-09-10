@@ -21,5 +21,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
 
         internal const string VersionedOperationStatus = nameof(VersionedOperationStatus);
         internal const string OperationStatus = nameof(OperationStatus);
+
+        internal const string VersionedGetExtendedQueryTag = nameof(VersionedGetExtendedQueryTag);
+        internal const string GetExtendedQueryTag = nameof(GetExtendedQueryTag);
     }
 }

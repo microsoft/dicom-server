@@ -81,9 +81,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             _logger.LogInformation("DICOM Web Delete Extended Query Tag request received, with extended query tag path {tagPath}.", tagPath);
 
             EnsureFeatureIsEnabled();
-            DeleteExtendedQueryTagResponse response = await _mediator.DeleteExtendedQueryTagAsync(tagPath, HttpContext.RequestAborted);
+            await _mediator.DeleteExtendedQueryTagAsync(tagPath, HttpContext.RequestAborted);
 
-            return StatusCode((int)HttpStatusCode.NoContent, response);
+            return StatusCode((int)HttpStatusCode.NoContent);
         }
 
         /// <summary>
@@ -119,13 +119,13 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// Returns Bad Request if given path can't be parsed. Returns Not Found if given path doesn't map to a stored
         /// extended query tag. Returns OK with a JSON body of requested tag in other cases.
         /// </returns>
+        [HttpGet]
         [Produces(KnownContentTypes.ApplicationJson)]
         [ProducesResponseType(typeof(GetExtendedQueryTagEntry), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
-        [HttpGet]
-        [VersionedRoute(KnownRoutes.GetExtendedQueryTagRoute)]
-        [Route(KnownRoutes.GetExtendedQueryTagRoute)]
+        [VersionedRoute(KnownRoutes.GetExtendedQueryTagRoute, Name = KnownRouteNames.VersionedGetExtendedQueryTag)]
+        [Route(KnownRoutes.GetExtendedQueryTagRoute, Name = KnownRouteNames.GetExtendedQueryTag)]
         [AuditEventType(AuditEventSubType.GetExtendedQueryTag)]
         public async Task<IActionResult> GetTagAsync(string tagPath)
         {

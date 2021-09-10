@@ -76,8 +76,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [VersionedRoute(KnownRoutes.OperationInstanceRoute, Name = KnownRouteNames.VersionedOperationStatus)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        [ProducesResponseType(typeof(OperationStatusResponse), (int)HttpStatusCode.Accepted)]
-        [ProducesResponseType(typeof(OperationStatusResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(OperationStatus), (int)HttpStatusCode.Accepted)]
+        [ProducesResponseType(typeof(OperationStatus), (int)HttpStatusCode.OK)]
         [AuditEventType(AuditEventSubType.Operation)]
         public async Task<IActionResult> GetStatusAsync(Guid operationId)
         {
@@ -91,7 +91,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             }
 
             HttpStatusCode statusCode;
-            if (response.Status == OperationRuntimeStatus.Pending || response.Status == OperationRuntimeStatus.Running)
+            OperationStatus operationStatus = response.OperationStatus;
+            if (operationStatus.Status == OperationRuntimeStatus.NotStarted || operationStatus.Status == OperationRuntimeStatus.Running)
             {
                 Response.AddLocationHeader(_urlResolver.ResolveOperationStatusUri(operationId));
                 statusCode = HttpStatusCode.Accepted;
@@ -101,7 +102,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
                 statusCode = HttpStatusCode.OK;
             }
 
-            return StatusCode((int)statusCode, response);
+            return StatusCode((int)statusCode, operationStatus);
         }
     }
 }

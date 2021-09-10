@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -13,9 +14,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Messages.Operations;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Indexing;
+using Microsoft.Health.Dicom.Functions.Indexing.Models;
 using Microsoft.Health.Dicom.Functions.Management;
 using NSubstitute;
 using Xunit;
@@ -61,7 +63,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
 
             IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
             client
-                .GetStatusAsync(OperationId.ToString(id), showHistory: false, showHistoryOutput: false, showInput: false)
+                .GetStatusAsync(OperationId.ToString(id), showHistory: false, showHistoryOutput: false, showInput: true)
                 .Returns((DurableOrchestrationStatus)null);
 
             HttpResponseMessage actual = await _proxy.GetStatusAsync(context.Request, client, id, NullLogger.Instance);
@@ -69,7 +71,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
 
             await client
                 .Received(1)
-                .GetStatusAsync(OperationId.ToString(id), showHistory: false, showHistoryOutput: false, showInput: false);
+                .GetStatusAsync(OperationId.ToString(id), showHistory: false, showHistoryOutput: false, showInput: true);
         }
 
         [Fact]
@@ -88,7 +90,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
 
             IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
             client
-                .GetStatusAsync(OperationId.ToString(id), showHistory: false, showHistoryOutput: false, showInput: false)
+                .GetStatusAsync(OperationId.ToString(id), showHistory: false, showHistoryOutput: false, showInput: true)
                 .Returns(status);
 
             HttpResponseMessage actual = await _proxy.GetStatusAsync(context.Request, client, id, NullLogger.Instance);
@@ -96,11 +98,50 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
 
             await client
                 .Received(1)
-                .GetStatusAsync(OperationId.ToString(id), showHistory: false, showHistoryOutput: false, showInput: false);
+                .GetStatusAsync(OperationId.ToString(id), showHistory: false, showHistoryOutput: false, showInput: true);
         }
 
         [Fact]
         public async Task GivenValidStatus_WhenGettingStatus_ThenReturnOk()
+        {
+            var context = new DefaultHttpContext();
+            Guid id = Guid.NewGuid();
+            var expected = new DurableOrchestrationStatus
+            {
+                CreatedTime = DateTime.UtcNow.AddMinutes(-2),
+                Input = Newtonsoft.Json.Linq.JToken.FromObject(
+                    new ReindexInput { Completed = new WatermarkRange(19, 100), QueryTagKeys = new int[] { 5 } }),
+                InstanceId = OperationId.ToString(id),
+                LastUpdatedTime = DateTime.UtcNow,
+                Name = nameof(ReindexDurableFunction.ReindexInstancesAsync),
+                RuntimeStatus = OrchestrationRuntimeStatus.Running,
+            };
+
+            IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
+            client
+                .GetStatusAsync(OperationId.ToString(id), showHistory: false, showHistoryOutput: false, showInput: true)
+                .Returns(expected);
+
+            HttpResponseMessage response = await _proxy.GetStatusAsync(context.Request, client, id, NullLogger.Instance);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var actual = JsonSerializer.Deserialize<InternalOperationStatus>(await response.Content.ReadAsStringAsync(), _jsonOptions);
+            Assert.NotNull(actual);
+            Assert.Equal(id, actual.OperationId);
+            Assert.Equal(OperationType.Reindex, actual.Type);
+            Assert.Equal(expected.CreatedTime, actual.CreatedTime);
+            Assert.Equal(expected.LastUpdatedTime, actual.LastUpdatedTime);
+            Assert.Equal(OperationRuntimeStatus.Running, actual.Status);
+            Assert.Equal(82, actual.PercentComplete);
+            Assert.Equal("5", actual.ResourceIds.Single());
+
+            await client
+                .Received(1)
+                .GetStatusAsync(OperationId.ToString(id), showHistory: false, showHistoryOutput: false, showInput: true);
+        }
+
+        [Fact]
+        public async Task GivenInput_WhenGettingStatus_ThenDefaultValues()
         {
             var context = new DefaultHttpContext();
             Guid id = Guid.NewGuid();
@@ -115,23 +156,25 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
 
             IDurableOrchestrationClient client = Substitute.For<IDurableOrchestrationClient>();
             client
-                .GetStatusAsync(OperationId.ToString(id), showHistory: false, showHistoryOutput: false, showInput: false)
+                .GetStatusAsync(OperationId.ToString(id), showHistory: false, showHistoryOutput: false, showInput: true)
                 .Returns(expected);
 
             HttpResponseMessage response = await _proxy.GetStatusAsync(context.Request, client, id, NullLogger.Instance);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            var actual = JsonSerializer.Deserialize<OperationStatusResponse>(await response.Content.ReadAsStringAsync(), _jsonOptions);
+            var actual = JsonSerializer.Deserialize<InternalOperationStatus>(await response.Content.ReadAsStringAsync(), _jsonOptions);
             Assert.NotNull(actual);
             Assert.Equal(id, actual.OperationId);
             Assert.Equal(OperationType.Reindex, actual.Type);
             Assert.Equal(expected.CreatedTime, actual.CreatedTime);
             Assert.Equal(expected.LastUpdatedTime, actual.LastUpdatedTime);
             Assert.Equal(OperationRuntimeStatus.Running, actual.Status);
+            Assert.Equal(0, actual.PercentComplete);
+            Assert.Empty(actual.ResourceIds);
 
             await client
                 .Received(1)
-                .GetStatusAsync(OperationId.ToString(id), showHistory: false, showHistoryOutput: false, showInput: false);
+                .GetStatusAsync(OperationId.ToString(id), showHistory: false, showHistoryOutput: false, showInput: true);
         }
     }
 }

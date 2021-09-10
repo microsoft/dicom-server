@@ -16,9 +16,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Messages.Operations;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Client.Configs;
+using NSubstitute;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
@@ -49,18 +51,29 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
         public void GivenNullArguments_WhenConstructing_ThenThrowArgumentNullException()
         {
             var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound));
-            Assert.Throws<ArgumentNullException>(
-                () => new DicomAzureFunctionsHttpClient(null, _jsonSerializerOptions, DefaultOptions));
+            var resolver = Substitute.For<IUrlResolver>();
+            var store = Substitute.For<IExtendedQueryTagStore>();
 
             Assert.Throws<ArgumentNullException>(
-                () => new DicomAzureFunctionsHttpClient(new HttpClient(handler), null, DefaultOptions));
+                () => new DicomAzureFunctionsHttpClient(null, resolver, store, _jsonSerializerOptions, DefaultOptions));
 
             Assert.Throws<ArgumentNullException>(
-                () => new DicomAzureFunctionsHttpClient(new HttpClient(handler), _jsonSerializerOptions, null));
+                () => new DicomAzureFunctionsHttpClient(new HttpClient(handler), null, store, _jsonSerializerOptions, DefaultOptions));
+
+            Assert.Throws<ArgumentNullException>(
+                () => new DicomAzureFunctionsHttpClient(new HttpClient(handler), resolver, null, _jsonSerializerOptions, DefaultOptions));
+
+            Assert.Throws<ArgumentNullException>(
+                () => new DicomAzureFunctionsHttpClient(new HttpClient(handler), resolver, store, null, DefaultOptions));
+
+            Assert.Throws<ArgumentNullException>(
+                () => new DicomAzureFunctionsHttpClient(new HttpClient(handler), resolver, store, _jsonSerializerOptions, null));
 
             Assert.Throws<ArgumentNullException>(
                 () => new DicomAzureFunctionsHttpClient(
                     new HttpClient(handler),
+                    resolver,
+                    store,
                     _jsonSerializerOptions,
                     Options.Create<FunctionsClientOptions>(null)));
         }
@@ -69,7 +82,9 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
         public async Task GivenNotFound_WhenGettingStatus_ThenReturnNull()
         {
             var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound));
-            var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), _jsonSerializerOptions, DefaultOptions);
+            var resolver = Substitute.For<IUrlResolver>();
+            var store = Substitute.For<IExtendedQueryTagStore>();
+            var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), resolver, store, _jsonSerializerOptions, DefaultOptions);
 
             Guid id = Guid.NewGuid();
             using var source = new CancellationTokenSource();
@@ -77,6 +92,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
             handler.SendingAsync += (msg, token) => AssertExpectedStatusRequestAsync(msg, id);
             Assert.Null(await client.GetStatusAsync(id, source.Token));
             Assert.Equal(1, handler.SentMessages);
+            resolver.DidNotReceiveWithAnyArgs().ResolveQueryTagUri(default);
         }
 
         [Theory]
@@ -86,7 +102,9 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
         public async Task GivenUnsuccessfulStatusCode_WhenGettingStatus_ThenThrowHttpRequestException(HttpStatusCode expected)
         {
             var handler = new MockMessageHandler(new HttpResponseMessage(expected));
-            var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), _jsonSerializerOptions, DefaultOptions);
+            var resolver = Substitute.For<IUrlResolver>();
+            var store = Substitute.For<IExtendedQueryTagStore>();
+            var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), resolver, store, _jsonSerializerOptions, DefaultOptions);
 
             Guid id = Guid.NewGuid();
             using var source = new CancellationTokenSource();
@@ -95,6 +113,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
             HttpRequestException ex = await Assert.ThrowsAsync<HttpRequestException>(() => client.GetStatusAsync(id, source.Token));
             Assert.Equal(expected, ex.StatusCode);
             Assert.Equal(1, handler.SentMessages);
+            resolver.DidNotReceiveWithAnyArgs().ResolveQueryTagUri(default);
         }
 
         [Fact]
@@ -107,22 +126,45 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
                 Content = new StringContent(
 @$"
 {{
-  ""OperationId"": ""{id}"",
-  ""Type"": ""{OperationType.Reindex}"",
-  ""CreatedTime"": ""{createdDateTime:O}"",
-  ""LastUpdatedTime"": ""{createdDateTime.AddMinutes(15):O}"",
-  ""Status"": ""{OperationRuntimeStatus.Running}""
+  ""{nameof(InternalOperationStatus.OperationId)}"": ""{id}"",
+  ""{nameof(InternalOperationStatus.Type)}"": ""{OperationType.Reindex}"",
+  ""{nameof(InternalOperationStatus.CreatedTime)}"": ""{createdDateTime:O}"",
+  ""{nameof(InternalOperationStatus.LastUpdatedTime)}"": ""{createdDateTime.AddMinutes(15):O}"",
+  ""{nameof(InternalOperationStatus.Status)}"": ""{OperationRuntimeStatus.Running}"",
+  ""{nameof(InternalOperationStatus.PercentComplete)}"": 47,
+  ""{nameof(InternalOperationStatus.ResourceIds)}"": [ ""1"", ""4"" ]
 }}
 "
                 ),
             };
             var handler = new MockMessageHandler(response);
-            var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), _jsonSerializerOptions, DefaultOptions);
+            var resolver = Substitute.For<IUrlResolver>();
+            var store = Substitute.For<IExtendedQueryTagStore>();
+            var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), resolver, store, _jsonSerializerOptions, DefaultOptions);
 
             using var source = new CancellationTokenSource();
 
+            List<Uri> expectedResourceUrls = new List<Uri>
+            {
+                new Uri("https://dicom.core/unit/tests/extendedquerytags/00101010", UriKind.Absolute),
+                new Uri("https://dicom.core/unit/tests/extendedquerytags/00104040", UriKind.Absolute),
+
+            };
+            resolver.ResolveQueryTagUri("00101010").Returns(expectedResourceUrls[0]);
+            resolver.ResolveQueryTagUri("00104040").Returns(expectedResourceUrls[1]);
+            store
+                .GetExtendedQueryTagsAsync(
+                    Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(new int[] { 1, 4 })),
+                    source.Token)
+                .Returns(
+                    new List<ExtendedQueryTagStoreEntry>
+                    {
+                        new ExtendedQueryTagStoreEntry(1, "00101010", "AS", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Adding, null),
+                        new ExtendedQueryTagStoreEntry(4, "00104040", "DT", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding, null),
+                    });
             handler.SendingAsync += (msg, token) => AssertExpectedStatusRequestAsync(msg, id);
-            OperationStatusResponse actual = await client.GetStatusAsync(id, source.Token);
+
+            OperationStatus actual = await client.GetStatusAsync(id, source.Token);
             Assert.Equal(1, handler.SentMessages);
 
             Assert.NotNull(actual);
@@ -131,13 +173,28 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
             Assert.Equal(id, actual.OperationId);
             Assert.Equal(OperationRuntimeStatus.Running, actual.Status);
             Assert.Equal(OperationType.Reindex, actual.Type);
+            Assert.Equal(47, actual.PercentComplete);
+            Assert.True(actual.Resources.SequenceEqual(expectedResourceUrls));
+
+            await store
+                .Received(1)
+                .GetExtendedQueryTagsAsync(
+                    Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(new int[] { 1, 4 })),
+                    source.Token);
+            resolver.Received(1).ResolveQueryTagUri("00101010");
+            resolver.Received(1).ResolveQueryTagUri("00104040");
         }
 
         [Fact]
-        public async Task GivenNullTagKEys_WhenStartingReindex_ThenThrowArgumentNullException()
+        public async Task GivenNullTagKeys_WhenStartingReindex_ThenThrowArgumentNullException()
         {
             var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound));
-            var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), _jsonSerializerOptions, DefaultOptions);
+            var client = new DicomAzureFunctionsHttpClient(
+                new HttpClient(handler),
+                Substitute.For<IUrlResolver>(),
+                Substitute.For<IExtendedQueryTagStore>(),
+                _jsonSerializerOptions,
+                DefaultOptions);
 
             await Assert.ThrowsAsync<ArgumentNullException>(
                 () => client.StartQueryTagIndexingAsync(null, CancellationToken.None));
@@ -149,7 +206,12 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
         public async Task GivenNoTagKeys_WhenStartingReindex_ThenThrowArgumentNullException()
         {
             var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound));
-            var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), _jsonSerializerOptions, DefaultOptions);
+            var client = new DicomAzureFunctionsHttpClient(
+                new HttpClient(handler),
+                Substitute.For<IUrlResolver>(),
+                Substitute.For<IExtendedQueryTagStore>(),
+                _jsonSerializerOptions,
+                DefaultOptions);
 
             await Assert.ThrowsAsync<ArgumentException>(
                 () => client.StartQueryTagIndexingAsync(Array.Empty<int>(), CancellationToken.None));
@@ -164,7 +226,12 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
         public async Task GivenUnsuccessfulStatusCode_WhenStartingReindex_ThenThrowHttpRequestException(HttpStatusCode expected)
         {
             var handler = new MockMessageHandler(new HttpResponseMessage(expected));
-            var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), _jsonSerializerOptions, DefaultOptions);
+            var client = new DicomAzureFunctionsHttpClient(
+                new HttpClient(handler),
+                Substitute.For<IUrlResolver>(),
+                Substitute.For<IExtendedQueryTagStore>(),
+                _jsonSerializerOptions,
+                DefaultOptions);
 
             var input = new List<int> { 1, 2, 3 };
             using var source = new CancellationTokenSource();
@@ -181,7 +248,12 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
         public async Task GivenConflict_WhenStartingReindex_ThenThrowAlreadyExistsException()
         {
             var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.Conflict));
-            var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), _jsonSerializerOptions, DefaultOptions);
+            var client = new DicomAzureFunctionsHttpClient(
+                new HttpClient(handler),
+                Substitute.For<IUrlResolver>(),
+                Substitute.For<IExtendedQueryTagStore>(),
+                _jsonSerializerOptions,
+                DefaultOptions);
 
             var input = new List<int> { 1, 2, 3 };
             using var source = new CancellationTokenSource();
@@ -197,7 +269,12 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
             Guid expected = Guid.NewGuid();
             var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(OperationId.ToString(expected)) };
             var handler = new MockMessageHandler(response);
-            var client = new DicomAzureFunctionsHttpClient(new HttpClient(handler), _jsonSerializerOptions, DefaultOptions);
+            var client = new DicomAzureFunctionsHttpClient(
+                new HttpClient(handler),
+                Substitute.For<IUrlResolver>(),
+                Substitute.For<IExtendedQueryTagStore>(),
+                _jsonSerializerOptions,
+                DefaultOptions);
 
             using var source = new CancellationTokenSource();
             var input = new List<int> { 1, 2, 3 };
