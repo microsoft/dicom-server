@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -84,16 +83,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus, byte[] tagVersion) = reader.ReadRow(
+                        (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus) = reader.ReadRow(
                             VLatest.ExtendedQueryTag.TagKey,
                             VLatest.ExtendedQueryTag.TagPath,
                             VLatest.ExtendedQueryTag.TagVR,
                             VLatest.ExtendedQueryTag.TagPrivateCreator,
                             VLatest.ExtendedQueryTag.TagLevel,
-                            VLatest.ExtendedQueryTag.TagStatus,
-                            VLatest.ExtendedQueryTag.TagVersion);
+                            VLatest.ExtendedQueryTag.TagStatus);
 
-                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, RowVersionToUlong(tagVersion)));
+                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus));
                     }
 
                     executionTimeWatch.Stop();
@@ -242,12 +240,5 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 throw new DataStoreException(ex);
             }
         }
-
-        private static ulong RowVersionToUlong(byte[] rowVersion)
-        {
-            Debug.Assert(rowVersion.Length == 8, "Row vesion is length of 8");
-            return BinaryPrimitives.ReadUInt64BigEndian(rowVersion);
-        }
-
     }
 }

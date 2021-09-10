@@ -1251,8 +1251,9 @@ AS
     SET XACT_ABORT ON
     BEGIN TRANSACTION
 
-        -- Note that if @maxTagKey is NULL, <> will return always return False and bypass the check
-        IF @maxTagKey <> (SELECT ISNULL(MAX(TagKey), 0) FROM dbo.ExtendedQueryTag WITH (HOLDLOCK))
+        -- This check ensures the client is not potentially missing 1 or more query tags that may need to be indexed.
+        -- Note that if @maxTagKey is NULL, < will always return UNKNOWN.
+        IF @maxTagKey < (SELECT ISNULL(MAX(TagKey), 0) FROM dbo.ExtendedQueryTag WITH (HOLDLOCK))
             THROW 50409, 'Max extended query tag key does not match', 10
 
         DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
@@ -1836,8 +1837,7 @@ BEGIN
            TagVR,
            TagPrivateCreator,
            TagLevel,
-           TagStatus,
-           TagVersion
+           TagStatus
     FROM dbo.ExtendedQueryTag AS XQT
     INNER JOIN @extendedQueryTagKeys AS input
     ON XQT.TagKey = input.TagKey
