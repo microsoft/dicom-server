@@ -278,15 +278,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Extended query  tag &apos;{0}&apos; is already in requested query status &apos;{1}&apos;..
-        /// </summary>
-        internal static string ExtendedQueryTagInRequestedQueryStatus {
-            get {
-                return ResourceManager.GetString("ExtendedQueryTagInRequestedQueryStatus", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The specified extended query tag with tag path {0} cannot be found..
         /// </summary>
         internal static string ExtendedQueryTagNotFound {
