@@ -38,6 +38,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetChangeFeedLatestProcedure GetChangeFeedLatest = new GetChangeFeedLatestProcedure();
         internal readonly static GetExtendedQueryTagProcedure GetExtendedQueryTag = new GetExtendedQueryTagProcedure();
         internal readonly static GetExtendedQueryTagErrorsProcedure GetExtendedQueryTagErrors = new GetExtendedQueryTagErrorsProcedure();
+        internal readonly static GetExtendedQueryTagsByKeyProcedure GetExtendedQueryTagsByKey = new GetExtendedQueryTagsByKeyProcedure();
         internal readonly static GetExtendedQueryTagsByOperationProcedure GetExtendedQueryTagsByOperation = new GetExtendedQueryTagsByOperationProcedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
         internal readonly static GetInstanceBatchesProcedure GetInstanceBatches = new GetInstanceBatchesProcedure();
@@ -667,6 +668,52 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 command.CommandText = "dbo.GetExtendedQueryTagErrors";
                 _tagPath.AddParameter(command.Parameters, tagPath);
             }
+        }
+
+        internal class GetExtendedQueryTagsByKeyProcedure : StoredProcedure
+        {
+            internal GetExtendedQueryTagsByKeyProcedure() : base("dbo.GetExtendedQueryTagsByKey")
+            {
+            }
+
+            private readonly ExtendedQueryTagKeyTableTypeV1TableValuedParameterDefinition _extendedQueryTagKeys = new ExtendedQueryTagKeyTableTypeV1TableValuedParameterDefinition("@extendedQueryTagKeys");
+
+            public void PopulateCommand(SqlCommandWrapper command, global::System.Collections.Generic.IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> extendedQueryTagKeys)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetExtendedQueryTagsByKey";
+                _extendedQueryTagKeys.AddParameter(command.Parameters, extendedQueryTagKeys);
+            }
+
+            public void PopulateCommand(SqlCommandWrapper command, GetExtendedQueryTagsByKeyTableValuedParameters tableValuedParameters)
+            {
+                PopulateCommand(command, extendedQueryTagKeys: tableValuedParameters.ExtendedQueryTagKeys);
+            }
+        }
+
+        internal class GetExtendedQueryTagsByKeyTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, GetExtendedQueryTagsByKeyTableValuedParameters>
+        {
+            public GetExtendedQueryTagsByKeyTvpGenerator(ITableValuedParameterRowGenerator<TInput, ExtendedQueryTagKeyTableTypeV1Row> ExtendedQueryTagKeyTableTypeV1RowGenerator)
+            {
+                this.ExtendedQueryTagKeyTableTypeV1RowGenerator = ExtendedQueryTagKeyTableTypeV1RowGenerator;
+            }
+
+            private readonly ITableValuedParameterRowGenerator<TInput, ExtendedQueryTagKeyTableTypeV1Row> ExtendedQueryTagKeyTableTypeV1RowGenerator;
+
+            public GetExtendedQueryTagsByKeyTableValuedParameters Generate(TInput input)
+            {
+                return new GetExtendedQueryTagsByKeyTableValuedParameters(ExtendedQueryTagKeyTableTypeV1RowGenerator.GenerateRows(input));
+            }
+        }
+
+        internal struct GetExtendedQueryTagsByKeyTableValuedParameters
+        {
+            internal GetExtendedQueryTagsByKeyTableValuedParameters(global::System.Collections.Generic.IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> ExtendedQueryTagKeys)
+            {
+                this.ExtendedQueryTagKeys = ExtendedQueryTagKeys;
+            }
+
+            internal global::System.Collections.Generic.IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> ExtendedQueryTagKeys { get; }
         }
 
         internal class GetExtendedQueryTagsByOperationProcedure : StoredProcedure

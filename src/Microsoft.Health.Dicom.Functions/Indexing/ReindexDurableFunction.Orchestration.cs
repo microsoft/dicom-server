@@ -75,11 +75,15 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                     // Create a new orchestration with the same instance ID to process the remaining data
                     logger.LogInformation("Completed re-indexing the range {Range}. Continuing with new execution...", batchRange);
 
+                    WatermarkRange completed = input.Completed.HasValue
+                        ? new WatermarkRange(batchRange.Start, input.Completed.Value.End)
+                        : batchRange;
+
                     context.ContinueAsNew(
                         new ReindexInput
                         {
                             QueryTagKeys = queryTagKeys,
-                            Completed = input.Completed.HasValue ? new WatermarkRange(batchRange.Start, input.Completed.Value.End) : batchRange,
+                            Completed = completed,
                         });
                 }
                 else
@@ -115,5 +119,12 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                     nameof(AssignReindexingOperationAsync),
                     _options.ActivityRetryOptions,
                     input.QueryTagKeys);
+
+        private static int GetPercentComplete(WatermarkRange range)
+        {
+            // If we processed a batch, there must be at least one row. And because the Watermark
+            // sequence starts at 1, we know both Start and End must at least be 1.
+            return range.End == 1 ? 100 : (int)((double)(range.End - range.Start + 1) / range.End * 100);
+        }
     }
 }

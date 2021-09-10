@@ -43,6 +43,24 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Fact]
+        public async Task GivenValidExtendedQueryTags_WhenGettingExtendedQueryTagsByKey_ThenOnlyPresentTagsAreReturned()
+        {
+            DicomTag tag1 = DicomTag.DeviceSerialNumber;
+            DicomTag tag2 = new DicomTag(0x0405, 0x1001, "PrivateCreator1");
+            AddExtendedQueryTagEntry expected1 = tag1.BuildAddExtendedQueryTagEntry();
+            AddExtendedQueryTagEntry expected2 = tag2.BuildAddExtendedQueryTagEntry(vr: DicomVRCode.CS);
+            IReadOnlyList<int> keys = await AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { expected1, expected2 });
+
+            // Fetch the newly added keys (and pass 1 more key we know doesn't have a corresponding entry)
+            IReadOnlyList<ExtendedQueryTagStoreEntry> actual = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(
+                keys.Concat(new int[] { keys[^1] + 1 }).ToList());
+
+            Assert.Equal(2, actual.Count);
+            AssertTag(keys[0], expected1, actual[0]);
+            AssertTag(keys[1], expected2, actual[1]);
+        }
+
+        [Fact]
         public async Task GivenValidExtendedQueryTags_WhenAddExtendedQueryTag_ThenTagShouldBeAdded()
         {
             DicomTag tag1 = DicomTag.DeviceSerialNumber;
@@ -243,18 +261,23 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             var actualExtendedQueryTagEntries = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(extendedQueryTagEntry.Path);
             ExtendedQueryTagStoreEntry actualExtendedQueryTagEntry = actualExtendedQueryTagEntries.First();
-            Assert.Equal(key, actualExtendedQueryTagEntry.Key);
-            Assert.Equal(extendedQueryTagEntry.Path, actualExtendedQueryTagEntry.Path);
-            Assert.Equal(extendedQueryTagEntry.PrivateCreator, actualExtendedQueryTagEntry.PrivateCreator);
-            Assert.Equal(extendedQueryTagEntry.VR, actualExtendedQueryTagEntry.VR);
-            Assert.Equal(extendedQueryTagEntry.Level, actualExtendedQueryTagEntry.Level.ToString());
-            Assert.Equal(status, actualExtendedQueryTagEntry.Status); // Typically we'll set the status to Adding
+            AssertTag(key, extendedQueryTagEntry, actualExtendedQueryTagEntry, status);
         }
 
         private async Task VerifyTagNotExist(string tagPath)
         {
             var extendedQueryTagEntries = await _extendedQueryTagStore.GetExtendedQueryTagsAsync();
             Assert.DoesNotContain(extendedQueryTagEntries, item => item.Path.Equals(tagPath));
+        }
+
+        private void AssertTag(int key, AddExtendedQueryTagEntry expected, ExtendedQueryTagStoreEntry actual, ExtendedQueryTagStatus status = ExtendedQueryTagStatus.Ready)
+        {
+            Assert.Equal(key, actual.Key);
+            Assert.Equal(expected.Path, actual.Path);
+            Assert.Equal(expected.PrivateCreator, actual.PrivateCreator);
+            Assert.Equal(expected.VR, actual.VR);
+            Assert.Equal(expected.Level, actual.Level.ToString());
+            Assert.Equal(status, actual.Status); // Typically we'll set the status to Adding
         }
 
         public Task InitializeAsync()

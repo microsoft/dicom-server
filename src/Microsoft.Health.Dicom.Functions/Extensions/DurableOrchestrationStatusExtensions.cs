@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Functions.Extensions
 
             return durableOrchestrationStatus.RuntimeStatus switch
             {
-                OrchestrationRuntimeStatus.Pending => OperationRuntimeStatus.Pending,
+                OrchestrationRuntimeStatus.Pending => OperationRuntimeStatus.NotStarted,
                 OrchestrationRuntimeStatus.Running => OperationRuntimeStatus.Running,
                 OrchestrationRuntimeStatus.ContinuedAsNew => OperationRuntimeStatus.Running,
                 OrchestrationRuntimeStatus.Completed => OperationRuntimeStatus.Completed,

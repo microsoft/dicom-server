@@ -42,10 +42,9 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
         /// The value of its <see cref="Task{TResult}.Result"/> property contains the <see cref="HttpResponseMessage"/>
         /// whose body encodes the resulting orchestration instance ID.
         /// </returns>
-        // TODO: Replace Anonymous with auth for all HTTP endpoints
         [FunctionName(nameof(StartReindexingInstancesAsync))]
         public async Task<HttpResponseMessage> StartReindexingInstancesAsync(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Post", Route = "extendedquerytags/reindex")] HttpRequest request,
+            [HttpTrigger(AuthorizationLevel.Function, "Post", Route = "extendedquerytags/reindex")] HttpRequest request,
             [DurableClient] IDurableOrchestrationClient client,
             ILogger logger,
             CancellationToken hostCancellationToken = default)

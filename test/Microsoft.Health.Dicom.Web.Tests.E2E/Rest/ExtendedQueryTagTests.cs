@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             _instanceManager = new DicomInstancesManager(_client);
         }
 
-        [Fact(Skip = "Skip until test environment setup completes.")]
+        [Fact]
         public async Task GivenValidExtendedQueryTag_WhenGoThroughEndToEndScenario_ThenShouldSucceed()
         {
             DicomTag tag = DicomTag.SeriesNumber;

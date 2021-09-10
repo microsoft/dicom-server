@@ -3,12 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
+using System.Collections.Generic;
+
+namespace Microsoft.Health.Dicom.Functions.Durable
 {
-    public static class SchemaVersionConstants
+    internal class OperationProgress
     {
-        public const int Min = (int)SchemaVersion.V3;
-        public const int Max = (int)SchemaVersion.V4;
-        public const int SupportExtendedQueryTagSchemaVersion = (int)SchemaVersion.V4;
+        public int PercentComplete { get; set; }
+
+        public IReadOnlyCollection<string> ResourceIds { get; set; }
     }
 }
