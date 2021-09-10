@@ -22,7 +22,6 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <param name="errorCode">The validation error code.</param>
         /// <param name="watermark">Watermark.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The tag key.</returns>
         Task AddExtendedQueryTagErrorAsync(
             int tagKey,
             ValidationErrorCode errorCode,

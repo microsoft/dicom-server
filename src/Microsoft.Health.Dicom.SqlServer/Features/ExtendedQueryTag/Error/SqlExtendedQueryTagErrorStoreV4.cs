@@ -47,10 +47,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
         {
             EnsureArg.EnumIsDefined(errorCode, nameof(errorCode));
 
-            // ensure errorCode is in range
-            EnsureArg.IsGte((int)errorCode, short.MinValue, nameof(errorCode));
-            EnsureArg.IsLte((int)errorCode, short.MaxValue, nameof(errorCode));
-
             using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
             using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
             VLatest.AddExtendedQueryTagError.PopulateCommand(

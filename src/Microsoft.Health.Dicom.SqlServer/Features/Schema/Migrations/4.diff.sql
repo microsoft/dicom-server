@@ -11,17 +11,6 @@ BEGIN
     ADD TagVersion  ROWVERSION   NOT NULL
 END
 
-IF NOT EXISTS (
-    SELECT * 
-    FROM sys.indexes 
-    WHERE name='IX_ExtendedQueryTag_TagVersion' AND object_id = OBJECT_ID('dbo.ExtendedQueryTag'))
-BEGIN
-    CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagVersion ON dbo.ExtendedQueryTag
-    (
-        TagVersion
-    )
-END
-
 /*************************************************************
     Extended Query Tag Errors Table
     Stores errors from Extended Query Tag operations

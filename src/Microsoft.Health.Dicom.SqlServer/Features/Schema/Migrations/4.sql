@@ -401,11 +401,6 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath ON dbo.ExtendedQuer
     TagPath
 )
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagVersion ON dbo.ExtendedQueryTag
-(
-    TagVersion
-)
-
 /*************************************************************
     Extended Query Tag Errors Table
     Stores errors from Extended Query Tag operations

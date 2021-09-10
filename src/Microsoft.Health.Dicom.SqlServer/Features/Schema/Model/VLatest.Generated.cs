@@ -97,7 +97,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly TimestampColumn TagVersion = new TimestampColumn("TagVersion");
             internal readonly Index IXC_ExtendedQueryTag = new Index("IXC_ExtendedQueryTag");
             internal readonly Index IX_ExtendedQueryTag_TagPath = new Index("IX_ExtendedQueryTag_TagPath");
-            internal readonly Index IX_ExtendedQueryTag_TagVersion = new Index("IX_ExtendedQueryTag_TagVersion");
         }
 
         internal class ExtendedQueryTagDateTimeTable : Table

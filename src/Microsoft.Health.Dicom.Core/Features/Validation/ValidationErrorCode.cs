@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
     /// <summary>
@@ -17,7 +19,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     /// VR specific error code should start with VR name.
     /// e.g: PatientNameGroupIsTooLong starts with PatientName.
     /// </remarks>
-    public enum ValidationErrorCode
+    [SuppressMessage(category: "Design", checkId: "CA1028: Enum Storage should be Int32", Justification = "aule is stroed in SQL as SMALLINT")]
+    public enum ValidationErrorCode : short
     {
         /// <summary>
         /// No error
