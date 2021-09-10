@@ -126,11 +126,9 @@ AS
     BEGIN TRANSACTION
 
         DECLARE @tagKey INT
-        DECLARE @currentQueryStatus TINYINT
-        DECLARE @currentTagStatus TINYINT
 
         -- Check if tag exists
-        SELECT @tagKey = TagKey, @currentQueryStatus = QueryStatus , @currentTagStatus = TagStatus
+        SELECT @tagKey = TagKey
         FROM dbo.ExtendedQueryTag WITH (UPDLOCK)
         WHERE TagPath = @tagPath
 
