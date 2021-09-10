@@ -255,7 +255,8 @@ BEGIN
            TagPrivateCreator,
            TagLevel,
            TagStatus,
-           TagVersion
+           TagVersion,
+           QueryStatus
     FROM dbo.ExtendedQueryTag AS XQT
     INNER JOIN @extendedQueryTagKeys AS input
     ON XQT.TagKey = input.TagKey

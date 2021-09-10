@@ -87,16 +87,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus, byte[] tagVersion) = reader.ReadRow(
+                        (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus, byte[] tagVersion, byte queryStatus) = reader.ReadRow(
                             VLatest.ExtendedQueryTag.TagKey,
                             VLatest.ExtendedQueryTag.TagPath,
                             VLatest.ExtendedQueryTag.TagVR,
                             VLatest.ExtendedQueryTag.TagPrivateCreator,
                             VLatest.ExtendedQueryTag.TagLevel,
                             VLatest.ExtendedQueryTag.TagStatus,
-                            VLatest.ExtendedQueryTag.TagVersion);
+                            VLatest.ExtendedQueryTag.TagVersion,
+                            VLatest.ExtendedQueryTag.QueryStatus);
 
-                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, RowVersionToUlong(tagVersion)));
+                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, RowVersionToUlong(tagVersion), (QueryTagQueryStatus)queryStatus));
                     }
 
                     executionTimeWatch.Stop();
