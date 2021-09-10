@@ -31,6 +31,32 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
         private const string DateFormatDA = "yyyyMMdd";
 
+        private static readonly string[] DateTimeFormatsDT =
+        {
+            "yyyyMMddHHmmss.FFFFFFzzz",
+            "yyyyMMddHHmmsszzz",
+            "yyyyMMddHHmmzzz",
+            "yyyyMMddHHzzz",
+            "yyyyMMddzzz",
+            "yyyyMMzzz",
+            "yyyyzzz",
+            "yyyyMMddHHmmss.FFFFFF",
+            "yyyyMMddHHmmss",
+            "yyyyMMddHHmm",
+            "yyyyMMddHH",
+            "yyyyMMdd",
+            "yyyyMM",
+            "yyyy"
+        };
+
+        private static readonly string[] TimeFormatsTM =
+        {
+            "HHmmss.FFFFFF",
+            "HHmmss",
+            "HHmm",
+            "HH"
+        };
+
         /// <summary>
         /// Gets a single value if the value exists; otherwise the default value for the type <typeparamref name="T"/>.
         /// </summary>
@@ -59,13 +85,43 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         /// <param name="dicomDataset">The dataset to get the VR value from.</param>
         /// <param name="dicomTag">The DICOM tag.</param>
         /// <param name="expectedVR">Expected VR of the element.</param>
-        /// /// <remarks>If expectedVR is provided, and not match, will return null.</remarks>
+        /// <remarks>If expectedVR is provided, and not match, will return null.</remarks>
         /// <returns>An instance of <see cref="DateTime"/> if the value exists and comforms to the DA format; otherwise <c>null</c>.</returns>
-        public static DateTime? GetStringDateAsDate(this DicomDataset dicomDataset, DicomTag dicomTag, DicomVR expectedVR = null)
+        public static DateTimeOffset? GetStringDateAsDate(this DicomDataset dicomDataset, DicomTag dicomTag, DicomVR expectedVR = null)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
             string stringDate = dicomDataset.GetSingleValueOrDefault<string>(dicomTag, expectedVR: expectedVR);
-            return DateTime.TryParseExact(stringDate, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result) ? result : null;
+            return DateTimeOffset.TryParseExact(stringDate, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTimeOffset result) ? result : null;
+        }
+
+        /// <summary>
+        /// Gets the DT VR value as <see cref="DateTime"/>.
+        /// </summary>
+        /// <param name="dicomDataset">The dataset to get the VR value from.</param>
+        /// <param name="dicomTag">The DICOM tag.</param>
+        /// <param name="expectedVR">Expected VR of the element.</param>
+        /// <remarks>If expectedVR is provided, and not match, will return null.</remarks>
+        /// <returns>An instance of <see cref="DateTime"/> if the value exists and conforms to the DT format; othewise <c>null</c>.</returns>
+        public static DateTimeOffset? GetStringDateTimeAsDateTimeOffset(this DicomDataset dicomDataset, DicomTag dicomTag, DicomVR expectedVR = null)
+        {
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            string stringDateTime = dicomDataset.GetSingleValueOrDefault<string>(dicomTag, expectedVR: expectedVR);
+            return DateTimeOffset.TryParseExact(stringDateTime, DateTimeFormatsDT, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTimeOffset result) ? result : null;
+        }
+
+        /// <summary>
+        /// Gets the TM VR value as <see cref="DateTime"/>.
+        /// </summary>
+        /// <param name="dicomDataset">The dataset to get the VR value from.</param>
+        /// <param name="dicomTag">The DICOM tag.</param>
+        /// <param name="expectedVR">Expected VR of the element.</param>
+        /// <remarks>If expectedVR is provided, and not match, will return null.</remarks>
+        /// <returns>An instance of <see cref="DateTime"/> if the value exists and conforms to the TM format; othewise <c>null</c>.</returns>
+        public static long? GetStringTimeAsLong(this DicomDataset dicomDataset, DicomTag dicomTag, DicomVR expectedVR = null)
+        {
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            string stringTime = dicomDataset.GetSingleValueOrDefault<string>(dicomTag, expectedVR: expectedVR);
+            return DateTime.TryParseExact(stringTime, TimeFormatsTM, CultureInfo.InvariantCulture, DateTimeStyles.NoCurrentDateDefault, out DateTime result) ? result.Ticks : null;
         }
 
         /// <summary>

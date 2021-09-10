@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V3
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -96,7 +96,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
             internal readonly IntColumn TagKey = new IntColumn("TagKey");
             internal readonly DateTime2Column TagValue = new DateTime2Column("TagValue", 7);
-            internal readonly NullableDateTime2Column TagValueUTC = new NullableDateTime2Column("TagValueUTC", 7);
             internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
             internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
             internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");

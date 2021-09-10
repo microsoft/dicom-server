@@ -19,9 +19,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
     /// </summary>
     internal static class AddInstanceTableValuedParametersBuilder
     {
-        private static readonly Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, DateTime?>> DataTimeReaders = new Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, DateTime?>>()
+        private static readonly Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, DateTimeOffset?>> DataTimeReaders = new Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, DateTimeOffset?>>()
         {
             { DicomVR.DA, Core.Extensions.DicomDatasetExtensions.GetStringDateAsDate },
+            { DicomVR.DT, Core.Extensions.DicomDatasetExtensions.GetStringDateTimeAsDateTimeOffset }
+        };
+
+        private static readonly Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, long?>> LongReaders = new Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, long?>>()
+        {
+            { DicomVR.TM, Core.Extensions.DicomDatasetExtensions.GetStringTimeAsLong }
         };
 
         /// <summary>
@@ -139,13 +145,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         private static void AddDateTimeRow(DicomDataset instance, List<InsertDateTimeExtendedQueryTagTableTypeV1Row> dateTimeRows, QueryTag queryTag)
         {
-            DateTime? dateVal = DataTimeReaders.TryGetValue(
+            DateTimeOffset? dateVal = DataTimeReaders.TryGetValue(
                              queryTag.VR,
-                             out Func<DicomDataset, DicomTag, DicomVR, DateTime?> reader) ? reader.Invoke(instance, queryTag.Tag, queryTag.VR) : null;
+                             out Func<DicomDataset, DicomTag, DicomVR, DateTimeOffset?> reader) ? reader.Invoke(instance, queryTag.Tag, queryTag.VR) : null;
 
             if (dateVal.HasValue)
             {
-                dateTimeRows.Add(new InsertDateTimeExtendedQueryTagTableTypeV1Row(queryTag.ExtendedQueryTagStoreEntry.Key, dateVal.Value, (byte)queryTag.Level));
+                dateTimeRows.Add(new InsertDateTimeExtendedQueryTagTableTypeV1Row(queryTag.ExtendedQueryTagStoreEntry.Key, dateVal.Value.DateTime, queryTag.VR == DicomVR.DT ? dateVal.Value.UtcDateTime : null, (byte)queryTag.Level));
             }
         }
 
@@ -160,7 +166,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         private static void AddLongRow(DicomDataset instance, List<InsertLongExtendedQueryTagTableTypeV1Row> longRows, QueryTag queryTag)
         {
-            long? longVal = instance.GetSingleValueOrDefault<long>(queryTag.Tag, expectedVR: queryTag.VR);
+            long? longVal = LongReaders.TryGetValue(
+                             queryTag.VR,
+                             out Func<DicomDataset, DicomTag, DicomVR, long?> reader) ? reader.Invoke(instance, queryTag.Tag, queryTag.VR) :
+                             instance.GetSingleValueOrDefault<long>(queryTag.Tag, expectedVR: queryTag.VR);
 
             if (longVal.HasValue)
             {

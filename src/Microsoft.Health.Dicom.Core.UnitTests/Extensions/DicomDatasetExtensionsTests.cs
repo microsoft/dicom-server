@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
 
             Assert.Equal(
                 new DateTime(2020, 3, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                _dicomDataset.GetStringDateAsDate(DicomTag.StudyDate));
+                _dicomDataset.GetStringDateAsDate(DicomTag.StudyDate).Value.DateTime);
         }
 
         [Fact]
@@ -70,6 +70,109 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
             _dicomDataset.Add(DicomTag.StudyDate, "2010");
 
             Assert.Null(_dicomDataset.GetStringDateAsDate(DicomTag.StudyDate));
+        }
+
+        [Fact]
+        public void GivenNoDicomDateTimeValue_WhenGetStringDateTimeAsDateTimeIsCalled_ThenNullShouldBeReturned()
+        {
+            Assert.Null(_dicomDataset.GetStringDateTimeAsDateTimeOffset(DicomTag.AcquisitionDateTime));
+        }
+
+        [Theory]
+        [ClassData(typeof(DateTimeValidTestData))]
+        public void GivenAValidDicomDateTimeValue_WhenGetStringDateTimeAsDateTimeIsCalled_ThenCorrectDateTimeShouldBeReturned(
+            string acquisitionDateTime,
+            int year,
+            int month,
+            int day,
+            int hour,
+            int minute,
+            int second,
+            int millisecond,
+            TimeSpan? offset
+            )
+        {
+            _dicomDataset.Add(DicomTag.AcquisitionDateTime, acquisitionDateTime);
+            Assert.Equal(
+                new DateTimeOffset(
+                    year,
+                    month,
+                    day,
+                    hour,
+                    minute,
+                    second,
+                    millisecond,
+                    offset ?? TimeSpan.Zero).DateTime,
+                _dicomDataset.GetStringDateTimeAsDateTimeOffset(DicomTag.AcquisitionDateTime).Value.DateTime);
+        }
+
+        [Theory]
+        [InlineData("20200301010203.123+9900")]
+        [InlineData("20200301010203.123-9900")]
+        [InlineData("20200301010203123+0500")]
+        [InlineData("20209901010203+0500")]
+        [InlineData("20200399010203+0500")]
+        [InlineData("20200301990203+0500")]
+        [InlineData("20200301019903+0500")]
+        [InlineData("20200301010299+0500")]
+        [InlineData("20200301010299.")]
+        [InlineData("20200301010299123")]
+        [InlineData("20209901010203")]
+        [InlineData("20200399010203")]
+        [InlineData("20200301990203")]
+        [InlineData("20200301019903")]
+        [InlineData("20200301010299")]
+        [InlineData("31")]
+        public void GivenAnInvalidDicomDateTimeValue_WhenGetStringDateTimeAsDateTimeIsCalled_ThenNullShouldBeReturned(string acquisitionDateTime)
+        {
+            _dicomDataset.Add(DicomTag.AcquisitionDateTime, acquisitionDateTime);
+
+            Assert.Null(_dicomDataset.GetStringDateTimeAsDateTimeOffset(DicomTag.AcquisitionDateTime));
+        }
+
+        [Fact]
+        public void GivenNoDicomTimeValue_WhenGetStringTimeAsLongIsCalled_ThenNullShouldBeReturned()
+        {
+            Assert.Null(_dicomDataset.GetStringTimeAsLong(DicomTag.StudyTime));
+        }
+
+        [Theory]
+        [InlineData("010203.123", 01, 02, 03, 123)]
+        [InlineData("010203", 01, 02, 03, 0)]
+        [InlineData("0102", 01, 02, 0, 0)]
+        [InlineData("01", 01, 0, 0, 0)]
+        public void GivenAValidDicomTimeValue_WhenGetStringTimeAsLongIsCalled_ThenCorrectTimeTicksShouldBeReturned(
+            string studyTime,
+            int hour,
+            int minute,
+            int second,
+            int millisecond
+            )
+        {
+            _dicomDataset.Add(DicomTag.StudyTime, studyTime);
+            Assert.Equal(
+                new DateTime(
+                    01,
+                    01,
+                    01,
+                    hour,
+                    minute,
+                    second,
+                    millisecond).Ticks,
+                _dicomDataset.GetStringTimeAsLong(DicomTag.StudyTime).Value);
+        }
+
+        [Theory]
+        [InlineData("010299123")]
+        [InlineData("010299")]
+        [InlineData("019903")]
+        [InlineData("990203")]
+        [InlineData("2")]
+        public void GivenAnInvalidDicomTimeValue_WhenGetStringTimeAsLongIsCalled_ThenNullShouldBeReturned(string studyTime)
+        {
+            _dicomDataset.Add(DicomTag.StudyTime, studyTime);
+
+            Assert.Null(_dicomDataset.GetStringTimeAsLong(DicomTag.StudyTime));
         }
 
         [Fact]

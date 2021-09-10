@@ -40,6 +40,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             DicomVRCode.CS,
             DicomVRCode.DA,
             DicomVRCode.DS,
+            DicomVRCode.DT,
             DicomVRCode.FD,
             DicomVRCode.FL,
             DicomVRCode.IS,
@@ -48,6 +49,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             DicomVRCode.SH,
             DicomVRCode.SL,
             DicomVRCode.SS,
+            DicomVRCode.TM,
             DicomVRCode.UI,
             DicomVRCode.UL,
             DicomVRCode.US);

@@ -17,6 +17,30 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     {
         private static readonly Regex ValidIdentifierCharactersFormat = new Regex("^[0-9\\.]*$", RegexOptions.Compiled);
         private const string DateFormatDA = "yyyyMMdd";
+        private static readonly string[] DateTimeFormatsDT =
+        {
+            "yyyyMMddHHmmss.FFFFFFzzz",
+            "yyyyMMddHHmmsszzz",
+            "yyyyMMddHHmmzzz",
+            "yyyyMMddHHzzz",
+            "yyyyMMddzzz",
+            "yyyyMMzzz",
+            "yyyyzzz",
+            "yyyyMMddHHmmss.FFFFFF",
+            "yyyyMMddHHmmss",
+            "yyyyMMddHHmm",
+            "yyyyMMddHH",
+            "yyyyMMdd",
+            "yyyyMM",
+            "yyyy"
+        };
+        private static readonly string[] TimeFormatsTM =
+        {
+            "HHmmss.FFFFFF",
+            "HHmmss",
+            "HHmm",
+            "HH"
+        };
         private const string BinaryDataPlaceHolder = "<BinaryData>";
 
         internal static void ValidateAE(string value, string name)
@@ -58,6 +82,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         internal static void ValidateDS(string value, string name)
         {
             ValidateLength(value.Length, 0, 16, DicomVR.DS, name, value);
+        }
+
+        internal static void ValidateDT(string value, string name)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return;
+            }
+
+            if (!DateTimeOffset.TryParseExact(value, DateTimeFormatsDT, CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
+            {
+                throw new DicomElementValidationException(name, value, DicomVR.DT, DicomCoreResource.ValueIsInvalidDateTime);
+            }
         }
 
         internal static void ValidateFL(IByteBuffer value, string name)
@@ -149,6 +186,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         internal static void ValidateSS(IByteBuffer value, string name)
         {
             ValidateLength(value.Size, 2, 2, DicomVR.SS, name, BinaryDataPlaceHolder);
+        }
+
+        internal static void ValidateTM(string value, string name)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return;
+            }
+
+            if (!DateTime.TryParseExact(value, TimeFormatsTM, CultureInfo.InvariantCulture, DateTimeStyles.NoCurrentDateDefault, out _))
+            {
+                throw new DicomElementValidationException(name, value, DicomVR.DT, DicomCoreResource.ValueIsInvalidTime);
+            }
         }
 
         internal static void ValidateUI(string value, string name)

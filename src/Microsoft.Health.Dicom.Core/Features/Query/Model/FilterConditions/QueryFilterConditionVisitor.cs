@@ -16,6 +16,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public abstract void Visit(DoubleSingleValueMatchCondition doubleSingleValueMatchCondition);
 
+        public abstract void Visit(LongRangeValueMatchCondition longRangeValueMatchCondition);
+
         public abstract void Visit(LongSingleValueMatchCondition longSingleValueMatchCondition);
     }
 }

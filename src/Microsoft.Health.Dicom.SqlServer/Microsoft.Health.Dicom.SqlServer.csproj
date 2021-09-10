@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>SQL Server extensions and utilities used by Microsoft's DICOMweb APIs.</Description>
@@ -44,22 +44,32 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Features\Schema\Migrations\1.sql">
-      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
-      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
+      <InputToImmutableSqlGenerator>false</InputToImmutableSqlGenerator>
+      <InputToMutableSqlGenerator>false</InputToMutableSqlGenerator>
       <MutableClassVersion>1</MutableClassVersion>
     </EmbeddedResource>
     <EmbeddedResource Include="Features\Schema\Migrations\2.diff.sql" />
     <EmbeddedResource Include="Features\Schema\Migrations\2.sql">
-      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
-      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
+      <InputToImmutableSqlGenerator>false</InputToImmutableSqlGenerator>
+      <InputToMutableSqlGenerator>false</InputToMutableSqlGenerator>
       <MutableClassVersion>2</MutableClassVersion>
     </EmbeddedResource>
     <EmbeddedResource Include="Features\Schema\Migrations\3.diff.sql" />
     <EmbeddedResource Include="Features\Schema\Migrations\3.sql">
-      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
-      <MutableClassVersion>Latest</MutableClassVersion>
-      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
+      <InputToImmutableSqlGenerator>false</InputToImmutableSqlGenerator>
+      <MutableClassVersion>3</MutableClassVersion>
+      <InputToMutableSqlGenerator>false</InputToMutableSqlGenerator>
     </EmbeddedResource>
+    <EmbeddedResource Include="Features\Schema\Migrations\4.diff.sql" />
+    <EmbeddedResource Include="Features\Schema\Migrations\4.sql">
+      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
+      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
+      <MutableClassVersion>Latest</MutableClassVersion>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
 
   <Target Name="ComputeGeneratorInputs" BeforeTargets="GenerateFiles">

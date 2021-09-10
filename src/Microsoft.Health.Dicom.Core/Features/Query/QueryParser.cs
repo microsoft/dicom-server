@@ -35,6 +35,32 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public const string DateTagValueFormat = "yyyyMMdd";
 
+        public static readonly string[] DateTimeTagValueFormats =
+        {
+            "yyyyMMddHHmmss.FFFFFFzzz",
+            "yyyyMMddHHmmsszzz",
+            "yyyyMMddHHmmzzz",
+            "yyyyMMddHHzzz",
+            "yyyyMMddzzz",
+            "yyyyMMzzz",
+            "yyyyzzz",
+            "yyyyMMddHHmmss.FFFFFF",
+            "yyyyMMddHHmmss",
+            "yyyyMMddHHmm",
+            "yyyyMMddHH",
+            "yyyyMMdd",
+            "yyyyMM",
+            "yyyy"
+        };
+
+        public static readonly string[] TimeTagValueFormats =
+        {
+            "HHmmss.FFFFFF",
+            "HHmmss",
+            "HHmm",
+            "HH"
+        };
+
         public QueryParser(IDicomTagParser dicomTagPathParser)
         {
             EnsureArg.IsNotNull(dicomTagPathParser, nameof(dicomTagPathParser));
@@ -48,6 +74,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             // register value parsers
             _valueParsers.Add(DicomVR.DA, ParseDateTagValue);
+            _valueParsers.Add(DicomVR.DT, ParseDateTimeTagValue);
+            _valueParsers.Add(DicomVR.TM, ParseTimeTagValue);
+
             _valueParsers.Add(DicomVR.UI, ParseStringTagValue);
             _valueParsers.Add(DicomVR.LO, ParseStringTagValue);
             _valueParsers.Add(DicomVR.SH, ParseStringTagValue);

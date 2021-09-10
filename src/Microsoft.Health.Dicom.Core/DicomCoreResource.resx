@@ -382,4 +382,28 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The extended query tag '{0}' is expected to have VR '{1}' but has '{2}' in file.</value>
     <comment>{0}  dicom tag. {1} expected vr code. {2} vr in file.</comment>
   </data>
+  <data name="ValueIsInvalidDateTime" xml:space="preserve">
+    <value>Value cannot be parsed as a valid DateTime.</value>
+  </data>
+  <data name="ValueIsInvalidTime" xml:space="preserve">
+    <value>Value cannot be parsed as a valid Time.</value>
+  </data>
+  <data name="InvalidDateTimeRangeValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified date range '{0}' is invalid.
+The first part DateTime {1} should be lesser than or equal to the second part DateTime {2}.</value>
+    <comment>{0} DateTime range with &lt;DateTime1&gt;-&lt;DateTime2&gt; format. {1} is DateTime1. {2} is DateTime2.</comment>
+  </data>
+  <data name="InvalidTimeRangeValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified date range '{0}' is invalid.
+The first part time {1} should be lesser than or equal to the second part time {2}.</value>
+    <comment>{0} time range with &lt;time1&gt;-&lt;time2&gt; format. {1} is time1. {2} is time2.</comment>
+  </data>
+  <data name="InvalidDateTimeValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified DateTime value '{0}' is invalid for parameter '{1}'. DateTime should be valid and formatted as yyyyMMddHHmmss.FFFFFFzzz where yyyy is mandatory.</value>
+    <comment>{0} DateTime value. {1} parameter name.</comment>
+  </data>
+  <data name="InvalidTimeValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified Time value '{0}' is invalid for parameter '{1}'. Time should be valid and formatted as HHmmss.FFFFFFzzz where HH is mandatory.</value>
+    <comment>{0} Time value. {1} parameter name.</comment>
+  </data>
 </root>

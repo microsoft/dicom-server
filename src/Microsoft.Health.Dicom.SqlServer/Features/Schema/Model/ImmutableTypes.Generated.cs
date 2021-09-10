@@ -57,29 +57,33 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
         internal readonly IntColumn TagKey = new IntColumn("TagKey");
         internal readonly DateTime2Column TagValue = new DateTime2Column("TagValue", 7);
+        internal readonly NullableDateTime2Column TagValueUTC = new NullableDateTime2Column("TagValueUTC", 7);
         internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
 
-        protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagKey, TagValue, TagLevel };
+        protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagKey, TagValue, TagValueUTC, TagLevel };
 
         protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, InsertDateTimeExtendedQueryTagTableTypeV1Row rowData)
         {
             TagKey.Set(record, 0, rowData.TagKey);
             TagValue.Set(record, 1, rowData.TagValue);
-            TagLevel.Set(record, 2, rowData.TagLevel);
+            TagValueUTC.Set(record, 2, rowData.TagValueUTC);
+            TagLevel.Set(record, 3, rowData.TagLevel);
         }
     }
 
     internal struct InsertDateTimeExtendedQueryTagTableTypeV1Row
     {
-        internal InsertDateTimeExtendedQueryTagTableTypeV1Row(System.Int32 TagKey, System.DateTime TagValue, System.Byte TagLevel)
+        internal InsertDateTimeExtendedQueryTagTableTypeV1Row(System.Int32 TagKey, System.DateTime TagValue, System.Nullable<System.DateTime> TagValueUTC, System.Byte TagLevel)
         {
             this.TagKey = TagKey;
             this.TagValue = TagValue;
+            this.TagValueUTC = TagValueUTC;
             this.TagLevel = TagLevel;
         }
 
         internal System.Int32 TagKey { get; }
         internal System.DateTime TagValue { get; }
+        internal System.Nullable<System.DateTime> TagValueUTC { get; }
         internal System.Byte TagLevel { get; }
     }
 

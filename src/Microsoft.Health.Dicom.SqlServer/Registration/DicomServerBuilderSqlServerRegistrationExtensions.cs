@@ -70,6 +70,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Scoped()
                 .AsImplementedInterfaces();
 
+            services.Add<SqlIndexDataStoreV4>()
+                .Scoped()
+                .AsImplementedInterfaces();
+
             services.Add<SqlIndexDataStoreFactory>()
                 .Scoped()
                 .AsSelf()

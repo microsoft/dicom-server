@@ -42,6 +42,64 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return new DateSingleValueMatchCondition(queryTag, parsedDate);
         }
 
+        private static QueryFilterCondition ParseDateTimeTagValue(QueryTag queryTag, string value)
+        {
+            if (QueryLimit.IsValidRangeQueryTag(queryTag))
+            {
+                var splitString = value.Split('-');
+                if (splitString.Length == 2)
+                {
+                    string minDateTime = splitString[0].Trim();
+                    string maxDateTime = splitString[1].Trim();
+                    DateTime parsedMinDateTime = ParseDateTime(minDateTime, queryTag.GetName());
+                    DateTime parsedMaxDateTime = ParseDateTime(maxDateTime, queryTag.GetName());
+
+                    if (parsedMinDateTime > parsedMaxDateTime)
+                    {
+                        throw new QueryParseException(string.Format(
+                            DicomCoreResource.InvalidDateTimeRangeValue,
+                            value,
+                            minDateTime,
+                            maxDateTime));
+                    }
+
+                    return new DateRangeValueMatchCondition(queryTag, parsedMinDateTime, parsedMaxDateTime);
+                }
+            }
+
+            DateTime parsedDateTime = ParseDateTime(value, queryTag.GetName());
+            return new DateSingleValueMatchCondition(queryTag, parsedDateTime);
+        }
+
+        private static QueryFilterCondition ParseTimeTagValue(QueryTag queryTag, string value)
+        {
+            if (QueryLimit.IsValidRangeQueryTag(queryTag))
+            {
+                var splitString = value.Split('-');
+                if (splitString.Length == 2)
+                {
+                    string minTime = splitString[0].Trim();
+                    string maxTime = splitString[1].Trim();
+                    long parsedMinTime = ParseTime(minTime, queryTag.GetName());
+                    long parsedMaxTime = ParseTime(maxTime, queryTag.GetName());
+
+                    if (parsedMinTime > parsedMaxTime)
+                    {
+                        throw new QueryParseException(string.Format(
+                            DicomCoreResource.InvalidTimeRangeValue,
+                            value,
+                            minTime,
+                            maxTime));
+                    }
+
+                    return new LongRangeValueMatchCondition(queryTag, parsedMinTime, parsedMaxTime);
+                }
+            }
+
+            long parsedTime = ParseTime(value, queryTag.GetName());
+            return new LongSingleValueMatchCondition(queryTag, parsedTime);
+        }
+
         private static QueryFilterCondition ParseStringTagValue(QueryTag queryTag, string value)
         {
             return new StringSingleValueMatchCondition(queryTag, value);
@@ -75,6 +133,26 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             }
 
             return parsedDate;
+        }
+
+        private static DateTime ParseDateTime(string dateTime, string tagName)
+        {
+            if (!DateTimeOffset.TryParseExact(dateTime, DateTimeTagValueFormats, null, System.Globalization.DateTimeStyles.None, out DateTimeOffset parsedDateTimeOffset))
+            {
+                throw new QueryParseException(string.Format(DicomCoreResource.InvalidDateTimeValue, dateTime, tagName));
+            }
+
+            return parsedDateTimeOffset.DateTime;
+        }
+
+        private static long ParseTime(string time, string tagName)
+        {
+            if (!DateTime.TryParseExact(time, TimeTagValueFormats, null, System.Globalization.DateTimeStyles.NoCurrentDateDefault, out DateTime parsedTime))
+            {
+                throw new QueryParseException(string.Format(DicomCoreResource.InvalidTimeValue, time, tagName));
+            }
+
+            return parsedTime.Ticks;
         }
     }
 }
