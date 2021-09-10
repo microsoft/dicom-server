@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Features.Operations
 {
@@ -47,7 +48,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
         {
             // TODO: Check for data action
             EnsureArg.IsNotNull(request, nameof(request));
-            return await _client.GetStatusAsync(request.OperationId, cancellationToken);
+            OperationStatus status = await _client.GetStatusAsync(request.OperationId, cancellationToken);
+            return status != null ? new OperationStatusResponse(status) : null;
         }
     }
 }

@@ -16,9 +16,9 @@ namespace Microsoft.Health.Dicom.Core.Models.Operations
         Unknown,
 
         /// <summary>
-        /// Specifies a state where execution has not yet started.
+        /// Specifies a state where execution is pending.
         /// </summary>
-        Pending,
+        NotStarted,
 
         /// <summary>
         /// Specifies a state where the operation is executing and has not yet finished.
