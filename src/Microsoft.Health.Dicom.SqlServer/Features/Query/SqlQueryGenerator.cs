@@ -66,8 +66,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             // cross apply with Instance table if needed to find the missing UIDs
             AppendCrossApplyTable(crossApplyAlias, filterAlias);
 
-            AppendOrderBy(projectionTableAlias);
-
             AppendOptionRecompile();
         }
 
@@ -284,6 +282,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
             _stringBuilder.Append($"ORDER BY ")
                 .Append(orderColumn, tableAlias)
+                .Append(" DESC")
                 .AppendLine();
             _stringBuilder.AppendLine($"OFFSET {_queryExpression.Offset} ROWS");
             _stringBuilder.AppendLine($"FETCH NEXT {_queryExpression.EvaluatedLimit} ROWS ONLY");

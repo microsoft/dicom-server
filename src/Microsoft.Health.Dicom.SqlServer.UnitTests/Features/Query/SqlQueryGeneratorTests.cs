@@ -47,11 +47,61 @@ FROM dbo.Study st";
             string expectedCrossApply = @"
 FROM dbo.Instance a
 WHERE 1 = 1
-AND a.StudyKey = f.StudyKey";
+AND a.StudyKey = f.StudyKey
+AND a.Status = 1 
+ORDER BY a.Watermark DESC";
+
+            string expectedFilterAndPage = @"
+AND st.StudyDate BETWEEN @p0 AND @p1
+ORDER BY st.StudyKey DESC
+OFFSET 0 ROWS
+FETCH NEXT 100 ROWS ONLY";
+
             Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
             Assert.Contains(expectedCrossApply, stringBuilder.ToString());
+            Assert.Contains(expectedFilterAndPage, stringBuilder.ToString());
+        }
 
-            Assert.Contains("StudyDate BETWEEN @p0 AND @p1", stringBuilder.ToString());
+        [Fact]
+        public void GivenModality_WhenIELevelSeries_ValidateDistinctSeries()
+        {
+            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+            var includeField = new QueryIncludeField(false, new List<DicomTag>());
+            var filters = new List<QueryFilterCondition>()
+            {
+                new StringSingleValueMatchCondition(new QueryTag(DicomTag.Modality), "123"),
+            };
+            var query = new QueryExpression(QueryResource.AllSeries, includeField, false, 0, 0, filters);
+
+            var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
+            new SqlQueryGenerator(stringBuilder, query, parm);
+
+            string expectedDistinctSelect = @"SELECT 
+st.StudyKey
+,se.SeriesKey
+FROM dbo.Study st
+INNER JOIN dbo.Series se
+ON se.StudyKey = st.StudyKey";
+
+            string expectedFilterAndPage = @"
+AND se.Modality=@p0
+ORDER BY se.SeriesKey DESC
+OFFSET 0 ROWS
+FETCH NEXT 100 ROWS ONLY";
+
+            string expectedCrossApply = @"
+FROM dbo.Instance a
+WHERE 1 = 1
+AND a.StudyKey = f.StudyKey
+AND a.SeriesKey = f.SeriesKey
+AND a.Status = 1 
+ORDER BY a.Watermark DESC";
+
+
+
+            Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
+            Assert.Contains(expectedCrossApply, stringBuilder.ToString());
+            Assert.Contains(expectedFilterAndPage, stringBuilder.ToString());
         }
 
         [Fact]
@@ -81,8 +131,13 @@ ON i.SeriesKey = se.SeriesKey";
 
             string expectedFilters = @"AND se.Modality=@p0";
 
+            string expectedPage = @"ORDER BY i.Watermark DESC
+OFFSET 0 ROWS
+FETCH NEXT 100 ROWS ONLY";
+
             Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
             Assert.Contains(expectedFilters, stringBuilder.ToString());
+            Assert.Contains(expectedPage, stringBuilder.ToString());
             Assert.DoesNotContain("CROSS APPLY", stringBuilder.ToString());
         }
 

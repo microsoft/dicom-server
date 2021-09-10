@@ -12,6 +12,7 @@ This document describes guidelines for contributing to the Medical Imaging Serve
 - **DO** address PR feedback in additional commits instead of amending.
 - **DO** assume that [Squash and Merge](https://blog.github.com/2016-04-01-squash-your-commits/) will be used to merge the commits unless specifically requested otherwise.
 - **DO NOT** submit "work in progress" PRs. A PR should only be submitted when it is considered ready for review.
+- **DO NOT** leave PRs active for more than 4 weeks without a commit. Stale PRs will be closed until they are ready for active development again.
 - **DO NOT** mix independent and unrelated changes in one PR.
 
 ## Coding Style
