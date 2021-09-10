@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -12,8 +12,8 @@
 
   <ItemGroup>
     <PackageReference Include="Ensure.That" Version="10.1.0" />
-    <PackageReference Include="fo-dicom" Version="4.0.8" />
-    <PackageReference Include="fo-dicom.Json" Version="4.0.7" NoWarn="NU1701" />
+    <PackageReference Include="fo-dicom" Version="$(FoDicomVersion)" />
+    <PackageReference Include="fo-dicom.Json" Version="$(FoDicomVersion)" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Api" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Client" Version="$(HealthcareSharedPackageVersion)" />
