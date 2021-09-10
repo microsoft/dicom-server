@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
@@ -20,20 +19,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     public interface IIndexDataStore
     {
         /// <summary>
-        /// Asynchronously creates a new instance index.
+        /// Asynchronously begins the addition of a DICOM instance.
         /// </summary>
         /// <param name="dicomDataset">The DICOM dataset to index.</param>
         /// <param name="queryTags">Queryable dicom tags</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A task that represents the asynchronous create operation.</returns>
-        Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
+        /// <returns>A task that represents the asynchronous add operation.</returns>
+        Task<long> BeginCreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously reindex a DICOM instance.
         /// </summary>
         /// <param name="dicomDataset">The DICOM dataset to reindex.</param>
-        /// <param name="queryTags">Queryable dicom tags</param>
         /// <param name="watermark">The DICOM instance watermark.</param>
+        /// <param name="queryTags">Queryable dicom tags</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous reindex operation.</returns>
         Task ReindexInstanceAsync(DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
@@ -69,13 +68,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Asynchronously updates the status of an existing instance index.
+        /// Asynchronously completes the addition of a DICOM instance.
         /// </summary>
-        /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
-        /// <param name="status">The status to update to.</param>
+        /// <param name="dicomDataset">The DICOM dataset whose status should be updated.</param>
+        /// <param name="watermark">The DICOM instance watermark.</param>
+        /// <param name="queryTags">Queryable dicom tags</param>
+        /// <param name="allowExpiredTags">Optionally allow an out-of-date snapshot of <paramref name="queryTags"/>.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous update operation.</returns>
-        Task UpdateInstanceIndexStatusAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, IndexStatus status, CancellationToken cancellationToken = default);
+        Task EndCreateInstanceIndexAsync(DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, bool allowExpiredTags = false, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Return a collection of deleted instances.

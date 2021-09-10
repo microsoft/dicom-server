@@ -23,31 +23,31 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
 
         public async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default)
         {
-            ISqlInstanceStore store = await _cache.GetAsync(cancellationToken);
+            ISqlInstanceStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
             return await store.GetInstanceIdentifierAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
         }
 
         public async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersByWatermarkRangeAsync(WatermarkRange watermarkRange, IndexStatus indexStatus, CancellationToken cancellationToken = default)
         {
-            ISqlInstanceStore store = await _cache.GetAsync(cancellationToken);
+            ISqlInstanceStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
             return await store.GetInstanceIdentifiersByWatermarkRangeAsync(watermarkRange, indexStatus, cancellationToken);
         }
 
         public async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken = default)
         {
-            ISqlInstanceStore store = await _cache.GetAsync(cancellationToken);
+            ISqlInstanceStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
             return await store.GetInstanceIdentifiersInSeriesAsync(studyInstanceUid, seriesInstanceUid, cancellationToken);
         }
 
         public async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(string studyInstanceUid, CancellationToken cancellationToken = default)
         {
-            ISqlInstanceStore store = await _cache.GetAsync(cancellationToken);
+            ISqlInstanceStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
             return await store.GetInstanceIdentifiersInStudyAsync(studyInstanceUid, cancellationToken);
         }
 
         public async Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesAsync(int batchSize, int batchCount, IndexStatus indexStatus, long? maxWatermark = null, CancellationToken cancellationToken = default)
         {
-            ISqlInstanceStore store = await _cache.GetAsync(cancellationToken);
+            ISqlInstanceStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
             return await store.GetInstanceBatchesAsync(batchSize, batchCount, indexStatus, maxWatermark, cancellationToken);
         }
     }

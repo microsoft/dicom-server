@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Health.Dicom.Features.Common;
 using Microsoft.Health.Dicom.SqlServer.Exceptions;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
@@ -18,9 +19,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
     {
         private readonly ISchemaVersionResolver _schemaVersionResolver;
         private readonly Dictionary<SchemaVersion, T> _entities;
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
-        private volatile object _pendingInit;
-        private T _value;
+        private readonly AsyncCache<T> _cache;
 
         public VersionedCache(ISchemaVersionResolver schemaVersionResolver, IEnumerable<T> versionedEntities)
         {
@@ -28,48 +27,28 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
             _entities = EnsureArg.IsNotNull(versionedEntities, nameof(versionedEntities))
                 .Where(x => x != null)
                 .ToDictionary(x => x.Version);
-
-            // _pendingInit is a volatile reference type flag for determining whether init is needed.
-            // It is arbitrarily assigned _semaphore instead of allocating a new object
-            _pendingInit = _semaphore;
+            _cache = new AsyncCache<T>(ResolveAsync);
         }
 
         public void Dispose()
-            => _semaphore.Dispose();
+            => _cache.Dispose();
 
-        public async Task<T> GetAsync(CancellationToken cancellationToken = default)
+        public Task<T> GetAsync(CancellationToken cancellationToken = default)
+            => _cache.GetAsync(forceRefresh: false, cancellationToken: cancellationToken); // prevent users from forcing refresh
+
+        private async Task<T> ResolveAsync(CancellationToken cancellationToken = default)
         {
-            if (_pendingInit is not null)
+            SchemaVersion version = await _schemaVersionResolver.GetCurrentVersionAsync(cancellationToken);
+            if (!_entities.TryGetValue(version, out T value))
             {
-                await _semaphore.WaitAsync(cancellationToken);
-                try
-                {
-#pragma warning disable CA1508
-                    // Another thread may have already gone through this block
-                    if (_pendingInit is not null)
-#pragma warning restore CA1508
-                    {
-                        SchemaVersion version = await _schemaVersionResolver.GetCurrentVersionAsync(cancellationToken);
-                        if (!_entities.TryGetValue(version, out T value))
-                        {
-                            string msg = version == SchemaVersion.Unknown
-                                ? DicomSqlServerResource.UnknownSchemaVersion
-                                : string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.SchemaVersionOutOfRange, version);
+                string msg = version == SchemaVersion.Unknown
+                    ? DicomSqlServerResource.UnknownSchemaVersion
+                    : string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.SchemaVersionOutOfRange, version);
 
-                            throw new InvalidSchemaVersionException(msg);
-                        }
-
-                        _value = value;
-                        _pendingInit = null; // Volatile write must occur after _value
-                    }
-                }
-                finally
-                {
-                    _semaphore.Release();
-                }
+                throw new InvalidSchemaVersionException(msg);
             }
 
-            return _value;
+            return value;
         }
     }
 }

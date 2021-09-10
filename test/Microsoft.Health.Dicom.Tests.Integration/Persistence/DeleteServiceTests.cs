@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             var newDataSet = CreateValidMetadataDataset();
 
-            var version = await _fixture.IndexDataStore.CreateInstanceIndexAsync(newDataSet);
+            var version = await _fixture.IndexDataStore.BeginCreateInstanceIndexAsync(newDataSet);
             var versionedDicomInstanceIdentifier = newDataSet.ToVersionedInstanceIdentifier(version);
 
             if (persistMetadata)
