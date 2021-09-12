@@ -307,9 +307,9 @@ namespace Microsoft.Health.Dicom.Core {
         /// <summary>
         ///   Looks up a localized string similar to One or more extended query tags have been modified..
         /// </summary>
-        internal static string ExtendedQueryTagVersionMismatch {
+        internal static string ExtendedQueryTagsOutOfDate {
             get {
-                return ResourceManager.GetString("ExtendedQueryTagVersionMismatch", resourceCulture);
+                return ResourceManager.GetString("ExtendedQueryTagsOutOfDate", resourceCulture);
             }
         }
         

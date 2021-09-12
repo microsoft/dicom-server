@@ -159,8 +159,8 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
                 .Returns(
                     new List<ExtendedQueryTagStoreEntry>
                     {
-                        new ExtendedQueryTagStoreEntry(1, "00101010", "AS", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Adding, null, QueryTagQueryStatus.Enabled),
-                        new ExtendedQueryTagStoreEntry(4, "00104040", "DT", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding, null, QueryTagQueryStatus.Enabled),
+                        new ExtendedQueryTagStoreEntry(1, "00101010", "AS", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Adding, QueryTagQueryStatus.Enabled),
+                        new ExtendedQueryTagStoreEntry(4, "00104040", "DT", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding, QueryTagQueryStatus.Enabled),
                     });
             handler.SendingAsync += (msg, token) => AssertExpectedStatusRequestAsync(msg, id);
 

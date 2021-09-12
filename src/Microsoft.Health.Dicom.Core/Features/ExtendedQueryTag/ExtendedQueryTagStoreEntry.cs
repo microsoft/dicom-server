@@ -40,11 +40,6 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         public QueryTagLevel Level { get; }
 
         /// <summary>
-        /// ExtendedQueryTag Version
-        /// </summary>
-        public ulong? Version { get; }
-
-        /// <summary>
         /// Query status of this tag.
         /// </summary>
         public QueryTagQueryStatus QueryStatus { get; }

@@ -11,7 +11,6 @@ using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
@@ -227,8 +226,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private async Task<long> AddInstanceAsync(string studyId, string seriesId, string sopInstanceId)
         {
             DicomDataset dataset = Samples.CreateRandomInstanceDataset(studyId, seriesId, sopInstanceId);
-            long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset);
-            await _indexDataStore.UpdateInstanceIndexStatusAsync(new VersionedInstanceIdentifier(studyId, seriesId, sopInstanceId, watermark), Core.Models.IndexStatus.Created);
+            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
+            await _indexDataStore.EndCreateInstanceIndexAsync(dataset, watermark);
             return watermark;
         }
 
