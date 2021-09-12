@@ -339,6 +339,46 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Equal(QueryTagQueryStatus.Disabled, tagEntry[0].QueryStatus);
         }
 
+        [Fact]
+        public async Task GivenExtendedQueryTagError_WhenAddExtendedQueryTagError_ThenErrorCountShouldIncrease()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+            long watermark = await AddInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            int tagKey = await AddTagAsync(tag);
+
+            await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
+                tagKey,
+                ValidationErrorCode.UidIsInvalid,
+                watermark);
+
+            var tagEntry = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: tag.GetPath());
+            Assert.Equal(QueryTagQueryStatus.Disabled, tagEntry[0].QueryStatus);
+        }
+
+        [Fact]
+        public async Task GivenExistingExtendedQueryTagError_WhenAddExtendedQueryTagError_ThenErrorCountShouldNotIncrease()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+            long watermark = await AddInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            int tagKey = await AddTagAsync(tag);
+
+            await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
+                tagKey,
+                ValidationErrorCode.UidIsInvalid,
+                watermark);
+
+            var tagEntry = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: tag.GetPath());
+            Assert.Equal(QueryTagQueryStatus.Disabled, tagEntry[0].QueryStatus);
+        }
+
         public Task InitializeAsync()
         {
             return Task.CompletedTask;

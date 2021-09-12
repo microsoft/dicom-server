@@ -388,7 +388,8 @@ CREATE TABLE dbo.ExtendedQueryTag (
     TagPrivateCreator       NVARCHAR(64)         NULL, 
     TagLevel                TINYINT              NOT NULL,
     TagStatus               TINYINT              NOT NULL,    
-    QueryStatus             TINYINT              DEFAULT 1 NOT NULL
+    QueryStatus             TINYINT              DEFAULT 1 NOT NULL,
+    ErrorCount              INT                  NOT NULL                                                                    
 )
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
@@ -1809,7 +1810,8 @@ BEGIN
             TagPrivateCreator,
             TagLevel,
             TagStatus,            
-            QueryStatus
+            QueryStatus,
+            ErrorCount
     FROM    dbo.ExtendedQueryTag
     WHERE   TagPath                 = ISNULL(@tagPath, TagPath)
 END
@@ -1842,7 +1844,8 @@ BEGIN
            TagPrivateCreator,
            TagLevel,
            TagStatus,           
-           QueryStatus
+           QueryStatus,
+           ErrorCount
     FROM dbo.ExtendedQueryTag AS XQT
     INNER JOIN @extendedQueryTagKeys AS input
     ON XQT.TagKey = input.TagKey
@@ -1920,7 +1923,8 @@ BEGIN
            TagPrivateCreator,
            TagLevel,
            TagStatus,           
-           QueryStatus
+           QueryStatus,
+           ErrorCount
     FROM dbo.ExtendedQueryTag AS XQT
     INNER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
     WHERE OperationId = @operationId
@@ -1987,9 +1991,9 @@ AS
 
         -- Add the new tags with the given status
         INSERT INTO dbo.ExtendedQueryTag
-            (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus)
+            (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount)
         OUTPUT INSERTED.TagKey
-        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, @ready, 1 FROM @extendedQueryTags
+        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, @ready, 1, 0 FROM @extendedQueryTags
 
     COMMIT TRANSACTION
 GO
@@ -2019,7 +2023,7 @@ AS
 
     UPDATE dbo.ExtendedQueryTag
     SET QueryStatus = @queryStatus
-    OUTPUT INSERTED.TagKey, INSERTED.TagPath, INSERTED.TagVR, INSERTED.TagPrivateCreator, INSERTED.TagLevel, INSERTED.TagStatus, INSERTED.QueryStatus
+    OUTPUT INSERTED.TagKey, INSERTED.TagPath, INSERTED.TagVR, INSERTED.TagPrivateCreator, INSERTED.TagLevel, INSERTED.TagStatus, INSERTED.QueryStatus, INSERTED.ErrorCount
     WHERE TagPath = @tagPath 
 GO
 
@@ -2067,16 +2071,24 @@ AS
         WHERE TagKey = @tagKey AND QueryStatus = 1
 
         -- Add error
+        DECLARE @added SMALLINT
+        SET @added  = 1
         MERGE dbo.ExtendedQueryTagError WITH (HOLDLOCK) as XQTE
         USING (SELECT @tagKey TagKey, @errorCode ErrorCode, @watermark Watermark) as src
         ON src.TagKey = XQTE.TagKey AND src.WaterMark = XQTE.Watermark
         WHEN MATCHED THEN UPDATE
         SET CreatedTime = @currentDate,
-            ErrorCode = @errorCode
+            ErrorCode = @errorCode,
+            @added = 0
         WHEN NOT MATCHED THEN 
             INSERT (TagKey, ErrorCode, Watermark, CreatedTime)
             VALUES (@tagKey, @errorCode, @watermark, @currentDate)
         OUTPUT INSERTED.TagKey;
+
+        IF @added <> 0
+            UPDATE dbo.ExtendedQueryTag
+            SET ErrorCount = ErrorCount + @added
+            WHERE TagKey = @tagKey
 
     COMMIT TRANSACTION
 GO
@@ -2424,7 +2436,8 @@ AS
                TagPrivateCreator,
                TagLevel,
                TagStatus,               
-               QueryStatus
+               QueryStatus,
+               ErrorCount
         FROM @extendedQueryTagKeys AS input
         INNER JOIN dbo.ExtendedQueryTag AS XQT WITH(HOLDLOCK) ON input.TagKey = XQT.TagKey
         LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO WITH(HOLDLOCK) ON XQT.TagKey = XQTO.TagKey
