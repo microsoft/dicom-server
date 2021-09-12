@@ -1188,9 +1188,10 @@ AS
     INNER JOIN @deletedInstances as d
     ON XQTE.Watermark = d.Watermark
 
+    -- Update error count
     IF EXISTS (SELECT * FROM @deletedErrors)
     BEGIN
-        -- Update error count
+        -- Calculate error count
         SELECT COUNT(1) as ErrorCount,
                TagKey
         INTO #errorCounts
