@@ -3,18 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Diagnostics.CodeAnalysis;
+using System;
+using System.Collections.Generic;
+using Dicom;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
-namespace Microsoft.Health.Dicom.Core.Models
+namespace Microsoft.Health.Dicom.Core.Features.Store
 {
-    /// <summary>
-    /// Representing the index status.
-    /// </summary>
-    [SuppressMessage("Design", "CA1028:Enum Storage should be Int32", Justification = "Value is stored in SQL as TINYINT.")]
-    public enum IndexStatus : byte
+    public sealed class QueryTagsExpiredEventArgs : EventArgs
     {
-        Creating = 0,
+        public DicomDataset DicomDataset { get; set; }
 
-        Created = 1,
+        public IReadOnlyCollection<QueryTag> NewQueryTags { get; set; }
     }
 }

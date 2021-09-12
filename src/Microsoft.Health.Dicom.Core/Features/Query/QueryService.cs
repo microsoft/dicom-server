@@ -49,7 +49,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             ValidateRequestIdentifiers(message);
 
-            var queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken);
+            var queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
 
             QueryExpression queryExpression = _queryParser.Parse(message, queryTags);
 
