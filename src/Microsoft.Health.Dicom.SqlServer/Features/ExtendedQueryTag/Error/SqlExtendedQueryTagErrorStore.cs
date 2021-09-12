@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
@@ -19,16 +20,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
         public SqlExtendedQueryTagErrorStore(VersionedCache<ISqlExtendedQueryTagErrorStore> cache)
             => _cache = EnsureArg.IsNotNull(cache, nameof(cache));
 
-        public async Task<int> AddExtendedQueryTagErrorAsync(
+        public async Task AddExtendedQueryTagErrorAsync(
             int tagKey,
-            string errorMessage,
+            ValidationErrorCode errorCode,
             long watermark,
             CancellationToken cancellationToken = default)
         {
             ISqlExtendedQueryTagErrorStore store = await _cache.GetAsync(cancellationToken);
-            return await store.AddExtendedQueryTagErrorAsync(
+            await store.AddExtendedQueryTagErrorAsync(
                 tagKey,
-                errorMessage,
+                errorCode,
                 watermark,
                 cancellationToken);
         }

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
@@ -16,9 +17,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
     {
         public virtual SchemaVersion Version => SchemaVersion.V1;
 
-        public virtual Task<int> AddExtendedQueryTagErrorAsync(
+        public virtual Task AddExtendedQueryTagErrorAsync(
             int tagKey,
-            string errorMessage,
+            ValidationErrorCode errorCode,
             long watermark,
             CancellationToken cancellationToken = default)
         {

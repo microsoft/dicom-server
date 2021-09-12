@@ -11,6 +11,7 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
@@ -26,8 +27,9 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             _dicomTagParser = EnsureArg.IsNotNull(dicomTagParser, nameof(dicomTagParser));
         }
 
-        public async Task<GetExtendedQueryTagErrorsResponse> GetExtendedQueryTagErrorsAsync(string tagPath, CancellationToken cancellationToken = default)
+        public async Task<GetExtendedQueryTagErrorsResponse> GetExtendedQueryTagErrorsAsync(string tagPath, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(tagPath, nameof(tagPath));
             string numericalTagPath = _dicomTagParser.TryParse(tagPath, out DicomTag[] tags, supportMultiple: false)
                 ? tags[0].GetPath()
                 : throw new InvalidExtendedQueryTagPathException(string.Format(DicomCoreResource.InvalidExtendedQueryTag, tagPath ?? string.Empty));
@@ -36,11 +38,12 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             return new GetExtendedQueryTagErrorsResponse(extendedQueryTagErrors);
         }
 
-        public Task<int> AddExtendedQueryTagErrorAsync(int tagKey, string errorMessage, long watermark, CancellationToken cancellationToken = default)
+        public Task AddExtendedQueryTagErrorAsync(int tagKey, ValidationErrorCode errorCode, long watermark, CancellationToken cancellationToken)
         {
+            EnsureArg.EnumIsDefined(errorCode, nameof(errorCode));
             return _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
                 tagKey,
-                errorMessage,
+                errorCode,
                 watermark,
                 cancellationToken);
         }
