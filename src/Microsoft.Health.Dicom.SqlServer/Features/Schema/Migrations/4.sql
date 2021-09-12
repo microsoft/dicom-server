@@ -1806,27 +1806,11 @@ CREATE OR ALTER PROCEDURE dbo.UpdateExtendedQueryTagQueryStatus (
 )
 AS
     SET NOCOUNT     ON
-    SET XACT_ABORT  ON
 
-    BEGIN TRANSACTION
-
-        DECLARE @tagKey INT
-
-        -- Check if tag exists
-        SELECT @tagKey = TagKey
-        FROM dbo.ExtendedQueryTag WITH (UPDLOCK)
-        WHERE TagPath = @tagPath
-
-        IF @@ROWCOUNT = 0
-            THROW 50404, 'extended query tag is not found', 1
-
-        -- Update QueryStatus
-        UPDATE dbo.ExtendedQueryTag
-        SET QueryStatus = @queryStatus
-        OUTPUT INSERTED.TagKey, INSERTED.TagPath, INSERTED.TagVR, INSERTED.TagPrivateCreator, INSERTED.TagLevel, INSERTED.TagStatus, INSERTED.TagVersion, INSERTED.QueryStatus
-        WHERE TagKey = @tagKey 
-
-    COMMIT TRANSACTION
+    UPDATE dbo.ExtendedQueryTag
+    SET QueryStatus = @queryStatus
+    OUTPUT INSERTED.TagKey, INSERTED.TagPath, INSERTED.TagVR, INSERTED.TagPrivateCreator, INSERTED.TagLevel, INSERTED.TagStatus, INSERTED.TagVersion, INSERTED.QueryStatus
+    WHERE TagPath = @tagPath 
 GO
 
 /***************************************************************************************/

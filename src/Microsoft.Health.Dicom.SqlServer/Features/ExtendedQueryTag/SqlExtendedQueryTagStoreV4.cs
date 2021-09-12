@@ -280,15 +280,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                         VLatest.ExtendedQueryTag.QueryStatus);
                     return new ExtendedQueryTagStoreEntry(rTagKey, rTagPath, rTagVR, rTagPrivateCreator, (QueryTagLevel)rTagLevel, (ExtendedQueryTagStatus)rTagStatus, RowVersionToUlong(rTagVersion), (QueryTagQueryStatus)rQueryStatus);
                 }
-                return null;
+                else
+                {
+                    throw new ExtendedQueryTagNotFoundException(string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.ExtendedQueryTagNotFound, tagPath));
+                }
             }
             catch (SqlException ex)
             {
-                throw ex.Number switch
-                {
-                    SqlErrorCodes.NotFound => new ExtendedQueryTagNotFoundException(string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.ExtendedQueryTagNotFound, tagPath)),
-                    _ => new DataStoreException(ex),
-                };
+                throw new DataStoreException(ex);
             }
         }
 
