@@ -332,7 +332,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
                 tagKey,
-                "fake error message.",
+                ValidationErrorCode.UidIsInvalid,
                 watermark);
 
             var tagEntry = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: tag.GetPath());
