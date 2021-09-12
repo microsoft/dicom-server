@@ -356,7 +356,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 watermark);
 
             var tagEntry = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: tag.GetPath());
-            Assert.Equal(QueryTagQueryStatus.Disabled, tagEntry[0].QueryStatus);
+            Assert.Equal(1, tagEntry[0].ErrorCount);
         }
 
         [Fact]
@@ -375,8 +375,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 ValidationErrorCode.UidIsInvalid,
                 watermark);
 
+            // add on same instance again
+            await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
+               tagKey,
+               ValidationErrorCode.DateIsInvalid,
+               watermark);
+
             var tagEntry = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: tag.GetPath());
-            Assert.Equal(QueryTagQueryStatus.Disabled, tagEntry[0].QueryStatus);
+            Assert.Equal(1, tagEntry[0].ErrorCount);
         }
 
         public Task InitializeAsync()

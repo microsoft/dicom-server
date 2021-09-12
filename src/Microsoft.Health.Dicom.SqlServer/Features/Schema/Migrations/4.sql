@@ -2065,11 +2065,6 @@ AS
         IF NOT EXISTS (SELECT * FROM dbo.ExtendedQueryTag WITH (HOLDLOCK) WHERE TagKey = @tagKey AND TagStatus = 0)
             THROW 50404, 'Tag does not exist or is not being added.', 1;
 
-        -- Disable query on the tag
-        UPDATE dbo.ExtendedQueryTag
-        SET QueryStatus = 0
-        WHERE TagKey = @tagKey AND QueryStatus = 1
-
         -- Add error
         DECLARE @added SMALLINT
         SET @added  = 1
@@ -2085,10 +2080,10 @@ AS
             VALUES (@tagKey, @errorCode, @watermark, @currentDate)
         OUTPUT INSERTED.TagKey;
 
-        IF @added <> 0
-            UPDATE dbo.ExtendedQueryTag
-            SET ErrorCount = ErrorCount + @added
-            WHERE TagKey = @tagKey
+        -- Disable query on the tag  and update error count
+        UPDATE dbo.ExtendedQueryTag
+        SET QueryStatus = 0, ErrorCount = ErrorCount + @added
+        WHERE TagKey = @tagKey
 
     COMMIT TRANSACTION
 GO
