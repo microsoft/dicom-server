@@ -888,15 +888,15 @@ AS
             THROW 50404, 'Tag does not exist or is not being added.', 1;
 
         -- Add error
-        DECLARE @added SMALLINT
-        SET @added  = 1
+        DECLARE @addedCount SMALLINT
+        SET @addedCount  = 1
         MERGE dbo.ExtendedQueryTagError WITH (HOLDLOCK) as XQTE
         USING (SELECT @tagKey TagKey, @errorCode ErrorCode, @watermark Watermark) as src
         ON src.TagKey = XQTE.TagKey AND src.WaterMark = XQTE.Watermark
         WHEN MATCHED THEN UPDATE
         SET CreatedTime = @currentDate,
             ErrorCode = @errorCode,
-            @added = 0
+            @addedCount = 0
         WHEN NOT MATCHED THEN 
             INSERT (TagKey, ErrorCode, Watermark, CreatedTime)
             VALUES (@tagKey, @errorCode, @watermark, @currentDate)
@@ -904,7 +904,7 @@ AS
 
         -- Disable query on the tag  and update error count
         UPDATE dbo.ExtendedQueryTag
-        SET QueryStatus = 0, ErrorCount = ErrorCount + @added
+        SET QueryStatus = 0, ErrorCount = ErrorCount + @addedCount
         WHERE TagKey = @tagKey
 
     COMMIT TRANSACTION
