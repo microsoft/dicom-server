@@ -2018,7 +2018,7 @@ AS
 
     UPDATE dbo.ExtendedQueryTag
     SET QueryStatus = @queryStatus
-    OUTPUT INSERTED.TagKey, INSERTED.TagPath, INSERTED.TagVR, INSERTED.TagPrivateCreator, INSERTED.TagLevel, INSERTED.TagStatus, INSERTED.TagVersion, INSERTED.QueryStatus
+    OUTPUT INSERTED.TagKey, INSERTED.TagPath, INSERTED.TagVR, INSERTED.TagPrivateCreator, INSERTED.TagLevel, INSERTED.TagStatus, INSERTED.QueryStatus
     WHERE TagPath = @tagPath 
 GO
 
