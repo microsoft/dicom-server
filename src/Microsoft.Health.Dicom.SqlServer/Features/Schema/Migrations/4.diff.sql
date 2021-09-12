@@ -1173,16 +1173,34 @@ AS
     AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
     AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
 
-    IF (@@ROWCOUNT = 0)
-    BEGIN
-        THROW 50404, 'Instance not found', 1;
-    END
+    IF @@ROWCOUNT = 0
+        THROW 50404, 'Instance not found', 1    
 
     -- Deleting tag errors
+    DECLARE @deletedErrors AS TABLE
+    (
+        TagKey BIGINT  
+    )
     DELETE XQTE
+        OUTPUT deleted.TagKey
+        INTO @deletedErrors
     FROM dbo.ExtendedQueryTagError as XQTE
     INNER JOIN @deletedInstances as d
     ON XQTE.Watermark = d.Watermark
+
+    IF EXISTS (SELECT * FROM @deletedErrors)
+    BEGIN
+        -- Update error count
+        SELECT COUNT(1) as ErrorCount,
+               TagKey
+        INTO #errorCounts
+        FROM @deletedErrors    
+        GROUP BY TagKey
+
+        UPDATE XQT 
+        SET XQT.ErrorCount = XQT.ErrorCount - (SELECT EC.ErrorCount FROM #errorCounts EC WHERE XQT.TagKey = EC.TagKey)
+        FROM dbo.ExtendedQueryTag AS XQT
+    END
 
     -- Deleting indexed instance tags
     DELETE

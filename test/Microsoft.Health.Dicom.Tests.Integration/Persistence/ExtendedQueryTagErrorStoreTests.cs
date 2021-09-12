@@ -46,6 +46,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             await _errorStoreTestHelper.ClearExtendedQueryTagErrorTableAsync();
             await _tagStoreTestHelper.ClearExtendedQueryTagTablesAsync();
+            await _indexDataStoreTestHelper.ClearIndexTablesAsync();
+            await _indexDataStoreTestHelper.ClearDeletedInstanceTableAsync();
         }
 
         [Fact]
@@ -384,6 +386,60 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var tagEntry = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: tag.GetPath());
             Assert.Equal(1, tagEntry[0].ErrorCount);
         }
+
+        [Fact]
+        public async Task GivenExtendedQueryTagErrorsOnMultipleTags_WhenDeleteAssociatedInstance_ThenErrorCountShouldDecrease()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+
+            DicomTag tag1 = DicomTag.DeviceSerialNumber;
+            DicomTag tag2 = DicomTag.DeviceID;
+            long watermark = await AddInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            int tagKey1 = await AddTagAsync(tag1);
+            int tagKey2 = await AddTagAsync(tag2);
+
+            await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey1, ValidationErrorCode.UidIsInvalid, watermark);
+            await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey2, ValidationErrorCode.UidIsInvalid, watermark);
+
+            // Delete instance
+            await _indexDataStore.DeleteInstanceIndexAsync(new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
+
+            var tagEntry1 = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: tag1.GetPath());
+            Assert.Equal(0, tagEntry1[0].ErrorCount);
+            var tagEntry2 = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: tag2.GetPath());
+            Assert.Equal(0, tagEntry2[0].ErrorCount);
+        }
+
+        [Fact]
+        public async Task GivenExtendedQueryTagErrors_WhenDeleteAssociatedStudy_ThenErrorCountShouldDecrease()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid1 = TestUidGenerator.Generate();
+            string sopInstanceUid1 = TestUidGenerator.Generate();
+            string seriesInstanceUid2 = TestUidGenerator.Generate();
+            string sopInstanceUid2 = TestUidGenerator.Generate();
+
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+            long watermark1 = await AddInstanceAsync(studyInstanceUid, seriesInstanceUid1, sopInstanceUid1);
+            long watermark2 = await AddInstanceAsync(studyInstanceUid, seriesInstanceUid2, sopInstanceUid2);
+            int tagKey = await AddTagAsync(tag);
+
+            await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, ValidationErrorCode.UidIsInvalid, watermark1);
+            await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, ValidationErrorCode.UidIsInvalid, watermark2);
+
+            // Before delete
+            var tagEntryBefore = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: tag.GetPath());
+            Assert.Equal(2, tagEntryBefore[0].ErrorCount);
+
+            // Delete study
+            await _indexDataStore.DeleteStudyIndexAsync(studyInstanceUid, DateTimeOffset.UtcNow);
+
+            var tagEntryAfter = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: tag.GetPath());
+            Assert.Equal(0, tagEntryAfter[0].ErrorCount);
+        }
+
 
         public Task InitializeAsync()
         {
