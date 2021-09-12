@@ -26,22 +26,42 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// </param>
         /// <returns>
         /// A task representing the asynchronous add operation. The value of its <see cref="Task{TResult}.Result"/>
-        /// property contains the keys for the <paramref name="extendedQueryTagEntries"/> in the store.
+        /// property contains the added extended query tags.
         /// </returns>
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-        Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(
+        Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AddExtendedQueryTagsAsync(
             IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries,
             int maxAllowedCount,
             bool ready = false,
             CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Get the stored extended query tag from ExtendedQueryTagStore by its path.
+        /// </summary>
+        /// <param name="tagPath">Path associated with requested extended query tag formatted as it is stored internally.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>
+        /// A task representing the asynchronous get operation. The value of its <see cref="Task{TResult}.Result"/>
+        /// property contains the tag's information as found in storage.
+        /// </returns>
+        Task<ExtendedQueryTagStoreEntry> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Get stored extended query tags from ExtendedQueryTagStore, if provided, by tagPath.
         /// </summary>
-        /// <param name="path">Path associated with requested extended query tag formatted as it is stored internally.</param>
+        /// <param name="limit">The maximum number of results to retrieve.</param>
+        /// <param name="offset">The offset from which to retrieve paginated results.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>Extended Query tag entry/entries with path, VR, level and status.</returns>
-        Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(string path = null, CancellationToken cancellationToken = default);
+        /// <returns>
+        /// A task representing the asynchronous get operation. The value of its <see cref="Task{TResult}.Result"/>
+        /// property contains a list of the tags' information as found in storage.
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <para><paramref name="limit"/> is less than <c>1</c> or greater than <c>200</c></para>
+        /// <para>-or-</para>
+        /// <para><paramref name="offset"/> is less than <c>0</c>.</para>
+        /// </exception>
+        Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(int limit, int offset = 0, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously gets extended query tags by keys.

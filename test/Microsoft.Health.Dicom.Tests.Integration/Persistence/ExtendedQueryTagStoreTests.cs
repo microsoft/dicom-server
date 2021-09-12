@@ -148,7 +148,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             dataset.Add(tag, "123");
 
             await AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { tag.BuildAddExtendedQueryTagEntry() });
-            ExtendedQueryTagStoreEntry storeEntry = (await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: tag.GetPath()))[0];
+            ExtendedQueryTagStoreEntry storeEntry = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag.GetPath());
             QueryTag queryTag = new QueryTag(storeEntry);
             long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag });
             await _indexDataStore.EndCreateInstanceIndexAsync(dataset, watermark, new QueryTag[] { queryTag });
@@ -260,16 +260,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         private async Task VerifyTagIsAdded(int key, AddExtendedQueryTagEntry extendedQueryTagEntry, ExtendedQueryTagStatus status = ExtendedQueryTagStatus.Ready)
         {
-            var actualExtendedQueryTagEntries = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(extendedQueryTagEntry.Path);
-            ExtendedQueryTagStoreEntry actualExtendedQueryTagEntry = actualExtendedQueryTagEntries.First();
-            AssertTag(key, extendedQueryTagEntry, actualExtendedQueryTagEntry, status);
+            ExtendedQueryTagStoreEntry actual = await _extendedQueryTagStore.GetExtendedQueryTagAsync(extendedQueryTagEntry.Path);
+            AssertTag(key, extendedQueryTagEntry, actual, status);
         }
 
-        private async Task VerifyTagNotExist(string tagPath)
-        {
-            var extendedQueryTagEntries = await _extendedQueryTagStore.GetExtendedQueryTagsAsync();
-            Assert.DoesNotContain(extendedQueryTagEntries, item => item.Path.Equals(tagPath));
-        }
+        private Task VerifyTagNotExist(string tagPath)
+            => Assert.ThrowsAsync<ExtendedQueryTagNotFoundException>(() => _extendedQueryTagStore.GetExtendedQueryTagAsync(tagPath));
 
         private void AssertTag(int key, AddExtendedQueryTagEntry expected, ExtendedQueryTagStoreEntry actual, ExtendedQueryTagStatus status = ExtendedQueryTagStatus.Ready)
         {
@@ -291,13 +287,19 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _extendedQueryTagStoreTestHelper.ClearExtendedQueryTagTablesAsync();
         }
 
-        private Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(
+        private async Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(
             IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries,
             int maxAllowedCount = 128,
             bool ready = true,
             CancellationToken cancellationToken = default)
         {
-            return _extendedQueryTagStore.AddExtendedQueryTagsAsync(extendedQueryTagEntries, maxAllowedCount, ready: ready, cancellationToken: cancellationToken);
+            IReadOnlyList<ExtendedQueryTagStoreEntry> tags = await _extendedQueryTagStore.AddExtendedQueryTagsAsync(
+                extendedQueryTagEntries,
+                maxAllowedCount,
+                ready: ready,
+                cancellationToken: cancellationToken);
+
+            return tags.Select(x => x.Key).ToList();
         }
     }
 }

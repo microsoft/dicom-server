@@ -7,10 +7,16 @@ using MediatR;
 
 namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
 {
-    public class GetAllExtendedQueryTagsRequest : IRequest<GetAllExtendedQueryTagsResponse>
+    public class GetAllExtendedQueryTagsRequest : IRequest<GetExtendedQueryTagsResponse>
     {
-        public GetAllExtendedQueryTagsRequest()
+        public GetAllExtendedQueryTagsRequest(int limit, int offset)
         {
+            Limit = limit;
+            Offset = offset;
         }
+
+        public int Limit { get; }
+
+        public int Offset { get; }
     }
 }

@@ -1814,6 +1814,43 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
+--     GetExtendedQueryTags
+--
+-- DESCRIPTION
+--     Gets a possibly paginated set of query tags as indicated by the parameters
+--
+-- PARAMETERS
+--     @limit
+--         * The maximum number of results to retrieve.
+--     @offset
+--         * The offset from which to retrieve paginated results.
+--
+-- RETURN VALUE
+--     The set of query tags.
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTags
+    @limit INT,
+    @offset INT
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    SELECT TagKey,
+           TagPath,
+           TagVR,
+           TagPrivateCreator,
+           TagLevel,
+           TagStatus
+    FROM dbo.ExtendedQueryTag
+    ORDER BY TagKey ASC
+    OFFSET @offset ROWS
+    FETCH NEXT @limit ROWS ONLY
+END
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
 --     GetExtendedQueryTagsByKey
 --
 -- DESCRIPTION
@@ -1939,7 +1976,7 @@ GO
 --         * Indicates whether the new query tags have been fully indexed
 --
 -- RETURN VALUE
---     The keys for the added tags.
+--     The added extended query tags.
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTags (
     @extendedQueryTags dbo.AddExtendedQueryTagsInputTableType_1 READONLY,
@@ -1983,7 +2020,13 @@ AS
         -- Add the new tags with the given status
         INSERT INTO dbo.ExtendedQueryTag
             (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus)
-        OUTPUT INSERTED.TagKey
+        OUTPUT
+            INSERTED.TagKey,
+            INSERTED.TagPath,
+            INSERTED.TagVR,
+            INSERTED.TagPrivateCreator,
+            INSERTED.TagLevel,
+            INSERTED.TagStatus
         SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, @ready FROM @extendedQueryTags
 
     COMMIT TRANSACTION

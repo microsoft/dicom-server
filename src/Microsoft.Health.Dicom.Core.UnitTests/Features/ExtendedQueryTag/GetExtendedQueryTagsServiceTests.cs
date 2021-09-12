@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dicom;
@@ -31,27 +32,28 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         }
 
         [Fact]
-        public async Task GivenRequestForAllTags_WhenNoTagsAreStored_ThenExceptionShouldBeThrown()
+        public async Task GivenRequestForMultipleTags_WhenNoTagsAreStored_ThenReturnEmptyResult()
         {
-            _extendedQueryTagStore.GetExtendedQueryTagsAsync((string)default).Returns(new List<ExtendedQueryTagStoreEntry>());
-            GetAllExtendedQueryTagsResponse response = await _getExtendedQueryTagsService.GetAllExtendedQueryTagsAsync();
+            _extendedQueryTagStore.GetExtendedQueryTagsAsync(7, 0).Returns(Array.Empty<ExtendedQueryTagStoreEntry>());
+            GetExtendedQueryTagsResponse response = await _getExtendedQueryTagsService.GetExtendedQueryTagsAsync(7, 0);
+            await _extendedQueryTagStore.Received(1).GetExtendedQueryTagsAsync(7, 0);
 
             Assert.Empty(response.ExtendedQueryTags);
         }
 
         [Fact]
-        public async Task GivenRequestForAllTags_WhenMultipleTagsAreStored_ThenExtendedQueryTagEntryListShouldBeReturned()
+        public async Task GivenRequestForMultipleTags_WhenMultipleTagsAreStored_ThenExtendedQueryTagEntryListShouldBeReturned()
         {
             ExtendedQueryTagStoreEntry tag1 = CreateExtendedQueryTagEntry(1, "45456767", DicomVRCode.AE.ToString(), null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready);
             ExtendedQueryTagStoreEntry tag2 = CreateExtendedQueryTagEntry(2, "04051001", DicomVRCode.FL.ToString(), "PrivateCreator1", QueryTagLevel.Series, ExtendedQueryTagStatus.Adding);
 
             List<ExtendedQueryTagStoreEntry> storedEntries = new List<ExtendedQueryTagStoreEntry>() { tag1, tag2 };
 
-            _extendedQueryTagStore.GetExtendedQueryTagsAsync((string)default).Returns(storedEntries);
-            GetAllExtendedQueryTagsResponse response = await _getExtendedQueryTagsService.GetAllExtendedQueryTagsAsync();
+            _extendedQueryTagStore.GetExtendedQueryTagsAsync(101, 303).Returns(storedEntries);
+            GetExtendedQueryTagsResponse response = await _getExtendedQueryTagsService.GetExtendedQueryTagsAsync(101, 303);
+            await _extendedQueryTagStore.Received(1).GetExtendedQueryTagsAsync(101, 303);
 
             var expected = new GetExtendedQueryTagEntry[] { tag1.ToExtendedQueryTagEntry(), tag2.ToExtendedQueryTagEntry() };
-
             Assert.Equal(expected, response.ExtendedQueryTags, ExtendedQueryTagEntryEqualityComparer.Default);
         }
 
@@ -68,10 +70,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
                 return true;
             });
 
-            _extendedQueryTagStore.GetExtendedQueryTagsAsync(tagPath, default).Returns(new List<ExtendedQueryTagStoreEntry>());
-            var exception = await Assert.ThrowsAsync<ExtendedQueryTagNotFoundException>(() => _getExtendedQueryTagsService.GetExtendedQueryTagAsync(tagPath));
-
-            Assert.Equal(string.Format("The specified extended query tag with tag path {0} cannot be found.", tagPath), exception.Message);
+            string actualTagPath = parsedTags[0].GetPath();
+            _extendedQueryTagStore
+                .GetExtendedQueryTagAsync(actualTagPath, default)
+                .Returns(Task.FromException<ExtendedQueryTagStoreEntry>(new ExtendedQueryTagNotFoundException("Tag doesn't exist")));
+            await Assert.ThrowsAsync<ExtendedQueryTagNotFoundException>(() => _getExtendedQueryTagsService.GetExtendedQueryTagAsync(tagPath));
+            await _extendedQueryTagStore.Received(1).GetExtendedQueryTagAsync(actualTagPath, default);
         }
 
         [Fact]
@@ -87,8 +91,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
                 return true;
             });
 
-            _extendedQueryTagStore.GetExtendedQueryTagsAsync(tagPath, default).Returns(new List<ExtendedQueryTagStoreEntry> { stored });
+            _extendedQueryTagStore.GetExtendedQueryTagAsync(tagPath, default).Returns(stored);
             GetExtendedQueryTagResponse response = await _getExtendedQueryTagsService.GetExtendedQueryTagAsync(tagPath);
+            await _extendedQueryTagStore.Received(1).GetExtendedQueryTagAsync(tagPath, default);
 
             Assert.Equal(stored.ToExtendedQueryTagEntry(), response.ExtendedQueryTag, ExtendedQueryTagEntryEqualityComparer.Default);
         }

@@ -8,9 +8,9 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
 {
-    public class GetAllExtendedQueryTagsResponse
+    public class GetExtendedQueryTagsResponse
     {
-        public GetAllExtendedQueryTagsResponse(IEnumerable<GetExtendedQueryTagEntry> extendedQueryTagEntries)
+        public GetExtendedQueryTagsResponse(IEnumerable<GetExtendedQueryTagEntry> extendedQueryTagEntries)
         {
             ExtendedQueryTags = extendedQueryTagEntries;
         }

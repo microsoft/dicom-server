@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Globalization;
+
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
     /// <summary>
@@ -10,8 +12,8 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
     /// </summary>
     public class ExtendedQueryTagNotFoundException : ResourceNotFoundException
     {
-        public ExtendedQueryTagNotFoundException(string message)
-            : base(message)
+        public ExtendedQueryTagNotFoundException(string tagPath)
+            : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExtendedQueryTagNotFound, tagPath))
         {
         }
     }

@@ -211,10 +211,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         private async Task<ExtendedQueryTagStoreEntry> AddExtendedQueryTagAsync(AddExtendedQueryTagEntry addExtendedQueryTagEntry)
-        {
-            await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new[] { addExtendedQueryTagEntry }, 128);
-            return (await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: addExtendedQueryTagEntry.Path)).First();
-        }
+            => (await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new[] { addExtendedQueryTagEntry }, 128))[0];
 
         private async Task<Instance> CreateInstanceIndexAsync(DicomDataset dataset)
         {

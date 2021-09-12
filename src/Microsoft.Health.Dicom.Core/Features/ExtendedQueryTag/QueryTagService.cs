@@ -64,7 +64,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         private async Task<List<QueryTag>> ResolveQueryTagsAsync(CancellationToken cancellationToken)
         {
             var tags = new List<QueryTag>(CoreQueryTags);
-            IReadOnlyList<ExtendedQueryTagStoreEntry> extendedQueryTags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(cancellationToken: cancellationToken);
+            IReadOnlyList<ExtendedQueryTagStoreEntry> extendedQueryTags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(int.MaxValue, 0, cancellationToken);
             tags.AddRange(extendedQueryTags.Select(entry => new QueryTag(entry)));
 
             return tags;
