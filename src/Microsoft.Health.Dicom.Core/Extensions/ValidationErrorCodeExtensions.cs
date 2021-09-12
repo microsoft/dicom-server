@@ -10,7 +10,7 @@ using static Microsoft.Health.Dicom.Core.Features.Validation.ValidationErrorCode
 
 namespace Microsoft.Health.Dicom.Core.Extensions
 {
-    internal static class ValidationErrorCodeExtensions
+    public static class ValidationErrorCodeExtensions
     {
         private static readonly IReadOnlyDictionary<ValidationErrorCode, string> MessageMap = new Dictionary<ValidationErrorCode, string>()
         {

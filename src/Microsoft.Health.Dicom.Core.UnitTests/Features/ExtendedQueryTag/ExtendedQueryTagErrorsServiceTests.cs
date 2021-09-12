@@ -11,6 +11,7 @@ using Dicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 using NSubstitute;
 using Xunit;
@@ -37,29 +38,22 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         [Fact]
         public async Task GivenValidInput_WhenAddingExtendedQueryTag_ThenShouldSucceed()
         {
-            const int tagKey = 7;
-            const string errorMessage = "fake error message.";
-            const long watermark = 30;
+            const int TagKey = 7;
+            const long Watermark = 30;
+            const ValidationErrorCode ErrorCode = ValidationErrorCode.DateIsInvalid;
 
-            _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
-                Arg.Any<int>(),
-                Arg.Any<string>(),
-                Arg.Any<long>(),
-                Arg.Any<CancellationToken>())
-            .Returns(tagKey);
-
-            var actual = await _extendedQueryTagErrorsService.AddExtendedQueryTagErrorAsync(
-                tagKey,
-                errorMessage,
-                watermark,
-                _tokenSource.Token);
+            await _extendedQueryTagErrorsService.AddExtendedQueryTagErrorAsync(
+               TagKey,
+               ErrorCode,
+               Watermark,
+               _tokenSource.Token);
 
             await _extendedQueryTagErrorStore
                 .Received(1)
                 .AddExtendedQueryTagErrorAsync(
-                    Arg.Is(tagKey),
-                    Arg.Is(errorMessage),
-                    Arg.Is(watermark),
+                    Arg.Is(TagKey),
+                    Arg.Is(ErrorCode),
+                    Arg.Is(Watermark),
                     Arg.Is(_tokenSource.Token));
         }
 

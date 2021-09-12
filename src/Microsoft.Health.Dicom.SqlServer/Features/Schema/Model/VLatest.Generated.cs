@@ -138,7 +138,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             internal readonly IntColumn TagKey = new IntColumn("TagKey");
-            internal readonly NVarCharColumn ErrorMessage = new NVarCharColumn("ErrorMessage", 128);
+            internal readonly SmallIntColumn ErrorCode = new SmallIntColumn("ErrorCode");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly DateTime2Column CreatedTime = new DateTime2Column("CreatedTime", 7);
             internal readonly Index IXC_ExtendedQueryTagError = new Index("IXC_ExtendedQueryTagError");
@@ -285,15 +285,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             private readonly ParameterDefinition<System.Int32> _tagKey = new ParameterDefinition<System.Int32>("@tagKey", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.String> _errorMessage = new ParameterDefinition<System.String>("@errorMessage", global::System.Data.SqlDbType.NVarChar, false, 128);
+            private readonly ParameterDefinition<System.Int16> _errorCode = new ParameterDefinition<System.Int16>("@errorCode", global::System.Data.SqlDbType.SmallInt, false);
             private readonly ParameterDefinition<System.Int64> _watermark = new ParameterDefinition<System.Int64>("@watermark", global::System.Data.SqlDbType.BigInt, false);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 tagKey, System.String errorMessage, System.Int64 watermark)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 tagKey, System.Int16 errorCode, System.Int64 watermark)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.AddExtendedQueryTagError";
                 _tagKey.AddParameter(command.Parameters, tagKey);
-                _errorMessage.AddParameter(command.Parameters, errorMessage);
+                _errorCode.AddParameter(command.Parameters, errorCode);
                 _watermark.AddParameter(command.Parameters, watermark);
             }
         }
