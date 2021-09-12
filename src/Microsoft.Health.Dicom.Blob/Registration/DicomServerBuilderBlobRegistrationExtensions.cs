@@ -5,10 +5,7 @@
 
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
-using Microsoft.Health.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob;
 using Microsoft.Health.Dicom.Blob.Features.Health;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
@@ -34,20 +31,27 @@ namespace Microsoft.Extensions.DependencyInjection
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
             return serverBuilder
-                        .AddBlobPersistence(configuration)
-                        .AddBlobHealthCheck();
+                .AddBlobPersistence(configuration)
+                .AddBlobHealthCheck();
         }
 
         private static IDicomServerBuilder AddBlobPersistence(this IDicomServerBuilder serverBuilder, IConfiguration configuration)
         {
             IServiceCollection services = serverBuilder.Services;
 
-            services.AddBlobDataStore();
+            IConfiguration blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
+            services
+                .AddBlobServiceClient(blobConfig)
+                .AddBlobContainerInitialization(x => blobConfig
+                    .GetSection(BlobInitializerOptions.DefaultSectionName)
+                    .Bind(x))
+                .ConfigureContainer(Constants.ContainerConfigurationName, x => configuration
+                    .GetSection(DicomServerBlobConfigurationSectionName)
+                    .Bind(x));
 
-            services.Configure<BlobContainerConfiguration>(
-                Constants.ContainerConfigurationName,
-                containerConfiguration => configuration.GetSection(DicomServerBlobConfigurationSectionName)
-                    .Bind(containerConfiguration));
+            services
+                .AddOptions<BlobOperationOptions>()
+                .Bind(blobConfig.GetSection(nameof(BlobServiceClientOptions.Operations)));
 
             services.Add<BlobFileStore>()
                 .Scoped()
@@ -58,19 +62,6 @@ namespace Microsoft.Extensions.DependencyInjection
             // However, the current implementation of the decorate method requires the concrete type to be already registered,
             // so we need to register here. Need to some more investigation to see how we might be able to do this.
             services.Decorate<IFileStore, LoggingFileStore>();
-
-            services.Add(sp =>
-                {
-                    ILoggerFactory loggerFactory = sp.GetService<ILoggerFactory>();
-                    IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfiguration = sp.GetService<IOptionsMonitor<BlobContainerConfiguration>>();
-                    BlobContainerConfiguration blobContainerConfiguration = namedBlobContainerConfiguration.Get(Constants.ContainerConfigurationName);
-
-                    return new BlobContainerInitializer(
-                        blobContainerConfiguration.ContainerName,
-                        loggerFactory.CreateLogger<BlobContainerInitializer>());
-                })
-                .Singleton()
-                .AsService<IBlobContainerInitializer>();
 
             return serverBuilder;
         }
