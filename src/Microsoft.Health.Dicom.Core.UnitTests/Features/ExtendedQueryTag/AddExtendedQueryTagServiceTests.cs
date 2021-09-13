@@ -80,7 +80,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
                     Arg.Is(128),
                     Arg.Is(false),
                     Arg.Is(_tokenSource.Token))
-                .Returns(new List<int> { storeEntry.Key });
+                .Returns(new List<ExtendedQueryTagStoreEntry> { storeEntry });
             _client
                 .StartQueryTagIndexingAsync(
                     Arg.Is<IReadOnlyList<int>>(x => x.Single() == storeEntry.Key),

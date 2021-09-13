@@ -93,19 +93,27 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// Returns Bad Request if given path can't be parsed. Returns Not Found if given path doesn't map to a stored
         /// extended query tag or if no extended query tags are stored. Returns OK with a JSON body of all tags in other cases.
         /// </returns>
+        [HttpGet]
         [Produces(KnownContentTypes.ApplicationJson)]
         [ProducesResponseType(typeof(IEnumerable<GetExtendedQueryTagEntry>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
-        [HttpGet]
         [VersionedRoute(KnownRoutes.ExtendedQueryTagRoute)]
         [Route(KnownRoutes.ExtendedQueryTagRoute)]
         [AuditEventType(AuditEventSubType.GetAllExtendedQueryTags)]
-        public async Task<IActionResult> GetAllTagsAsync()
+        public async Task<IActionResult> GetTagsAsync(
+            [FromQuery, Range(1, 200)] int limit = 100,
+            [FromQuery, Range(0, int.MaxValue)] int offset = 0)
         {
+            // TODO: Enforce the above data annotations with ModelState.IsValid or use the [ApiController] attribute
+            // for automatic error generation. However, we should change all errors across the API surface.
             _logger.LogInformation("DICOM Web Get Extended Query Tag request received for all extended query tags");
 
             EnsureFeatureIsEnabled();
-            GetAllExtendedQueryTagsResponse response = await _mediator.GetAllExtendedQueryTagsAsync(HttpContext.RequestAborted);
+            GetExtendedQueryTagsResponse response = await _mediator.GetExtendedQueryTagsAsync(
+                limit,
+                offset,
+                HttpContext.RequestAborted);
 
             return StatusCode(
                 (int)HttpStatusCode.OK, response.ExtendedQueryTags);

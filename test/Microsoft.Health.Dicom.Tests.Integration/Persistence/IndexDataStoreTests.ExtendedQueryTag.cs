@@ -314,8 +314,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         private async Task<IReadOnlyList<QueryTag>> AddExtendedQueryTags(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags)
         {
-            await _extendedQueryTagStore.AddExtendedQueryTagsAsync(extendedQueryTags, maxAllowedCount: 128, ready: true);
-            var extendedQueryTagEntries = await _extendedQueryTagStore.GetExtendedQueryTagsAsync();
+            var extendedQueryTagEntries = await _extendedQueryTagStore.AddExtendedQueryTagsAsync(extendedQueryTags, maxAllowedCount: 128, ready: true);
             return extendedQueryTagEntries.Select(entry => new QueryTag(entry)).ToList();
         }
 
