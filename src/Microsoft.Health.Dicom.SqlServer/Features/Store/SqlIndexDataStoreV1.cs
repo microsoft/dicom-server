@@ -83,31 +83,31 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             }
         }
 
-        public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public virtual async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string partitionId, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
             EnsureArg.IsNotNullOrEmpty(sopInstanceUid, nameof(sopInstanceUid));
 
-            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
+            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partitionId, cleanupAfter, cancellationToken);
         }
 
-        public async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public virtual async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, string partitionId, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
 
-            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cleanupAfter, cancellationToken);
+            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, partitionId, cleanupAfter, cancellationToken);
         }
 
-        public async Task DeleteStudyIndexAsync(string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public virtual async Task DeleteStudyIndexAsync(string studyInstanceUid, string partitionId, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
 
-            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cleanupAfter, cancellationToken);
+            await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, partitionId, cleanupAfter, cancellationToken);
         }
 
-        public async Task UpdateInstanceIndexStatusAsync(
+        public virtual async Task UpdateInstanceIndexStatusAsync(
             VersionedInstanceIdentifier versionedInstanceIdentifier,
             IndexStatus status,
             CancellationToken cancellationToken)
@@ -119,7 +119,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.UpdateInstanceStatus.PopulateCommand(
+                V3.UpdateInstanceStatus.PopulateCommand(
                     sqlCommandWrapper,
                     versionedInstanceIdentifier.StudyInstanceUid,
                     versionedInstanceIdentifier.SeriesInstanceUid,
@@ -145,14 +145,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             }
         }
 
-        public async Task<IEnumerable<VersionedInstanceIdentifier>> RetrieveDeletedInstancesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default)
+        public virtual async Task<IEnumerable<VersionedInstanceIdentifier>> RetrieveDeletedInstancesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default)
         {
             var results = new List<VersionedInstanceIdentifier>();
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.RetrieveDeletedInstance.PopulateCommand(
+                V3.RetrieveDeletedInstance.PopulateCommand(
                     sqlCommandWrapper,
                     batchSize,
                     maxRetries);
@@ -164,10 +164,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                         while (await reader.ReadAsync(cancellationToken))
                         {
                             (string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
-                                VLatest.DeletedInstance.StudyInstanceUid,
-                                VLatest.DeletedInstance.SeriesInstanceUid,
-                                VLatest.DeletedInstance.SopInstanceUid,
-                                VLatest.DeletedInstance.Watermark);
+                                V3.DeletedInstance.StudyInstanceUid,
+                                V3.DeletedInstance.SeriesInstanceUid,
+                                V3.DeletedInstance.SopInstanceUid,
+                                V3.DeletedInstance.Watermark);
 
                             results.Add(new VersionedInstanceIdentifier(
                                 studyInstanceUid,
@@ -186,12 +186,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             return results;
         }
 
-        public async Task DeleteDeletedInstanceAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
+        public virtual async Task DeleteDeletedInstanceAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.DeleteDeletedInstance.PopulateCommand(
+                V3.DeleteDeletedInstance.PopulateCommand(
                     sqlCommandWrapper,
                     versionedInstanceIdentifier.StudyInstanceUid,
                     versionedInstanceIdentifier.SeriesInstanceUid,
@@ -209,12 +209,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             }
         }
 
-        public async Task<int> IncrementDeletedInstanceRetryAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
+        public virtual async Task<int> IncrementDeletedInstanceRetryAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.IncrementDeletedInstanceRetry.PopulateCommand(
+                V3.IncrementDeletedInstanceRetry.PopulateCommand(
                     sqlCommandWrapper,
                     versionedInstanceIdentifier.StudyInstanceUid,
                     versionedInstanceIdentifier.SeriesInstanceUid,
@@ -233,12 +233,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             }
         }
 
-        private async Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        protected virtual async Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string partitionId, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.DeleteInstance.PopulateCommand(
+                V3.DeleteInstance.PopulateCommand(
                     sqlCommandWrapper,
                     cleanupAfter,
                     (byte)IndexStatus.Created,

@@ -116,6 +116,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                     versionedInstanceIdentifier.StudyInstanceUid,
                     versionedInstanceIdentifier.SeriesInstanceUid,
                     versionedInstanceIdentifier.SopInstanceUid,
+                    versionedInstanceIdentifier.PartitionId,
                     CancellationToken.None);
             }
             catch (Exception)

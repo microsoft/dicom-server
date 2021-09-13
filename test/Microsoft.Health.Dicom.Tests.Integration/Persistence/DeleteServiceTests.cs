@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         private async Task DeleteAndValidateInstanceForCleanup(VersionedInstanceIdentifier versionedInstanceIdentifier)
         {
-            await _fixture.DeleteService.DeleteInstanceAsync(versionedInstanceIdentifier.StudyInstanceUid, versionedInstanceIdentifier.SeriesInstanceUid, versionedInstanceIdentifier.SopInstanceUid, CancellationToken.None);
+            await _fixture.DeleteService.DeleteInstanceAsync(versionedInstanceIdentifier.StudyInstanceUid, versionedInstanceIdentifier.SeriesInstanceUid, versionedInstanceIdentifier.SopInstanceUid, "", CancellationToken.None);
 
             Assert.NotEmpty(await _fixture.IndexDataStoreTestHelper.GetDeletedInstanceEntriesAsync(versionedInstanceIdentifier.StudyInstanceUid, versionedInstanceIdentifier.SeriesInstanceUid, versionedInstanceIdentifier.SopInstanceUid));
         }

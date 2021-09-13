@@ -138,13 +138,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string partitionId, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             LogDeleteInstanceIndexDelegate(_logger, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, null);
 
             try
             {
-                await IndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
+                await IndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partitionId, cleanupAfter, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }
@@ -157,13 +157,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, string partitionId, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             LogDeleteSeriesIndexDelegate(_logger, studyInstanceUid, seriesInstanceUid, cleanupAfter, null);
 
             try
             {
-                await IndexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
+                await IndexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, partitionId, cleanupAfter, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }
@@ -176,13 +176,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task DeleteStudyIndexAsync(string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public async Task DeleteStudyIndexAsync(string studyInstanceUid, string partitionId, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             LogDeleteStudyInstanceIndexDelegate(_logger, studyInstanceUid, cleanupAfter, null);
 
             try
             {
-                await IndexDataStore.DeleteStudyIndexAsync(studyInstanceUid, cleanupAfter, cancellationToken);
+                await IndexDataStore.DeleteStudyIndexAsync(studyInstanceUid, partitionId, cleanupAfter, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }

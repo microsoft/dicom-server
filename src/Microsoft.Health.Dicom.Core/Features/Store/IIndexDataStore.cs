@@ -25,28 +25,30 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <param name="dicomDataset">The DICOM dataset to index.</param>
         /// <param name="queryTags">Queryable dicom tags</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <param name="partitionId">partitionId</param>
+        /// <param name="partitionId">Partition ID</param>
         /// <returns>A task that represents the asynchronous create operation.</returns>
-        Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, string partitionId = null, CancellationToken cancellationToken = default);
+        Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, string partitionId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously deletes the indices of all instances which belongs to the study specified by the <paramref name="studyInstanceUid"/>.
         /// </summary>
         /// <param name="studyInstanceUid">The StudyInstanceUID.</param>
+        /// <param name="partitionId">Partition ID</param>
         /// <param name="cleanupAfter">The date that the record can be cleaned up.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous delete operation.</returns>
-        Task DeleteStudyIndexAsync(string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
+        Task DeleteStudyIndexAsync(string studyInstanceUid, string partitionId, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously deletes the indices of all instances which belong to the series specified by the <paramref name="studyInstanceUid"/> and <paramref name="seriesInstanceUid"/>.
         /// </summary>
         /// <param name="studyInstanceUid">The StudyInstanceUID.</param>
         /// <param name="seriesInstanceUid">The SeriesInstanceUID.</param>
+        /// <param name="partitionId">Partition ID</param>
         /// <param name="cleanupAfter">The date that the record can be cleaned up.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous delete operation.</returns>
-        Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
+        Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, string partitionId, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously deletes the indices of the instance specified by the <paramref name="studyInstanceUid"/>, <paramref name="seriesInstanceUid"/>, and <paramref name="sopInstanceUid"/>.
@@ -54,10 +56,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <param name="studyInstanceUid">The StudyInstanceUID.</param>
         /// <param name="seriesInstanceUid">The SeriesInstanceUID.</param>
         /// <param name="sopInstanceUid">The SopInstanceUID.</param>
+        /// <param name="partitionId">Partition ID</param>
         /// <param name="cleanupAfter">The date that the record can be cleaned up.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous delete operation.</returns>
-        Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
+        Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string partitionId, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously updates the status of an existing instance index.

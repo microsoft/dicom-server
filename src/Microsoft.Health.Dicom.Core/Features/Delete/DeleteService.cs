@@ -51,27 +51,27 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
             _logger = logger;
         }
 
-        public async Task DeleteStudyAsync(string studyInstanceUid, CancellationToken cancellationToken)
+        public async Task DeleteStudyAsync(string studyInstanceUid, string partitionId, CancellationToken cancellationToken)
         {
             DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.DeleteDelay);
-            await _indexDataStore.DeleteStudyIndexAsync(studyInstanceUid, cleanupAfter, cancellationToken);
+            await _indexDataStore.DeleteStudyIndexAsync(studyInstanceUid, partitionId, cleanupAfter, cancellationToken);
         }
 
-        public async Task DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken)
+        public async Task DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid, string partitionId, CancellationToken cancellationToken)
         {
             DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.DeleteDelay);
-            await _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
+            await _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, partitionId, cleanupAfter, cancellationToken);
         }
 
-        public async Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
+        public async Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string partitionId, CancellationToken cancellationToken)
         {
             DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.DeleteDelay);
-            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
+            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partitionId, cleanupAfter, cancellationToken);
         }
 
-        public async Task DeleteInstanceNowAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
+        public async Task DeleteInstanceNowAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string partitionId, CancellationToken cancellationToken)
         {
-            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow, cancellationToken);
+            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partitionId, Clock.UtcNow, cancellationToken);
         }
 
         public async Task<(bool success, int retrievedInstanceCount)> CleanupDeletedInstancesAsync(CancellationToken cancellationToken)

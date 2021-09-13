@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.Web
                 .AddMetadataStorageDataStore(Configuration)
                 .AddSqlServer(Configuration)
                 .AddBackgroundWorkers();
-
+            services.AddHttpContextAccessor();
             AddApplicationInsightsTelemetry(services);
         }
 

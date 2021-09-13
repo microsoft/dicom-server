@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await ValidateInsertFeed(dicomInstanceIdentifier, 1);
 
             // delete and validate
-            await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
+            await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, "", DateTime.Now, CancellationToken.None);
             await ValidateDeleteFeed(dicomInstanceIdentifier, 2);
 
             // re-create the same instance and validate
@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await ValidateNoChangeFeed(dicomInstanceIdentifier);
 
             // delete and validate
-            await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
+            await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, "", DateTime.Now, CancellationToken.None);
             await ValidateNoChangeFeed(dicomInstanceIdentifier);
         }
 

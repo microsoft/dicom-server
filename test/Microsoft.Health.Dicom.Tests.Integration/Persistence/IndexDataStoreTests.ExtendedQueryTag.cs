@@ -69,7 +69,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             QueryTag queryTag = await AddExtendedQueryTag(extendedQueryTagEntry);
             try
             {
-                long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag });
+                long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag }, "");
                 Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, watermark);
                 IReadOnlyList<ExtendedQueryTagDataRow> rows = await _testHelper.GetExtendedQueryTagDataAsync(dataType, queryTag.ExtendedQueryTagStoreEntry.Key, instance.StudyKey);
                 Assert.Single(rows);
@@ -101,7 +101,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 var queryTags = tags.ToArray();
 
                 // Delete by instance uid.
-                await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+                await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, "", Clock.UtcNow);
 
                 // Study and series level tags should not be deleted.
                 Assert.Single(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DateTimeData, queryTags[0].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey));
@@ -145,7 +145,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 var queryTags = tags.ToArray();
 
                 // Delete by first series uid.
-                await _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, Clock.UtcNow);
+                await _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, "", Clock.UtcNow);
 
                 // Study level tags should not be deleted.
                 Assert.Single(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DateTimeData, queryTags[0].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey));
@@ -201,7 +201,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 var queryTags = tags.ToArray();
 
                 // Delete by first study uid.
-                await _indexDataStore.DeleteStudyIndexAsync(studyInstanceUid, Clock.UtcNow);
+                await _indexDataStore.DeleteStudyIndexAsync(studyInstanceUid, "", Clock.UtcNow);
 
                 // Study level query tags for the first study should be deleted.
                 Assert.Empty(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DateTimeData, queryTags[0].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey));
@@ -253,7 +253,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 var queryTags = tags.ToArray();
 
                 // Delete by instance uid
-                await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+                await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, "", Clock.UtcNow);
 
                 // Ensure all tags regardless of level are removed as it is the only instance in series/study.
                 Assert.Empty(await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DateTimeData, queryTags[0].ExtendedQueryTagStoreEntry.Key, instance.StudyKey));
@@ -290,7 +290,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             QueryTag queryTag = await AddExtendedQueryTag(tag.BuildAddExtendedQueryTagEntry(level: level));
             try
             {
-                long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag });
+                long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag }, "");
                 Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, watermark);
                 long? seriesKey = level != QueryTagLevel.Study ? instance.SeriesKey : null;
                 long? instanceKey = level == QueryTagLevel.Instance ? instance.InstanceKey : null;
@@ -336,7 +336,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             try
             {
                 // index extended query tags
-                await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag });
+                await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag }, "");
 
                 // update
                 value = "NEWSYN";
@@ -350,7 +350,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 }
 
                 // index new instance
-                long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag });
+                long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag }, "");
                 Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, watermark);
                 long? seriesKey = level != QueryTagLevel.Study ? instance.SeriesKey : null;
                 var stringRows = await _testHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, queryTag.ExtendedQueryTagStoreEntry.Key, instance.StudyKey, seriesKey);
@@ -393,7 +393,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             dataset.Add(new DicomSignedLong(DicomTag.ReferencePixelX0, 1 + index));
             dataset.Add(new DicomPersonName(DicomTag.DistributionNameRETIRED, "abc^abc" + index));
 
-            long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, queryTags);
+            long watermark = await _indexDataStore.CreateInstanceIndexAsync(dataset, queryTags, "");
             return await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, watermark);
         }
 

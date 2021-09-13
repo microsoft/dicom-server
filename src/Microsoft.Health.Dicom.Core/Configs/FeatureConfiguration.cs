@@ -21,5 +21,10 @@ namespace Microsoft.Health.Dicom.Core.Configs
         /// Enables ExtendedQueryTags feature.
         /// </summary>
         public bool EnableExtendedQueryTags { get; set; }
+
+        /// <summary>
+        /// Enables AutoGenerateId feature.
+        /// </summary>
+        public bool EnableAutoGenerateUID { get; set; }
     }
 }

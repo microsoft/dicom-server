@@ -43,13 +43,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
             switch (request.ResourceType)
             {
                 case ResourceType.Study:
-                    await _deleteService.DeleteStudyAsync(request.StudyInstanceUid, cancellationToken);
+                    await _deleteService.DeleteStudyAsync(request.StudyInstanceUid, "", cancellationToken);
                     break;
                 case ResourceType.Series:
-                    await _deleteService.DeleteSeriesAsync(request.StudyInstanceUid, request.SeriesInstanceUid, cancellationToken);
+                    await _deleteService.DeleteSeriesAsync(request.StudyInstanceUid, request.SeriesInstanceUid, "", cancellationToken);
                     break;
                 case ResourceType.Instance:
-                    await _deleteService.DeleteInstanceAsync(request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, cancellationToken);
+                    await _deleteService.DeleteInstanceAsync(request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, "", cancellationToken);
                     break;
                 default:
                     Debug.Fail($"Unknown delete transaction type: {request.ResourceType}", nameof(request));

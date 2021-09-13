@@ -49,13 +49,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 // Build parameter for extended query tag.
-                VLatest.AddInstanceTableValuedParameters parameters = AddInstanceTableValuedParametersBuilder.Build(
+                V3.AddInstanceTableValuedParameters parameters = AddInstanceTableValuedParametersBuilder.BuildV3(
                     instance,
                     queryTags.Where(tag => tag.IsExtendedQueryTag));
 
-                VLatest.AddInstance.PopulateCommand(
+                V3.AddInstance.PopulateCommand(
                 sqlCommandWrapper,
-                partitionId,
                 instance.GetString(DicomTag.StudyInstanceUID),
                 instance.GetString(DicomTag.SeriesInstanceUID),
                 instance.GetString(DicomTag.SOPInstanceUID),

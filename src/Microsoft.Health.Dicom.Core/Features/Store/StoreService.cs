@@ -50,6 +50,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         private readonly IDicomDatasetValidator _dicomDatasetValidator;
         private readonly IStoreOrchestrator _storeOrchestrator;
         private readonly ILogger _logger;
+        private readonly string _tenant;
 
         private IReadOnlyList<IDicomInstanceEntry> _dicomInstanceEntries;
         private string _requiredStudyInstanceUid;
@@ -58,17 +59,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             IStoreResponseBuilder storeResponseBuilder,
             IDicomDatasetValidator dicomDatasetValidator,
             IStoreOrchestrator storeOrchestrator,
-            ILogger<StoreService> logger)
+            ILogger<StoreService> logger,
+            HttpPartitionService partitionService)
         {
             EnsureArg.IsNotNull(storeResponseBuilder, nameof(storeResponseBuilder));
             EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
             EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
             EnsureArg.IsNotNull(logger, nameof(logger));
+            EnsureArg.IsNotNull(partitionService, nameof(partitionService));
 
             _storeResponseBuilder = storeResponseBuilder;
             _dicomDatasetValidator = dicomDatasetValidator;
             _storeOrchestrator = storeOrchestrator;
             _logger = logger;
+            _tenant = partitionService.Tenant;
         }
 
         /// <inheritdoc />

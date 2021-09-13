@@ -67,10 +67,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
             DateTimeOffset now = DateTimeOffset.UtcNow;
             using (Mock.Property(() => ClockResolver.UtcNowFunc, () => now))
             {
-                await _deleteService.DeleteStudyAsync(studyInstanceUid, CancellationToken.None);
+                await _deleteService.DeleteStudyAsync(studyInstanceUid, "", CancellationToken.None);
                 await _indexDataStore
                     .Received(1)
-                    .DeleteStudyIndexAsync(studyInstanceUid, now + _deleteConfiguration.DeleteDelay);
+                    .DeleteStudyIndexAsync(studyInstanceUid, "", now + _deleteConfiguration.DeleteDelay);
             }
         }
 
@@ -83,10 +83,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
             DateTimeOffset now = DateTimeOffset.UtcNow;
             using (Mock.Property(() => ClockResolver.UtcNowFunc, () => now))
             {
-                await _deleteService.DeleteSeriesAsync(studyInstanceUid, seriesInstanceUid, CancellationToken.None);
+                await _deleteService.DeleteSeriesAsync(studyInstanceUid, seriesInstanceUid, "", CancellationToken.None);
                 await _indexDataStore
                     .Received(1)
-                    .DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, now + _deleteConfiguration.DeleteDelay);
+                    .DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, "", now + _deleteConfiguration.DeleteDelay);
             }
         }
 
@@ -100,10 +100,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
             DateTimeOffset now = DateTimeOffset.UtcNow;
             using (Mock.Property(() => ClockResolver.UtcNowFunc, () => now))
             {
-                await _deleteService.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, CancellationToken.None);
+                await _deleteService.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, "", CancellationToken.None);
                 await _indexDataStore
                     .Received(1)
-                    .DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, now + _deleteConfiguration.DeleteDelay);
+                    .DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, "", now + _deleteConfiguration.DeleteDelay);
             }
         }
 

@@ -50,6 +50,27 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         /// </summary>
         /// <param name="instance">The dicom dataset.</param>
         /// <param name="queryTags">The index tags.</param>
+        public static V3.AddInstanceTableValuedParameters BuildV3(
+            DicomDataset instance,
+            IEnumerable<QueryTag> queryTags)
+        {
+            Build(
+                instance,
+                queryTags,
+                out IReadOnlyList<InsertStringExtendedQueryTagTableTypeV1Row> stringTypeRows,
+                out IReadOnlyList<InsertLongExtendedQueryTagTableTypeV1Row> longTypeRows,
+                out IReadOnlyList<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleTypeRows,
+                out IReadOnlyList<InsertDateTimeExtendedQueryTagTableTypeV1Row> dateTimeTypeRows,
+                out IReadOnlyList<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNamTypeRows
+            );
+            return new V3.AddInstanceTableValuedParameters(stringTypeRows, longTypeRows, doubleTypeRows, dateTimeTypeRows, personNamTypeRows);
+        }
+
+        /// <summary>
+        /// Read Index Tag values from DicomDataset.
+        /// </summary>
+        /// <param name="instance">The dicom dataset.</param>
+        /// <param name="queryTags">The index tags.</param>
         public static V2.AddInstanceTableValuedParameters BuildV2(
             DicomDataset instance,
             IEnumerable<QueryTag> queryTags)

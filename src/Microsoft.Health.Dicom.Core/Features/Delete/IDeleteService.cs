@@ -10,14 +10,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
 {
     public interface IDeleteService
     {
-        Task DeleteStudyAsync(string studyInstanceUid, CancellationToken cancellationToken = default);
+        Task DeleteStudyAsync(string studyInstanceUid, string partitionId, CancellationToken cancellationToken = default);
 
-        Task DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken = default);
+        Task DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid, string partitionId, CancellationToken cancellationToken = default);
 
-        Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default);
+        Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string partitionId, CancellationToken cancellationToken = default);
 
         Task<(bool success, int retrievedInstanceCount)> CleanupDeletedInstancesAsync(CancellationToken cancellationToken = default);
 
-        Task DeleteInstanceNowAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken);
+        Task DeleteInstanceNowAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string partitionId, CancellationToken cancellationToken);
     }
 }

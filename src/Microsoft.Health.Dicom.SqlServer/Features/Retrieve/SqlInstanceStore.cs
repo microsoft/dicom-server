@@ -67,7 +67,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
                     validStatus: (byte)IndexStatus.Created,
                     studyInstanceUid,
                     seriesInstanceUid,
-                    sopInstanceUid);
+                    sopInstanceUid,
+                    "");
 
                 using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
                 {

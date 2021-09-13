@@ -143,6 +143,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                        DefaultStudyInstanceUid,
                        DefaultSeriesInstanceUid,
                        DefaultSopInstanceUid,
+                       "",
                        CancellationToken.None);
         }
     }

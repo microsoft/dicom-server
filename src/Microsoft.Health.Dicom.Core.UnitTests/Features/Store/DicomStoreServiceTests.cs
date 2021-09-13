@@ -50,7 +50,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                 _storeResponseBuilder,
                 _dicomDatasetValidator,
                 _storeOrchestrator,
-                NullLogger<StoreService>.Instance);
+                NullLogger<StoreService>.Instance,
+                null);
         }
 
         [Fact]
