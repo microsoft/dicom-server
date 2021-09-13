@@ -583,7 +583,7 @@ AS
             INSERTED.TagLevel,
             INSERTED.TagStatus,
             INSERTED.QueryStatus,
-            INSERTED.ErrorCount,
+            INSERTED.ErrorCount
         SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, @ready, 1, 0 FROM @extendedQueryTags
 
     COMMIT TRANSACTION
@@ -1039,15 +1039,16 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-    SELECT TagKey,
-           TagPath,
-           TagVR,
-           TagPrivateCreator,
-           TagLevel,
-           TagStatus,
-           QueryStatus
-    FROM dbo.ExtendedQueryTag
-    WHERE TagPath = ISNULL(@tagPath, TagPath)
+    SELECT  TagKey,
+            TagPath,
+            TagVR,
+            TagPrivateCreator,
+            TagLevel,
+            TagStatus,
+            QueryStatus,
+            ErrorCount
+    FROM    dbo.ExtendedQueryTag
+    WHERE   TagPath                 = ISNULL(@tagPath, TagPath)
 END
 GO
 
@@ -1081,7 +1082,8 @@ BEGIN
            TagPrivateCreator,
            TagLevel,
            TagStatus,
-           QueryStatus
+           QueryStatus,
+           ErrorCount
     FROM dbo.ExtendedQueryTag
     ORDER BY TagKey ASC
     OFFSET @offset ROWS

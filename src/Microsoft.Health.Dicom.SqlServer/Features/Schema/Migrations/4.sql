@@ -1876,7 +1876,8 @@ BEGIN
            TagPrivateCreator,
            TagLevel,
            TagStatus,
-           QueryStatus
+           QueryStatus,
+           ErrorCount
     FROM dbo.ExtendedQueryTag
     ORDER BY TagKey ASC
     OFFSET @offset ROWS
