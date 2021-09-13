@@ -333,8 +333,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 ValidationErrorCode.UidIsInvalid,
                 watermark);
 
-            var tagEntry = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: tag.GetPath());
-            Assert.Equal(QueryTagQueryStatus.Disabled, tagEntry[0].QueryStatus);
+            var tagEntry = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag.GetPath());
+            Assert.Equal(QueryStatus.Disabled, tagEntry.QueryStatus);
         }
 
         [Fact]
@@ -353,8 +353,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 ValidationErrorCode.UidIsInvalid,
                 watermark);
 
-            var tagEntry = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: tag.GetPath());
-            Assert.Equal(1, tagEntry[0].ErrorCount);
+            var tagEntry = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag.GetPath());
+            Assert.Equal(1, tagEntry.ErrorCount);
         }
 
         [Fact]
@@ -379,28 +379,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                ValidationErrorCode.DateIsInvalid,
                watermark);
 
-            var tagEntry = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: tag.GetPath());
-            Assert.Equal(1, tagEntry[0].ErrorCount);
-        }
-
-        [Fact]
-        public async Task GivenExtendedQueryTagError_WhenAddExtendedQueryTagError_ThenTagQueryStatusShouldBeDisabled()
-        {
-            string studyInstanceUid = TestUidGenerator.Generate();
-            string seriesInstanceUid = TestUidGenerator.Generate();
-            string sopInstanceUid = TestUidGenerator.Generate();
-
-            DicomTag tag = DicomTag.DeviceSerialNumber;
-            long watermark = await AddInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-            int tagKey = await AddTagAsync(tag);
-
-            await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
-                tagKey,
-                ValidationErrorCode.UidIsInvalid,
-                watermark);
-
             var tagEntry = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag.GetPath());
-            Assert.Equal(QueryStatus.Disabled, tagEntry.QueryStatus);
+            Assert.Equal(1, tagEntry.ErrorCount);
         }
 
         [Fact]
@@ -422,10 +402,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             // Delete instance
             await _indexDataStore.DeleteInstanceIndexAsync(new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
 
-            var tagEntry1 = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: tag1.GetPath());
-            Assert.Equal(0, tagEntry1[0].ErrorCount);
-            var tagEntry2 = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: tag2.GetPath());
-            Assert.Equal(0, tagEntry2[0].ErrorCount);
+            var tagEntry1 = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag1.GetPath());
+            Assert.Equal(0, tagEntry1.ErrorCount);
+            var tagEntry2 = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag2.GetPath());
+            Assert.Equal(0, tagEntry2.ErrorCount);
         }
 
         [Fact]
@@ -446,14 +426,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, ValidationErrorCode.UidIsInvalid, watermark2);
 
             // Before delete
-            var tagEntryBefore = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: tag.GetPath());
-            Assert.Equal(2, tagEntryBefore[0].ErrorCount);
+            var tagEntryBefore = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag.GetPath());
+            Assert.Equal(2, tagEntryBefore.ErrorCount);
 
             // Delete study
             await _indexDataStore.DeleteStudyIndexAsync(studyInstanceUid, DateTimeOffset.UtcNow);
 
-            var tagEntryAfter = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: tag.GetPath());
-            Assert.Equal(0, tagEntryAfter[0].ErrorCount);
+            var tagEntryAfter = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag.GetPath());
+            Assert.Equal(0, tagEntryAfter.ErrorCount);
         }
 
 
