@@ -95,7 +95,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
 
         private static ExtendedQueryTagStoreEntry CreateExtendedQueryTagEntry(int key, string path, string vr, string privateCreator = null, QueryTagLevel level = QueryTagLevel.Instance, ExtendedQueryTagStatus status = ExtendedQueryTagStatus.Ready)
         {
-            return new ExtendedQueryTagStoreEntry(key, path, vr, privateCreator, level, status, QueryTagQueryStatus.Enabled);
+            return new ExtendedQueryTagStoreEntry(key, path, vr, privateCreator, level, status, QueryStatus.Enabled);
         }
     }
 }

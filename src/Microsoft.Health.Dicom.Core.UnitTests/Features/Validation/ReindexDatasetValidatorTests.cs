@@ -40,8 +40,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
             DicomElement element2 = new DicomLongString(tag2, "testvalue2");
             ds.Add(element1);
             ds.Add(element2);
-            QueryTag queryTag1 = new QueryTag(new ExtendedQueryTagStoreEntry(1, tag1.GetPath(), tag1.GetDefaultVR().Code, null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryTagQueryStatus.Enabled));
-            QueryTag queryTag2 = new QueryTag(new ExtendedQueryTagStoreEntry(2, tag2.GetPath(), tag2.GetDefaultVR().Code, null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryTagQueryStatus.Enabled));
+            QueryTag queryTag1 = new QueryTag(new ExtendedQueryTagStoreEntry(1, tag1.GetPath(), tag1.GetDefaultVR().Code, null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled));
+            QueryTag queryTag2 = new QueryTag(new ExtendedQueryTagStoreEntry(2, tag2.GetPath(), tag2.GetDefaultVR().Code, null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled));
 
             // Throw exception when validate element1
             var ex = ElementValidationExceptionFactory.CreateDateIsInvalidException("testname", "testvalue");

@@ -54,7 +54,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         private readonly List<QueryTagsExpiredEventArgs> _eventInvocations = new List<QueryTagsExpiredEventArgs>();
         private readonly List<QueryTag> _queryTags = new List<QueryTag>
         {
-            new QueryTag(new ExtendedQueryTagStoreEntry(1, "00101010", "AS", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Ready, QueryTagQueryStatus.Enabled))
+            new QueryTag(new ExtendedQueryTagStoreEntry(1, "00101010", "AS", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled))
         };
 
         public StoreOrchestratorTests()
@@ -150,10 +150,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         public async Task GivenVersionMismatchExceptionWhenStore_WhenRetryNotExceedMax_ThenShouldSucceed()
         {
             List<QueryTag> newTags1 = _queryTags
-                .Concat(new QueryTag[] { new QueryTag(new ExtendedQueryTagStoreEntry(2, "00202020", "DT", null, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, QueryTagQueryStatus.Enabled)) })
+                .Concat(new QueryTag[] { new QueryTag(new ExtendedQueryTagStoreEntry(2, "00202020", "DT", null, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled)) })
                 .ToList();
             List<QueryTag> newTags2 = newTags1
-                .Concat(new QueryTag[] { new QueryTag(new ExtendedQueryTagStoreEntry(3, "00303030", "DA", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryTagQueryStatus.Enabled)) })
+                .Concat(new QueryTag[] { new QueryTag(new ExtendedQueryTagStoreEntry(3, "00303030", "DA", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled)) })
                 .ToList();
 
             _queryTagService

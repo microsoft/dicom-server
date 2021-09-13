@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <param name="queryStatus">The query status.</param>
         /// <param name="cancellationToken">The cancellation token</param>
         /// <returns>The updated extended query tag.</returns>
-        Task<ExtendedQueryTagStoreEntry> UpdateExtendedQueryTagQueryStatusAsync(string tagPath, QueryTagQueryStatus queryStatus, CancellationToken cancellationToken = default);
+        Task<ExtendedQueryTagStoreEntry> UpdateQueryStatusAsync(string tagPath, QueryStatus queryStatus, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously gets extended query tags assigned to the <paramref name="operationId"/>.

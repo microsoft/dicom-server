@@ -106,7 +106,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                             V2.ExtendedQueryTag.TagLevel,
                             V2.ExtendedQueryTag.TagStatus);
 
-                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, QueryTagQueryStatus.Enabled));
+                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, QueryStatus.Enabled));
                     }
 
                     executionTimeWatch.Stop();

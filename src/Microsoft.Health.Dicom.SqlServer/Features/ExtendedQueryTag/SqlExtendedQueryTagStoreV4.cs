@@ -57,7 +57,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                             VLatest.ExtendedQueryTag.TagStatus,
                             VLatest.ExtendedQueryTag.QueryStatus);
 
-                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, (QueryTagQueryStatus)queryStatus));
+                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, (QueryStatus)queryStatus));
                     }
 
                     executionTimeWatch.Stop();
@@ -94,7 +94,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                             VLatest.ExtendedQueryTag.TagStatus,
                             VLatest.ExtendedQueryTag.QueryStatus);
 
-                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, (QueryTagQueryStatus)queryStatus));
+                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, (QueryStatus)queryStatus));
                     }
 
                     executionTimeWatch.Stop();
@@ -127,7 +127,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                             VLatest.ExtendedQueryTag.TagStatus,
                             VLatest.ExtendedQueryTag.QueryStatus);
 
-                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, (QueryTagQueryStatus)queryStatus));
+                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, (QueryStatus)queryStatus));
                     }
                 }
             }
@@ -209,7 +209,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                         tagPrivateCreator,
                         (QueryTagLevel)tagLevel,
                         (ExtendedQueryTagStatus)tagStatus,
-                        (QueryTagQueryStatus)queryStatus));
+                        (QueryStatus)queryStatus));
                 }
 
                 return queryTags;
@@ -248,7 +248,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         }
 
         ///<inheritdoc/>
-        public override async Task<ExtendedQueryTagStoreEntry> UpdateExtendedQueryTagQueryStatusAsync(string tagPath, QueryTagQueryStatus queryStatus, CancellationToken cancellationToken)
+        public override async Task<ExtendedQueryTagStoreEntry> UpdateQueryStatusAsync(string tagPath, QueryStatus queryStatus, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrWhiteSpace(tagPath, nameof(tagPath));
             EnsureArg.EnumIsDefined(queryStatus, nameof(queryStatus));
@@ -263,20 +263,19 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken);
                 if (await reader.ReadAsync(cancellationToken))
                 {
-                    (int rTagKey, string rTagPath, string rTagVR, string rTagPrivateCreator, byte rTagLevel, byte rTagStatus, byte rQueryStatus) = reader.ReadRow(
-                       VLatest.ExtendedQueryTag.TagKey,
-                        VLatest.ExtendedQueryTag.TagPath,
-                        VLatest.ExtendedQueryTag.TagVR,
-                        VLatest.ExtendedQueryTag.TagPrivateCreator,
-                        VLatest.ExtendedQueryTag.TagLevel,
-                        VLatest.ExtendedQueryTag.TagStatus,
-                        VLatest.ExtendedQueryTag.QueryStatus);
-                    return new ExtendedQueryTagStoreEntry(rTagKey, rTagPath, rTagVR, rTagPrivateCreator, (QueryTagLevel)rTagLevel, (ExtendedQueryTagStatus)rTagStatus, (QueryTagQueryStatus)rQueryStatus);
-                }
-                else
-                {
                     throw new ExtendedQueryTagNotFoundException(string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.ExtendedQueryTagNotFound, tagPath));
                 }
+
+                (int rTagKey, string rTagPath, string rTagVR, string rTagPrivateCreator, byte rTagLevel, byte rTagStatus, byte rQueryStatus) = reader.ReadRow(
+                   VLatest.ExtendedQueryTag.TagKey,
+                    VLatest.ExtendedQueryTag.TagPath,
+                    VLatest.ExtendedQueryTag.TagVR,
+                    VLatest.ExtendedQueryTag.TagPrivateCreator,
+                    VLatest.ExtendedQueryTag.TagLevel,
+                    VLatest.ExtendedQueryTag.TagStatus,
+                    VLatest.ExtendedQueryTag.QueryStatus);
+                return new ExtendedQueryTagStoreEntry(rTagKey, rTagPath, rTagVR, rTagPrivateCreator, (QueryTagLevel)rTagLevel, (ExtendedQueryTagStatus)rTagStatus, (QueryStatus)rQueryStatus);
+
             }
             catch (SqlException ex)
             {

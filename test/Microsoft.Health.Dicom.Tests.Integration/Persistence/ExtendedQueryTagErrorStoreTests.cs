@@ -336,7 +336,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 watermark);
 
             var tagEntry = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: tag.GetPath());
-            Assert.Equal(QueryTagQueryStatus.Disabled, tagEntry[0].QueryStatus);
+            Assert.Equal(QueryStatus.Disabled, tagEntry[0].QueryStatus);
         }
 
         public Task InitializeAsync()

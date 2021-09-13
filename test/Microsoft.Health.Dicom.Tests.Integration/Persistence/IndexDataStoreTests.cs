@@ -510,7 +510,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             AddExtendedQueryTagEntry extendedQueryTagEntry = DicomTag.PatientAge.BuildAddExtendedQueryTagEntry();
             await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new[] { extendedQueryTagEntry }, maxAllowedCount: 128, ready: true);
             var tagEntry = (await _extendedQueryTagStore.GetExtendedQueryTagsAsync())[0];
-            var modifiedTagEntry = new ExtendedQueryTagStoreEntry(tagEntry.Key, tagEntry.Path, tagEntry.VR, tagEntry.PrivateCreator, tagEntry.Level, tagEntry.Status, QueryTagQueryStatus.Enabled);
+            var modifiedTagEntry = new ExtendedQueryTagStoreEntry(tagEntry.Key, tagEntry.Path, tagEntry.VR, tagEntry.PrivateCreator, tagEntry.Level, tagEntry.Status, QueryStatus.Enabled);
             var queryTags = new[] { new QueryTag(modifiedTagEntry) };
             DicomDataset dataset = Samples.CreateRandomInstanceDataset();
 

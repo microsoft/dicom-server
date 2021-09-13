@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     /// </summary>
     public class ExtendedQueryTagStoreEntry : ExtendedQueryTagEntry
     {
-        public ExtendedQueryTagStoreEntry(int key, string path, string vr, string privateCreator, QueryTagLevel level, ExtendedQueryTagStatus status, QueryTagQueryStatus queryStatus)
+        public ExtendedQueryTagStoreEntry(int key, string path, string vr, string privateCreator, QueryTagLevel level, ExtendedQueryTagStatus status, QueryStatus queryStatus)
         {
             Key = key;
             Path = EnsureArg.IsNotNullOrWhiteSpace(path);
@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <summary>
         /// Query status of this tag.
         /// </summary>
-        public QueryTagQueryStatus QueryStatus { get; }
+        public QueryStatus QueryStatus { get; }
 
         /// <summary>
         /// Convert to  <see cref="GetExtendedQueryTagEntry"/>.
