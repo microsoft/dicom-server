@@ -258,6 +258,98 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.True((await _extendedQueryTagStore.CompleteReindexingAsync(expectedKeys)).SequenceEqual(expectedKeys));
         }
 
+        [Fact]
+        public async Task GivenNotExistingTag_WhenUpdateTagQueryStatus_ThenShouldThrowException()
+        {
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+            await Assert.ThrowsAsync<ExtendedQueryTagNotFoundException>(() => _extendedQueryTagStore.UpdateQueryStatusAsync(tag.GetPath(), QueryStatus.Enabled));
+        }
+
+        [Fact]
+        public async Task GivenValidTag_WhenUpdateTagQueryStatus_ThenShouldSucceed()
+        {
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+            var addEntry = tag.BuildAddExtendedQueryTagEntry();
+            await AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { addEntry }, ready: true);
+            var returnTagStore = await _extendedQueryTagStore.UpdateQueryStatusAsync(tag.GetPath(), QueryStatus.Disabled);
+            Assert.Equal(addEntry.Path, returnTagStore.Path);
+            Assert.Equal(addEntry.Level, returnTagStore.Level.ToString());
+            Assert.Equal(addEntry.PrivateCreator, returnTagStore.PrivateCreator);
+            Assert.Equal(addEntry.VR, returnTagStore.VR);
+            Assert.Equal(ExtendedQueryTagStatus.Ready, returnTagStore.Status);
+            Assert.Equal(QueryStatus.Disabled, returnTagStore.QueryStatus);
+
+            returnTagStore = await _extendedQueryTagStore.UpdateQueryStatusAsync(tag.GetPath(), QueryStatus.Enabled);
+            Assert.Equal(QueryStatus.Enabled, returnTagStore.QueryStatus);
+        }
+
+        [Fact]
+        public async Task GivenValidExtendedQueryTag_WhenAddExtendedQueryTag_ThenTagQueryStatusShouldBeEnabled()
+        {
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+            AddExtendedQueryTagEntry extendedQueryTagEntry = tag.BuildAddExtendedQueryTagEntry();
+            await AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry });
+            var tagEntry = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag.GetPath());
+            Assert.Equal(QueryStatus.Enabled, tagEntry.QueryStatus);
+        }
+
+        [Fact]
+        public async Task GivenValidTag_WhenGetTag_ThenShouldSucceed()
+        {
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+            var addEntry = tag.BuildAddExtendedQueryTagEntry();
+            await AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { addEntry }, ready: true);
+            var returnTagStore = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag.GetPath());
+            Assert.Equal(addEntry.Path, returnTagStore.Path);
+            Assert.Equal(addEntry.Level, returnTagStore.Level.ToString());
+            Assert.Equal(addEntry.PrivateCreator, returnTagStore.PrivateCreator);
+            Assert.Equal(addEntry.VR, returnTagStore.VR);
+            Assert.Equal(ExtendedQueryTagStatus.Ready, returnTagStore.Status);
+            Assert.Equal(QueryStatus.Enabled, returnTagStore.QueryStatus);
+        }
+
+        [Fact]
+        public async Task GivenValidTags_WhenGetTagWithPagination_ThenShouldSucceed()
+        {
+            DicomTag tag1 = DicomTag.DeviceSerialNumber;
+            DicomTag tag2 = DicomTag.DeviceID;
+            DicomTag tag3 = DicomTag.PatientAge;
+            var addEntry1 = tag1.BuildAddExtendedQueryTagEntry();
+            var addEntry2 = tag2.BuildAddExtendedQueryTagEntry();
+            var addEntry3 = tag3.BuildAddExtendedQueryTagEntry();
+            var addEntries = new AddExtendedQueryTagEntry[] { addEntry1, addEntry2, addEntry3 };
+            await AddExtendedQueryTagsAsync(addEntries, ready: true);
+            int offset = 0;
+            int limit = 1;
+            List<ExtendedQueryTagStoreEntry> entries = new List<ExtendedQueryTagStoreEntry>();
+            do
+            {
+                var tagEntries = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(limit, offset);
+                if (tagEntries.Count == 0)
+                {
+                    break;
+                }
+                else
+                {
+                    entries.AddRange(tagEntries);
+                    offset += limit;
+                }
+
+            }
+            while (true);
+
+            Assert.Equal(3, entries.Count);
+            for (int i = 0; i < addEntries.Length; i++)
+            {
+                Assert.Equal(addEntries[i].Path, entries[i].Path);
+                Assert.Equal(addEntries[i].Level, entries[i].Level.ToString());
+                Assert.Equal(addEntries[i].PrivateCreator, entries[i].PrivateCreator);
+                Assert.Equal(addEntries[i].VR, entries[i].VR);
+                Assert.Equal(ExtendedQueryTagStatus.Ready, entries[i].Status);
+                Assert.Equal(QueryStatus.Enabled, entries[i].QueryStatus);
+            }
+        }
+
         private async Task VerifyTagIsAdded(int key, AddExtendedQueryTagEntry extendedQueryTagEntry, ExtendedQueryTagStatus status = ExtendedQueryTagStatus.Ready)
         {
             ExtendedQueryTagStoreEntry actual = await _extendedQueryTagStore.GetExtendedQueryTagAsync(extendedQueryTagEntry.Path);

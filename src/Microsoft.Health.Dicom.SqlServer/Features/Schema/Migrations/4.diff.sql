@@ -2,6 +2,16 @@ SET XACT_ABORT ON
 
 BEGIN TRANSACTION
 
+IF NOT EXISTS (
+    SELECT *
+    FROM sys.columns
+    WHERE object_id = OBJECT_ID('dbo.ExtendedQueryTag') AND name = 'QueryStatus')
+BEGIN
+    ALTER TABLE dbo.ExtendedQueryTag
+    ADD
+        QueryStatus TINYINT DEFAULT 1 NOT NULL
+END
+
 /*************************************************************
     Extended Query Tag Errors Table
     Stores errors from Extended Query Tag operations
@@ -319,6 +329,35 @@ AS
     COMMIT TRANSACTION
 GO
 
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     UpdateExtendedQueryTagQueryStatus
+--
+-- DESCRIPTION
+--    Update QueryStatus of extended query tag
+--
+-- PARAMETERS
+--     @tagPath
+--         * The extended query tag path
+--     @queryStatus
+--         * The query  status
+--
+-- RETURN VALUE
+--     The modified extended query tag.
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.UpdateExtendedQueryTagQueryStatus (
+    @tagPath VARCHAR(64),
+    @queryStatus TINYINT
+)
+AS
+    SET NOCOUNT     ON
+
+    UPDATE dbo.ExtendedQueryTag
+    SET QueryStatus = @queryStatus
+    OUTPUT INSERTED.TagKey, INSERTED.TagPath, INSERTED.TagVR, INSERTED.TagPrivateCreator, INSERTED.TagLevel, INSERTED.TagStatus, INSERTED.QueryStatus
+    WHERE TagPath = @tagPath 
+GO
+
 /*************************************************************
     Stored procedures for adding an instance.
 **************************************************************/
@@ -429,7 +468,8 @@ BEGIN
            TagVR,
            TagPrivateCreator,
            TagLevel,
-           TagStatus
+           TagStatus,           
+           QueryStatus
     FROM dbo.ExtendedQueryTag AS XQT
     INNER JOIN @extendedQueryTagKeys AS input
     ON XQT.TagKey = input.TagKey
@@ -463,7 +503,8 @@ BEGIN
            TagVR,
            TagPrivateCreator,
            TagLevel,
-           TagStatus
+           TagStatus,           
+           QueryStatus
     FROM dbo.ExtendedQueryTag AS XQT
     INNER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
     WHERE OperationId = @operationId
@@ -489,7 +530,7 @@ GO
 -- RETURN VALUE
 --     The added extended query tags.
 /***************************************************************************************/
-ALTER PROCEDURE dbo.AddExtendedQueryTags (
+CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTags (
     @extendedQueryTags dbo.AddExtendedQueryTagsInputTableType_1 READONLY,
     @maxAllowedCount INT,
     @ready BIT = 0
@@ -530,15 +571,16 @@ AS
 
         -- Add the new tags with the given status
         INSERT INTO dbo.ExtendedQueryTag
-            (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus)
+            (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus)
         OUTPUT
             INSERTED.TagKey,
             INSERTED.TagPath,
             INSERTED.TagVR,
             INSERTED.TagPrivateCreator,
             INSERTED.TagLevel,
-            INSERTED.TagStatus
-        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, @ready FROM @extendedQueryTags
+            INSERTED.TagStatus,
+            INSERTED.QueryStatus
+        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, @ready, 1 FROM @extendedQueryTags
 
     COMMIT TRANSACTION
 GO
@@ -849,6 +891,12 @@ AS
         IF NOT EXISTS (SELECT * FROM dbo.ExtendedQueryTag WITH (HOLDLOCK) WHERE TagKey = @tagKey AND TagStatus = 0)
             THROW 50404, 'Tag does not exist or is not being added.', 1;
 
+        -- Disable query on the tag
+        UPDATE dbo.ExtendedQueryTag
+        SET QueryStatus = 0
+        WHERE TagKey = @tagKey AND QueryStatus = 1
+
+        -- Add error
         MERGE dbo.ExtendedQueryTagError WITH (HOLDLOCK) as XQTE
         USING (SELECT @tagKey TagKey, @errorCode ErrorCode, @watermark Watermark) as src
         ON src.TagKey = XQTE.TagKey AND src.WaterMark = XQTE.Watermark
@@ -910,7 +958,8 @@ AS
                TagVR,
                TagPrivateCreator,
                TagLevel,
-               TagStatus
+               TagStatus,               
+               QueryStatus
         FROM @extendedQueryTagKeys AS input
         INNER JOIN dbo.ExtendedQueryTag AS XQT WITH(HOLDLOCK) ON input.TagKey = XQT.TagKey
         LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO WITH(HOLDLOCK) ON XQT.TagKey = XQTO.TagKey
@@ -987,7 +1036,8 @@ BEGIN
            TagVR,
            TagPrivateCreator,
            TagLevel,
-           TagStatus
+           TagStatus,
+           QueryStatus
     FROM dbo.ExtendedQueryTag
     WHERE TagPath = ISNULL(@tagPath, TagPath)
 END
@@ -1022,7 +1072,8 @@ BEGIN
            TagVR,
            TagPrivateCreator,
            TagLevel,
-           TagStatus
+           TagStatus,
+           QueryStatus
     FROM dbo.ExtendedQueryTag
     ORDER BY TagKey ASC
     OFFSET @offset ROWS

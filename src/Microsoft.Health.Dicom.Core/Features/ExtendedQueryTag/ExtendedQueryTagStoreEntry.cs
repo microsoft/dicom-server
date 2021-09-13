@@ -12,14 +12,15 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     /// </summary>
     public class ExtendedQueryTagStoreEntry : ExtendedQueryTagEntry
     {
-        public ExtendedQueryTagStoreEntry(int key, string path, string vr, string privateCreator, QueryTagLevel level, ExtendedQueryTagStatus status)
+        public ExtendedQueryTagStoreEntry(int key, string path, string vr, string privateCreator, QueryTagLevel level, ExtendedQueryTagStatus status, QueryStatus queryStatus)
         {
             Key = key;
             Path = EnsureArg.IsNotNullOrWhiteSpace(path);
             VR = EnsureArg.IsNotNullOrWhiteSpace(vr);
             PrivateCreator = privateCreator;
-            Level = level;
-            Status = status;
+            Level = EnsureArg.EnumIsDefined(level);
+            Status = EnsureArg.EnumIsDefined(status);
+            QueryStatus = EnsureArg.EnumIsDefined(queryStatus);
         }
 
         /// <summary>
@@ -38,17 +39,17 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         public QueryTagLevel Level { get; }
 
         /// <summary>
+        /// Query status of this tag.
+        /// </summary>
+        public QueryStatus QueryStatus { get; }
+
+        /// <summary>
         /// Convert to  <see cref="GetExtendedQueryTagEntry"/>.
         /// </summary>
         /// <returns>The extended query tag entry.</returns>
         public GetExtendedQueryTagEntry ToExtendedQueryTagEntry()
         {
             return new GetExtendedQueryTagEntry { Path = Path, VR = VR, PrivateCreator = PrivateCreator, Level = Level, Status = Status };
-        }
-
-        public override string ToString()
-        {
-            return $"Key: {Key}, Path: {Path}, VR:{VR}, PrivateCreator:{PrivateCreator}, Level:{Level}, Status:{Status}";
         }
     }
 }

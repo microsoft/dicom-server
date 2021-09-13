@@ -118,7 +118,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
                 .Returns(
                     new List<ExtendedQueryTagStoreEntry>
                     {
-                        new ExtendedQueryTagStoreEntry(1, "1", "DA", "foo", QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding)
+                        new ExtendedQueryTagStoreEntry(1, "1", "DA", "foo", QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding, QueryStatus.Enabled)
                     });
 
             HttpResponseMessage response = await _reindexDurableFunction.StartReindexingInstancesAsync(

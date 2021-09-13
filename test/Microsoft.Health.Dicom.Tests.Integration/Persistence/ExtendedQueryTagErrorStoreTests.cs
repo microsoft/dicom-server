@@ -315,6 +315,26 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.True(await _errorStoreTestHelper.DoesExtendedQueryTagErrorExistAsync(tagKey2));
         }
 
+        [Fact]
+        public async Task GivenExtendedQueryTagError_WhenAddExtendedQueryTagError_ThenTagQueryStatusShouldBeDisabled()
+        {
+            string studyInstanceUid = TestUidGenerator.Generate();
+            string seriesInstanceUid = TestUidGenerator.Generate();
+            string sopInstanceUid = TestUidGenerator.Generate();
+
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+            long watermark = await AddInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            int tagKey = await AddTagAsync(tag);
+
+            await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(
+                tagKey,
+                ValidationErrorCode.UidIsInvalid,
+                watermark);
+
+            var tagEntry = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag.GetPath());
+            Assert.Equal(QueryStatus.Disabled, tagEntry.QueryStatus);
+        }
+
         public Task InitializeAsync()
         {
             return Task.CompletedTask;

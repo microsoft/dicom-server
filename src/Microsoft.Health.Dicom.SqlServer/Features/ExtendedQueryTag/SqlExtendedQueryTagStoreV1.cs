@@ -60,5 +60,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         {
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
+
+        ///<inheritdoc/>
+        public virtual Task<ExtendedQueryTagStoreEntry> UpdateQueryStatusAsync(string tagPath, QueryStatus queryStatus, CancellationToken cancellationToken)
+        {
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+        }
     }
 }
