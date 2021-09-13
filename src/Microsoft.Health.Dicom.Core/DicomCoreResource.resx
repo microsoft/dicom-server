@@ -397,4 +397,12 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="SimpleErrorMessageUnexpectedVR" xml:space="preserve">
     <value>The extended query tag VR is not expected.</value>
   </data>
+  <data name="PaginationLimitOutOfRange" xml:space="preserve">
+    <value>Specified limit value {0} is outside the allowed range of {1}..{2}.</value>
+    <comment>{0} Specified page result limit. {1} min allowed. {2} max allowed.</comment>
+  </data>
+  <data name="PaginationNegativeOffset" xml:space="preserve">
+    <value>Specified offset value {0} cannot be negative.</value>
+    <comment>{0} Specified page offset.</comment>
+  </data>
 </root>

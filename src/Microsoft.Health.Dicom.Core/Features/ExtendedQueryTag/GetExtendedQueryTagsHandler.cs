@@ -15,18 +15,18 @@ using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
-    public class GetAllExtendedQueryTagsHandler : BaseHandler, IRequestHandler<GetAllExtendedQueryTagsRequest, GetAllExtendedQueryTagsResponse>
+    public class GetExtendedQueryTagsHandler : BaseHandler, IRequestHandler<GetExtendedQueryTagsRequest, GetExtendedQueryTagsResponse>
     {
         private readonly IGetExtendedQueryTagsService _getExtendedQueryTagsService;
 
-        public GetAllExtendedQueryTagsHandler(IAuthorizationService<DataActions> authorizationService, IGetExtendedQueryTagsService getExtendedQueryTagsService)
+        public GetExtendedQueryTagsHandler(IAuthorizationService<DataActions> authorizationService, IGetExtendedQueryTagsService getExtendedQueryTagsService)
             : base(authorizationService)
         {
             EnsureArg.IsNotNull(getExtendedQueryTagsService, nameof(getExtendedQueryTagsService));
             _getExtendedQueryTagsService = getExtendedQueryTagsService;
         }
 
-        public async Task<GetAllExtendedQueryTagsResponse> Handle(GetAllExtendedQueryTagsRequest request, CancellationToken cancellationToken)
+        public async Task<GetExtendedQueryTagsResponse> Handle(GetExtendedQueryTagsRequest request, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(request, nameof(request));
 
@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 throw new UnauthorizedDicomActionException(DataActions.Read);
             }
 
-            return await _getExtendedQueryTagsService.GetAllExtendedQueryTagsAsync(cancellationToken);
+            return await _getExtendedQueryTagsService.GetExtendedQueryTagsAsync(request.Limit, request.Offset, cancellationToken);
         }
     }
 }

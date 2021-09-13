@@ -496,7 +496,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenNoExtendedQueryTags_WhenCreateIndex_ThenShouldSucceed()
         {
-            var extendedTags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync();
+            var extendedTags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(int.MaxValue);
             // make sure there is no extended query tags
             Assert.Empty(extendedTags);
 
@@ -508,15 +508,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public async Task GivenMaxTagKeyNotMatch_WhenCreateIndex_ThenShouldThrowException()
         {
             AddExtendedQueryTagEntry extendedQueryTagEntry = DicomTag.PatientAge.BuildAddExtendedQueryTagEntry();
-            await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new[] { extendedQueryTagEntry }, maxAllowedCount: 128, ready: true);
-            var tagEntry = (await _extendedQueryTagStore.GetExtendedQueryTagsAsync())[0];
-            var modifiedTagEntry = new ExtendedQueryTagStoreEntry(tagEntry.Key, tagEntry.Path, tagEntry.VR, tagEntry.PrivateCreator, tagEntry.Level, tagEntry.Status, QueryStatus.Enabled);
-            var queryTags = new[] { new QueryTag(modifiedTagEntry) };
+            var tagEntry = (await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new[] { extendedQueryTagEntry }, maxAllowedCount: 128, ready: true))[0];
             DicomDataset dataset = Samples.CreateRandomInstanceDataset();
 
             // Add a new tag
             await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new[] { DicomTag.PatientName.BuildAddExtendedQueryTagEntry() }, maxAllowedCount: 128, ready: true);
 
+            var queryTags = new[] { new QueryTag(tagEntry) };
             long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset, queryTags);
             await Assert.ThrowsAsync<ExtendedQueryTagsOutOfDateException>(
                 () => _indexDataStore.EndCreateInstanceIndexAsync(dataset, watermark, queryTags));

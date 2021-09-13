@@ -528,7 +528,7 @@ GO
 --         * Indicates whether the new query tags have been fully indexed
 --
 -- RETURN VALUE
---     The keys for the added tags.
+--     The added extended query tags.
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTags (
     @extendedQueryTags dbo.AddExtendedQueryTagsInputTableType_1 READONLY,
@@ -572,7 +572,14 @@ AS
         -- Add the new tags with the given status
         INSERT INTO dbo.ExtendedQueryTag
             (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus)
-        OUTPUT INSERTED.TagKey
+        OUTPUT
+            INSERTED.TagKey,
+            INSERTED.TagPath,
+            INSERTED.TagVR,
+            INSERTED.TagPrivateCreator,
+            INSERTED.TagLevel,
+            INSERTED.TagStatus,
+            INSERTED.QueryStatus
         SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, @ready, 1 FROM @extendedQueryTags
 
     COMMIT TRANSACTION
@@ -1005,7 +1012,7 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetExtendedQueryTag(s)
+--     GetExtendedQueryTag
 --
 -- DESCRIPTION
 --     Gets all extended query tags or given extended query tag by tag path
@@ -1013,24 +1020,62 @@ GO
 -- PARAMETERS
 --     @tagPath
 --         * The TagPath for the extended query tag to retrieve.
+-- RETURN VALUE
+--     The desired extended query tag, if found.
 /***************************************************************************************/
-ALTER PROCEDURE dbo.GetExtendedQueryTag (
-    @tagPath  VARCHAR(64) = NULL
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTag (
+    @tagPath  VARCHAR(64) = NULL -- Support NULL for backwards compatibility
 )
 AS
 BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-    SELECT  TagKey,
-            TagPath,
-            TagVR,
-            TagPrivateCreator,
-            TagLevel,
-            TagStatus,            
-            QueryStatus
-    FROM    dbo.ExtendedQueryTag
-    WHERE   TagPath                 = ISNULL(@tagPath, TagPath)
+    SELECT TagKey,
+           TagPath,
+           TagVR,
+           TagPrivateCreator,
+           TagLevel,
+           TagStatus
+    FROM dbo.ExtendedQueryTag
+    WHERE TagPath = ISNULL(@tagPath, TagPath)
+END
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     GetExtendedQueryTags
+--
+-- DESCRIPTION
+--     Gets a possibly paginated set of query tags as indicated by the parameters
+--
+-- PARAMETERS
+--     @limit
+--         * The maximum number of results to retrieve.
+--     @offset
+--         * The offset from which to retrieve paginated results.
+--
+-- RETURN VALUE
+--     The set of query tags.
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTags
+    @limit INT,
+    @offset INT
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    SELECT TagKey,
+           TagPath,
+           TagVR,
+           TagPrivateCreator,
+           TagLevel,
+           TagStatus
+    FROM dbo.ExtendedQueryTag
+    ORDER BY TagKey ASC
+    OFFSET @offset ROWS
+    FETCH NEXT @limit ROWS ONLY
 END
 GO
 

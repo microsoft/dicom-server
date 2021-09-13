@@ -20,9 +20,6 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
     {
         private readonly IUrlHelperFactory _urlHelperFactory;
 
-        // If we update the search implementation to not use these, we should remove
-        // the registration since enabling these accessors has performance implications.
-        // https://github.com/aspnet/Hosting/issues/793
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IActionContextAccessor _actionContextAccessor;
 

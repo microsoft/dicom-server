@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             _dicomTagParser = dicomTagParser;
         }
 
-        public async Task<GetExtendedQueryTagResponse> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken)
+        public async Task<GetExtendedQueryTagResponse> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default)
         {
             string numericalTagPath = null;
             DicomTag[] tags;
@@ -49,21 +49,14 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 throw new InvalidExtendedQueryTagPathException(string.Format(DicomCoreResource.InvalidExtendedQueryTag, tagPath ?? string.Empty));
             }
 
-            IReadOnlyList<ExtendedQueryTagStoreEntry> extendedQueryTags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(numericalTagPath, cancellationToken);
-
-            if (!extendedQueryTags.Any())
-            {
-                throw new ExtendedQueryTagNotFoundException(string.Format(DicomCoreResource.ExtendedQueryTagNotFound, tagPath));
-            }
-
-            return new GetExtendedQueryTagResponse(extendedQueryTags[0].ToExtendedQueryTagEntry());
+            ExtendedQueryTagStoreEntry extendedQueryTag = await _extendedQueryTagStore.GetExtendedQueryTagAsync(numericalTagPath, cancellationToken);
+            return new GetExtendedQueryTagResponse(extendedQueryTag.ToExtendedQueryTagEntry());
         }
 
-        public async Task<GetAllExtendedQueryTagsResponse> GetAllExtendedQueryTagsAsync(CancellationToken cancellationToken)
+        public async Task<GetExtendedQueryTagsResponse> GetExtendedQueryTagsAsync(int limit, int offset = 0, CancellationToken cancellationToken = default)
         {
-            IReadOnlyList<ExtendedQueryTagStoreEntry> extendedQueryTags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync((string)null, cancellationToken);
-
-            return new GetAllExtendedQueryTagsResponse(extendedQueryTags.Select(x => x.ToExtendedQueryTagEntry()));
+            IReadOnlyList<ExtendedQueryTagStoreEntry> extendedQueryTags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(limit, offset, cancellationToken);
+            return new GetExtendedQueryTagsResponse(extendedQueryTags.Select(x => x.ToExtendedQueryTagEntry()));
         }
     }
 }
