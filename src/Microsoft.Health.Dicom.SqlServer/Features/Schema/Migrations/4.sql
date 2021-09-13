@@ -2107,7 +2107,7 @@ AS
             VALUES (@tagKey, @errorCode, @watermark, @currentDate)
         OUTPUT INSERTED.TagKey;
 
-        -- Disable query on the tag  and update error count
+        -- Disable query on the tag and update error count
         UPDATE dbo.ExtendedQueryTag
         SET QueryStatus = 0, ErrorCount = ErrorCount + @addedCount
         WHERE TagKey = @tagKey
