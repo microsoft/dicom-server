@@ -1177,30 +1177,38 @@ AS
         THROW 50404, 'Instance not found', 1    
 
     -- Deleting tag errors
-    DECLARE @deletedErrors AS TABLE
+    DECLARE @deletedTags AS TABLE
     (
         TagKey BIGINT  
     )
     DELETE XQTE
         OUTPUT deleted.TagKey
-        INTO @deletedErrors
+        INTO @deletedTags
     FROM dbo.ExtendedQueryTagError as XQTE
     INNER JOIN @deletedInstances as d
     ON XQTE.Watermark = d.Watermark
 
     -- Update error count
-    IF EXISTS (SELECT * FROM @deletedErrors)
+    IF EXISTS (SELECT * FROM @deletedTags)
     BEGIN
+        DECLARE @deletedTagCounts AS TABLE
+        (
+            TagKey BIGINT,
+            ErrorCount INT
+        )
+
         -- Calculate error count
-        SELECT COUNT(1) as ErrorCount,
-               TagKey
-        INTO #errorCounts
-        FROM @deletedErrors    
+        INSERT INTO @deletedTagCounts
+        SELECT TagKey,
+               COUNT(1)
+        FROM @deletedTags    
         GROUP BY TagKey
 
         UPDATE XQT 
-        SET XQT.ErrorCount = XQT.ErrorCount - (SELECT EC.ErrorCount FROM #errorCounts EC WHERE XQT.TagKey = EC.TagKey)
+        SET XQT.ErrorCount = XQT.ErrorCount - DTC.ErrorCount
         FROM dbo.ExtendedQueryTag AS XQT
+        INNER JOIN @deletedTagCounts AS DTC
+        ON XQT.TagKey = DTC.TagKey
     END
 
     -- Deleting indexed instance tags
