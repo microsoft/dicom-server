@@ -331,8 +331,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 ValidationErrorCode.UidIsInvalid,
                 watermark);
 
-            var tagEntry = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(path: tag.GetPath());
-            Assert.Equal(QueryStatus.Disabled, tagEntry[0].QueryStatus);
+            var tagEntry = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag.GetPath());
+            Assert.Equal(QueryStatus.Disabled, tagEntry.QueryStatus);
         }
 
         public Task InitializeAsync()

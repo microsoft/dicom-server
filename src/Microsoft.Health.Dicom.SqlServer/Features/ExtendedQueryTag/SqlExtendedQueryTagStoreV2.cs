@@ -107,7 +107,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                     executionTimeWatch.Stop();
                     Logger.LogInformation(executionTimeWatch.ElapsedMilliseconds.ToString());
 
-                    return new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus);
+                    return new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, QueryStatus.Enabled);
                 }
             }
         }
@@ -168,7 +168,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                             V2.ExtendedQueryTag.TagLevel,
                             V2.ExtendedQueryTag.TagStatus);
 
-                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus));
+                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, QueryStatus.Enabled));
                     }
 
                     executionTimeWatch.Stop();

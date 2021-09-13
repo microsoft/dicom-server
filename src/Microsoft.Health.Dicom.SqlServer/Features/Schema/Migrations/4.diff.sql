@@ -1036,7 +1036,8 @@ BEGIN
            TagVR,
            TagPrivateCreator,
            TagLevel,
-           TagStatus
+           TagStatus,
+           QueryStatus
     FROM dbo.ExtendedQueryTag
     WHERE TagPath = ISNULL(@tagPath, TagPath)
 END
@@ -1071,7 +1072,8 @@ BEGIN
            TagVR,
            TagPrivateCreator,
            TagLevel,
-           TagStatus
+           TagStatus,
+           QueryStatus
     FROM dbo.ExtendedQueryTag
     ORDER BY TagKey ASC
     OFFSET @offset ROWS
