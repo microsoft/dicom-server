@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Common primitives and utilities used by Microsoft's DICOMweb APIs.</Description>
@@ -8,7 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Efferent.Native" Version="4.0.0" />
     <PackageReference Include="Ensure.That" Version="10.1.0" />
-    <PackageReference Include="fo-dicom" Version="4.0.7" />
+    <PackageReference Include="fo-dicom" Version="$(FoDicomVersion)" />
     <PackageReference Include="MediatR" Version="9.0.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.18.0" />

@@ -8,8 +8,9 @@
     <Deterministic>true</Deterministic>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <FoDicomVersion>4.0.8</FoDicomVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <HealthcareSharedPackageVersion>3.1.22</HealthcareSharedPackageVersion>
+    <HealthcareSharedPackageVersion>3.2.1</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
     <LangVersion>Latest</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
