@@ -484,11 +484,11 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble ON dbo.ExtendedQueryTag
 CREATE TABLE dbo.ExtendedQueryTagDateTime (
     TagKey                  INT                  NOT NULL, --PK
     TagValue                DATETIME2(7)         NOT NULL,  -- Local date time
-    TagValueUTC             DATETIME2(7)         NULL,      -- Date time converted to UTC
     StudyKey                BIGINT               NOT NULL, --FK
     SeriesKey               BIGINT               NULL,     --FK
     InstanceKey             BIGINT               NULL,     --FK
-    Watermark               BIGINT               NOT NULL
+    Watermark               BIGINT               NOT NULL,
+    TagValueUTC             DATETIME2(7)         NULL      -- Date time converted to UTC
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryTagDateTime
