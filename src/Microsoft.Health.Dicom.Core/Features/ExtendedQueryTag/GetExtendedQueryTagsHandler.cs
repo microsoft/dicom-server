@@ -15,7 +15,7 @@ using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
-    public class GetExtendedQueryTagsHandler : BaseHandler, IRequestHandler<GetAllExtendedQueryTagsRequest, GetExtendedQueryTagsResponse>
+    public class GetExtendedQueryTagsHandler : BaseHandler, IRequestHandler<GetExtendedQueryTagsRequest, GetExtendedQueryTagsResponse>
     {
         private readonly IGetExtendedQueryTagsService _getExtendedQueryTagsService;
 
@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             _getExtendedQueryTagsService = getExtendedQueryTagsService;
         }
 
-        public async Task<GetExtendedQueryTagsResponse> Handle(GetAllExtendedQueryTagsRequest request, CancellationToken cancellationToken)
+        public async Task<GetExtendedQueryTagsResponse> Handle(GetExtendedQueryTagsRequest request, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(request, nameof(request));
 

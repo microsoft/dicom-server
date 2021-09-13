@@ -160,7 +160,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             this IMediator mediator, int limit, int offset, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
-            return mediator.Send(new GetAllExtendedQueryTagsRequest(limit, offset), cancellationToken);
+            return mediator.Send(new GetExtendedQueryTagsRequest(limit, offset), cancellationToken);
         }
 
         public static Task<GetExtendedQueryTagResponse> GetExtendedQueryTagAsync(

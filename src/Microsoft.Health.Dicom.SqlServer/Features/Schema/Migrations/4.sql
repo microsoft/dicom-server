@@ -1784,7 +1784,7 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetExtendedQueryTag(s)
+--     GetExtendedQueryTag
 --
 -- DESCRIPTION
 --     Gets all extended query tags or given extended query tag by tag path
@@ -1792,23 +1792,25 @@ GO
 -- PARAMETERS
 --     @tagPath
 --         * The TagPath for the extended query tag to retrieve.
+-- RETURN VALUE
+--     The desired extended query tag, if found.
 /***************************************************************************************/
-CREATE PROCEDURE dbo.GetExtendedQueryTag (
-    @tagPath  VARCHAR(64) = NULL
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTag (
+    @tagPath  VARCHAR(64) = NULL -- Support NULL for backwards compatibility
 )
 AS
 BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-    SELECT  TagKey,
-            TagPath,
-            TagVR,
-            TagPrivateCreator,
-            TagLevel,
-            TagStatus
-    FROM    dbo.ExtendedQueryTag
-    WHERE   TagPath                 = ISNULL(@tagPath, TagPath)
+    SELECT TagKey,
+           TagPath,
+           TagVR,
+           TagPrivateCreator,
+           TagLevel,
+           TagStatus
+    FROM dbo.ExtendedQueryTag
+    WHERE TagPath = ISNULL(@tagPath, TagPath)
 END
 GO
 

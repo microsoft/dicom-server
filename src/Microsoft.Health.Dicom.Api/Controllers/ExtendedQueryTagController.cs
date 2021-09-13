@@ -105,6 +105,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             [FromQuery, Range(1, 200)] int limit = 100,
             [FromQuery, Range(0, int.MaxValue)] int offset = 0)
         {
+            // TODO: Enforce the above data annotations with ModelState.IsValid or use the [ApiController] attribute
+            // for automatic error generation. However, we should change all errors across the API surface.
             _logger.LogInformation("DICOM Web Get Extended Query Tag request received for all extended query tags");
 
             EnsureFeatureIsEnabled();

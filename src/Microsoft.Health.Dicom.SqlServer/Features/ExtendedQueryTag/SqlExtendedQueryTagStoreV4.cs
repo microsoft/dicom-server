@@ -35,7 +35,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         public override async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(int limit, int offset = 0, CancellationToken cancellationToken = default)
         {
-            List<ExtendedQueryTagStoreEntry> results = new List<ExtendedQueryTagStoreEntry>();
+            EnsureArg.IsGte(limit, 1, nameof(limit));
+            EnsureArg.IsGte(offset, 0, nameof(offset));
+
+            var results = new List<ExtendedQueryTagStoreEntry>();
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())

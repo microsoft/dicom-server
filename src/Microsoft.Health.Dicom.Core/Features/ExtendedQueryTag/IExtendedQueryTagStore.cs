@@ -57,7 +57,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// property contains a list of the tags' information as found in storage.
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">
-        /// <para><paramref name="limit"/> is less than <c>1</c> or greater than <c>200</c></para>
+        /// <para><paramref name="limit"/> is less than <c>1</c></para>
         /// <para>-or-</para>
         /// <para><paramref name="offset"/> is less than <c>0</c>.</para>
         /// </exception>

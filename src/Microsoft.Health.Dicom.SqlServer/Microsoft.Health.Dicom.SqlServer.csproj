@@ -42,7 +42,6 @@
     </EmbeddedResource>
   </ItemGroup>
     <ItemGroup>
-    <Folder Include="Extensions\" />
     <Folder Include="Features\Schema\Model\" />
   </ItemGroup>
 

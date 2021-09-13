@@ -4,13 +4,24 @@
 // -------------------------------------------------------------------------------------------------
 
 using MediatR;
+using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
 {
-    public class GetAllExtendedQueryTagsRequest : IRequest<GetExtendedQueryTagsResponse>
+    public class GetExtendedQueryTagsRequest : IRequest<GetExtendedQueryTagsResponse>
     {
-        public GetAllExtendedQueryTagsRequest(int limit, int offset)
+        public GetExtendedQueryTagsRequest(int limit, int offset)
         {
+            if (limit < 1 || limit > 200)
+            {
+                throw new BadRequestException(string.Format(DicomCoreResource.PaginationLimitOutOfRange, limit, 1, 200));
+            }
+
+            if (offset < 0)
+            {
+                throw new BadRequestException(string.Format(DicomCoreResource.PaginationNegativeOffset, offset));
+            }
+
             Limit = limit;
             Offset = offset;
         }

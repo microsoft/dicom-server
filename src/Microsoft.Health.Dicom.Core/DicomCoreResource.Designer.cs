@@ -585,6 +585,24 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Specified limit value {0} is outside the allowed range of {1}..{2}..
+        /// </summary>
+        internal static string PaginationLimitOutOfRange {
+            get {
+                return ResourceManager.GetString("PaginationLimitOutOfRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Specified offset value {0} cannot be negative..
+        /// </summary>
+        internal static string PaginationNegativeOffset {
+            get {
+                return ResourceManager.GetString("PaginationNegativeOffset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The private creator is not empty for standard tag &apos;{0}&apos;..
         /// </summary>
         internal static string PrivateCreatorNotEmpty {
