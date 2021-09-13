@@ -70,12 +70,15 @@ namespace Microsoft.Extensions.DependencyInjection
             EnsureArg.IsNotNull(services, nameof(services));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-            IConfigurationSection blobSection = configuration.GetSection(BlobDataStoreConfiguration.SectionName);
+            string containerName = configuration
+                .GetSection(BlobDataStoreConfiguration.SectionName)
+                .GetSection(DicomBlobContainerConfiguration.SectionName)
+                .Get<DicomBlobContainerConfiguration>()
+                .Metadata;
+
             new DicomFunctionsBuilder(services)
                 .AddSqlServer(c => configuration.GetSection(SqlServerDataStoreConfiguration.SectionName).Bind(c))
-                .AddMetadataStorageDataStore(
-                    blobSection.GetSection(DicomBlobContainerConfiguration.SectionName).Get<DicomBlobContainerConfiguration>().Metadata,
-                    c => blobSection.Bind(c));
+                .AddMetadataStorageDataStore(configuration, containerName);
 
             return services;
         }

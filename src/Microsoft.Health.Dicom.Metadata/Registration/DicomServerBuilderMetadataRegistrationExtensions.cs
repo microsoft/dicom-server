@@ -3,13 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
-using Microsoft.Health.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Metadata;
@@ -34,26 +30,18 @@ namespace Microsoft.Extensions.DependencyInjection
             EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-            serverBuilder.Services.Add(
-                sp =>
-                {
-                    ILoggerFactory loggerFactory = sp.GetService<ILoggerFactory>();
-                    IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfiguration = sp.GetService<IOptionsMonitor<BlobContainerConfiguration>>();
-                    BlobContainerConfiguration blobContainerConfiguration = namedBlobContainerConfiguration.Get(Constants.ContainerConfigurationName);
-
-                    return new BlobContainerInitializer(
-                        blobContainerConfiguration.ContainerName,
-                        loggerFactory.CreateLogger<BlobContainerInitializer>());
-                })
-                .Singleton()
-                .AsService<IBlobContainerInitializer>();
-
+            IConfiguration blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
             serverBuilder.Services
-                .AddBlobDataStore()
-                .AddMetadataStore(c => configuration.GetSection(DicomServerBlobConfigurationSectionName).Bind(c))
-                .AddMetadataHealthCheck();
+                .AddMetadataPersistence()
+                .AddBlobServiceClient(blobConfig)
+                .AddBlobContainerInitialization(x => blobConfig
+                    .GetSection(BlobInitializerOptions.DefaultSectionName)
+                    .Bind(x))
+                .ConfigureContainer(Constants.ContainerConfigurationName, x => configuration
+                    .GetSection(DicomServerBlobConfigurationSectionName)
+                    .Bind(x));
 
-            return serverBuilder;
+            return serverBuilder.AddMetadataHealthCheck();
         }
 
         /// <summary>
@@ -61,27 +49,27 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="functionsBuilder">The DICOM functions builder instance.</param>
         /// <param name="containerName">The name of the metadata container.</param>
-        /// <param name="configure">A delegate for configuring the underlying blob storage client.</param>
+        /// <param name="configuration">The configuration for the function.</param>
         /// <returns>The functions builder.</returns>
         public static IDicomFunctionsBuilder AddMetadataStorageDataStore(
             this IDicomFunctionsBuilder functionsBuilder,
-            string containerName,
-            Action<BlobDataStoreConfiguration> configure)
+            IConfiguration configuration,
+            string containerName)
         {
             EnsureArg.IsNotNull(functionsBuilder, nameof(functionsBuilder));
-            EnsureArg.IsNotNull(configure, nameof(configure));
+            EnsureArg.IsNotNull(configuration, nameof(configuration));
 
+            IConfiguration blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
             functionsBuilder.Services
-                .AddBlobServiceClient(configure)
-                .AddMetadataStore(c => c.ContainerName = containerName);
+                .AddMetadataPersistence()
+                .AddBlobServiceClient(blobConfig)
+                .Configure<BlobContainerConfiguration>(Constants.ContainerConfigurationName, c => c.ContainerName = containerName);
 
             return functionsBuilder;
         }
 
-        private static IServiceCollection AddMetadataStore(this IServiceCollection services, Action<BlobContainerConfiguration> configure)
+        private static IServiceCollection AddMetadataPersistence(this IServiceCollection services)
         {
-            services.Configure(Constants.ContainerConfigurationName, configure);
-
             services.Add<BlobMetadataStore>()
                 .Scoped()
                 .AsSelf()
@@ -95,13 +83,10 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        private static IServiceCollection AddMetadataHealthCheck(this IServiceCollection services)
+        private static IDicomServerBuilder AddMetadataHealthCheck(this IDicomServerBuilder serverBuilder)
         {
-            services
-                .AddHealthChecks()
-                .AddCheck<MetadataHealthCheck>(name: "MetadataHealthCheck");
-
-            return services;
+            serverBuilder.Services.AddHealthChecks().AddCheck<MetadataHealthCheck>(name: "MetadataHealthCheck");
+            return serverBuilder;
         }
     }
 }

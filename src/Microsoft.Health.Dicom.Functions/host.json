@@ -30,12 +30,23 @@
     "Containers": {
       "Metadata": "metadatacontainer"
     },
-    "RequestOptions": {
-      "ExponentialRetryBackoffDeltaInSeconds": 4,
-      "ExponentialRetryMaxAttempts": 6,
-      "ServerTimeoutInMinutes": 2,
-      "DownloadMaximumConcurrency": 5,
-      "UploadMaximumConcurrency": 5
+    "Initialization": {
+      "RetryDelay": "00:00:15",
+      "Timeout": "00:06:00"
+    },
+    "Operations": {
+      "Download": {
+        "MaximumConcurrency": 5
+      },
+      "Upload": {
+        "MaximumConcurrency": 5
+      }
+    },
+    "Retry": {
+      "Delay": "00:00:04",
+      "MaxRetries": 6,
+      "Mode": "Exponential",
+      "NetworkTimeout": "00:02:00"
     }
   },
   "SqlServer": {

@@ -33,8 +33,8 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
         public async Task<GetExtendedQueryTagResponse> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default)
         {
-            string numericalTagPath = null;
             DicomTag[] tags;
+            string numericalTagPath;
             if (_dicomTagParser.TryParse(tagPath, out tags, supportMultiple: false))
             {
                 if (tags.Length > 1)
