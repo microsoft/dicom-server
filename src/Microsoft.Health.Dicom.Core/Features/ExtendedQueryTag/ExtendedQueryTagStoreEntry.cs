@@ -42,7 +42,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <summary>
         /// Query status of this tag.
         /// </summary>
-        public QueryTagQueryStatus QueryStatus { get; }
+        public QueryStatus QueryStatus { get; }
 
         /// <summary>
         /// Error count on this tag.

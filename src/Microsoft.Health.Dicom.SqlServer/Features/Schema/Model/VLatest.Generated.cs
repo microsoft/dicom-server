@@ -40,6 +40,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetChangeFeedLatestProcedure GetChangeFeedLatest = new GetChangeFeedLatestProcedure();
         internal readonly static GetExtendedQueryTagProcedure GetExtendedQueryTag = new GetExtendedQueryTagProcedure();
         internal readonly static GetExtendedQueryTagErrorsProcedure GetExtendedQueryTagErrors = new GetExtendedQueryTagErrorsProcedure();
+        internal readonly static GetExtendedQueryTagsProcedure GetExtendedQueryTags = new GetExtendedQueryTagsProcedure();
         internal readonly static GetExtendedQueryTagsByKeyProcedure GetExtendedQueryTagsByKey = new GetExtendedQueryTagsByKeyProcedure();
         internal readonly static GetExtendedQueryTagsByOperationProcedure GetExtendedQueryTagsByOperation = new GetExtendedQueryTagsByOperationProcedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
@@ -789,6 +790,24 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetExtendedQueryTagErrors";
                 _tagPath.AddParameter(command.Parameters, tagPath);
+            }
+        }
+
+        internal class GetExtendedQueryTagsProcedure : StoredProcedure
+        {
+            internal GetExtendedQueryTagsProcedure() : base("dbo.GetExtendedQueryTags")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _limit = new ParameterDefinition<System.Int32>("@limit", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Int32> _offset = new ParameterDefinition<System.Int32>("@offset", global::System.Data.SqlDbType.Int, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 limit, System.Int32 offset)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetExtendedQueryTags";
+                _limit.AddParameter(command.Parameters, limit);
+                _offset.AddParameter(command.Parameters, offset);
             }
         }
 

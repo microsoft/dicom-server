@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         public SqlExtendedQueryTagStore(VersionedCache<ISqlExtendedQueryTagStore> cache)
             => _cache = EnsureArg.IsNotNull(cache, nameof(cache));
 
-        public async Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxAllowedCount, bool ready = false, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxAllowedCount, bool ready = false, CancellationToken cancellationToken = default)
         {
             ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
             return await store.AddExtendedQueryTagsAsync(extendedQueryTagEntries, maxAllowedCount, ready, cancellationToken);
@@ -44,10 +44,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             await store.DeleteExtendedQueryTagAsync(tagPath, vr, cancellationToken);
         }
 
-        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(string path = null, CancellationToken cancellationToken = default)
+        public async Task<ExtendedQueryTagStoreEntry> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default)
         {
             ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-            return await store.GetExtendedQueryTagsAsync(path, cancellationToken);
+            return await store.GetExtendedQueryTagAsync(tagPath, cancellationToken);
+        }
+
+        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(int limit, int offset, CancellationToken cancellationToken = default)
+        {
+            ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+            return await store.GetExtendedQueryTagsAsync(limit, offset, cancellationToken);
         }
 
         public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(IReadOnlyList<int> queryTagKeys, CancellationToken cancellationToken = default)
@@ -63,10 +69,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         }
 
         ///<inheritdoc/>
-        public async Task<ExtendedQueryTagStoreEntry> UpdateExtendedQueryTagQueryStatusAsync(string tagPath, QueryTagQueryStatus queryStatus, CancellationToken cancellationToken = default)
+        public async Task<ExtendedQueryTagStoreEntry> UpdateQueryStatusAsync(string tagPath, QueryStatus queryStatus, CancellationToken cancellationToken = default)
         {
             ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken);
-            return await store.UpdateExtendedQueryTagQueryStatusAsync(tagPath, queryStatus, cancellationToken);
+            return await store.UpdateQueryStatusAsync(tagPath, queryStatus, cancellationToken);
         }
     }
 }
