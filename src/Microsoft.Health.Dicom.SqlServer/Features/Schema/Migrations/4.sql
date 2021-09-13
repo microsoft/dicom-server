@@ -1511,8 +1511,8 @@ AS
 
         -- Calculate error count
         INSERT INTO @deletedTagCounts
-        SELECT TagKey,
-               COUNT(1)
+            (TagKey, ErrorCount)
+        SELECT TagKey, COUNT(1)
         FROM @deletedTags    
         GROUP BY TagKey
 
