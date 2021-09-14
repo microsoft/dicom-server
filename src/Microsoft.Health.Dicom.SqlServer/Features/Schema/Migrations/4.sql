@@ -2020,7 +2020,7 @@ GO
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTags (
     @extendedQueryTags dbo.AddExtendedQueryTagsInputTableType_1 READONLY,
-    @maxAllowedCount INT,
+    @maxAllowedCount INT = 128, -- Default value for backwards compatibility
     @ready BIT = 0
 )
 AS
