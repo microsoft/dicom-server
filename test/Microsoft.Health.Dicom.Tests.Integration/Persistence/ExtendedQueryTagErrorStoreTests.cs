@@ -51,6 +51,46 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Fact]
+        public async Task GivenMultipleErrors_WhenGettingPaginatedResults_ThenProperlyPaginateErrors()
+        {
+            // Add instances
+            DicomTag tag = DicomTag.PatientName;
+            long[] watermarks = new long[]
+            {
+                await AddInstanceAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate()),
+                await AddInstanceAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate()),
+                await AddInstanceAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate()),
+                await AddInstanceAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate()),
+            };
+
+            int tagKey = await AddTagAsync(tag);
+
+            // Add multiple errors
+            await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, ValidationErrorCode.PersonNameExceedMaxGroups, watermarks[0]);
+            await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, ValidationErrorCode.ExceedMaxLength, watermarks[1]);
+            await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, ValidationErrorCode.InvalidCharacters, watermarks[2]);
+            await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, ValidationErrorCode.PersonNameGroupExceedMaxLength, watermarks[3]);
+
+            IReadOnlyList<ExtendedQueryTagError> errors;
+
+            // Page 1
+            errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), 1, 0);
+            Assert.Equal(1, errors.Count);
+            Assert.Equal(errors[0].ErrorMessage, ValidationErrorCode.PersonNameExceedMaxGroups.GetMessage());
+
+            // Page 2
+            errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), 2, 1);
+            Assert.Equal(2, errors.Count);
+            Assert.Equal(errors[0].ErrorMessage, ValidationErrorCode.ExceedMaxLength.GetMessage());
+            Assert.Equal(errors[1].ErrorMessage, ValidationErrorCode.InvalidCharacters.GetMessage());
+
+            // Page 3
+            errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), 1, 3);
+            Assert.Equal(1, errors.Count);
+            Assert.Equal(errors[0].ErrorMessage, ValidationErrorCode.PersonNameGroupExceedMaxLength.GetMessage());
+        }
+
+        [Fact]
         public async Task GivenValidExtendedQueryTagError_WhenAddExtendedQueryTagError_ThenTagErrorShouldBeAdded()
         {
             string studyInstanceUid = TestUidGenerator.Generate();

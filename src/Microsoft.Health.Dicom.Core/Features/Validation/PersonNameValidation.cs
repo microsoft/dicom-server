@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 }
                 catch (ElementValidationException ex) when (ex.ErrorCode == ValidationErrorCode.ExceedMaxLength)
                 {
-                    // Reprocess the exception to make more meaningful message                    
+                    // Reprocess the exception to make more meaningful message
                     throw ElementValidationExceptionFactory.CreatePersonNameGroupExceedMaxLengthException(name, value);
                 }
 

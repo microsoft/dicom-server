@@ -81,7 +81,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
             using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
             using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
 
-            VLatest.GetExtendedQueryTagErrors.PopulateCommand(sqlCommandWrapper, tagPath);
+            VLatest.GetExtendedQueryTagErrors.PopulateCommand(sqlCommandWrapper, tagPath, limit, offset);
 
             try
             {
