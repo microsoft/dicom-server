@@ -159,8 +159,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(GetExtendedQueryTagErrorsResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
-        [VersionedRoute(KnownRoutes.GetExtendedQueryTagErrorsRoute)]
-        [Route(KnownRoutes.GetExtendedQueryTagErrorsRoute)]
+        [VersionedRoute(KnownRoutes.GetExtendedQueryTagErrorsRoute, Name = KnownRouteNames.VersionedGetExtendedQueryTagErrors)]
+        [Route(KnownRoutes.GetExtendedQueryTagErrorsRoute, Name = KnownRouteNames.GetExtendedQueryTagErrors)]
         [AuditEventType(AuditEventSubType.GetExtendedQueryTagErrors)]
         public async Task<IActionResult> GetTagErrorsAsync(string tagPath)
         {
