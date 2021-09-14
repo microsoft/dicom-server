@@ -9,7 +9,8 @@ IF NOT EXISTS (
 BEGIN
     ALTER TABLE dbo.ExtendedQueryTag
     ADD
-        QueryStatus TINYINT DEFAULT 1 NOT NULL
+        QueryStatus TINYINT DEFAULT 1 NOT NULL,
+        ErrorCount  INT NOT NULL
 END
 
 /*************************************************************
@@ -354,7 +355,7 @@ AS
 
     UPDATE dbo.ExtendedQueryTag
     SET QueryStatus = @queryStatus
-    OUTPUT INSERTED.TagKey, INSERTED.TagPath, INSERTED.TagVR, INSERTED.TagPrivateCreator, INSERTED.TagLevel, INSERTED.TagStatus, INSERTED.QueryStatus
+    OUTPUT INSERTED.TagKey, INSERTED.TagPath, INSERTED.TagVR, INSERTED.TagPrivateCreator, INSERTED.TagLevel, INSERTED.TagStatus, INSERTED.QueryStatus, INSERTED.ErrorCount
     WHERE TagPath = @tagPath 
 GO
 
@@ -469,7 +470,8 @@ BEGIN
            TagPrivateCreator,
            TagLevel,
            TagStatus,           
-           QueryStatus
+           QueryStatus,
+           ErrorCount
     FROM dbo.ExtendedQueryTag AS XQT
     INNER JOIN @extendedQueryTagKeys AS input
     ON XQT.TagKey = input.TagKey
@@ -504,7 +506,8 @@ BEGIN
            TagPrivateCreator,
            TagLevel,
            TagStatus,           
-           QueryStatus
+           QueryStatus,
+           ErrorCount
     FROM dbo.ExtendedQueryTag AS XQT
     INNER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
     WHERE OperationId = @operationId
@@ -571,7 +574,7 @@ AS
 
         -- Add the new tags with the given status
         INSERT INTO dbo.ExtendedQueryTag
-            (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus)
+            (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount)
         OUTPUT
             INSERTED.TagKey,
             INSERTED.TagPath,
@@ -579,8 +582,9 @@ AS
             INSERTED.TagPrivateCreator,
             INSERTED.TagLevel,
             INSERTED.TagStatus,
-            INSERTED.QueryStatus
-        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, @ready, 1 FROM @extendedQueryTags
+            INSERTED.QueryStatus,
+            INSERTED.ErrorCount
+        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, @ready, 1, 0 FROM @extendedQueryTags
 
     COMMIT TRANSACTION
 GO
@@ -891,22 +895,25 @@ AS
         IF NOT EXISTS (SELECT * FROM dbo.ExtendedQueryTag WITH (HOLDLOCK) WHERE TagKey = @tagKey AND TagStatus = 0)
             THROW 50404, 'Tag does not exist or is not being added.', 1;
 
-        -- Disable query on the tag
-        UPDATE dbo.ExtendedQueryTag
-        SET QueryStatus = 0
-        WHERE TagKey = @tagKey AND QueryStatus = 1
-
         -- Add error
+        DECLARE @addedCount SMALLINT
+        SET @addedCount  = 1
         MERGE dbo.ExtendedQueryTagError WITH (HOLDLOCK) as XQTE
         USING (SELECT @tagKey TagKey, @errorCode ErrorCode, @watermark Watermark) as src
         ON src.TagKey = XQTE.TagKey AND src.WaterMark = XQTE.Watermark
         WHEN MATCHED THEN UPDATE
         SET CreatedTime = @currentDate,
-            ErrorCode = @errorCode
+            ErrorCode = @errorCode,
+            @addedCount = 0
         WHEN NOT MATCHED THEN 
             INSERT (TagKey, ErrorCode, Watermark, CreatedTime)
             VALUES (@tagKey, @errorCode, @watermark, @currentDate)
         OUTPUT INSERTED.TagKey;
+
+        -- Disable query on the tag and update error count
+        UPDATE dbo.ExtendedQueryTag
+        SET QueryStatus = 0, ErrorCount = ErrorCount + @addedCount
+        WHERE TagKey = @tagKey
 
     COMMIT TRANSACTION
 GO
@@ -959,7 +966,8 @@ AS
                TagPrivateCreator,
                TagLevel,
                TagStatus,               
-               QueryStatus
+               QueryStatus,
+               ErrorCount
         FROM @extendedQueryTagKeys AS input
         INNER JOIN dbo.ExtendedQueryTag AS XQT WITH(HOLDLOCK) ON input.TagKey = XQT.TagKey
         LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO WITH(HOLDLOCK) ON XQT.TagKey = XQTO.TagKey
@@ -1031,15 +1039,16 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-    SELECT TagKey,
-           TagPath,
-           TagVR,
-           TagPrivateCreator,
-           TagLevel,
-           TagStatus,
-           QueryStatus
-    FROM dbo.ExtendedQueryTag
-    WHERE TagPath = ISNULL(@tagPath, TagPath)
+    SELECT  TagKey,
+            TagPath,
+            TagVR,
+            TagPrivateCreator,
+            TagLevel,
+            TagStatus,
+            QueryStatus,
+            ErrorCount
+    FROM    dbo.ExtendedQueryTag
+    WHERE   TagPath = ISNULL(@tagPath, TagPath)
 END
 GO
 
@@ -1073,7 +1082,8 @@ BEGIN
            TagPrivateCreator,
            TagLevel,
            TagStatus,
-           QueryStatus
+           QueryStatus,
+           ErrorCount
     FROM dbo.ExtendedQueryTag
     ORDER BY TagKey ASC
     OFFSET @offset ROWS
@@ -1212,16 +1222,43 @@ AS
     AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
     AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
 
-    IF (@@ROWCOUNT = 0)
-    BEGIN
-        THROW 50404, 'Instance not found', 1;
-    END
+    IF @@ROWCOUNT = 0
+        THROW 50404, 'Instance not found', 1    
 
     -- Deleting tag errors
+    DECLARE @deletedTags AS TABLE
+    (
+        TagKey BIGINT  
+    )
     DELETE XQTE
+        OUTPUT deleted.TagKey
+        INTO @deletedTags
     FROM dbo.ExtendedQueryTagError as XQTE
     INNER JOIN @deletedInstances as d
     ON XQTE.Watermark = d.Watermark
+
+    -- Update error count
+    IF EXISTS (SELECT * FROM @deletedTags)
+    BEGIN
+        DECLARE @deletedTagCounts AS TABLE
+        (
+            TagKey BIGINT,
+            ErrorCount INT
+        )
+
+        -- Calculate error count
+        INSERT INTO @deletedTagCounts
+            (TagKey, ErrorCount)
+        SELECT TagKey, COUNT(1)
+        FROM @deletedTags    
+        GROUP BY TagKey
+
+        UPDATE XQT 
+        SET XQT.ErrorCount = XQT.ErrorCount - DTC.ErrorCount
+        FROM dbo.ExtendedQueryTag AS XQT
+        INNER JOIN @deletedTagCounts AS DTC
+        ON XQT.TagKey = DTC.TagKey
+    END
 
     -- Deleting indexed instance tags
     DELETE
