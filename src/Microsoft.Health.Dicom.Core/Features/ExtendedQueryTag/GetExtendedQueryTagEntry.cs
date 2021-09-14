@@ -20,9 +20,14 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// </summary>
         public QueryTagLevel Level { get; set; }
 
+        /// <summary>
+        /// Optional errors associated with the query tag.
+        /// </summary>
+        public ExtendedQueryTagErrorReference Errors { get; set; }
+
         public override string ToString()
         {
-            return $"Path: {Path}, VR:{VR}, PrivateCreator:{PrivateCreator}, Level:{Level}, Status:{Status}";
+            return $"Path: {Path}, VR:{VR}, PrivateCreator:{PrivateCreator}, Level:{Level}, Status:{Status}, Errors: {Errors?.Count ?? 0}";
         }
     }
 }

@@ -11,6 +11,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Tests.Common.Comparers;
 using NSubstitute;
@@ -22,13 +23,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
     {
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly IDicomTagParser _dicomTagParser;
+        private readonly IUrlResolver _urlResolver;
         private readonly IGetExtendedQueryTagsService _getExtendedQueryTagsService;
 
         public GetExtendedQueryTagsServiceTests()
         {
             _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
             _dicomTagParser = Substitute.For<IDicomTagParser>();
-            _getExtendedQueryTagsService = new GetExtendedQueryTagsService(_extendedQueryTagStore, _dicomTagParser);
+            _urlResolver = Substitute.For<IUrlResolver>();
+            _getExtendedQueryTagsService = new GetExtendedQueryTagsService(_extendedQueryTagStore, _dicomTagParser, _urlResolver);
         }
 
         [Fact]
@@ -37,6 +40,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             _extendedQueryTagStore.GetExtendedQueryTagsAsync(7, 0).Returns(Array.Empty<ExtendedQueryTagStoreEntry>());
             GetExtendedQueryTagsResponse response = await _getExtendedQueryTagsService.GetExtendedQueryTagsAsync(7, 0);
             await _extendedQueryTagStore.Received(1).GetExtendedQueryTagsAsync(7, 0);
+            _urlResolver.DidNotReceiveWithAnyArgs().ResolveQueryTagErrorsUri(default);
 
             Assert.Empty(response.ExtendedQueryTags);
         }
@@ -45,16 +49,19 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         public async Task GivenRequestForMultipleTags_WhenMultipleTagsAreStored_ThenExtendedQueryTagEntryListShouldBeReturned()
         {
             ExtendedQueryTagStoreEntry tag1 = CreateExtendedQueryTagEntry(1, "45456767", DicomVRCode.AE.ToString(), null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready);
-            ExtendedQueryTagStoreEntry tag2 = CreateExtendedQueryTagEntry(2, "04051001", DicomVRCode.FL.ToString(), "PrivateCreator1", QueryTagLevel.Series, ExtendedQueryTagStatus.Adding);
+            ExtendedQueryTagStoreEntry tag2 = CreateExtendedQueryTagEntry(2, "04051001", DicomVRCode.FL.ToString(), "PrivateCreator1", QueryTagLevel.Series, ExtendedQueryTagStatus.Adding, 7);
+            Uri tag2Errors = new Uri("https://dicom.contoso.io/unit/test/extendedquerytags/" + tag2.Path + "/errors", UriKind.Absolute);
 
             List<ExtendedQueryTagStoreEntry> storedEntries = new List<ExtendedQueryTagStoreEntry>() { tag1, tag2 };
 
             _extendedQueryTagStore.GetExtendedQueryTagsAsync(101, 303).Returns(storedEntries);
+            _urlResolver.ResolveQueryTagErrorsUri(tag2.Path).Returns(tag2Errors);
             GetExtendedQueryTagsResponse response = await _getExtendedQueryTagsService.GetExtendedQueryTagsAsync(101, 303);
             await _extendedQueryTagStore.Received(1).GetExtendedQueryTagsAsync(101, 303);
 
-            var expected = new GetExtendedQueryTagEntry[] { tag1.ToExtendedQueryTagEntry(), tag2.ToExtendedQueryTagEntry() };
+            var expected = new GetExtendedQueryTagEntry[] { tag1.ToExtendedQueryTagEntry(_urlResolver), tag2.ToExtendedQueryTagEntry(_urlResolver) };
             Assert.Equal(expected, response.ExtendedQueryTags, ExtendedQueryTagEntryEqualityComparer.Default);
+            _urlResolver.Received(2).ResolveQueryTagErrorsUri(tag2.Path);
         }
 
         [Theory]
@@ -76,6 +83,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
                 .Returns(Task.FromException<ExtendedQueryTagStoreEntry>(new ExtendedQueryTagNotFoundException("Tag doesn't exist")));
             await Assert.ThrowsAsync<ExtendedQueryTagNotFoundException>(() => _getExtendedQueryTagsService.GetExtendedQueryTagAsync(tagPath));
             await _extendedQueryTagStore.Received(1).GetExtendedQueryTagAsync(actualTagPath, default);
+            _urlResolver.DidNotReceiveWithAnyArgs().ResolveQueryTagErrorsUri(default);
         }
 
         [Fact]
@@ -94,13 +102,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             _extendedQueryTagStore.GetExtendedQueryTagAsync(tagPath, default).Returns(stored);
             GetExtendedQueryTagResponse response = await _getExtendedQueryTagsService.GetExtendedQueryTagAsync(tagPath);
             await _extendedQueryTagStore.Received(1).GetExtendedQueryTagAsync(tagPath, default);
+            _urlResolver.DidNotReceiveWithAnyArgs().ResolveQueryTagErrorsUri(default);
 
             Assert.Equal(stored.ToExtendedQueryTagEntry(), response.ExtendedQueryTag, ExtendedQueryTagEntryEqualityComparer.Default);
         }
 
-        private static ExtendedQueryTagStoreEntry CreateExtendedQueryTagEntry(int key, string path, string vr, string privateCreator = null, QueryTagLevel level = QueryTagLevel.Instance, ExtendedQueryTagStatus status = ExtendedQueryTagStatus.Ready)
+        private static ExtendedQueryTagStoreEntry CreateExtendedQueryTagEntry(int key, string path, string vr, string privateCreator = null, QueryTagLevel level = QueryTagLevel.Instance, ExtendedQueryTagStatus status = ExtendedQueryTagStatus.Ready, int errorCount = 0)
         {
-            return new ExtendedQueryTagStoreEntry(key, path, vr, privateCreator, level, status, QueryStatus.Enabled, 0);
+            return new ExtendedQueryTagStoreEntry(key, path, vr, privateCreator, level, status, QueryStatus.Enabled, errorCount);
         }
     }
 }

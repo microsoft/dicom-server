@@ -26,18 +26,22 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
                 && string.Equals(x.VR, y.VR, StringComparison.OrdinalIgnoreCase)
                 && x.PrivateCreator == y.PrivateCreator
                 && x.Level == y.Level
-                && x.Status == y.Status;
+                && x.Status == y.Status
+                && x.Errors?.Count == y.Errors?.Count
+                && x.Errors?.Href == y.Errors?.Href;
         }
 
-        public int GetHashCode(GetExtendedQueryTagEntry extendedQueryTagEntry)
+        public int GetHashCode(GetExtendedQueryTagEntry entry)
         {
-            EnsureArg.IsNotNull(extendedQueryTagEntry, nameof(extendedQueryTagEntry));
-            return HashCode.Combine(
-                extendedQueryTagEntry.Path,
-                extendedQueryTagEntry.VR,
-                extendedQueryTagEntry.PrivateCreator,
-                extendedQueryTagEntry.Level,
-                extendedQueryTagEntry.Status);
+            EnsureArg.IsNotNull(entry, nameof(entry));
+            int hashCode = HashCode.Combine(
+                entry.Path,
+                entry.VR,
+                entry.PrivateCreator,
+                entry.Level,
+                entry.Status);
+
+            return entry.Errors != null ? HashCode.Combine(hashCode, entry.Errors.Count, entry.Errors.Href) : hashCode;
         }
     }
 }
