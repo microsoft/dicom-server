@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,9 +20,16 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// Get extended query tags errors by tag path.
         /// </summary>
         /// <param name="tagPath">The tag path.</param>
+        /// <param name="limit">The maximum number of results to retrieve.</param>
+        /// <param name="offset">The offset from which to retrieve paginated results.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A list of Extended Query Tag Errors.</returns>
-        Task<IReadOnlyList<ExtendedQueryTagError>> GetExtendedQueryTagErrorsAsync(string tagPath, CancellationToken cancellationToken = default);
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <para><paramref name="limit"/> is less than <c>1</c></para>
+        /// <para>-or-</para>
+        /// <para><paramref name="offset"/> is less than <c>0</c>.</para>
+        /// </exception>
+        Task<IReadOnlyList<ExtendedQueryTagError>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, int offset = 0, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously adds an error for a specified Extended Query Tag.

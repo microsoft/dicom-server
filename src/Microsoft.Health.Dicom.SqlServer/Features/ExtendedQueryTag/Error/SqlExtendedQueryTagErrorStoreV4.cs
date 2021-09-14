@@ -74,7 +74,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
             }
         }
 
-        public override async Task<IReadOnlyList<ExtendedQueryTagError>> GetExtendedQueryTagErrorsAsync(string tagPath, CancellationToken cancellationToken = default)
+        public override async Task<IReadOnlyList<ExtendedQueryTagError>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, int offset, CancellationToken cancellationToken = default)
         {
             List<ExtendedQueryTagError> results = new List<ExtendedQueryTagError>();
 

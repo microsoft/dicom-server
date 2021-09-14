@@ -65,7 +65,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                errorCode,
                watermark);
 
-            var errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath());
+            var errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), 1, 0);
 
             Assert.Equal(errors[0].StudyInstanceUid, studyInstanceUid);
             Assert.Equal(errors[0].SeriesInstanceUid, seriesInstanceUid);
@@ -93,7 +93,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             ValidationErrorCode errorCode = ValidationErrorCode.InvalidCharacters;
             await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, errorCode, watermark);
 
-            var extendedQueryTagErrorBeforeTagDeletion = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath());
+            var extendedQueryTagErrorBeforeTagDeletion = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), int.MaxValue, 0);
             Assert.Equal(1, extendedQueryTagErrorBeforeTagDeletion.Count);
 
             var extendedQueryTagBeforeTagDeletion = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag.GetPath());
@@ -103,7 +103,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await Assert.ThrowsAsync<ExtendedQueryTagNotFoundException>(
                 () => _extendedQueryTagStore.GetExtendedQueryTagAsync(tag.GetPath()));
             await Assert.ThrowsAsync<ExtendedQueryTagNotFoundException>(
-                () => _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath()));
+                () => _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), 1, 0));
             Assert.False(await _errorStoreTestHelper.DoesExtendedQueryTagErrorExistAsync(tagKey));
         }
 
@@ -119,7 +119,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             int tagKey = await AddTagAsync(tag);
             ValidationErrorCode errorCode = ValidationErrorCode.MultiValues;
             await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, errorCode, watermark);
-            var extendedQueryTagErrorBeforeTagDeletion = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath());
+            var extendedQueryTagErrorBeforeTagDeletion = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), int.MaxValue, 0);
             Assert.Equal(1, extendedQueryTagErrorBeforeTagDeletion.Count);
 
             IReadOnlyList<Instance> instanceBeforeDeletion = await _indexDataStoreTestHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
@@ -127,7 +127,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
-            Assert.Empty(await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath()));
+            Assert.Empty(await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), 1, 0));
             Assert.False(await _errorStoreTestHelper.DoesExtendedQueryTagErrorExistAsync(tagKey));
 
             IReadOnlyList<Instance> instanceAfterDeletion = await _indexDataStoreTestHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
@@ -166,7 +166,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _indexDataStore.DeleteStudyIndexAsync(studyUid1, DateTime.UtcNow);
 
             // check errors
-            var errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath());
+            var errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), int.MaxValue, 0);
             Assert.Single(errors);
             Assert.Equal(studyUid3, errors[0].StudyInstanceUid);
             Assert.Equal(seriesUid3, errors[0].SeriesInstanceUid);
@@ -202,7 +202,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _indexDataStore.DeleteSeriesIndexAsync(studyUid, seriesUid1, DateTime.UtcNow);
 
             // check errors
-            var errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath());
+            var errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), int.MaxValue, 0);
             Assert.Single(errors);
             Assert.Equal(studyUid, errors[0].StudyInstanceUid);
             Assert.Equal(seriesUid3, errors[0].SeriesInstanceUid);
@@ -237,7 +237,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _indexDataStore.DeleteInstanceIndexAsync(new InstanceIdentifier(studyUid1, seriesUid1, instanceUid1));
 
             // check errors
-            var errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag1.GetPath());
+            var errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag1.GetPath(), int.MaxValue, 0);
             Assert.Single(errors);
             Assert.Equal(studyUid2, errors[0].StudyInstanceUid);
             Assert.Equal(seriesUid2, errors[0].SeriesInstanceUid);
@@ -278,8 +278,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _indexDataStore.DeleteInstanceIndexAsync(new InstanceIdentifier(studyUid1, seriesUid1, instanceUid1));
 
             // check errors
-            Assert.Empty(await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag1.GetPath()));
-            var errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag2.GetPath());
+            Assert.Empty(await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag1.GetPath(), 1, 0));
+            var errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag2.GetPath(), int.MaxValue, 0);
             Assert.Single(errors);
             Assert.Equal(studyUid2, errors[0].StudyInstanceUid);
             Assert.Equal(seriesUid2, errors[0].SeriesInstanceUid);

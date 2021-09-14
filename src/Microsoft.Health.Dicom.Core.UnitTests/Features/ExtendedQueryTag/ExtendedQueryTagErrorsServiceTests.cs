@@ -70,12 +70,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
                 return true;
             });
 
-            _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tagPath).Returns(new List<ExtendedQueryTagError>());
-            GetExtendedQueryTagErrorsResponse response = await _extendedQueryTagErrorsService.GetExtendedQueryTagErrorsAsync(tagPath);
+            _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tagPath, 100, 200).Returns(Array.Empty<ExtendedQueryTagError>());
+            GetExtendedQueryTagErrorsResponse response = await _extendedQueryTagErrorsService.GetExtendedQueryTagErrorsAsync(tagPath, 100, 200);
 
             _dicomTagParser.Received(1).TryParse(
                 Arg.Is(tagPath),
                 out Arg.Any<DicomTag[]>());
+            await _extendedQueryTagErrorStore.Received(1).GetExtendedQueryTagErrorsAsync(tagPath, 100, 200);
 
             Assert.Empty(response.ExtendedQueryTagErrors);
         }
@@ -93,9 +94,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
                 return true;
             });
 
-            _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tagPath).Returns(new List<ExtendedQueryTagError>());
-            await _extendedQueryTagErrorsService.GetExtendedQueryTagErrorsAsync(tagPath);
-            await _extendedQueryTagErrorStore.Received(1).GetExtendedQueryTagErrorsAsync(tagPath);
+            _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tagPath, 10, 50).Returns(Array.Empty<ExtendedQueryTagError>());
+            await _extendedQueryTagErrorsService.GetExtendedQueryTagErrorsAsync(tagPath, 10, 50);
+            await _extendedQueryTagErrorStore.Received(1).GetExtendedQueryTagErrorsAsync(tagPath, 10, 50);
             _dicomTagParser.Received(1).TryParse(
                 Arg.Is(tagPath),
                 out Arg.Any<DicomTag[]>());
@@ -121,9 +122,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
                 return true;
             });
 
-            _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tagPath).Returns(expected);
-            GetExtendedQueryTagErrorsResponse response = await _extendedQueryTagErrorsService.GetExtendedQueryTagErrorsAsync(tagPath);
-            await _extendedQueryTagErrorStore.Received(1).GetExtendedQueryTagErrorsAsync(tagPath);
+            _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tagPath, 5, 100).Returns(expected);
+            GetExtendedQueryTagErrorsResponse response = await _extendedQueryTagErrorsService.GetExtendedQueryTagErrorsAsync(tagPath, 5, 100);
+            await _extendedQueryTagErrorStore.Received(1).GetExtendedQueryTagErrorsAsync(tagPath, 5, 100);
             _dicomTagParser.Received(1).TryParse(
                 Arg.Is(tagPath),
                 out Arg.Any<DicomTag[]>());

@@ -89,6 +89,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// <summary>
         /// Handles requests to get all extended query tags.
         /// </summary>
+        /// <param name="limit">The maximum number of results to retrieve.</param>
+        /// <param name="offset">The offset from which to retrieve paginated results.</param>
         /// <returns>
         /// Returns Bad Request if given path can't be parsed. Returns Not Found if given path doesn't map to a stored
         /// extended query tag or if no extended query tags are stored. Returns OK with a JSON body of all tags in other cases.
@@ -150,6 +152,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// Handles requests to get extended query tag errors.
         /// </summary>
         /// <param name="tagPath">Path for requested extended query tag.</param>
+        /// <param name="limit">The maximum number of results to retrieve.</param>
+        /// <param name="offset">The offset from which to retrieve paginated results.</param>
         /// <returns>
         /// Returns Bad Request if given path can't be parsed. Returns Not Found if given path doesn't map to a stored
         /// error. Returns OK with a JSON body of requested tag error in other cases.
@@ -162,12 +166,15 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [VersionedRoute(KnownRoutes.GetExtendedQueryTagErrorsRoute)]
         [Route(KnownRoutes.GetExtendedQueryTagErrorsRoute)]
         [AuditEventType(AuditEventSubType.GetExtendedQueryTagErrors)]
-        public async Task<IActionResult> GetTagErrorsAsync(string tagPath)
+        public async Task<IActionResult> GetTagErrorsAsync(
+            [FromRoute] string tagPath,
+            [FromQuery, Range(1, 200)] int limit = 100,
+            [FromQuery, Range(0, int.MaxValue)] int offset = 0)
         {
             _logger.LogInformation("DICOM Web Get Extended Query Tag Errors request received for extended query tag: {tagPath}", tagPath);
 
             EnsureFeatureIsEnabled();
-            GetExtendedQueryTagErrorsResponse response = await _mediator.GetExtendedQueryTagErrorsAsync(tagPath, HttpContext.RequestAborted);
+            GetExtendedQueryTagErrorsResponse response = await _mediator.GetExtendedQueryTagErrorsAsync(tagPath, limit, offset, HttpContext.RequestAborted);
 
             return StatusCode((int)HttpStatusCode.OK, response);
         }
