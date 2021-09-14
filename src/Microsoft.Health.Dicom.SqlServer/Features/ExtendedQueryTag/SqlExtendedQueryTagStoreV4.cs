@@ -98,7 +98,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                         VLatest.ExtendedQueryTag.QueryStatus,
                         VLatest.ExtendedQueryTag.ErrorCount);
 
-
                     executionTimeWatch.Stop();
                     Logger.LogInformation(executionTimeWatch.ElapsedMilliseconds.ToString());
 

@@ -1048,7 +1048,7 @@ BEGIN
             QueryStatus,
             ErrorCount
     FROM    dbo.ExtendedQueryTag
-    WHERE   TagPath                 = ISNULL(@tagPath, TagPath)
+    WHERE   TagPath = ISNULL(@tagPath, TagPath)
 END
 GO
 
