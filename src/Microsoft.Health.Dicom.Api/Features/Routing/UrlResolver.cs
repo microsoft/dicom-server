@@ -66,6 +66,19 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         }
 
         /// <inheritdoc />
+        public Uri ResolveQueryTagErrorsUri(string tagPath)
+        {
+            var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey("version");
+
+            return RouteUri(
+                hasVersion ? KnownRouteNames.VersionedGetExtendedQueryTagErrors : KnownRouteNames.GetExtendedQueryTagErrors,
+                new RouteValueDictionary
+                {
+                    { KnownActionParameterNames.TagPath, tagPath },
+                });
+        }
+
+        /// <inheritdoc />
         public Uri ResolveRetrieveStudyUri(string studyInstanceUid)
         {
             EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));

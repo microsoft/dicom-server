@@ -24,5 +24,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
 
         internal const string VersionedGetExtendedQueryTag = nameof(VersionedGetExtendedQueryTag);
         internal const string GetExtendedQueryTag = nameof(GetExtendedQueryTag);
+
+        internal const string VersionedGetExtendedQueryTagErrors = nameof(VersionedGetExtendedQueryTagErrors);
+        internal const string GetExtendedQueryTagErrors = nameof(GetExtendedQueryTagErrors);
     }
 }

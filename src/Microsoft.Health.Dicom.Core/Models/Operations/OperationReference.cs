@@ -20,9 +20,6 @@ namespace Microsoft.Health.Dicom.Core.Models.Operations
         /// </summary>
         /// <param name="id">The unique operation ID.</param>
         /// <param name="href">The resource URL for the operation.</param>
-        /// <exception cref="ArgumentException">
-        /// <paramref name="href"/> is empty or consists of white space characters.
-        /// </exception>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="href"/> is <see langword="null"/>.
         /// </exception>
