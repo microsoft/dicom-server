@@ -19,7 +19,7 @@
     <PackageReference Include="Microsoft.Health.SqlServer" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.SqlServer.Api" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Scrutor" Version="3.3.0" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.2" PrivateAssets="All" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.3" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
