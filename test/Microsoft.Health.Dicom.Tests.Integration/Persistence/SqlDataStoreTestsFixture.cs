@@ -37,13 +37,17 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private const string LocalConnectionString = "server=(local);Integrated Security=true";
 
         private readonly string _masterConnectionString;
-        private readonly string _databaseName;
         private readonly SchemaInitializer _schemaInitializer;
 
-        // Only 1 public constructor is allowed for test fixture.
-        internal SqlDataStoreTestsFixture(string databaseName)
+        internal SqlDataStoreTestsFixture(string databaseName) : this(databaseName, new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max))
         {
-            _databaseName = EnsureArg.IsNotNullOrEmpty(databaseName, nameof(databaseName));
+
+        }
+        // Only 1 public constructor is allowed for test fixture.
+        internal SqlDataStoreTestsFixture(string databaseName, SchemaInformation schemaInformation)
+        {
+            DatabaseName = EnsureArg.IsNotNullOrEmpty(databaseName, nameof(databaseName));
+            SchemaInformation = EnsureArg.IsNotNull(schemaInformation, nameof(schemaInformation));
 
             IConfiguration environment = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
@@ -51,7 +55,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             string initialConnectionString = environment["SqlServer:ConnectionString"] ?? LocalConnectionString;
             _masterConnectionString = new SqlConnectionStringBuilder(initialConnectionString) { InitialCatalog = "master" }.ToString();
-            TestConnectionString = new SqlConnectionStringBuilder(initialConnectionString) { InitialCatalog = _databaseName }.ToString();
+            TestConnectionString = new SqlConnectionStringBuilder(initialConnectionString) { InitialCatalog = DatabaseName }.ToString();
 
             var config = new SqlServerDataStoreConfiguration
             {
@@ -78,8 +82,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var schemaManagerDataStore = new SchemaManagerDataStore(sqlConnectionFactory);
 
             SchemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, baseScriptProvider, NullLogger<SchemaUpgradeRunner>.Instance, sqlConnectionFactory, schemaManagerDataStore);
-
-            SchemaInformation = new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max);
 
             _schemaInitializer = new SchemaInitializer(configOptions, schemaManagerDataStore, SchemaUpgradeRunner, SchemaInformation, sqlConnectionFactory, sqlConnectionStringProvider, mediator, NullLogger<SchemaInitializer>.Instance);
 
@@ -166,6 +168,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             return $"{prefix}{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}_{BigInteger.Abs(new BigInteger(Guid.NewGuid().ToByteArray()))}";
         }
 
+        public string DatabaseName { get; }
+
         public async Task InitializeAsync(bool forceIncrementalSchemaUpgrade)
         {
             // Create the database
@@ -176,7 +180,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 using (SqlCommand command = sqlConnection.CreateCommand())
                 {
                     command.CommandTimeout = 600;
-                    command.CommandText = $"CREATE DATABASE {_databaseName}";
+                    command.CommandText = $"CREATE DATABASE {DatabaseName}";
                     await command.ExecuteNonQueryAsync();
                 }
             }
@@ -217,7 +221,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandTimeout = 600;
-                    sqlCommand.CommandText = $"DROP DATABASE IF EXISTS {_databaseName}";
+                    sqlCommand.CommandText = $"DROP DATABASE IF EXISTS {DatabaseName}";
                     await sqlCommand.ExecuteNonQueryAsync();
                 }
             }

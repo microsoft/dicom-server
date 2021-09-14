@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,13 +32,33 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             SchemaCompareDatabaseEndpoint snapshotEndpoint = new SchemaCompareDatabaseEndpoint(snapshotFixture.TestConnectionString);
             SchemaCompareDatabaseEndpoint diffEndpoint = new SchemaCompareDatabaseEndpoint(diffFixture.TestConnectionString);
             var comparison = new SchemaComparison(snapshotEndpoint, diffEndpoint);
-
             SchemaComparisonResult result = comparison.Compare();
             Assert.True(result.IsEqual);
 
             // cleanup if succeeds
             await snapshotFixture.DisposeAsync();
             await diffFixture.DisposeAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(SchemaDiffVersions))]
+        public async Task GivenANewSchemaVersion_WhenApplying_ShouldBackCompatible(int schemaVersion)
+        {
+            // Create Sql store at version (schemaVersion -1)
+            SqlDataStoreTestsFixture oldSqlStore = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName($"BACK_{schemaVersion - 1}_"), new SchemaInformation(schemaVersion - 1, schemaVersion - 1));
+            await oldSqlStore.InitializeAsync(forceIncrementalSchemaUpgrade: false);
+            var oldProcedures = await SqlTestUtils.GetStoredProceduresAsync(oldSqlStore);
+
+            // Create Sql store at version SchemaVersion
+            SqlDataStoreTestsFixture newSqlStore = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName($"BACK_{schemaVersion}_"), new SchemaInformation(schemaVersion, schemaVersion));
+            await newSqlStore.InitializeAsync(forceIncrementalSchemaUpgrade: false);
+            var newProcedures = await SqlTestUtils.GetStoredProceduresAsync(oldSqlStore);
+
+            // Validate if stored prodcedures are compatible
+            StoredProcedureCompatibleValidator.Validate(newProcedures, oldProcedures);
+
+            await oldSqlStore.DisposeAsync();
+            await newSqlStore.DisposeAsync();
         }
 
         [Theory]
