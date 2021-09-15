@@ -1371,11 +1371,10 @@ GO
 -- RETURN VALUE
 --     The instance identifiers.
 ------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.GetInstancesByWatermarkRange(
+CREATE OR ALTER PROCEDURE dbo.GetInstancesByWatermarkRange
     @startWatermark BIGINT,
     @endWatermark BIGINT,
     @status TINYINT
-)
 AS
     SET NOCOUNT ON
     SET XACT_ABORT ON
@@ -1408,12 +1407,11 @@ GO
 -- RETURN VALUE
 --     The batches as defined by their inclusive minimum and maximum values.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetInstanceBatches (
+CREATE OR ALTER PROCEDURE dbo.GetInstanceBatches
     @batchSize INT,
     @batchCount INT,
     @status TINYINT,
     @maxWatermark BIGINT = NULL
-)
 AS
 BEGIN
     SET NOCOUNT     ON
@@ -1454,13 +1452,12 @@ GO
 --     @sopInstanceUid
 --         * The SOP instance UID.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.DeleteInstance (
+CREATE OR ALTER PROCEDURE dbo.DeleteInstance
     @cleanupAfter       DATETIMEOFFSET(0),
     @createdStatus      TINYINT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64) = null,
     @sopInstanceUid     VARCHAR(64) = null
-)
 AS
     SET NOCOUNT ON
     SET XACT_ABORT ON
@@ -1836,9 +1833,8 @@ GO
 -- RETURN VALUE
 --     The desired extended query tag, if found.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTag (
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTag
     @tagPath  VARCHAR(64) = NULL -- Support NULL for backwards compatibility
-)
 AS
 BEGIN
     SET NOCOUNT     ON
@@ -1909,9 +1905,8 @@ GO
 -- RETURN VALUE
 --     The corresponding extended query tags, if any.
 /***************************************************************************************/
-CREATE PROCEDURE dbo.GetExtendedQueryTagsByKey (
+CREATE PROCEDURE dbo.GetExtendedQueryTagsByKey
     @extendedQueryTagKeys dbo.ExtendedQueryTagKeyTableType_1 READONLY
-)
 AS
 BEGIN
     SET NOCOUNT     ON
@@ -1998,9 +1993,8 @@ GO
 -- RETURN VALUE
 --     The set of extended query tags assigned to the operation.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagsByOperation (
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagsByOperation
     @operationId uniqueidentifier
-)
 AS
 BEGIN
     SET NOCOUNT     ON
@@ -2039,11 +2033,10 @@ GO
 -- RETURN VALUE
 --     The added extended query tags.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTags (
+CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTags
     @extendedQueryTags dbo.AddExtendedQueryTagsInputTableType_1 READONLY,
     @maxAllowedCount INT = 128, -- Default value for backwards compatibility
     @ready BIT = 0
-)
 AS
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
@@ -2111,10 +2104,9 @@ GO
 -- RETURN VALUE
 --     The modified extended query tag.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.UpdateExtendedQueryTagQueryStatus (
+CREATE OR ALTER PROCEDURE dbo.UpdateExtendedQueryTagQueryStatus
     @tagPath VARCHAR(64),
     @queryStatus TINYINT
-)
 AS
     SET NOCOUNT     ON
 
@@ -2142,11 +2134,10 @@ GO
 -- RETURN VALUE
 --     The tag key of the error added.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTagError (
+CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTagError
     @tagKey INT,
     @errorCode SMALLINT,
     @watermark BIGINT
-)
 AS
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
@@ -2198,10 +2189,9 @@ GO
 --     @dataType
 --         * the data type of extended query tag. 0 -- String, 1 -- Long, 2 -- Double, 3 -- DateTime, 4 -- PersonName
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.DeleteExtendedQueryTag (
+CREATE OR ALTER PROCEDURE dbo.DeleteExtendedQueryTag
     @tagPath VARCHAR(64),
     @dataType TINYINT
-)
 AS
 
     SET NOCOUNT     ON
@@ -2498,11 +2488,10 @@ GO
 -- RETURN VALUE
 --     The subset of keys whose operation was successfully assigned.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.AssignReindexingOperation (
+CREATE OR ALTER PROCEDURE dbo.AssignReindexingOperation
     @extendedQueryTagKeys dbo.ExtendedQueryTagKeyTableType_1 READONLY,
     @operationId uniqueidentifier,
     @returnIfCompleted BIT = 0
-)
 AS
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
@@ -2553,9 +2542,8 @@ GO
 -- RETURN VALUE
 --     The keys for the completed tags
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.CompleteReindexing (
+CREATE OR ALTER PROCEDURE dbo.CompleteReindexing
     @extendedQueryTagKeys dbo.ExtendedQueryTagKeyTableType_1 READONLY
-)
 AS
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
