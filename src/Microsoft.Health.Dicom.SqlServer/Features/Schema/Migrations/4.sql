@@ -420,6 +420,17 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagError ON dbo.ExtendedQueryTagE
     Watermark
 )
 
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagError_CreatedTime_Watermark_TagKey ON dbo.ExtendedQueryTagError
+(
+    CreatedTime,
+    Watermark,
+    TagKey
+)
+INCLUDE
+(
+    ErrorCode
+)
+
 /*************************************************************
     Extended Query Tag Operation Table
     Stores the association between tags and their reindexing operation
@@ -1967,7 +1978,7 @@ BEGIN
     INNER JOIN dbo.Instance AS I
     ON XQTE.Watermark = I.Watermark
     WHERE XQTE.TagKey = @tagKey
-    ORDER BY CreatedTime ASC
+    ORDER BY CreatedTime ASC, XQTE.Watermark ASC, TagKey ASC
     OFFSET @offset ROWS
     FETCH NEXT @limit ROWS ONLY
 END
