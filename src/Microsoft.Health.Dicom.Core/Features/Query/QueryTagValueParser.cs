@@ -4,15 +4,53 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using Dicom;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    /// <summary>
-    /// Value parsers
-    /// </summary>
-    public partial class QueryParser
+    internal static class QueryTagValueParser
     {
+        public const string DateTagValueFormat = "yyyyMMdd";
+
+        private delegate QueryFilterCondition ValueParserFunc(QueryTag queryTag, string value);
+        private static readonly Dictionary<DicomVR, ValueParserFunc> ValueParsers = new Dictionary<DicomVR, ValueParserFunc>();
+        static QueryTagValueParser()
+        {
+            // register value parsers
+            ValueParsers.Add(DicomVR.DA, ParseDateTagValue);
+            ValueParsers.Add(DicomVR.UI, ParseStringTagValue);
+            ValueParsers.Add(DicomVR.LO, ParseStringTagValue);
+            ValueParsers.Add(DicomVR.SH, ParseStringTagValue);
+            ValueParsers.Add(DicomVR.PN, ParseStringTagValue);
+            ValueParsers.Add(DicomVR.CS, ParseStringTagValue);
+
+            ValueParsers.Add(DicomVR.AE, ParseStringTagValue);
+            ValueParsers.Add(DicomVR.AS, ParseStringTagValue);
+            ValueParsers.Add(DicomVR.DS, ParseStringTagValue);
+            ValueParsers.Add(DicomVR.IS, ParseStringTagValue);
+
+            ValueParsers.Add(DicomVR.SL, ParseLongTagValue);
+            ValueParsers.Add(DicomVR.SS, ParseLongTagValue);
+            ValueParsers.Add(DicomVR.UL, ParseLongTagValue);
+            ValueParsers.Add(DicomVR.US, ParseLongTagValue);
+
+            ValueParsers.Add(DicomVR.FL, ParseDoubleTagValue);
+            ValueParsers.Add(DicomVR.FD, ParseDoubleTagValue);
+        }
+
+        public static bool TryParseTagValue(QueryTag queryTag, string value, out QueryFilterCondition condition)
+        {
+            condition = null;
+            if (ValueParsers.TryGetValue(queryTag.VR, out ValueParserFunc valueParser))
+            {
+                condition = valueParser(queryTag, value);
+                return true;
+            }
+            return false;
+        }
+
         private static QueryFilterCondition ParseDateTagValue(QueryTag queryTag, string value)
         {
             if (QueryLimit.IsValidRangeQueryTag(queryTag))

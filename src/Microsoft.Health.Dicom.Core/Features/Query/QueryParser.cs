@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dicom;
@@ -24,34 +23,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     {
         private QueryExpressionImp _parsedQuery;
 
-        private readonly Dictionary<DicomVR, Func<QueryTag, string, QueryFilterCondition>> _valueParsers =
-            new Dictionary<DicomVR, Func<QueryTag, string, QueryFilterCondition>>();
-
         public const string DateTagValueFormat = "yyyyMMdd";
-
-        public QueryParser()
-        {
-            // register value parsers
-            _valueParsers.Add(DicomVR.DA, ParseDateTagValue);
-            _valueParsers.Add(DicomVR.UI, ParseStringTagValue);
-            _valueParsers.Add(DicomVR.LO, ParseStringTagValue);
-            _valueParsers.Add(DicomVR.SH, ParseStringTagValue);
-            _valueParsers.Add(DicomVR.PN, ParseStringTagValue);
-            _valueParsers.Add(DicomVR.CS, ParseStringTagValue);
-
-            _valueParsers.Add(DicomVR.AE, ParseStringTagValue);
-            _valueParsers.Add(DicomVR.AS, ParseStringTagValue);
-            _valueParsers.Add(DicomVR.DS, ParseStringTagValue);
-            _valueParsers.Add(DicomVR.IS, ParseStringTagValue);
-
-            _valueParsers.Add(DicomVR.SL, ParseLongTagValue);
-            _valueParsers.Add(DicomVR.SS, ParseLongTagValue);
-            _valueParsers.Add(DicomVR.UL, ParseLongTagValue);
-            _valueParsers.Add(DicomVR.US, ParseLongTagValue);
-
-            _valueParsers.Add(DicomVR.FL, ParseDoubleTagValue);
-            _valueParsers.Add(DicomVR.FD, ParseDoubleTagValue);
-        }
 
         public QueryExpression Parse(QueryResourceRequest request, IReadOnlyCollection<QueryTag> queryTags)
         {
@@ -65,6 +37,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             {
                 var trimmedKey = queryParam.Key.Trim();
 
+                // Parse known parameters
                 if (QueryParamsParser.TryParse(queryParam, ref _parsedQuery))
                 {
                     continue;
@@ -143,7 +116,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             }
         }
 
-        private bool ParseFilterCondition(
+        private static bool ParseFilterCondition(
             KeyValuePair<string, StringValues> queryParameter,
             IEnumerable<QueryTag> queryTags,
             out QueryFilterCondition condition)
@@ -171,10 +144,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 throw new QueryParseException(string.Format(DicomCoreResource.QueryEmptyAttributeValue, attributeId));
             }
 
-            if (_valueParsers.TryGetValue(queryTag.VR, out Func<QueryTag, string, QueryFilterCondition> valueParser))
-            {
-                condition = valueParser(queryTag, trimmedValue);
-            }
+            QueryTagValueParser.TryParseTagValue(queryTag, trimmedValue, out condition);
 
             condition.QueryTag = queryTag;
 
