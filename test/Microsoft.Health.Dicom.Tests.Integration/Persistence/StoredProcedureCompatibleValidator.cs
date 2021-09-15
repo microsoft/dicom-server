@@ -49,17 +49,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         private static List<Tuple<StoredProcedure, StoredProcedure>> GetComparisonProcedures(IReadOnlyCollection<StoredProcedure> newProcedures, IReadOnlyCollection<StoredProcedure> oldProcedures)
         {
-            // Return procedures keeping same name
             List<Tuple<StoredProcedure, StoredProcedure>> pairs = new List<Tuple<StoredProcedure, StoredProcedure>>();
             foreach (var oldOne in oldProcedures)
             {
+                // every procedure in old database must have match one in new
                 var newOne = newProcedures.FirstOrDefault(x => x.Name == oldOne.Name);
-                if (newOne != null)
-                {
-                    pairs.Add(new Tuple<StoredProcedure, StoredProcedure>(oldOne, newOne));
-                }
+                Assert.NotNull(newOne);
+                pairs.Add(new Tuple<StoredProcedure, StoredProcedure>(oldOne, newOne));
             }
-
             return pairs;
         }
 
