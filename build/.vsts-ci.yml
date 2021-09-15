@@ -68,14 +68,14 @@ stages:
 - stage: RunIntegrationTests
   displayName: 'Run Integration Tests'
   dependsOn:
-  - UpdateTestEnvironment
+  - UpdateCIEnvironment
   jobs:
   - template: run-integration-tests.yml
 
 - stage: RunE2ETests
   displayName: 'Run E2E Tests'
   dependsOn:
-  - UpdateTestEnvironment
+  - UpdateCIEnvironment
   jobs:
   - template: run-e2e-tests.yml
 
