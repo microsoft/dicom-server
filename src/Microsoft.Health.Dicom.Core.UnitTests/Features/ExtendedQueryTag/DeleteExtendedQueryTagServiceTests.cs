@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using NSubstitute;
@@ -23,7 +22,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         public DeleteExtendedQueryTagServiceTests()
         {
             _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
-            _extendedQueryTagService = new DeleteExtendedQueryTagService(_extendedQueryTagStore, new DicomTagParser());
+            _extendedQueryTagService = new DeleteExtendedQueryTagService(_extendedQueryTagStore);
         }
 
         [Fact]

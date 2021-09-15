@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
@@ -22,16 +21,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
     public class GetExtendedQueryTagsServiceTests
     {
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
-        private readonly IDicomTagParser _dicomTagParser;
         private readonly IUrlResolver _urlResolver;
         private readonly IGetExtendedQueryTagsService _getExtendedQueryTagsService;
 
         public GetExtendedQueryTagsServiceTests()
         {
             _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
-            _dicomTagParser = Substitute.For<IDicomTagParser>();
             _urlResolver = Substitute.For<IUrlResolver>();
-            _getExtendedQueryTagsService = new GetExtendedQueryTagsService(_extendedQueryTagStore, _dicomTagParser, _urlResolver);
+            _getExtendedQueryTagsService = new GetExtendedQueryTagsService(_extendedQueryTagStore, _urlResolver);
         }
 
         [Fact]
@@ -73,15 +70,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         [InlineData("DeviceID")]
         public async Task GivenRequestForExtendedQueryTag_WhenTagDoesntExist_ThenExceptionShouldBeThrown(string tagPath)
         {
-            DicomTag[] parsedTags = new DicomTag[] { DicomTag.DeviceID };
-
-            _dicomTagParser.TryParse(tagPath, out Arg.Any<DicomTag[]>()).Returns(x =>
-            {
-                x[1] = parsedTags;
-                return true;
-            });
-
-            string actualTagPath = parsedTags[0].GetPath();
+            string actualTagPath = DicomTag.DeviceID.GetPath();
             _extendedQueryTagStore
                 .GetExtendedQueryTagAsync(actualTagPath, default)
                 .Returns(Task.FromException<ExtendedQueryTagStoreJoinEntry>(new ExtendedQueryTagNotFoundException("Tag doesn't exist")));
@@ -94,15 +83,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         public async Task GivenRequestForExtendedQueryTag_WhenTagExists_ThenExtendedQueryTagEntryShouldBeReturned()
         {
             string tagPath = DicomTag.DeviceID.GetPath();
-            ExtendedQueryTagStoreJoinEntry stored = CreateJoinEntry(5, tagPath, DicomVRCode.AE.ToString());
-            DicomTag[] parsedTags = new DicomTag[] { DicomTag.DeviceID };
-
-            _dicomTagParser.TryParse(tagPath, out Arg.Any<DicomTag[]>()).Returns(x =>
-            {
-                x[1] = parsedTags;
-                return true;
-            });
-
+            ExtendedQueryTagStoreEntry stored = CreateExtendedQueryTagEntry(5, tagPath, DicomVRCode.AE.ToString());
             _extendedQueryTagStore.GetExtendedQueryTagAsync(tagPath, default).Returns(stored);
             GetExtendedQueryTagResponse response = await _getExtendedQueryTagsService.GetExtendedQueryTagAsync(tagPath);
             await _extendedQueryTagStore.Received(1).GetExtendedQueryTagAsync(tagPath, default);

@@ -22,8 +22,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     /// </summary>
     public partial class QueryParser : IQueryParser
     {
-        private readonly IDicomTagParser _dicomTagPathParser;
-
         private const string IncludeFieldValueAll = "all";
         private const StringComparison QueryParameterComparision = StringComparison.OrdinalIgnoreCase;
         private QueryExpressionImp _parsedQuery;
@@ -35,11 +33,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public const string DateTagValueFormat = "yyyyMMdd";
 
-        public QueryParser(IDicomTagParser dicomTagPathParser)
+        public QueryParser()
         {
-            EnsureArg.IsNotNull(dicomTagPathParser, nameof(dicomTagPathParser));
-            _dicomTagPathParser = dicomTagPathParser;
-
             // register parameter parsers
             _paramParsers.Add("offset", ParseOffset);
             _paramParsers.Add("limit", ParseLimit);
@@ -198,16 +193,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return condition != null;
         }
 
-        private bool TryParseDicomAttributeId(string attributeId, out DicomTag dicomTag)
+        private static bool TryParseDicomAttributeId(string attributeId, out DicomTag dicomTag)
         {
-            if (_dicomTagPathParser.TryParse(attributeId, out DicomTag[] result, supportMultiple: false))
-            {
-                dicomTag = result[0];
-                return true;
-            }
-
-            dicomTag = null;
-            return false;
+            return DicomTagParser.TryParse(attributeId, out dicomTag);
         }
 
         private static QueryTag GetSupportedQueryTag(DicomTag dicomTag, string attributeId, IEnumerable<QueryTag> queryTags)

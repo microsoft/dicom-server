@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -21,31 +20,23 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     public class GetExtendedQueryTagsService : IGetExtendedQueryTagsService
     {
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
-        private readonly IDicomTagParser _dicomTagParser;
         private readonly IUrlResolver _urlResolver;
 
         public GetExtendedQueryTagsService(
             IExtendedQueryTagStore extendedQueryTagStore,
-            IDicomTagParser dicomTagParser,
             IUrlResolver urlResolver)
         {
             _extendedQueryTagStore = EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
-            _dicomTagParser = EnsureArg.IsNotNull(dicomTagParser, nameof(dicomTagParser));
             _urlResolver = EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
         }
 
         public async Task<GetExtendedQueryTagResponse> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default)
         {
-            DicomTag[] tags;
+            DicomTag tag;
             string numericalTagPath;
-            if (_dicomTagParser.TryParse(tagPath, out tags, supportMultiple: false))
+            if (DicomTagParser.TryParse(tagPath, out tag))
             {
-                if (tags.Length > 1)
-                {
-                    throw new NotImplementedException(DicomCoreResource.SequentialDicomTagsNotSupported);
-                }
-
-                numericalTagPath = tags[0].GetPath();
+                numericalTagPath = tag.GetPath();
             }
             else
             {

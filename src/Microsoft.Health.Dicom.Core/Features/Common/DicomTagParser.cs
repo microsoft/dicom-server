@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Globalization;
 using Dicom;
 
@@ -12,15 +11,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
     /// <summary>
     /// Provides functionality to parse dicom tag path
     /// </summary>
-    public class DicomTagParser : IDicomTagParser
+    public static class DicomTagParser
     {
-        public bool TryParse(string dicomTagPath, out DicomTag[] dicomTags, bool supportMultiple = false)
+        public static bool TryParse(string dicomTagPath, out DicomTag tag)
         {
-            dicomTags = null;
-            if (supportMultiple)
-            {
-                throw new NotImplementedException(DicomCoreResource.SequentialDicomTagsNotSupported);
-            }
+            tag = null;
 
             if (string.IsNullOrWhiteSpace(dicomTagPath))
             {
@@ -28,15 +23,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
             }
 
 
-            DicomTag dicomTag = ParseStardandDicomTagKeyword(dicomTagPath);
+            tag = ParseStardandDicomTagKeyword(dicomTagPath);
 
-            if (dicomTag == null)
+            if (tag == null)
             {
-                dicomTag = ParseDicomTagNumber(dicomTagPath);
+                tag = ParseDicomTagNumber(dicomTagPath);
             }
 
-            dicomTags = new DicomTag[] { dicomTag };
-            return dicomTag != null;
+            return tag != null;
         }
 
         private static DicomTag ParseStardandDicomTagKeyword(string keyword)

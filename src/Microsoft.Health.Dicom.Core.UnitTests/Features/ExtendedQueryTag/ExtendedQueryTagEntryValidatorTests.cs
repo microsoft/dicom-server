@@ -6,7 +6,6 @@
 using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Xunit;
@@ -19,7 +18,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
 
         public ExtendedQueryTagEntryValidatorTests()
         {
-            _extendedQueryTagEntryValidator = new ExtendedQueryTagEntryValidator(new DicomTagParser());
+            _extendedQueryTagEntryValidator = new ExtendedQueryTagEntryValidator();
         }
 
         [Fact]

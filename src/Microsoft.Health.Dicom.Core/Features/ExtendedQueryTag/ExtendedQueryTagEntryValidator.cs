@@ -20,14 +20,6 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     public class ExtendedQueryTagEntryValidator : IExtendedQueryTagEntryValidator
     {
-        private readonly IDicomTagParser _dicomTagParser;
-
-        public ExtendedQueryTagEntryValidator(IDicomTagParser dicomTagParser)
-        {
-            EnsureArg.IsNotNull(dicomTagParser, nameof(dicomTagParser));
-            _dicomTagParser = dicomTagParser;
-        }
-
         /*
          * Unsupported VRCodes:
          * LT(Long Text), OB (Other Byte), OD (Other Double), OF(Other Float), OL (Other Long), OV(other Very long), OW (other Word), ST(Short Text, SV (Signed Very long)
@@ -81,7 +73,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// Validate extended query tag entry.
         /// </summary>
         /// <param name="tagEntry">the tag entry.</param>
-        private void ValidateExtendedQueryTagEntry(AddExtendedQueryTagEntry tagEntry)
+        private static void ValidateExtendedQueryTagEntry(AddExtendedQueryTagEntry tagEntry)
         {
             DicomTag tag = ParseTag(tagEntry.Path);
 
@@ -195,15 +187,15 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             }
         }
 
-        private DicomTag ParseTag(string path)
+        private static DicomTag ParseTag(string path)
         {
-            if (!_dicomTagParser.TryParse(path, out DicomTag[] result, supportMultiple: false))
+            if (!DicomTagParser.TryParse(path, out DicomTag result))
             {
                 throw new ExtendedQueryTagEntryValidationException(
                       string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidExtendedQueryTag, path));
             }
 
-            return result[0];
+            return result;
         }
 
         private static void EnsureVRIsSupported(DicomVR vr, string tagPath)
