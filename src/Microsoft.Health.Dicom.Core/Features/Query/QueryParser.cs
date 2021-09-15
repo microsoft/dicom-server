@@ -22,11 +22,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     /// </summary>
     public partial class QueryParser : IQueryParser
     {
-        private const string IncludeFieldValueAll = "all";
-        private const StringComparison QueryParameterComparision = StringComparison.OrdinalIgnoreCase;
         private QueryExpressionImp _parsedQuery;
-        private readonly Dictionary<string, Action<KeyValuePair<string, StringValues>>> _paramParsers =
-            new Dictionary<string, Action<KeyValuePair<string, StringValues>>>(StringComparer.OrdinalIgnoreCase);
 
         private readonly Dictionary<DicomVR, Func<QueryTag, string, QueryFilterCondition>> _valueParsers =
             new Dictionary<DicomVR, Func<QueryTag, string, QueryFilterCondition>>();
@@ -35,12 +31,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public QueryParser()
         {
-            // register parameter parsers
-            _paramParsers.Add("offset", ParseOffset);
-            _paramParsers.Add("limit", ParseLimit);
-            _paramParsers.Add("fuzzymatching", ParseFuzzyMatching);
-            _paramParsers.Add("includefield", ParseIncludeField);
-
             // register value parsers
             _valueParsers.Add(DicomVR.DA, ParseDateTagValue);
             _valueParsers.Add(DicomVR.UI, ParseStringTagValue);
@@ -75,10 +65,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             {
                 var trimmedKey = queryParam.Key.Trim();
 
-                // known keys
-                if (_paramParsers.TryGetValue(trimmedKey, out Action<KeyValuePair<string, StringValues>> paramParser))
+                if (QueryParamsParser.TryParse(queryParam, ref _parsedQuery))
                 {
-                    paramParser(queryParam);
                     continue;
                 }
 
@@ -164,7 +152,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             var attributeId = queryParameter.Key.Trim();
 
             // parse tag
-            if (!TryParseDicomAttributeId(attributeId, out DicomTag dicomTag))
+            if (!DicomTagParser.TryParse(attributeId, out DicomTag dicomTag))
             {
                 return false;
             }
@@ -193,11 +181,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return condition != null;
         }
 
-        private static bool TryParseDicomAttributeId(string attributeId, out DicomTag dicomTag)
-        {
-            return DicomTagParser.TryParse(attributeId, out dicomTag);
-        }
-
         private static QueryTag GetSupportedQueryTag(DicomTag dicomTag, string attributeId, IEnumerable<QueryTag> queryTags)
         {
             QueryTag queryTag = queryTags.FirstOrDefault(item =>
@@ -217,28 +200,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             }
 
             return queryTag;
-        }
-
-        private class QueryExpressionImp
-        {
-            public QueryExpressionImp()
-            {
-                IncludeFields = new HashSet<DicomTag>();
-                FilterConditions = new List<QueryFilterCondition>();
-            }
-
-            public HashSet<DicomTag> IncludeFields { get; set; }
-
-            public bool FuzzyMatch { get; set; }
-
-            public int Offset { get; set; }
-
-            public int Limit { get; set; }
-
-            public List<QueryFilterCondition> FilterConditions { get; set; }
-
-            public bool AllValue { get; set; }
-
         }
     }
 }
