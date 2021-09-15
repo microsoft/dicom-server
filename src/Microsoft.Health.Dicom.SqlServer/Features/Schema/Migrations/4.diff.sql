@@ -19,7 +19,7 @@ END
     TagKey and Watermark is Primary Key
 **************************************************************/
 IF NOT EXISTS (
-    SELECT * 
+    SELECT *
     FROM sys.tables
     WHERE name = 'ExtendedQueryTagError')
 BEGIN
@@ -68,7 +68,7 @@ GO
     OperationId is the unique ID for the associated operation (like reindexing)
 **************************************************************/
 IF NOT EXISTS (
-    SELECT * 
+    SELECT *
     FROM sys.tables
     WHERE name = 'ExtendedQueryTagOperation')
 BEGIN
@@ -90,8 +90,8 @@ BEGIN
 END
 
 IF NOT EXISTS (
-    SELECT * 
-    FROM sys.indexes 
+    SELECT *
+    FROM sys.indexes
     WHERE name='IX_ExtendedQueryTagOperation_OperationId' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagOperation'))
 BEGIN
     CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagOperation_OperationId ON dbo.ExtendedQueryTagOperation
@@ -374,7 +374,7 @@ AS
     UPDATE dbo.ExtendedQueryTag
     SET QueryStatus = @queryStatus
     OUTPUT INSERTED.TagKey, INSERTED.TagPath, INSERTED.TagVR, INSERTED.TagPrivateCreator, INSERTED.TagLevel, INSERTED.TagStatus, INSERTED.QueryStatus, INSERTED.ErrorCount
-    WHERE TagPath = @tagPath 
+    WHERE TagPath = @tagPath
 GO
 
 /*************************************************************
@@ -487,7 +487,7 @@ BEGIN
            TagVR,
            TagPrivateCreator,
            TagLevel,
-           TagStatus,           
+           TagStatus,
            QueryStatus,
            ErrorCount
     FROM dbo.ExtendedQueryTag AS XQT
@@ -523,7 +523,7 @@ BEGIN
            TagVR,
            TagPrivateCreator,
            TagLevel,
-           TagStatus,           
+           TagStatus,
            QueryStatus,
            ErrorCount
     FROM dbo.ExtendedQueryTag AS XQT
@@ -667,7 +667,7 @@ AS
         IF EXISTS (SELECT 1 FROM @stringExtendedQueryTags)
         BEGIN
             MERGE INTO dbo.ExtendedQueryTagString WITH (HOLDLOCK) AS T
-            USING 
+            USING
             (
                 -- Locks tags in dbo.ExtendedQueryTag
                 SELECT input.TagKey, input.TagValue, input.TagLevel
@@ -705,7 +705,7 @@ AS
         IF EXISTS (SELECT 1 FROM @longExtendedQueryTags)
         BEGIN
             MERGE INTO dbo.ExtendedQueryTagLong WITH (HOLDLOCK) AS T
-            USING 
+            USING
             (
                 SELECT input.TagKey, input.TagValue, input.TagLevel
                 FROM @longExtendedQueryTags input
@@ -866,7 +866,7 @@ BEGIN
 
     -- Check existence
     IF (@@ROWCOUNT = 0)
-        THROW 50404, 'extended query tag not found', 1 
+        THROW 50404, 'extended query tag not found', 1
 
     SELECT
         TagKey,
@@ -933,7 +933,7 @@ AS
         SET CreatedTime = @currentDate,
             ErrorCode = @errorCode,
             @addedCount = 0
-        WHEN NOT MATCHED THEN 
+        WHEN NOT MATCHED THEN
             INSERT (TagKey, ErrorCode, Watermark, CreatedTime)
             VALUES (@tagKey, @errorCode, @watermark, @currentDate)
         OUTPUT INSERTED.TagKey;
@@ -993,7 +993,7 @@ AS
                TagVR,
                TagPrivateCreator,
                TagLevel,
-               TagStatus,               
+               TagStatus,
                QueryStatus,
                ErrorCount
         FROM @extendedQueryTagKeys AS input
@@ -1142,10 +1142,10 @@ AS
     SET XACT_ABORT  ON
 
     BEGIN TRANSACTION
-        
+
         DECLARE @tagStatus TINYINT
         DECLARE @tagKey INT
- 
+
         SELECT @tagKey = TagKey, @tagStatus = TagStatus
         FROM dbo.ExtendedQueryTag WITH(XLOCK)
         WHERE dbo.ExtendedQueryTag.TagPath = @tagPath
@@ -1180,7 +1180,7 @@ AS
             DELETE FROM dbo.ExtendedQueryTagPersonName WHERE TagKey = @tagKey
 
         -- Delete tag
-        DELETE FROM dbo.ExtendedQueryTag 
+        DELETE FROM dbo.ExtendedQueryTag
         WHERE TagKey = @tagKey
 
         DELETE FROM dbo.ExtendedQueryTagError
@@ -1251,12 +1251,12 @@ AS
     AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
 
     IF @@ROWCOUNT = 0
-        THROW 50404, 'Instance not found', 1    
+        THROW 50404, 'Instance not found', 1
 
     -- Deleting tag errors
     DECLARE @deletedTags AS TABLE
     (
-        TagKey BIGINT  
+        TagKey BIGINT
     )
     DELETE XQTE
         OUTPUT deleted.TagKey
@@ -1278,10 +1278,10 @@ AS
         INSERT INTO @deletedTagCounts
             (TagKey, ErrorCount)
         SELECT TagKey, COUNT(1)
-        FROM @deletedTags    
+        FROM @deletedTags
         GROUP BY TagKey
 
-        UPDATE XQT 
+        UPDATE XQT
         SET XQT.ErrorCount = XQT.ErrorCount - DTC.ErrorCount
         FROM dbo.ExtendedQueryTag AS XQT
         INNER JOIN @deletedTagCounts AS DTC
@@ -1332,7 +1332,7 @@ AS
 
     UPDATE cf
     SET cf.CurrentWatermark = NULL
-    FROM dbo.ChangeFeed cf
+    FROM dbo.ChangeFeed cf WITH(FORCESEEK)
     JOIN @deletedInstances d
     ON cf.StudyInstanceUid = d.StudyInstanceUid
         AND cf.SeriesInstanceUid = d.SeriesInstanceUid
