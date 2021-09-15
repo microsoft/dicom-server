@@ -10,7 +10,7 @@ BEGIN
     ALTER TABLE dbo.ExtendedQueryTag
     ADD
         QueryStatus TINYINT DEFAULT 1 NOT NULL,
-        ErrorCount  INT NOT NULL
+        ErrorCount  INT DEFAULT 0 NOT NULL
 END
 
 /*************************************************************
