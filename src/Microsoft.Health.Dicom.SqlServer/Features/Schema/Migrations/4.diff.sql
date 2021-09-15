@@ -31,14 +31,32 @@ BEGIN
     )
 END
 IF NOT EXISTS (
-    SELECT * 
-    FROM sys.indexes 
+    SELECT *
+    FROM sys.indexes
     WHERE name='IXC_ExtendedQueryTagError' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagError'))
 BEGIN
     CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagError ON dbo.ExtendedQueryTagError
     (
         TagKey,
         Watermark
+    )
+END
+GO
+
+IF NOT EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_ExtendedQueryTagError_CreatedTime_Watermark_TagKey' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagError'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagError_CreatedTime_Watermark_TagKey ON dbo.ExtendedQueryTagError
+    (
+        CreatedTime,
+        Watermark,
+        TagKey
+    )
+    INCLUDE
+    (
+        ErrorCode
     )
 END
 GO
@@ -824,11 +842,18 @@ GO
 -- PARAMETERS
 --     @tagPath
 --         * The TagPath for the extended query tag for which we retrieve error(s).
+--     @limit
+--         * The maximum number of results to retrieve.
+--     @offset
+--         * The offset from which to retrieve paginated results.
 --
 -- RETURN VALUE
 --     The tag error fields and the corresponding instance UIDs.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrors (@tagPath VARCHAR(64))
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrors
+    @tagPath VARCHAR(64),
+    @limit   INT,
+    @offset  INT
 AS
 BEGIN
     SET NOCOUNT     ON
@@ -854,6 +879,9 @@ BEGIN
     INNER JOIN dbo.Instance AS I
     ON XQTE.Watermark = I.Watermark
     WHERE XQTE.TagKey = @tagKey
+    ORDER BY CreatedTime ASC, XQTE.Watermark ASC, TagKey ASC
+    OFFSET @offset ROWS
+    FETCH NEXT @limit ROWS ONLY
 END
 GO
 

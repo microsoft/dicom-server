@@ -165,6 +165,39 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Fact]
+        public async Task GivenMultipleTags_WhenGettingPaginatedResults_ThenProperlyPaginateErrors()
+        {
+            // Add tags
+            await AddExtendedQueryTagsAsync(
+                new AddExtendedQueryTagEntry[]
+                {
+                    DicomTag.DeviceSerialNumber.BuildAddExtendedQueryTagEntry(),
+                    DicomTag.PatientAge.BuildAddExtendedQueryTagEntry(),
+                    DicomTag.PatientWeight.BuildAddExtendedQueryTagEntry(),
+                    DicomTag.PatientSize.BuildAddExtendedQueryTagEntry(),
+                },
+                ready: true);
+
+            IReadOnlyList<ExtendedQueryTagStoreEntry> tags;
+
+            // Page 1
+            tags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(1, 0);
+            Assert.Equal(1, tags.Count);
+            Assert.Equal(tags[0].Path, DicomTag.DeviceSerialNumber.GetPath());
+
+            // Page 2
+            tags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(2, 1);
+            Assert.Equal(2, tags.Count);
+            Assert.Equal(tags[0].Path, DicomTag.PatientAge.GetPath());
+            Assert.Equal(tags[1].Path, DicomTag.PatientWeight.GetPath());
+
+            // Page 3
+            tags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(1, 3);
+            Assert.Equal(1, tags.Count);
+            Assert.Equal(tags[0].Path, DicomTag.PatientSize.GetPath());
+        }
+
+        [Fact]
         public async Task GivenQueryTags_WhenGettingTagsByOperation_ThenOnlyAssignedTags()
         {
             DicomTag tag1 = DicomTag.DeviceSerialNumber;

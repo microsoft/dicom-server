@@ -171,10 +171,10 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         public static Task<GetExtendedQueryTagErrorsResponse> GetExtendedQueryTagErrorsAsync(
-            this IMediator mediator, string extendedQueryTagPath, CancellationToken cancellationToken)
+            this IMediator mediator, string extendedQueryTagPath, int limit, int offset, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
-            return mediator.Send(new GetExtendedQueryTagErrorsRequest(extendedQueryTagPath), cancellationToken);
+            return mediator.Send(new GetExtendedQueryTagErrorsRequest(extendedQueryTagPath, limit, offset), cancellationToken);
         }
 
         public static Task<OperationStatusResponse> GetOperationStatusAsync(

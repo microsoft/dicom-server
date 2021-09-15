@@ -146,6 +146,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly DateTime2Column CreatedTime = new DateTime2Column("CreatedTime", 7);
             internal readonly Index IXC_ExtendedQueryTagError = new Index("IXC_ExtendedQueryTagError");
+            internal readonly Index IX_ExtendedQueryTagError_CreatedTime_Watermark_TagKey = new Index("IX_ExtendedQueryTagError_CreatedTime_Watermark_TagKey");
         }
 
         internal class ExtendedQueryTagLongTable : Table
@@ -784,12 +785,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             private readonly ParameterDefinition<System.String> _tagPath = new ParameterDefinition<System.String>("@tagPath", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.Int32> _limit = new ParameterDefinition<System.Int32>("@limit", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Int32> _offset = new ParameterDefinition<System.Int32>("@offset", global::System.Data.SqlDbType.Int, false);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath)
+            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath, System.Int32 limit, System.Int32 offset)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetExtendedQueryTagErrors";
                 _tagPath.AddParameter(command.Parameters, tagPath);
+                _limit.AddParameter(command.Parameters, limit);
+                _offset.AddParameter(command.Parameters, offset);
             }
         }
 
