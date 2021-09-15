@@ -124,13 +124,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             condition = null;
             var attributeId = queryParameter.Key.Trim();
 
-            // parse tag
-            if (!DicomTagParser.TryParse(attributeId, out DicomTag dicomTag))
+            QueryTag queryTag = GetMatchingQueryTag(attributeId, queryTags);
+            if (queryTag == null)
             {
-                return false;
+                throw new QueryParseException(string.Format(DicomCoreResource.UnsupportedSearchParameter, attributeId));
             }
-
-            QueryTag queryTag = GetSupportedQueryTag(dicomTag, attributeId, queryTags);
 
             // parse tag value
             if (queryParameter.Value.Count != 1)
@@ -151,8 +149,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return condition != null;
         }
 
-        private static QueryTag GetSupportedQueryTag(DicomTag dicomTag, string attributeId, IEnumerable<QueryTag> queryTags)
+        private static QueryTag GetMatchingQueryTag(string attributeId, IEnumerable<QueryTag> queryTags)
         {
+            if (!DicomTagParser.TryParse(attributeId, out DicomTag dicomTag))
+            {
+                return null;
+            }
+
             QueryTag queryTag = queryTags.FirstOrDefault(item =>
             {
                 // private tag from request doesn't have private creator, should do path comparison.
@@ -163,11 +166,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
                 return item.Tag == dicomTag;
             });
-
-            if (queryTag == null)
-            {
-                throw new QueryParseException(string.Format(DicomCoreResource.UnsupportedSearchParameter, attributeId));
-            }
 
             return queryTag;
         }
