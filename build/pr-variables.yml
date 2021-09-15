@@ -10,4 +10,5 @@ variables:
   azureSubscriptionName: 'Dicom OSS'
   windowsVmImage: 'windows-latest'
   buildConfiguration: 'Release'
+  deleteDataOnStartup: 'true'
   skipNugetSecurityAnalysis: 'true' # NuGet config contains multiple feeds but meets exception criteria

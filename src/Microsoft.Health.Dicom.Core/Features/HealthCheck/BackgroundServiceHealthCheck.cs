@@ -26,19 +26,19 @@ namespace Microsoft.Health.Dicom.Core.Features.HealthCheck
         private readonly ILogger<BackgroundServiceHealthCheck> _logger;
 
         public BackgroundServiceHealthCheck(
-            IIndexDataStoreFactory indexDataStoreFactory,
+            IIndexDataStore indexDataStore,
             IOptions<DeletedInstanceCleanupConfiguration> deletedInstanceCleanupConfiguration,
             TelemetryClient telemetryClient,
             BackgroundServiceHealthCheckCache backgroundServiceHealthCheckCache,
             ILogger<BackgroundServiceHealthCheck> logger)
         {
-            EnsureArg.IsNotNull(indexDataStoreFactory, nameof(indexDataStoreFactory));
+            EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
             EnsureArg.IsNotNull(deletedInstanceCleanupConfiguration?.Value, nameof(deletedInstanceCleanupConfiguration));
             EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
             EnsureArg.IsNotNull(backgroundServiceHealthCheckCache, nameof(backgroundServiceHealthCheckCache));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _indexDataStore = indexDataStoreFactory.GetInstance();
+            _indexDataStore = indexDataStore;
             _deletedInstanceCleanupConfiguration = deletedInstanceCleanupConfiguration.Value;
             _telemetryClient = telemetryClient;
             _backgroundServiceHealthCheckCache = backgroundServiceHealthCheckCache;

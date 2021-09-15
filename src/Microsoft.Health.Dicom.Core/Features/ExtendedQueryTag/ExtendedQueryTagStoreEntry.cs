@@ -3,6 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.Routing;
+
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     /// <summary>
@@ -10,43 +13,61 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     /// </summary>
     public class ExtendedQueryTagStoreEntry : ExtendedQueryTagEntry
     {
-        public ExtendedQueryTagStoreEntry(int key, string path, string vr, string privateCreator, QueryTagLevel level, ExtendedQueryTagStatus status)
+        public ExtendedQueryTagStoreEntry(int key, string path, string vr, string privateCreator, QueryTagLevel level, ExtendedQueryTagStatus status, QueryStatus queryStatus, int errorCount)
         {
             Key = key;
-            Path = path;
-            VR = vr;
+            Path = EnsureArg.IsNotNullOrWhiteSpace(path);
+            VR = EnsureArg.IsNotNullOrWhiteSpace(vr);
             PrivateCreator = privateCreator;
-            Level = level;
-            Status = status;
+            Level = EnsureArg.EnumIsDefined(level);
+            Status = EnsureArg.EnumIsDefined(status);
+            QueryStatus = EnsureArg.EnumIsDefined(queryStatus);
+            ErrorCount = EnsureArg.IsGte(errorCount, 0, nameof(errorCount));
         }
 
         /// <summary>
         /// Key of this extended query tag entry.
         /// </summary>
-        public int Key { get; set; }
+        public int Key { get; }
 
         /// <summary>
         /// Status of this tag.
         /// </summary>
-        public ExtendedQueryTagStatus Status { get; set; }
+        public ExtendedQueryTagStatus Status { get; }
 
         /// <summary>
         /// Level of this tag. Could be Study, Series or Instance.
         /// </summary>
-        public QueryTagLevel Level { get; set; }
+        public QueryTagLevel Level { get; }
+
+        /// <summary>
+        /// Query status of this tag.
+        /// </summary>
+        public QueryStatus QueryStatus { get; }
+
+        /// <summary>
+        /// Error count on this tag.
+        /// </summary>
+        public int ErrorCount { get; }
 
         /// <summary>
         /// Convert to  <see cref="GetExtendedQueryTagEntry"/>.
         /// </summary>
+        /// <param name="resolver">An optional <see cref="IUrlResolver"/> for resolving resource paths.</param>
         /// <returns>The extended query tag entry.</returns>
-        public GetExtendedQueryTagEntry ToExtendedQueryTagEntry()
+        public GetExtendedQueryTagEntry ToExtendedQueryTagEntry(IUrlResolver resolver = null)
         {
-            return new GetExtendedQueryTagEntry { Path = Path, VR = VR, PrivateCreator = PrivateCreator, Level = Level, Status = Status };
-        }
-
-        public override string ToString()
-        {
-            return $"Key: {Key}, Path: {Path}, VR:{VR}, PrivateCreator:{PrivateCreator}, Level:{Level}, Status:{Status}";
+            return new GetExtendedQueryTagEntry
+            {
+                Path = Path,
+                VR = VR,
+                PrivateCreator = PrivateCreator,
+                Level = Level,
+                Status = Status,
+                Errors = ErrorCount > 0 && resolver != null
+                    ? new ExtendedQueryTagErrorReference(ErrorCount, resolver.ResolveQueryTagErrorsUri(Path))
+                    : null,
+            };
         }
     }
 }

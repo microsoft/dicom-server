@@ -55,10 +55,6 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         public void ValidateExtendedQueryTags(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries)
         {
             EnsureArg.IsNotNull(extendedQueryTagEntries, nameof(extendedQueryTagEntries));
-            if (!extendedQueryTagEntries.Any())
-            {
-                throw new ExtendedQueryTagEntryValidationException(DicomCoreResource.MissingExtendedQueryTag);
-            }
 
             var pathSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (AddExtendedQueryTagEntry tagEntry in extendedQueryTagEntries)
@@ -73,6 +69,11 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 }
 
                 pathSet.Add(tagEntry.Path);
+            }
+
+            if (pathSet.Count == 0)
+            {
+                throw new ExtendedQueryTagEntryValidationException(DicomCoreResource.MissingExtendedQueryTag);
             }
         }
 
@@ -170,9 +171,9 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
             try
             {
-                DicomElementMinimumValidation.ValidateLO(privateCreator, nameof(privateCreator));
+                LongStringValidation.Validate(privateCreator, nameof(privateCreator));
             }
-            catch (DicomElementValidationException ex)
+            catch (ElementValidationException ex)
             {
                 throw new ExtendedQueryTagEntryValidationException(
                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.PrivateCreatorNotValidLO, tagPath), ex);

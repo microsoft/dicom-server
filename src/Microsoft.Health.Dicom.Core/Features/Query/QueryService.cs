@@ -49,7 +49,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             ValidateRequestIdentifiers(message);
 
-            var queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken);
+            var queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
 
             QueryExpression queryExpression = _queryParser.Parse(message, queryTags);
 
@@ -76,11 +76,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             {
                 case QueryResource.StudySeries:
                 case QueryResource.StudyInstances:
-                    UidValidator.Validate(message.StudyInstanceUid, nameof(message.StudyInstanceUid));
+                    UidValidation.Validate(message.StudyInstanceUid, nameof(message.StudyInstanceUid));
                     break;
                 case QueryResource.StudySeriesInstances:
-                    UidValidator.Validate(message.StudyInstanceUid, nameof(message.StudyInstanceUid));
-                    UidValidator.Validate(message.SeriesInstanceUid, nameof(message.SeriesInstanceUid));
+                    UidValidation.Validate(message.StudyInstanceUid, nameof(message.StudyInstanceUid));
+                    UidValidation.Validate(message.SeriesInstanceUid, nameof(message.SeriesInstanceUid));
                     break;
                 case QueryResource.AllStudies:
                 case QueryResource.AllSeries:

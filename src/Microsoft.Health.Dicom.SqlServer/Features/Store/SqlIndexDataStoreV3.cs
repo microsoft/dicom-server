@@ -28,48 +28,48 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
     /// </summary>
     internal class SqlIndexDataStoreV3 : SqlIndexDataStoreV2
     {
-        private readonly SqlConnectionWrapperFactory _sqlConnectionFactoryWrapper;
-
         public SqlIndexDataStoreV3(
             SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
             : base(sqlConnectionWrapperFactory)
         {
-            EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
-            _sqlConnectionFactoryWrapper = sqlConnectionWrapperFactory;
         }
 
         public override SchemaVersion Version => SchemaVersion.V3;
 
-        public override async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+        public override async Task<long> BeginCreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                // Build parameter for extended query tag.
-                VLatest.AddInstanceTableValuedParameters parameters = AddInstanceTableValuedParametersBuilder.Build(
-                    instance,
-                    queryTags.Where(tag => tag.IsExtendedQueryTag));
+                var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags.Where(tag => tag.IsExtendedQueryTag));
+                V3.AddInstanceTableValuedParameters parameters = new V3.AddInstanceTableValuedParameters(
+                    rows.StringRows,
+                    rows.LongRows,
+                    rows.DoubleRows,
+                    rows.DateTimeRows,
+                    rows.PersonNameRows
+                );
 
-                VLatest.AddInstance.PopulateCommand(
-                sqlCommandWrapper,
-                instance.GetString(DicomTag.StudyInstanceUID),
-                instance.GetString(DicomTag.SeriesInstanceUID),
-                instance.GetString(DicomTag.SOPInstanceUID),
-                instance.GetSingleValueOrDefault<string>(DicomTag.PatientID),
-                instance.GetSingleValueOrDefault<string>(DicomTag.PatientName),
-                instance.GetSingleValueOrDefault<string>(DicomTag.ReferringPhysicianName),
-                instance.GetStringDateAsDate(DicomTag.StudyDate),
-                instance.GetSingleValueOrDefault<string>(DicomTag.StudyDescription),
-                instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
-                instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
-                instance.GetStringDateAsDate(DicomTag.PerformedProcedureStepStartDate),
-                instance.GetStringDateAsDate(DicomTag.PatientBirthDate),
-                instance.GetSingleValueOrDefault<string>(DicomTag.ManufacturerModelName),
-                (byte)IndexStatus.Creating,
-                parameters);
+                V3.AddInstance.PopulateCommand(
+                    sqlCommandWrapper,
+                    instance.GetString(DicomTag.StudyInstanceUID),
+                    instance.GetString(DicomTag.SeriesInstanceUID),
+                    instance.GetString(DicomTag.SOPInstanceUID),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.PatientID),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.PatientName),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.ReferringPhysicianName),
+                    instance.GetStringDateAsDate(DicomTag.StudyDate),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.StudyDescription),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
+                    instance.GetStringDateAsDate(DicomTag.PerformedProcedureStepStartDate),
+                    instance.GetStringDateAsDate(DicomTag.PatientBirthDate),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.ManufacturerModelName),
+                    (byte)IndexStatus.Creating,
+                    parameters);
 
                 try
                 {

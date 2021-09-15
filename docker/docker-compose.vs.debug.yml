@@ -5,3 +5,7 @@ services:
     build:
       args:
         BUILD_CONFIGURATION: "Debug"
+  functions:
+    build:
+      args:
+        BUILD_CONFIGURATION: "Debug"

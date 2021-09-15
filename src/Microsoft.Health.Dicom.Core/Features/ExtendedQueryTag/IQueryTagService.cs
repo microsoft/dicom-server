@@ -17,8 +17,9 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <summary>
         /// Get queryable dicom tags.
         /// </summary>
+        /// <param name="forceRefresh">Optionally indicate that the data should be refreshed.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Queryable dicom tags.</returns>
-        Task<IReadOnlyCollection<QueryTag>> GetQueryTagsAsync(CancellationToken cancellationToken = default);
+        Task<IReadOnlyCollection<QueryTag>> GetQueryTagsAsync(bool forceRefresh = false, CancellationToken cancellationToken = default);
     }
 }

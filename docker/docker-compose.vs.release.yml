@@ -5,3 +5,7 @@ services:
     build:
       args:
         BUILD_CONFIGURATION: "Release"
+  functions:
+    build:
+      args:
+        BUILD_CONFIGURATION: "Release"

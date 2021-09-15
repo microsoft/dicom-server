@@ -26,6 +26,7 @@
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
     <None Include="docker-compose.yml" />
+    <None Include="functions\Dockerfile" />
     <None Include="sql\Dockerfile" />
   </ItemGroup>
 

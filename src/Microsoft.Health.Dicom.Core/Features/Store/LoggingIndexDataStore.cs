@@ -14,7 +14,6 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
@@ -23,11 +22,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     /// </summary>
     public class LoggingIndexDataStore : IIndexDataStore
     {
-        private static readonly Action<ILogger, InstanceIdentifier, Exception> LogCreateInstanceIndexDelegate =
+        private static readonly Action<ILogger, InstanceIdentifier, Exception> LogBeginAddInstanceDelegate =
             LoggerMessage.Define<InstanceIdentifier>(
                 LogLevel.Debug,
                 default,
-                "Creating DICOM instance index with '{DicomInstanceIdentifier}'.");
+                "Starting creation of DICOM instance index with '{DicomInstanceIdentifier}'.");
+
+        private static readonly Action<ILogger, InstanceIdentifier, Exception> LogReindexIndexDelegate =
+                LoggerMessage.Define<InstanceIdentifier>(
+                LogLevel.Debug,
+                default,
+                "Reindexing DICOM instance with '{DicomInstanceIdentifier}'.");
 
         private static readonly Action<ILogger, long, Exception> LogCreateInstanceIndexSucceededDelegate =
             LoggerMessage.Define<long>(
@@ -53,11 +58,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 default,
                 "Deleting DICOM instance index within Study with Study '{StudyInstanceUid}' to be cleaned up after '{CleanupAfter}'.");
 
-        private static readonly Action<ILogger, VersionedInstanceIdentifier, IndexStatus, Exception> LogUpdateInstanceIndexStatusDelegate =
-            LoggerMessage.Define<VersionedInstanceIdentifier, IndexStatus>(
+        private static readonly Action<ILogger, VersionedInstanceIdentifier, Exception> LogEndAddInstanceDelegate =
+            LoggerMessage.Define<VersionedInstanceIdentifier>(
                 LogLevel.Debug,
                 default,
-                "Updating the DICOM instance index status with '{DicomInstanceIdentifier}' to '{Status}'.");
+                "Completing creation of DICOM instance with '{DicomInstanceIdentifier}'.");
 
         private static readonly Action<ILogger, int, int, Exception> LogRetrieveDeletedInstancesAsyncDelegate =
             LoggerMessage.Define<int, int>(
@@ -115,21 +120,42 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         protected IIndexDataStore IndexDataStore { get; }
 
         /// <inheritdoc />
-        public async Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+        public async Task<long> BeginCreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-            LogCreateInstanceIndexDelegate(_logger, dicomDataset.ToInstanceIdentifier(), null);
+            LogBeginAddInstanceDelegate(_logger, dicomDataset.ToInstanceIdentifier(), null);
 
             try
             {
-                long version = await IndexDataStore.CreateInstanceIndexAsync(dicomDataset, queryTags, cancellationToken);
+                long version = await IndexDataStore.BeginCreateInstanceIndexAsync(dicomDataset, queryTags, cancellationToken);
 
                 LogCreateInstanceIndexSucceededDelegate(_logger, version, null);
 
                 return version;
             }
             catch (Exception ex)
+            {
+                LogOperationFailedDelegate(_logger, ex);
+
+                throw;
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task ReindexInstanceAsync(DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(dicomDataset);
+            LogReindexIndexDelegate(_logger, dicomDataset.ToInstanceIdentifier(), null);
+
+            try
+            {
+                await IndexDataStore.ReindexInstanceAsync(dicomDataset, watermark, queryTags, cancellationToken);
+
+                LogOperationSucceededDelegate(_logger, null);
+
+            }
+            catch (DataStoreException ex)
             {
                 LogOperationFailedDelegate(_logger, ex);
 
@@ -195,13 +221,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task UpdateInstanceIndexStatusAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, IndexStatus status, CancellationToken cancellationToken)
+        public async Task EndCreateInstanceIndexAsync(DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, bool allowExpiredTags = false, CancellationToken cancellationToken = default)
         {
-            LogUpdateInstanceIndexStatusDelegate(_logger, versionedInstanceIdentifier, status, null);
+            LogEndAddInstanceDelegate(_logger, dicomDataset.ToVersionedInstanceIdentifier(watermark), null);
 
             try
             {
-                await IndexDataStore.UpdateInstanceIndexStatusAsync(versionedInstanceIdentifier, status, cancellationToken);
+                await IndexDataStore.EndCreateInstanceIndexAsync(dicomDataset, watermark, queryTags, allowExpiredTags, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }

@@ -7,6 +7,7 @@ services:
       ASPNETCORE_ENVIRONMENT: "Development"
       ASPNETCORE_URLS: "https://+:8080"
       DicomServer__Security__Enabled: "false"
+      DicomFunctions__BaseAddress: "http://functions:80/api/"
       # [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Password is only used for development.")]
       SqlServer__ConnectionString: "Server=tcp:sql,1433;Initial Catalog=DICOM;Persist Security Info=False;User ID=sa;Password=${SAPASSWORD:-L0ca1P@ssw0rd};MultipleActiveResultSets=False;Connection Timeout=30;"
     user: root
@@ -14,6 +15,15 @@ services:
       - "63839:8080"
     volumes:
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+  functions:
+    image: ${DOCKER_REGISTRY-}microsofthealthdicomfunctions
+    environment:
+      # [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Password is only used for development.")]
+      AzureFunctionsJobHost__SqlServer__ConnectionString: "Server=tcp:sql,1433;Initial Catalog=DICOM;Persist Security Info=False;User ID=sa;Password=${SAPASSWORD:-L0ca1P@ssw0rd};MultipleActiveResultSets=False;Connection Timeout=30;"
+      # This is typically set by Visual Studio automatically
+      WEBSITE_HOSTNAME: "localhost:80"
+    ports:
+      - "7072:80"
   sql:
     environment:
       # [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Password is only used for development.")]

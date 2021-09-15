@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using NSubstitute;
 using Xunit;
 
@@ -20,9 +21,6 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Routing
     {
         private const string DefaultScheme = "http";
         private const string DefaultHost = "test";
-        private const string StudyInstanceUidActionParameterName = "studyInstanceUid";
-        private const string SeriesInstanceUidActionParameterName = "seriesInstanceUid";
-        private const string SopInstanceUidActionParameterName = "sopInstanceUid";
 
         private readonly IUrlHelperFactory _urlHelperFactory = Substitute.For<IUrlHelperFactory>();
         private readonly IHttpContextAccessor _httpContextAccessor = Substitute.For<IHttpContextAccessor>();
@@ -59,6 +57,21 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Routing
         }
 
         [Fact]
+        public void GivenOperationId_WhenRetrieveOperationStatusUriIsResolved_ThenCorrectUrlShouldBeReturned()
+        {
+            Guid operationId = Guid.NewGuid();
+
+            _urlResolver.ResolveOperationStatusUri(operationId);
+
+            ValidateUrlRouteContext(
+                KnownRouteNames.OperationStatus,
+                routeValues =>
+                {
+                    Assert.Equal(OperationId.ToString(operationId), routeValues[KnownActionParameterNames.OperationId]);
+                });
+        }
+
+        [Fact]
         public void GivenAStudy_WhenRetrieveStudyUriIsResolved_ThenCorrectUrlShouldBeReturned()
         {
             const string studyInstanceUid = "123.123";
@@ -66,10 +79,10 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Routing
             _urlResolver.ResolveRetrieveStudyUri(studyInstanceUid);
 
             ValidateUrlRouteContext(
-                "RetrieveStudy",
+                KnownRouteNames.RetrieveStudy,
                 routeValues =>
                 {
-                    Assert.Equal(studyInstanceUid, routeValues[StudyInstanceUidActionParameterName]);
+                    Assert.Equal(studyInstanceUid, routeValues[KnownActionParameterNames.StudyInstanceUid]);
                 });
         }
 
@@ -85,12 +98,12 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Routing
             _urlResolver.ResolveRetrieveInstanceUri(instance);
 
             ValidateUrlRouteContext(
-                "RetrieveInstance",
+                KnownRouteNames.RetrieveInstance,
                 routeValues =>
                 {
-                    Assert.Equal(studyInstanceUid, routeValues[StudyInstanceUidActionParameterName]);
-                    Assert.Equal(seriesInstanceUid, routeValues[SeriesInstanceUidActionParameterName]);
-                    Assert.Equal(sopInstanceUid, routeValues[SopInstanceUidActionParameterName]);
+                    Assert.Equal(studyInstanceUid, routeValues[KnownActionParameterNames.StudyInstanceUid]);
+                    Assert.Equal(seriesInstanceUid, routeValues[KnownActionParameterNames.SeriesInstanceUid]);
+                    Assert.Equal(sopInstanceUid, routeValues[KnownActionParameterNames.SopInstanceUid]);
                 });
         }
 

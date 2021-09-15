@@ -9,7 +9,20 @@ services:
       BlobStore__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
       DataStore: "SqlServer"
     depends_on:
+      - functions
+      - azurite
       - sql
+  functions:
+    build:
+      # VS Container Tools does not currently support automatically attaching a debugger to Azure Functions
+      # for Docker Compose, so the Dockerfile cannot be in the same folder as the csproj
+      context: ./..
+      dockerfile: docker/functions/Dockerfile
+    environment:
+      # By default Azure Durable Functions will re-use the same connection string
+      AzureWebJobsStorage: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;"
+      AZURE_FUNCTIONS_ENVIRONMENT: "Development"
+    depends_on:
       - azurite
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite:3.14.2@sha256:443c9b28466219e21005e638a28ac4bcc6d3860509d3fc9ec8753fce64424b29

@@ -11,8 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
     /// <summary>
     ///  Sql version of IIndexDataStore.
     /// </summary>
-    internal interface ISqlIndexDataStore : IIndexDataStore
+    internal interface ISqlIndexDataStore : IIndexDataStore, IVersioned
     {
-        SchemaVersion Version { get; }
     }
 }

@@ -79,11 +79,38 @@ namespace Microsoft.Health.Dicom.SqlServer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified extended query tag with tag key {0} cannot be found..
+        /// </summary>
+        internal static string ExtendedQueryTagNotFoundWhenAddingError {
+            get {
+                return ResourceManager.GetString("ExtendedQueryTagNotFoundWhenAddingError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot carry out the SQL datastore operation because the SQL schema needs to be upgraded..
         /// </summary>
         internal static string SchemaVersionNeedsToBeUpgraded {
             get {
                 return ResourceManager.GetString("SchemaVersionNeedsToBeUpgraded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot process SQL schema version {0}..
+        /// </summary>
+        internal static string SchemaVersionOutOfRange {
+            get {
+                return ResourceManager.GetString("SchemaVersionOutOfRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Current SQL schema version could not be resolved..
+        /// </summary>
+        internal static string UnknownSchemaVersion {
+            get {
+                return ResourceManager.GetString("UnknownSchemaVersion", resourceCulture);
             }
         }
     }
