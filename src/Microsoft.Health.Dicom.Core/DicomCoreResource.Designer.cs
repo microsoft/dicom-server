@@ -747,6 +747,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The extended query tag &apos;{0}&apos; has been disabled for QIDO, please enable it at first..
+        /// </summary>
+        internal static string TagIsDisabledOnQuery {
+            get {
+                return ResourceManager.GetString("TagIsDisabledOnQuery", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Unknown query parameter &apos;{0}&apos;. If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters, attributes and the levels..
         /// </summary>
         internal static string UnknownQueryParameter {

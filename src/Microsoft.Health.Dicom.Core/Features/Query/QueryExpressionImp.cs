@@ -14,9 +14,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         {
             IncludeFields = new HashSet<DicomTag>();
             FilterConditions = new List<QueryFilterCondition>();
+            ErroneousTags = new List<string>();
         }
 
-        public HashSet<DicomTag> IncludeFields { get; set; }
+        public HashSet<DicomTag> IncludeFields { get; }
 
         public bool FuzzyMatch { get; set; }
 
@@ -24,9 +25,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public int Limit { get; set; }
 
-        public List<QueryFilterCondition> FilterConditions { get; set; }
+        public List<QueryFilterCondition> FilterConditions { get; }
 
         public bool AllValue { get; set; }
+
+        public List<string> ErroneousTags { get; }
 
     }
 }

@@ -51,6 +51,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                         throw new QueryParseException(string.Format(DicomCoreResource.DuplicateQueryParam, queryParam.Key));
                     }
 
+                    // Check if tag is disabled on QIDO
+                    if (condition.QueryTag.IsExtendedQueryTag && condition.QueryTag.ExtendedQueryTagStoreEntry.QueryStatus == QueryStatus.Disabled)
+                    {
+                        throw new QueryParseException(string.Format(DicomCoreResource.TagIsDisabledOnQuery, queryParam.Key));
+                    }
+
+                    // Check if tag has error
+                    if (condition.QueryTag.IsExtendedQueryTag && condition.QueryTag.ExtendedQueryTagStoreEntry.ErrorCount > 0)
+                    {
+                        _parsedQuery.ErroneousTags.Add(trimmedKey);
+                    }
+
                     _parsedQuery.FilterConditions.Add(condition);
 
                     continue;
@@ -80,7 +92,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 _parsedQuery.FuzzyMatch,
                 _parsedQuery.Limit,
                 _parsedQuery.Offset,
-                _parsedQuery.FilterConditions);
+                _parsedQuery.FilterConditions,
+                _parsedQuery.ErroneousTags);
         }
 
         private static IReadOnlyCollection<QueryTag> GetQualifiedQueryTags(IReadOnlyCollection<QueryTag> queryTags, QueryResource queryResource)

@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query.Model
@@ -20,14 +21,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
             bool fuzzyMatching,
             int limit,
             int offset,
-            IReadOnlyCollection<QueryFilterCondition> filterConditions)
+            IReadOnlyCollection<QueryFilterCondition> filterConditions,
+            IReadOnlyCollection<string> erroneousTags
+            )
         {
             QueryResource = resourceType;
             IncludeFields = includeFields;
             FuzzyMatching = fuzzyMatching;
             Limit = limit;
             Offset = offset;
-            FilterConditions = filterConditions;
+            FilterConditions = EnsureArg.IsNotNull(filterConditions, nameof(filterConditions));
+            ErroneousTags = EnsureArg.IsNotNull(erroneousTags, nameof(erroneousTags));
             SetIELevel();
         }
 
@@ -65,6 +69,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
         /// List of filter conditions to find the DICOM objects
         /// </summary>
         public IReadOnlyCollection<QueryFilterCondition> FilterConditions { get; }
+
+        public IReadOnlyCollection<string> ErroneousTags { get; }
 
         /// <summary>
         /// Request query was empty
