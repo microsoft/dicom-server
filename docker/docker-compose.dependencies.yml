@@ -3,6 +3,7 @@ version: "3.4"
 services:
   microsoft.health.dicom.web:
     environment:
+      DicomFunctions__FunctionAccessKey: "cP0rhNdD/l9Dli+kEPQwupVqfTjksqK0dmMrZo/63mD0u0ezUrRl8Q=="
       SqlServer__ConnectionString: "Server=tcp:sql,1433;Initial Catalog=DICOM;Persist Security Info=False;User ID=sa;Password=${SAPASSWORD};MultipleActiveResultSets=False;Connection Timeout=30;"
       SqlServer__AllowDatabaseCreation: "true"
       SqlServer__Initialize: "true"
