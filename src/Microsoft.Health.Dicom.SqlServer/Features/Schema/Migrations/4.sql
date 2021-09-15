@@ -389,7 +389,7 @@ CREATE TABLE dbo.ExtendedQueryTag (
     TagLevel                TINYINT              NOT NULL,
     TagStatus               TINYINT              NOT NULL,
     QueryStatus             TINYINT              DEFAULT 1 NOT NULL,
-    ErrorCount              INT                  NOT NULL
+    ErrorCount              INT                  DEFAULT 0 NOT NULL
 )
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag

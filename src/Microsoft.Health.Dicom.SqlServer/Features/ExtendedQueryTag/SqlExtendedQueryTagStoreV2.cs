@@ -80,6 +80,20 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 }
             }
         }
+        public override async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(int limit, int offset, CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsGte(offset, 0, nameof(offset));
+            EnsureArg.IsGte(limit, 0, nameof(limit));
+
+            var tags = await GetAllExtendedQueryTagsAsync(cancellationToken);
+            if (offset >= tags.Count)
+            {
+                return Array.Empty<ExtendedQueryTagStoreEntry>();
+            }
+
+            tags.Sort((entry1, entry2) => entry1.Key - entry2.Key);
+            return tags.GetRange(offset, Math.Min(limit, tags.Count - offset));
+        }
 
         public override async Task<ExtendedQueryTagStoreEntry> GetExtendedQueryTagAsync(string path, CancellationToken cancellationToken = default)
         {
