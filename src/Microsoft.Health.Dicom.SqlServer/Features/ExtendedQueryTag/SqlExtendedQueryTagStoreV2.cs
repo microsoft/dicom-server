@@ -145,7 +145,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             }
         }
 
-        private async Task<List<ExtendedQueryTagStoreEntry>> GetAllExtendedQueryTagsAsync(CancellationToken cancellationToken = default)
+        protected async Task<List<ExtendedQueryTagStoreEntry>> GetAllExtendedQueryTagsAsync(CancellationToken cancellationToken = default)
         {
             List<ExtendedQueryTagStoreEntry> results = new List<ExtendedQueryTagStoreEntry>();
 
