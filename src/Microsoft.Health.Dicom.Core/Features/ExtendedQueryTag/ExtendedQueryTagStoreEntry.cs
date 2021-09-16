@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features.Routing;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
@@ -49,25 +48,5 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// Error count on this tag.
         /// </summary>
         public int ErrorCount { get; }
-
-        /// <summary>
-        /// Convert to  <see cref="GetExtendedQueryTagEntry"/>.
-        /// </summary>
-        /// <param name="resolver">An optional <see cref="IUrlResolver"/> for resolving resource paths.</param>
-        /// <returns>The extended query tag entry.</returns>
-        public GetExtendedQueryTagEntry ToExtendedQueryTagEntry(IUrlResolver resolver = null)
-        {
-            return new GetExtendedQueryTagEntry
-            {
-                Path = Path,
-                VR = VR,
-                PrivateCreator = PrivateCreator,
-                Level = Level,
-                Status = Status,
-                Errors = ErrorCount > 0 && resolver != null
-                    ? new ExtendedQueryTagErrorReference(ErrorCount, resolver.ResolveQueryTagErrorsUri(Path))
-                    : null,
-            };
-        }
     }
 }
