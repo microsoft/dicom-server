@@ -26,12 +26,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         private readonly IDicomWebClient _client;
         private readonly DicomTagsManager _tagManager;
         private readonly DicomInstancesManager _instanceManager;
+        private readonly bool _isUsingInProcTestServer;
 
         public ExtendedQueryTagTests(HttpIntegrationTestFixture<Startup> fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
             EnsureArg.IsNotNull(fixture.Client, nameof(fixture.Client));
             _client = fixture.Client;
+            _isUsingInProcTestServer = fixture.IsUsingInProcTestServer;
             _tagManager = new DicomTagsManager(_client);
             _instanceManager = new DicomInstancesManager(_client);
         }
@@ -39,6 +41,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenValidExtendedQueryTag_WhenGoThroughEndToEndScenario_ThenShouldSucceed()
         {
+            if (_isUsingInProcTestServer)
+            {
+                // AzureFunction doesn't have InProc test sever, skip this test.
+                return;
+            }
+
             DicomTag tag = DicomTag.SeriesNumber;
 
             // upload file
