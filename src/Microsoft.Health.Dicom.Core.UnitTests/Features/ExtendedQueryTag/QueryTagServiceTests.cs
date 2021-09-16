@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         public async Task GivenValidInput_WhenGetExtendedQueryTagsIsCalledMultipleTimes_ThenExtendedQueryTagStoreIsCalledOnce()
         {
             _extendedQueryTagStore.GetExtendedQueryTagsAsync(int.MaxValue, 0, Arg.Any<CancellationToken>())
-                  .Returns(Array.Empty<ExtendedQueryTagStoreEntry>());
+                  .Returns(Array.Empty<ExtendedQueryTagStoreJoinEntry>());
 
             await _queryTagService.GetQueryTagsAsync();
             await _queryTagService.GetQueryTagsAsync();

@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Microsoft.Health.Dicom.Core.Models.Operations;
+
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     /// <summary>
@@ -25,9 +27,14 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// </summary>
         public ExtendedQueryTagErrorReference Errors { get; set; }
 
+        /// <summary>
+        /// Optional reference to the operation acted upon the act.
+        /// </summary>
+        public OperationReference Operation { get; set; }
+
         public override string ToString()
         {
-            return $"Path: {Path}, VR:{VR}, PrivateCreator:{PrivateCreator}, Level:{Level}, Status:{Status}, Errors: {Errors?.Count ?? 0}";
+            return $"Path: {Path}, VR:{VR}, PrivateCreator:{PrivateCreator}, Level:{Level}, Status:{Status}, Errors: {Errors?.Count ?? 0}, OperationId: {Operation?.Id}";
         }
     }
 }

@@ -78,7 +78,7 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
                 "Fetching the extended query tags for operation ID '{OperationId}'.",
                 context.InstanceId);
 
-            return _extendedQueryTagStore.GetExtendedQueryTagsByOperationAsync(
+            return _extendedQueryTagStore.GetExtendedQueryTagsAsync(
                 context.GetInstanceGuid(),
                 cancellationToken: CancellationToken.None);
         }
