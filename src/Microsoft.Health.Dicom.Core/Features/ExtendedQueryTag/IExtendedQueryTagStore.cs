@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// A task representing the asynchronous get operation. The value of its <see cref="Task{TResult}.Result"/>
         /// property contains the tag's information as found in storage.
         /// </returns>
-        Task<ExtendedQueryTagStoreEntry> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default);
+        Task<ExtendedQueryTagStoreJoinEntry> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Get stored extended query tags from ExtendedQueryTagStore, if provided, by tagPath.
@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <para>-or-</para>
         /// <para><paramref name="offset"/> is less than <c>0</c>.</para>
         /// </exception>
-        Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(int limit, int offset = 0, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<ExtendedQueryTagStoreJoinEntry>> GetExtendedQueryTagsAsync(int limit, int offset = 0, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously gets extended query tags by keys.
@@ -69,7 +69,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <param name="queryTagKeys">The tag keys.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The task.</returns>
-        Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(IReadOnlyList<int> queryTagKeys, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<ExtendedQueryTagStoreJoinEntry>> GetExtendedQueryTagsAsync(IReadOnlyList<int> queryTagKeys, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Update QueryStatus of extended query tag.
@@ -78,7 +78,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <param name="queryStatus">The query status.</param>
         /// <param name="cancellationToken">The cancellation token</param>
         /// <returns>The updated extended query tag.</returns>
-        Task<ExtendedQueryTagStoreEntry> UpdateQueryStatusAsync(string tagPath, QueryStatus queryStatus, CancellationToken cancellationToken = default);
+        Task<ExtendedQueryTagStoreJoinEntry> UpdateQueryStatusAsync(string tagPath, QueryStatus queryStatus, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously gets extended query tags assigned to the <paramref name="operationId"/>.
@@ -88,12 +88,12 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
         /// </param>
         /// <returns>
-        /// A task representing the <see cref="GetExtendedQueryTagsByOperationAsync"/> operation.
+        /// A task representing the <see cref="GetExtendedQueryTagsAsync(Guid, CancellationToken)"/> operation.
         /// The value of its <see cref="Task{TResult}.Result"/> property contains the set of query tags assigned
         /// to the <paramref name="operationId"/>.
         /// </returns>
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-        Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsByOperationAsync(Guid operationId, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(Guid operationId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously deletes extended query tag.

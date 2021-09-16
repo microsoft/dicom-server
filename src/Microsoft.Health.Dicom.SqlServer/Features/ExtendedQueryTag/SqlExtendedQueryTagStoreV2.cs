@@ -80,22 +80,22 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 }
             }
         }
-        public override async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(int limit, int offset, CancellationToken cancellationToken = default)
+        public override async Task<IReadOnlyList<ExtendedQueryTagStoreJoinEntry>> GetExtendedQueryTagsAsync(int limit, int offset, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsGte(offset, 0, nameof(offset));
-            EnsureArg.IsGte(limit, 0, nameof(limit));
+            EnsureArg.IsGte(limit, 1, nameof(limit));
 
             var tags = await GetAllExtendedQueryTagsAsync(cancellationToken);
             if (offset >= tags.Count)
             {
-                return Array.Empty<ExtendedQueryTagStoreEntry>();
+                return Array.Empty<ExtendedQueryTagStoreJoinEntry>();
             }
 
             tags.Sort((entry1, entry2) => entry1.Key - entry2.Key);
             return tags.GetRange(offset, Math.Min(limit, tags.Count - offset));
         }
 
-        public override async Task<ExtendedQueryTagStoreEntry> GetExtendedQueryTagAsync(string path, CancellationToken cancellationToken = default)
+        public override async Task<ExtendedQueryTagStoreJoinEntry> GetExtendedQueryTagAsync(string path, CancellationToken cancellationToken = default)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
@@ -121,7 +121,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                     executionTimeWatch.Stop();
                     Logger.LogInformation(executionTimeWatch.ElapsedMilliseconds.ToString());
 
-                    return new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, QueryStatus.Enabled, 0);
+                    return new ExtendedQueryTagStoreJoinEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, QueryStatus.Enabled, 0);
                 }
             }
         }
@@ -159,9 +159,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             }
         }
 
-        private async Task<List<ExtendedQueryTagStoreEntry>> GetAllExtendedQueryTagsAsync(CancellationToken cancellationToken = default)
+        private async Task<List<ExtendedQueryTagStoreJoinEntry>> GetAllExtendedQueryTagsAsync(CancellationToken cancellationToken = default)
         {
-            List<ExtendedQueryTagStoreEntry> results = new List<ExtendedQueryTagStoreEntry>();
+            var results = new List<ExtendedQueryTagStoreJoinEntry>();
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
@@ -182,7 +182,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                             V2.ExtendedQueryTag.TagLevel,
                             V2.ExtendedQueryTag.TagStatus);
 
-                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, QueryStatus.Enabled, 0));
+                        results.Add(new ExtendedQueryTagStoreJoinEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, QueryStatus.Enabled, 0));
                     }
 
                     executionTimeWatch.Stop();

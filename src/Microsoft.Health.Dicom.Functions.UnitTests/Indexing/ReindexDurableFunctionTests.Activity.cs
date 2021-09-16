@@ -68,7 +68,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             context.InstanceId.Returns(OperationId.ToString(operationId));
 
             _extendedQueryTagStore
-                .GetExtendedQueryTagsByOperationAsync(operationId, CancellationToken.None)
+                .GetExtendedQueryTagsAsync(operationId, CancellationToken.None)
                 .Returns(expectedOutput);
 
             // Call the activity
@@ -80,7 +80,7 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
             Assert.Same(expectedOutput, actual);
             await _extendedQueryTagStore
                 .Received(1)
-                .GetExtendedQueryTagsByOperationAsync(operationId, CancellationToken.None);
+                .GetExtendedQueryTagsAsync(operationId, CancellationToken.None);
         }
 
         [Fact]

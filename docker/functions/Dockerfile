@@ -5,9 +5,12 @@
 
 # To enable ssh & remote debugging on app service change the base image to the one below
 # FROM mcr.microsoft.com/azure-functions/dotnet:3.0-appservice
-FROM mcr.microsoft.com/azure-functions/dotnet:3.0@sha256:51e397ceb4863898580b360ca3d4ed6e29d36095983fd38e6cb526f8eb69144e AS az-func-runtime
-ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
-    AzureFunctionsJobHost__Logging__Console__IsEnabled=true
+FROM mcr.microsoft.com/azure-functions/dotnet:3.2.0@sha256:d8ad1c65053c914f0de17f95c40f8e77fcbbc54b7472c7a591b4bd4bf08bf034 AS az-func-runtime
+ENV AzureFunctionsJobHost__Logging__Console__IsEnabled=true \
+    AzureWebJobsScriptRoot=/home/site/wwwroot \
+    AzureWebJobsSecretStorageType=Files \
+    FUNCTIONS_SECRETS_PATH=/etc/secrets
+ADD docker/functions/host_secrets.json /etc/secrets/host.json
 
 # Copy the DICOM Server repository and build the Azure Functions project
 # Note: While the latest .NET SDK is used for building, Azure Functions build target requires .NET Core 3.1 to be installed

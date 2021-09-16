@@ -1840,16 +1840,18 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-    SELECT  TagKey,
-            TagPath,
-            TagVR,
-            TagPrivateCreator,
-            TagLevel,
-            TagStatus,
-            QueryStatus,
-            ErrorCount
-    FROM    dbo.ExtendedQueryTag
-    WHERE   TagPath = ISNULL(@tagPath, TagPath)
+    SELECT XQT.TagKey,
+           TagPath,
+           TagVR,
+           TagPrivateCreator,
+           TagLevel,
+           TagStatus,
+           QueryStatus,
+           ErrorCount,
+           OperationId
+    FROM dbo.ExtendedQueryTag AS XQT
+    LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
+    WHERE TagPath = ISNULL(@tagPath, TagPath)
 END
 GO
 
@@ -1877,16 +1879,18 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-    SELECT TagKey,
+    SELECT XQT.TagKey,
            TagPath,
            TagVR,
            TagPrivateCreator,
            TagLevel,
            TagStatus,
            QueryStatus,
-           ErrorCount
-    FROM dbo.ExtendedQueryTag
-    ORDER BY TagKey ASC
+           ErrorCount,
+           OperationId
+    FROM dbo.ExtendedQueryTag AS XQT
+    LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
+    ORDER BY XQT.TagKey ASC
     OFFSET @offset ROWS
     FETCH NEXT @limit ROWS ONLY
 END
@@ -1919,10 +1923,11 @@ BEGIN
            TagLevel,
            TagStatus,
            QueryStatus,
-           ErrorCount
-    FROM dbo.ExtendedQueryTag AS XQT
-    INNER JOIN @extendedQueryTagKeys AS input
-    ON XQT.TagKey = input.TagKey
+           ErrorCount,
+           OperationId
+    FROM @extendedQueryTagKeys AS input
+    INNER JOIN dbo.ExtendedQueryTag AS XQT ON input.TagKey = XQT.TagKey
+    LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
 END
 GO
 
@@ -2110,9 +2115,20 @@ CREATE OR ALTER PROCEDURE dbo.UpdateExtendedQueryTagQueryStatus
 AS
     SET NOCOUNT     ON
 
-    UPDATE dbo.ExtendedQueryTag
+    UPDATE XQT
     SET QueryStatus = @queryStatus
-    OUTPUT INSERTED.TagKey, INSERTED.TagPath, INSERTED.TagVR, INSERTED.TagPrivateCreator, INSERTED.TagLevel, INSERTED.TagStatus, INSERTED.QueryStatus, INSERTED.ErrorCount
+    OUTPUT
+        INSERTED.TagKey,
+        INSERTED.TagPath,
+        INSERTED.TagVR,
+        INSERTED.TagPrivateCreator,
+        INSERTED.TagLevel,
+        INSERTED.TagStatus,
+        INSERTED.QueryStatus,
+        INSERTED.ErrorCount,
+        XQTO.OperationId
+    FROM dbo.ExtendedQueryTag AS XQT
+    LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
     WHERE TagPath = @tagPath
 GO
 
