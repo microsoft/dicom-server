@@ -39,6 +39,7 @@ function Add-AadTestAuthEnvironment {
 
     Set-StrictMode -Version Latest
 
+    Write-Host "PENCHE: Get AzureAD Context"
     # Get current AzureAd context
     try {
         $tenantInfo = Get-AzureADCurrentSessionInfo -ErrorAction Stop
@@ -47,6 +48,7 @@ function Add-AadTestAuthEnvironment {
         throw "Please log in to Azure AD with Connect-AzureAD cmdlet before proceeding"
     }
 
+    Write-Host "PENCHE: Get Azure Context"
     # Get current Az context
     try {
         $azContext = Get-AzContext
