@@ -68,7 +68,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Contains(instances, instance => instance.ToInstanceIdentifier().Equals(instanceId));
         }
 
-
         [Theory]
         [MemberData(nameof(GetRequestBodyWithMissingProperty))]
         public async Task GivenMissingPropertyInRequestBody_WhenCallingPostAsync_ThenShouldThrowException(string requestBody, string missingProperty)
