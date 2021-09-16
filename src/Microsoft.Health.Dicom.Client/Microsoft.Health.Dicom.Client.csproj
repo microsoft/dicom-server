@@ -15,5 +15,17 @@
     <PackageReference Include="fo-dicom.Json" Version="$(FoDicomVersion)" NoWarn="NU1701" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="IDicomWebClient.*.cs">
+      <DependentUpon>IDicomWebClient.cs</DependentUpon>
+    </None>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="DicomWebClient.*.cs">
+      <DependentUpon>DicomWebClient.cs</DependentUpon>
+    </None>
+  </ItemGroup>
 
 </Project>

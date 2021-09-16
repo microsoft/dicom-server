@@ -1,0 +1,61 @@
+﻿{
+  "version": "2.0",
+  "logging": {
+    "applicationInsights": {
+      "samplingSettings": {
+        "isEnabled": true,
+        "excludedTypes": "Request"
+      }
+    }
+  },
+  "DicomFunctions": {
+    "Indexing": {
+      "BatchSize": 100,
+      "BatchThreadCount": 5,
+      "MaxParallelBatches": 10,
+      "RetryOptions": {
+        "BackoffCoefficient": 3,
+        "FirstRetryInterval": "00:01:00",
+        "MaxNumberOfAttempts": 4
+      }
+    },
+    "PurgeHistory": {
+      "RuntimeStatuses": [ "Completed" ],
+      "MinimumAgeDays": 14,
+      "Frequency": "0 0 * * *"
+    }
+  },
+  "BlobStore": {
+    "ConnectionString": null,
+    "Containers": {
+      "Metadata": "metadatacontainer"
+    },
+    "Initialization": {
+      "RetryDelay": "00:00:15",
+      "Timeout": "00:06:00"
+    },
+    "Operations": {
+      "Download": {
+        "MaximumConcurrency": 5
+      },
+      "Upload": {
+        "MaximumConcurrency": 5
+      }
+    },
+    "Retry": {
+      "Delay": "00:00:04",
+      "MaxRetries": 6,
+      "Mode": "Exponential",
+      "NetworkTimeout": "00:02:00"
+    }
+  },
+  "SqlServer": {
+    "ConnectionString": "server=(local);Initial Catalog=Dicom;Integrated Security=true",
+    "TransientFaultRetryPolicy": {
+      "InitialDelay": "00:00:00.100",
+      "RetryCount": 3,
+      "Factor": 2,
+      "FastFirst": true
+    }
+  }
+}

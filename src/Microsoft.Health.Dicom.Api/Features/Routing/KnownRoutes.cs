@@ -11,7 +11,9 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         private const string SeriesRouteSegment = "series";
         private const string InstancesRouteSegment = "instances";
         private const string MetadataSegment = "metadata";
+        private const string ErrorsSegment = "errors";
         private const string ExtendedQueryTagsRouteSegment = "extendedquerytags";
+        private const string OperationsSegment = "operations";
 
         private const string StudiesInstanceUidRouteSegment = "{" + KnownActionParameterNames.StudyInstanceUid + "}";
         private const string SeriesInstanceUidRouteSegment = "{" + KnownActionParameterNames.SeriesInstanceUid + "}";
@@ -45,7 +47,10 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         public const string ExtendedQueryTagRoute = ExtendedQueryTagsRouteSegment;
         public const string DeleteExtendedQueryTagRoute = ExtendedQueryTagsRouteSegment + "/" + ExtendedQueryTagPathRouteSegment;
         public const string GetExtendedQueryTagRoute = ExtendedQueryTagsRouteSegment + "/" + ExtendedQueryTagPathRouteSegment;
+        public const string GetExtendedQueryTagErrorsRoute = GetExtendedQueryTagRoute + "/" + ErrorsSegment;
 
         public const string HealthCheck = "/health/check";
+
+        public const string OperationInstanceRoute = OperationsSegment + "/{" + KnownActionParameterNames.OperationId + "}";
     }
 }

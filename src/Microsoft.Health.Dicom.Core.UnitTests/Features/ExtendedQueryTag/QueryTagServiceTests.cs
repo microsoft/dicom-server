@@ -30,12 +30,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         [Fact]
         public async Task GivenValidInput_WhenGetExtendedQueryTagsIsCalledMultipleTimes_ThenExtendedQueryTagStoreIsCalledOnce()
         {
-            _extendedQueryTagStore.GetExtendedQueryTagsAsync(null, Arg.Any<CancellationToken>())
-                  .Returns(Array.Empty<ExtendedQueryTagStoreEntry>());
+            _extendedQueryTagStore.GetExtendedQueryTagsAsync(int.MaxValue, 0, Arg.Any<CancellationToken>())
+                  .Returns(Array.Empty<ExtendedQueryTagStoreJoinEntry>());
 
             await _queryTagService.GetQueryTagsAsync();
             await _queryTagService.GetQueryTagsAsync();
-            await _extendedQueryTagStore.Received(1).GetExtendedQueryTagsAsync(null, Arg.Any<CancellationToken>());
+            await _extendedQueryTagStore.Received(1).GetExtendedQueryTagsAsync(int.MaxValue, 0, Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             FeatureConfiguration featureConfiguration = new FeatureConfiguration() { EnableExtendedQueryTags = false };
             IQueryTagService indexableDicomTagService = new QueryTagService(_extendedQueryTagStore, Options.Create(featureConfiguration));
             await indexableDicomTagService.GetQueryTagsAsync();
-            await _extendedQueryTagStore.DidNotReceive().GetExtendedQueryTagsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+            await _extendedQueryTagStore.DidNotReceiveWithAnyArgs().GetExtendedQueryTagsAsync(default, default, default);
         }
     }
 }

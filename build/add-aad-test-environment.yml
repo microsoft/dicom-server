@@ -18,7 +18,7 @@ steps:
 
       # Get admin token
       $username = "$(tenant-admin-user-name)"
-      $password_raw = "$(tenant-admin-user-password)"
+      $password_raw = '$(tenant-admin-user-password)'
       $password =  ConvertTo-SecureString -AsPlainText $password_raw -Force
       $adminCredential = New-Object PSCredential $username,$password
 
@@ -29,10 +29,10 @@ steps:
           grant_type = "password"
           username   = $username
           password   = $password_raw
-          resource   = $resource 
+          resource   = $resource
           client_id  = "1950a258-227b-4e31-a9cf-717495945fc2" # Microsoft Azure PowerShell
       }
-              
+
       # If a deleted keyvault exists, remove it
       if (Get-AzKeyVault -VaultName "$(deploymentName)-ts" -Location "$(resourceGroupRegion)" -InRemovedState)
       {

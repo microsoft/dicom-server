@@ -30,17 +30,9 @@ namespace Microsoft.Extensions.DependencyInjection
             EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-            return serverBuilder
-                .AddMetadataPersistence(configuration)
-                .AddMetadataHealthCheck();
-        }
-
-        private static IDicomServerBuilder AddMetadataPersistence(this IDicomServerBuilder serverBuilder, IConfiguration configuration)
-        {
-            IServiceCollection services = serverBuilder.Services;
-
             IConfiguration blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
-            services
+            serverBuilder.Services
+                .AddMetadataPersistence()
                 .AddBlobServiceClient(blobConfig)
                 .AddBlobContainerInitialization(x => blobConfig
                     .GetSection(BlobInitializerOptions.DefaultSectionName)
@@ -49,6 +41,35 @@ namespace Microsoft.Extensions.DependencyInjection
                     .GetSection(DicomServerBlobConfigurationSectionName)
                     .Bind(x));
 
+            return serverBuilder.AddMetadataHealthCheck();
+        }
+
+        /// <summary>
+        /// Adds the metadata store for the DICOM functions.
+        /// </summary>
+        /// <param name="functionsBuilder">The DICOM functions builder instance.</param>
+        /// <param name="containerName">The name of the metadata container.</param>
+        /// <param name="configuration">The configuration for the function.</param>
+        /// <returns>The functions builder.</returns>
+        public static IDicomFunctionsBuilder AddMetadataStorageDataStore(
+            this IDicomFunctionsBuilder functionsBuilder,
+            IConfiguration configuration,
+            string containerName)
+        {
+            EnsureArg.IsNotNull(functionsBuilder, nameof(functionsBuilder));
+            EnsureArg.IsNotNull(configuration, nameof(configuration));
+
+            IConfiguration blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
+            functionsBuilder.Services
+                .AddMetadataPersistence()
+                .AddBlobServiceClient(blobConfig)
+                .Configure<BlobContainerConfiguration>(Constants.ContainerConfigurationName, c => c.ContainerName = containerName);
+
+            return functionsBuilder;
+        }
+
+        private static IServiceCollection AddMetadataPersistence(this IServiceCollection services)
+        {
             services.Add<BlobMetadataStore>()
                 .Scoped()
                 .AsSelf()
@@ -59,7 +80,7 @@ namespace Microsoft.Extensions.DependencyInjection
             // so we need to register here. Need to some more investigation to see how we might be able to do this.
             services.Decorate<IMetadataStore, LoggingMetadataStore>();
 
-            return serverBuilder;
+            return services;
         }
 
         private static IDicomServerBuilder AddMetadataHealthCheck(this IDicomServerBuilder serverBuilder)

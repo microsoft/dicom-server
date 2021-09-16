@@ -43,5 +43,15 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             return dicomTag.DictionaryEntry.ValueRepresentations.Length > 0 ? dicomTag.DictionaryEntry.ValueRepresentations[0] : null;
         }
 
+        /// <summary>
+        /// Get friendly name of dicom tag.
+        /// </summary>
+        /// <param name="dicomTag">The dicom tag.</param>
+        /// <returns>The friendly name.</returns>
+        public static string GetFriendlyName(this DicomTag dicomTag)
+        {
+            EnsureArg.IsNotNull(dicomTag, nameof(dicomTag));
+            return dicomTag.IsPrivate ? dicomTag.GetPath() : dicomTag.DictionaryEntry.Keyword;
+        }
     }
 }

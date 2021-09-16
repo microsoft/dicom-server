@@ -2,93 +2,53 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
+
 using System.Collections.Generic;
-using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Models;
-using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
-using Microsoft.Health.SqlServer.Features.Client;
-using Microsoft.Health.SqlServer.Features.Storage;
+using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
 {
-    internal class SqlInstanceStore : IInstanceStore
+    internal sealed class SqlInstanceStore : IInstanceStore
     {
-        private readonly SqlConnectionWrapperFactory _sqlConnectionWrapperFactory;
+        private readonly VersionedCache<ISqlInstanceStore> _cache;
 
-        public SqlInstanceStore(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+        public SqlInstanceStore(VersionedCache<ISqlInstanceStore> cache)
+            => _cache = EnsureArg.IsNotNull(cache, nameof(cache));
+
+        public async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
-
-            _sqlConnectionWrapperFactory = sqlConnectionWrapperFactory;
+            ISqlInstanceStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+            return await store.GetInstanceIdentifierAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
         }
 
-        public Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
-            string studyInstanceUid,
-            string seriesInstanceUid,
-            string sopInstanceUid,
-            CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersByWatermarkRangeAsync(WatermarkRange watermarkRange, IndexStatus indexStatus, CancellationToken cancellationToken = default)
         {
-            return GetInstanceIdentifierImp(studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
+            ISqlInstanceStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+            return await store.GetInstanceIdentifiersByWatermarkRangeAsync(watermarkRange, indexStatus, cancellationToken);
         }
 
-        public Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
-            string studyInstanceUid,
-            string seriesInstanceUid,
-            CancellationToken cancellationToken)
+        public async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken = default)
         {
-            return GetInstanceIdentifierImp(studyInstanceUid, cancellationToken, seriesInstanceUid);
+            ISqlInstanceStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+            return await store.GetInstanceIdentifiersInSeriesAsync(studyInstanceUid, seriesInstanceUid, cancellationToken);
         }
 
-        public Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
-            string studyInstanceUid,
-            CancellationToken cancellationToken)
+        public async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(string studyInstanceUid, CancellationToken cancellationToken = default)
         {
-            return GetInstanceIdentifierImp(studyInstanceUid, cancellationToken);
+            ISqlInstanceStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+            return await store.GetInstanceIdentifiersInStudyAsync(studyInstanceUid, cancellationToken);
         }
 
-        private async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierImp(
-            string studyInstanceUid,
-            CancellationToken cancellationToken,
-            string seriesInstanceUid = null,
-            string sopInstanceUid = null)
+        public async Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesAsync(int batchSize, int batchCount, IndexStatus indexStatus, long? maxWatermark = null, CancellationToken cancellationToken = default)
         {
-            var results = new List<VersionedInstanceIdentifier>();
-
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
-            {
-                VLatest.GetInstance.PopulateCommand(
-                    sqlCommandWrapper,
-                    validStatus: (byte)IndexStatus.Created,
-                    studyInstanceUid,
-                    seriesInstanceUid,
-                    sopInstanceUid);
-
-                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
-                {
-                    while (await reader.ReadAsync(cancellationToken))
-                    {
-                        (string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark) = reader.ReadRow(
-                           VLatest.Instance.StudyInstanceUid,
-                           VLatest.Instance.SeriesInstanceUid,
-                           VLatest.Instance.SopInstanceUid,
-                           VLatest.Instance.Watermark);
-
-                        results.Add(new VersionedInstanceIdentifier(
-                                rStudyInstanceUid,
-                                rSeriesInstanceUid,
-                                rSopInstanceUid,
-                                watermark));
-                    }
-                }
-            }
-
-            return results;
+            ISqlInstanceStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+            return await store.GetInstanceBatchesAsync(batchSize, batchCount, indexStatus, maxWatermark, cancellationToken);
         }
     }
 }

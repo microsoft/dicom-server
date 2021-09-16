@@ -29,21 +29,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
         private readonly ILogger<DeleteService> _logger;
 
         public DeleteService(
-            IIndexDataStoreFactory indexDataStoreFactory,
+            IIndexDataStore indexDataStore,
             IMetadataStore metadataStore,
             IFileStore fileStore,
             IOptions<DeletedInstanceCleanupConfiguration> deletedInstanceCleanupConfiguration,
             ITransactionHandler transactionHandler,
             ILogger<DeleteService> logger)
         {
-            EnsureArg.IsNotNull(indexDataStoreFactory, nameof(indexDataStoreFactory));
+            EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
             EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
             EnsureArg.IsNotNull(fileStore, nameof(fileStore));
             EnsureArg.IsNotNull(deletedInstanceCleanupConfiguration?.Value, nameof(deletedInstanceCleanupConfiguration));
             EnsureArg.IsNotNull(transactionHandler, nameof(transactionHandler));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _indexDataStore = indexDataStoreFactory.GetInstance();
+            _indexDataStore = indexDataStore;
             _metadataStore = metadataStore;
             _fileStore = fileStore;
             _deletedInstanceCleanupConfiguration = deletedInstanceCleanupConfiguration.Value;
@@ -51,27 +51,27 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
             _logger = logger;
         }
 
-        public async Task DeleteStudyAsync(string studyInstanceUid, CancellationToken cancellationToken)
+        public Task DeleteStudyAsync(string studyInstanceUid, CancellationToken cancellationToken)
         {
             DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.DeleteDelay);
-            await _indexDataStore.DeleteStudyIndexAsync(studyInstanceUid, cleanupAfter, cancellationToken);
+            return _indexDataStore.DeleteStudyIndexAsync(studyInstanceUid, cleanupAfter, cancellationToken);
         }
 
-        public async Task DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken)
+        public Task DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken)
         {
             DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.DeleteDelay);
-            await _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
+            return _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
         }
 
-        public async Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
+        public Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
         {
             DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.DeleteDelay);
-            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
+            return _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
         }
 
-        public async Task DeleteInstanceNowAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
+        public Task DeleteInstanceNowAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
         {
-            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow, cancellationToken);
+            return _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow, cancellationToken);
         }
 
         public async Task<(bool success, int retrievedInstanceCount)> CleanupDeletedInstancesAsync(CancellationToken cancellationToken)

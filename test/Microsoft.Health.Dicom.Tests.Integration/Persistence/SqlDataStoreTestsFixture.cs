@@ -9,12 +9,14 @@ using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Store;
@@ -41,9 +43,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         // Only 1 public constructor is allowed for test fixture.
         internal SqlDataStoreTestsFixture(string databaseName)
         {
-            EnsureArg.IsNotNullOrEmpty(databaseName, nameof(databaseName));
-            _databaseName = databaseName;
-            string initialConnectionString = Environment.GetEnvironmentVariable("SqlServer:ConnectionString") ?? LocalConnectionString;
+            _databaseName = EnsureArg.IsNotNullOrEmpty(databaseName, nameof(databaseName));
+
+            IConfiguration environment = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .Build();
+
+            string initialConnectionString = environment["SqlServer:ConnectionString"] ?? LocalConnectionString;
             _masterConnectionString = new SqlConnectionStringBuilder(initialConnectionString) { InitialCatalog = "master" }.ToString();
             TestConnectionString = new SqlConnectionStringBuilder(initialConnectionString) { InitialCatalog = _databaseName }.ToString();
 
@@ -81,15 +87,50 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(SqlTransactionHandler, new SqlCommandWrapperFactory(), sqlConnectionFactory);
 
-            SqlIndexDataStoreFactory = new SqlIndexDataStoreFactory(
-                SchemaInformation,
-                new[] { new SqlIndexDataStoreV1(SqlConnectionWrapperFactory), new SqlIndexDataStoreV2(SqlConnectionWrapperFactory), new SqlIndexDataStoreV3(SqlConnectionWrapperFactory) });
+            var schemaResolver = new PassthroughSchemaVersionResolver(SchemaInformation);
 
-            InstanceStore = new SqlInstanceStore(SqlConnectionWrapperFactory);
+            IndexDataStore = new SqlIndexDataStore(new VersionedCache<ISqlIndexDataStore>(
+                schemaResolver,
+                new[]
+                {
+                    new SqlIndexDataStoreV1(SqlConnectionWrapperFactory),
+                    new SqlIndexDataStoreV2(SqlConnectionWrapperFactory),
+                    new SqlIndexDataStoreV3(SqlConnectionWrapperFactory),
+                    new SqlIndexDataStoreV4(SqlConnectionWrapperFactory),
+                }));
 
-            ExtendedQueryTagStore = new SqlExtendedQueryTagStore(SqlConnectionWrapperFactory, SchemaInformation, NullLogger<SqlExtendedQueryTagStore>.Instance);
+            InstanceStore = new SqlInstanceStore(new VersionedCache<ISqlInstanceStore>(
+                schemaResolver,
+                new[]
+                {
+                    new SqlInstanceStoreV1(SqlConnectionWrapperFactory),
+                    new SqlInstanceStoreV2(SqlConnectionWrapperFactory),
+                    new SqlInstanceStoreV3(SqlConnectionWrapperFactory),
+                    new SqlInstanceStoreV4(SqlConnectionWrapperFactory),
+                }));
 
-            TestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
+            ExtendedQueryTagStore = new SqlExtendedQueryTagStore(new VersionedCache<ISqlExtendedQueryTagStore>(
+                schemaResolver,
+                new[]
+                {
+                    new SqlExtendedQueryTagStoreV1(),
+                    new SqlExtendedQueryTagStoreV2(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV2>.Instance),
+                    new SqlExtendedQueryTagStoreV3(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV3>.Instance),
+                    new SqlExtendedQueryTagStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV4>.Instance),
+                }));
+
+            ExtendedQueryTagErrorStore = new SqlExtendedQueryTagErrorStore(new VersionedCache<ISqlExtendedQueryTagErrorStore>(
+               schemaResolver,
+               new[]
+               {
+                    new SqlExtendedQueryTagErrorStoreV1(),
+                    new SqlExtendedQueryTagErrorStoreV2(),
+                    new SqlExtendedQueryTagErrorStoreV3(),
+                    new SqlExtendedQueryTagErrorStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV4>.Instance),
+               }));
+            IndexDataStoreTestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
+            ExtendedQueryTagStoreTestHelper = new ExtendedQueryTagStoreTestHelper(TestConnectionString);
+            ExtendedQueryTagErrorStoreTestHelper = new ExtendedQueryTagErrorStoreTestHelper(TestConnectionString);
         }
 
         public SqlDataStoreTestsFixture()
@@ -101,19 +142,22 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public SqlConnectionWrapperFactory SqlConnectionWrapperFactory { get; }
 
-        public IIndexDataStoreFactory SqlIndexDataStoreFactory { get; }
-
-        public SchemaUpgradeRunner SchemaUpgradeRunner { get; }
-
-        public string TestConnectionString { get; }
-
-        public IIndexDataStore IndexDataStore { get => SqlIndexDataStoreFactory.GetInstance(); }
+        public IIndexDataStore IndexDataStore { get; }
 
         public IInstanceStore InstanceStore { get; }
 
         public IExtendedQueryTagStore ExtendedQueryTagStore { get; }
 
-        public SqlIndexDataStoreTestHelper TestHelper { get; }
+        public IExtendedQueryTagErrorStore ExtendedQueryTagErrorStore { get; }
+
+        public SchemaUpgradeRunner SchemaUpgradeRunner { get; }
+        public string TestConnectionString { get; }
+
+        public IIndexDataStoreTestHelper IndexDataStoreTestHelper { get; }
+
+        public IExtendedQueryTagStoreTestHelper ExtendedQueryTagStoreTestHelper { get; }
+
+        public IExtendedQueryTagErrorStoreTestHelper ExtendedQueryTagErrorStoreTestHelper { get; }
 
         public SchemaInformation SchemaInformation { get; set; }
 
@@ -170,7 +214,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             {
                 await sqlConnection.OpenAsync();
                 SqlConnection.ClearAllPools();
-
                 using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandTimeout = 600;

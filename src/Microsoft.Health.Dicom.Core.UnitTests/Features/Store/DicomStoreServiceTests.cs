@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
@@ -38,8 +39,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             sopClassUid: "13");
 
         private readonly IStoreResponseBuilder _storeResponseBuilder = Substitute.For<IStoreResponseBuilder>();
-        private readonly IDicomDatasetValidator _dicomDatasetValidator = Substitute.For<IDicomDatasetValidator>();
+        private readonly IStoreDatasetValidator _dicomDatasetValidator = Substitute.For<IStoreDatasetValidator>();
         private readonly IStoreOrchestrator _storeOrchestrator = Substitute.For<IStoreOrchestrator>();
+        private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
         private readonly StoreService _storeService;
 
         public DicomStoreServiceTests()
@@ -50,6 +52,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                 _storeResponseBuilder,
                 _dicomDatasetValidator,
                 _storeOrchestrator,
+                _minimumValidator,
                 NullLogger<StoreService>.Instance);
         }
 

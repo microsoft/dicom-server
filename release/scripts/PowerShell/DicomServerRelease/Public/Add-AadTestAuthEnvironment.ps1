@@ -148,7 +148,7 @@ function Add-AadTestAuthEnvironment {
         $appIdSecureString = ConvertTo-SecureString -String $aadClientApplication.AppId -AsPlainText -Force
         Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "app--$($clientApp.Id)--id" -SecretValue $appIdSecureString | Out-Null
         Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "app--$($clientApp.Id)--secret" -SecretValue $secretSecureString | Out-Null
-        
+
         Set-DicomServerClientAppRoleAssignments -ApiAppId $application.AppId -AppId $aadClientApplication.AppId -AppRoles $clientApp.roles | Out-Null
     }
 
@@ -157,9 +157,9 @@ function Add-AadTestAuthEnvironment {
     $aadTenantId = (Get-AzureADCurrentSessionInfo).Tenant.Id.ToString()
     $tokenUrl  = "$aadEndpoint$aadTenantId/oauth2/token"
     $tokenUrlSecureString = ConvertTo-SecureString -String $tokenUrl -AsPlainText -Force
-        
+
     Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "security--tokenUrl" -SecretValue $tokenUrlSecureString | Out-Null
-    
+
     @{
         keyVaultName                  = $KeyVaultName
         environmentUsers              = $environmentUsers

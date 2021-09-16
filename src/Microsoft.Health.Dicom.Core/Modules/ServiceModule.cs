@@ -11,6 +11,8 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.HealthCheck;
+using Microsoft.Health.Dicom.Core.Features.Indexing;
+using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -39,7 +41,7 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<DicomDatasetValidator>()
+            services.Add<StoreDatasetValidator>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
@@ -128,7 +130,7 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<DicomElementMinimumValidator>()
+            services.Add<ElementMinimumValidator>()
                 .Singleton()
                 .AsSelf()
                 .AsImplementedInterfaces();
@@ -139,9 +141,14 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsImplementedInterfaces();
 
             services.Add<QueryTagService>()
-                   .Scoped()
-                   .AsSelf()
-                   .AsImplementedInterfaces();
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<OperationStatusHandler>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
 
             services.AddSingleton<BackgroundServiceHealthCheckCache>();
 
@@ -155,9 +162,9 @@ namespace Microsoft.Health.Dicom.Core.Modules
                     .AsImplementedInterfaces();
 
                 services.Add<GetExtendedQueryTagsService>()
-                   .Scoped()
-                   .AsSelf()
-                   .AsImplementedInterfaces();
+                    .Scoped()
+                    .AsSelf()
+                    .AsImplementedInterfaces();
 
                 services.Add<AddExtendedQueryTagService>()
                     .Scoped()
@@ -165,9 +172,24 @@ namespace Microsoft.Health.Dicom.Core.Modules
                     .AsImplementedInterfaces();
 
                 services.Add<DeleteExtendedQueryTagService>()
-                     .Scoped()
-                     .AsSelf()
-                     .AsImplementedInterfaces();
+                    .Scoped()
+                    .AsSelf()
+                    .AsImplementedInterfaces();
+
+                services.Add<ExtendedQueryTagErrorsService>()
+                    .Scoped()
+                    .AsSelf()
+                    .AsImplementedInterfaces();
+
+                services.Add<ReindexDatasetValidator>()
+                    .Scoped()
+                    .AsSelf()
+                    .AsImplementedInterfaces();
+
+                services.Add<InstanceReindexer>()
+                    .Scoped()
+                    .AsSelf()
+                    .AsImplementedInterfaces();
             }
         }
     }

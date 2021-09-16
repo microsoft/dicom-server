@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -15,6 +16,7 @@ using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Messages.Operations;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Store;
@@ -154,11 +156,11 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             return mediator.Send(new DeleteExtendedQueryTagRequest(tagPath), cancellationToken);
         }
 
-        public static Task<GetAllExtendedQueryTagsResponse> GetAllExtendedQueryTagsAsync(
-            this IMediator mediator, CancellationToken cancellationToken)
+        public static Task<GetExtendedQueryTagsResponse> GetExtendedQueryTagsAsync(
+            this IMediator mediator, int limit, int offset, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
-            return mediator.Send(new GetAllExtendedQueryTagsRequest(), cancellationToken);
+            return mediator.Send(new GetExtendedQueryTagsRequest(limit, offset), cancellationToken);
         }
 
         public static Task<GetExtendedQueryTagResponse> GetExtendedQueryTagAsync(
@@ -166,6 +168,22 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
             return mediator.Send(new GetExtendedQueryTagRequest(extendedQueryTagPath), cancellationToken);
+        }
+
+        public static Task<GetExtendedQueryTagErrorsResponse> GetExtendedQueryTagErrorsAsync(
+            this IMediator mediator, string extendedQueryTagPath, int limit, int offset, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
+            return mediator.Send(new GetExtendedQueryTagErrorsRequest(extendedQueryTagPath, limit, offset), cancellationToken);
+        }
+
+        public static Task<OperationStatusResponse> GetOperationStatusAsync(
+           this IMediator mediator,
+           Guid operationId,
+           CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
+            return mediator.Send(new OperationStatusRequest(operationId), cancellationToken);
         }
     }
 }

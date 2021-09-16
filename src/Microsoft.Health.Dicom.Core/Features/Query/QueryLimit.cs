@@ -2,7 +2,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
+
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Dicom;
@@ -11,7 +13,7 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public static class QueryLimit
+    internal static class QueryLimit
     {
         public const int MaxQueryResultCount = 200;
         public const int DefaultQueryResultCount = 100;
@@ -27,7 +29,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             DicomTag.ReferringPhysicianName,
             DicomTag.PatientBirthDate,
         };
-
 
         private static readonly HashSet<DicomTag> CoreSeriesTags = new HashSet<DicomTag>()
         {
@@ -45,15 +46,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         public static readonly HashSet<DicomTag> CoreTags = new HashSet<DicomTag>(
             CoreStudyTags.Union(CoreSeriesTags).Union(CoreInstanceTags));
 
-
-        public static readonly IReadOnlyDictionary<QueryResource, IReadOnlySet<QueryTagLevel>> QueryResourceTypeToQueryLevelsMapping = new Dictionary<QueryResource, IReadOnlySet<QueryTagLevel>>()
+        public static readonly IReadOnlyDictionary<QueryResource, ImmutableHashSet<QueryTagLevel>> QueryResourceTypeToQueryLevelsMapping = new Dictionary<QueryResource, ImmutableHashSet<QueryTagLevel>>()
         {
-            { QueryResource.AllStudies, new HashSet<QueryTagLevel>(){ QueryTagLevel.Study } },
-            { QueryResource.AllSeries, new HashSet<QueryTagLevel>(){ QueryTagLevel.Study, QueryTagLevel.Series } },
-            { QueryResource.AllInstances, new HashSet<QueryTagLevel>(){ QueryTagLevel.Study, QueryTagLevel.Series, QueryTagLevel.Instance }  },
-            { QueryResource.StudySeries, new HashSet<QueryTagLevel>(){ QueryTagLevel.Series }  },
-            { QueryResource.StudyInstances,  new HashSet<QueryTagLevel>(){ QueryTagLevel.Series, QueryTagLevel.Instance } },
-            { QueryResource.StudySeriesInstances,  new HashSet<QueryTagLevel>(){  QueryTagLevel.Instance } },
+            { QueryResource.AllStudies, ImmutableHashSet.Create(QueryTagLevel.Study) },
+            { QueryResource.AllSeries, ImmutableHashSet.Create(QueryTagLevel.Study, QueryTagLevel.Series) },
+            { QueryResource.AllInstances, ImmutableHashSet.Create(QueryTagLevel.Study, QueryTagLevel.Series, QueryTagLevel.Instance)  },
+            { QueryResource.StudySeries, ImmutableHashSet.Create(QueryTagLevel.Series)},
+            { QueryResource.StudyInstances,  ImmutableHashSet.Create(QueryTagLevel.Series, QueryTagLevel.Instance) },
+            { QueryResource.StudySeriesInstances,  ImmutableHashSet.Create(QueryTagLevel.Instance) },
         };
 
         /// <summary>

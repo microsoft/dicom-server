@@ -5,151 +5,74 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Logging;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
-using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
-using Microsoft.Health.SqlServer.Features.Client;
-using Microsoft.Health.SqlServer.Features.Schema;
-using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 {
-    public class SqlExtendedQueryTagStore : IExtendedQueryTagStore
+    internal sealed class SqlExtendedQueryTagStore : IExtendedQueryTagStore
     {
-        private readonly SqlConnectionWrapperFactory _sqlConnectionWrapperFactory;
-        private readonly SchemaInformation _schemaInformation;
-        private readonly ILogger<SqlExtendedQueryTagStore> _logger;
+        private readonly VersionedCache<ISqlExtendedQueryTagStore> _cache;
 
-        public SqlExtendedQueryTagStore(
-           SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
-           SchemaInformation schemaInformation,
-           ILogger<SqlExtendedQueryTagStore> logger)
+        public SqlExtendedQueryTagStore(VersionedCache<ISqlExtendedQueryTagStore> cache)
+            => _cache = EnsureArg.IsNotNull(cache, nameof(cache));
+
+        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxAllowedCount, bool ready = false, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
-            EnsureArg.IsNotNull(schemaInformation, nameof(schemaInformation));
-            EnsureArg.IsNotNull(logger, nameof(logger));
-
-            _sqlConnectionWrapperFactory = sqlConnectionWrapperFactory;
-            _schemaInformation = schemaInformation;
-            _logger = logger;
+            ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+            return await store.AddExtendedQueryTagsAsync(extendedQueryTagEntries, maxAllowedCount, ready, cancellationToken);
         }
 
-        public async Task AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AssignReindexingOperationAsync(IReadOnlyList<int> queryTagKeys, Guid operationId, bool returnIfCompleted = false, CancellationToken cancellationToken = default)
         {
-            if (_schemaInformation.Current < SchemaVersionConstants.SupportExtendedQueryTagSchemaVersion)
-            {
-                throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
-            }
-
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
-            {
-                IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> rows = extendedQueryTagEntries.Select(ToAddExtendedQueryTagsInputTableTypeV1Row);
-
-                VLatest.AddExtendedQueryTags.PopulateCommand(sqlCommandWrapper, new VLatest.AddExtendedQueryTagsTableValuedParameters(rows));
-
-                try
-                {
-                    await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
-                }
-                catch (SqlException ex)
-                {
-                    switch (ex.Number)
-                    {
-                        case SqlErrorCodes.Conflict:
-                            throw new ExtendedQueryTagsAlreadyExistsException();
-
-                        default:
-                            throw new DataStoreException(ex);
-                    }
-                }
-            }
+            ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+            return await store.AssignReindexingOperationAsync(queryTagKeys, operationId, returnIfCompleted, cancellationToken);
         }
 
-        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(string path, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<int>> CompleteReindexingAsync(IReadOnlyList<int> queryTagKeys, CancellationToken cancellationToken = default)
         {
-            if (_schemaInformation.Current < SchemaVersionConstants.SupportExtendedQueryTagSchemaVersion)
-            {
-                throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
-            }
-
-            List<ExtendedQueryTagStoreEntry> results = new List<ExtendedQueryTagStoreEntry>();
-
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
-            {
-                VLatest.GetExtendedQueryTag.PopulateCommand(sqlCommandWrapper, path);
-
-                var executionTimeWatch = Stopwatch.StartNew();
-                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
-                {
-                    while (await reader.ReadAsync(cancellationToken))
-                    {
-                        (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus) = reader.ReadRow(
-                            VLatest.ExtendedQueryTag.TagKey,
-                            VLatest.ExtendedQueryTag.TagPath,
-                            VLatest.ExtendedQueryTag.TagVR,
-                            VLatest.ExtendedQueryTag.TagPrivateCreator,
-                            VLatest.ExtendedQueryTag.TagLevel,
-                            VLatest.ExtendedQueryTag.TagStatus);
-
-                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus));
-                    }
-
-                    executionTimeWatch.Stop();
-                    _logger.LogInformation(executionTimeWatch.ElapsedMilliseconds.ToString());
-                }
-            }
-
-            return results;
-        }
-
-        private static AddExtendedQueryTagsInputTableTypeV1Row ToAddExtendedQueryTagsInputTableTypeV1Row(AddExtendedQueryTagEntry entry)
-        {
-            return new AddExtendedQueryTagsInputTableTypeV1Row(entry.Path, entry.VR, entry.PrivateCreator, (byte)((QueryTagLevel)Enum.Parse(typeof(QueryTagLevel), entry.Level, true)));
+            ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+            return await store.CompleteReindexingAsync(queryTagKeys, cancellationToken);
         }
 
         public async Task DeleteExtendedQueryTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default)
         {
-            if (_schemaInformation.Current < SchemaVersionConstants.SupportExtendedQueryTagSchemaVersion)
-            {
-                throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
-            }
+            ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+            await store.DeleteExtendedQueryTagAsync(tagPath, vr, cancellationToken);
+        }
 
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
-            {
-                VLatest.DeleteExtendedQueryTag.PopulateCommand(sqlCommandWrapper, tagPath, (byte)ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[vr]);
+        public async Task<ExtendedQueryTagStoreJoinEntry> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default)
+        {
+            ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+            return await store.GetExtendedQueryTagAsync(tagPath, cancellationToken);
+        }
 
-                try
-                {
-                    await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
-                }
-                catch (SqlException ex)
-                {
-                    switch (ex.Number)
-                    {
-                        case SqlErrorCodes.NotFound:
-                            throw new ExtendedQueryTagNotFoundException(
-                                string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.ExtendedQueryTagNotFound, tagPath));
-                        case SqlErrorCodes.PreconditionFailed:
-                            throw new ExtendedQueryTagBusyException(
-                                string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.ExtendedQueryTagIsBusy, tagPath));
-                        default:
-                            throw new DataStoreException(ex);
-                    }
-                }
-            }
+        public async Task<IReadOnlyList<ExtendedQueryTagStoreJoinEntry>> GetExtendedQueryTagsAsync(int limit, int offset, CancellationToken cancellationToken = default)
+        {
+            ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+            return await store.GetExtendedQueryTagsAsync(limit, offset, cancellationToken);
+        }
+
+        public async Task<IReadOnlyList<ExtendedQueryTagStoreJoinEntry>> GetExtendedQueryTagsAsync(IReadOnlyList<int> queryTagKeys, CancellationToken cancellationToken = default)
+        {
+            ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+            return await store.GetExtendedQueryTagsAsync(queryTagKeys, cancellationToken);
+        }
+
+        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(Guid operationId, CancellationToken cancellationToken = default)
+        {
+            ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+            return await store.GetExtendedQueryTagsAsync(operationId, cancellationToken);
+        }
+
+        ///<inheritdoc/>
+        public async Task<ExtendedQueryTagStoreJoinEntry> UpdateQueryStatusAsync(string tagPath, QueryStatus queryStatus, CancellationToken cancellationToken = default)
+        {
+            ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken);
+            return await store.UpdateQueryStatusAsync(tagPath, queryStatus, cancellationToken);
         }
     }
 }

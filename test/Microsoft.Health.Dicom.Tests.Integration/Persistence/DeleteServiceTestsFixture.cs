@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public IIndexDataStore IndexDataStore => _sqlDataStoreTestsFixture.IndexDataStore;
 
-        public IIndexDataStoreTestHelper IndexDataStoreTestHelper => _sqlDataStoreTestsFixture.TestHelper;
+        public IIndexDataStoreTestHelper IndexDataStoreTestHelper => _sqlDataStoreTestsFixture.IndexDataStoreTestHelper;
 
         public IFileStore FileStore => _blobStorageTestsFixture.FileStore;
 
@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var optionsConfiguration = Substitute.For<IOptions<DeletedInstanceCleanupConfiguration>>();
             optionsConfiguration.Value.Returns(cleanupConfiguration);
             DeleteService = new DeleteService(
-                _sqlDataStoreTestsFixture.SqlIndexDataStoreFactory,
+                _sqlDataStoreTestsFixture.IndexDataStore,
                 _blobStorageTestsFixture.MetadataStore,
                 _blobStorageTestsFixture.FileStore,
                 optionsConfiguration,

@@ -28,39 +28,37 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
     /// </summary>
     internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
     {
-        private readonly SqlConnectionWrapperFactory _sqlConnectionFactoryWrapper;
-
-        public SqlIndexDataStoreV1(
-            SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+        public SqlIndexDataStoreV1(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
         {
-            EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
-            _sqlConnectionFactoryWrapper = sqlConnectionWrapperFactory;
+            SqlConnectionWrapperFactory = EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
         }
+
+        protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory { get; }
 
         public virtual SchemaVersion Version => SchemaVersion.V1;
 
-        public virtual async Task<long> CreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+        public virtual async Task<long> BeginCreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 V1.AddInstance.PopulateCommand(
-                      sqlCommandWrapper,
-                      instance.GetString(DicomTag.StudyInstanceUID),
-                      instance.GetString(DicomTag.SeriesInstanceUID),
-                      instance.GetString(DicomTag.SOPInstanceUID),
-                      instance.GetSingleValueOrDefault<string>(DicomTag.PatientID),
-                      instance.GetSingleValueOrDefault<string>(DicomTag.PatientName),
-                      instance.GetSingleValueOrDefault<string>(DicomTag.ReferringPhysicianName),
-                      instance.GetStringDateAsDate(DicomTag.StudyDate),
-                      instance.GetSingleValueOrDefault<string>(DicomTag.StudyDescription),
-                      instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
-                      instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
-                      instance.GetStringDateAsDate(DicomTag.PerformedProcedureStepStartDate),
-                      (byte)IndexStatus.Creating);
+                    sqlCommandWrapper,
+                    instance.GetString(DicomTag.StudyInstanceUID),
+                    instance.GetString(DicomTag.SeriesInstanceUID),
+                    instance.GetString(DicomTag.SOPInstanceUID),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.PatientID),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.PatientName),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.ReferringPhysicianName),
+                    instance.GetStringDateAsDate(DicomTag.StudyDate),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.StudyDescription),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
+                    instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
+                    instance.GetStringDateAsDate(DicomTag.PerformedProcedureStepStartDate),
+                    (byte)IndexStatus.Creating);
 
                 try
                 {
@@ -107,25 +105,25 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cleanupAfter, cancellationToken);
         }
 
-        public async Task UpdateInstanceIndexStatusAsync(
-            VersionedInstanceIdentifier versionedInstanceIdentifier,
-            IndexStatus status,
-            CancellationToken cancellationToken)
+        public virtual async Task EndCreateInstanceIndexAsync(
+            DicomDataset dicomDataset,
+            long watermark,
+            IEnumerable<QueryTag> queryTags,
+            bool allowExpiredTags = false,
+            CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-            EnsureArg.IsTrue(Enum.IsDefined(typeof(IndexStatus), status));
-            EnsureArg.IsTrue((int)status < byte.MaxValue);
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.UpdateInstanceStatus.PopulateCommand(
+                V1.UpdateInstanceStatus.PopulateCommand(
                     sqlCommandWrapper,
-                    versionedInstanceIdentifier.StudyInstanceUid,
-                    versionedInstanceIdentifier.SeriesInstanceUid,
-                    versionedInstanceIdentifier.SopInstanceUid,
-                    versionedInstanceIdentifier.Version,
-                    (byte)status);
+                    dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
+                    dicomDataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
+                    dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
+                    watermark,
+                    (byte)IndexStatus.Created);
 
                 try
                 {
@@ -149,7 +147,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
         {
             var results = new List<VersionedInstanceIdentifier>();
 
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.RetrieveDeletedInstance.PopulateCommand(
@@ -188,7 +186,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
         public async Task DeleteDeletedInstanceAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
         {
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.DeleteDeletedInstance.PopulateCommand(
@@ -211,7 +209,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
         public async Task<int> IncrementDeletedInstanceRetryAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
         {
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.IncrementDeletedInstanceRetry.PopulateCommand(
@@ -235,7 +233,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
         private async Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.DeleteInstance.PopulateCommand(
@@ -276,7 +274,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
         public async Task<int> RetrieveNumExhaustedDeletedInstanceAttemptsAsync(int maxNumberOfRetries, CancellationToken cancellationToken = default)
         {
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 sqlCommandWrapper.CommandText = @$"
@@ -304,7 +302,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
         public async Task<DateTimeOffset> GetOldestDeletedAsync(CancellationToken cancellationToken = default)
         {
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 sqlCommandWrapper.CommandText = @$"
@@ -329,6 +327,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     throw new DataStoreException(ex);
                 }
             }
+        }
+
+        public virtual Task ReindexInstanceAsync(DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
+        {
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
     }
 }

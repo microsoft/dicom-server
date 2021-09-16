@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Development.IdentityProvider.Registration;
 using Microsoft.Health.Dicom.Core.Features.Security;
+using Microsoft.Health.Dicom.Functions.Client;
 
 namespace Microsoft.Health.Dicom.Web
 {
@@ -36,6 +37,7 @@ namespace Microsoft.Health.Dicom.Web
                 .AddBlobStorageDataStore(Configuration)
                 .AddMetadataStorageDataStore(Configuration)
                 .AddSqlServer(Configuration)
+                .AddAzureFunctionsClient(Configuration)
                 .AddBackgroundWorkers();
 
             AddApplicationInsightsTelemetry(services);

@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -34,10 +33,18 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         }
 
         [Fact]
-        public async Task GivenNotExistingTagPath_WhenDeleteExtendedQueryTagIsInvoked_ThenShouldThrowException()
+        public async Task GivenNotExistingTagPath_WhenDeleteExtendedQueryTagIsInvoked_ThenShouldPassException()
         {
-            _extendedQueryTagStore.GetExtendedQueryTagsAsync(default, default).ReturnsForAnyArgs(new List<ExtendedQueryTagStoreEntry>());
-            await Assert.ThrowsAsync<ExtendedQueryTagNotFoundException>(() => _extendedQueryTagService.DeleteExtendedQueryTagAsync(DicomTag.DeviceSerialNumber.GetPath()));
+            string path = DicomTag.DeviceSerialNumber.GetPath();
+            _extendedQueryTagStore
+                .GetExtendedQueryTagAsync(path, default)
+                .Returns(Task.FromException<ExtendedQueryTagStoreJoinEntry>(new ExtendedQueryTagNotFoundException("Tag doesn't exist")));
+
+            await Assert.ThrowsAsync<ExtendedQueryTagNotFoundException>(() => _extendedQueryTagService.DeleteExtendedQueryTagAsync(path));
+
+            await _extendedQueryTagStore
+                .Received(1)
+                .GetExtendedQueryTagAsync(path, default);
         }
 
         [Fact]
@@ -45,11 +52,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
             string tagPath = tag.GetPath();
-            ExtendedQueryTagStoreEntry entry = tag.BuildExtendedQueryTagStoreEntry();
-            _extendedQueryTagStore.GetExtendedQueryTagsAsync(default, default).ReturnsForAnyArgs(new List<ExtendedQueryTagStoreEntry> { entry });
+            var entry = new ExtendedQueryTagStoreJoinEntry(tag.BuildExtendedQueryTagStoreEntry());
+            _extendedQueryTagStore.GetExtendedQueryTagAsync(tagPath, default).Returns(entry);
             await _extendedQueryTagService.DeleteExtendedQueryTagAsync(tagPath);
-            await _extendedQueryTagStore.ReceivedWithAnyArgs(1)
-                .DeleteExtendedQueryTagAsync(default, default);
+            await _extendedQueryTagStore.Received(1).DeleteExtendedQueryTagAsync(tagPath, entry.VR);
         }
     }
 }

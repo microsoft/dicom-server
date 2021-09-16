@@ -8,26 +8,41 @@
     <Deterministic>true</Deterministic>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <FhirServerPackageVersion>2.0.55</FhirServerPackageVersion>
     <FoDicomVersion>4.0.8</FoDicomVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <HealthcareSharedPackageVersion>3.2.1</HealthcareSharedPackageVersion>
+    <HealthcareSharedPackageVersion>3.2.3</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
+    <Hl7FhirPackageVersion>3.3.0</Hl7FhirPackageVersion>
     <LangVersion>Latest</LangVersion>
+    <NetCoreApp3PackageVersion>3.1.16</NetCoreApp3PackageVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Product>Microsoft Health</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <SdkPackageVersion>5.0.0</SdkPackageVersion>
-    <FhirServerPackageVersion>2.0.55</FhirServerPackageVersion>
-    <Hl7FhirPackageVersion>3.3.0</Hl7FhirPackageVersion>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
   </PropertyGroup>
 
   <Choose>
+    <When Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+      <PropertyGroup>
+        <SdkPackageVersion>$(NetCoreApp3PackageVersion)</SdkPackageVersion>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <SdkPackageVersion>5.0.0</SdkPackageVersion>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+
+  <Choose>
     <When Condition="$(MSBuildProjectName.Contains('Test'))">
       <PropertyGroup>
         <IsPackable>false</IsPackable>
+        <NoWarn>$(NoWarn);CS1591</NoWarn>
       </PropertyGroup>
     </When>
     <Otherwise>

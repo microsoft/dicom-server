@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,17 +38,8 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             }
 
             string normalizedPath = tags[0].GetPath();
-
-            IReadOnlyList<ExtendedQueryTagStoreEntry> extendedQueryTagEntries = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(normalizedPath, cancellationToken);
-
-            if (extendedQueryTagEntries.Count > 0)
-            {
-                await _extendedQueryTagStore.DeleteExtendedQueryTagAsync(normalizedPath, extendedQueryTagEntries[0].VR, cancellationToken);
-            }
-            else
-            {
-                throw new ExtendedQueryTagNotFoundException(string.Format(DicomCoreResource.ExtendedQueryTagNotFound, tagPath));
-            }
+            ExtendedQueryTagStoreEntry extendedQueryTagEntry = await _extendedQueryTagStore.GetExtendedQueryTagAsync(normalizedPath, cancellationToken);
+            await _extendedQueryTagStore.DeleteExtendedQueryTagAsync(normalizedPath, extendedQueryTagEntry.VR, cancellationToken);
         }
     }
 }

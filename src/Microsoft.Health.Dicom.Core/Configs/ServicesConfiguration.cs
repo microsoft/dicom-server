@@ -10,5 +10,8 @@ namespace Microsoft.Health.Dicom.Core.Configs
         public DeletedInstanceCleanupConfiguration DeletedInstanceCleanup { get; } = new DeletedInstanceCleanupConfiguration();
 
         public StoreConfiguration StoreServiceSettings { get; } = new StoreConfiguration();
+
+        public ExtendedQueryTagConfiguration ExtendedQueryTag { get; } = new ExtendedQueryTagConfiguration();
+
     }
 }

@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Routing;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 
 namespace Microsoft.Health.Dicom.Api.Features.Routing
 {
@@ -36,8 +37,46 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
             _actionContextAccessor = actionContextAccessor;
         }
 
-        private IUrlHelper UrlHelper => _urlHelperFactory.GetUrlHelper(
-            _actionContextAccessor.ActionContext);
+        private IUrlHelper UrlHelper => _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+
+        /// <inheritdoc />
+        public Uri ResolveOperationStatusUri(Guid operationId)
+        {
+            var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey("version");
+
+            return RouteUri(
+                hasVersion ? KnownRouteNames.VersionedOperationStatus : KnownRouteNames.OperationStatus,
+                new RouteValueDictionary
+                {
+                    { KnownActionParameterNames.OperationId, OperationId.ToString(operationId) },
+                });
+        }
+
+        /// <inheritdoc />
+        public Uri ResolveQueryTagUri(string tagPath)
+        {
+            var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey("version");
+
+            return RouteUri(
+                hasVersion ? KnownRouteNames.VersionedGetExtendedQueryTag : KnownRouteNames.GetExtendedQueryTag,
+                new RouteValueDictionary
+                {
+                    { KnownActionParameterNames.TagPath, tagPath },
+                });
+        }
+
+        /// <inheritdoc />
+        public Uri ResolveQueryTagErrorsUri(string tagPath)
+        {
+            var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey("version");
+
+            return RouteUri(
+                hasVersion ? KnownRouteNames.VersionedGetExtendedQueryTagErrors : KnownRouteNames.GetExtendedQueryTagErrors,
+                new RouteValueDictionary
+                {
+                    { KnownActionParameterNames.TagPath, tagPath },
+                });
+        }
 
         /// <inheritdoc />
         public Uri ResolveRetrieveStudyUri(string studyInstanceUid)
@@ -47,7 +86,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
 
             return RouteUri(
                 hasVersion ? KnownRouteNames.VersionedRetrieveStudy : KnownRouteNames.RetrieveStudy,
-                new RouteValueDictionary()
+                new RouteValueDictionary
                 {
                     { KnownActionParameterNames.StudyInstanceUid, studyInstanceUid },
                 });
@@ -61,7 +100,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
 
             return RouteUri(
                 hasVersion ? KnownRouteNames.VersionedRetrieveInstance : KnownRouteNames.RetrieveInstance,
-                new RouteValueDictionary()
+                new RouteValueDictionary
                 {
                     { KnownActionParameterNames.StudyInstanceUid, instanceIdentifier.StudyInstanceUid },
                     { KnownActionParameterNames.SeriesInstanceUid, instanceIdentifier.SeriesInstanceUid },

@@ -21,7 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            string property = null;
+            string property;
             if (string.IsNullOrWhiteSpace(Path))
             {
                 property = "Path";
@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 yield return new ValidationResult(string.Format(DicomCoreResource.AddExtendedQueryTagEntryPropertyNotSpecified, property), new[] { property });
             }
 
-            if (!Enum.TryParse(typeof(QueryTagLevel), Level, true, out object result))
+            if (!Enum.TryParse(typeof(QueryTagLevel), Level, true, out object _))
             {
                 property = "Level";
                 yield return new ValidationResult(string.Format(DicomCoreResource.InvalidDicomTagLevel, Level), new[] { property });
