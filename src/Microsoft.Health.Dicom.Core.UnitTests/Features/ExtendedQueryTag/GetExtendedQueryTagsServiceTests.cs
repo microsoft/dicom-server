@@ -83,7 +83,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
         public async Task GivenRequestForExtendedQueryTag_WhenTagExists_ThenExtendedQueryTagEntryShouldBeReturned()
         {
             string tagPath = DicomTag.DeviceID.GetPath();
-            ExtendedQueryTagStoreEntry stored = CreateExtendedQueryTagEntry(5, tagPath, DicomVRCode.AE.ToString());
+            ExtendedQueryTagStoreJoinEntry stored = CreateJoinEntry(5, tagPath, DicomVRCode.AE.ToString());
             _extendedQueryTagStore.GetExtendedQueryTagAsync(tagPath, default).Returns(stored);
             GetExtendedQueryTagResponse response = await _getExtendedQueryTagsService.GetExtendedQueryTagAsync(tagPath);
             await _extendedQueryTagStore.Received(1).GetExtendedQueryTagAsync(tagPath, default);
