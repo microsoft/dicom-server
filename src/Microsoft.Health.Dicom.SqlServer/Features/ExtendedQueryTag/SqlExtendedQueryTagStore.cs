@@ -44,32 +44,32 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             await store.DeleteExtendedQueryTagAsync(tagPath, vr, cancellationToken);
         }
 
-        public async Task<ExtendedQueryTagStoreEntry> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default)
+        public async Task<ExtendedQueryTagStoreJoinEntry> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default)
         {
             ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
             return await store.GetExtendedQueryTagAsync(tagPath, cancellationToken);
         }
 
-        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(int limit, int offset, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<ExtendedQueryTagStoreJoinEntry>> GetExtendedQueryTagsAsync(int limit, int offset, CancellationToken cancellationToken = default)
         {
             ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
             return await store.GetExtendedQueryTagsAsync(limit, offset, cancellationToken);
         }
 
-        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(IReadOnlyList<int> queryTagKeys, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<ExtendedQueryTagStoreJoinEntry>> GetExtendedQueryTagsAsync(IReadOnlyList<int> queryTagKeys, CancellationToken cancellationToken = default)
         {
             ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
             return await store.GetExtendedQueryTagsAsync(queryTagKeys, cancellationToken);
         }
 
-        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsByOperationAsync(Guid operationId, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetExtendedQueryTagsAsync(Guid operationId, CancellationToken cancellationToken = default)
         {
             ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-            return await store.GetExtendedQueryTagsByOperationAsync(operationId, cancellationToken);
+            return await store.GetExtendedQueryTagsAsync(operationId, cancellationToken);
         }
 
         ///<inheritdoc/>
-        public async Task<ExtendedQueryTagStoreEntry> UpdateQueryStatusAsync(string tagPath, QueryStatus queryStatus, CancellationToken cancellationToken = default)
+        public async Task<ExtendedQueryTagStoreJoinEntry> UpdateQueryStatusAsync(string tagPath, QueryStatus queryStatus, CancellationToken cancellationToken = default)
         {
             ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken);
             return await store.UpdateQueryStatusAsync(tagPath, queryStatus, cancellationToken);

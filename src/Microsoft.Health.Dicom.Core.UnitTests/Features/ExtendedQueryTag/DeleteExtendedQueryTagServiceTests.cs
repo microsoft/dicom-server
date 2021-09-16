@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
             string path = DicomTag.DeviceSerialNumber.GetPath();
             _extendedQueryTagStore
                 .GetExtendedQueryTagAsync(path, default)
-                .Returns(Task.FromException<ExtendedQueryTagStoreEntry>(new ExtendedQueryTagNotFoundException("Tag doesn't exist")));
+                .Returns(Task.FromException<ExtendedQueryTagStoreJoinEntry>(new ExtendedQueryTagNotFoundException("Tag doesn't exist")));
 
             await Assert.ThrowsAsync<ExtendedQueryTagNotFoundException>(() => _extendedQueryTagService.DeleteExtendedQueryTagAsync(path));
 
@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;
             string tagPath = tag.GetPath();
-            ExtendedQueryTagStoreEntry entry = tag.BuildExtendedQueryTagStoreEntry();
+            var entry = new ExtendedQueryTagStoreJoinEntry(tag.BuildExtendedQueryTagStoreEntry());
             _extendedQueryTagStore.GetExtendedQueryTagAsync(tagPath, default).Returns(entry);
             await _extendedQueryTagService.DeleteExtendedQueryTagAsync(tagPath);
             await _extendedQueryTagStore.Received(1).DeleteExtendedQueryTagAsync(tagPath, entry.VR);

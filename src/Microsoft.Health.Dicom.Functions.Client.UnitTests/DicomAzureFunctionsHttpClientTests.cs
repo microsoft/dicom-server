@@ -157,10 +157,10 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
                     Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(new int[] { 1, 4 })),
                     source.Token)
                 .Returns(
-                    new List<ExtendedQueryTagStoreEntry>
+                    new List<ExtendedQueryTagStoreJoinEntry>
                     {
-                        new ExtendedQueryTagStoreEntry(1, "00101010", "AS", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Adding, QueryStatus.Enabled, 0),
-                        new ExtendedQueryTagStoreEntry(4, "00104040", "DT", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding, QueryStatus.Enabled, 0),
+                        new ExtendedQueryTagStoreJoinEntry(1, "00101010", "AS", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Adding, QueryStatus.Enabled, 0, id),
+                        new ExtendedQueryTagStoreJoinEntry(4, "00104040", "DT", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding, QueryStatus.Enabled, 0, id),
                     });
             handler.SendingAsync += (msg, token) => AssertExpectedStatusRequestAsync(msg, id);
 
