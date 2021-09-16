@@ -59,6 +59,12 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
                         }
                     }
                 }
+
+                // Try get Partition ID
+                if (routeData.Values.TryGetValue(KnownActionParameterNames.StudyInstanceUid, out object partitionId))
+                {
+                    dicomRequestContext.PartitionId = partitionId.ToString();
+                }
             }
 
             if (context.ActionDescriptor is ControllerActionDescriptor controllerActionDescriptor)

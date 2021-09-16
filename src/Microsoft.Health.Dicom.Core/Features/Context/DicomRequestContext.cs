@@ -65,6 +65,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Context
 
         public string SopInstanceUid { get; set; }
 
+        public string PartitionId { get; set; }
+
         public ClaimsPrincipal Principal { get; set; }
 
         public IDictionary<string, StringValues> RequestHeaders { get; }

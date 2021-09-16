@@ -459,6 +459,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified PartitionId value &apos;{0}&apos; is invalid. .
+        /// </summary>
+        internal static string InvalidPartitionId {
+            get {
+                return ResourceManager.GetString("InvalidPartitionId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The query string included invalid characters..
         /// </summary>
         internal static string InvalidQueryString {

@@ -3,18 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Core.Features.Context;
-
-namespace Microsoft.Health.Dicom.Core.Features.Context
+namespace Microsoft.Health.Dicom.Core.Exceptions
 {
-    public interface IDicomRequestContext : IRequestContext
+    /// <summary>
+    /// Exception thrown when the DICOM instance is invalid.
+    /// </summary>
+    public class InvalidPartitionIdException : ValidationException
     {
-        string StudyInstanceUid { get; set; }
-
-        string SeriesInstanceUid { get; set; }
-
-        string SopInstanceUid { get; set; }
-
-        string PartitionId { get; set; }
+        public InvalidPartitionIdException(string value)
+            : base(string.Format(DicomCoreResource.InvalidPartitionId, value))
+        {
+        }
     }
 }
