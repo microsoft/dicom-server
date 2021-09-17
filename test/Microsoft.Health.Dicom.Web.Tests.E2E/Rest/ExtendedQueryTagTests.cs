@@ -56,9 +56,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset instance3 = Samples.CreateRandomInstanceDataset();
 
             // Annotate files
+            // (Disable Auto-validate)
             instance1.Add(patientWeightTag, 68.0M);
             instance2.Add(patientWeightTag, 50.0M);
             instance3.Add(patientWeightTag, 81.0M);
+
+#pragma warning disable CS0618
+            instance1.AutoValidate = false;
+            instance2.AutoValidate = false;
+#pragma warning restore CS0618
 
             instance1.Add(patientAgeTag, "foobar");
             instance2.Add(patientAgeTag, "invalid");
