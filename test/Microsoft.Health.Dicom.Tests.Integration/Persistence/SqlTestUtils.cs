@@ -43,22 +43,30 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
         }
 
-        public static async Task<System.Collections.Generic.IReadOnlyList<StoredProcedure>> GetStoredProceduresAsync(SqlDataStoreTestsFixture sqlStore, CancellationToken cancellationToken = default)
+        /// <summary>
+        /// Get StoredProcedures in SqlDataaStore
+        /// </summary>
+        /// <param name="sqlDataStore">The Sql data store</param>
+        /// <param name="cancellationToken">The cancellation token</param>
+        /// <returns>The stored procedures.</returns>
+        public static async Task<System.Collections.Generic.IReadOnlyList<StoredProcedure>> GetStoredProceduresAsync(SqlDataStoreTestsFixture sqlDataStore, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNull(sqlStore, nameof(sqlStore));
-            using var connectionWraper = await sqlStore.SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
+            EnsureArg.IsNotNull(sqlDataStore, nameof(sqlDataStore));
+            using var connectionWraper = await sqlDataStore.SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
             ServerConnection connection = new ServerConnection(connectionWraper.SqlConnection);
             Server server = new Server(connection);
-            Database db = server.Databases[sqlStore.DatabaseName];
+            Database db = server.Databases[sqlDataStore.DatabaseName];
+            DataTable storedProcedureTable = db.EnumObjects(DatabaseObjectTypes.StoredProcedure);
+
             List<StoredProcedure> result = new List<StoredProcedure>();
-            DataTable dataTable = db.EnumObjects(DatabaseObjectTypes.StoredProcedure);
-            foreach (DataRow row in dataTable.Rows)
+            foreach (DataRow row in storedProcedureTable.Rows)
             {
                 string schema = (string)row["Schema"];
                 if (schema == "sys" || schema == "INFORMATION_SCHEMA")
                 {
                     continue;
                 }
+
                 StoredProcedure sp = (StoredProcedure)server.GetSmoObject(new Urn((string)row["Urn"]));
                 if (!sp.IsSystemObject)
                 {

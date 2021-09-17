@@ -16,6 +16,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     /// </summary>
     internal class StoredProcedureCompatibleValidator
     {
+        /// <summary>
+        /// Validate if newProcedures are compatible with old ones.
+        /// </summary>
+        /// <param name="newProcedures">The new procedures.</param>
+        /// <param name="oldProcedures">The old procedures.</param>
         public static void Validate(IReadOnlyCollection<StoredProcedure> newProcedures, IReadOnlyCollection<StoredProcedure> oldProcedures)
         {
             var pairs = GetComparisonProcedures(newProcedures, oldProcedures);
@@ -25,8 +30,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 var oldOne = pair.Item1;
                 var newOne = pair.Item2;
 
-                List<StoredProcedureParameter> oldList = ParameterCollectionToList(oldOne.Parameters);
-                List<StoredProcedureParameter> newList = ParameterCollectionToList(newOne.Parameters);
+                List<StoredProcedureParameter> oldList = oldOne.Parameters.Cast<StoredProcedureParameter>().ToList();
+                List<StoredProcedureParameter> newList = newOne.Parameters.Cast<StoredProcedureParameter>().ToList();
 
                 // any old parameter should be able to find a match
                 foreach (var paramOld in oldList)
@@ -52,22 +57,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             List<Tuple<StoredProcedure, StoredProcedure>> pairs = new List<Tuple<StoredProcedure, StoredProcedure>>();
             foreach (var oldOne in oldProcedures)
             {
-                // every procedure in old database must have match one in new
+                // every procedure in old database must have a match in new
                 var newOne = newProcedures.FirstOrDefault(x => x.Name == oldOne.Name);
                 Assert.NotNull(newOne);
                 pairs.Add(new Tuple<StoredProcedure, StoredProcedure>(oldOne, newOne));
             }
             return pairs;
-        }
-
-        private static List<StoredProcedureParameter> ParameterCollectionToList(StoredProcedureParameterCollection collection)
-        {
-            List<StoredProcedureParameter> result = new List<StoredProcedureParameter>();
-            for (int i = 0; i < collection.Count; i++)
-            {
-                result.Add(collection[i]);
-            }
-            return result;
         }
     }
 }
