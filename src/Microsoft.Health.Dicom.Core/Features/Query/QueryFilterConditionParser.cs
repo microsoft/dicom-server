@@ -10,49 +10,49 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    internal static class QueryTagValueParser
+    internal static class QueryFilterConditionParser
     {
         public const string DateTagValueFormat = "yyyyMMdd";
 
-        private delegate QueryFilterCondition ValueParserFunc(QueryTag queryTag, string value);
-        private static readonly Dictionary<DicomVR, ValueParserFunc> ValueParsers = new Dictionary<DicomVR, ValueParserFunc>();
+        private delegate QueryFilterCondition ConditionParserFunc(QueryTag queryTag, string value);
+        private static readonly Dictionary<DicomVR, ConditionParserFunc> ConditionParsers = new Dictionary<DicomVR, ConditionParserFunc>();
 
-        static QueryTagValueParser()
+        static QueryFilterConditionParser()
         {
             // register value parsers
-            ValueParsers.Add(DicomVR.DA, ParseDateTagValue);
-            ValueParsers.Add(DicomVR.UI, ParseStringTagValue);
-            ValueParsers.Add(DicomVR.LO, ParseStringTagValue);
-            ValueParsers.Add(DicomVR.SH, ParseStringTagValue);
-            ValueParsers.Add(DicomVR.PN, ParseStringTagValue);
-            ValueParsers.Add(DicomVR.CS, ParseStringTagValue);
+            ConditionParsers.Add(DicomVR.DA, ParseDateValueMatchCondition);
+            ConditionParsers.Add(DicomVR.UI, ParseStringValueMatchCondition);
+            ConditionParsers.Add(DicomVR.LO, ParseStringValueMatchCondition);
+            ConditionParsers.Add(DicomVR.SH, ParseStringValueMatchCondition);
+            ConditionParsers.Add(DicomVR.PN, ParseStringValueMatchCondition);
+            ConditionParsers.Add(DicomVR.CS, ParseStringValueMatchCondition);
 
-            ValueParsers.Add(DicomVR.AE, ParseStringTagValue);
-            ValueParsers.Add(DicomVR.AS, ParseStringTagValue);
-            ValueParsers.Add(DicomVR.DS, ParseStringTagValue);
-            ValueParsers.Add(DicomVR.IS, ParseStringTagValue);
+            ConditionParsers.Add(DicomVR.AE, ParseStringValueMatchCondition);
+            ConditionParsers.Add(DicomVR.AS, ParseStringValueMatchCondition);
+            ConditionParsers.Add(DicomVR.DS, ParseStringValueMatchCondition);
+            ConditionParsers.Add(DicomVR.IS, ParseStringValueMatchCondition);
 
-            ValueParsers.Add(DicomVR.SL, ParseLongTagValue);
-            ValueParsers.Add(DicomVR.SS, ParseLongTagValue);
-            ValueParsers.Add(DicomVR.UL, ParseLongTagValue);
-            ValueParsers.Add(DicomVR.US, ParseLongTagValue);
+            ConditionParsers.Add(DicomVR.SL, ParseLongValueMatchCondition);
+            ConditionParsers.Add(DicomVR.SS, ParseLongValueMatchCondition);
+            ConditionParsers.Add(DicomVR.UL, ParseLongValueMatchCondition);
+            ConditionParsers.Add(DicomVR.US, ParseLongValueMatchCondition);
 
-            ValueParsers.Add(DicomVR.FL, ParseDoubleTagValue);
-            ValueParsers.Add(DicomVR.FD, ParseDoubleTagValue);
+            ConditionParsers.Add(DicomVR.FL, ParseDoubleValueMatchCondition);
+            ConditionParsers.Add(DicomVR.FD, ParseDoubleValueMatchCondition);
         }
 
-        public static bool TryParseTagValue(QueryTag queryTag, string value, out QueryFilterCondition condition)
+        public static bool TryParseQueryFilterCondition(QueryTag queryTag, string value, out QueryFilterCondition condition)
         {
             condition = null;
-            if (ValueParsers.TryGetValue(queryTag.VR, out ValueParserFunc valueParser))
+            if (ConditionParsers.TryGetValue(queryTag.VR, out ConditionParserFunc conditionParser))
             {
-                condition = valueParser(queryTag, value);
+                condition = conditionParser(queryTag, value);
                 return true;
             }
             return false;
         }
 
-        private static QueryFilterCondition ParseDateTagValue(QueryTag queryTag, string value)
+        private static QueryFilterCondition ParseDateValueMatchCondition(QueryTag queryTag, string value)
         {
             if (QueryLimit.IsValidRangeQueryTag(queryTag))
             {
@@ -81,12 +81,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return new DateSingleValueMatchCondition(queryTag, parsedDate);
         }
 
-        private static QueryFilterCondition ParseStringTagValue(QueryTag queryTag, string value)
+        private static QueryFilterCondition ParseStringValueMatchCondition(QueryTag queryTag, string value)
         {
             return new StringSingleValueMatchCondition(queryTag, value);
         }
 
-        private static QueryFilterCondition ParseDoubleTagValue(QueryTag queryTag, string value)
+        private static QueryFilterCondition ParseDoubleValueMatchCondition(QueryTag queryTag, string value)
         {
             if (!double.TryParse(value, out double val))
             {
@@ -96,7 +96,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return new DoubleSingleValueMatchCondition(queryTag, val);
         }
 
-        private static QueryFilterCondition ParseLongTagValue(QueryTag queryTag, string value)
+        private static QueryFilterCondition ParseLongValueMatchCondition(QueryTag queryTag, string value)
         {
             if (!long.TryParse(value, out long val))
             {

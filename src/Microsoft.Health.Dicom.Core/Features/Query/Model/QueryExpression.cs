@@ -21,8 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
             bool fuzzyMatching,
             int limit,
             int offset,
-            IReadOnlyCollection<QueryFilterCondition> filterConditions
-            )
+            IReadOnlyCollection<QueryFilterCondition> filterConditions)
         {
             QueryResource = resourceType;
             IncludeFields = includeFields;

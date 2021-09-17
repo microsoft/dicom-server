@@ -120,7 +120,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             condition = null;
             var attributeId = queryParameter.Key.Trim();
 
-            QueryTag queryTag = GetMatchingQueryTag(attributeId, queryTags);
+            QueryTag queryTag = GetMatchedQueryTag(attributeId, queryTags);
             if (queryTag == null)
             {
                 throw new QueryParseException(string.Format(DicomCoreResource.UnsupportedSearchParameter, attributeId));
@@ -138,7 +138,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 throw new QueryParseException(string.Format(DicomCoreResource.QueryEmptyAttributeValue, attributeId));
             }
 
-            if (QueryTagValueParser.TryParseTagValue(queryTag, trimmedValue, out condition))
+            if (QueryFilterConditionParser.TryParseQueryFilterCondition(queryTag, trimmedValue, out condition))
             {
                 condition.QueryTag = queryTag;
             }
@@ -146,7 +146,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return condition != null;
         }
 
-        private static QueryTag GetMatchingQueryTag(string attributeId, IEnumerable<QueryTag> queryTags)
+        private static QueryTag GetMatchedQueryTag(string attributeId, IEnumerable<QueryTag> queryTags)
         {
             if (!DicomTagParser.TryParse(attributeId, out DicomTag dicomTag))
             {

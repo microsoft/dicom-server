@@ -242,7 +242,7 @@ AND ctd1.TagValue=@p1";
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
             var includeField = new QueryIncludeField(false, new List<DicomTag>());
             var queryTag = new QueryTag(DicomTag.Date.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
-            var filter = new DateRangeValueMatchCondition(queryTag, DateTime.ParseExact("19510910", QueryTagValueParser.DateTagValueFormat, null), DateTime.ParseExact("19571110", QueryTagValueParser.DateTagValueFormat, null));
+            var filter = new DateRangeValueMatchCondition(queryTag, DateTime.ParseExact("19510910", QueryFilterConditionParser.DateTagValueFormat, null), DateTime.ParseExact("19571110", QueryFilterConditionParser.DateTagValueFormat, null));
 
             filter.QueryTag = queryTag;
             var filters = new List<QueryFilterCondition>()
