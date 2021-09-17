@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
 
         }
-        // Only 1 public constructor is allowed for test fixture.
+
         internal SqlDataStoreTestsFixture(string databaseName, SchemaInformation schemaInformation)
         {
             DatabaseName = EnsureArg.IsNotNullOrEmpty(databaseName, nameof(databaseName));
@@ -135,6 +135,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             ExtendedQueryTagErrorStoreTestHelper = new ExtendedQueryTagErrorStoreTestHelper(TestConnectionString);
         }
 
+        // Only 1 public constructor is allowed for test fixture.
         public SqlDataStoreTestsFixture()
             : this(GenerateDatabaseName())
         {
