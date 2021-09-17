@@ -17,7 +17,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     {
         private const string IncludeFieldValueAll = "all";
         private const StringComparison QueryParameterComparision = StringComparison.OrdinalIgnoreCase;
-        private delegate void ParserAction(KeyValuePair<string, StringValues> queryParam, ref QueryExpressionImp queryExpression);
+        private delegate void ParserAction(KeyValuePair<string, StringValues> queryParam, ref QueryExpressionParams queryExpression);
         private static readonly Dictionary<string, ParserAction> ParamParsers = new Dictionary<string, ParserAction>(StringComparer.OrdinalIgnoreCase);
 
         static QueryParamsParser()
@@ -29,24 +29,24 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             ParamParsers.Add("includefield", ParseIncludeField);
         }
 
-        public static bool TryParse(KeyValuePair<string, StringValues> queryParam, ref QueryExpressionImp queryExpression)
+        public static bool TryParse(KeyValuePair<string, StringValues> queryParam, ref QueryExpressionParams expParams)
         {
-            EnsureArg.IsNotNull(queryExpression, nameof(queryExpression));
+            EnsureArg.IsNotNull(expParams, nameof(expParams));
             var trimmedKey = queryParam.Key.Trim();
             if (ParamParsers.TryGetValue(trimmedKey, out ParserAction paramParser))
             {
-                paramParser(queryParam, ref queryExpression);
+                paramParser(queryParam, ref expParams);
                 return true;
             }
             return false;
         }
 
-        private static void ParseIncludeField(KeyValuePair<string, StringValues> queryParameter, ref QueryExpressionImp queryExpression)
+        private static void ParseIncludeField(KeyValuePair<string, StringValues> queryParameter, ref QueryExpressionParams expParams)
         {
             // Check if `all` is present as one of the values in IncludeField parameter.
             if (queryParameter.Value.Any(val => IncludeFieldValueAll.Equals(val.Trim(), QueryParameterComparision)))
             {
-                queryExpression.AllValue = true;
+                expParams.AllValue = true;
                 return;
             }
 
@@ -57,7 +57,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                     var trimmedValue = value.Trim();
                     if (DicomTagParser.TryParse(trimmedValue, out DicomTag dicomTag))
                     {
-                        queryExpression.IncludeFields.Add(dicomTag);
+                        expParams.IncludeFields.Add(dicomTag);
                         continue;
                     }
 
@@ -66,12 +66,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             }
         }
 
-        private static void ParseFuzzyMatching(KeyValuePair<string, StringValues> queryParameter, ref QueryExpressionImp queryExpression)
+        private static void ParseFuzzyMatching(KeyValuePair<string, StringValues> queryParameter, ref QueryExpressionParams expParams)
         {
             var trimmedValue = queryParameter.Value.FirstOrDefault()?.Trim();
             if (bool.TryParse(trimmedValue, out bool result))
             {
-                queryExpression.FuzzyMatch = result;
+                expParams.FuzzyMatch = result;
             }
             else
             {
@@ -79,12 +79,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             }
         }
 
-        private static void ParseOffset(KeyValuePair<string, StringValues> queryParameter, ref QueryExpressionImp queryParams)
+        private static void ParseOffset(KeyValuePair<string, StringValues> queryParameter, ref QueryExpressionParams expParams)
         {
             var trimmedValue = queryParameter.Value.FirstOrDefault()?.Trim();
             if (int.TryParse(trimmedValue, out int result) && result >= 0)
             {
-                queryParams.Offset = result;
+                expParams.Offset = result;
             }
             else
             {
@@ -92,7 +92,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             }
         }
 
-        private static void ParseLimit(KeyValuePair<string, StringValues> queryParameter, ref QueryExpressionImp queryExpression)
+        private static void ParseLimit(KeyValuePair<string, StringValues> queryParameter, ref QueryExpressionParams expParams)
         {
             var trimmedValue = queryParameter.Value.FirstOrDefault()?.Trim();
             if (int.TryParse(trimmedValue, out int result))
@@ -102,7 +102,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                     throw new QueryParseException(string.Format(DicomCoreResource.QueryResultCountMaxExceeded, result, 1, QueryLimit.MaxQueryResultCount));
                 }
 
-                queryExpression.Limit = result;
+                expParams.Limit = result;
             }
             else
             {

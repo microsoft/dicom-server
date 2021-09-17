@@ -8,9 +8,9 @@ using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    internal class QueryExpressionImp
+    internal class QueryExpressionParams
     {
-        public QueryExpressionImp()
+        public QueryExpressionParams()
         {
             IncludeFields = new HashSet<DicomTag>();
             FilterConditions = new List<QueryFilterCondition>();

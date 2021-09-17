@@ -21,20 +21,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     /// </summary>
     public partial class QueryParser : IQueryParser
     {
-        private QueryExpressionImp _parsedQuery;
+        private QueryExpressionParams _expParams;
 
         public QueryExpression Parse(QueryResourceRequest request, IReadOnlyCollection<QueryTag> queryTags)
         {
             EnsureArg.IsNotNull(request, nameof(request));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
-            _parsedQuery = new QueryExpressionImp();
+            _expParams = new QueryExpressionParams();
             queryTags = GetQualifiedQueryTags(queryTags, request.QueryResourceType);
 
             foreach (KeyValuePair<string, StringValues> queryParam in request.RequestQuery)
             {
                 // Parse known parameters
-                if (QueryParamsParser.TryParse(queryParam, ref _parsedQuery))
+                if (QueryParamsParser.TryParse(queryParam, ref _expParams))
                 {
                     continue;
                 }
@@ -42,12 +42,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 // filter conditions with attributeId as key
                 if (ParseFilterCondition(queryParam, queryTags, out QueryFilterCondition condition))
                 {
-                    if (_parsedQuery.FilterConditions.Any(item => item.QueryTag.Tag == condition.QueryTag.Tag))
+                    if (_expParams.FilterConditions.Any(item => item.QueryTag.Tag == condition.QueryTag.Tag))
                     {
                         throw new QueryParseException(string.Format(DicomCoreResource.DuplicateQueryParam, queryParam.Key));
                     }
 
-                    _parsedQuery.FilterConditions.Add(condition);
+                    _expParams.FilterConditions.Add(condition);
 
                     continue;
                 }
@@ -59,24 +59,24 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             if (request.StudyInstanceUid != null)
             {
                 var condition = new StringSingleValueMatchCondition(new QueryTag(DicomTag.StudyInstanceUID), request.StudyInstanceUid);
-                _parsedQuery.FilterConditions.Add(condition);
+                _expParams.FilterConditions.Add(condition);
             }
 
             if (request.SeriesInstanceUid != null)
             {
                 var condition = new StringSingleValueMatchCondition(new QueryTag(DicomTag.SeriesInstanceUID), request.SeriesInstanceUid);
-                _parsedQuery.FilterConditions.Add(condition);
+                _expParams.FilterConditions.Add(condition);
             }
 
-            PostProcessFilterConditions(_parsedQuery);
+            PostProcessFilterConditions();
 
             return new QueryExpression(
                 request.QueryResourceType,
-                new QueryIncludeField(_parsedQuery.AllValue, _parsedQuery.IncludeFields),
-                _parsedQuery.FuzzyMatch,
-                _parsedQuery.Limit,
-                _parsedQuery.Offset,
-                _parsedQuery.FilterConditions);
+                new QueryIncludeField(_expParams.AllValue, _expParams.IncludeFields),
+                _expParams.FuzzyMatch,
+                _expParams.Limit,
+                _expParams.Offset,
+                _expParams.FilterConditions);
         }
 
         private static IReadOnlyCollection<QueryTag> GetQualifiedQueryTags(IReadOnlyCollection<QueryTag> queryTags, QueryResource queryResource)
@@ -95,18 +95,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             }).ToList();
         }
 
-        private static void PostProcessFilterConditions(QueryExpressionImp parsedQuery)
+        private void PostProcessFilterConditions()
         {
             // fuzzy match condition modification
-            if (parsedQuery.FuzzyMatch == true)
+            if (_expParams.FuzzyMatch == true)
             {
-                for (int i = 0; i < parsedQuery.FilterConditions.Count; i++)
+                for (int i = 0; i < _expParams.FilterConditions.Count; i++)
                 {
-                    QueryFilterCondition cond = parsedQuery.FilterConditions[i];
+                    QueryFilterCondition cond = _expParams.FilterConditions[i];
                     if (QueryLimit.IsValidFuzzyMatchingQueryTag(cond.QueryTag))
                     {
                         var s = cond as StringSingleValueMatchCondition;
-                        parsedQuery.FilterConditions[i] = new PersonNameFuzzyMatchCondition(s.QueryTag, s.Value);
+                        _expParams.FilterConditions[i] = new PersonNameFuzzyMatchCondition(s.QueryTag, s.Value);
                     }
                 }
             }
