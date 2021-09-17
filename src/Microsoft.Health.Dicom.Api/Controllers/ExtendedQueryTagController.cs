@@ -160,7 +160,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// </returns>
         [HttpGet]
         [Produces(KnownContentTypes.ApplicationJson)]
-        [ProducesResponseType(typeof(GetExtendedQueryTagErrorsResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IEnumerable<ExtendedQueryTagError>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
         [VersionedRoute(KnownRoutes.GetExtendedQueryTagErrorsRoute, Name = KnownRouteNames.VersionedGetExtendedQueryTagErrors)]
@@ -176,7 +176,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             EnsureFeatureIsEnabled();
             GetExtendedQueryTagErrorsResponse response = await _mediator.GetExtendedQueryTagErrorsAsync(tagPath, limit, offset, HttpContext.RequestAborted);
 
-            return StatusCode((int)HttpStatusCode.OK, response);
+            return StatusCode((int)HttpStatusCode.OK, response.ExtendedQueryTagErrors);
         }
 
         private void EnsureFeatureIsEnabled()
