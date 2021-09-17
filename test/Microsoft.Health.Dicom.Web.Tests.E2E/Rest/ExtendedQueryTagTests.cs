@@ -14,7 +14,6 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Xunit;
@@ -47,25 +46,67 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 return;
             }
 
-            DicomTag tag = DicomTag.SeriesNumber;
+            // Define tags
+            DicomTag patientWeightTag = DicomTag.PatientWeight;
+            DicomTag patientAgeTag = DicomTag.PatientAge;
 
-            // upload file
-            string tagValue = "123";
-            DicomDataset dataset = Samples.CreateRandomInstanceDataset();
-            dataset.Add(tag, tagValue);
-            await _instanceManager.StoreAsync(new DicomFile(dataset));
-            InstanceIdentifier instanceId = dataset.ToInstanceIdentifier();
+            // Define DICOM files
+            DicomDataset instance1 = Samples.CreateRandomInstanceDataset();
+            DicomDataset instance2 = Samples.CreateRandomInstanceDataset();
+            DicomDataset instance3 = Samples.CreateRandomInstanceDataset();
 
-            // add tag
-            AddExtendedQueryTagEntry addExtendedQueryTagEntry = new AddExtendedQueryTagEntry { Path = tag.GetPath(), VR = tag.GetDefaultVR().Code, Level = QueryTagLevel.Instance };
-            var operationStatus = await _tagManager.AddTagsAsync(new[] { addExtendedQueryTagEntry });
+            // Annotate files
+            instance1.Add(patientWeightTag, 68.0M);
+            instance2.Add(patientWeightTag, 50.0M);
+            instance3.Add(patientWeightTag, 81.0M);
+
+            instance1.Add(patientAgeTag, "foobar");
+            instance2.Add(patientAgeTag, "invalid");
+            instance3.Add(patientAgeTag, "053Y");
+
+            // Upload files (with a few errors)
+            await _instanceManager.StoreAsync(new DicomFile(instance1));
+            await _instanceManager.StoreAsync(new DicomFile(instance2));
+            await _instanceManager.StoreAsync(new DicomFile(instance3));
+
+            // Add extended query tags
+            var operationStatus = await _tagManager.AddTagsAsync(
+                new AddExtendedQueryTagEntry[]
+                {
+                    new AddExtendedQueryTagEntry { Path = patientWeightTag.GetPath(), VR = patientWeightTag.GetDefaultVR().Code, Level = QueryTagLevel.Instance },
+                    new AddExtendedQueryTagEntry { Path = patientAgeTag.GetPath(), VR = patientAgeTag.GetDefaultVR().Code, Level = QueryTagLevel.Instance },
+                });
             Assert.Equal(OperationRuntimeStatus.Completed, operationStatus.Status);
 
+            // Check specific tag
+            GetExtendedQueryTagEntry actual;
+
+            actual = await _tagManager.GetTagAsync(patientWeightTag.GetPath());
+            Assert.Equal(patientWeightTag.GetPath(), actual.Path);
+            Assert.Null(actual.Errors);
+
+            actual = await _tagManager.GetTagAsync(patientAgeTag.GetPath());
+            Assert.Equal(patientAgeTag.GetPath(), actual.Path);
+            Assert.Equal(2, actual.Errors.Count);
+
+            // Query multiple tags
+            var multipleTags = (await _tagManager.GetTagsAsync(2, 0)).ToList();
+            Assert.Equal(2, multipleTags.Count);
+
+            Assert.Equal(multipleTags[0].Path, (await _tagManager.GetTagsAsync(1, 0)).Single().Path);
+            Assert.Equal(multipleTags[1].Path, (await _tagManager.GetTagsAsync(1, 1)).Single().Path);
+
+            // Query Errors
+            var errors = (await _tagManager.GetTagErrorsAsync(patientAgeTag.GetPath(), 2, 0)).ToList();
+            Assert.Equal(2, errors.Count);
+
+            Assert.Equal(errors[0].ErrorMessage, (await _tagManager.GetTagErrorsAsync(patientAgeTag.GetPath(), 1, 0)).Single().ErrorMessage);
+            Assert.Equal(errors[1].ErrorMessage, (await _tagManager.GetTagErrorsAsync(patientAgeTag.GetPath(), 1, 1)).Single().ErrorMessage);
+
             // QIDO
-            // Query on series for standardTagSeries
-            DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryInstancesAsync($"{tag.GetPath()}={tagValue}", cancellationToken: default);
+            DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryInstancesAsync($"{patientWeightTag.GetPath()}={50}", cancellationToken: default);
             DicomDataset[] instances = await queryResponse.ToArrayAsync();
-            Assert.Contains(instances, instance => instance.ToInstanceIdentifier().Equals(instanceId));
+            Assert.Contains(instances, instance => instance.ToInstanceIdentifier().Equals(instance2.ToInstanceIdentifier()));
         }
 
         [Theory]
@@ -94,8 +135,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType);
             }
 
-            HttpResponseMessage response = await _client.HttpClient.SendAsync(request, default(CancellationToken))
-                .ConfigureAwait(false);
+            HttpResponseMessage response = await _client.HttpClient.SendAsync(request, default(CancellationToken)).ConfigureAwait(false);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             Assert.Equal("The request body is not valid. Details: \r\nInput Dicom Tag Level 'Studys' is invalid. It must have value 'Study', 'Series' or 'Instance'.", response.Content.ReadAsStringAsync().Result);
         }

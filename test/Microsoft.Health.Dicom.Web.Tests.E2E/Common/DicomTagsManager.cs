@@ -57,14 +57,38 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
             }
 
             var operation = await response.GetValueAsync();
-
-            var operationStatus = await GetOperationStatusRetryPolicy.ExecuteAsync(async () =>
+            return await GetOperationStatusRetryPolicy.ExecuteAsync(async () =>
             {
                 var operationStatus = await _dicomWebClient.GetOperationStatusAsync(operation.Id);
                 return await operationStatus.GetValueAsync();
             });
-            return operationStatus;
         }
 
+        public async Task<GetExtendedQueryTagEntry> GetTagAsync(string tagPath, CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(tagPath, nameof(tagPath));
+
+            var response = await _dicomWebClient.GetExtendedQueryTagAsync(tagPath, cancellationToken);
+            return await response.GetValueAsync();
+        }
+
+        public async Task<IEnumerable<GetExtendedQueryTagEntry>> GetTagsAsync(int limit, int offset, CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsGte(limit, 1, nameof(limit));
+            EnsureArg.IsGte(offset, 0, nameof(offset));
+
+            var response = await _dicomWebClient.GetExtendedQueryTagsAsync(limit, offset, cancellationToken);
+            return await response.GetValueAsync();
+        }
+
+        public async Task<IEnumerable<ExtendedQueryTagError>> GetTagErrorsAsync(string tagPath, int limit, int offset, CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(tagPath, nameof(tagPath));
+            EnsureArg.IsGte(limit, 1, nameof(limit));
+            EnsureArg.IsGte(offset, 0, nameof(offset));
+
+            var response = await _dicomWebClient.GetExtendedQueryTagErrorsAsync(tagPath, limit, offset, cancellationToken);
+            return await response.GetValueAsync();
+        }
     }
 }

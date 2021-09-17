@@ -101,7 +101,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
 
             var actual = response as ObjectResult;
             Assert.Equal((int)HttpStatusCode.OK, actual.StatusCode);
-            Assert.Same(expected, actual.Value);
+            Assert.Same(expected.ExtendedQueryTagErrors, actual.Value);
 
             await mediator.Received(1).Send(
                 Arg.Is<GetExtendedQueryTagErrorsRequest>(x => x.Path == path),
