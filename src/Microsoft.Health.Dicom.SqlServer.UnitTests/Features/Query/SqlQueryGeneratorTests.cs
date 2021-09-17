@@ -10,7 +10,6 @@ using Dicom;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
-using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.SqlServer.Features.Query;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
@@ -34,7 +33,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
             {
                 new DateRangeValueMatchCondition(new QueryTag(DicomTag.StudyDate), minDate, maxDate),
             };
-            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
+            var query = TestObjectFactory.CreateQueryExpression(resourceType: QueryResource.AllStudies, includeFields: includeField, filterConditions: filters);
 
             var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
             new SqlQueryGenerator(stringBuilder, query, parm);
@@ -70,7 +69,7 @@ FETCH NEXT 100 ROWS ONLY";
             {
                 new StringSingleValueMatchCondition(new QueryTag(DicomTag.Modality), "123"),
             };
-            var query = new QueryExpression(QueryResource.AllSeries, includeField, false, 0, 0, filters, Array.Empty<string>());
+            var query = TestObjectFactory.CreateQueryExpression(resourceType: QueryResource.AllSeries, includeFields: includeField, filterConditions: filters);
 
             var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
             new SqlQueryGenerator(stringBuilder, query, parm);
@@ -243,7 +242,7 @@ AND ctd1.TagValue=@p1";
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
             var includeField = new QueryIncludeField(false, new List<DicomTag>());
             var queryTag = new QueryTag(DicomTag.Date.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
-            var filter = new DateRangeValueMatchCondition(queryTag, DateTime.ParseExact("19510910", QueryParser.DateTagValueFormat, null), DateTime.ParseExact("19571110", QueryParser.DateTagValueFormat, null));
+            var filter = new DateRangeValueMatchCondition(queryTag, DateTime.ParseExact("19510910", QueryTagValueParser.DateTagValueFormat, null), DateTime.ParseExact("19571110", QueryTagValueParser.DateTagValueFormat, null));
 
             filter.QueryTag = queryTag;
             var filters = new List<QueryFilterCondition>()

@@ -405,8 +405,4 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>Specified offset value {0} cannot be negative.</value>
     <comment>{0} Specified page offset.</comment>
   </data>
-  <data name="TagIsDisabledOnQuery" xml:space="preserve">
-    <value>The extended query tag '{0}' has been disabled for QIDO, please enable it at first.</value>
-    <comment>{0} Dicom Tag.</comment>
-  </data>
 </root>

@@ -21,8 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
             bool fuzzyMatching,
             int limit,
             int offset,
-            IReadOnlyCollection<QueryFilterCondition> filterConditions,
-            IReadOnlyCollection<string> erroneousTags
+            IReadOnlyCollection<QueryFilterCondition> filterConditions
             )
         {
             QueryResource = resourceType;
@@ -31,7 +30,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
             Limit = limit;
             Offset = offset;
             FilterConditions = EnsureArg.IsNotNull(filterConditions, nameof(filterConditions));
-            ErroneousTags = EnsureArg.IsNotNull(erroneousTags, nameof(erroneousTags));
             SetIELevel();
         }
 
@@ -69,8 +67,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
         /// List of filter conditions to find the DICOM objects
         /// </summary>
         public IReadOnlyCollection<QueryFilterCondition> FilterConditions { get; }
-
-        public IReadOnlyCollection<string> ErroneousTags { get; }
 
         /// <summary>
         /// Request query was empty

@@ -18,7 +18,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         private const string IncludeFieldValueAll = "all";
         private const StringComparison QueryParameterComparision = StringComparison.OrdinalIgnoreCase;
         private delegate void ParserAction(KeyValuePair<string, StringValues> queryParam, ref QueryExpressionImp queryExpression);
-
         private static readonly Dictionary<string, ParserAction> ParamParsers = new Dictionary<string, ParserAction>(StringComparer.OrdinalIgnoreCase);
 
         static QueryParamsParser()
@@ -29,6 +28,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             ParamParsers.Add("fuzzymatching", ParseFuzzyMatching);
             ParamParsers.Add("includefield", ParseIncludeField);
         }
+
         public static bool TryParse(KeyValuePair<string, StringValues> queryParam, ref QueryExpressionImp queryExpression)
         {
             EnsureArg.IsNotNull(queryExpression, nameof(queryExpression));

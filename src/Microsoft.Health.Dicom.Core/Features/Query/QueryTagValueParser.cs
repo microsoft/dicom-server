@@ -16,6 +16,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         private delegate QueryFilterCondition ValueParserFunc(QueryTag queryTag, string value);
         private static readonly Dictionary<DicomVR, ValueParserFunc> ValueParsers = new Dictionary<DicomVR, ValueParserFunc>();
+
         static QueryTagValueParser()
         {
             // register value parsers

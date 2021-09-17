@@ -23,8 +23,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     {
         private QueryExpressionImp _parsedQuery;
 
-        public const string DateTagValueFormat = "yyyyMMdd";
-
         public QueryExpression Parse(QueryResourceRequest request, IReadOnlyCollection<QueryTag> queryTags)
         {
             EnsureArg.IsNotNull(request, nameof(request));
@@ -35,8 +33,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             foreach (KeyValuePair<string, StringValues> queryParam in request.RequestQuery)
             {
-                var trimmedKey = queryParam.Key.Trim();
-
                 // Parse known parameters
                 if (QueryParamsParser.TryParse(queryParam, ref _parsedQuery))
                 {
@@ -49,18 +45,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                     if (_parsedQuery.FilterConditions.Any(item => item.QueryTag.Tag == condition.QueryTag.Tag))
                     {
                         throw new QueryParseException(string.Format(DicomCoreResource.DuplicateQueryParam, queryParam.Key));
-                    }
-
-                    // Check if tag is disabled on QIDO
-                    if (condition.QueryTag.IsExtendedQueryTag && condition.QueryTag.ExtendedQueryTagStoreEntry.QueryStatus == QueryStatus.Disabled)
-                    {
-                        throw new QueryParseException(string.Format(DicomCoreResource.TagIsDisabledOnQuery, queryParam.Key));
-                    }
-
-                    // Check if tag has error
-                    if (condition.QueryTag.IsExtendedQueryTag && condition.QueryTag.ExtendedQueryTagStoreEntry.ErrorCount > 0)
-                    {
-                        _parsedQuery.ErroneousTags.Add(trimmedKey);
                     }
 
                     _parsedQuery.FilterConditions.Add(condition);
@@ -92,8 +76,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 _parsedQuery.FuzzyMatch,
                 _parsedQuery.Limit,
                 _parsedQuery.Offset,
-                _parsedQuery.FilterConditions,
-                _parsedQuery.ErroneousTags);
+                _parsedQuery.FilterConditions);
         }
 
         private static IReadOnlyCollection<QueryTag> GetQualifiedQueryTags(IReadOnlyCollection<QueryTag> queryTags, QueryResource queryResource)
@@ -155,9 +138,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 throw new QueryParseException(string.Format(DicomCoreResource.QueryEmptyAttributeValue, attributeId));
             }
 
-            QueryTagValueParser.TryParseTagValue(queryTag, trimmedValue, out condition);
-
-            condition.QueryTag = queryTag;
+            if (QueryTagValueParser.TryParseTagValue(queryTag, trimmedValue, out condition))
+            {
+                condition.QueryTag = queryTag;
+            }
 
             return condition != null;
         }
