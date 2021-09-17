@@ -22,7 +22,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
                 return false;
             }
 
-
             tag = ParseStardandDicomTagKeyword(dicomTagPath);
 
             if (tag == null)

@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     /// <summary>
     /// Main parser class that implements the flow and registration of the parsers
     /// </summary>
-    public partial class QueryParser : IQueryParser
+    public class QueryParser : IQueryParser
     {
         private QueryExpressionParams _expParams;
 
