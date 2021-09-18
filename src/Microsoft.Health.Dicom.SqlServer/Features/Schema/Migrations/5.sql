@@ -107,7 +107,7 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
-CREATE NONCLUSTERED INDEX IX_Instance_SopInstanceUid_Status on
+CREATE NONCLUSTERED INDEX IX_Instance_SopInstanceUid_Status on dbo.Instance
 (
     SopInstanceUid,
     Status
@@ -164,7 +164,7 @@ WITH (DATA_COMPRESSION = PAGE)
 **************************************************************/
 CREATE TABLE dbo.Study (
     StudyKey                    BIGINT                            NOT NULL, --PK
-    PartitionKey                BIGINT                            NOT NULL,
+    PartitionKey                BIGINT                            NOT NULL, --FK
     StudyInstanceUid            VARCHAR(64)                       NOT NULL,
     PatientId                   NVARCHAR(64)                      NOT NULL,
     PatientName                 NVARCHAR(200)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
@@ -278,7 +278,7 @@ CREATE TABLE dbo.Series (
     ManufacturerModelName               NVARCHAR(64)               NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 
-CREATE UNIQUE CLUSTERED INDEX IXC_Series ON dbo.Series
+CREATE UNIQUE CLUSTERED INDEX IXC_PartitionKey_Series ON dbo.Series
 (
     PartitionKey,
     StudyKey,
@@ -351,8 +351,9 @@ CREATE TABLE dbo.DeletedInstance
     CleanupAfter        DATETIMEOFFSET(0) NOT NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 
-CREATE UNIQUE CLUSTERED INDEX IXC_DeletedInstance ON dbo.DeletedInstance
+CREATE UNIQUE CLUSTERED INDEX IXC_PartitionId_DeletedInstance ON dbo.DeletedInstance
 (
+    PartitionId,
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid,
@@ -1423,7 +1424,9 @@ GO
 --     Gets valid dicom instances at study/series/instance level
 --
 -- PARAMETERS
---     @invalidStatus
+--     @partitionId
+--         * The Partition ID.
+--     @validStatus
 --         * Filter criteria to search only valid instances
 --     @studyInstanceUid
 --         * The study instance UID.
@@ -1433,7 +1436,7 @@ GO
 --         * The SOP instance UID.
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.GetInstance (
-    @partitionId        VARCHAR(64)   = 'Microsoft.Default',
+    @partitionId        VARCHAR(64) = 'Microsoft.Default',
     @validStatus        TINYINT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64) = NULL,
@@ -1499,7 +1502,7 @@ AS
            p.PartitionId
     FROM dbo.Instance i
     JOIN dbo.Partition p
-    ON p.PartitionKey = i.ParititionKey
+    ON p.PartitionKey = i.PartitionKey
     WHERE Watermark BETWEEN @startWatermark AND @endWatermark
           AND Status = @status
 GO
@@ -1562,6 +1565,8 @@ GO
 --         * The date time offset that the instance can be cleaned up.
 --     @createdStatus
 --         * Status value representing the created state.
+--     @partitionId
+--         * The Partition ID.
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -1750,12 +1755,12 @@ AS
     -- If we've removing the series, see if it's the last for a study and if so, remove the study
     IF NOT EXISTS ( SELECT  *
                     FROM    dbo.Series WITH(HOLDLOCK, UPDLOCK)
-                    WHERE   Studykey = @studyKey
+                    WHERE   StudyKey = @studyKey
                     AND     PartitionKey = @partitionKey)
     BEGIN
         DELETE
         FROM    dbo.Study
-        WHERE   Studykey = @studyKey
+        WHERE   StudyKey = @studyKey
 
         -- Deleting indexed study tags
         DELETE
@@ -2754,5 +2759,22 @@ BEGIN
     CREATE FULLTEXT INDEX ON ExtendedQueryTagPersonName(TagValueWords LANGUAGE 1033)
     KEY INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey
     WITH STOPLIST = OFF;
+END
+GO
+
+/*************************************************************
+Store Procedure that checks if there are already existing record in instance table
+**************************************************************/
+CREATE OR ALTER PROCEDURE dbo.CheckIfInstancesExist
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    SELECT TOP 1 InstanceKey
+    FROM dbo.Instance
+
+    IF @@ROWCOUNT <> 0
+       THROW 50410, 'Instances already exists', 1
 END
 GO

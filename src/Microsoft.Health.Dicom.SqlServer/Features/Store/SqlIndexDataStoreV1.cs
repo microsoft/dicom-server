@@ -189,7 +189,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.DeleteDeletedInstance.PopulateCommand(
+                V4.DeleteDeletedInstance.PopulateCommand(
                     sqlCommandWrapper,
                     versionedInstanceIdentifier.StudyInstanceUid,
                     versionedInstanceIdentifier.SeriesInstanceUid,
@@ -212,7 +212,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.IncrementDeletedInstanceRetry.PopulateCommand(
+                V4.IncrementDeletedInstanceRetry.PopulateCommand(
                     sqlCommandWrapper,
                     versionedInstanceIdentifier.StudyInstanceUid,
                     versionedInstanceIdentifier.SeriesInstanceUid,
@@ -236,7 +236,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.DeleteInstance.PopulateCommand(
+                V4.DeleteInstance.PopulateCommand(
                     sqlCommandWrapper,
                     cleanupAfter,
                     (byte)IndexStatus.Created,

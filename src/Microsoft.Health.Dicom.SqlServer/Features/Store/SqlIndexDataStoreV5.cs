@@ -23,17 +23,17 @@ using Microsoft.Health.SqlServer.Features.Storage;
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 {
     /// <summary>
-    /// Sql IndexDataStore version 4.
+    /// Sql IndexDataStore version 5.
     /// </summary>
-    internal class SqlIndexDataStoreV4 : SqlIndexDataStoreV3
+    internal class SqlIndexDataStoreV5 : SqlIndexDataStoreV4
     {
-        public SqlIndexDataStoreV4(
+        public SqlIndexDataStoreV5(
             SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
             : base(sqlConnectionWrapperFactory)
         {
         }
 
-        public override SchemaVersion Version => SchemaVersion.V4;
+        public override SchemaVersion Version => SchemaVersion.V5;
 
         public override async Task<long> BeginCreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {

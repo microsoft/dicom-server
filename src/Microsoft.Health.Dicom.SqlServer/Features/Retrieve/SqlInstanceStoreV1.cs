@@ -74,7 +74,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.GetInstance.PopulateCommand(
+                V4.GetInstance.PopulateCommand(
                     sqlCommandWrapper,
                     validStatus: (byte)IndexStatus.Created,
                     studyInstanceUid,
@@ -86,10 +86,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
                     while (await reader.ReadAsync(cancellationToken))
                     {
                         (string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark) = reader.ReadRow(
-                           VLatest.Instance.StudyInstanceUid,
-                           VLatest.Instance.SeriesInstanceUid,
-                           VLatest.Instance.SopInstanceUid,
-                           VLatest.Instance.Watermark);
+                           V4.Instance.StudyInstanceUid,
+                           V4.Instance.SeriesInstanceUid,
+                           V4.Instance.SopInstanceUid,
+                           V4.Instance.Watermark);
 
                         results.Add(new VersionedInstanceIdentifier(
                                 rStudyInstanceUid,
