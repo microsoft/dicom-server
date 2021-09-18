@@ -843,7 +843,7 @@ AS
         SET @partitionKey = NEXT VALUE FOR dbo.PartitionKeySequence
 
         INSERT INTO dbo.Partition
-            (PartitionKey, PartitionKeyId)
+            (PartitionKey, PartitionId)
         VALUES
             (@partitionKey, @partitionId)
     END
@@ -1236,7 +1236,7 @@ AS
         SET @partitionKey = NEXT VALUE FOR dbo.PartitionKeySequence
 
         INSERT INTO dbo.Partition
-            (PartitionKey, PartitionKeyId)
+            (PartitionKey, PartitionId)
         VALUES
             (@partitionKey, @partitionId)
     END
@@ -1588,11 +1588,12 @@ AS
     BEGIN TRANSACTION
 
     DECLARE @deletedInstances AS TABLE
-        (StudyInstanceUid VARCHAR(64),
-            SeriesInstanceUid VARCHAR(64),
-            SopInstanceUid VARCHAR(64),
-            Status TINYINT,
-            Watermark BIGINT)
+        (PartitionId VARCHAR(64),
+         StudyInstanceUid VARCHAR(64),
+         SeriesInstanceUid VARCHAR(64),
+         SopInstanceUid VARCHAR(64),
+         Status TINYINT,
+         Watermark BIGINT)
 
     DECLARE @studyKey BIGINT
     DECLARE @seriesKey BIGINT

@@ -35,7 +35,7 @@ IF NOT EXISTS (
     FROM sys.indexes
     WHERE name='IXC_Partition_PartitionKey_PartitionId' AND object_id = OBJECT_ID('dbo.Partition'))
 BEGIN
-    CREATE UNIQUE NONCLUSTERED INDEX IXC_Partition_PartitionKey_PartitionId on dbo.Partition
+    CREATE UNIQUE NONCLUSTERED INDEX IXC_Partition_PartitionKey_PartitionId ON dbo.Partition
     (
         PartitionKey,
         PartitionId
@@ -69,7 +69,7 @@ IF NOT EXISTS (
 BEGIN
     ALTER TABLE dbo.Instance
     ADD
-        PartitionKey BIGINT NOT NULL
+        PartitionKey BIGINT DEFAULT 1 NOT NULL
 END
 
 IF NOT EXISTS (
@@ -77,7 +77,7 @@ IF NOT EXISTS (
     FROM sys.indexes
     WHERE name='IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid' AND object_id = OBJECT_ID('dbo.Instance'))
 BEGIN
-    CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.Instance
     (
         PartitionKey,
         StudyInstanceUid,
@@ -98,7 +98,7 @@ IF EXISTS (
     FROM sys.indexes
     WHERE name='IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid' AND object_id = OBJECT_ID('dbo.Instance'))
 BEGIN
-    DROP INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
+    DROP INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.Instance
 END
 GO
 
@@ -117,7 +117,7 @@ IF NOT EXISTS(
             AND c.name = 'PartitionKey'
 )
 BEGIN
-    CREATE NONCLUSTERED INDEX IX_Instance_SopInstanceUid_Status on dbo.Instance
+    CREATE NONCLUSTERED INDEX IX_Instance_SopInstanceUid_Status ON dbo.Instance
     (
         SopInstanceUid,
         Status
@@ -148,7 +148,7 @@ IF NOT EXISTS(
             AND c.name = 'PartitionKey'
 )
 BEGIN
-    CREATE NONCLUSTERED INDEX IX_Instance_SeriesKey_Status on dbo.Instance
+    CREATE NONCLUSTERED INDEX IX_Instance_SeriesKey_Status ON dbo.Instance
     (
         SeriesKey,
         Status
@@ -180,7 +180,7 @@ IF NOT EXISTS(
             AND c.name = 'PartitionKey'
 )
 BEGIN
-    CREATE NONCLUSTERED INDEX IX_Instance_StudyKey_Status on dbo.Instance
+    CREATE NONCLUSTERED INDEX IX_Instance_StudyKey_Status ON dbo.Instance
     (
         StudyKey,
         Status
@@ -204,7 +204,7 @@ IF NOT EXISTS (
 BEGIN
     ALTER TABLE dbo.Study
     ADD
-        PartitionKey BIGINT NOT NULL
+        PartitionKey BIGINT DEFAULT 1 NOT NULL
 END
 
 IF NOT EXISTS (
@@ -212,7 +212,7 @@ IF NOT EXISTS (
     FROM sys.indexes
     WHERE name='IX_Study_PartitionKey_StudyInstanceUid' AND object_id = OBJECT_ID('dbo.Study'))
 BEGIN
-    CREATE UNIQUE NONCLUSTERED INDEX IX_Study_StudyInstanceUid ON dbo.Study
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Study_PartitionKey_StudyInstanceUid ON dbo.Study
     (
         PartitionKey,
         StudyInstanceUid
@@ -230,7 +230,7 @@ IF EXISTS (
     FROM sys.indexes
     WHERE name='IX_Study_StudyInstanceUid' AND object_id = OBJECT_ID('dbo.Study'))
 BEGIN
-    DROP INDEX IX_Study_PartitionKey_StudyInstanceUid on dbo.Study
+    DROP INDEX IX_Study_StudyInstanceUid ON dbo.Study
 END
 GO
 
@@ -241,13 +241,13 @@ IF NOT EXISTS (
 BEGIN
     ALTER TABLE dbo.Series
     ADD
-        PartitionKey BIGINT NOT NULL
+        PartitionKey BIGINT DEFAULT 1 NOT NULL
 END
 
 IF NOT EXISTS (
     SELECT *
     FROM sys.indexes
-    WHERE name='IX_Study_PartitionKey_StudyInstanceUid' AND object_id = OBJECT_ID('dbo.Series'))
+    WHERE name='IXC_PartitionKey_Series' AND object_id = OBJECT_ID('dbo.Series'))
 BEGIN
     CREATE UNIQUE CLUSTERED INDEX IXC_PartitionKey_Series ON dbo.Series
     (
@@ -263,7 +263,7 @@ IF EXISTS (
     FROM sys.indexes
     WHERE name='IXC_Series' AND object_id = OBJECT_ID('dbo.Series'))
 BEGIN
-    DROP INDEX IXC_Series on dbo.Series
+    DROP INDEX IXC_Series ON dbo.Series
 END
 GO
 
@@ -290,7 +290,7 @@ IF EXISTS (
     FROM sys.indexes
     WHERE name='IX_Series_SeriesInstanceUid' AND object_id = OBJECT_ID('dbo.Series'))
 BEGIN
-    DROP INDEX IX_Series_SeriesInstanceUid on dbo.Series
+    DROP INDEX IX_Series_SeriesInstanceUid ON dbo.Series
 END
 GO
 
@@ -325,7 +325,7 @@ IF EXISTS (
     FROM sys.indexes
     WHERE name='IXC_DeletedInstance' AND object_id = OBJECT_ID('dbo.DeletedInstance'))
 BEGIN
-    DROP INDEX IXC_DeletedInstance on dbo.DeletedInstance
+    DROP INDEX IXC_DeletedInstance ON dbo.DeletedInstance
 END
 GO
 
@@ -344,14 +344,14 @@ IF NOT EXISTS(
             AND c.name = 'PartitionId'
 )
 BEGIN
-    CREATE NONCLUSTERED INDEX IX_DeletedInstance_RetryCount_CleanupAfter on dbo.Instance
+    CREATE NONCLUSTERED INDEX IX_DeletedInstance_RetryCount_CleanupAfter ON dbo.DeletedInstance
     (
-        StudyKey,
-        Status
+    RetryCount,
+    CleanupAfter
     )
     INCLUDE
     (
-        PartitionKey,
+        PartitionId,
         StudyInstanceUid,
         SeriesInstanceUid,
         SopInstanceUid,
@@ -391,7 +391,7 @@ IF EXISTS (
     FROM sys.indexes
     WHERE name='IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid' AND object_id = OBJECT_ID('dbo.ChangeFeed'))
 BEGIN
-    DROP INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.DeletedInstance
+    DROP INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.DeletedInstance
 END
 GO
 
@@ -488,7 +488,7 @@ AS
         SET @partitionKey = NEXT VALUE FOR dbo.PartitionKeySequence
 
         INSERT INTO dbo.Partition
-            (PartitionKey, PartitionKeyId)
+            (PartitionKey, PartitionId)
         VALUES
             (@partitionKey, @partitionId)
     END
@@ -881,7 +881,7 @@ AS
         SET @partitionKey = NEXT VALUE FOR dbo.PartitionKeySequence
 
         INSERT INTO dbo.Partition
-            (PartitionKey, PartitionKeyId)
+            (PartitionKey, PartitionId)
         VALUES
             (@partitionKey, @partitionId)
     END
@@ -1187,11 +1187,12 @@ AS
     BEGIN TRANSACTION
 
     DECLARE @deletedInstances AS TABLE
-        (StudyInstanceUid VARCHAR(64),
-            SeriesInstanceUid VARCHAR(64),
-            SopInstanceUid VARCHAR(64),
-            Status TINYINT,
-            Watermark BIGINT)
+        (PartitionId VARCHAR(64),
+         StudyInstanceUid VARCHAR(64),
+         SeriesInstanceUid VARCHAR(64),
+         SopInstanceUid VARCHAR(64),
+         Status TINYINT,
+         Watermark BIGINT)
 
     DECLARE @studyKey BIGINT
     DECLARE @seriesKey BIGINT
