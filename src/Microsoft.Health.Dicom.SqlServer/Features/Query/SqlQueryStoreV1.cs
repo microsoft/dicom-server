@@ -21,18 +21,27 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 {
-    internal class SqlQueryStoreV5 : SqlQueryStoreV4
+    internal class SqlQueryStoreV1 : ISqlQueryStore
     {
-        public override SchemaVersion Version => SchemaVersion.V5;
+        public virtual SchemaVersion Version => SchemaVersion.V1;
 
-        public SqlQueryStoreV5(
+        protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory;
+
+        private readonly ILogger<ISqlQueryStore> _logger;
+        private const string DefaultRedactedValue = "***";
+
+        public SqlQueryStoreV1(
             SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
             ILogger<ISqlQueryStore> logger)
-            : base(sqlConnectionWrapperFactory, logger)
         {
+            EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
+            EnsureArg.IsNotNull(logger, nameof(logger));
+
+            SqlConnectionWrapperFactory = sqlConnectionWrapperFactory;
+            _logger = logger;
         }
 
-        public override async Task<QueryResult> QueryAsync(
+        public virtual async Task<QueryResult> QueryAsync(
             QueryExpression query,
             CancellationToken cancellationToken)
         {
@@ -52,8 +61,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
             {
-                (string partitionId, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
-                   VLatest.Partition.PartitionId,
+                (string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
                    VLatest.Instance.StudyInstanceUid,
                    VLatest.Instance.SeriesInstanceUid,
                    VLatest.Instance.SopInstanceUid,
@@ -63,11 +71,32 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                         studyInstanceUid,
                         seriesInstanceUid,
                         sopInstanceUid,
-                        watermark,
-                        partitionId));
+                        watermark));
             }
 
             return new QueryResult(results);
+        }
+
+        protected void LogSqlCommand(SqlCommandWrapper sqlCommandWrapper)
+        {
+            var sb = new StringBuilder();
+            foreach (SqlParameter p in sqlCommandWrapper.Parameters)
+            {
+                sb.Append("DECLARE ")
+                    .Append(p)
+                    .Append(' ')
+                    .Append(p.SqlDbType)
+                    .Append(p.Value is string ? $"({p.Size})" : p.Value is decimal ? $"({p.Precision},{p.Scale})" : null)
+                    .Append(" = ")
+                    .Append(DefaultRedactedValue)
+                    .Append(';')
+                    .AppendLine();
+            }
+
+            sb.AppendLine();
+
+            sb.AppendLine(sqlCommandWrapper.CommandText);
+            _logger.LogInformation(sb.ToString());
         }
     }
 }

@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
         public SqlQueryStoreV4(
             SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
-            ILogger<SqlQueryStore> logger)
+            ILogger<ISqlQueryStore> logger)
             : base(sqlConnectionWrapperFactory, logger)
         {
         }
