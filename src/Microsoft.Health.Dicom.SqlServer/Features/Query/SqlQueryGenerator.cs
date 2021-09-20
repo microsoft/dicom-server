@@ -241,6 +241,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         {
             _stringBuilder
                 .AppendLine("SELECT ")
+                .Append(VLatest.Partition.PartitionId, tableAlias).AppendLine(",")
                 .Append(VLatest.Instance.StudyInstanceUid, tableAlias).AppendLine(",")
                 .Append(VLatest.Instance.SeriesInstanceUid, tableAlias).AppendLine(",")
                 .Append(VLatest.Instance.SopInstanceUid, tableAlias).AppendLine(",")

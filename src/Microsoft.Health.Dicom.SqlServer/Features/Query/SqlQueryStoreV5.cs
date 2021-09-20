@@ -12,7 +12,6 @@ using EnsureThat;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
@@ -22,27 +21,18 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 {
-    internal class SqlQueryStore : IQueryStore
+    internal class SqlQueryStoreV5 : SqlQueryStoreV4
     {
-        public virtual SchemaVersion Version => SchemaVersion.V1;
+        public override SchemaVersion Version => SchemaVersion.V5;
 
-        protected readonly SqlConnectionWrapperFactory _sqlConnectionWrapperFactory;
-        private readonly ILogger<SqlQueryStore> _logger;
-
-        private const string DefaultRedactedValue = "***";
-
-        public SqlQueryStore(
+        public SqlQueryStoreV5(
             SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
             ILogger<SqlQueryStore> logger)
+            : base(sqlConnectionWrapperFactory, logger)
         {
-            EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
-            EnsureArg.IsNotNull(logger, nameof(logger));
-
-            _sqlConnectionWrapperFactory = sqlConnectionWrapperFactory;
-            _logger = logger;
         }
 
-        public virtual async Task<QueryResult> QueryAsync(
+        public override async Task<QueryResult> QueryAsync(
             QueryExpression query,
             CancellationToken cancellationToken)
         {
@@ -62,7 +52,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
             {
-                (string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
+                (string partitionId, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
+                   VLatest.Partition.PartitionId,
                    VLatest.Instance.StudyInstanceUid,
                    VLatest.Instance.SeriesInstanceUid,
                    VLatest.Instance.SopInstanceUid,
@@ -72,32 +63,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                         studyInstanceUid,
                         seriesInstanceUid,
                         sopInstanceUid,
-                        watermark));
+                        watermark,
+                        partitionId));
             }
 
             return new QueryResult(results);
-        }
-
-        protected void LogSqlCommand(SqlCommandWrapper sqlCommandWrapper)
-        {
-            var sb = new StringBuilder();
-            foreach (SqlParameter p in sqlCommandWrapper.Parameters)
-            {
-                sb.Append("DECLARE ")
-                    .Append(p)
-                    .Append(' ')
-                    .Append(p.SqlDbType)
-                    .Append(p.Value is string ? $"({p.Size})" : p.Value is decimal ? $"({p.Precision},{p.Scale})" : null)
-                    .Append(" = ")
-                    .Append(DefaultRedactedValue)
-                    .Append(';')
-                    .AppendLine();
-            }
-
-            sb.AppendLine();
-
-            sb.AppendLine(sqlCommandWrapper.CommandText);
-            _logger.LogInformation(sb.ToString());
         }
     }
 }
