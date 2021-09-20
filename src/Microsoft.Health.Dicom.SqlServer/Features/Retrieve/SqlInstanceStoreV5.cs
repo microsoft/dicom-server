@@ -98,5 +98,72 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
                 throw new DataStoreException(ex);
             }
         }
+
+        public override Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string sopInstanceUid,
+            CancellationToken cancellationToken)
+        {
+            return GetInstanceIdentifierImp(partitionId: null, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
+        }
+
+        public override Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            CancellationToken cancellationToken)
+        {
+            return GetInstanceIdentifierImp(partitionId: null, studyInstanceUid, cancellationToken, seriesInstanceUid);
+        }
+
+        public override Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
+            string studyInstanceUid,
+            CancellationToken cancellationToken)
+        {
+            return GetInstanceIdentifierImp(partitionId: null, studyInstanceUid, cancellationToken);
+        }
+
+        private async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierImp(
+            string partitionId,
+            string studyInstanceUid,
+            CancellationToken cancellationToken,
+            string seriesInstanceUid = null,
+            string sopInstanceUid = null)
+        {
+            var results = new List<VersionedInstanceIdentifier>();
+
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.GetInstance.PopulateCommand(
+                    sqlCommandWrapper,
+                    partitionId,
+                    validStatus: (byte)IndexStatus.Created,
+                    studyInstanceUid,
+                    seriesInstanceUid,
+                    sopInstanceUid);
+
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                {
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        (string rPartitionId, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark) = reader.ReadRow(
+                           VLatest.Partition.PartitionId,
+                           VLatest.Instance.StudyInstanceUid,
+                           VLatest.Instance.SeriesInstanceUid,
+                           VLatest.Instance.SopInstanceUid,
+                           VLatest.Instance.Watermark);
+
+                        results.Add(new VersionedInstanceIdentifier(
+                                rStudyInstanceUid,
+                                rSeriesInstanceUid,
+                                rSopInstanceUid,
+                                watermark,
+                                rPartitionId));
+                    }
+                }
+            }
+            return results;
+        }
     }
 }
