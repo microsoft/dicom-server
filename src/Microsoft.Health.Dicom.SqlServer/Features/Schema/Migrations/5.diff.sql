@@ -487,9 +487,9 @@ AS
         SET @partitionKey = NEXT VALUE FOR dbo.PartitionKeySequence
 
         INSERT INTO dbo.Partition
-            (PartitionKey, PartitionId)
+            (PartitionKey, PartitionId, CreatedDate)
         VALUES
-            (@partitionKey, @partitionId)
+            (@partitionKey, @partitionId, SYSUTCDATETIME())
     END
 
     SELECT @existingStatus = Status
@@ -880,9 +880,9 @@ AS
         SET @partitionKey = NEXT VALUE FOR dbo.PartitionKeySequence
 
         INSERT INTO dbo.Partition
-            (PartitionKey, PartitionId)
+            (PartitionKey, PartitionId, CreatedDate)
         VALUES
-            (@partitionKey, @partitionId)
+            (@partitionKey, @partitionId, SYSUTCDATETIME())
     END
 
     SELECT @existingStatus = Status

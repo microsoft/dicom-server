@@ -147,12 +147,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        (string rPartitionId, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark) = reader.ReadRow(
-                           VLatest.Partition.PartitionId,
+                        (string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark, string rPartitionId) = reader.ReadRow(
                            VLatest.Instance.StudyInstanceUid,
                            VLatest.Instance.SeriesInstanceUid,
                            VLatest.Instance.SopInstanceUid,
-                           VLatest.Instance.Watermark);
+                           VLatest.Instance.Watermark,
+                           VLatest.Partition.PartitionId);
 
                         results.Add(new VersionedInstanceIdentifier(
                                 rStudyInstanceUid,
