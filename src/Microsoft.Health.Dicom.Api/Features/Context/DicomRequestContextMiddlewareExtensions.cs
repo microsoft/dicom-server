@@ -14,7 +14,6 @@ namespace Microsoft.Health.Dicom.Api.Features.Context
             this IApplicationBuilder builder)
         {
             EnsureArg.IsNotNull(builder, nameof(builder));
-
             return builder.UseMiddleware<DicomRequestContextMiddleware>();
         }
     }

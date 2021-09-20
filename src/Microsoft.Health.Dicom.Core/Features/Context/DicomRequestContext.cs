@@ -65,6 +65,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Context
 
         public string SopInstanceUid { get; set; }
 
+        public bool IsTranscodeRequested { get; set; }
+
+        public long BytesTranscoded { get; set; }
+
         public ClaimsPrincipal Principal { get; set; }
 
         public IDictionary<string, StringValues> RequestHeaders { get; }

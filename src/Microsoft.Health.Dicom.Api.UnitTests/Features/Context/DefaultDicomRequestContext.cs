@@ -19,6 +19,10 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Context
 
         public string SopInstanceUid { get; set; }
 
+        public bool IsTranscodeRequested { get; set; }
+
+        public long BytesTranscoded { get; set; }
+
         public string Method { get; set; }
 
         public Uri BaseUri { get; set; }

@@ -75,7 +75,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 Stream[] resultStreams = await Task.WhenAll(
                     retrieveInstances.Select(x => _blobDataStore.GetFileAsync(x, cancellationToken)));
 
-                var lengthOfResultStreams = resultStreams.Sum(stream => stream.Length);
+                long lengthOfResultStreams = resultStreams.Sum(stream => stream.Length);
                 _dicomRequestContextAccessor.RequestContext.IsTranscodeRequested = !isOriginalTransferSyntaxRequested;
                 _dicomRequestContextAccessor.RequestContext.BytesTranscoded = isOriginalTransferSyntaxRequested ? 0 : lengthOfResultStreams;
 
