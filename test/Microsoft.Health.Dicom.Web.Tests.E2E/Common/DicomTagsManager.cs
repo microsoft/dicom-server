@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -72,23 +73,23 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
             return await response.GetValueAsync();
         }
 
-        public async Task<IEnumerable<GetExtendedQueryTagEntry>> GetTagsAsync(int limit, int offset, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<GetExtendedQueryTagEntry>> GetTagsAsync(int limit, int offset, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsGte(limit, 1, nameof(limit));
             EnsureArg.IsGte(offset, 0, nameof(offset));
 
             var response = await _dicomWebClient.GetExtendedQueryTagsAsync(limit, offset, cancellationToken);
-            return await response.GetValueAsync();
+            return (await response.GetValueAsync()).ToList();
         }
 
-        public async Task<IEnumerable<ExtendedQueryTagError>> GetTagErrorsAsync(string tagPath, int limit, int offset, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<ExtendedQueryTagError>> GetTagErrorsAsync(string tagPath, int limit, int offset, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(tagPath, nameof(tagPath));
             EnsureArg.IsGte(limit, 1, nameof(limit));
             EnsureArg.IsGte(offset, 0, nameof(offset));
 
             var response = await _dicomWebClient.GetExtendedQueryTagErrorsAsync(tagPath, limit, offset, cancellationToken);
-            return await response.GetValueAsync();
+            return (await response.GetValueAsync()).ToList();
         }
     }
 }
