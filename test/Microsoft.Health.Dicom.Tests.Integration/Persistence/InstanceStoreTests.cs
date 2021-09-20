@@ -74,11 +74,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             DicomDataset dataset2 = Samples.CreateRandomInstanceDataset(studyUid);
             dataset2.Add(tag, tagValue2);
             DicomDataset dataset3 = Samples.CreateRandomInstanceDataset(studyUid);
-            dataset2.Add(tag, tagValue3);
+            dataset3.Add(tag, tagValue3);
 
             Instance instance1 = await CreateInstanceIndexAsync(dataset1);
             Instance instance2 = await CreateInstanceIndexAsync(dataset2);
-            Instance instance3 = await CreateInstanceIndexAsync(dataset2);
+            Instance instance3 = await CreateInstanceIndexAsync(dataset3);
 
             var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Study));
             QueryTag queryTag = new QueryTag(tagStoreEntry);
