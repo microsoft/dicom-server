@@ -159,17 +159,5 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                 }
             }
         }
-
-        private static byte[] UlongToRowVersion(ulong? value)
-        {
-            if (!value.HasValue)
-            {
-                return null;
-            }
-
-            byte[] result = new byte[8];
-            BinaryPrimitives.WriteUInt64BigEndian(result, value.Value);
-            return result;
-        }
     }
 }

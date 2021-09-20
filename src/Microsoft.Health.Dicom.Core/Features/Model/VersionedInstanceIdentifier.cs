@@ -11,8 +11,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
-            long version)
-            : base(studyInstanceUid, seriesInstanceUid, sopInstanceUid)
+            long version,
+            string partitionId = default)
+            : base(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partitionId)
         {
             Version = version;
         }
