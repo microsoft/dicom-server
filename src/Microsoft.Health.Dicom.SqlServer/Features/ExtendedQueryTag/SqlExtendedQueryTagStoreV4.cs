@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
     {
         public SqlExtendedQueryTagStoreV4(
            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
-           ILogger<SqlExtendedQueryTagStoreV4> logger)
+           ILogger<ISqlExtendedQueryTagStore> logger)
             : base(sqlConnectionWrapperFactory, logger)
         {
         }
