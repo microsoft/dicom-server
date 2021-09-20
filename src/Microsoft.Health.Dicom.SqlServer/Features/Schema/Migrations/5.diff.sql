@@ -72,6 +72,15 @@ BEGIN
         PartitionKey BIGINT DEFAULT 1 NOT NULL
 END
 
+IF EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid' AND object_id = OBJECT_ID('dbo.Instance'))
+BEGIN
+    DROP INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.Instance
+END
+GO
+
 IF NOT EXISTS (
     SELECT *
     FROM sys.indexes
@@ -90,15 +99,6 @@ BEGIN
         Watermark
     )
     WITH (DATA_COMPRESSION = PAGE)
-END
-GO
-
-IF EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid' AND object_id = OBJECT_ID('dbo.Instance'))
-BEGIN
-    DROP INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.Instance
 END
 GO
 
@@ -207,6 +207,15 @@ BEGIN
         PartitionKey BIGINT DEFAULT 1 NOT NULL
 END
 
+IF EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_Study_StudyInstanceUid' AND object_id = OBJECT_ID('dbo.Study'))
+BEGIN
+    DROP INDEX IX_Study_StudyInstanceUid ON dbo.Study
+END
+GO
+
 IF NOT EXISTS (
     SELECT *
     FROM sys.indexes
@@ -225,15 +234,6 @@ BEGIN
 END
 GO
 
-IF EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IX_Study_StudyInstanceUid' AND object_id = OBJECT_ID('dbo.Study'))
-BEGIN
-    DROP INDEX IX_Study_StudyInstanceUid ON dbo.Study
-END
-GO
-
 IF NOT EXISTS (
     SELECT *
     FROM sys.columns
@@ -243,6 +243,15 @@ BEGIN
     ADD
         PartitionKey BIGINT DEFAULT 1 NOT NULL
 END
+
+IF EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IXC_Series' AND object_id = OBJECT_ID('dbo.Series'))
+BEGIN
+    DROP INDEX IXC_Series ON dbo.Series
+END
+GO
 
 IF NOT EXISTS (
     SELECT *
@@ -261,9 +270,9 @@ GO
 IF EXISTS (
     SELECT *
     FROM sys.indexes
-    WHERE name='IXC_Series' AND object_id = OBJECT_ID('dbo.Series'))
+    WHERE name='IX_Series_SeriesInstanceUid' AND object_id = OBJECT_ID('dbo.Series'))
 BEGIN
-    DROP INDEX IXC_Series ON dbo.Series
+    DROP INDEX IX_Series_SeriesInstanceUid ON dbo.Series
 END
 GO
 
@@ -285,15 +294,6 @@ BEGIN
 END
 GO
 
-IF EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IX_Series_SeriesInstanceUid' AND object_id = OBJECT_ID('dbo.Series'))
-BEGIN
-    DROP INDEX IX_Series_SeriesInstanceUid ON dbo.Series
-END
-GO
-
 IF NOT EXISTS (
     SELECT *
     FROM sys.columns
@@ -303,6 +303,15 @@ BEGIN
     ADD
         PartitionId VARCHAR(64) DEFAULT 'Microsoft.Default' NOT NULL
 END
+
+IF EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IXC_DeletedInstance' AND object_id = OBJECT_ID('dbo.DeletedInstance'))
+BEGIN
+    DROP INDEX IXC_DeletedInstance ON dbo.DeletedInstance
+END
+GO
 
 IF NOT EXISTS (
     SELECT *
@@ -317,15 +326,6 @@ BEGIN
         SopInstanceUid,
         WaterMark
     )
-END
-GO
-
-IF EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IXC_DeletedInstance' AND object_id = OBJECT_ID('dbo.DeletedInstance'))
-BEGIN
-    DROP INDEX IXC_DeletedInstance ON dbo.DeletedInstance
 END
 GO
 
@@ -371,6 +371,15 @@ BEGIN
         PartitionId VARCHAR(64) DEFAULT 'Microsoft.Default' NOT NULL
 END
 
+IF EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid' AND object_id = OBJECT_ID('dbo.ChangeFeed'))
+BEGIN
+    DROP INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.ChangeFeed
+END
+GO
+
 IF NOT EXISTS (
     SELECT *
     FROM sys.indexes
@@ -385,16 +394,6 @@ BEGIN
     )
 END
 GO
-
-IF EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid' AND object_id = OBJECT_ID('dbo.ChangeFeed'))
-BEGIN
-    DROP INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.DeletedInstance
-END
-GO
-
 
 /*************************************************************
     Stored procedures for adding an instance.

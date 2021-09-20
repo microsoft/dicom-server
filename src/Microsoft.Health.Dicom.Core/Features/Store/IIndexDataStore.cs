@@ -113,10 +113,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         Task<int> RetrieveNumExhaustedDeletedInstanceAttemptsAsync(int maxNumberOfRetries, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Retrieves the <see cref="DateTimeOffset"/> of oldest instance waiting to be delated
+        /// Retrieves the <see cref="DateTimeOffset"/> of oldest instance waiting to be deleted
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that gets the date of the oldest deleted instance</returns>
         Task<DateTimeOffset> GetOldestDeletedAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Checks whether there are existing instances in the database.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>Completes successfully if no instances exist, otherwise throws.</returns>
+        Task CheckIfInstancesExistAsync(CancellationToken cancellationToken = default);
     }
 }

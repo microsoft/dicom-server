@@ -339,5 +339,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 throw;
             }
         }
+
+        public Task CheckIfInstancesExistAsync(CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

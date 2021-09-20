@@ -88,5 +88,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
             await store.EndCreateInstanceIndexAsync(dicomDataset, watermark, queryTags, allowExpiredTags, cancellationToken);
         }
+
+        public async Task CheckIfInstancesExistAsync(CancellationToken cancellationToken = default)
+        {
+            ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+            await store.CheckIfInstancesExistAsync(cancellationToken);
+        }
     }
 }

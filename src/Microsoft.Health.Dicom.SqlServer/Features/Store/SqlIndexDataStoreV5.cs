@@ -280,6 +280,24 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             }
         }
 
+        public override async Task CheckIfInstancesExistAsync(CancellationToken cancellationToken = default)
+        {
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.CheckIfInstancesExist.PopulateCommand(sqlCommandWrapper);
+
+                try
+                {
+                    await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+                }
+                catch (SqlException ex)
+                {
+                    throw new DataStoreException(ex);
+                }
+            }
+        }
+
         private async Task DeleteInstanceAsync(string partitionId, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))

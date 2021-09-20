@@ -333,5 +333,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
         {
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
+
+        public virtual Task CheckIfInstancesExistAsync(CancellationToken cancellationToken = default)
+        {
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+        }
     }
 }
