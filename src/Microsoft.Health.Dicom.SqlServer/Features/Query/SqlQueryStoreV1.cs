@@ -62,10 +62,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             while (await reader.ReadAsync(cancellationToken))
             {
                 (string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
-                   VLatest.Instance.StudyInstanceUid,
-                   VLatest.Instance.SeriesInstanceUid,
-                   VLatest.Instance.SopInstanceUid,
-                   VLatest.Instance.Watermark);
+                   V4.Instance.StudyInstanceUid,
+                   V4.Instance.SeriesInstanceUid,
+                   V4.Instance.SopInstanceUid,
+                   V4.Instance.Watermark);
 
                 results.Add(new VersionedInstanceIdentifier(
                         studyInstanceUid,
