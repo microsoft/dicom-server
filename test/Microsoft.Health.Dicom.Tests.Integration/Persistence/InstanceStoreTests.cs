@@ -56,7 +56,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 new WatermarkRange(instance1.Version, instance4.Version),
                 IndexStatus.Creating);
 
-            Assert.Equal(instances, new[] { instance1, instance2, instance3, instance4 });
+            Assert.Equal(instances.OrderBy(x => x.Version), new[] { instance1, instance2, instance3, instance4 });
         }
 
         [Fact]

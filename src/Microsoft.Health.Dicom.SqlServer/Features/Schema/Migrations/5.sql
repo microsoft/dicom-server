@@ -50,7 +50,6 @@ CREATE TABLE dbo.Instance (
     SeriesKey               BIGINT                     NOT NULL, --FK
     -- StudyKey needed to join directly from Study table to find a instance
     StudyKey                BIGINT                     NOT NULL, --FK
-    PartitionKey            BIGINT                     NOT NULL, --FK
     --instance keys used in WADO
     StudyInstanceUid        VARCHAR(64)                NOT NULL,
     SeriesInstanceUid       VARCHAR(64)                NOT NULL,
@@ -60,7 +59,8 @@ CREATE TABLE dbo.Instance (
     Status                  TINYINT                    NOT NULL,
     LastStatusUpdatedDate   DATETIME2(7)               NOT NULL,
     --audit columns
-    CreatedDate             DATETIME2(7)               NOT NULL
+    CreatedDate             DATETIME2(7)               NOT NULL,
+    PartitionKey            BIGINT                     NOT NULL --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance
@@ -164,7 +164,6 @@ WITH (DATA_COMPRESSION = PAGE)
 **************************************************************/
 CREATE TABLE dbo.Study (
     StudyKey                    BIGINT                            NOT NULL, --PK
-    PartitionKey                BIGINT                            NOT NULL, --FK
     StudyInstanceUid            VARCHAR(64)                       NOT NULL,
     PatientId                   NVARCHAR(64)                      NOT NULL,
     PatientName                 NVARCHAR(200)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
@@ -174,7 +173,8 @@ CREATE TABLE dbo.Study (
     AccessionNumber             NVARCHAR(16)                      NULL,
     PatientNameWords            AS REPLACE(REPLACE(PatientName, '^', ' '), '=', ' ') PERSISTED,
     ReferringPhysicianNameWords AS REPLACE(REPLACE(ReferringPhysicianName, '^', ' '), '=', ' ') PERSISTED,
-    PatientBirthDate            DATE                              NULL
+    PatientBirthDate            DATE                              NULL,
+    PartitionKey                BIGINT                            NOT NULL, --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Study ON dbo.Study
@@ -271,11 +271,11 @@ WITH (DATA_COMPRESSION = PAGE)
 CREATE TABLE dbo.Series (
     SeriesKey                           BIGINT                     NOT NULL, --PK
     StudyKey                            BIGINT                     NOT NULL, --FK
-    PartitionKey                        BIGINT                     NOT NULL, --FK
     SeriesInstanceUid                   VARCHAR(64)                NOT NULL,
     Modality                            NVARCHAR(16)               NULL,
     PerformedProcedureStepStartDate     DATE                       NULL,
-    ManufacturerModelName               NVARCHAR(64)               NULL
+    ManufacturerModelName               NVARCHAR(64)               NULL,
+    PartitionKey                        BIGINT                     NOT NULL --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_PartitionKey_Series ON dbo.Series
@@ -341,14 +341,14 @@ WITH (DATA_COMPRESSION = PAGE)
 **************************************************************/
 CREATE TABLE dbo.DeletedInstance
 (
-    PartitionId         VARCHAR(64)       NOT NULL,
     StudyInstanceUid    VARCHAR(64)       NOT NULL,
     SeriesInstanceUid   VARCHAR(64)       NOT NULL,
     SopInstanceUid      VARCHAR(64)       NOT NULL,
     Watermark           BIGINT            NOT NULL,
     DeletedDateTime     DATETIMEOFFSET(0) NOT NULL,
     RetryCount          INT               NOT NULL,
-    CleanupAfter        DATETIMEOFFSET(0) NOT NULL
+    CleanupAfter        DATETIMEOFFSET(0) NOT NULL,
+    PartitionId         VARCHAR(64)       NOT NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_PartitionId_DeletedInstance ON dbo.DeletedInstance
@@ -388,12 +388,12 @@ CREATE TABLE dbo.ChangeFeed (
     Sequence                BIGINT IDENTITY(1,1) NOT NULL,
     Timestamp               DATETIMEOFFSET(7)    NOT NULL,
     Action                  TINYINT              NOT NULL,
-    PartitionId             VARCHAR(64)          NOT NULL,
     StudyInstanceUid        VARCHAR(64)          NOT NULL,
     SeriesInstanceUid       VARCHAR(64)          NOT NULL,
     SopInstanceUid          VARCHAR(64)          NOT NULL,
     OriginalWatermark       BIGINT               NOT NULL,
-    CurrentWatermark        BIGINT               NULL
+    CurrentWatermark        BIGINT               NULL,
+    PartitionId             VARCHAR(64)          NOT NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed

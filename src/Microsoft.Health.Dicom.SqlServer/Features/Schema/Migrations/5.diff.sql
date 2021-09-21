@@ -5,6 +5,8 @@ SET XACT_ABORT ON
 
 BEGIN TRANSACTION
 
+---BEGIN - CREATE/ALTER Statements----------
+
 IF NOT EXISTS (
     SELECT *
     FROM sys.tables
@@ -69,133 +71,8 @@ IF NOT EXISTS (
 BEGIN
     ALTER TABLE dbo.Instance
     ADD
-        PartitionKey BIGINT DEFAULT 1 NOT NULL
+        PartitionKey BIGINT NOT NULL
 END
-
-IF EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid' AND object_id = OBJECT_ID('dbo.Instance'))
-BEGIN
-    DROP INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.Instance
-END
-GO
-
-IF NOT EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid' AND object_id = OBJECT_ID('dbo.Instance'))
-BEGIN
-    CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.Instance
-    (
-        PartitionKey,
-        StudyInstanceUid,
-        SeriesInstanceUid,
-        SopInstanceUid
-    )
-    INCLUDE
-    (
-        Status,
-        Watermark
-    )
-    WITH (DATA_COMPRESSION = PAGE)
-END
-GO
-
-IF NOT EXISTS(
-    SELECT  *
-    FROM    sys.index_columns ic
-    JOIN    sys.indexes i
-    ON      ic.object_id = i.object_id
-            AND ic.index_id = i.index_id
-    JOIN    sys.columns c
-    ON      c.object_id = i.object_id
-            AND c.column_id = ic.column_id
-    WHERE   i.name = 'IX_Instance_SopInstanceUid_Status' 
-            AND ic.object_id = OBJECT_ID('dbo.Instance')
-            AND ic.is_included_column = 1
-            AND c.name = 'PartitionKey'
-)
-BEGIN
-    CREATE NONCLUSTERED INDEX IX_Instance_SopInstanceUid_Status ON dbo.Instance
-    (
-        SopInstanceUid,
-        Status
-    )
-    INCLUDE
-    (
-        PartitionKey,
-        StudyInstanceUid,
-        SeriesInstanceUid,
-        Watermark
-    )
-    WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING=ON, ONLINE=ON)
-END
-GO
-
-IF NOT EXISTS(
-    SELECT  *
-    FROM    sys.index_columns ic
-    JOIN    sys.indexes i
-    ON      ic.object_id = i.object_id
-            AND ic.index_id = i.index_id
-    JOIN    sys.columns c
-    ON      c.object_id = i.object_id
-            AND c.column_id = ic.column_id
-    WHERE   i.name = 'IX_Instance_SeriesKey_Status' 
-            AND ic.object_id = OBJECT_ID('dbo.Instance')
-            AND ic.is_included_column = 1
-            AND c.name = 'PartitionKey'
-)
-BEGIN
-    CREATE NONCLUSTERED INDEX IX_Instance_SeriesKey_Status ON dbo.Instance
-    (
-        SeriesKey,
-        Status
-    )
-    INCLUDE
-    (
-        PartitionKey,
-        StudyInstanceUid,
-        SeriesInstanceUid,
-        SopInstanceUid,
-        Watermark
-    )
-    WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING=ON, ONLINE=ON)
-END
-GO
-
-IF NOT EXISTS(
-    SELECT  *
-    FROM    sys.index_columns ic
-    JOIN    sys.indexes i
-    ON      ic.object_id = i.object_id
-            AND ic.index_id = i.index_id
-    JOIN    sys.columns c
-    ON      c.object_id = i.object_id
-            AND c.column_id = ic.column_id
-    WHERE   i.name = 'IX_Instance_StudyKey_Status' 
-            AND ic.object_id = OBJECT_ID('dbo.Instance')
-            AND ic.is_included_column = 1
-            AND c.name = 'PartitionKey'
-)
-BEGIN
-    CREATE NONCLUSTERED INDEX IX_Instance_StudyKey_Status ON dbo.Instance
-    (
-        StudyKey,
-        Status
-    )
-    INCLUDE
-    (
-        PartitionKey,
-        StudyInstanceUid,
-        SeriesInstanceUid,
-        SopInstanceUid,
-        Watermark
-    )
-    WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING=ON, ONLINE=ON)
-END
-GO
 
 IF NOT EXISTS (
     SELECT *
@@ -204,35 +81,8 @@ IF NOT EXISTS (
 BEGIN
     ALTER TABLE dbo.Study
     ADD
-        PartitionKey BIGINT DEFAULT 1 NOT NULL
+        PartitionKey BIGINT NOT NULL
 END
-
-IF EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IX_Study_StudyInstanceUid' AND object_id = OBJECT_ID('dbo.Study'))
-BEGIN
-    DROP INDEX IX_Study_StudyInstanceUid ON dbo.Study
-END
-GO
-
-IF NOT EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IX_Study_PartitionKey_StudyInstanceUid' AND object_id = OBJECT_ID('dbo.Study'))
-BEGIN
-    CREATE UNIQUE NONCLUSTERED INDEX IX_Study_PartitionKey_StudyInstanceUid ON dbo.Study
-    (
-        PartitionKey,
-        StudyInstanceUid
-    )
-    INCLUDE
-    (
-        StudyKey
-    )
-    WITH (DATA_COMPRESSION = PAGE)
-END
-GO
 
 IF NOT EXISTS (
     SELECT *
@@ -241,58 +91,8 @@ IF NOT EXISTS (
 BEGIN
     ALTER TABLE dbo.Series
     ADD
-        PartitionKey BIGINT DEFAULT 1 NOT NULL
+        PartitionKey BIGINT NOT NULL
 END
-
-IF EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IXC_Series' AND object_id = OBJECT_ID('dbo.Series'))
-BEGIN
-    DROP INDEX IXC_Series ON dbo.Series
-END
-GO
-
-IF NOT EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IXC_PartitionKey_Series' AND object_id = OBJECT_ID('dbo.Series'))
-BEGIN
-    CREATE UNIQUE CLUSTERED INDEX IXC_PartitionKey_Series ON dbo.Series
-    (
-        PartitionKey,
-        StudyKey,
-        SeriesKey
-    )
-END
-GO
-
-IF EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IX_Series_SeriesInstanceUid' AND object_id = OBJECT_ID('dbo.Series'))
-BEGIN
-    DROP INDEX IX_Series_SeriesInstanceUid ON dbo.Series
-END
-GO
-
-IF NOT EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IX_Series_PartitionKey_SeriesInstanceUid' AND object_id = OBJECT_ID('dbo.Series'))
-BEGIN
-    CREATE UNIQUE NONCLUSTERED INDEX IX_Series_PartitionKey_SeriesInstanceUid ON dbo.Series
-    (
-        PartitionKey,
-        SeriesInstanceUid
-    )
-    INCLUDE
-    (
-        StudyKey
-    )
-    WITH (DATA_COMPRESSION = PAGE)
-END
-GO
 
 IF NOT EXISTS (
     SELECT *
@@ -301,65 +101,8 @@ IF NOT EXISTS (
 BEGIN
     ALTER TABLE dbo.DeletedInstance
     ADD
-        PartitionId VARCHAR(64) DEFAULT 'Microsoft.Default' NOT NULL
+        PartitionId VARCHAR(64) NOT NULL
 END
-
-IF EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IXC_DeletedInstance' AND object_id = OBJECT_ID('dbo.DeletedInstance'))
-BEGIN
-    DROP INDEX IXC_DeletedInstance ON dbo.DeletedInstance
-END
-GO
-
-IF NOT EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IXC_PartitionId_DeletedInstance' AND object_id = OBJECT_ID('dbo.DeletedInstance'))
-BEGIN
-    CREATE UNIQUE CLUSTERED INDEX IXC_PartitionId_DeletedInstance ON dbo.DeletedInstance
-    (
-        PartitionId,
-        StudyInstanceUid,
-        SeriesInstanceUid,
-        SopInstanceUid,
-        WaterMark
-    )
-END
-GO
-
-IF NOT EXISTS(
-    SELECT  *
-    FROM    sys.index_columns ic
-    JOIN    sys.indexes i
-    ON      ic.object_id = i.object_id
-            AND ic.index_id = i.index_id
-    JOIN    sys.columns c
-    ON      c.object_id = i.object_id
-            AND c.column_id = ic.column_id
-    WHERE   i.name = 'IX_DeletedInstance_RetryCount_CleanupAfter' 
-            AND ic.object_id = OBJECT_ID('dbo.DeletedInstance')
-            AND ic.is_included_column = 1
-            AND c.name = 'PartitionId'
-)
-BEGIN
-    CREATE NONCLUSTERED INDEX IX_DeletedInstance_RetryCount_CleanupAfter ON dbo.DeletedInstance
-    (
-    RetryCount,
-    CleanupAfter
-    )
-    INCLUDE
-    (
-        PartitionId,
-        StudyInstanceUid,
-        SeriesInstanceUid,
-        SopInstanceUid,
-        Watermark
-    )
-    WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING=ON, ONLINE=ON)
-END
-GO
 
 IF NOT EXISTS (
     SELECT *
@@ -368,32 +111,10 @@ IF NOT EXISTS (
 BEGIN
     ALTER TABLE dbo.ChangeFeed
     ADD
-        PartitionId VARCHAR(64) DEFAULT 'Microsoft.Default' NOT NULL
-END
-
-IF EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid' AND object_id = OBJECT_ID('dbo.ChangeFeed'))
-BEGIN
-    DROP INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.ChangeFeed
+        PartitionId VARCHAR(64) NOT NULL
 END
 GO
 
-IF NOT EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IX_ChangeFeed_PartitionId_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid' AND object_id = OBJECT_ID('dbo.ChangeFeed'))
-BEGIN
-    CREATE NONCLUSTERED INDEX IX_ChangeFeed_PartitionId_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.ChangeFeed
-    (
-        PartitionId,
-        StudyInstanceUid,
-        SeriesInstanceUid,
-        SopInstanceUid
-    )
-END
-GO
 
 /*************************************************************
     Stored procedures for adding an instance.
@@ -1593,3 +1314,295 @@ BEGIN
     FROM dbo.Partition
 END
 GO
+
+COMMIT TRANSACTION
+---END --CREATE/ALTER Statements----------
+
+-- BEGIN - CREATING INDEXES-------------
+BEGIN TRANSACTION
+
+IF EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid' AND object_id = OBJECT_ID('dbo.Instance'))
+BEGIN
+    DROP INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.Instance
+END
+GO
+
+IF NOT EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid' AND object_id = OBJECT_ID('dbo.Instance'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.Instance
+    (
+        PartitionKey,
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid
+    )
+    INCLUDE
+    (
+        Status,
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
+GO
+
+IF NOT EXISTS(
+    SELECT  *
+    FROM    sys.index_columns ic
+    JOIN    sys.indexes i
+    ON      ic.object_id = i.object_id
+            AND ic.index_id = i.index_id
+    JOIN    sys.columns c
+    ON      c.object_id = i.object_id
+            AND c.column_id = ic.column_id
+    WHERE   i.name = 'IX_Instance_SopInstanceUid_Status' 
+            AND ic.object_id = OBJECT_ID('dbo.Instance')
+            AND ic.is_included_column = 1
+            AND c.name = 'PartitionKey'
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Instance_SopInstanceUid_Status ON dbo.Instance
+    (
+        SopInstanceUid,
+        Status
+    )
+    INCLUDE
+    (
+        PartitionKey,
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING=ON, ONLINE=ON)
+END
+GO
+
+IF NOT EXISTS(
+    SELECT  *
+    FROM    sys.index_columns ic
+    JOIN    sys.indexes i
+    ON      ic.object_id = i.object_id
+            AND ic.index_id = i.index_id
+    JOIN    sys.columns c
+    ON      c.object_id = i.object_id
+            AND c.column_id = ic.column_id
+    WHERE   i.name = 'IX_Instance_SeriesKey_Status' 
+            AND ic.object_id = OBJECT_ID('dbo.Instance')
+            AND ic.is_included_column = 1
+            AND c.name = 'PartitionKey'
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Instance_SeriesKey_Status ON dbo.Instance
+    (
+        SeriesKey,
+        Status
+    )
+    INCLUDE
+    (
+        PartitionKey,
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid,
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING=ON, ONLINE=ON)
+END
+GO
+
+IF NOT EXISTS(
+    SELECT  *
+    FROM    sys.index_columns ic
+    JOIN    sys.indexes i
+    ON      ic.object_id = i.object_id
+            AND ic.index_id = i.index_id
+    JOIN    sys.columns c
+    ON      c.object_id = i.object_id
+            AND c.column_id = ic.column_id
+    WHERE   i.name = 'IX_Instance_StudyKey_Status' 
+            AND ic.object_id = OBJECT_ID('dbo.Instance')
+            AND ic.is_included_column = 1
+            AND c.name = 'PartitionKey'
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Instance_StudyKey_Status ON dbo.Instance
+    (
+        StudyKey,
+        Status
+    )
+    INCLUDE
+    (
+        PartitionKey,
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid,
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING=ON, ONLINE=ON)
+END
+GO
+
+IF EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_Study_StudyInstanceUid' AND object_id = OBJECT_ID('dbo.Study'))
+BEGIN
+    DROP INDEX IX_Study_StudyInstanceUid ON dbo.Study
+END
+GO
+
+IF NOT EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_Study_PartitionKey_StudyInstanceUid' AND object_id = OBJECT_ID('dbo.Study'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Study_PartitionKey_StudyInstanceUid ON dbo.Study
+    (
+        PartitionKey,
+        StudyInstanceUid
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
+GO
+
+IF EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IXC_Series' AND object_id = OBJECT_ID('dbo.Series'))
+BEGIN
+    DROP INDEX IXC_Series ON dbo.Series
+END
+GO
+
+IF NOT EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IXC_PartitionKey_Series' AND object_id = OBJECT_ID('dbo.Series'))
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_PartitionKey_Series ON dbo.Series
+    (
+        PartitionKey,
+        StudyKey,
+        SeriesKey
+    )
+END
+GO
+
+IF EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_Series_SeriesInstanceUid' AND object_id = OBJECT_ID('dbo.Series'))
+BEGIN
+    DROP INDEX IX_Series_SeriesInstanceUid ON dbo.Series
+END
+GO
+
+IF NOT EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_Series_PartitionKey_SeriesInstanceUid' AND object_id = OBJECT_ID('dbo.Series'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Series_PartitionKey_SeriesInstanceUid ON dbo.Series
+    (
+        PartitionKey,
+        SeriesInstanceUid
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
+GO
+
+IF EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IXC_DeletedInstance' AND object_id = OBJECT_ID('dbo.DeletedInstance'))
+BEGIN
+    DROP INDEX IXC_DeletedInstance ON dbo.DeletedInstance
+END
+GO
+
+IF NOT EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IXC_PartitionId_DeletedInstance' AND object_id = OBJECT_ID('dbo.DeletedInstance'))
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_PartitionId_DeletedInstance ON dbo.DeletedInstance
+    (
+        PartitionId,
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid,
+        WaterMark
+    )
+END
+GO
+
+IF NOT EXISTS(
+    SELECT  *
+    FROM    sys.index_columns ic
+    JOIN    sys.indexes i
+    ON      ic.object_id = i.object_id
+            AND ic.index_id = i.index_id
+    JOIN    sys.columns c
+    ON      c.object_id = i.object_id
+            AND c.column_id = ic.column_id
+    WHERE   i.name = 'IX_DeletedInstance_RetryCount_CleanupAfter' 
+            AND ic.object_id = OBJECT_ID('dbo.DeletedInstance')
+            AND ic.is_included_column = 1
+            AND c.name = 'PartitionId'
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_DeletedInstance_RetryCount_CleanupAfter ON dbo.DeletedInstance
+    (
+    RetryCount,
+    CleanupAfter
+    )
+    INCLUDE
+    (
+        PartitionId,
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid,
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING=ON, ONLINE=ON)
+END
+GO
+
+IF EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid' AND object_id = OBJECT_ID('dbo.ChangeFeed'))
+BEGIN
+    DROP INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.ChangeFeed
+END
+GO
+
+IF NOT EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_ChangeFeed_PartitionId_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid' AND object_id = OBJECT_ID('dbo.ChangeFeed'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_ChangeFeed_PartitionId_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.ChangeFeed
+    (
+        PartitionId,
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid
+    )
+END
+GO
+
+COMMIT TRANSACTION
+-- END - CREATING INDEXES-------------
