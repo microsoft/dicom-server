@@ -48,6 +48,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
         internal readonly static GetInstanceBatchesProcedure GetInstanceBatches = new GetInstanceBatchesProcedure();
         internal readonly static GetInstancesByWatermarkRangeProcedure GetInstancesByWatermarkRange = new GetInstancesByWatermarkRangeProcedure();
+        internal readonly static GetPartitionsProcedure GetPartitions = new GetPartitionsProcedure();
         internal readonly static IncrementDeletedInstanceRetryProcedure IncrementDeletedInstanceRetry = new IncrementDeletedInstanceRetryProcedure();
         internal readonly static IndexInstanceProcedure IndexInstance = new IndexInstanceProcedure();
         internal readonly static RetrieveDeletedInstanceProcedure RetrieveDeletedInstance = new RetrieveDeletedInstanceProcedure();
@@ -984,6 +985,19 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _startWatermark.AddParameter(command.Parameters, startWatermark);
                 _endWatermark.AddParameter(command.Parameters, endWatermark);
                 _status.AddParameter(command.Parameters, status);
+            }
+        }
+
+        internal class GetPartitionsProcedure : StoredProcedure
+        {
+            internal GetPartitionsProcedure() : base("dbo.GetPartitions")
+            {
+            }
+
+            public void PopulateCommand(SqlCommandWrapper command)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetPartitions";
             }
         }
 

@@ -1579,3 +1579,17 @@ BEGIN
        THROW 50410, 'Instances already exists', 1
 END
 GO
+
+/*************************************************************
+Stored Procedure that retrieves all partitions
+**************************************************************/
+CREATE OR ALTER PROCEDURE dbo.GetPartitions
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    SELECT PartitionId, CreatedDate
+    FROM dbo.Partition
+END
+GO
