@@ -57,6 +57,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Context
 
             dicomRequestContextAccessor.RequestContext = dicomRequestContext;
 
+            // TODO: replace with code from healthcare-shared-components
             ByteCountingStream byteCountingStream = _responseLogStreamFactory.CreateByteCountingResponseLogStream(context.Response.Body);
             context.Response.Body = byteCountingStream;
 
@@ -70,10 +71,9 @@ namespace Microsoft.Health.Dicom.Api.Features.Context
                 long responseBodySize = byteCountingStream.WrittenByteCount;
                 long responseHeaderSize = HeaderUtility.GetTotalHeaderLength(context.Response.Headers);
                 long totalResponseSize = responseBodySize + responseHeaderSize;
-                context.Items["ResponseSize"] = totalResponseSize;
 
-                context.Items["TranscodedSize"] = dicomRequestContextAccessor.RequestContext.BytesTranscoded;
-                context.Items["IsTranscodeRequested"] = dicomRequestContextAccessor.RequestContext.IsTranscodeRequested;
+                dicomRequestContext.ResponseSize = totalResponseSize;
+                dicomRequestContextAccessor.RequestContext = dicomRequestContext;
             }
         }
     }

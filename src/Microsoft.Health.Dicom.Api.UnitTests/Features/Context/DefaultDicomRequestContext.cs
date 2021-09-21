@@ -23,6 +23,8 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Context
 
         public long BytesTranscoded { get; set; }
 
+        public long ResponseSize { get; set; }
+
         public string Method { get; set; }
 
         public Uri BaseUri { get; set; }

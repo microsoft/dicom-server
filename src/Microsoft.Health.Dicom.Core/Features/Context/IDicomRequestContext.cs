@@ -18,5 +18,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Context
         bool IsTranscodeRequested { get; set; }
 
         long BytesTranscoded { get; set; }
+
+        long ResponseSize { get; set; }
     }
 }
