@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         [Range(0, int.MaxValue)]
         public int? Offset { get; set; }
 
-        [Range(0, int.MaxValue)]
+        [Range(1, QueryLimit.MaxQueryResultCount)]
         public int? Limit { get; set; }
 
         public bool? FuzzyMatching { get; set; }

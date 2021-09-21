@@ -30,22 +30,22 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         }
 
         [Theory]
-        [InlineData("includefield", "StudyDate")]
-        [InlineData("includefield", "00100020")]
-        [InlineData("includefield", "00100020,00100010")]
-        [InlineData("includefield", "StudyDate, StudyTime")]
-        public void GivenIncludeField_WithValidAttributeId_CheckIncludeFields(string key, string value)
+        [InlineData("StudyDate")]
+        [InlineData("00100020")]
+        [InlineData("00100020,00100010")]
+        [InlineData("StudyDate, StudyTime")]
+        public void GivenIncludeField_WithValidAttributeId_CheckIncludeFields(string value)
         {
             EnsureArg.IsNotNull(value, nameof(value));
-            VerifyIncludeFieldsForValidAttributeIds(key, value);
+            VerifyIncludeFieldsForValidAttributeIds(value);
         }
 
         [Theory]
-        [InlineData("includefield", "all")]
-        public void GivenIncludeField_WithValueAll_CheckAllValue(string key, string value)
+        [InlineData("all")]
+        public void GivenIncludeField_WithValueAll_CheckAllValue(string value)
         {
             QueryExpression queryExpression = _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags);
+                .Parse(CreateRequest(GetQueryCollection(new Dictionary<string, string>()), QueryResource.AllStudies, new KnownQueryParams() { IncludeField = new[] { value } }), QueryTagService.CoreQueryTags);
             Assert.True(queryExpression.IncludeFields.All);
         }
 
@@ -58,11 +58,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         }
 
         [Theory]
-        [InlineData("includefield", "12050010")]
-        [InlineData("includefield", "12051001")]
-        public void GivenIncludeField_WithPrivateAttributeId_CheckIncludeFields(string key, string value)
+        [InlineData("12050010")]
+        [InlineData("12051001")]
+        public void GivenIncludeField_WithPrivateAttributeId_CheckIncludeFields(string value)
         {
-            VerifyIncludeFieldsForValidAttributeIds(key, value);
+            VerifyIncludeFieldsForValidAttributeIds(value);
         }
 
         [Theory]
@@ -121,16 +121,22 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         }
 
         [Theory]
-        [InlineData("limit=25&offset=0&fuzzymatching=false&includefield=00081030,00080060&StudyDate=19510910-20200220", QueryResource.AllStudies)]
-        [InlineData("PatientName=Joe&fuzzyMatching=true&limit=50", QueryResource.AllStudies)]
-        [InlineData("PatientName=Joe&fuzzyMatching=true&Modality=CT", QueryResource.AllSeries)]
-        [InlineData("ReferringPhysicianName=dr&fuzzyMatching=true&Modality=CT", QueryResource.AllSeries)]
-        [InlineData("PatientBirthDate=18000101-19010101", QueryResource.AllStudies)]
-        [InlineData("ManufacturerModelName=foomft", QueryResource.AllSeries)]
-        public void GivenFilterCondition_WithValidQueryString_ParseSucceeds(string queryString, QueryResource resourceType)
+        [MemberData(nameof(GetValidQueryStrings))]
+        public void GivenFilterCondition_WithValidQueryString_ParseSucceeds(string queryString, QueryResource resourceType, KnownQueryParams knownParams)
         {
             EnsureArg.IsNotNull(queryString, nameof(queryString));
-            _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), resourceType), QueryTagService.CoreQueryTags);
+            _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), resourceType, knownParams), QueryTagService.CoreQueryTags);
+        }
+
+
+        public static IEnumerable<object[]> GetValidQueryStrings()
+        {
+            yield return new object[] { "StudyDate=19510910-20200220", QueryResource.AllStudies, new KnownQueryParams { Limit = 25, Offset = 0, FuzzyMatching = false, IncludeField = new string[] { "00081030,00080060" } } };
+            yield return new object[] { "PatientName=Joe", QueryResource.AllStudies, new KnownQueryParams { FuzzyMatching = true, Limit = 50 } };
+            yield return new object[] { "PatientName=Joe&Modality=CT", QueryResource.AllSeries, new KnownQueryParams { FuzzyMatching = true } };
+            yield return new object[] { "ReferringPhysicianName=dr&Modality=CT", QueryResource.AllSeries, new KnownQueryParams { FuzzyMatching = true } };
+            yield return new object[] { "PatientBirthDate=18000101-19010101", QueryResource.AllStudies, new KnownQueryParams() };
+            yield return new object[] { "ManufacturerModelName=foomft", QueryResource.AllSeries, new KnownQueryParams() };
         }
 
         [Fact]
@@ -158,10 +164,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [Fact]
         public void GivenExtendedQueryPersonNameTag_WithUrl_ParseSucceeds()
         {
-            var queryString = "PatientBirthName=Joe&fuzzyMatching=true&limit=50";
+            var queryString = "PatientBirthName=Joe";
             QueryTag queryTag = new QueryTag(DicomTag.PatientBirthName.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Series));
 
-            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries), new[] { queryTag });
+            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), QueryResource.AllSeries, new KnownQueryParams() { FuzzyMatching = true, Limit = 50 }), new[] { queryTag });
             var fuzzyCondition = queryExpression.FilterConditions.First() as PersonNameFuzzyMatchCondition;
             Assert.NotNull(fuzzyCondition);
             Assert.Equal("Joe", fuzzyCondition.Value);
@@ -254,56 +260,23 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         }
 
         [Theory]
-        [InlineData("offset", "2.5")]
-        [InlineData("offset", "-1")]
-        public void GivenOffset_WithNotIntValue_Throws(string key, string value)
-        {
-            Assert.Throws<QueryParseException>(() => _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags));
-        }
-
-        [Theory]
-        [InlineData("offset", 25)]
-        public void GivenOffset_WithIntValue_CheckOffset(string key, int value)
+        [InlineData(25)]
+        public void GivenOffset_WithIntValue_CheckOffset(int? value)
         {
             QueryExpression queryExpression = _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value.ToString()), QueryResource.AllStudies), QueryTagService.CoreQueryTags);
+                .Parse(CreateRequest(GetQueryCollection(new Dictionary<string, string>()), QueryResource.AllStudies, new KnownQueryParams() { Offset = value }), QueryTagService.CoreQueryTags);
             Assert.True(queryExpression.Offset == value);
         }
 
         [Theory]
-        [InlineData("limit", "sdfsdf")]
-        [InlineData("limit", "-2")]
-        public void GivenLimit_WithInvalidValue_Throws(string key, string value)
-        {
-            Assert.Throws<QueryParseException>(() => _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags));
-        }
-
-        [Theory]
-        [InlineData("limit", "500000")]
-        public void GivenLimit_WithMaxValueExceeded_Throws(string key, string value)
-        {
-            Assert.Throws<QueryParseException>(() => _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags));
-        }
-
-        [Theory]
-        [InlineData("limit", 50)]
-        public void GivenLimit_WithValidValue_CheckLimit(string key, int value)
+        [InlineData(50)]
+        public void GivenLimit_WithValidValue_CheckLimit(int? value)
         {
             QueryExpression queryExpression = _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value.ToString()), QueryResource.AllStudies), QueryTagService.CoreQueryTags);
+                .Parse(CreateRequest(GetQueryCollection(new Dictionary<string, string>()), QueryResource.AllStudies, new KnownQueryParams() { Limit = value }), QueryTagService.CoreQueryTags);
             Assert.True(queryExpression.Limit == value);
         }
 
-        [Theory]
-        [InlineData("limit", 0)]
-        public void GivenLimit_WithZero_ThrowsException(string key, int value)
-        {
-            Assert.Throws<QueryParseException>(() => _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value.ToString()), QueryResource.AllStudies), QueryTagService.CoreQueryTags));
-        }
 
         [Theory]
         [InlineData("00390061", "invalidtag")]
@@ -315,11 +288,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         }
 
         [Theory]
-        [InlineData("fuzzymatching", "true")]
-        public void GivenFuzzyMatch_WithValidValue_Check(string key, string value)
+        [InlineData(true)]
+        public void GivenFuzzyMatch_WithValidValue_Check(bool? value)
         {
             QueryExpression queryExpression = _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags);
+                .Parse(CreateRequest(GetQueryCollection(new Dictionary<string, string>()), QueryResource.AllStudies, new KnownQueryParams() { FuzzyMatching = value }), QueryTagService.CoreQueryTags);
             Assert.True(queryExpression.FuzzyMatching);
         }
 
@@ -362,7 +335,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         {
             var testStudyInstanceUid = TestUidGenerator.Generate();
             QueryExpression queryExpression = _queryParser
-                .Parse(CreateRequest(GetQueryCollection(new Dictionary<string, string>()), QueryResource.AllSeries, testStudyInstanceUid), QueryTagService.CoreQueryTags);
+                .Parse(CreateRequest(GetQueryCollection(new Dictionary<string, string>()), QueryResource.AllSeries, studyInstanceUid: testStudyInstanceUid), QueryTagService.CoreQueryTags);
             Assert.Equal(1, queryExpression.FilterConditions.Count);
             var cond = queryExpression.FilterConditions.First() as StringSingleValueMatchCondition;
             Assert.NotNull(cond);
@@ -370,11 +343,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         }
 
         [Theory]
-        [InlineData("PatientName=CoronaPatient&StudyDate=20200403&fuzzyMatching=true", QueryResource.AllStudies)]
+        [InlineData("PatientName=CoronaPatient&StudyDate=20200403", QueryResource.AllStudies)]
         public void GivenPatientNameFilterCondition_WithFuzzyMatchingTrue_FuzzyMatchConditionAdded(string queryString, QueryResource resourceType)
         {
             EnsureArg.IsNotNull(queryString, nameof(queryString));
-            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), resourceType), QueryTagService.CoreQueryTags);
+            QueryExpression queryExpression = _queryParser.Parse(CreateRequest(GetQueryCollection(queryString), resourceType, new KnownQueryParams() { FuzzyMatching = true }), QueryTagService.CoreQueryTags);
 
             Assert.Equal(2, queryExpression.FilterConditions.Count);
 
@@ -389,10 +362,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             Assert.Equal("CoronaPatient", fuzzyCondition.Value);
         }
 
-        private void VerifyIncludeFieldsForValidAttributeIds(string key, string value)
+        private void VerifyIncludeFieldsForValidAttributeIds(string value)
         {
             QueryExpression queryExpression = _queryParser
-                .Parse(CreateRequest(GetQueryCollection(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags);
+                .Parse(CreateRequest(Array.Empty<KeyValuePair<string, StringValues>>(), QueryResource.AllStudies, new KnownQueryParams() { IncludeField = new[] { value } }), QueryTagService.CoreQueryTags);
             Assert.False(queryExpression.HasFilters);
             Assert.False(queryExpression.IncludeFields.All);
             Assert.True(queryExpression.IncludeFields.DicomTags.Count == value.Split(',').Length);
@@ -414,11 +387,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         private IEnumerable<KeyValuePair<string, StringValues>> GetQueryCollection(string queryString)
         {
             var parameters = queryString.Split('&');
-
             foreach (var param in parameters)
             {
                 var keyValue = param.Split('=');
-
                 yield return KeyValuePair.Create(keyValue[0], new StringValues(keyValue[1].Split(',')));
             }
         }
@@ -426,10 +397,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         private QueryResourceRequest CreateRequest(
             IEnumerable<KeyValuePair<string, StringValues>> queryParams,
             QueryResource resourceType,
+            KnownQueryParams knownQueryParams = null,
             string studyInstanceUid = null,
             string seriesInstanceUid = null)
         {
-            return new QueryResourceRequest(queryParams, resourceType, new KnownQueryParams(), studyInstanceUid, seriesInstanceUid);
+            return new QueryResourceRequest(queryParams, resourceType, knownQueryParams == null ? new KnownQueryParams() : knownQueryParams, studyInstanceUid, seriesInstanceUid);
         }
     }
 }
