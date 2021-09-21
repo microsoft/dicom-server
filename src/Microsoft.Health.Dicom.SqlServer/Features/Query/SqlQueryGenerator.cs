@@ -127,6 +127,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             AppendExtendedQueryTagTables();
 
             _stringBuilder.AppendLine("WHERE 1 = 1");
+
+            // TODO: Actual PartitionId should be passed as a filter condition
             _stringBuilder.AppendLine($"AND {PartitionTableAlias}.{VLatest.Partition.PartitionId} = '{DefaultPartitionId}'");
             using (IndentedStringBuilder.DelimitedScope delimited = _stringBuilder.BeginDelimitedWhereClause())
             {
