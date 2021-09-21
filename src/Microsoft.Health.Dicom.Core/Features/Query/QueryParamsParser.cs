@@ -16,27 +16,27 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     {
         private const string IncludeFieldValueAll = "all";
         private const StringComparison QueryParameterComparision = StringComparison.OrdinalIgnoreCase;
-        public static void Parse(StaticQueryParams staticQueryParams, QueryExpressionParams expParams)
+        public static void Parse(KnownQueryParams knownQueryParams, QueryExpressionParams expParams)
         {
-            EnsureArg.IsNotNull(staticQueryParams, nameof(staticQueryParams));
+            EnsureArg.IsNotNull(knownQueryParams, nameof(knownQueryParams));
             EnsureArg.IsNotNull(expParams, nameof(expParams));
-            if (staticQueryParams.IncludeField != null)
+            if (knownQueryParams.IncludeField != null)
             {
-                ParseIncludeField(staticQueryParams.IncludeField, expParams);
+                ParseIncludeField(knownQueryParams.IncludeField, expParams);
             }
-            if (staticQueryParams.FuzzyMatching.HasValue)
+            if (knownQueryParams.FuzzyMatching.HasValue)
             {
-                expParams.FuzzyMatch = staticQueryParams.FuzzyMatching.Value;
-            }
-
-            if (staticQueryParams.Limit.HasValue)
-            {
-                expParams.Limit = staticQueryParams.Limit.Value;
+                expParams.FuzzyMatch = knownQueryParams.FuzzyMatching.Value;
             }
 
-            if (staticQueryParams.Offset.HasValue)
+            if (knownQueryParams.Limit.HasValue)
             {
-                expParams.Offset = staticQueryParams.Offset.Value;
+                expParams.Limit = knownQueryParams.Limit.Value;
+            }
+
+            if (knownQueryParams.Offset.HasValue)
+            {
+                expParams.Offset = knownQueryParams.Offset.Value;
             }
         }
 

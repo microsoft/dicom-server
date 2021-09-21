@@ -50,14 +50,14 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [VersionedRoute(KnownRoutes.QueryAllStudiesRoute)]
         [Route(KnownRoutes.QueryAllStudiesRoute)]
         [AuditEventType(AuditEventSubType.Query)]
-        public async Task<IActionResult> QueryForStudyAsync([FromQuery] StaticQueryParams staticQueryParams)
+        public async Task<IActionResult> QueryForStudyAsync([FromQuery] KnownQueryParams knownQueryParams)
         {
             _logger.LogInformation("DICOM Web Query Study request received. QueryString {RequestQueryString}.", Request.QueryString);
 
             var response = await _mediator.QueryDicomResourcesAsync(
                 Request.Query,
                 QueryResource.AllStudies,
-                staticQueryParams,
+                knownQueryParams,
                 cancellationToken: HttpContext.RequestAborted);
 
             return CreateResult(response);
@@ -72,14 +72,14 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [VersionedRoute(KnownRoutes.QueryAllSeriesRoute)]
         [Route(KnownRoutes.QueryAllSeriesRoute)]
         [AuditEventType(AuditEventSubType.Query)]
-        public async Task<IActionResult> QueryForSeriesAsync([FromQuery] StaticQueryParams staticQueryParams)
+        public async Task<IActionResult> QueryForSeriesAsync([FromQuery] KnownQueryParams knownQueryParams)
         {
             _logger.LogInformation("DICOM Web Query Series request received. QueryString {RequestQueryString}.", Request.QueryString);
 
             var response = await _mediator.QueryDicomResourcesAsync(
                 Request.Query,
                 QueryResource.AllSeries,
-                staticQueryParams,
+                knownQueryParams,
                 cancellationToken: HttpContext.RequestAborted);
 
             return CreateResult(response);
@@ -94,14 +94,14 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [VersionedRoute(KnownRoutes.QuerySeriesInStudyRoute)]
         [Route(KnownRoutes.QuerySeriesInStudyRoute)]
         [AuditEventType(AuditEventSubType.Query)]
-        public async Task<IActionResult> QueryForSeriesInStudyAsync(string studyInstanceUid, [FromQuery] StaticQueryParams staticQueryParams)
+        public async Task<IActionResult> QueryForSeriesInStudyAsync(string studyInstanceUid, [FromQuery] KnownQueryParams knownQueryParams)
         {
             _logger.LogInformation("DICOM Web Query Series request for study {studyInstanceUid} received. QueryString {RequestQueryString}.", studyInstanceUid, Request.QueryString);
 
             var response = await _mediator.QueryDicomResourcesAsync(
                 Request.Query,
                 QueryResource.StudySeries,
-                staticQueryParams,
+                knownQueryParams,
                 studyInstanceUid: studyInstanceUid,
                 cancellationToken: HttpContext.RequestAborted);
 
@@ -117,7 +117,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [VersionedRoute(KnownRoutes.QueryAllInstancesRoute)]
         [Route(KnownRoutes.QueryAllInstancesRoute)]
         [AuditEventType(AuditEventSubType.Query)]
-        public async Task<IActionResult> QueryForInstancesAsync([FromQuery] StaticQueryParams staticQueryParams)
+        public async Task<IActionResult> QueryForInstancesAsync([FromQuery] KnownQueryParams staticQueryParams)
         {
             _logger.LogInformation("DICOM Web Query instances request received. QueryString {RequestQueryString}.", Request.QueryString);
 
@@ -139,14 +139,14 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [VersionedRoute(KnownRoutes.QueryInstancesInStudyRoute)]
         [Route(KnownRoutes.QueryInstancesInStudyRoute)]
         [AuditEventType(AuditEventSubType.Query)]
-        public async Task<IActionResult> QueryForInstancesInStudyAsync(string studyInstanceUid, [FromQuery] StaticQueryParams staticQueryParams)
+        public async Task<IActionResult> QueryForInstancesInStudyAsync(string studyInstanceUid, [FromQuery] KnownQueryParams knownQueryParams)
         {
             _logger.LogInformation("DICOM Web Query Instances for study {studyInstanceUid} received. QueryString {RequestQueryString}.", studyInstanceUid, Request.QueryString);
 
             var response = await _mediator.QueryDicomResourcesAsync(
                 Request.Query,
                 QueryResource.StudyInstances,
-                staticQueryParams,
+                knownQueryParams,
                 studyInstanceUid: studyInstanceUid,
                 cancellationToken: HttpContext.RequestAborted);
 
@@ -162,14 +162,14 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [VersionedRoute(KnownRoutes.QueryInstancesInSeriesRoute)]
         [Route(KnownRoutes.QueryInstancesInSeriesRoute)]
         [AuditEventType(AuditEventSubType.Query)]
-        public async Task<IActionResult> QueryForInstancesInSeriesAsync(string studyInstanceUid, string seriesInstanceUid, [FromQuery] StaticQueryParams staticQueryParams)
+        public async Task<IActionResult> QueryForInstancesInSeriesAsync(string studyInstanceUid, string seriesInstanceUid, [FromQuery] KnownQueryParams knownQueryParams)
         {
             _logger.LogInformation("DICOM Web Query Instances for study {studyInstanceUid} and series {seriesInstanceUid} received. QueryString {RequestQueryString}.", studyInstanceUid, seriesInstanceUid, Request.QueryString);
 
             var response = await _mediator.QueryDicomResourcesAsync(
                 Request.Query,
                 QueryResource.StudySeriesInstances,
-                staticQueryParams,
+                knownQueryParams,
                 studyInstanceUid: studyInstanceUid,
                 seriesInstanceUid: seriesInstanceUid,
                 cancellationToken: HttpContext.RequestAborted);

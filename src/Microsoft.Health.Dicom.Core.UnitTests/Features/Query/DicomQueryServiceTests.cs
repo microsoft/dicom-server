@@ -49,7 +49,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var request = new QueryResourceRequest(
                 Substitute.For<IEnumerable<KeyValuePair<string, StringValues>>>(),
                 resourceType,
-                new StaticQueryParams(),
+                new KnownQueryParams(),
                 studyInstanceUid);
             Assert.ThrowsAsync<InvalidIdentifierException>(async () => await _queryService.QueryAsync(request, CancellationToken.None));
         }
@@ -62,7 +62,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var request = new QueryResourceRequest(
                 Substitute.For<IEnumerable<KeyValuePair<string, StringValues>>>(),
                 resourceType,
-                new StaticQueryParams(),
+                new KnownQueryParams(),
                 studyInstanceUid,
                 seriesInstanceUid);
             Assert.ThrowsAsync<InvalidIdentifierException>(async () => await _queryService.QueryAsync(request, CancellationToken.None));
@@ -77,7 +77,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var request = new QueryResourceRequest(
                 Substitute.For<IEnumerable<KeyValuePair<string, StringValues>>>(),
                 resourceType,
-                new StaticQueryParams(),
+                new KnownQueryParams(),
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate());
 
@@ -104,7 +104,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var request = new QueryResourceRequest(
                 Substitute.For<IEnumerable<KeyValuePair<string, StringValues>>>(),
                 resourceType,
-                new StaticQueryParams(),
+                new KnownQueryParams(),
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate());
 
@@ -129,7 +129,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var request = new QueryResourceRequest(
                 Substitute.For<IEnumerable<KeyValuePair<string, StringValues>>>(),
                 resourceType,
-                new StaticQueryParams(),
+                new KnownQueryParams(),
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate());
 

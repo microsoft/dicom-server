@@ -115,14 +115,14 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             this IMediator mediator,
             IEnumerable<KeyValuePair<string, StringValues>> requestQuery,
             QueryResource resourceType,
-            StaticQueryParams staticQueryParams,
+            KnownQueryParams staticQueryParams,
             string studyInstanceUid = null,
             string seriesInstanceUid = null,
             CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
             return mediator.Send(new QueryResourceRequest(requestQuery
-                .Where(item => !StaticQueryParams.IsStaticQueryKey(item.Key))
+                .Where(item => !KnownQueryParams.IsKnownQueryKey(item.Key))
                 , resourceType, staticQueryParams, studyInstanceUid, seriesInstanceUid), cancellationToken);
         }
 

@@ -10,7 +10,7 @@ using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public class StaticQueryParams
+    public class KnownQueryParams
     {
         private static readonly ISet<string> KnownParams = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public IReadOnlyList<string> IncludeField { get; set; }
 
-        public static bool IsStaticQueryKey(string key)
+        public static bool IsKnownQueryKey(string key)
         {
             return KnownParams.Contains(EnsureArg.IsNotNull(key, nameof(key)).Trim());
         }

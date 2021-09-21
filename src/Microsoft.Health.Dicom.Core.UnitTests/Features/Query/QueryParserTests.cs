@@ -429,7 +429,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             string studyInstanceUid = null,
             string seriesInstanceUid = null)
         {
-            return new QueryResourceRequest(queryParams, resourceType, studyInstanceUid, seriesInstanceUid);
+            return new QueryResourceRequest(queryParams, resourceType, new KnownQueryParams(), studyInstanceUid, seriesInstanceUid);
         }
     }
 }
