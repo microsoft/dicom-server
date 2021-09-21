@@ -29,16 +29,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
             _expParams = new QueryExpressionParams();
+            QueryParamsParser.Parse(request.StaticQueryParams, _expParams);
+
             queryTags = GetQualifiedQueryTags(queryTags, request.QueryResourceType);
 
             foreach (KeyValuePair<string, StringValues> queryParam in request.RequestQuery)
             {
-                // Parse known parameters
-                if (QueryParamsParser.TryParse(queryParam, ref _expParams))
-                {
-                    continue;
-                }
-
                 // filter conditions with attributeId as key
                 if (ParseFilterCondition(queryParam, queryTags, out QueryFilterCondition condition))
                 {
