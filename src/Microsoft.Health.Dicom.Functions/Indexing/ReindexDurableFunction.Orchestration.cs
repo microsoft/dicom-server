@@ -106,10 +106,10 @@ namespace Microsoft.Health.Dicom.Functions.Indexing
             }
         }
 
+        // Determine the set of query tags that should be indexed and only continue if there is at least 1.
+        // For the first time this orchestration executes, assign all of the tags in the input to the operation,
+        // otherwise simply fetch the tags from the database for this operation.
         private Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetOperationQueryTagsAsync(IDurableOrchestrationContext context, ReindexInput input)
-            // Determine the set of query tags that should be indexed and only continue if there is at least 1.
-            // For the first time this orchestration executes, assign all of the tags in the input to the operation,
-            // otherwise simply fetch the tags from the database for this operation.
             => input.Completed.HasValue
                 ? context.CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
                     nameof(GetQueryTagsAsync),
