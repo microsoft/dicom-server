@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Dicom;
 using EnsureThat;
-using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Features.Common;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
@@ -17,40 +16,40 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     {
         private const string IncludeFieldValueAll = "all";
         private const StringComparison QueryParameterComparision = StringComparison.OrdinalIgnoreCase;
-        private delegate void ParserAction(KeyValuePair<string, StringValues> queryParam, ref QueryExpressionParams queryExpression);
-        private static readonly Dictionary<string, ParserAction> ParamParsers = new Dictionary<string, ParserAction>(StringComparer.OrdinalIgnoreCase);
-
-        static QueryParamsParser()
+        public static void Parse(StaticQueryParams staticQueryParams, QueryExpressionParams expParams)
         {
-            // register parameter parsers
-            ParamParsers.Add("offset", ParseOffset);
-            ParamParsers.Add("limit", ParseLimit);
-            ParamParsers.Add("fuzzymatching", ParseFuzzyMatching);
-            ParamParsers.Add("includefield", ParseIncludeField);
-        }
-
-        public static bool TryParse(KeyValuePair<string, StringValues> queryParam, ref QueryExpressionParams expParams)
-        {
+            EnsureArg.IsNotNull(staticQueryParams, nameof(staticQueryParams));
             EnsureArg.IsNotNull(expParams, nameof(expParams));
-            var trimmedKey = queryParam.Key.Trim();
-            if (ParamParsers.TryGetValue(trimmedKey, out ParserAction paramParser))
+            if (staticQueryParams.IncludeField != null)
             {
-                paramParser(queryParam, ref expParams);
-                return true;
+                ParseIncludeField(staticQueryParams.IncludeField, expParams);
             }
-            return false;
+            if (staticQueryParams.FuzzyMatching.HasValue)
+            {
+                expParams.FuzzyMatch = staticQueryParams.FuzzyMatching.Value;
+            }
+
+            if (staticQueryParams.Limit.HasValue)
+            {
+                expParams.Limit = staticQueryParams.Limit.Value;
+            }
+
+            if (staticQueryParams.Offset.HasValue)
+            {
+                expParams.Offset = staticQueryParams.Offset.Value;
+            }
         }
 
-        private static void ParseIncludeField(KeyValuePair<string, StringValues> queryParameter, ref QueryExpressionParams expParams)
+        private static void ParseIncludeField(IReadOnlyList<string> includeField, QueryExpressionParams expParams)
         {
             // Check if `all` is present as one of the values in IncludeField parameter.
-            if (queryParameter.Value.Any(val => IncludeFieldValueAll.Equals(val.Trim(), QueryParameterComparision)))
+            if (includeField.Any(val => IncludeFieldValueAll.Equals(val.Trim(), QueryParameterComparision)))
             {
                 expParams.AllValue = true;
                 return;
             }
 
-            foreach (string paramValue in queryParameter.Value.ToArray())
+            foreach (string paramValue in includeField)
             {
                 foreach (string value in paramValue.Split(','))
                 {
@@ -63,50 +62,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
                     throw new QueryParseException(string.Format(DicomCoreResource.IncludeFieldUnknownAttribute, trimmedValue));
                 }
-            }
-        }
-
-        private static void ParseFuzzyMatching(KeyValuePair<string, StringValues> queryParameter, ref QueryExpressionParams expParams)
-        {
-            var trimmedValue = queryParameter.Value.FirstOrDefault()?.Trim();
-            if (bool.TryParse(trimmedValue, out bool result))
-            {
-                expParams.FuzzyMatch = result;
-            }
-            else
-            {
-                throw new QueryParseException(string.Format(DicomCoreResource.InvalidFuzzyMatchValue, trimmedValue));
-            }
-        }
-
-        private static void ParseOffset(KeyValuePair<string, StringValues> queryParameter, ref QueryExpressionParams expParams)
-        {
-            var trimmedValue = queryParameter.Value.FirstOrDefault()?.Trim();
-            if (int.TryParse(trimmedValue, out int result) && result >= 0)
-            {
-                expParams.Offset = result;
-            }
-            else
-            {
-                throw new QueryParseException(string.Format(DicomCoreResource.InvalidOffsetValue, trimmedValue));
-            }
-        }
-
-        private static void ParseLimit(KeyValuePair<string, StringValues> queryParameter, ref QueryExpressionParams expParams)
-        {
-            var trimmedValue = queryParameter.Value.FirstOrDefault()?.Trim();
-            if (int.TryParse(trimmedValue, out int result))
-            {
-                if (result > QueryLimit.MaxQueryResultCount || result < 1)
-                {
-                    throw new QueryParseException(string.Format(DicomCoreResource.QueryResultCountMaxExceeded, result, 1, QueryLimit.MaxQueryResultCount));
-                }
-
-                expParams.Limit = result;
-            }
-            else
-            {
-                throw new QueryParseException(string.Format(DicomCoreResource.InvalidLimitValue, trimmedValue));
             }
         }
     }

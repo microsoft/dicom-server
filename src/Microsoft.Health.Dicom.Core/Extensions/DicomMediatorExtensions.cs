@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -114,12 +115,15 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             this IMediator mediator,
             IEnumerable<KeyValuePair<string, StringValues>> requestQuery,
             QueryResource resourceType,
+            StaticQueryParams staticQueryParams,
             string studyInstanceUid = null,
             string seriesInstanceUid = null,
             CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
-            return mediator.Send(new QueryResourceRequest(requestQuery, resourceType, studyInstanceUid, seriesInstanceUid), cancellationToken);
+            return mediator.Send(new QueryResourceRequest(requestQuery
+                .Where(item => !StaticQueryParams.IsStaticQueryKey(item.Key))
+                , resourceType, staticQueryParams, studyInstanceUid, seriesInstanceUid), cancellationToken);
         }
 
         public static Task<ChangeFeedResponse> GetChangeFeed(

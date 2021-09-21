@@ -16,12 +16,12 @@ namespace Microsoft.Health.Dicom.Core.Messages.Query
         public QueryResourceRequest(
             IEnumerable<KeyValuePair<string, StringValues>> requestQuery,
             QueryResource resourceType,
+            StaticQueryParams staticQueryParams,
             string studyInstanceUid = null,
             string seriesInstanceUid = null)
         {
-            EnsureArg.IsNotNull(requestQuery, nameof(requestQuery));
-
-            RequestQuery = requestQuery;
+            RequestQuery = EnsureArg.IsNotNull(requestQuery, nameof(requestQuery));
+            StaticQueryParams = EnsureArg.IsNotNull(staticQueryParams, nameof(staticQueryParams));
             QueryResourceType = resourceType;
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
@@ -30,6 +30,8 @@ namespace Microsoft.Health.Dicom.Core.Messages.Query
         public IEnumerable<KeyValuePair<string, StringValues>> RequestQuery { get; }
 
         public QueryResource QueryResourceType { get; }
+
+        public StaticQueryParams StaticQueryParams { get; }
 
         public string StudyInstanceUid { get; }
 

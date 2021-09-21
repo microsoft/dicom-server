@@ -49,6 +49,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var request = new QueryResourceRequest(
                 Substitute.For<IEnumerable<KeyValuePair<string, StringValues>>>(),
                 resourceType,
+                new StaticQueryParams(),
                 studyInstanceUid);
             Assert.ThrowsAsync<InvalidIdentifierException>(async () => await _queryService.QueryAsync(request, CancellationToken.None));
         }
@@ -61,6 +62,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var request = new QueryResourceRequest(
                 Substitute.For<IEnumerable<KeyValuePair<string, StringValues>>>(),
                 resourceType,
+                new StaticQueryParams(),
                 studyInstanceUid,
                 seriesInstanceUid);
             Assert.ThrowsAsync<InvalidIdentifierException>(async () => await _queryService.QueryAsync(request, CancellationToken.None));
@@ -75,6 +77,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var request = new QueryResourceRequest(
                 Substitute.For<IEnumerable<KeyValuePair<string, StringValues>>>(),
                 resourceType,
+                new StaticQueryParams(),
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate());
 
@@ -101,6 +104,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var request = new QueryResourceRequest(
                 Substitute.For<IEnumerable<KeyValuePair<string, StringValues>>>(),
                 resourceType,
+                new StaticQueryParams(),
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate());
 
@@ -125,6 +129,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var request = new QueryResourceRequest(
                 Substitute.For<IEnumerable<KeyValuePair<string, StringValues>>>(),
                 resourceType,
+                new StaticQueryParams(),
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate());
 
