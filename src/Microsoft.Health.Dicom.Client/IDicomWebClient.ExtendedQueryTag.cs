@@ -18,8 +18,8 @@ namespace Microsoft.Health.Dicom.Client
 
         Task<DicomWebResponse<GetExtendedQueryTagEntry>> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default);
 
-        Task<DicomWebResponse<IEnumerable<GetExtendedQueryTagEntry>>> GetExtendedQueryTagsAsync(int limit, int offset = 0, CancellationToken cancellationToken = default);
+        Task<DicomWebResponse<IEnumerable<GetExtendedQueryTagEntry>>> GetExtendedQueryTagsAsync(int limit = 100, int offset = 0, CancellationToken cancellationToken = default);
 
-        Task<DicomWebResponse<IEnumerable<ExtendedQueryTagError>>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, int offset = 0, CancellationToken cancellationToken = default);
+        Task<DicomWebResponse<IEnumerable<ExtendedQueryTagError>>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit = 100, int offset = 0, CancellationToken cancellationToken = default);
     }
 }
