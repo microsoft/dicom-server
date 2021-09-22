@@ -23,12 +23,24 @@ namespace Microsoft.Health.Dicom.Api.Features.ModelBinders
             if (values.Count == 0)
             {
                 bindingContext.Result = ModelBindingResult.Success(DefaultValue);
-                return Task.CompletedTask;
+            }
+            else if (values.Count > 1)
+            {
+                bindingContext.Result = ModelBindingResult.Failed();
+            }
+            else if (string.IsNullOrEmpty(values[0]))
+            {
+                bindingContext.Result = ModelBindingResult.Success(DefaultValue);
+            }
+            else if (TryParse(values[0].Split(',', StringSplitOptions.TrimEntries), out object result))
+            {
+                bindingContext.Result = ModelBindingResult.Success(result);
+            }
+            else
+            {
+                bindingContext.Result = ModelBindingResult.Failed();
             }
 
-            bindingContext.Result = values.Count == 1 && TryParse(values[0].Split(',', StringSplitOptions.TrimEntries), out object result)
-                ? ModelBindingResult.Success(result)
-                : ModelBindingResult.Failed();
             return Task.CompletedTask;
         }
 
