@@ -15,17 +15,17 @@ using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
-    public class UpdateTagQueryStatusHandler : BaseHandler, IRequestHandler<UpdateTagQueryStatusRequest, UpdateTagQueryStatusResponse>
+    public class UpdateExtendedQueryTagQueryStatusHandler : BaseHandler, IRequestHandler<UpdateExtendedQueryTagQueryStatusRequest, UpdateExtendedQueryTagQueryStatusResponse>
     {
         private readonly IUpdateExtendedQueryTagService _updateTagService;
 
-        public UpdateTagQueryStatusHandler(IAuthorizationService<DataActions> authorizationService, IUpdateExtendedQueryTagService updateTagService)
+        public UpdateExtendedQueryTagQueryStatusHandler(IAuthorizationService<DataActions> authorizationService, IUpdateExtendedQueryTagService updateTagService)
             : base(authorizationService)
         {
             _updateTagService = EnsureArg.IsNotNull(updateTagService, nameof(updateTagService));
         }
 
-        public async Task<UpdateTagQueryStatusResponse> Handle(UpdateTagQueryStatusRequest request, CancellationToken cancellationToken)
+        public async Task<UpdateExtendedQueryTagQueryStatusResponse> Handle(UpdateExtendedQueryTagQueryStatusRequest request, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(request, nameof(request));
 
@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             }
 
             var tagEntry = await _updateTagService.UpdateQueryStatusAsync(request.TagPath, request.QueryStatus, cancellationToken);
-            return new UpdateTagQueryStatusResponse(tagEntry);
+            return new UpdateExtendedQueryTagQueryStatusResponse(tagEntry);
         }
     }
 }

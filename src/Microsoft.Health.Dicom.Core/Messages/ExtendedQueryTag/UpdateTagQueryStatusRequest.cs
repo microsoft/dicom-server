@@ -9,9 +9,9 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
 {
-    public class UpdateTagQueryStatusRequest : IRequest<UpdateTagQueryStatusResponse>
+    public class UpdateExtendedQueryTagQueryStatusRequest : IRequest<UpdateExtendedQueryTagQueryStatusResponse>
     {
-        public UpdateTagQueryStatusRequest(string tagPath, QueryStatus queryStatus)
+        public UpdateExtendedQueryTagQueryStatusRequest(string tagPath, QueryStatus queryStatus)
         {
             TagPath = EnsureArg.IsNotNull(tagPath, nameof(tagPath));
             QueryStatus = EnsureArg.EnumIsDefined(queryStatus, nameof(queryStatus));

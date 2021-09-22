@@ -8,9 +8,9 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
 {
-    public class UpdateTagQueryStatusResponse
+    public class UpdateExtendedQueryTagQueryStatusResponse
     {
-        public UpdateTagQueryStatusResponse(GetExtendedQueryTagEntry tagEntry)
+        public UpdateExtendedQueryTagQueryStatusResponse(GetExtendedQueryTagEntry tagEntry)
         {
             TagEntry = EnsureArg.IsNotNull(tagEntry, nameof(tagEntry));
         }
