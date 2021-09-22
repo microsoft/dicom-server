@@ -22,9 +22,12 @@ namespace Microsoft.Health.Dicom.Api.Web
             if (reader.TokenType == JsonTokenType.String)
             {
                 string content = reader.GetString();
-                if (Enum.TryParse(typeToConvert, content, true, out object result))
+                foreach (var item in Enum.GetValues(typeToConvert))
                 {
-                    return (T)result;
+                    if (item.ToString().Equals(content, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return (T)item;
+                    }
                 }
             }
 
