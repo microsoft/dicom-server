@@ -115,7 +115,7 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to parse value &apos;{0}&apos; correctly..
+        ///   Looks up a localized string similar to Unable to parse value &apos;{0}&apos; as {1}..
         /// </summary>
         internal static string InvalidParse {
             get {

@@ -191,9 +191,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         private QueryIncludeField ParseIncludeFields(IReadOnlyList<string> includeFields)
         {
-            // Check if `all` is present as one of the values in IncludeField parameter.
+            // Check if "all" is present as one of the values in IncludeField parameter.
             if (includeFields.Any(val => IncludeFieldValueAll.Equals(val, StringComparison.OrdinalIgnoreCase)))
             {
+                if (includeFields.Count > 1)
+                {
+                    throw new QueryParseException(DicomCoreResource.InvalidIncludeAllFields);
+                }
+
                 return QueryIncludeField.AllFields;
             }
 

@@ -450,6 +450,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Cannot specify included fields in addition to &apos;all&apos;..
+        /// </summary>
+        internal static string InvalidIncludeAllFields {
+            get {
+                return ResourceManager.GetString("InvalidIncludeAllFields", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified limit value &apos;{0}&apos; is not a valid integer..
         /// </summary>
         internal static string InvalidLimitValue {

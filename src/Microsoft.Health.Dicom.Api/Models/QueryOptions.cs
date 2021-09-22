@@ -14,7 +14,7 @@ namespace Microsoft.Health.Dicom.Api.Models
     {
         public bool FuzzyMatching { get; set; }
 
-        [ModelBinder(typeof(CsvModelBinder))]
+        [ModelBinder(typeof(AggregateCsvModelBinder))]
         public IReadOnlyList<string> IncludeField { get; set; } = Array.Empty<string>();
     }
 }

@@ -139,8 +139,8 @@
     <comment>{0} is the specified content type. E.g., application/dicom</comment>
   </data>
   <data name="InvalidParse" xml:space="preserve">
-    <value>Unable to parse value '{0}' correctly.</value>
-    <comment>{0} is the value</comment>
+    <value>Unable to parse value '{0}' as {1}.</value>
+    <comment>{0} is the value. {1} is the type.</comment>
   </data>
   <data name="InvalidRequestBody" xml:space="preserve">
     <value>The request body is not valid. Details: {0}</value>

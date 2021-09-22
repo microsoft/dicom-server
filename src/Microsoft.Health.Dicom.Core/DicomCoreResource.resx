@@ -411,4 +411,7 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="DisallowedStudyInstanceUIDAttribute" xml:space="preserve">
     <value>Invalid QIDO-RS query. Cannot specify attribute 'StudyInstanceUID' for the given resource. </value>
   </data>
+  <data name="InvalidIncludeAllFields" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Cannot specify included fields in addition to 'all'.</value>
+  </data>
 </root>
