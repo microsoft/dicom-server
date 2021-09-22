@@ -8,13 +8,13 @@ using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.Partition
 {
-    public class DataPartition
+    public class PartitionEntry
     {
         public string PartitionId { get; set; }
 
         public DateTimeOffset CreatedDate { get; set; }
 
-        public DataPartition(string partitionId, DateTimeOffset createdDate)
+        public PartitionEntry(string partitionId, DateTimeOffset createdDate)
         {
             PartitionId = EnsureArg.IsNotNull(partitionId, nameof(partitionId));
             CreatedDate = createdDate;

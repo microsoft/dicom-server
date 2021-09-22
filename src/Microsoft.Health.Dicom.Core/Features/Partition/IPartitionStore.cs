@@ -11,6 +11,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Partition
 {
     public interface IPartitionStore
     {
-        Task<IEnumerable<DataPartition>> GetPartitions(CancellationToken cancellationToken = default);
+        Task<IEnumerable<PartitionEntry>> GetPartitions(CancellationToken cancellationToken = default);
     }
 }

@@ -29,9 +29,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Partition
 
         public override SchemaVersion Version => SchemaVersion.V5;
 
-        public override async Task<IEnumerable<DataPartition>> GetPartitions(CancellationToken cancellationToken = default)
+        public override async Task<IEnumerable<PartitionEntry>> GetPartitions(CancellationToken cancellationToken = default)
         {
-            var results = new List<DataPartition>();
+            var results = new List<PartitionEntry>();
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
@@ -46,7 +46,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Partition
                            VLatest.Partition.PartitionId,
                            VLatest.Partition.CreatedDate);
 
-                        results.Add(new DataPartition(
+                        results.Add(new PartitionEntry(
                             rPartitionId,
                             rCreatedDate));
                     }
