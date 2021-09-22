@@ -35,5 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Audit
         public const string GetExtendedQueryTag = "get-extended-query-tag";
 
         public const string GetExtendedQueryTagErrors = "get-extended-query-tag-errors";
+
+        public const string UpdateTagQueryStatus = "updat-extended-query-tag-query-status";
     }
 }

@@ -48,6 +48,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         public const string DeleteExtendedQueryTagRoute = ExtendedQueryTagsRouteSegment + "/" + ExtendedQueryTagPathRouteSegment;
         public const string GetExtendedQueryTagRoute = ExtendedQueryTagsRouteSegment + "/" + ExtendedQueryTagPathRouteSegment;
         public const string GetExtendedQueryTagErrorsRoute = GetExtendedQueryTagRoute + "/" + ErrorsSegment;
+        public const string UpdateTagQueryStatusRoute = GetExtendedQueryTagRoute;
 
         public const string HealthCheck = "/health/check";
 
