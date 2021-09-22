@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -42,7 +43,8 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
             _context.ModelState.AddModelError(key2, error2);
             _context.ModelState.AddModelError(key3, error3);
             var exp = Assert.Throws<InvalidRequestBodyException>(() => _filter.OnActionExecuting(_context));
-            Assert.Equal($"The request body is not valid. Details: \r\n\t{key2} - {error1}\r\n\t{key3} - {error3}", exp.Message);
+            string newLine = Environment.NewLine;
+            Assert.Equal($"The request body is not valid. Details: {newLine}\t{key2} - {error1}{newLine}\t{key3} - {error3}", exp.Message);
         }
 
         private static ActionExecutingContext CreateContext()
