@@ -5,8 +5,14 @@
 
 namespace Microsoft.Health.Dicom.Client.Models
 {
+    /// <summary>
+    /// Encapsulate parameters for updating extended query tag.
+    /// </summary>
     public class UpdateExtendedQueryTagEntry
     {
+        /// <summary>
+        /// Gets or sets query status.
+        /// </summary>
         public QueryStatus QueryStatus { get; set; }
     }
 }

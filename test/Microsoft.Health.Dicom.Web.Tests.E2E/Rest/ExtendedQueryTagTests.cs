@@ -214,7 +214,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             HttpResponseMessage response = await _client.HttpClient.SendAsync(request, default(CancellationToken))
                 .ConfigureAwait(false);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Contains(string.Format("The request body is not valid. Details: \r\nThe Dicom Tag Property {0} must be specified and must not be null, empty or whitespace", missingProperty), response.Content.ReadAsStringAsync().Result);
+            Assert.Contains(string.Format("The request body is not valid. Details: \r\n\t[0].{0} - The Dicom Tag Property {0} must be specified and must not be null, empty or whitespace", missingProperty), response.Content.ReadAsStringAsync().Result);
         }
 
         [Fact]
@@ -229,7 +229,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             HttpResponseMessage response = await _client.HttpClient.SendAsync(request, default(CancellationToken)).ConfigureAwait(false);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Equal("The request body is not valid. Details: \r\nInput Dicom Tag Level 'Studys' is invalid. It must have value 'Study', 'Series' or 'Instance'.", response.Content.ReadAsStringAsync().Result);
+            Assert.Equal("The request body is not valid. Details: \r\n\t[0].Level - Input Dicom Tag Level 'Studys' is invalid. It must have value 'Study', 'Series' or 'Instance'.", response.Content.ReadAsStringAsync().Result);
         }
 
         public static IEnumerable<object[]> GetRequestBodyWithMissingProperty

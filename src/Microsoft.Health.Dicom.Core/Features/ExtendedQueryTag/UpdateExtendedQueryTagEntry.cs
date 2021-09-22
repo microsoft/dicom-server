@@ -7,8 +7,14 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
+    /// <summary>
+    /// Encapsulate parameters for updating extended query tag.
+    /// </summary>
     public class UpdateExtendedQueryTagEntry
     {
+        /// <summary>
+        /// Gets or sets query status.
+        /// </summary>
         [Required]
         public QueryStatus? QueryStatus { get; set; }
 
