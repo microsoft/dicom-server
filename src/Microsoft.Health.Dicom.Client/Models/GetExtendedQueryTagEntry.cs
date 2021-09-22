@@ -31,6 +31,8 @@ namespace Microsoft.Health.Dicom.Client.Models
         /// </summary>
         public ExtendedQueryTagStatus Status { get; set; }
 
+        public QueryStatus QueryStatus { get; set; }
+
         /// <summary>
         /// Identification code of private tag implementer.
         /// </summary>

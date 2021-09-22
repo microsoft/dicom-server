@@ -91,5 +91,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
             var response = await _dicomWebClient.GetExtendedQueryTagErrorsAsync(tagPath, limit, offset, cancellationToken);
             return (await response.GetValueAsync()).ToList();
         }
+
+        public async Task<GetExtendedQueryTagEntry> UpdateExtendedQueryTagAsync(string tagPath, UpdateExtendedQueryTagEntry newValue, CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(tagPath, nameof(tagPath));
+
+            var response = await _dicomWebClient.UpdateExtendedQueryTagAsync(tagPath, newValue, cancellationToken);
+            return await response.GetValueAsync();
+        }
     }
 }

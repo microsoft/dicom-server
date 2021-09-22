@@ -146,6 +146,61 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(errors[1].ErrorMessage, (await _tagManager.GetTagErrorsAsync(tag.GetPath(), 1, 1)).Single().ErrorMessage);
         }
 
+
+        [Fact(Skip = "Pending on QIDO to respect QueryStatus")]
+        public async Task GivenExtendedQueryTagWithErrors_WhenUpdateQueryStatus_ThenQidoResultShouldChangeRespectively()
+        {
+            if (_isUsingInProcTestServer)
+            {
+                // AzureFunction doesn't have InProc test sever, skip this test.
+                return;
+            }
+
+            // Define tags
+            DicomTag tag = DicomTag.PatientAge;
+
+            // Define DICOM files
+            DicomDataset instance1 = Samples.CreateRandomInstanceDataset();
+            DicomDataset instance2 = Samples.CreateRandomInstanceDataset();
+            DicomDataset instance3 = Samples.CreateRandomInstanceDataset();
+
+            // Annotate files
+            // (Disable Auto-validate)
+            instance1.NotValidated();
+            instance2.NotValidated();
+
+            instance1.Add(tag, "foobar");
+            instance2.Add(tag, "invalid");
+            instance3.Add(tag, "053Y");
+
+            // Upload files (with a few errors)
+            await _instanceManager.StoreAsync(new DicomFile(instance1));
+            await _instanceManager.StoreAsync(new DicomFile(instance2));
+            await _instanceManager.StoreAsync(new DicomFile(instance3));
+
+            // Add extended query tags
+            var operationStatus = await _tagManager.AddTagsAsync(
+                new AddExtendedQueryTagEntry[]
+                {
+                    new AddExtendedQueryTagEntry { Path = tag.GetPath(), VR = tag.GetDefaultVR().Code, Level = QueryTagLevel.Instance },
+                });
+            Assert.Equal(OperationRuntimeStatus.Completed, operationStatus.Status);
+
+            // It should be disabled by default
+            GetExtendedQueryTagEntry actual = await _tagManager.GetTagAsync(tag.GetPath());
+            Assert.Equal(QueryStatus.Disabled, actual.QueryStatus);
+
+            // TODO: QIDO should throw exception
+
+            // Enable
+            actual = await _tagManager.UpdateExtendedQueryTagAsync(tag.GetPath(), new UpdateExtendedQueryTagEntry() { QueryStatus = QueryStatus.Disabled });
+            Assert.Equal(QueryStatus.Enabled, actual.QueryStatus);
+
+            // TODO: QIDO should not throw exception, but erronous tags are in header
+        }
+
+
+
         [Theory]
         [MemberData(nameof(GetRequestBodyWithMissingProperty))]
         public async Task GivenMissingPropertyInRequestBody_WhenCallingPostAsync_ThenShouldThrowException(string requestBody, string missingProperty)
