@@ -474,23 +474,25 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             await _testHelper.ClearDeletedInstanceTableAsync();
 
-            DateTimeOffset start = Clock.UtcNow;
-
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
-            Instance instance1 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
+            // Delete first entry
+            await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
             await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+            DeletedInstance first = (await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid)).Single();
+
+            // Create and delete another entry
+            await Task.Delay(1000);
 
             string sopInstanceUid2 = TestUidGenerator.Generate();
             await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
-
-            await Task.Delay(5000);
-
             await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid2, Clock.UtcNow);
+            DeletedInstance second = (await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid2)).Single();
 
-            Assert.InRange(await _indexDataStore.GetOldestDeletedAsync(), start.AddSeconds(-1), start.AddSeconds(1));
+            Assert.True(first.DeletedDateTime < second.DeletedDateTime);
+            Assert.True(await _indexDataStore.GetOldestDeletedAsync() <= first.DeletedDateTime);
         }
 
         [Fact]
