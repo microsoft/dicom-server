@@ -79,6 +79,15 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The value is not valid. It need to be one of &quot;{0}&quot;..
+        /// </summary>
+        internal static string InvalidEnumValue {
+            get {
+                return ResourceManager.GetString("InvalidEnumValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to There was an error reading the multipart request..
         /// </summary>
         internal static string InvalidMultipartBodyPart {

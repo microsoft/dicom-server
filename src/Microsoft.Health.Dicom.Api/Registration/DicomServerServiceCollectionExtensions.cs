@@ -5,7 +5,6 @@
 
 using System;
 using System.Reflection;
-using System.Text.Json.Serialization;
 using EnsureThat;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -27,6 +26,7 @@ using Microsoft.Health.Dicom.Api.Features.Context;
 using Microsoft.Health.Dicom.Api.Features.Formatters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Api.Features.Swagger;
+using Microsoft.Health.Dicom.Api.Web;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Routing;
@@ -95,7 +95,10 @@ namespace Microsoft.AspNetCore.Builder
                     options.RespectBrowserAcceptHeader = true;
                     options.OutputFormatters.Insert(0, new DicomJsonOutputFormatter());
                 })
-                .AddJsonSerializerOptions(o => o.Converters.Add(new JsonStringEnumConverter()));
+                //
+                //  JsonStringEnumConverter doesn't provide good enough error message, make custom one to fit our requirements.
+                //  CustomJsonStringEnumConverter is only used for extended query tag Apis.
+                .AddJsonSerializerOptions(o => o.Converters.Add(new CustomJsonStringEnumConverter()));
 
             services.AddApiVersioning(c =>
             {

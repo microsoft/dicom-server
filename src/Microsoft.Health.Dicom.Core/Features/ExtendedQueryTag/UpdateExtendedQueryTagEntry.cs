@@ -9,7 +9,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     public class UpdateExtendedQueryTagEntry
     {
-        [Required(AllowEmptyStrings = false)]
+        [Required]
         public QueryStatus? QueryStatus { get; set; }
 
         public override string ToString()
