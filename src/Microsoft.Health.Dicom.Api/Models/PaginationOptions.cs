@@ -4,17 +4,16 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Health.Dicom.Api.Features.ModelBinders;
+using System.ComponentModel.DataAnnotations;
 
 namespace Microsoft.Health.Dicom.Api.Models
 {
-    public class QueryOptions : PaginationOptions
+    public class PaginationOptions
     {
-        public bool FuzzyMatching { get; set; }
+        [Range(0, int.MaxValue)]
+        public int Offset { get; set; }
 
-        [ModelBinder(typeof(CsvModelBinder))]
-        public IReadOnlyList<string> IncludeField { get; set; } = Array.Empty<string>();
+        [Range(1, 200)]
+        public int Limit { get; set; } = 100;
     }
 }

@@ -79,6 +79,15 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot specify value more than once..
+        /// </summary>
+        internal static string DuplicateValues {
+            get {
+                return ResourceManager.GetString("DuplicateValues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The server encountered an internal error. Please retry the request. If the issue persists, please contact support..
         /// </summary>
         internal static string InternalServerError {
@@ -102,6 +111,15 @@ namespace Microsoft.Health.Dicom.Api {
         internal static string InvalidMultipartContentType {
             get {
                 return ResourceManager.GetString("InvalidMultipartContentType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to parse value &apos;{0}&apos; correctly..
+        /// </summary>
+        internal static string InvalidParse {
+            get {
+                return ResourceManager.GetString("InvalidParse", resourceCulture);
             }
         }
         

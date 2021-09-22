@@ -192,8 +192,8 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The query string included invalid characters.</value>
   </data>
   <data name="InvalidQueryStringValue" xml:space="preserve">
-    <value>The following query parameter is invalid: {0}.</value>
-    <comment>{0} is a parameter name.</comment>
+    <value>The query parameter '{0}' is invalid. {1}</value>
+    <comment>{0} is a parameter name. {1} is the error.</comment>
   </data>
   <data name="InvalidTransferSyntaxValue" xml:space="preserve">
     <value>The specified Transfer Syntax value is not valid.</value>

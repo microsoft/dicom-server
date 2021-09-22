@@ -486,7 +486,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The following query parameter is invalid: {0}..
+        ///   Looks up a localized string similar to The query parameter &apos;{0}&apos; is invalid. {1}.
         /// </summary>
         internal static string InvalidQueryStringValue {
             get {
