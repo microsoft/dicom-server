@@ -18,6 +18,10 @@ BEGIN
         --audit columns
         CreatedDate             DATETIME2(7)           NOT NULL
     ) WITH (DATA_COMPRESSION = PAGE)
+
+    -- Inserting Default values since we are adding PartitionKey as NOT NULL columns in all the tables
+    INSERT INTO dbo.Partition (PartitionKey, PartitionId, CreatedDate)
+    VALUES (1, 'Microsoft.Default', SYSUTCDATETIME())
 END
 
 IF NOT EXISTS (
@@ -56,7 +60,7 @@ IF NOT EXISTS (
 BEGIN
     CREATE SEQUENCE dbo.PartitionKeySequence
         AS INT
-        START WITH 1
+        START WITH 2
         INCREMENT BY 1
         MINVALUE 1
         NO CYCLE
@@ -71,7 +75,7 @@ IF NOT EXISTS (
 BEGIN
     ALTER TABLE dbo.Instance
     ADD
-        PartitionKey BIGINT NOT NULL
+        PartitionKey BIGINT NOT NULL DEFAULT 1
 END
 
 IF NOT EXISTS (
@@ -81,7 +85,7 @@ IF NOT EXISTS (
 BEGIN
     ALTER TABLE dbo.Study
     ADD
-        PartitionKey BIGINT NOT NULL
+        PartitionKey BIGINT NOT NULL DEFAULT 1
 END
 
 IF NOT EXISTS (
@@ -91,7 +95,7 @@ IF NOT EXISTS (
 BEGIN
     ALTER TABLE dbo.Series
     ADD
-        PartitionKey BIGINT NOT NULL
+        PartitionKey BIGINT NOT NULL DEFAULT 1
 END
 
 IF NOT EXISTS (
@@ -101,7 +105,7 @@ IF NOT EXISTS (
 BEGIN
     ALTER TABLE dbo.DeletedInstance
     ADD
-        PartitionId VARCHAR(64) NOT NULL
+        PartitionId VARCHAR(64) NOT NULL DEFAULT 'Microsoft.Default'
 END
 
 IF NOT EXISTS (
@@ -111,7 +115,7 @@ IF NOT EXISTS (
 BEGIN
     ALTER TABLE dbo.ChangeFeed
     ADD
-        PartitionId VARCHAR(64) NOT NULL
+        PartitionId VARCHAR(64) NOT NULL DEFAULT 'Microsoft.Default'
 END
 GO
 
@@ -1302,7 +1306,7 @@ END
 GO
 
 /*************************************************************
-Stored Procedure that retrieves all partitions
+Stored Procedure that retrieves all partitions except default partition
 **************************************************************/
 CREATE OR ALTER PROCEDURE dbo.GetPartitions
 AS
@@ -1312,6 +1316,7 @@ BEGIN
 
     SELECT PartitionId, CreatedDate
     FROM dbo.Partition
+    WHERE PartitionId <> 'Microsoft.Default'
 END
 GO
 

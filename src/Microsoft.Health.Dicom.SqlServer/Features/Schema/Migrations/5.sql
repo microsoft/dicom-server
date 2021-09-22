@@ -41,6 +41,10 @@ CREATE UNIQUE NONCLUSTERED INDEX IXC_Partition_PartitionKey_PartitionId on dbo.P
     PartitionId
 )
 
+-- Inserting Default values since we are adding PartitionKey as NOT NULL columns in all the tables
+INSERT INTO dbo.Partition (PartitionKey, PartitionId, CreatedDate)
+VALUES (1, 'Microsoft.Default', SYSUTCDATETIME())
+
 /*************************************************************
     Instance Table
     Dicom instances with unique Partition key, Study, Series and Instance Uid 
@@ -60,7 +64,7 @@ CREATE TABLE dbo.Instance (
     LastStatusUpdatedDate   DATETIME2(7)               NOT NULL,
     --audit columns
     CreatedDate             DATETIME2(7)               NOT NULL,
-    PartitionKey            BIGINT                     NOT NULL --FK
+    PartitionKey            BIGINT                     NOT NULL DEFAULT 1 --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance
@@ -174,7 +178,7 @@ CREATE TABLE dbo.Study (
     PatientNameWords            AS REPLACE(REPLACE(PatientName, '^', ' '), '=', ' ') PERSISTED,
     ReferringPhysicianNameWords AS REPLACE(REPLACE(ReferringPhysicianName, '^', ' '), '=', ' ') PERSISTED,
     PatientBirthDate            DATE                              NULL,
-    PartitionKey                BIGINT                            NOT NULL, --FK
+    PartitionKey                BIGINT                            NOT NULL DEFAULT 1  --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Study ON dbo.Study
@@ -275,7 +279,7 @@ CREATE TABLE dbo.Series (
     Modality                            NVARCHAR(16)               NULL,
     PerformedProcedureStepStartDate     DATE                       NULL,
     ManufacturerModelName               NVARCHAR(64)               NULL,
-    PartitionKey                        BIGINT                     NOT NULL --FK
+    PartitionKey                        BIGINT                     NOT NULL DEFAULT 1  --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_PartitionKey_Series ON dbo.Series
@@ -348,7 +352,7 @@ CREATE TABLE dbo.DeletedInstance
     DeletedDateTime     DATETIMEOFFSET(0) NOT NULL,
     RetryCount          INT               NOT NULL,
     CleanupAfter        DATETIMEOFFSET(0) NOT NULL,
-    PartitionId         VARCHAR(64)       NOT NULL
+    PartitionId         VARCHAR(64)       NOT NULL  DEFAULT 'Microsoft.Default'
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_PartitionId_DeletedInstance ON dbo.DeletedInstance
@@ -393,7 +397,7 @@ CREATE TABLE dbo.ChangeFeed (
     SopInstanceUid          VARCHAR(64)          NOT NULL,
     OriginalWatermark       BIGINT               NOT NULL,
     CurrentWatermark        BIGINT               NULL,
-    PartitionId             VARCHAR(64)          NOT NULL
+    PartitionId             VARCHAR(64)          NOT NULL  DEFAULT 'Microsoft.Default'
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
@@ -742,7 +746,7 @@ CREATE SEQUENCE dbo.TagKeySequence
 
 CREATE SEQUENCE dbo.PartitionKeySequence
     AS INT
-    START WITH 1
+    START WITH 2
     INCREMENT BY 1
     MINVALUE 1
     NO CYCLE
@@ -2781,7 +2785,7 @@ END
 GO
 
 /*************************************************************
-Stored Procedure that retrieves all partitions
+Stored Procedure that retrieves all partitions except default partition
 **************************************************************/
 CREATE OR ALTER PROCEDURE dbo.GetPartitions
 AS
@@ -2791,5 +2795,6 @@ BEGIN
 
     SELECT PartitionId, CreatedDate
     FROM dbo.Partition
+    WHERE PartitionId <> 'Microsoft.Default'
 END
 GO
