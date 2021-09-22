@@ -15,7 +15,7 @@ using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
-    public class UpdateExtendedQueryTagQueryStatusHandler : BaseHandler, IRequestHandler<UpdateExtendedQueryTagQueryStatusRequest, UpdateExtendedQueryTagQueryStatusResponse>
+    public class UpdateExtendedQueryTagQueryStatusHandler : BaseHandler, IRequestHandler<UpdateExtendedQueryTagRequest, UpdateExtendedQueryTagResponse>
     {
         private readonly IUpdateExtendedQueryTagService _updateTagService;
 
@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             _updateTagService = EnsureArg.IsNotNull(updateTagService, nameof(updateTagService));
         }
 
-        public async Task<UpdateExtendedQueryTagQueryStatusResponse> Handle(UpdateExtendedQueryTagQueryStatusRequest request, CancellationToken cancellationToken)
+        public async Task<UpdateExtendedQueryTagResponse> Handle(UpdateExtendedQueryTagRequest request, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(request, nameof(request));
 
@@ -34,8 +34,8 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 throw new UnauthorizedDicomActionException(DataActions.ManageExtendedQueryTags);
             }
 
-            var tagEntry = await _updateTagService.UpdateQueryStatusAsync(request.TagPath, request.QueryStatus, cancellationToken);
-            return new UpdateExtendedQueryTagQueryStatusResponse(tagEntry);
+            var tagEntry = await _updateTagService.UpdateExtendedQueryTagAsync(request.TagPath, request.TagEntry, cancellationToken);
+            return new UpdateExtendedQueryTagResponse(tagEntry);
         }
     }
 }

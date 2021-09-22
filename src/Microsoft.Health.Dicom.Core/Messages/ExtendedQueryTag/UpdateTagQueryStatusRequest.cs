@@ -9,15 +9,16 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
 {
-    public class UpdateExtendedQueryTagQueryStatusRequest : IRequest<UpdateExtendedQueryTagQueryStatusResponse>
+    public class UpdateExtendedQueryTagRequest : IRequest<UpdateExtendedQueryTagResponse>
     {
-        public UpdateExtendedQueryTagQueryStatusRequest(string tagPath, QueryStatus queryStatus)
+        public UpdateExtendedQueryTagRequest(string tagPath, UpdateExtendedQueryTagEntry TagEntry)
         {
             TagPath = EnsureArg.IsNotNull(tagPath, nameof(tagPath));
-            QueryStatus = EnsureArg.EnumIsDefined(queryStatus, nameof(queryStatus));
+            TagEntry = EnsureArg.IsNotNull(TagEntry, nameof(TagEntry));
         }
 
         public string TagPath { get; }
-        public QueryStatus QueryStatus { get; }
+
+        public UpdateExtendedQueryTagEntry TagEntry { get; }
     }
 }

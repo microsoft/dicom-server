@@ -28,10 +28,11 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             _urlResolver = EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
         }
 
-        public async Task<GetExtendedQueryTagEntry> UpdateQueryStatusAsync(string tagPath, QueryStatus queryStatus, CancellationToken cancellationToken)
+        public async Task<GetExtendedQueryTagEntry> UpdateExtendedQueryTagAsync(string tagPath, UpdateExtendedQueryTagEntry tagEntry, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(tagPath, nameof(tagPath));
-            EnsureArg.EnumIsDefined(queryStatus, nameof(queryStatus));
+            EnsureArg.IsNotNull(tagEntry, nameof(tagEntry));
+            EnsureArg.EnumIsDefined(tagEntry.QueryStatus, nameof(UpdateExtendedQueryTagEntry.QueryStatus));
             DicomTag[] tags;
             if (!_dicomTagParser.TryParse(tagPath, out tags, supportMultiple: false))
             {
@@ -39,8 +40,8 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidExtendedQueryTag, tagPath ?? string.Empty));
             }
             string normalizedPath = tags[0].GetPath();
-            var tagEntry = await _extendedQueryTagStore.UpdateQueryStatusAsync(normalizedPath, queryStatus, cancellationToken);
-            return tagEntry.ToGetExtendedQueryTagEntry(_urlResolver);
+            var entry = await _extendedQueryTagStore.UpdateQueryStatusAsync(normalizedPath, tagEntry.QueryStatus, cancellationToken);
+            return entry.ToGetExtendedQueryTagEntry(_urlResolver);
         }
     }
 }

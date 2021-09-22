@@ -3,13 +3,18 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Threading;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
-    public interface IUpdateExtendedQueryTagService
+    public class UpdateExtendedQueryTagEntry
     {
-        public Task<GetExtendedQueryTagEntry> UpdateExtendedQueryTagAsync(string tagPath, UpdateExtendedQueryTagEntry tagEntry, CancellationToken cancellationToken = default);
+        [Required]
+        public QueryStatus QueryStatus { get; set; }
+
+        public override string ToString()
+        {
+            return $"QueryStatus: {QueryStatus}";
+        }
     }
 }
