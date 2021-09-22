@@ -138,9 +138,9 @@
     <value>The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique.</value>
     <comment>StudyInstanceUID, SeriesInstanceUID, and SOPInstanceUID are defined by the spec and does not need to be translated. {NumberedPlaceholder="StudyInstanceUID", "SeriesInstanceUID", "SOPInstanceUID"}</comment>
   </data>
-  <data name="DuplicateQueryParam" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Duplicate AttributeId '{0}', Each attribute is allowed to be specified once.</value>
-    <comment>{0} specified attributeid</comment>
+  <data name="DuplicateAttribute" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Attribute '{0}' has been specified more than once using different ID formats. Each attribute is only allowed to be specified once.</value>
+    <comment>{0} attribute-id</comment>
   </data>
   <data name="FrameNotFound" xml:space="preserve">
     <value>The specified frame cannot be found.</value>
@@ -404,5 +404,11 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="PaginationNegativeOffset" xml:space="preserve">
     <value>Specified offset value {0} cannot be negative.</value>
     <comment>{0} Specified page offset.</comment>
+  </data>
+  <data name="DisallowedSeriesInstanceUIDAttribute" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Cannot specify attribute 'SeriesInstanceUID' for the given resource.</value>
+  </data>
+  <data name="DisallowedStudyInstanceUIDAttribute" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Cannot specify attribute 'StudyInstanceUID' for the given resource. </value>
   </data>
 </root>

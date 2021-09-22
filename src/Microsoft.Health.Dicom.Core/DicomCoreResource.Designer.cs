@@ -133,6 +133,33 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Cannot specify attribute &apos;SeriesInstanceUID&apos; for the given resource..
+        /// </summary>
+        internal static string DisallowedSeriesInstanceUIDAttribute {
+            get {
+                return ResourceManager.GetString("DisallowedSeriesInstanceUIDAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Cannot specify attribute &apos;StudyInstanceUID&apos; for the given resource. .
+        /// </summary>
+        internal static string DisallowedStudyInstanceUIDAttribute {
+            get {
+                return ResourceManager.GetString("DisallowedStudyInstanceUIDAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Attribute &apos;{0}&apos; has been specified more than once using different ID formats. Each attribute is only allowed to be specified once..
+        /// </summary>
+        internal static string DuplicateAttribute {
+            get {
+                return ResourceManager.GetString("DuplicateAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique..
         /// </summary>
         internal static string DuplicatedUidsNotAllowed {
@@ -147,15 +174,6 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string DuplicateExtendedQueryTag {
             get {
                 return ResourceManager.GetString("DuplicateExtendedQueryTag", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Duplicate AttributeId &apos;{0}&apos;, Each attribute is allowed to be specified once..
-        /// </summary>
-        internal static string DuplicateQueryParam {
-            get {
-                return ResourceManager.GetString("DuplicateQueryParam", resourceCulture);
             }
         }
         
