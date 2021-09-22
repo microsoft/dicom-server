@@ -33,6 +33,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
         private const string ActionName = "actionName";
         private const string RouteName = "routeName";
         private const string NormalAuditEventType = "event-name";
+        private const string PartitionId = "partition1";
         private const string StudyInstanceUid = "123";
         private const string SeriesInstanceUid = "456";
         private const string SopInstanceUid = "789";
@@ -102,10 +103,26 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
             ExecuteAndValidateFilter(NormalAuditEventType, NormalAuditEventType, ResourceType.Series);
         }
 
+        [Fact]
+        public void GivenRetrieveRequestForSopInstance_WhenPartitionIsSpecified_ThenPartitionIdShouldBeSetOnDicomRequestContext()
+        {
+            var routeValueDictionary = new RouteValueDictionary
+            {
+                { KnownActionParameterNames.PartitionId, PartitionId },
+                { KnownActionParameterNames.StudyInstanceUid, StudyInstanceUid },
+                { KnownActionParameterNames.SeriesInstanceUid, SeriesInstanceUid },
+                { KnownActionParameterNames.SopInstanceUid, SopInstanceUid },
+            };
+            _actionExecutingContext.RouteData = new RouteData(routeValueDictionary);
+
+            ExecuteAndValidateFilter(NormalAuditEventType, NormalAuditEventType, ResourceType.Series, true);
+        }
+
         private void ExecuteAndValidateFilter(
             string auditEventTypeFromMapping,
             string expectedAuditEventType,
-            ResourceType? resourceType = null)
+            ResourceType? resourceType = null,
+            bool partitionsEnabled = false)
         {
             _auditEventTypeMapping.GetAuditEventType(ControllerName, ActionName).Returns(auditEventTypeFromMapping);
 
@@ -117,6 +134,15 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
 
             if (resourceType != null)
             {
+                if (partitionsEnabled)
+                {
+                    Assert.Equal(_dicomRequestContextAccessor.RequestContext.PartitionId, PartitionId);
+                }
+                else
+                {
+                    Assert.Null(_dicomRequestContextAccessor.RequestContext.PartitionId);
+                }
+
                 switch (resourceType)
                 {
                     case ResourceType.Study:

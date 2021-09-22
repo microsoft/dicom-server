@@ -404,6 +404,7 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="PaginationNegativeOffset" xml:space="preserve">
     <value>Specified offset value {0} cannot be negative.</value>
     <comment>{0} Specified page offset.</comment>
+  </data>
   <data name="InvalidPartitionId" xml:space="preserve">
     <value>The specified PartitionId value '{0}' is invalid. </value>
   </data>
