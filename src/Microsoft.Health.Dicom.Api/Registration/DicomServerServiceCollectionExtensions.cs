@@ -23,10 +23,10 @@ using Microsoft.Health.Api.Modules;
 using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 using Microsoft.Health.Dicom.Api.Features.Context;
+using Microsoft.Health.Dicom.Api.Features.Converter;
 using Microsoft.Health.Dicom.Api.Features.Formatters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Api.Features.Swagger;
-using Microsoft.Health.Dicom.Api.Web;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Routing;
@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Builder
                 })
                 //
                 //  JsonStringEnumConverter doesn't provide good enough error message, make custom one to fit our requirements.
-                //  CustomJsonStringEnumConverter is only used for extended query tag Apis.
+                //  CustomJsonStringEnumConverter is used for extended query tag Apis.
                 .AddJsonSerializerOptions(o => o.Converters.Add(new CustomJsonStringEnumConverter()));
 
             services.AddApiVersioning(c =>

@@ -9,11 +9,10 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Api.Web
+namespace Microsoft.Health.Dicom.Api.Features.Converter
 {
     internal class CustomJsonStringEnumConverterImp<T> : JsonConverter<T>
         where T : Enum
-
     {
         public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {

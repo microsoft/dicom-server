@@ -10,7 +10,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Api.Web
+namespace Microsoft.Health.Dicom.Api.Features.Converter
 {
     internal class CustomJsonStringEnumConverter : JsonConverterFactory
     {
