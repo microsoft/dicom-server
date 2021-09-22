@@ -58,22 +58,23 @@ namespace Microsoft.Health.Dicom.Api.Features.Context
             dicomRequestContextAccessor.RequestContext = dicomRequestContext;
 
             // TODO: replace with code from healthcare-shared-components
-            ByteCountingStream byteCountingStream = _responseLogStreamFactory.CreateByteCountingResponseLogStream(context.Response.Body);
-            context.Response.Body = byteCountingStream;
-
-            try
+            using (ByteCountingStream byteCountingStream = _responseLogStreamFactory.CreateByteCountingResponseLogStream(context.Response.Body))
             {
-                // Call the next delegate/middleware in the pipeline
-                await _next(context);
-            }
-            finally
-            {
-                long responseBodySize = byteCountingStream.WrittenByteCount;
-                long responseHeaderSize = HeaderUtility.GetTotalHeaderLength(context.Response.Headers);
-                long totalResponseSize = responseBodySize + responseHeaderSize;
+                context.Response.Body = byteCountingStream;
 
-                dicomRequestContext.ResponseSize = totalResponseSize;
-                dicomRequestContextAccessor.RequestContext = dicomRequestContext;
+                try
+                {
+                    // Call the next delegate/middleware in the pipeline
+                    await _next(context);
+                }
+                finally
+                {
+                    long responseBodySize = byteCountingStream.WrittenByteCount;
+                    long responseHeaderSize = HeaderUtility.GetTotalHeaderLength(context.Response.Headers);
+                    long totalResponseSize = responseBodySize + responseHeaderSize;
+
+                    dicomRequestContextAccessor.RequestContext.ResponseSize = totalResponseSize;
+                }
             }
         }
     }
