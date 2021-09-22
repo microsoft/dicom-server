@@ -10,6 +10,6 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     public interface IUpdateExtendedQueryTagService
     {
-        public Task<GetExtendedQueryTagEntry> UpdateExtendedQueryTagAsync(string tagPath, UpdateExtendedQueryTagEntry tagEntry, CancellationToken cancellationToken = default);
+        public Task<GetExtendedQueryTagEntry> UpdateExtendedQueryTagAsync(string tagPath, UpdateExtendedQueryTagEntry newValue, CancellationToken cancellationToken = default);
     }
 }

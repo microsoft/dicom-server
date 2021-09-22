@@ -70,6 +70,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 Operation = OperationId.HasValue && resolver != null
                     ? new OperationReference(OperationId.GetValueOrDefault(), resolver.ResolveOperationStatusUri(OperationId.GetValueOrDefault()))
                     : null,
+                QueryStatus = QueryStatus
             };
         }
     }

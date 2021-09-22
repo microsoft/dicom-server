@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 throw new UnauthorizedDicomActionException(DataActions.ManageExtendedQueryTags);
             }
 
-            var tagEntry = await _updateTagService.UpdateExtendedQueryTagAsync(request.TagPath, request.TagEntry, cancellationToken);
+            var tagEntry = await _updateTagService.UpdateExtendedQueryTagAsync(request.TagPath, request.NewValue, cancellationToken);
             return new UpdateExtendedQueryTagResponse(tagEntry);
         }
     }

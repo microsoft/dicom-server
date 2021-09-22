@@ -11,14 +11,14 @@ namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
 {
     public class UpdateExtendedQueryTagRequest : IRequest<UpdateExtendedQueryTagResponse>
     {
-        public UpdateExtendedQueryTagRequest(string tagPath, UpdateExtendedQueryTagEntry TagEntry)
+        public UpdateExtendedQueryTagRequest(string tagPath, UpdateExtendedQueryTagEntry newValue)
         {
             TagPath = EnsureArg.IsNotNull(tagPath, nameof(tagPath));
-            TagEntry = EnsureArg.IsNotNull(TagEntry, nameof(TagEntry));
+            NewValue = EnsureArg.IsNotNull(newValue, nameof(newValue));
         }
 
         public string TagPath { get; }
 
-        public UpdateExtendedQueryTagEntry TagEntry { get; }
+        public UpdateExtendedQueryTagEntry NewValue { get; }
     }
 }
