@@ -55,6 +55,28 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await snapshotFixture.DisposeAsync();
         }
 
-        public static IEnumerable<object[]> SchemaDiffVersions = new List<object[]>(Enumerable.Range(start: SchemaVersionConstants.Min + 1, count: SchemaVersionConstants.Max - SchemaVersionConstants.Min).Select(x => new object[] { x }));
+        [Theory]
+        [MemberData(nameof(SchemaSnapshotVersions))]
+        public async Task GivenASchemaVersion_WhenApplyingSnapshotTwice_ShouldSucceed(int schemaVersion)
+        {
+            SqlDataStoreTestsFixture snapshotFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("SNAPSHOT"));
+            snapshotFixture.SchemaInformation = new SchemaInformation(SchemaVersionConstants.Min, schemaVersion);
+
+            await snapshotFixture.InitializeAsync(forceIncrementalSchemaUpgrade: false);
+            await snapshotFixture.SchemaUpgradeRunner.ApplySchemaAsync(schemaVersion, applyFullSchemaSnapshot: true, CancellationToken.None);
+
+            // cleanup if succeeds
+            await snapshotFixture.DisposeAsync();
+        }
+
+        public static IEnumerable<object[]> SchemaDiffVersions = Enumerable
+            .Range(start: SchemaVersionConstants.Min + 1, count: SchemaVersionConstants.Max - SchemaVersionConstants.Min)
+            .Select(x => new object[] { x })
+            .ToList();
+
+        public static IEnumerable<object[]> SchemaSnapshotVersions = Enumerable
+            .Range(start: SchemaVersionConstants.Min, count: SchemaVersionConstants.Max - SchemaVersionConstants.Min + 1)
+            .Select(x => new object[] { x })
+            .ToList();
     }
 }
