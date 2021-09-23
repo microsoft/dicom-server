@@ -167,7 +167,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             IReadOnlyList<Instance> instanceBeforeDeletion = await _indexDataStoreTestHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
             Assert.Equal(1, instanceBeforeDeletion.Count);
 
-            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+            await _indexDataStore.DeleteInstanceIndexAsync(null, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
             Assert.Empty(await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), 1, 0));
             Assert.False(await _errorStoreTestHelper.DoesExtendedQueryTagErrorExistAsync(tagKey));
@@ -205,7 +205,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, errorCode, watermark3);
 
             // delete instance
-            await _indexDataStore.DeleteStudyIndexAsync(studyUid1, DateTime.UtcNow);
+            await _indexDataStore.DeleteStudyIndexAsync(null, studyUid1, DateTime.UtcNow);
 
             // check errors
             var errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), int.MaxValue, 0);
@@ -241,7 +241,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, errorCode, watermark3);
 
             // delete instance
-            await _indexDataStore.DeleteSeriesIndexAsync(studyUid, seriesUid1, DateTime.UtcNow);
+            await _indexDataStore.DeleteSeriesIndexAsync(null, studyUid, seriesUid1, DateTime.UtcNow);
 
             // check errors
             var errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), int.MaxValue, 0);
@@ -470,7 +470,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Equal(2, tagEntryBefore.ErrorCount);
 
             // Delete study
-            await _indexDataStore.DeleteStudyIndexAsync(studyInstanceUid, DateTimeOffset.UtcNow);
+            await _indexDataStore.DeleteStudyIndexAsync(null, studyInstanceUid, DateTimeOffset.UtcNow);
 
             var tagEntryAfter = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag.GetPath());
             Assert.Equal(0, tagEntryAfter.ErrorCount);
@@ -485,8 +485,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private async Task<long> AddInstanceAsync(string studyId, string seriesId, string sopInstanceId)
         {
             DicomDataset dataset = Samples.CreateRandomInstanceDataset(studyId, seriesId, sopInstanceId);
-            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
-            await _indexDataStore.EndCreateInstanceIndexAsync(dataset, watermark);
+            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(null, dataset);
+            await _indexDataStore.EndCreateInstanceIndexAsync(null, dataset, watermark);
             return watermark;
         }
 

@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages;
@@ -40,6 +41,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         private readonly IRetrieveTransferSyntaxHandler _retrieveTransferSyntaxHandler;
         private readonly ILogger<RetrieveResourceService> _logger;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+        private readonly IDicomRequestContextAccessor _contextAccessor;
 
         private readonly string _studyInstanceUid = TestUidGenerator.Generate();
         private readonly string _firstSeriesInstanceUid = TestUidGenerator.Generate();
@@ -49,6 +51,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
 
         public RetrieveResourceServiceTests()
         {
+            _contextAccessor = Substitute.For<IDicomRequestContextAccessor>();
             _instanceStore = Substitute.For<IInstanceStore>();
             _fileStore = Substitute.For<IFileStore>();
             _retrieveTranscoder = Substitute.For<ITranscoder>();
@@ -57,7 +60,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             _logger = NullLogger<RetrieveResourceService>.Instance;
             _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
             _retrieveResourceService = new RetrieveResourceService(
-                _instanceStore, _fileStore, _retrieveTranscoder, _dicomFrameHandler, _retrieveTransferSyntaxHandler, _logger);
+                _contextAccessor, _instanceStore, _fileStore, _retrieveTranscoder, _dicomFrameHandler, _retrieveTransferSyntaxHandler, _logger);
         }
 
         [Fact]

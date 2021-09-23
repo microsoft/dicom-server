@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -38,6 +39,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         private readonly IFrameHandler _frameHandler;
         private readonly IRetrieveTransferSyntaxHandler _retrieveTransferSyntaxHandler;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+        private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
 
         private readonly string _studyInstanceUid = TestUidGenerator.Generate();
         private readonly string _firstSeriesInstanceUid = TestUidGenerator.Generate();
@@ -54,8 +56,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             _frameHandler = Substitute.For<IFrameHandler>();
             _retrieveTransferSyntaxHandler = new RetrieveTransferSyntaxHandler(NullLogger<RetrieveTransferSyntaxHandler>.Instance);
             _recyclableMemoryStreamManager = blobStorageFixture.RecyclableMemoryStreamManager;
+            _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
             _retrieveResourceService = new RetrieveResourceService(
-                _instanceStore, _fileStore, _retrieveTranscoder, _frameHandler, _retrieveTransferSyntaxHandler, NullLogger<RetrieveResourceService>.Instance);
+                _dicomRequestContextAccessor, _instanceStore, _fileStore, _retrieveTranscoder, _frameHandler, _retrieveTransferSyntaxHandler, NullLogger<RetrieveResourceService>.Instance);
         }
 
         [Fact]
@@ -126,21 +129,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             ValidateResponseDicomFiles(response.ResponseStreams, datasets.Select(ds => ds).Where(ds => ds.ToInstanceIdentifier().SeriesInstanceUid == _firstSeriesInstanceUid));
         }
 
-        [Fact]
-        public async Task GivenStoredInstances_WhenRetrieveRequestForSeries_ThenInstancesInSeriesAreRetrievedSuccesfully()
-        {
-            var datasets = new List<DicomDataset>();
-            datasets.AddRange(await GenerateDicomDatasets(_firstSeriesInstanceUid, 2, true));
-            datasets.AddRange(await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true));
-
-            RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
-                new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
-                CancellationToken.None);
-
-            ValidateResponseDicomFiles(response.ResponseStreams, datasets.Select(ds => ds).Where(ds => ds.ToInstanceIdentifier().SeriesInstanceUid == _firstSeriesInstanceUid));
-        }
-
-        private async Task<List<DicomDataset>> GenerateDicomDatasets(string seriesInstanceUid, int instancesinSeries, bool storeInstanceFile)
+        private async Task<List<DicomDataset>> GenerateDicomDatasets(string seriesInstanceUid, int instancesinSeries, bool storeInstanceFile, string partitionId = default)
         {
             var dicomDatasets = new List<DicomDataset>();
             for (int i = 0; i < instancesinSeries; i++)
@@ -156,16 +145,16 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                     { DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value },
                 };
 
-                await StoreDatasetsAndInstances(ds, storeInstanceFile);
+                await StoreDatasetsAndInstances(partitionId, ds, storeInstanceFile);
                 dicomDatasets.Add(ds);
             }
 
             return dicomDatasets;
         }
 
-        private async Task StoreDatasetsAndInstances(DicomDataset dataset, bool flagToStoreInstance)
+        private async Task StoreDatasetsAndInstances(string partitionId, DicomDataset dataset, bool flagToStoreInstance)
         {
-            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
+            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionId, dataset);
 
             var versionedInstanceIdentifier = dataset.ToVersionedInstanceIdentifier(version);
 
@@ -184,7 +173,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                     stream);
             }
 
-            await _indexDataStore.EndCreateInstanceIndexAsync(dataset, version);
+            await _indexDataStore.EndCreateInstanceIndexAsync(partitionId, dataset, version);
         }
 
         private void ValidateResponseDicomFiles(

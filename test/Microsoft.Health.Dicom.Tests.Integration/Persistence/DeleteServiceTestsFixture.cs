@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.IO;
@@ -21,6 +22,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     {
         private readonly SqlDataStoreTestsFixture _sqlDataStoreTestsFixture;
         private readonly DataStoreTestsFixture _blobStorageTestsFixture;
+        private readonly IDicomRequestContextAccessor _contextAccessor = Substitute.For<IDicomRequestContextAccessor>();
 
         public DeleteServiceTestsFixture()
         {
@@ -59,6 +61,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var optionsConfiguration = Substitute.For<IOptions<DeletedInstanceCleanupConfiguration>>();
             optionsConfiguration.Value.Returns(cleanupConfiguration);
             DeleteService = new DeleteService(
+                _contextAccessor,
                 _sqlDataStoreTestsFixture.IndexDataStore,
                 _blobStorageTestsFixture.MetadataStore,
                 _blobStorageTestsFixture.FileStore,
