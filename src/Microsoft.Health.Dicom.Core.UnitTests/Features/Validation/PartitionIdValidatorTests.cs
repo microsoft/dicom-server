@@ -14,6 +14,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         [Theory]
         [InlineData("fooBAR")]
         [InlineData("fooBAR123")]
+        [InlineData("fooBAR123.-_")]
         [InlineData("62f5c7eb-124a-49b1-9e5c-17c81a1a7137")]
         [InlineData("62f5c7eb_124a_49b1_9e5c-17c81a1a7137")]
         [InlineData("62f5c7eb.124a.49b1.9e5c.17c81a1a7137")]

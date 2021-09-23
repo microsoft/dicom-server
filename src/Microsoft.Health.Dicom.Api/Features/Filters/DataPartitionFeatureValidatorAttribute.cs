@@ -28,16 +28,19 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
 
             if (routeData?.Values != null)
             {
+                var routeContainsPartition = routeData.Values.TryGetValue(KnownActionParameterNames.PartitionId, out var partitionId);
+                var partitionIsEmpty = string.IsNullOrWhiteSpace(partitionId?.ToString());
+
                 if (isPartitionEnabled)
                 {
-                    if (!routeData.Values.TryGetValue(KnownActionParameterNames.PartitionId, out var partitionId) || string.IsNullOrWhiteSpace(partitionId?.ToString()))
+                    if (!routeContainsPartition || partitionIsEmpty)
                     {
                         throw new DataPartitionsMissingPartitionException();
                     }
                 }
                 else
                 {
-                    if (routeData.Values.TryGetValue(KnownActionParameterNames.PartitionId, out var partitionId) && !string.IsNullOrWhiteSpace(partitionId?.ToString()))
+                    if (routeContainsPartition)
                     {
                         throw new DataPartitionsFeatureDisabledException();
                     }
