@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
         public override SchemaVersion Version => SchemaVersion.V5;
 
-        public override async Task<long> BeginCreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+        public override async Task<long> BeginCreateInstanceIndexAsync(string partitionId, DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
@@ -47,7 +47,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             {
                 VLatest.BeginAddInstance.PopulateCommand(
                     sqlCommandWrapper,
-                    partitionId: null,
+                    partitionId,
                     instance.GetString(DicomTag.StudyInstanceUID),
                     instance.GetString(DicomTag.SeriesInstanceUID),
                     instance.GetString(DicomTag.SOPInstanceUID),
@@ -83,6 +83,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
         }
 
         public override async Task EndCreateInstanceIndexAsync(
+            string partitionId,
             DicomDataset instance,
             long watermark,
             IEnumerable<QueryTag> queryTags,
@@ -105,7 +106,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             {
                 VLatest.EndAddInstance.PopulateCommand(
                     sqlCommandWrapper,
-                    partitionId: null,
+                    partitionId,
                     instance.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
                     instance.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
                     instance.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
@@ -164,28 +165,28 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             }
         }
 
-        public override async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public override async Task DeleteInstanceIndexAsync(string partitionId, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
             EnsureArg.IsNotNullOrEmpty(sopInstanceUid, nameof(sopInstanceUid));
 
-            await DeleteInstanceAsync(partitionId: null, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
+            await DeleteInstanceAsync(partitionId, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
         }
 
-        public override async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public override async Task DeleteSeriesIndexAsync(string partitionId, string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
 
-            await DeleteInstanceAsync(partitionId: null, studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cleanupAfter, cancellationToken);
+            await DeleteInstanceAsync(partitionId, studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cleanupAfter, cancellationToken);
         }
 
-        public override async Task DeleteStudyIndexAsync(string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public override async Task DeleteStudyIndexAsync(string partitionId, string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
 
-            await DeleteInstanceAsync(partitionId: null, studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cleanupAfter, cancellationToken);
+            await DeleteInstanceAsync(partitionId, studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cleanupAfter, cancellationToken);
         }
 
         public override async Task<IEnumerable<VersionedInstanceIdentifier>> RetrieveDeletedInstancesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default)

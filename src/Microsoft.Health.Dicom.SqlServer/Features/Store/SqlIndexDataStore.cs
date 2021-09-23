@@ -23,10 +23,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
         public SqlIndexDataStore(VersionedCache<ISqlIndexDataStore> cache)
             => _cache = EnsureArg.IsNotNull(cache, nameof(cache));
 
-        public async Task<long> BeginCreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
+        public async Task<long> BeginCreateInstanceIndexAsync(string partitionId, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
         {
             ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-            return await store.BeginCreateInstanceIndexAsync(dicomDataset, queryTags, cancellationToken);
+            return await store.BeginCreateInstanceIndexAsync(partitionId, dicomDataset, queryTags, cancellationToken);
         }
 
         public async Task DeleteDeletedInstanceAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
@@ -35,22 +35,22 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             await store.DeleteDeletedInstanceAsync(versionedInstanceIdentifier, cancellationToken);
         }
 
-        public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
+        public async Task DeleteInstanceIndexAsync(string partitionId, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
         {
             ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-            await store.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
+            await store.DeleteInstanceIndexAsync(partitionId, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
         }
 
-        public async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
+        public async Task DeleteSeriesIndexAsync(string partitionId, string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
         {
             ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-            await store.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
+            await store.DeleteSeriesIndexAsync(partitionId, studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
         }
 
-        public async Task DeleteStudyIndexAsync(string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
+        public async Task DeleteStudyIndexAsync(string partitionId, string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
         {
             ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-            await store.DeleteStudyIndexAsync(studyInstanceUid, cleanupAfter, cancellationToken);
+            await store.DeleteStudyIndexAsync(partitionId, studyInstanceUid, cleanupAfter, cancellationToken);
         }
 
         public async Task<DateTimeOffset> GetOldestDeletedAsync(CancellationToken cancellationToken = default)
@@ -83,10 +83,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             return await store.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(maxNumberOfRetries, cancellationToken);
         }
 
-        public async Task EndCreateInstanceIndexAsync(DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, bool allowExpiredTags = false, CancellationToken cancellationToken = default)
+        public async Task EndCreateInstanceIndexAsync(string partitionId, DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, bool allowExpiredTags = false, CancellationToken cancellationToken = default)
         {
             ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-            await store.EndCreateInstanceIndexAsync(dicomDataset, watermark, queryTags, allowExpiredTags, cancellationToken);
+            await store.EndCreateInstanceIndexAsync(partitionId, dicomDataset, watermark, queryTags, allowExpiredTags, cancellationToken);
         }
 
         public async Task CheckIfInstancesExistAsync(CancellationToken cancellationToken = default)

@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
         public override SchemaVersion Version => SchemaVersion.V3;
 
-        public override async Task<long> BeginCreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+        public override async Task<long> BeginCreateInstanceIndexAsync(string partitionId, DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));

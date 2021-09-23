@@ -41,6 +41,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <summary>
         /// Asynchronously deletes the indices of all instances which belongs to the study specified by the <paramref name="studyInstanceUid"/>.
         /// </summary>
+        /// <param name="partitionId">The partition id.</param>
         /// <param name="studyInstanceUid">The StudyInstanceUID.</param>
         /// <param name="cleanupAfter">The date that the record can be cleaned up.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -50,6 +51,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <summary>
         /// Asynchronously deletes the indices of all instances which belong to the series specified by the <paramref name="studyInstanceUid"/> and <paramref name="seriesInstanceUid"/>.
         /// </summary>
+        /// <param name="partitionId">The partition id.</param>
         /// <param name="studyInstanceUid">The StudyInstanceUID.</param>
         /// <param name="seriesInstanceUid">The SeriesInstanceUID.</param>
         /// <param name="cleanupAfter">The date that the record can be cleaned up.</param>
@@ -60,6 +62,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <summary>
         /// Asynchronously deletes the indices of the instance specified by the <paramref name="studyInstanceUid"/>, <paramref name="seriesInstanceUid"/>, and <paramref name="sopInstanceUid"/>.
         /// </summary>
+        /// <param name="partitionId">The partition id.</param>
         /// <param name="studyInstanceUid">The StudyInstanceUID.</param>
         /// <param name="seriesInstanceUid">The SeriesInstanceUID.</param>
         /// <param name="sopInstanceUid">The SopInstanceUID.</param>
@@ -71,6 +74,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <summary>
         /// Asynchronously completes the addition of a DICOM instance.
         /// </summary>
+        /// <param name="partitionId">The partition id.</param>
         /// <param name="dicomDataset">The DICOM dataset whose status should be updated.</param>
         /// <param name="watermark">The DICOM instance watermark.</param>
         /// <param name="queryTags">Queryable dicom tags</param>

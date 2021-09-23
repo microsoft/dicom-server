@@ -68,12 +68,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
-
+            var partitionId = EnsureArg.IsNotNull(_contextAccessor.RequestContext?.PartitionId, nameof(_contextAccessor.RequestContext.PartitionId));
             DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
             IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(forceRefresh: false, cancellationToken: cancellationToken);
-            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dicomDataset, queryTags, cancellationToken);
-            var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(watermark);
+            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionId, dicomDataset, queryTags, cancellationToken);
+            var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(watermark, partitionId);
 
             try
             {
@@ -82,7 +82,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                     StoreFileAsync(versionedInstanceIdentifier, dicomInstanceEntry, cancellationToken),
                     StoreInstanceMetadataAsync(dicomDataset, watermark, cancellationToken));
 
-                await EndAddInstanceIndexAsync(dicomDataset, watermark, cancellationToken);
+                await EndAddInstanceIndexAsync(partitionId, dicomDataset, watermark, cancellationToken);
             }
             catch (Exception)
             {
@@ -112,6 +112,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             => _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version, cancellationToken);
 
         private Task EndAddInstanceIndexAsync(
+            string partitionId,
             DicomDataset dicomDataset,
             long watermark,
             CancellationToken cancellationToken)
@@ -124,7 +125,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
                     try
                     {
-                        await _indexDataStore.EndCreateInstanceIndexAsync(dicomDataset, watermark, queryTags, cancellationToken: token);
+                        await _indexDataStore.EndCreateInstanceIndexAsync(partitionId, dicomDataset, watermark, queryTags, cancellationToken: token);
                     }
                     catch (ExtendedQueryTagsOutOfDateException)
                     {

@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
         public virtual SchemaVersion Version => SchemaVersion.V1;
 
-        public virtual async Task<long> BeginCreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+        public virtual async Task<long> BeginCreateInstanceIndexAsync(string partitionId, DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
@@ -81,7 +81,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             }
         }
 
-        public virtual async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public virtual async Task DeleteInstanceIndexAsync(string partitionId, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
@@ -90,7 +90,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
         }
 
-        public virtual async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public virtual async Task DeleteSeriesIndexAsync(string partitionId, string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
@@ -98,7 +98,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cleanupAfter, cancellationToken);
         }
 
-        public virtual async Task DeleteStudyIndexAsync(string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public virtual async Task DeleteStudyIndexAsync(string partitionId, string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
 
@@ -106,6 +106,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
         }
 
         public virtual async Task EndCreateInstanceIndexAsync(
+            string partitionId,
             DicomDataset dicomDataset,
             long watermark,
             IEnumerable<QueryTag> queryTags,
