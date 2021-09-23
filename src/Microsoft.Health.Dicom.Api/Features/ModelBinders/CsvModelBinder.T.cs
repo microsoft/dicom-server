@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.Api.Features.ModelBinders
                 {
                     if (!TryParse(split[i], out T parsedValue))
                     {
-                        bindingContext.ModelState.TryAddModelError(bindingContext.ModelName, string.Format(DicomApiResource.InvalidParse, split[0], typeof(T).Name));
+                        bindingContext.ModelState.TryAddModelError(bindingContext.ModelName, string.Format(DicomApiResource.InvalidParse, split[i], typeof(T).Name));
                         return Task.CompletedTask;
                     }
 
