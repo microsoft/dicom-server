@@ -87,6 +87,26 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Routing
         }
 
         [Fact]
+        public void GivenAStudy_WhenRetrieveStudyUriWithPartitionIdAndVersionIsResolved_ThenCorrectUrlShouldBeReturned()
+        {
+            const string studyInstanceUid = "123.123";
+            const string partitionId = "partition1";
+            const string version = "v1.0-prerelease";
+            _httpContext.Request.RouteValues.Add(KnownActionParameterNames.PartitionId, partitionId);
+            _httpContext.Request.RouteValues.Add(KnownActionParameterNames.Version, version);
+
+            _urlResolver.ResolveRetrieveStudyUri(studyInstanceUid);
+
+            ValidateUrlRouteContext(
+                KnownRouteNames.PartitionVersionedRetrieveStudy,
+                routeValues =>
+                {
+                    Assert.Equal(studyInstanceUid, routeValues[KnownActionParameterNames.StudyInstanceUid]);
+                    Assert.Equal(partitionId, routeValues[KnownActionParameterNames.PartitionId]);
+                });
+        }
+
+        [Fact]
         public void GivenAnInstance_WhenRetrieveInstanceUriIsResolved_ThenCorrectUrlShouldBeReturned()
         {
             const string studyInstanceUid = "123.123";
@@ -104,6 +124,56 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Routing
                     Assert.Equal(studyInstanceUid, routeValues[KnownActionParameterNames.StudyInstanceUid]);
                     Assert.Equal(seriesInstanceUid, routeValues[KnownActionParameterNames.SeriesInstanceUid]);
                     Assert.Equal(sopInstanceUid, routeValues[KnownActionParameterNames.SopInstanceUid]);
+                });
+        }
+
+        [Fact]
+        public void GivenAnInstance_WhenRetrieveInstanceUriWithPartitionIdIsResolved_ThenCorrectUrlShouldBeReturned()
+        {
+            const string studyInstanceUid = "123.123";
+            const string seriesInstanceUid = "456.456";
+            const string sopInstanceUid = "789.789";
+            const string partitionId = "partition1";
+
+            var instance = new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partitionId);
+            _httpContext.Request.RouteValues.Add(KnownActionParameterNames.PartitionId, "partition1");
+
+            _urlResolver.ResolveRetrieveInstanceUri(instance);
+
+            ValidateUrlRouteContext(
+                KnownRouteNames.PartitionRetrieveInstance,
+                routeValues =>
+                {
+                    Assert.Equal(studyInstanceUid, routeValues[KnownActionParameterNames.StudyInstanceUid]);
+                    Assert.Equal(seriesInstanceUid, routeValues[KnownActionParameterNames.SeriesInstanceUid]);
+                    Assert.Equal(sopInstanceUid, routeValues[KnownActionParameterNames.SopInstanceUid]);
+                    Assert.Equal(partitionId, routeValues[KnownActionParameterNames.PartitionId]);
+                });
+        }
+
+        [Fact]
+        public void GivenAnInstance_WhenRetrieveInstanceUriWithPartitionAndVersionIdIsResolved_ThenCorrectUrlShouldBeReturned()
+        {
+            const string studyInstanceUid = "123.123";
+            const string seriesInstanceUid = "456.456";
+            const string sopInstanceUid = "789.789";
+            const string partitionId = "partition1";
+            const string version = "v1.0-prerelease";
+
+            var instance = new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partitionId);
+            _httpContext.Request.RouteValues.Add(KnownActionParameterNames.PartitionId, partitionId);
+            _httpContext.Request.RouteValues.Add(KnownActionParameterNames.Version, version);
+
+            _urlResolver.ResolveRetrieveInstanceUri(instance);
+
+            ValidateUrlRouteContext(
+                KnownRouteNames.PartitionVersionedRetrieveInstance,
+                routeValues =>
+                {
+                    Assert.Equal(studyInstanceUid, routeValues[KnownActionParameterNames.StudyInstanceUid]);
+                    Assert.Equal(seriesInstanceUid, routeValues[KnownActionParameterNames.SeriesInstanceUid]);
+                    Assert.Equal(sopInstanceUid, routeValues[KnownActionParameterNames.SopInstanceUid]);
+                    Assert.Equal(partitionId, routeValues[KnownActionParameterNames.PartitionId]);
                 });
         }
 

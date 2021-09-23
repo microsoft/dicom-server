@@ -151,7 +151,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
 
         private string GetPartitionId()
         {
-            return EnsureArg.IsNotNull(_contextAccessor.RequestContext?.PartitionId, nameof(_contextAccessor.RequestContext.PartitionId));
+            return _contextAccessor.RequestContext?.PartitionId;
         }
 
         private static DateTimeOffset GenerateCleanupAfter(TimeSpan delay)

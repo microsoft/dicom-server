@@ -68,7 +68,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
-            var partitionId = EnsureArg.IsNotNull(_contextAccessor.RequestContext?.PartitionId, nameof(_contextAccessor.RequestContext.PartitionId));
+            var partitionId = _contextAccessor.RequestContext?.PartitionId;
             DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
             IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(forceRefresh: false, cancellationToken: cancellationToken);
