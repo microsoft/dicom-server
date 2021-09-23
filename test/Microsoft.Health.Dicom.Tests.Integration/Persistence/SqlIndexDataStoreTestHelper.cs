@@ -15,6 +15,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     public class SqlIndexDataStoreTestHelper : IIndexDataStoreTestHelper
     {
         private readonly string _connectionString;
+        private const string DefaultPartitionId = "Microsoft.Default";
 
         public SqlIndexDataStoreTestHelper(string connectionString)
         {
@@ -32,11 +33,15 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = @$"
-                        SELECT *
-                        FROM {VLatest.Study.TableName}
-                        WHERE {VLatest.Study.StudyInstanceUid} = @studyInstanceUid";
+                        SELECT s.*
+                        FROM {VLatest.Study.TableName} s
+                        JOIN {VLatest.Partition.TableName} p
+                        ON s.{ VLatest.Study.PartitionKey} = p.{ VLatest.Partition.PartitionKey}
+                        WHERE s.{VLatest.Study.StudyInstanceUid} = @studyInstanceUid
+                        AND p.{VLatest.Partition.PartitionId} = @partitionId";
 
                     sqlCommand.Parameters.AddWithValue("@studyInstanceUid", studyInstanceUid);
+                    sqlCommand.Parameters.AddWithValue("@partitionId", DefaultPartitionId);
 
                     using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync())
                     {
@@ -62,11 +67,15 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = @$"
-                        SELECT *
-                        FROM {VLatest.Series.TableName}
-                        WHERE {VLatest.Series.SeriesInstanceUid} = @seriesInstanceUid";
+                        SELECT s.*
+                        FROM {VLatest.Series.TableName} s
+                        JOIN {VLatest.Partition.TableName} p
+                        ON s.{ VLatest.Study.PartitionKey} = p.{ VLatest.Partition.PartitionKey}
+                        WHERE {VLatest.Series.SeriesInstanceUid} = @seriesInstanceUid
+                        AND p.{VLatest.Partition.PartitionId} = @partitionId";
 
                     sqlCommand.Parameters.AddWithValue("@seriesInstanceUid", seriesInstanceUid);
+                    sqlCommand.Parameters.AddWithValue("@partitionId", DefaultPartitionId);
 
                     using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync())
                     {
@@ -92,15 +101,19 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = @$"
-                        SELECT *
-                        FROM {VLatest.Instance.TableName}
+                        SELECT s.*
+                        FROM {VLatest.Instance.TableName} s
+                        JOIN {VLatest.Partition.TableName} p
+                        ON s.{ VLatest.Study.PartitionKey} = p.{ VLatest.Partition.PartitionKey}
                         WHERE {VLatest.Instance.StudyInstanceUid} = @studyInstanceUid
                             AND {VLatest.Instance.SeriesInstanceUid} = @seriesInstanceUid
-                            AND {VLatest.Instance.SopInstanceUid} = @sopInstanceUid";
+                            AND {VLatest.Instance.SopInstanceUid} = @sopInstanceUid
+                            AND p.{VLatest.Partition.PartitionId} = @partitionId";
 
                     sqlCommand.Parameters.AddWithValue("@studyInstanceUid", studyInstanceUid);
                     sqlCommand.Parameters.AddWithValue("@seriesInstanceUid", seriesInstanceUid);
                     sqlCommand.Parameters.AddWithValue("@sopInstanceUid", sopInstanceUid);
+                    sqlCommand.Parameters.AddWithValue("@partitionId", DefaultPartitionId);
 
                     using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync())
                     {
@@ -124,17 +137,21 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = @$"
-                        SELECT *
-                        FROM {VLatest.Instance.TableName}
+                        SELECT s.*
+                        FROM {VLatest.Instance.TableName} s
+                        JOIN {VLatest.Partition.TableName} p
+                        ON s.{ VLatest.Study.PartitionKey} = p.{ VLatest.Partition.PartitionKey}
                         WHERE {VLatest.Instance.StudyInstanceUid} = @studyInstanceUid
                             AND {VLatest.Instance.SeriesInstanceUid} = @seriesInstanceUid
                             AND {VLatest.Instance.SopInstanceUid} = @sopInstanceUid
-                            AND {VLatest.Instance.Watermark} = @watermark";
+                            AND {VLatest.Instance.Watermark} = @watermark
+                            AND p.{VLatest.Partition.PartitionId} = @partitionId";
 
                     sqlCommand.Parameters.AddWithValue("@studyInstanceUid", studyInstanceUid);
                     sqlCommand.Parameters.AddWithValue("@seriesInstanceUid", seriesInstanceUid);
                     sqlCommand.Parameters.AddWithValue("@sopInstanceUid", sopInstanceUid);
                     sqlCommand.Parameters.AddWithValue("@watermark", version);
+                    sqlCommand.Parameters.AddWithValue("@partitionId", DefaultPartitionId);
 
                     using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync())
                     {

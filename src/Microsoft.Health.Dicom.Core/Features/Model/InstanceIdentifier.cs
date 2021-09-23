@@ -15,16 +15,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
         public InstanceIdentifier(
             string studyInstanceUid,
             string seriesInstanceUid,
-            string sopInstanceUid)
+            string sopInstanceUid,
+            string partitionId = default)
         {
             EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
             EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
 
+            PartitionId = partitionId;
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
             SopInstanceUid = sopInstanceUid;
         }
+
+        public string PartitionId { get; }
 
         public string StudyInstanceUid { get; }
 

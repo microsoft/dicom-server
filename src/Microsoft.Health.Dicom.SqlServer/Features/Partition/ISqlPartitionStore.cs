@@ -3,18 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
+using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.SqlServer.Features.Schema;
+
+namespace Microsoft.Health.Dicom.SqlServer.Features.Partition
 {
     /// <summary>
-    /// Enum to keep track of available SQL schema versions.
+    ///  Sql version of IPartitionStore.
     /// </summary>
-    public enum SchemaVersion
+    internal interface ISqlPartitionStore : IPartitionStore, IVersioned
     {
-        Unknown = 0,
-        V1 = 1,
-        V2 = 2,
-        V3 = 3,
-        V4 = 4,
-        V5 = 5,
     }
 }

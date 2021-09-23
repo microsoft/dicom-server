@@ -3,21 +3,18 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Client;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
+namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
 {
-    internal class SqlExtendedQueryTagStoreV3 : SqlExtendedQueryTagStoreV2
+    public class SqlChangeFeedStoreV2 : SqlChangeFeedStoreV1
     {
-        public SqlExtendedQueryTagStoreV3(
-           SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
-           ILogger<ISqlExtendedQueryTagStore> logger)
-            : base(sqlConnectionWrapperFactory, logger)
+        public override SchemaVersion Version => SchemaVersion.V2;
+
+        public SqlChangeFeedStoreV2(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+            : base(sqlConnectionWrapperFactory)
         {
         }
-
-        public override SchemaVersion Version => SchemaVersion.V3;
     }
 }

@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
 
         public virtual SchemaVersion Version => SchemaVersion.V1;
 
-        public Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
+        public virtual Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
 
-        public Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
+        public virtual Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
             string studyInstanceUid,
             string seriesInstanceUid,
             CancellationToken cancellationToken)
@@ -56,7 +56,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             return GetInstanceIdentifierImp(studyInstanceUid, cancellationToken, seriesInstanceUid);
         }
 
-        public Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
+        public virtual Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
             string studyInstanceUid,
             CancellationToken cancellationToken)
         {
@@ -74,7 +74,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.GetInstance.PopulateCommand(
+                V4.GetInstance.PopulateCommand(
                     sqlCommandWrapper,
                     validStatus: (byte)IndexStatus.Created,
                     studyInstanceUid,
@@ -86,10 +86,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
                     while (await reader.ReadAsync(cancellationToken))
                     {
                         (string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark) = reader.ReadRow(
-                           VLatest.Instance.StudyInstanceUid,
-                           VLatest.Instance.SeriesInstanceUid,
-                           VLatest.Instance.SopInstanceUid,
-                           VLatest.Instance.Watermark);
+                           V4.Instance.StudyInstanceUid,
+                           V4.Instance.SeriesInstanceUid,
+                           V4.Instance.SopInstanceUid,
+                           V4.Instance.Watermark);
 
                         results.Add(new VersionedInstanceIdentifier(
                                 rStudyInstanceUid,

@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Schema
         [Theory]
         [InlineData(SchemaVersion.Unknown)]
         [InlineData(SchemaVersion.V4)]
-        [InlineData((SchemaVersion)10)]
+        [InlineData((SchemaVersion)1000)]
         public async Task GivenInvalidVersion_WhenGettingValue_ThenThrowException(SchemaVersion version)
         {
             using CancellationTokenSource source = new CancellationTokenSource();

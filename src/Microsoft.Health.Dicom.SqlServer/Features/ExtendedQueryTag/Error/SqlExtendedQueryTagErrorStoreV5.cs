@@ -7,17 +7,17 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Client;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
+namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
 {
-    internal class SqlExtendedQueryTagStoreV3 : SqlExtendedQueryTagStoreV2
+    internal class SqlExtendedQueryTagErrorStoreV5 : SqlExtendedQueryTagErrorStoreV4
     {
-        public SqlExtendedQueryTagStoreV3(
+        public SqlExtendedQueryTagErrorStoreV5(
            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
-           ILogger<ISqlExtendedQueryTagStore> logger)
+           ILogger<ISqlExtendedQueryTagErrorStore> logger)
             : base(sqlConnectionWrapperFactory, logger)
         {
         }
 
-        public override SchemaVersion Version => SchemaVersion.V3;
+        public override SchemaVersion Version => SchemaVersion.V5;
     }
 }

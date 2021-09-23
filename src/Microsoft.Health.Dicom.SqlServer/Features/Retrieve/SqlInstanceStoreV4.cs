@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.GetInstancesByWatermarkRange.PopulateCommand(
+                V4.GetInstancesByWatermarkRange.PopulateCommand(
                     sqlCommandWrapper,
                     watermarkRange.Start,
                     watermarkRange.End,
@@ -50,10 +50,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
                     while (await reader.ReadAsync(cancellationToken))
                     {
                         (string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark) = reader.ReadRow(
-                           VLatest.Instance.StudyInstanceUid,
-                           VLatest.Instance.SeriesInstanceUid,
-                           VLatest.Instance.SopInstanceUid,
-                           VLatest.Instance.Watermark);
+                           V4.Instance.StudyInstanceUid,
+                           V4.Instance.SeriesInstanceUid,
+                           V4.Instance.SopInstanceUid,
+                           V4.Instance.Watermark);
 
                         results.Add(new VersionedInstanceIdentifier(
                             rStudyInstanceUid,
@@ -80,7 +80,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
             using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
 
-            VLatest.GetInstanceBatches.PopulateCommand(sqlCommandWrapper, batchSize, batchCount, (byte)indexStatus, maxWatermark);
+            V4.GetInstanceBatches.PopulateCommand(sqlCommandWrapper, batchSize, batchCount, (byte)indexStatus, maxWatermark);
 
             try
             {

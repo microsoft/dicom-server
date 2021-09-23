@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,7 +42,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.BeginAddInstance.PopulateCommand(
+                V4.BeginAddInstance.PopulateCommand(
                     sqlCommandWrapper,
                     instance.GetString(DicomTag.StudyInstanceUID),
                     instance.GetString(DicomTag.SeriesInstanceUID),
@@ -90,7 +89,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
             var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags);
-            VLatest.EndAddInstanceTableValuedParameters parameters = new VLatest.EndAddInstanceTableValuedParameters(
+            V4.EndAddInstanceTableValuedParameters parameters = new V4.EndAddInstanceTableValuedParameters(
                 rows.StringRows,
                 rows.LongRows,
                 rows.DoubleRows,
@@ -100,7 +99,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.EndAddInstance.PopulateCommand(
+                V4.EndAddInstance.PopulateCommand(
                     sqlCommandWrapper,
                     instance.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
                     instance.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
@@ -158,18 +157,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
                 }
             }
-        }
-
-        private static byte[] UlongToRowVersion(ulong? value)
-        {
-            if (!value.HasValue)
-            {
-                return null;
-            }
-
-            byte[] result = new byte[8];
-            BinaryPrimitives.WriteUInt64BigEndian(result, value.Value);
-            return result;
         }
     }
 }

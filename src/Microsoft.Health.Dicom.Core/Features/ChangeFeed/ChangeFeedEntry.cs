@@ -25,13 +25,15 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
             string sopInstanceUid,
             long originalVersion,
             long? currentVersion,
-            ChangeFeedState state)
+            ChangeFeedState state,
+            string partitionId = default)
         {
             EnsureArg.IsNotNull(studyInstanceUid);
             EnsureArg.IsNotNull(seriesInstanceUid);
             EnsureArg.IsNotNull(sopInstanceUid);
 
             Sequence = sequence;
+            PartitionId = partitionId;
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
             SopInstanceUid = sopInstanceUid;
@@ -43,6 +45,8 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
         }
 
         public long Sequence { get; }
+
+        public string PartitionId { get; }
 
         public string StudyInstanceUid { get; }
 

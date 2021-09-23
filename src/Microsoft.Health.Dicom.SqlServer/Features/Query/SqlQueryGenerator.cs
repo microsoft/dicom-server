@@ -26,11 +26,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         private const string InstanceTableAlias = "i";
         private const string StudyTableAlias = "st";
         private const string SeriesTableAlias = "se";
+        private const string PartitionTableAlias = "p";
         private const string ExtendedQueryTagLongTableAlias = "ctl";
         private const string ExtendedQueryTagDateTimeTableAlias = "ctdt";
         private const string ExtendedQueryTagDoubleTableAlias = "ctd";
         private const string ExtendedQueryTagPersonNameTableAlias = "ctpn";
         private const string ExtendedQueryTagStringTableAlias = "cts";
+
+        private const string DefaultPartitionId = "Microsoft.Default";
 
         public SqlQueryGenerator(
             IndentedStringBuilder stringBuilder,
@@ -58,7 +61,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 projectionTableAlias = crossApplyAlias;
             }
 
-            AppendSelect(projectionTableAlias);
+            AppendSelect(projectionTableAlias, filterAlias);
 
             // get distinct UIDs based on IE Level
             AppendFilterTable(filterAlias);
@@ -79,14 +82,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             _stringBuilder.AppendLine("( SELECT ");
             if (_queryExpression.IsInstanceIELevel())
             {
-                _stringBuilder.AppendLine(VLatest.Study.StudyInstanceUid, InstanceTableAlias);
+                _stringBuilder.AppendLine(VLatest.Partition.PartitionId, PartitionTableAlias);
+                _stringBuilder.Append(",").AppendLine(VLatest.Study.StudyInstanceUid, InstanceTableAlias);
                 _stringBuilder.Append(",").AppendLine(VLatest.Series.SeriesInstanceUid, InstanceTableAlias);
                 _stringBuilder.Append(",").AppendLine(VLatest.Instance.SopInstanceUid, InstanceTableAlias);
                 _stringBuilder.Append(",").AppendLine(VLatest.Instance.Watermark, InstanceTableAlias);
             }
             else
             {
-                _stringBuilder.AppendLine(VLatest.Study.StudyKey, StudyTableAlias);
+                _stringBuilder.AppendLine(VLatest.Partition.PartitionId, PartitionTableAlias);
+                _stringBuilder.Append(",").AppendLine(VLatest.Study.StudyKey, StudyTableAlias);
                 if (_queryExpression.IsSeriesIELevel())
                 {
                     _stringBuilder.Append(",").AppendLine(VLatest.Series.SeriesKey, SeriesTableAlias);
@@ -94,6 +99,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             }
 
             _stringBuilder.AppendLine($"FROM {VLatest.Study.TableName} {StudyTableAlias}");
+
+            _stringBuilder.AppendLine($"JOIN {VLatest.Partition.TableName} {PartitionTableAlias}");
+            _stringBuilder.AppendLine($"ON {PartitionTableAlias}.{VLatest.Partition.PartitionKey} = {StudyTableAlias}.{VLatest.Instance.PartitionKey}");
+
             if (_queryExpression.IsSeriesIELevel() || _queryExpression.IsInstanceIELevel())
             {
                 _stringBuilder.AppendLine($"INNER JOIN {VLatest.Series.TableName} {SeriesTableAlias}");
@@ -118,6 +127,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             AppendExtendedQueryTagTables();
 
             _stringBuilder.AppendLine("WHERE 1 = 1");
+
+            // TODO: Actual PartitionId should be passed as a filter condition
+            _stringBuilder.AppendLine($"AND {PartitionTableAlias}.{VLatest.Partition.PartitionId} = '{DefaultPartitionId}'");
             using (IndentedStringBuilder.DelimitedScope delimited = _stringBuilder.BeginDelimitedWhereClause())
             {
                 AppendFilterClause();
@@ -237,10 +249,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             _stringBuilder.AppendLine($") {crossApplyAlias}");
         }
 
-        private void AppendSelect(string tableAlias)
+        private void AppendSelect(string tableAlias, string filterAlias)
         {
             _stringBuilder
                 .AppendLine("SELECT ")
+                .Append(VLatest.Partition.PartitionId, filterAlias).AppendLine(",")
                 .Append(VLatest.Instance.StudyInstanceUid, tableAlias).AppendLine(",")
                 .Append(VLatest.Instance.SeriesInstanceUid, tableAlias).AppendLine(",")
                 .Append(VLatest.Instance.SopInstanceUid, tableAlias).AppendLine(",")

@@ -9,15 +9,15 @@ using Microsoft.Health.SqlServer.Features.Client;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 {
-    internal class SqlExtendedQueryTagStoreV3 : SqlExtendedQueryTagStoreV2
+    internal class SqlExtendedQueryTagStoreV5 : SqlExtendedQueryTagStoreV4
     {
-        public SqlExtendedQueryTagStoreV3(
+        public SqlExtendedQueryTagStoreV5(
            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
            ILogger<ISqlExtendedQueryTagStore> logger)
             : base(sqlConnectionWrapperFactory, logger)
         {
         }
 
-        public override SchemaVersion Version => SchemaVersion.V3;
+        public override SchemaVersion Version => SchemaVersion.V5;
     }
 }
