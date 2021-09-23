@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
@@ -22,16 +23,20 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
 
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IActionContextAccessor _actionContextAccessor;
+        private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
 
         public UrlResolver(
             IUrlHelperFactory urlHelperFactory,
             IHttpContextAccessor httpContextAccessor,
-            IActionContextAccessor actionContextAccessor)
+            IActionContextAccessor actionContextAccessor,
+            IDicomRequestContextAccessor dicomRequestContextAccessor)
         {
             EnsureArg.IsNotNull(urlHelperFactory, nameof(urlHelperFactory));
             EnsureArg.IsNotNull(httpContextAccessor, nameof(httpContextAccessor));
             EnsureArg.IsNotNull(actionContextAccessor, nameof(actionContextAccessor));
+            EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
 
+            _dicomRequestContextAccessor = dicomRequestContextAccessor;
             _urlHelperFactory = urlHelperFactory;
             _httpContextAccessor = httpContextAccessor;
             _actionContextAccessor = actionContextAccessor;
@@ -83,13 +88,23 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         {
             EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
             var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey("version");
+            var hasPartition = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey(KnownActionParameterNames.PartitionId);
 
-            return RouteUri(
-                hasVersion ? KnownRouteNames.VersionedRetrieveStudy : KnownRouteNames.RetrieveStudy,
-                new RouteValueDictionary
-                {
-                    { KnownActionParameterNames.StudyInstanceUid, studyInstanceUid },
-                });
+            var routeName = hasPartition
+                ? (hasVersion ? KnownRouteNames.PartitionVersionedRetrieveStudy : KnownRouteNames.PartitionRetrieveStudy)
+                : hasVersion ? KnownRouteNames.VersionedRetrieveStudy : KnownRouteNames.RetrieveStudy;
+
+            var routeValues = new RouteValueDictionary
+            {
+                { KnownActionParameterNames.StudyInstanceUid, studyInstanceUid },
+            };
+
+            if (hasPartition)
+            {
+                routeValues.Add(KnownActionParameterNames.PartitionId, _dicomRequestContextAccessor.RequestContext.PartitionId);
+            };
+
+            return RouteUri(routeName, routeValues);
         }
 
         /// <inheritdoc />
@@ -97,15 +112,25 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         {
             EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
             var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey("version");
+            var hasPartition = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey(KnownActionParameterNames.PartitionId);
 
-            return RouteUri(
-                hasVersion ? KnownRouteNames.VersionedRetrieveInstance : KnownRouteNames.RetrieveInstance,
-                new RouteValueDictionary
-                {
-                    { KnownActionParameterNames.StudyInstanceUid, instanceIdentifier.StudyInstanceUid },
-                    { KnownActionParameterNames.SeriesInstanceUid, instanceIdentifier.SeriesInstanceUid },
-                    { KnownActionParameterNames.SopInstanceUid, instanceIdentifier.SopInstanceUid },
-                });
+            var routeName = hasPartition
+                ? (hasVersion ? KnownRouteNames.PartitionVersionedRetrieveStudy : KnownRouteNames.PartitionRetrieveStudy)
+                : hasVersion ? KnownRouteNames.VersionedRetrieveStudy : KnownRouteNames.RetrieveStudy;
+
+            var routeValues = new RouteValueDictionary
+            {
+                { KnownActionParameterNames.StudyInstanceUid, instanceIdentifier.StudyInstanceUid },
+                { KnownActionParameterNames.SeriesInstanceUid, instanceIdentifier.SeriesInstanceUid },
+                { KnownActionParameterNames.SopInstanceUid, instanceIdentifier.SopInstanceUid },
+            };
+
+            if (hasPartition)
+            {
+                routeValues.Add(KnownActionParameterNames.PartitionId, _dicomRequestContextAccessor.RequestContext.PartitionId);
+            };
+
+            return RouteUri(routeName, routeValues);
         }
 
         private Uri RouteUri(string routeName, RouteValueDictionary routeValues)
