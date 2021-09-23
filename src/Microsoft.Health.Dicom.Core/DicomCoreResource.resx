@@ -408,4 +408,10 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="InvalidPartitionId" xml:space="preserve">
     <value>The specified PartitionId value '{0}' is invalid. </value>
   </data>
+  <data name="DataPartitionsFeatureDisabled" xml:space="preserve">
+    <value>Data partitions feature is disabled.</value>
+  </data>
+  <data name="DataPartitionsMissingPartitions" xml:space="preserve">
+    <value>PartitionId value is missing in the route segment.</value>
+  </data>
 </root>

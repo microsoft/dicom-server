@@ -25,6 +25,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
     [ApiVersion("1.0-prerelease")]
     [QueryModelStateValidator]
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
+    [DataPartitionFeatureValidator]
     public class StoreController : Controller
     {
         private readonly IMediator _mediator;
@@ -50,6 +51,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Conflict)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.UnsupportedMediaType)]
         [HttpPost]
+        [PartitionVersionedRoute(KnownRoutes.StoreInstancesRoute)]
+        [PartitionRoute(KnownRoutes.StoreInstancesRoute)]
         [VersionedRoute(KnownRoutes.StoreInstancesRoute)]
         [Route(KnownRoutes.StoreInstancesRoute)]
         [AuditEventType(AuditEventSubType.Store)]
@@ -69,6 +72,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Conflict)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.UnsupportedMediaType)]
         [HttpPost]
+        [PartitionVersionedRoute(KnownRoutes.StoreInstancesInStudyRoute)]
+        [PartitionRoute(KnownRoutes.StoreInstancesInStudyRoute)]
         [VersionedRoute(KnownRoutes.StoreInstancesInStudyRoute)]
         [Route(KnownRoutes.StoreInstancesInStudyRoute)]
         [AuditEventType(AuditEventSubType.Store)]
