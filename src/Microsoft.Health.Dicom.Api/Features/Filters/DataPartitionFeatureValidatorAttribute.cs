@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Api.Features.Filters
 {
@@ -29,14 +30,15 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
             if (routeData?.Values != null)
             {
                 var routeContainsPartition = routeData.Values.TryGetValue(KnownActionParameterNames.PartitionId, out var partitionId);
-                var partitionIsEmpty = string.IsNullOrWhiteSpace(partitionId?.ToString());
 
                 if (isPartitionEnabled)
                 {
-                    if (!routeContainsPartition || partitionIsEmpty)
+                    if (!routeContainsPartition)
                     {
                         throw new DataPartitionsMissingPartitionException();
                     }
+
+                    PartitionIdValidator.Validate(partitionId?.ToString());
                 }
                 else
                 {

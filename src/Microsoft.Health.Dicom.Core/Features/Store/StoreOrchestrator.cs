@@ -16,6 +16,7 @@ using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -29,6 +30,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     /// </summary>
     public class StoreOrchestrator : IStoreOrchestrator
     {
+        private readonly IDicomRequestContextAccessor _contextAccessor;
         private readonly IFileStore _fileStore;
         private readonly IMetadataStore _metadataStore;
         private readonly IIndexDataStore _indexDataStore;
@@ -39,6 +41,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         public event EventHandler<QueryTagsExpiredEventArgs> QueryTagsExpired;
 
         public StoreOrchestrator(
+            IDicomRequestContextAccessor contextAccessor,
             IFileStore fileStore,
             IMetadataStore metadataStore,
             IIndexDataStore indexDataStore,
@@ -46,6 +49,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             IQueryTagService queryTagService,
             IOptions<StoreConfiguration> storeConfiguration)
         {
+            _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
             _fileStore = EnsureArg.IsNotNull(fileStore, nameof(fileStore));
             _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
             _indexDataStore = EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));

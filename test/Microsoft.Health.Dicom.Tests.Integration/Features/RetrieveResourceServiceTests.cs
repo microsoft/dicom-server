@@ -126,6 +126,20 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             ValidateResponseDicomFiles(response.ResponseStreams, datasets.Select(ds => ds).Where(ds => ds.ToInstanceIdentifier().SeriesInstanceUid == _firstSeriesInstanceUid));
         }
 
+        [Fact]
+        public async Task GivenStoredInstances_WhenRetrieveRequestForSeries_ThenInstancesInSeriesAreRetrievedSuccesfully()
+        {
+            var datasets = new List<DicomDataset>();
+            datasets.AddRange(await GenerateDicomDatasets(_firstSeriesInstanceUid, 2, true));
+            datasets.AddRange(await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true));
+
+            RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
+                new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
+                CancellationToken.None);
+
+            ValidateResponseDicomFiles(response.ResponseStreams, datasets.Select(ds => ds).Where(ds => ds.ToInstanceIdentifier().SeriesInstanceUid == _firstSeriesInstanceUid));
+        }
+
         private async Task<List<DicomDataset>> GenerateDicomDatasets(string seriesInstanceUid, int instancesinSeries, bool storeInstanceFile)
         {
             var dicomDatasets = new List<DicomDataset>();

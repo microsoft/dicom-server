@@ -12,6 +12,7 @@ using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -20,6 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public class RetrieveResourceService : IRetrieveResourceService
     {
+        private readonly IDicomRequestContextAccessor _contextAccessor;
         private readonly IFileStore _blobDataStore;
         private readonly IInstanceStore _instanceStore;
         private readonly ITranscoder _transcoder;
@@ -28,6 +30,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         private readonly ILogger<RetrieveResourceService> _logger;
 
         public RetrieveResourceService(
+            IDicomRequestContextAccessor contextAccessor,
             IInstanceStore instanceStore,
             IFileStore blobDataStore,
             ITranscoder transcoder,
@@ -35,6 +38,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             IRetrieveTransferSyntaxHandler retrieveTransferSyntaxHandler,
             ILogger<RetrieveResourceService> logger)
         {
+            EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
             EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
             EnsureArg.IsNotNull(blobDataStore, nameof(blobDataStore));
             EnsureArg.IsNotNull(transcoder, nameof(transcoder));
@@ -42,6 +46,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             EnsureArg.IsNotNull(retrieveTransferSyntaxHandler, nameof(retrieveTransferSyntaxHandler));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
+            _contextAccessor = contextAccessor;
             _instanceStore = instanceStore;
             _blobDataStore = blobDataStore;
             _transcoder = transcoder;
@@ -53,6 +58,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         public async Task<RetrieveResourceResponse> GetInstanceResourceAsync(RetrieveResourceRequest message, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(message, nameof(message));
+            var context = EnsureArg.IsNotNull(_contextAccessor.RequestContext, nameof(DicomRequestContext));
 
             try
             {
