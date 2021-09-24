@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [Fact]
         public void GivenStudyLevel_WithIncludeField_ValidReturned()
         {
-            var includeField = new QueryIncludeField(false, new List<DicomTag>() { DicomTag.StudyDescription, DicomTag.IssuerOfPatientID });
+            var includeField = new QueryIncludeField(new List<DicomTag> { DicomTag.StudyDescription, DicomTag.IssuerOfPatientID });
             var queryTag = new QueryTag(DicomTag.PatientAge.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
             var filters = new List<QueryFilterCondition>()
             {
@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [Fact]
         public void GivenStudySeriesLevel_WithIncludeField_ValidReturned()
         {
-            var includeField = new QueryIncludeField(false, new List<DicomTag>() { DicomTag.StudyDescription, DicomTag.Modality });
+            var includeField = new QueryIncludeField(new List<DicomTag> { DicomTag.StudyDescription, DicomTag.Modality });
             var queryTag = new QueryTag(DicomTag.StudyInstanceUID.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
             var filters = new List<QueryFilterCondition>()
             {
@@ -65,7 +65,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [Fact]
         public void GivenAllSeriesLevel_WithIncludeField_ValidReturned()
         {
-            var includeField = new QueryIncludeField(true, new List<DicomTag>() { });
+            var includeField = QueryIncludeField.AllFields;
             var filters = new List<QueryFilterCondition>();
             var query = new QueryExpression(QueryResource.AllSeries, includeField, false, 0, 0, filters);
             var responseBuilder = new QueryResponseBuilder(query);
@@ -83,7 +83,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [Fact]
         public void GivenAllInstanceLevel_WithIncludeField_ValidReturned()
         {
-            var includeField = new QueryIncludeField(true, new List<DicomTag>() { });
+            var includeField = QueryIncludeField.AllFields;
             var filters = new List<QueryFilterCondition>();
             var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters);
             var responseBuilder = new QueryResponseBuilder(query);
@@ -101,7 +101,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [Fact]
         public void GivenStudyInstanceLevel_WithIncludeField_ValidReturned()
         {
-            var includeField = new QueryIncludeField(false, new List<DicomTag>() { DicomTag.Modality });
+            var includeField = new QueryIncludeField(new List<DicomTag> { DicomTag.Modality });
             var filters = new List<QueryFilterCondition>()
             {
                 new StringSingleValueMatchCondition(new QueryTag(DicomTag.StudyInstanceUID), "35"),
@@ -122,7 +122,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [Fact]
         public void GivenStudySeriesInstanceLevel_WithIncludeField_ValidReturned()
         {
-            var includeField = new QueryIncludeField(false, new List<DicomTag>() { });
+            var includeField = new QueryIncludeField(new List<DicomTag>());
 
             var filters = new List<QueryFilterCondition>()
             {

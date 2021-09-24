@@ -42,16 +42,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         }
 
         public async Task<QueryResourceResponse> QueryAsync(
-            QueryResourceRequest message,
+            QueryParameters parameters,
             CancellationToken cancellationToken)
         {
-            EnsureArg.IsNotNull(message);
+            EnsureArg.IsNotNull(parameters);
 
-            ValidateRequestIdentifiers(message);
+            ValidateRequestIdentifiers(parameters);
 
             var queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
 
-            QueryExpression queryExpression = _queryParser.Parse(message, queryTags);
+            QueryExpression queryExpression = _queryParser.Parse(parameters, queryTags);
 
             QueryResult queryResult = await _queryStore.QueryAsync(queryExpression, cancellationToken);
 
@@ -61,8 +61,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             }
 
             IEnumerable<DicomDataset> instanceMetadata = await Task.WhenAll(
-                        queryResult.DicomInstances
-                        .Select(x => _metadataStore.GetInstanceMetadataAsync(x, cancellationToken)));
+                queryResult.DicomInstances.Select(x => _metadataStore.GetInstanceMetadataAsync(x, cancellationToken)));
 
             var responseBuilder = new QueryResponseBuilder(queryExpression);
             IEnumerable<DicomDataset> responseMetadata = instanceMetadata.Select(m => responseBuilder.GenerateResponseDataset(m));
@@ -70,17 +69,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return new QueryResourceResponse(responseMetadata);
         }
 
-        private static void ValidateRequestIdentifiers(QueryResourceRequest message)
+        private static void ValidateRequestIdentifiers(QueryParameters parameters)
         {
-            switch (message.QueryResourceType)
+            switch (parameters.QueryResourceType)
             {
                 case QueryResource.StudySeries:
                 case QueryResource.StudyInstances:
-                    UidValidation.Validate(message.StudyInstanceUid, nameof(message.StudyInstanceUid));
+                    UidValidation.Validate(parameters.StudyInstanceUid, nameof(parameters.StudyInstanceUid));
                     break;
                 case QueryResource.StudySeriesInstances:
-                    UidValidation.Validate(message.StudyInstanceUid, nameof(message.StudyInstanceUid));
-                    UidValidation.Validate(message.SeriesInstanceUid, nameof(message.SeriesInstanceUid));
+                    UidValidation.Validate(parameters.StudyInstanceUid, nameof(parameters.StudyInstanceUid));
+                    UidValidation.Validate(parameters.SeriesInstanceUid, nameof(parameters.SeriesInstanceUid));
                     break;
                 case QueryResource.AllStudies:
                 case QueryResource.AllSeries:

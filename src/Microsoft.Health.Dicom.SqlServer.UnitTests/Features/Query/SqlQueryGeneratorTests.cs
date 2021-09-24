@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
         public void GivenStudyDate_WhenIELevelStudy_ValidateDistinctStudyStudies()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(false, new List<DicomTag>());
+            var includeField = new QueryIncludeField(new List<DicomTag>());
             var minDate = new DateTime(2020, 2, 1);
             var maxDate = new DateTime(2020, 3, 1);
 
@@ -64,7 +64,7 @@ FETCH NEXT 100 ROWS ONLY";
         public void GivenModality_WhenIELevelSeries_ValidateDistinctSeries()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(false, new List<DicomTag>());
+            var includeField = new QueryIncludeField(new List<DicomTag>());
             var filters = new List<QueryFilterCondition>()
             {
                 new StringSingleValueMatchCondition(new QueryTag(DicomTag.Modality), "123"),
@@ -106,7 +106,7 @@ ORDER BY a.Watermark DESC";
         public void GivenNonUidFilter_WhenIELevelInstance_ValidateDistinctInstances()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(false, new List<DicomTag>());
+            var includeField = new QueryIncludeField(new List<DicomTag>());
             var filters = new List<QueryFilterCondition>()
             {
                 new StringSingleValueMatchCondition(new QueryTag(DicomTag.Modality), "123"),
@@ -143,7 +143,7 @@ FETCH NEXT 100 ROWS ONLY";
         public void GivenStringExtendedQueryTagFilter_WhenIELevelStudy_ValidateExtendedQueryTagFilter()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(false, new List<DicomTag>());
+            var includeField = new QueryIncludeField(new List<DicomTag>());
             var queryTag = new QueryTag(DicomTag.ModelGroupUID.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
             var filter = new StringSingleValueMatchCondition(queryTag, "123");
             filter.QueryTag = queryTag;
@@ -175,7 +175,7 @@ AND cts1.TagValue=@p1";
         public void GivenLongExtendedQueryTagFilter_WhenIELevelStudy_ValidateExtendedQueryTagFilter()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(false, new List<DicomTag>());
+            var includeField = new QueryIncludeField(new List<DicomTag>());
             var queryTag = new QueryTag(DicomTag.NumberOfAssessmentObservations.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
             var filter = new LongSingleValueMatchCondition(queryTag, 123);
             filter.QueryTag = queryTag;
@@ -207,7 +207,7 @@ AND ctl1.TagValue=@p1";
         public void GivenDoubleExtendedQueryTagFilter_WhenIELevelStudy_ValidateExtendedQueryTagFilter()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(false, new List<DicomTag>());
+            var includeField = new QueryIncludeField(new List<DicomTag>());
             var queryTag = new QueryTag(DicomTag.FloatingPointValue.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
             var filter = new DoubleSingleValueMatchCondition(queryTag, 123D);
             filter.QueryTag = queryTag;
@@ -239,7 +239,7 @@ AND ctd1.TagValue=@p1";
         public void GivenDateExtendedQueryTagFilter_WhenIELevelStudy_ValidateExtendedQueryTagFilter()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(false, new List<DicomTag>());
+            var includeField = new QueryIncludeField(new List<DicomTag>());
             var queryTag = new QueryTag(DicomTag.Date.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
             var filter = new DateRangeValueMatchCondition(queryTag, DateTime.ParseExact("19510910", QueryParser.DateTagValueFormat, null), DateTime.ParseExact("19571110", QueryParser.DateTagValueFormat, null));
 
@@ -273,7 +273,7 @@ AND ctdt1.TagValue BETWEEN @p1 AND @p2";
         public void GivenExtendedQueryTagFilterWithNonUidFilter_WhenIELevelSeries_ValidateExtendedQueryTagFilter()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(false, new List<DicomTag>());
+            var includeField = new QueryIncludeField(new List<DicomTag>());
             var queryTag = new QueryTag(DicomTag.ModelGroupUID.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Series));
             var extendedQueryTagFilter = new StringSingleValueMatchCondition(queryTag, "123");
             extendedQueryTagFilter.QueryTag = queryTag;
@@ -310,7 +310,7 @@ AND cts1.TagValue=@p2";
         public void GivenMultipleExtendedQueryTagFiltersOnSameLevel_WhenIELevelInstance_ValidateExtendedQueryTagFilter()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(false, new List<DicomTag>());
+            var includeField = new QueryIncludeField(new List<DicomTag>());
             var queryTag1 = new QueryTag(DicomTag.ModelGroupUID.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Series));
             var filter1 = new StringSingleValueMatchCondition(queryTag1, "abc");
             filter1.QueryTag = queryTag1;
@@ -357,7 +357,7 @@ AND cts2.TagValue=@p3";
         public void GivenMultipleExtendedQueryTagFiltersOnDifferentLevels_WhenIELevelInstance_ValidateExtendedQueryTagFilter()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(false, new List<DicomTag>());
+            var includeField = new QueryIncludeField(new List<DicomTag>());
             var queryTag1 = new QueryTag(DicomTag.ModelGroupUID.BuildExtendedQueryTagStoreEntry(key: 1, level: QueryTagLevel.Instance));
             var filter1 = new StringSingleValueMatchCondition(queryTag1, "abc");
             filter1.QueryTag = queryTag1;
@@ -417,7 +417,7 @@ AND ctl4.TagValue=@p5";
         public void GivenPatientNameFilter_WithFuzzyMatchMultiWord_ValidateContainsFilterGenerated()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(false, new List<DicomTag>());
+            var includeField = new QueryIncludeField(new List<DicomTag>());
             var filters = new List<QueryFilterCondition>()
             {
                 new PersonNameFuzzyMatchCondition(new QueryTag(DicomTag.PatientName), "Fall 6"),
@@ -439,7 +439,7 @@ AND ctl4.TagValue=@p5";
         public void GivenPatientNameFilterForExtendedQueryTag_WithFuzzyMatchMultiWord_ValidateContainsFilterGenerated()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(false, new List<DicomTag>());
+            var includeField = new QueryIncludeField(new List<DicomTag>());
             var queryTag = new QueryTag(DicomTag.ConsultingPhysicianName.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Series));
             var filter = new PersonNameFuzzyMatchCondition(queryTag, "Fall 6");
             filter.QueryTag = queryTag;
