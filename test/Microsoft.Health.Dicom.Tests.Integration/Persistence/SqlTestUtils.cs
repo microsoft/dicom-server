@@ -12,6 +12,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.SqlServer.Management.Common;
 using Microsoft.SqlServer.Management.Sdk.Sfc;
 using Microsoft.SqlServer.Management.Smo;
+using Xunit;
 using StoredProcedure = Microsoft.SqlServer.Management.Smo.StoredProcedure;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
@@ -54,6 +55,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             EnsureArg.IsNotNull(sqlDataStore, nameof(sqlDataStore));
             using var connectionWraper = await sqlDataStore.SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
             ServerConnection connection = new ServerConnection(connectionWraper.SqlConnection);
+            Assert.True(false, "Connnections string is: " + connectionWraper.SqlConnection.ConnectionString);
             Server server = new Server(connection);
             Database db = server.Databases[sqlDataStore.DatabaseName];
             DataTable storedProcedureTable = db.EnumObjects(DatabaseObjectTypes.StoredProcedure);
