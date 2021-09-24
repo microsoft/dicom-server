@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             if (!queryResult.DicomInstances.Any())
             {
-                return new QueryResourceResponse(Array.Empty<DicomDataset>());
+                return new QueryResourceResponse(Array.Empty<DicomDataset>(), queryExpression.ErroneousTags);
             }
 
             IEnumerable<DicomDataset> instanceMetadata = await Task.WhenAll(
@@ -67,7 +67,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             var responseBuilder = new QueryResponseBuilder(queryExpression);
             IEnumerable<DicomDataset> responseMetadata = instanceMetadata.Select(m => responseBuilder.GenerateResponseDataset(m));
 
-            return new QueryResourceResponse(responseMetadata);
+            return new QueryResourceResponse(responseMetadata, queryExpression.ErroneousTags);
         }
 
         private static void ValidateRequestIdentifiers(QueryParameters parameters)
