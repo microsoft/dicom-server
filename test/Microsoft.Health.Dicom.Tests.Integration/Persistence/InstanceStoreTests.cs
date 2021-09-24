@@ -65,6 +65,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             DicomTag tag = DicomTag.DeviceSerialNumber;
             string tagValue1 = "test1";
             string tagValue2 = "test2";
+            string tagValue3 = "test3";
 
             string studyUid = TestUidGenerator.Generate();
 
@@ -72,17 +73,29 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             dataset1.Add(tag, tagValue1);
             DicomDataset dataset2 = Samples.CreateRandomInstanceDataset(studyUid);
             dataset2.Add(tag, tagValue2);
+            DicomDataset dataset3 = Samples.CreateRandomInstanceDataset(studyUid);
+            dataset3.Add(tag, tagValue3);
+
             Instance instance1 = await CreateInstanceIndexAsync(dataset1);
             Instance instance2 = await CreateInstanceIndexAsync(dataset2);
+            Instance instance3 = await CreateInstanceIndexAsync(dataset3);
 
             var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Study));
             QueryTag queryTag = new QueryTag(tagStoreEntry);
 
-            await _indexDataStore.ReindexInstanceAsync(dataset1, instance1.Watermark, new[] { queryTag });
+            // Simulate re-indexing, which may re-index an instance which may re-index
+            // the instances for a particular study or series out-of-order
             await _indexDataStore.ReindexInstanceAsync(dataset2, instance2.Watermark, new[] { queryTag });
+            ExtendedQueryTagDataRow row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, null, null)).Single();
+            Assert.Equal(tagValue2, row.TagValue); // Added
 
-            var row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, null, null)).First();
-            Assert.Equal(tagValue2, row.TagValue);
+            await _indexDataStore.ReindexInstanceAsync(dataset3, instance3.Watermark, new[] { queryTag });
+            row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, null, null)).Single();
+            Assert.Equal(tagValue3, row.TagValue); // Overwrite
+
+            await _indexDataStore.ReindexInstanceAsync(dataset1, instance1.Watermark, new[] { queryTag });
+            row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, null, null)).Single();
+            Assert.Equal(tagValue3, row.TagValue); // Do not overwrite
         }
 
         [Fact]

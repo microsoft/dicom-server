@@ -3,11 +3,12 @@ version: "3.4"
 services:
   microsoft.health.dicom.web:
     environment:
-      SqlServer__ConnectionString: "Server=tcp:sql,1433;Initial Catalog=DICOM;Persist Security Info=False;User ID=sa;Password=${SAPASSWORD};MultipleActiveResultSets=False;Connection Timeout=30;"
-      SqlServer__AllowDatabaseCreation: "true"
-      SqlServer__Initialize: "true"
       BlobStore__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
-      DataStore: "SqlServer"
+      DicomFunctions__BaseAddress: "http://functions:80/api/"
+      DicomFunctions__FunctionAccessKey: "cP0rhNdD/l9Dli+kEPQwupVqfTjksqK0dmMrZo/63mD0u0ezUrRl8Q=="
+      SqlServer__AllowDatabaseCreation: "true"
+      SqlServer__ConnectionString: "Server=tcp:sql,1433;Initial Catalog=DICOM;Persist Security Info=False;User ID=sa;Password=${SAPASSWORD:-L0ca1P@ssw0rd};MultipleActiveResultSets=False;Connection Timeout=30;"
+      SqlServer__Initialize: "true"
     depends_on:
       - functions
       - azurite
@@ -19,9 +20,13 @@ services:
       context: ./..
       dockerfile: docker/functions/Dockerfile
     environment:
-      # By default Azure Durable Functions will re-use the same connection string
+      AzureFunctionsJobHost__BlobStore__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
+      AzureFunctionsJobHost__SqlServer__ConnectionString: "Server=tcp:sql,1433;Initial Catalog=DICOM;Persist Security Info=False;User ID=sa;Password=${SAPASSWORD:-L0ca1P@ssw0rd};MultipleActiveResultSets=False;Connection Timeout=30;"
       AzureWebJobsStorage: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;"
       AZURE_FUNCTIONS_ENVIRONMENT: "Development"
+      WEBSITE_HOSTNAME: "localhost:80"
+    ports:
+      - "7072:80" # This is typically set by Visual Studio automatically
     depends_on:
       - azurite
   azurite:
@@ -37,10 +42,10 @@ services:
       context: ./..
       dockerfile: docker/sql/Dockerfile
     environment:
-      SA_PASSWORD: ${SAPASSWORD}
+      SA_PASSWORD: ${SAPASSWORD:-L0ca1P@ssw0rd}
       ACCEPT_EULA: "Y"
     healthcheck:
-      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd","-U sa -P ${SAPASSWORD} -Q 'SELECT * FROM INFORMATION_SCHEMA.TABLES'"]
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd","-U sa -P ${SAPASSWORD:-L0ca1P@ssw0rd} -Q 'SELECT * FROM INFORMATION_SCHEMA.TABLES'"]
       interval: 10s
       timeout: 10s
       retries: 6

@@ -70,6 +70,24 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Duplicate AttributeId &apos;{0}&apos;. Each attribute is only allowed to be specified once..
+        /// </summary>
+        internal static string DuplicateAttributeId {
+            get {
+                return ResourceManager.GetString("DuplicateAttributeId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot specify parameter more than once..
+        /// </summary>
+        internal static string DuplicateParameter {
+            get {
+                return ResourceManager.GetString("DuplicateParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The server encountered an internal error. Please retry the request. If the issue persists, please contact support..
         /// </summary>
         internal static string InternalServerError {
@@ -93,6 +111,15 @@ namespace Microsoft.Health.Dicom.Api {
         internal static string InvalidMultipartContentType {
             get {
                 return ResourceManager.GetString("InvalidMultipartContentType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to parse value &apos;{0}&apos; as {1}..
+        /// </summary>
+        internal static string InvalidParse {
+            get {
+                return ResourceManager.GetString("InvalidParse", resourceCulture);
             }
         }
         

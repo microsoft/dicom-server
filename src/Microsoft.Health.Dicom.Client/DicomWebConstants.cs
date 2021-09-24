@@ -29,6 +29,10 @@ namespace Microsoft.Health.Dicom.Client
         public const string QuerySeriesInstancUriFormat = SeriesUriString + "/{0}" + InstancesUriString;
         public const string BaseExtendedQueryTagUri = "/extendedquerytags";
         public const string BaseOperationUri = "/operations";
+        public const string BaseErrorsUriFormat = BaseExtendedQueryTagUri + "/{0}/errors";
+
+        public const string LimitParameter = "limit";
+        public const string OffsetParameter = "offset";
 
         public const string OriginalDicomTransferSyntax = "*";
 

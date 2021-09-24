@@ -6,12 +6,11 @@
 using System.Collections.Generic;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
-using Microsoft.Health.Dicom.Core.Messages.Query;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
     public interface IQueryParser
     {
-        QueryExpression Parse(QueryResourceRequest request, IReadOnlyCollection<QueryTag> queryTags);
+        QueryExpression Parse(QueryParameters parameters, IReadOnlyCollection<QueryTag> queryTags);
     }
 }

@@ -1909,7 +1909,7 @@ GO
 -- RETURN VALUE
 --     The corresponding extended query tags, if any.
 /***************************************************************************************/
-CREATE PROCEDURE dbo.GetExtendedQueryTagsByKey
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagsByKey
     @extendedQueryTagKeys dbo.ExtendedQueryTagKeyTableType_1 READONLY
 AS
 BEGIN
@@ -2284,7 +2284,7 @@ GO
 -- RETURN VALUE
 --     None
 /***************************************************************************************/
-CREATE PROCEDURE dbo.IndexInstance
+CREATE OR ALTER PROCEDURE dbo.IndexInstance
     @watermark                                                                   BIGINT,
     @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1         READONLY,
     @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1             READONLY,

@@ -11,11 +11,11 @@
     <FhirServerPackageVersion>2.0.55</FhirServerPackageVersion>
     <FoDicomVersion>4.0.8</FoDicomVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <HealthcareSharedPackageVersion>3.2.3</HealthcareSharedPackageVersion>
+    <HealthcareSharedPackageVersion>3.2.7</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
     <Hl7FhirPackageVersion>3.3.0</Hl7FhirPackageVersion>
     <LangVersion>Latest</LangVersion>
-    <NetCoreApp3PackageVersion>3.1.16</NetCoreApp3PackageVersion>
+    <NetCoreApp3PackageVersion>3.1.19</NetCoreApp3PackageVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Product>Microsoft Health</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

@@ -282,10 +282,11 @@
                     "type": "siteextensions",
                     "name": "AspNetCoreRuntime.5.0.x64",
                     "dependsOn": [
-                        "[variables('appServiceResourceId')]"
+                        "[variables('appServiceResourceId')]",
+                        "[resourceId('Microsoft.Web/sites/config', variables('serviceName'), 'appsettings')]" // Avoid restarts mid-installation
                     ],
                     "properties": {
-                        "version": "5.0.9"
+                        "version": "5.0.10"
                     }
                 },
                 {
@@ -353,7 +354,8 @@
                         "[variables('sqlServerConnectionStringResourceId')]",
                         "[variables('azureStorageConnectionStringResourceId')]",
                         "[variables('appInsightsInstrumentationKeyResourceId')]",
-                        "[variables('appInsightsConnectionStringResourceId')]"
+                        "[variables('appInsightsConnectionStringResourceId')]",
+                        "[variables('functionAccessKeyResourceId')]" // Wait for the function key to be written to key vault before restarting
                     ],
                     "properties": "[union(if(variables('deployAppInsights'), json(concat('{\"APPINSIGHTS_INSTRUMENTATIONKEY\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsInstrumentationKeyResourceId')).secretUriWithVersion, ')'), '\" ,\"APPLICATIONINSIGHTS_CONNECTION_STRING\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json('{}')), json(concat('{\"AzureFunctionsJobHost__BlobStore__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"AzureFunctionsJobHost__SqlServer__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('sqlServerConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"AzureWebJobsStorage\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), variables('combinedDicomFunctionAppConfigProperties'))]"
                 },

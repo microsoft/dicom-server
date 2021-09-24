@@ -55,7 +55,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddSqlIndexDataStores()
                 .AddSqlQueryStore()
                 .AddSqlInstanceStores()
-                .AddSqlExtendedQueryTagStores();
+                .AddSqlExtendedQueryTagStores()
+                .AddSqlExtendedQueryTagErrorStores();
 
             return dicomServerBuilder;
         }
