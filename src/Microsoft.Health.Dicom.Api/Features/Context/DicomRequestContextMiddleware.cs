@@ -51,7 +51,6 @@ namespace Microsoft.Health.Dicom.Api.Features.Context
 
             dicomRequestContextAccessor.RequestContext = dicomRequestContext;
 
-            // TODO: replace with code from healthcare-shared-components
             using (MonitoredStream byteCountingStream = new MonitoredStream(context.Response.Body))
             {
                 context.Response.Body = byteCountingStream;
