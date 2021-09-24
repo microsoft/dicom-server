@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
             {
                 new DateRangeValueMatchCondition(new QueryTag(DicomTag.StudyDate), minDate, maxDate),
             };
-            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
 
             var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
             new SqlQueryGenerator(stringBuilder, query, parm);
@@ -69,7 +69,7 @@ FETCH NEXT 100 ROWS ONLY";
             {
                 new StringSingleValueMatchCondition(new QueryTag(DicomTag.Modality), "123"),
             };
-            var query = new QueryExpression(QueryResource.AllSeries, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.AllSeries, includeField, false, 0, 0, filters, Array.Empty<string>());
 
             var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
             new SqlQueryGenerator(stringBuilder, query, parm);
@@ -111,7 +111,7 @@ ORDER BY a.Watermark DESC";
             {
                 new StringSingleValueMatchCondition(new QueryTag(DicomTag.Modality), "123"),
             };
-            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
 
             var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
             new SqlQueryGenerator(stringBuilder, query, parm);
@@ -151,7 +151,7 @@ FETCH NEXT 100 ROWS ONLY";
             {
                 filter,
             };
-            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
@@ -183,7 +183,7 @@ AND cts1.TagValue=@p1";
             {
                 filter,
             };
-            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
@@ -215,7 +215,7 @@ AND ctl1.TagValue=@p1";
             {
                 filter,
             };
-            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
@@ -248,7 +248,7 @@ AND ctd1.TagValue=@p1";
             {
                 filter,
             };
-            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
@@ -283,7 +283,7 @@ AND ctdt1.TagValue BETWEEN @p1 AND @p2";
                 filter,
                 extendedQueryTagFilter,
             };
-            var query = new QueryExpression(QueryResource.StudySeries, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.StudySeries, includeField, false, 0, 0, filters, Array.Empty<string>());
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
@@ -322,7 +322,7 @@ AND cts1.TagValue=@p2";
                 filter1,
                 filter2,
             };
-            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
@@ -375,7 +375,7 @@ AND cts2.TagValue=@p3";
                 filter2,
                 filter3,
             };
-            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
@@ -422,7 +422,7 @@ AND ctl4.TagValue=@p5";
             {
                 new PersonNameFuzzyMatchCondition(new QueryTag(DicomTag.PatientName), "Fall 6"),
             };
-            var query = new QueryExpression(QueryResource.AllStudies, includeField, true, 10, 0, filters);
+            var query = new QueryExpression(QueryResource.AllStudies, includeField, true, 10, 0, filters, Array.Empty<string>());
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
             new SqlQueryGenerator(stringBuilder, query, parm);
@@ -447,7 +447,7 @@ AND ctl4.TagValue=@p5";
             {
                 filter,
             };
-            var query = new QueryExpression(QueryResource.AllInstances, includeField, true, 10, 0, filters);
+            var query = new QueryExpression(QueryResource.AllInstances, includeField, true, 10, 0, filters, Array.Empty<string>());
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
             new SqlQueryGenerator(stringBuilder, query, parm);

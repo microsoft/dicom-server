@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dicom;
@@ -26,7 +27,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             {
                 new StringSingleValueMatchCondition(queryTag, "35"),
             };
-            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
             var responseBuilder = new QueryResponseBuilder(query);
 
             DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
@@ -49,7 +50,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             {
                 new StringSingleValueMatchCondition(queryTag, "35"),
             };
-            var query = new QueryExpression(QueryResource.StudySeries, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.StudySeries, includeField, false, 0, 0, filters, Array.Empty<string>());
             var responseBuilder = new QueryResponseBuilder(query);
 
             DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
@@ -67,7 +68,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         {
             var includeField = QueryIncludeField.AllFields;
             var filters = new List<QueryFilterCondition>();
-            var query = new QueryExpression(QueryResource.AllSeries, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.AllSeries, includeField, false, 0, 0, filters, Array.Empty<string>());
             var responseBuilder = new QueryResponseBuilder(query);
 
             DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
@@ -85,7 +86,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         {
             var includeField = QueryIncludeField.AllFields;
             var filters = new List<QueryFilterCondition>();
-            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
             var responseBuilder = new QueryResponseBuilder(query);
 
             DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
@@ -106,7 +107,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             {
                 new StringSingleValueMatchCondition(new QueryTag(DicomTag.StudyInstanceUID), "35"),
             };
-            var query = new QueryExpression(QueryResource.StudyInstances, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.StudyInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
             var responseBuilder = new QueryResponseBuilder(query);
 
             DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
@@ -129,7 +130,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
                 new StringSingleValueMatchCondition(new QueryTag(DicomTag.StudyInstanceUID), "35"),
                 new StringSingleValueMatchCondition(new QueryTag(DicomTag.SeriesInstanceUID), "351"),
             };
-            var query = new QueryExpression(QueryResource.StudySeriesInstances, includeField, false, 0, 0, filters);
+            var query = new QueryExpression(QueryResource.StudySeriesInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
             var responseBuilder = new QueryResponseBuilder(query);
 
             DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(GenerateTestDataSet());
