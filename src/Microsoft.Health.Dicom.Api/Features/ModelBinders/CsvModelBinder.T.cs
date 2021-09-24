@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.Api.Features.ModelBinders
             }
             else if (values.Count > 1)
             {
-                bindingContext.ModelState.TryAddModelError(bindingContext.ModelName, DicomApiResource.DuplicateValues);
+                bindingContext.ModelState.TryAddModelError(bindingContext.ModelName, DicomApiResource.DuplicateParameter);
             }
             else if (string.IsNullOrEmpty(values[0]))
             {

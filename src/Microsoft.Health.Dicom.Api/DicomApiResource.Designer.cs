@@ -79,11 +79,11 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot specify value more than once..
+        ///   Looks up a localized string similar to Cannot specify parameter more than once..
         /// </summary>
-        internal static string DuplicateValues {
+        internal static string DuplicateParameter {
             get {
-                return ResourceManager.GetString("DuplicateValues", resourceCulture);
+                return ResourceManager.GetString("DuplicateParameter", resourceCulture);
             }
         }
         

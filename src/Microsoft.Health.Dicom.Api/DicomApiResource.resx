@@ -125,8 +125,8 @@
     <value>Invalid QIDO-RS query. Duplicate AttributeId '{0}'. Each attribute is only allowed to be specified once.</value>
     <comment>{0} specified attributeid</comment>
   </data>
-  <data name="DuplicateValues" xml:space="preserve">
-    <value>Cannot specify value more than once.</value>
+  <data name="DuplicateParameter" xml:space="preserve">
+    <value>Cannot specify parameter more than once.</value>
   </data>
   <data name="InternalServerError" xml:space="preserve">
     <value>The server encountered an internal error. Please retry the request. If the issue persists, please contact support.</value>
