@@ -53,12 +53,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             // Create Sql store at old schema version
             SqlDataStoreTestsFixture oldSqlStore = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName($"COMPATIBLE_{oldSchemaVersion}_"), new SchemaInformation(oldSchemaVersion, oldSchemaVersion));
             await oldSqlStore.InitializeAsync(forceIncrementalSchemaUpgrade: false);
-            var oldProcedures = await SqlTestUtils.GetStoredProceduresAsync(oldSqlStore);
+            var oldProcedures = SqlTestUtils.GetStoredProcedures(oldSqlStore);
 
             // Create Sql store at new schema version
             SqlDataStoreTestsFixture newSqlStore = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName($"COMPATIBLE_{schemaVersion}_"), new SchemaInformation(schemaVersion, schemaVersion));
             await newSqlStore.InitializeAsync(forceIncrementalSchemaUpgrade: false);
-            var newProcedures = await SqlTestUtils.GetStoredProceduresAsync(newSqlStore);
+            var newProcedures = SqlTestUtils.GetStoredProcedures(newSqlStore);
 
             // Validate if stored procedures are compatible
             StoredProcedureCompatibleValidator.Validate(newProcedures, oldProcedures);
