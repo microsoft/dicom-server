@@ -5,14 +5,12 @@
 
 using System.Collections.Generic;
 using System.Data;
-using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Data.SqlClient;
 using Microsoft.SqlServer.Management.Common;
 using Microsoft.SqlServer.Management.Sdk.Sfc;
 using Microsoft.SqlServer.Management.Smo;
-using Xunit;
 using StoredProcedure = Microsoft.SqlServer.Management.Smo.StoredProcedure;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
@@ -52,7 +50,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public static System.Collections.Generic.IReadOnlyList<StoredProcedure> GetStoredProcedures(SqlDataStoreTestsFixture sqlDataStore)
         {
             EnsureArg.IsNotNull(sqlDataStore, nameof(sqlDataStore));
-            ServerConnection connection = new ServerConnection(new SqlConnection(sqlDataStore.TestConnectionString));
+            using SqlConnection sqlConnection = new SqlConnection(sqlDataStore.TestConnectionString);
+            ServerConnection connection = new ServerConnection(sqlConnection);
             Server server = new Server(connection);
             Database db = server.Databases[sqlDataStore.DatabaseName];
             DataTable storedProcedureTable = db.EnumObjects(DatabaseObjectTypes.StoredProcedure);
