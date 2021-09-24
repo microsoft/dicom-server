@@ -4,11 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Health.Core.Features.Context;
-using Microsoft.Health.Dicom.Api.Features.ByteCounter;
 using Microsoft.Health.Dicom.Api.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using NSubstitute;
@@ -18,8 +16,6 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Context
 {
     public class DicomRequestContextMiddlewareTests
     {
-        private readonly IResponseLogStreamFactory _responseLogStreamFactory = Substitute.For<IResponseLogStreamFactory>();
-
         [Fact]
         public async Task GivenAnHttpRequest_WhenExecutingDicomRequestContextMiddleware_ThenCorrectUriShouldBeSet()
         {
@@ -49,11 +45,11 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Context
         private async Task<IDicomRequestContext> SetupAsync(HttpContext httpContext, long byteLength = 256)
         {
             var dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-            var dicomContextMiddlware = new DicomRequestContextMiddleware(next: (innerHttpContext) => Task.CompletedTask, _responseLogStreamFactory);
-
-            ByteCountingStream byteCountingStream = new ByteCountingStream(new MemoryStream());
-            _responseLogStreamFactory.CreateByteCountingResponseLogStream(stream: null).ReturnsForAnyArgs(byteCountingStream);
-            byteCountingStream.Write(new byte[byteLength]);
+            var dicomContextMiddlware = new DicomRequestContextMiddleware(next: (innerHttpContext) =>
+            {
+                innerHttpContext.Response.Body.Write(new byte[byteLength]);
+                return Task.CompletedTask;
+            });
 
             await dicomContextMiddlware.Invoke(httpContext, dicomRequestContextAccessor);
 
@@ -74,5 +70,6 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Context
 
             return httpContext;
         }
+
     }
 }
