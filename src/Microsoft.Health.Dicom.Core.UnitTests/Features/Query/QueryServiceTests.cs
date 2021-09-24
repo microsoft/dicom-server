@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -19,14 +20,14 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 {
-    public class DicomQueryServiceTests
+    public class QueryServiceTests
     {
         private readonly QueryService _queryService;
         private readonly IQueryParser _queryParser;
         private readonly IQueryStore _queryStore;
         private readonly IQueryTagService _queryTagService;
 
-        public DicomQueryServiceTests()
+        public QueryServiceTests()
         {
             _queryParser = Substitute.For<IQueryParser>();
             _queryStore = Substitute.For<IQueryStore>();
@@ -74,6 +75,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [InlineData(QueryResource.StudySeriesInstances)]
         public async void GivenRequestForInstances_WhenRetrievingQueriableExtendedQueryTags_ReturnsAllTags(QueryResource resourceType)
         {
+            _queryParser.Parse(default, default).ReturnsForAnyArgs(new QueryExpression(default, default, default, default, default, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
             var parameters = new QueryParameters
             {
                 Filters = new Dictionary<string, string>(),
@@ -101,6 +103,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [InlineData(QueryResource.StudySeries)]
         public async void GivenRequestForSeries_WhenRetrievingQueriableExtendedQueryTags_ReturnsSeriesAndStudyTags(QueryResource resourceType)
         {
+            _queryParser.Parse(default, default).ReturnsForAnyArgs(new QueryExpression(default, default, default, default, default, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
             var parameters = new QueryParameters
             {
                 Filters = new Dictionary<string, string>(),
@@ -126,6 +129,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [InlineData(QueryResource.AllStudies)]
         public async void GivenRequestForStudies_WhenRetrievingQueriableExtendedQueryTags_ReturnsStudyTags(QueryResource resourceType)
         {
+            _queryParser.Parse(default, default).ReturnsForAnyArgs(new QueryExpression(default, default, default, default, default, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
             var parameters = new QueryParameters
             {
                 Filters = new Dictionary<string, string>(),

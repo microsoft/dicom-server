@@ -171,6 +171,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         private IActionResult CreateResult(QueryResourceResponse resourceResponse)
         {
+            Response.TryAddErroneousAttributesHeader(resourceResponse.ErroneousTags);
             if (!resourceResponse.ResponseDataset.Any())
             {
                 return NoContent();

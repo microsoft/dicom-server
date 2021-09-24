@@ -414,4 +414,8 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="InvalidIncludeAllFields" xml:space="preserve">
     <value>Invalid QIDO-RS query. Cannot specify included fields in addition to 'all'.</value>
   </data>
+  <data name="QueryIsDisabledOnAttribute" xml:space="preserve">
+    <value>Query is disabled on specified attribute '{0}'.</value>
+    <comment>'{0}' attribute in QIDO query. </comment>
+  </data>
 </root>
