@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
@@ -16,18 +15,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     public interface IStoreOrchestrator
     {
         /// <summary>
-        /// Occurs when the locally resolved set of query tags is missing at least one newly added entry in the store.
-        /// </summary>
-        event EventHandler<QueryTagsExpiredEventArgs> QueryTagsExpired;
-
-        /// <summary>
         /// Asynchronously orchestrate the storing of a DICOM instance entry.
         /// </summary>
         /// <param name="dicomInstanceEntry">The DICOM instance entry to store.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous orchestration of the storing operation.</returns>
-        Task StoreDicomInstanceEntryAsync(
-            IDicomInstanceEntry dicomInstanceEntry,
-            CancellationToken cancellationToken);
+        Task StoreDicomInstanceEntryAsync(IDicomInstanceEntry dicomInstanceEntry, CancellationToken cancellationToken);
     }
 }

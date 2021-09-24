@@ -51,14 +51,14 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             }
         }
 
-        public async Task<IReadOnlyCollection<QueryTag>> GetQueryTagsAsync(bool forceRefresh = false, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyCollection<QueryTag>> GetQueryTagsAsync(CancellationToken cancellationToken = default)
         {
             if (_disposed)
             {
                 throw new ObjectDisposedException(nameof(QueryTagService));
             }
 
-            return _enableExtendedQueryTags ? await _queryTagCache.GetAsync(forceRefresh, cancellationToken) : CoreQueryTags;
+            return _enableExtendedQueryTags ? await _queryTagCache.GetAsync(cancellationToken: cancellationToken) : CoreQueryTags;
         }
 
         private async Task<List<QueryTag>> ResolveQueryTagsAsync(CancellationToken cancellationToken)
