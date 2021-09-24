@@ -60,7 +60,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await newSqlStore.InitializeAsync(forceIncrementalSchemaUpgrade: false);
             var newProcedures = await SqlTestUtils.GetStoredProceduresAsync(newSqlStore);
 
-            // Validate if stored prodcedures are compatible
+            // Validate if stored procedures are compatible
             StoredProcedureCompatibleValidator.Validate(newProcedures, oldProcedures);
 
             // Dispose if not exist
