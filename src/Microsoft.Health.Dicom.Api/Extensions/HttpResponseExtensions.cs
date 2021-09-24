@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Api.Extensions
 {
     internal static class HttpResponseExtensions
     {
-        public const string ErroneousAttributesHeader = "x-ms-erroneous-attributes";
+        public const string ErroneousAttributesHeader = "erroneous-dicom-attributes";
 
         public static void AddLocationHeader(this HttpResponse response, Uri locationUrl)
         {
