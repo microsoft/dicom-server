@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         /// <summary>
-        /// Get StoredProcedures in SqlDataaStore
+        /// Get StoredProcedures in SqlDataStore
         /// </summary>
         /// <param name="sqlDataStore">The Sql data store</param>
         /// <param name="cancellationToken">The cancellation token</param>
@@ -62,16 +62,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             foreach (DataRow row in storedProcedureTable.Rows)
             {
                 string schema = (string)row["Schema"];
-                if (schema == "sys" || schema == "INFORMATION_SCHEMA")
+                if (schema == "sys")
                 {
                     continue;
                 }
 
                 StoredProcedure sp = (StoredProcedure)server.GetSmoObject(new Urn((string)row["Urn"]));
-                if (!sp.IsSystemObject)
-                {
-                    result.Add(sp);
-                }
+                result.Add(sp);
             }
             return result;
         }

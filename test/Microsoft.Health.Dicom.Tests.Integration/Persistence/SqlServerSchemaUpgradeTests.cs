@@ -51,9 +51,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             int oldSchemaVersion = schemaVersion - 1;
             // Create Sql store at old schema version
-            SqlDataStoreTestsFixture minSqlStore = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName($"COMPATIBLE_{oldSchemaVersion}_"), new SchemaInformation(oldSchemaVersion, oldSchemaVersion));
-            await minSqlStore.InitializeAsync(forceIncrementalSchemaUpgrade: false);
-            var oldProcedures = await SqlTestUtils.GetStoredProceduresAsync(minSqlStore);
+            SqlDataStoreTestsFixture oldSqlStore = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName($"COMPATIBLE_{oldSchemaVersion}_"), new SchemaInformation(oldSchemaVersion, oldSchemaVersion));
+            await oldSqlStore.InitializeAsync(forceIncrementalSchemaUpgrade: false);
+            var oldProcedures = await SqlTestUtils.GetStoredProceduresAsync(oldSqlStore);
 
             // Create Sql store at new schema version
             SqlDataStoreTestsFixture newSqlStore = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName($"COMPATIBLE_{schemaVersion}_"), new SchemaInformation(schemaVersion, schemaVersion));
@@ -63,8 +63,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             // Validate if stored procedures are compatible
             StoredProcedureCompatibleValidator.Validate(newProcedures, oldProcedures);
 
-            // Dispose if not exist
-            await minSqlStore.DisposeAsync();
+            // Dispose if pass
+            await oldSqlStore.DisposeAsync();
             await newSqlStore.DisposeAsync();
         }
 
