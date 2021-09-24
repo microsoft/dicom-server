@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,13 +32,40 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             SchemaCompareDatabaseEndpoint snapshotEndpoint = new SchemaCompareDatabaseEndpoint(snapshotFixture.TestConnectionString);
             SchemaCompareDatabaseEndpoint diffEndpoint = new SchemaCompareDatabaseEndpoint(diffFixture.TestConnectionString);
             var comparison = new SchemaComparison(snapshotEndpoint, diffEndpoint);
-
             SchemaComparisonResult result = comparison.Compare();
             Assert.True(result.IsEqual);
 
             // cleanup if succeeds
             await snapshotFixture.DisposeAsync();
             await diffFixture.DisposeAsync();
+        }
+
+        /// <summary>
+        /// There is small window where Sql schema is updated but not populated to web server, so the server still tries to call old stored procedure.
+        /// This test validate it works by checking stored procedure compatiblity. 
+        /// </summary>
+        /// <param name="schemaVersion">New schema version</param>
+        [Theory]
+        [MemberData(nameof(SchemaDiffVersions))]
+        public async Task GivenANewSchemaVersion_WhenApplying_ShouldBackCompatible(int schemaVersion)
+        {
+            int oldSchemaVersion = schemaVersion - 1;
+            // Create Sql store at old schema version
+            SqlDataStoreTestsFixture oldSqlStore = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName($"COMPATIBLE_{oldSchemaVersion}_"), new SchemaInformation(oldSchemaVersion, oldSchemaVersion));
+            await oldSqlStore.InitializeAsync(forceIncrementalSchemaUpgrade: false);
+            var oldProcedures = SqlTestUtils.GetStoredProcedures(oldSqlStore);
+
+            // Create Sql store at new schema version
+            SqlDataStoreTestsFixture newSqlStore = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName($"COMPATIBLE_{schemaVersion}_"), new SchemaInformation(schemaVersion, schemaVersion));
+            await newSqlStore.InitializeAsync(forceIncrementalSchemaUpgrade: false);
+            var newProcedures = SqlTestUtils.GetStoredProcedures(newSqlStore);
+
+            // Validate if stored procedures are compatible
+            StoredProcedureCompatibleValidator.Validate(newProcedures, oldProcedures);
+
+            // Dispose if pass
+            await oldSqlStore.DisposeAsync();
+            await newSqlStore.DisposeAsync();
         }
 
         [Theory]
