@@ -6,14 +6,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
-using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Configs;
-using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
@@ -21,7 +16,6 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using NSubstitute;
-using NSubstitute.Core;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
 
@@ -74,7 +68,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                 .Returns(DefaultVersion);
 
             _queryTagService
-                .GetQueryTagsAsync(false, Arg.Any<CancellationToken>())
+                .GetQueryTagsAsync(Arg.Any<CancellationToken>())
                 .Returns(_queryTags);
 
             _storeOrchestrator = new StoreOrchestrator(
@@ -82,10 +76,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                 _metadataStore,
                 _indexDataStore,
                 _deleteService,
-                _queryTagService,
-                Options.Create(new StoreConfiguration()));
-
-            _storeOrchestrator.QueryTagsExpired += (e, args) => _eventInvocations.Add(args);
+                _queryTagService);
         }
 
         [Fact]
@@ -144,52 +135,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             _indexDataStore.DeleteInstanceIndexAsync(default, default, default, default, default).ThrowsForAnyArgs(new InvalidOperationException());
 
             await Assert.ThrowsAsync<ArgumentException>(() => _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken));
-        }
-
-        [Fact]
-        public async Task GivenVersionMismatchExceptionWhenStore_WhenRetryNotExceedMax_ThenShouldSucceed()
-        {
-            List<QueryTag> newTags1 = _queryTags
-                .Concat(new QueryTag[] { new QueryTag(new ExtendedQueryTagStoreEntry(2, "00202020", "DT", null, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled, 0)) })
-                .ToList();
-            List<QueryTag> newTags2 = newTags1
-                .Concat(new QueryTag[] { new QueryTag(new ExtendedQueryTagStoreEntry(3, "00303030", "DA", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled, 0)) })
-                .ToList();
-
-            _queryTagService
-                .GetQueryTagsAsync(false, Arg.Any<CancellationToken>())
-                .Returns(_queryTags, _queryTags, newTags1, newTags2);
-            _queryTagService
-                .GetQueryTagsAsync(true, Arg.Any<CancellationToken>())
-                .Returns(newTags1, newTags2); // Return different tags
-            _indexDataStore.EndCreateInstanceIndexAsync(default, default, default, default, default)
-                .ReturnsForAnyArgs(
-                    Task.FromException(new ExtendedQueryTagsOutOfDateException()),
-                    Task.FromException(new ExtendedQueryTagsOutOfDateException()),
-                    Task.CompletedTask);
-
-            await _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken);
-
-            await _queryTagService.Received(4).GetQueryTagsAsync(false, DefaultCancellationToken);
-            await _queryTagService.Received(2).GetQueryTagsAsync(true, DefaultCancellationToken);
-            await _indexDataStore.Received(1).EndCreateInstanceIndexAsync(_dicomDataset, DefaultVersion, _queryTags, false, DefaultCancellationToken);
-            await _indexDataStore.Received(1).EndCreateInstanceIndexAsync(_dicomDataset, DefaultVersion, newTags1, false, DefaultCancellationToken);
-            await _indexDataStore.Received(1).EndCreateInstanceIndexAsync(_dicomDataset, DefaultVersion, newTags2, false, DefaultCancellationToken);
-
-            Assert.Equal(2, _eventInvocations.Count);
-            Assert.Equal("00202020", _eventInvocations[0].NewQueryTags.Single().Tag.GetPath());
-            Assert.Equal("00303030", _eventInvocations[1].NewQueryTags.Single().Tag.GetPath());
-        }
-
-        [Fact]
-        public async Task GivenVersionMismatchExceptionWhenStore_WhenRetryExceedMax_ThenShouldFail()
-        {
-            Func<CallInfo, long> exceptionFunc = new Func<CallInfo, long>(x => throw new ExtendedQueryTagsOutOfDateException());
-            _indexDataStore.BeginCreateInstanceIndexAsync(default, default, default)
-                .ReturnsForAnyArgs(exceptionFunc, exceptionFunc, exceptionFunc);
-
-            await Assert.ThrowsAsync<ExtendedQueryTagsOutOfDateException>(
-                () => _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken));
         }
 
         private Task ValidateStatusUpdateAsync()
