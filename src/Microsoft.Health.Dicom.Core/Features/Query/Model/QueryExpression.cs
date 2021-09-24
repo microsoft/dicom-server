@@ -69,6 +69,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
         /// </summary>
         public IReadOnlyCollection<QueryFilterCondition> FilterConditions { get; }
 
+        /// <summary>
+        /// List of erroneous tags.
+        /// </summary>
         public IReadOnlyCollection<string> ErroneousTags { get; }
 
         /// <summary>

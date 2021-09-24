@@ -675,11 +675,11 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Query is disabled on specified query tag &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Query is disabled on specified attribute &apos;{0}&apos;..
         /// </summary>
-        internal static string QueryIsDisabledOnTag {
+        internal static string QueryIsDisabledOnAttribute {
             get {
-                return ResourceManager.GetString("QueryIsDisabledOnTag", resourceCulture);
+                return ResourceManager.GetString("QueryIsDisabledOnAttribute", resourceCulture);
             }
         }
         

@@ -148,7 +148,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             // check if tag is disabled
             if (queryTag.IsExtendedQueryTag && queryTag.ExtendedQueryTagStoreEntry.QueryStatus == QueryStatus.Disabled)
             {
-                throw new QueryParseException(string.Format(DicomCoreResource.QueryIsDisabledOnTag, queryParameter.Key));
+                throw new QueryParseException(string.Format(DicomCoreResource.QueryIsDisabledOnAttribute, queryParameter.Key));
             }
 
             if (string.IsNullOrWhiteSpace(queryParameter.Value))
