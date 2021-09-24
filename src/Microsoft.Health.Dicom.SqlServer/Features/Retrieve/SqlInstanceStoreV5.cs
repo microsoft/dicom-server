@@ -102,27 +102,30 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
         }
 
         public override Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
+            string partitionId,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
             CancellationToken cancellationToken)
         {
-            return GetInstanceIdentifierImp(partitionId: null, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
+            return GetInstanceIdentifierImp(partitionId, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
         }
 
         public override Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
+            string partitionId,
             string studyInstanceUid,
             string seriesInstanceUid,
             CancellationToken cancellationToken)
         {
-            return GetInstanceIdentifierImp(partitionId: null, studyInstanceUid, cancellationToken, seriesInstanceUid);
+            return GetInstanceIdentifierImp(partitionId, studyInstanceUid, cancellationToken, seriesInstanceUid);
         }
 
         public override Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
+            string partitionId,
             string studyInstanceUid,
             CancellationToken cancellationToken)
         {
-            return GetInstanceIdentifierImp(partitionId: null, studyInstanceUid, cancellationToken);
+            return GetInstanceIdentifierImp(partitionId, studyInstanceUid, cancellationToken);
         }
 
         private async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierImp(

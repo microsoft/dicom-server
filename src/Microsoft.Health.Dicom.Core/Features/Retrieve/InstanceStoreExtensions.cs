@@ -20,6 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         public static async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstancesToRetrieve(
                 this IInstanceStore instanceStore,
                 ResourceType resourceType,
+                string partitionId,
                 string studyInstanceUid,
                 string seriesInstanceUid,
                 string sopInstanceUid,
@@ -34,6 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 case ResourceType.Frames:
                 case ResourceType.Instance:
                     instancesToRetrieve = await instanceStore.GetInstanceIdentifierAsync(
+                        partitionId,
                         studyInstanceUid,
                         seriesInstanceUid,
                         sopInstanceUid,
@@ -41,12 +43,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                     break;
                 case ResourceType.Series:
                     instancesToRetrieve = await instanceStore.GetInstanceIdentifiersInSeriesAsync(
+                        partitionId,
                         studyInstanceUid,
                         seriesInstanceUid,
                         cancellationToken);
                     break;
                 case ResourceType.Study:
                     instancesToRetrieve = await instanceStore.GetInstanceIdentifiersInStudyAsync(
+                        partitionId,
                         studyInstanceUid,
                         cancellationToken);
                     break;

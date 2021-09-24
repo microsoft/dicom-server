@@ -15,15 +15,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
     public interface IInstanceStore
     {
         Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
+            string partitionId,
             string studyInstanceUid,
             CancellationToken cancellationToken = default);
 
         Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
+            string partitionId,
             string studyInstanceUid,
             string seriesInstanceUid,
             CancellationToken cancellationToken = default);
 
         Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
+            string partitionId,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
