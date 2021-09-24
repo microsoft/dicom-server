@@ -6,6 +6,7 @@
 using System.Linq;
 using EnsureThat;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Api.Features.Filters
@@ -17,7 +18,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
             EnsureArg.IsNotNull(context, nameof(context));
             if (!context.ModelState.IsValid)
             {
-                throw new InvalidQueryStringValuesException(context.ModelState.FirstOrDefault(x => x.Value.Errors.Any()).Key);
+                (string key, ModelStateEntry value) = context.ModelState.Where(x => x.Value.Errors.Count > 0).First();
+                throw new InvalidQueryStringValuesException(key, value.Errors[0].ErrorMessage);
             }
         }
     }

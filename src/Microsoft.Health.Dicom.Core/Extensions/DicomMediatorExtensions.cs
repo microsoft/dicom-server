@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
-using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
@@ -112,14 +111,12 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
         public static Task<QueryResourceResponse> QueryDicomResourcesAsync(
             this IMediator mediator,
-            IEnumerable<KeyValuePair<string, StringValues>> requestQuery,
-            QueryResource resourceType,
-            string studyInstanceUid = null,
-            string seriesInstanceUid = null,
+            QueryParameters parameters,
             CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
-            return mediator.Send(new QueryResourceRequest(requestQuery, resourceType, studyInstanceUid, seriesInstanceUid), cancellationToken);
+            EnsureArg.IsNotNull(parameters, nameof(parameters));
+            return mediator.Send(new QueryResourceRequest(parameters), cancellationToken);
         }
 
         public static Task<ChangeFeedResponse> GetChangeFeed(

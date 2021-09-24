@@ -107,7 +107,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
         private async Task ValidateIndexedItems(DicomDataset dicomDataset, CancellationToken cancellationToken)
         {
-            IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(forceRefresh: false, cancellationToken: cancellationToken);
+            IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
             foreach (QueryTag queryTag in queryTags)
             {
                 dicomDataset.ValidateQueryTag(queryTag, _minimumValidator);

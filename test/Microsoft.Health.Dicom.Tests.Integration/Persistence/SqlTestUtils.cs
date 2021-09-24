@@ -3,9 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Data;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Data.SqlClient;
+using Microsoft.SqlServer.Management.Common;
+using Microsoft.SqlServer.Management.Sdk.Sfc;
+using Microsoft.SqlServer.Management.Smo;
+using StoredProcedure = Microsoft.SqlServer.Management.Smo.StoredProcedure;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
@@ -34,6 +40,35 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     await sqlCommand.ExecuteNonQueryAsync();
                 }
             }
+        }
+
+        /// <summary>
+        /// Get StoredProcedures in SqlDataStore
+        /// </summary>
+        /// <param name="sqlDataStore">The Sql data store</param>
+        /// <returns>The stored procedures.</returns>
+        public static System.Collections.Generic.IReadOnlyList<StoredProcedure> GetStoredProcedures(SqlDataStoreTestsFixture sqlDataStore)
+        {
+            EnsureArg.IsNotNull(sqlDataStore, nameof(sqlDataStore));
+            using var sqlConnection = new SqlConnection(sqlDataStore.TestConnectionString);
+            ServerConnection connection = new ServerConnection(sqlConnection);
+            Server server = new Server(connection);
+            Database db = server.Databases[sqlDataStore.DatabaseName];
+            DataTable storedProcedureTable = db.EnumObjects(DatabaseObjectTypes.StoredProcedure);
+
+            List<StoredProcedure> result = new List<StoredProcedure>();
+            foreach (DataRow row in storedProcedureTable.Rows)
+            {
+                string schema = (string)row["Schema"];
+                if (schema == "sys")
+                {
+                    continue;
+                }
+
+                StoredProcedure sp = (StoredProcedure)server.GetSmoObject(new Urn((string)row["Urn"]));
+                result.Add(sp);
+            }
+            return result;
         }
     }
 }
