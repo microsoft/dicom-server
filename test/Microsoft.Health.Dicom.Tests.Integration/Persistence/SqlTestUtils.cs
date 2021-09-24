@@ -48,14 +48,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         /// Get StoredProcedures in SqlDataStore
         /// </summary>
         /// <param name="sqlDataStore">The Sql data store</param>
-        /// <param name="cancellationToken">The cancellation token</param>
         /// <returns>The stored procedures.</returns>
-        public static async Task<System.Collections.Generic.IReadOnlyList<StoredProcedure>> GetStoredProceduresAsync(SqlDataStoreTestsFixture sqlDataStore, CancellationToken cancellationToken = default)
+        public static System.Collections.Generic.IReadOnlyList<StoredProcedure> GetStoredProcedures(SqlDataStoreTestsFixture sqlDataStore)
         {
             EnsureArg.IsNotNull(sqlDataStore, nameof(sqlDataStore));
-            using var connectionWraper = await sqlDataStore.SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
-            ServerConnection connection = new ServerConnection(connectionWraper.SqlConnection);
-            Assert.True(false, "Connnections string is: " + connectionWraper.SqlConnection.ConnectionString);
+            ServerConnection connection = new ServerConnection(new SqlConnection(sqlDataStore.TestConnectionString));
             Server server = new Server(connection);
             Database db = server.Databases[sqlDataStore.DatabaseName];
             DataTable storedProcedureTable = db.EnumObjects(DatabaseObjectTypes.StoredProcedure);
