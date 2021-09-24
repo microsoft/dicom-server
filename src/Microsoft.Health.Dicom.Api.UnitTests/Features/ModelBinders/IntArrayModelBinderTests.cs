@@ -45,12 +45,14 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.ModelBinders
         public async Task GivenInvalidStringContent_WhenBindingIntArrayData_ModelIsNotSet(string contextValue)
         {
             ModelBindingContext bindingContext = Substitute.For<ModelBindingContext>();
+            bindingContext.ModelName = "foo";
+            bindingContext.ModelState = new ModelStateDictionary();
             bindingContext.ValueProvider.GetValue(bindingContext.ModelName).Returns(new ValueProviderResult(new StringValues(contextValue)));
 
             IModelBinder modelBinder = new IntArrayModelBinder();
             await modelBinder.BindModelAsync(bindingContext);
 
-            Assert.Equal(bindingContext.Result, ModelBindingResult.Failed());
+            Assert.Equal(1, bindingContext.ModelState.ErrorCount);
         }
     }
 }
