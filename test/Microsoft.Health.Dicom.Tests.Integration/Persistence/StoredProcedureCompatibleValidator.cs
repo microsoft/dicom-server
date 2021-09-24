@@ -27,25 +27,25 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             foreach (var pair in pairs)
             {
-                var oldOne = pair.Item1;
-                var newOne = pair.Item2;
+                var oldProcedure = pair.Item1;
+                var newProcedure = pair.Item2;
 
-                List<StoredProcedureParameter> oldList = oldOne.Parameters.Cast<StoredProcedureParameter>().ToList();
-                List<StoredProcedureParameter> newList = newOne.Parameters.Cast<StoredProcedureParameter>().ToList();
+                List<StoredProcedureParameter> oldParams = oldProcedure.Parameters.Cast<StoredProcedureParameter>().ToList();
+                List<StoredProcedureParameter> newParams = newProcedure.Parameters.Cast<StoredProcedureParameter>().ToList();
 
                 // any old parameter should be able to find a match
-                foreach (var paramOld in oldList)
+                foreach (var oldParam in oldParams)
                 {
-                    int iNewParam = newList.FindIndex(x => x.Name == paramOld.Name);
+                    int iNewParam = newParams.FindIndex(x => x.Name == oldParam.Name);
                     Assert.NotEqual(-1, iNewParam);
-                    Assert.Equal(paramOld.DataType, newList[iNewParam].DataType);
+                    Assert.Equal(oldParam.DataType, newParams[iNewParam].DataType);
 
                     // remove from new list since having a match
-                    newList.RemoveAt(iNewParam);
+                    newParams.RemoveAt(iNewParam);
                 }
 
                 // additional parameters must have default value
-                foreach (var item in newList)
+                foreach (var item in newParams)
                 {
                     Assert.NotEqual(string.Empty, item.DefaultValue);
                 }
@@ -55,12 +55,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private static List<Tuple<StoredProcedure, StoredProcedure>> GetComparisonProcedures(IReadOnlyCollection<StoredProcedure> newProcedures, IReadOnlyCollection<StoredProcedure> oldProcedures)
         {
             List<Tuple<StoredProcedure, StoredProcedure>> pairs = new List<Tuple<StoredProcedure, StoredProcedure>>();
-            foreach (var oldOne in oldProcedures)
+            foreach (var oldProcedure in oldProcedures)
             {
                 // every procedure in old database must have a match in new
-                var newOne = newProcedures.FirstOrDefault(x => x.Name == oldOne.Name);
+                var newOne = newProcedures.FirstOrDefault(x => x.Name == oldProcedure.Name);
                 Assert.NotNull(newOne);
-                pairs.Add(new Tuple<StoredProcedure, StoredProcedure>(oldOne, newOne));
+                pairs.Add(new Tuple<StoredProcedure, StoredProcedure>(oldProcedure, newOne));
             }
             return pairs;
         }
