@@ -41,9 +41,12 @@ CREATE UNIQUE NONCLUSTERED INDEX IXC_Partition_PartitionKey_PartitionId on dbo.P
     PartitionId
 )
 
--- Inserting Default values since we are adding PartitionKey as NOT NULL columns in all the tables
-INSERT INTO dbo.Partition (PartitionKey, PartitionId, CreatedDate)
-VALUES (1, 'Microsoft.Default', SYSUTCDATETIME())
+IF NOT EXISTS (SELECT 1 FROM dbo.Partition WHERE PartitionId = 'Microsoft.Default')
+BEGIN
+    -- Inserting Default values since we are adding PartitionKey as NOT NULL columns in all the tables
+    INSERT INTO dbo.Partition (PartitionKey, PartitionId, CreatedDate)
+    VALUES (1, 'Microsoft.Default', SYSUTCDATETIME())
+END
 
 /*************************************************************
     Instance Table
