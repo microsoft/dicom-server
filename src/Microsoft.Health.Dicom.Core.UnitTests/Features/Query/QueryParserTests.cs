@@ -336,6 +336,48 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             Assert.Equal("CoronaPatient", fuzzyCondition.Value);
         }
 
+        [Fact]
+        public void GivenErroneousTag_WhenParse_ThenShouldBeInList()
+        {
+            DicomTag tag1 = DicomTag.PatientAge;
+            DicomTag tag2 = DicomTag.PatientAddress;
+            QueryTag[] tags = new QueryTag[]
+            {
+              new QueryTag(new ExtendedQueryTagStoreEntry(1, tag1.GetPath(), tag1.GetDefaultVR().Code, null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled,1)), // has error
+              new QueryTag(new ExtendedQueryTagStoreEntry(2, tag2.GetPath(), tag2.GetDefaultVR().Code, null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled,0)), // no error
+            };
+            QueryExpression queryExpression = _queryParser.Parse(
+                CreateParameters(
+                    new Dictionary<string, string>
+                    {
+                        { tag1.GetFriendlyName(), "CoronaPatient" },
+                        { tag2.GetPath(), "20200403" },
+                    },
+                    QueryResource.AllInstances),
+                tags);
+
+            Assert.Single(queryExpression.ErroneousTags);
+            Assert.Equal(queryExpression.ErroneousTags.First(), tag1.GetFriendlyName());
+        }
+
+        [Fact]
+        public void GivenDisabledTag_WhenParse_ThenShouldThrowException()
+        {
+            DicomTag tag1 = DicomTag.PatientAge;
+            QueryTag[] tags = new QueryTag[]
+            {
+              new QueryTag(new ExtendedQueryTagStoreEntry(1, tag1.GetPath(), tag1.GetDefaultVR().Code, null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryStatus.Disabled,1)), // disabled
+            };
+            var parameters = CreateParameters(
+                    new Dictionary<string, string>
+                    {
+                        { tag1.GetFriendlyName(), "CoronaPatient" },
+                    },
+                    QueryResource.AllStudies);
+
+            Assert.Throws<QueryParseException>(() => _queryParser.Parse(parameters, tags));
+        }
+
         private void VerifyIncludeFieldsForValidAttributeIds(params string[] values)
         {
             QueryExpression queryExpression = _queryParser.Parse(
