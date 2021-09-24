@@ -3,8 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using EnsureThat;
 using MediatR;
-using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
 {
@@ -12,18 +12,8 @@ namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
     {
         public GetExtendedQueryTagsRequest(int limit, int offset)
         {
-            if (limit < 1 || limit > 200)
-            {
-                throw new BadRequestException(string.Format(DicomCoreResource.PaginationLimitOutOfRange, limit, 1, 200));
-            }
-
-            if (offset < 0)
-            {
-                throw new BadRequestException(string.Format(DicomCoreResource.PaginationNegativeOffset, offset));
-            }
-
-            Limit = limit;
-            Offset = offset;
+            Limit = EnsureArg.IsInRange(limit, 1, 200, nameof(limit));
+            Offset = EnsureArg.IsGte(offset, 0, nameof(offset));
         }
 
         public int Limit { get; }

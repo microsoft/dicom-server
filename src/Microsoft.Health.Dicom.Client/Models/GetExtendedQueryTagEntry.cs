@@ -35,5 +35,15 @@ namespace Microsoft.Health.Dicom.Client.Models
         /// Identification code of private tag implementer.
         /// </summary>
         public string PrivateCreator { get; set; }
+
+        /// <summary>
+        /// Optional errors associated with the query tag.
+        /// </summary>
+        public ExtendedQueryTagErrorReference Errors { get; set; }
+
+        /// <summary>
+        /// Optional reference to the operation acted upon the act.
+        /// </summary>
+        public OperationReference Operation { get; set; }
     }
 }

@@ -11,6 +11,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 {
     public interface IQueryService
     {
-        Task<QueryResourceResponse> QueryAsync(QueryResourceRequest message, CancellationToken cancellationToken = default);
+        Task<QueryResourceResponse> QueryAsync(QueryParameters parameters, CancellationToken cancellationToken = default);
     }
 }
