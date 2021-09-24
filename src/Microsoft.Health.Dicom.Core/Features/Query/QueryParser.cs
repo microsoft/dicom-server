@@ -61,6 +61,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             // Update the list of query tags
             queryTags = GetQualifiedQueryTags(queryTags, parameters.QueryResourceType);
 
+            List<string> erroneousTags = new List<string>();
+
             var filterConditions = new Dictionary<DicomTag, QueryFilterCondition>();
             foreach (KeyValuePair<string, string> filter in parameters.Filters)
             {
@@ -68,6 +70,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 if (!ParseFilterCondition(filter, queryTags, parameters.FuzzyMatching, out QueryFilterCondition condition))
                 {
                     throw new QueryParseException(string.Format(DicomCoreResource.UnknownQueryParameter, filter.Key));
+                }
+
+                if (condition.QueryTag.IsExtendedQueryTag && condition.QueryTag.ExtendedQueryTagStoreEntry.ErrorCount > 0)
+                {
+                    erroneousTags.Add(filter.Key);
                 }
 
                 if (!filterConditions.TryAdd(condition.QueryTag.Tag, condition))
@@ -101,7 +108,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 parameters.FuzzyMatching,
                 parameters.Limit,
                 parameters.Offset,
-                filterConditions.Values);
+                filterConditions.Values,
+                erroneousTags);
         }
 
         private static IReadOnlyCollection<QueryTag> GetQualifiedQueryTags(IReadOnlyCollection<QueryTag> queryTags, QueryResource queryResource)
@@ -134,7 +142,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 return false;
             }
 
-            QueryTag queryTag = GetSupportedQueryTag(dicomTag, queryParameter.Key, queryTags);
+            // QueryTag could be either core or extended query tag.
+            QueryTag queryTag = GetMatchingQueryTag(dicomTag, queryParameter.Key, queryTags);
+
+            // check if tag is disabled
+            if (queryTag.IsExtendedQueryTag && queryTag.ExtendedQueryTagStoreEntry.QueryStatus == QueryStatus.Disabled)
+            {
+                throw new QueryParseException(string.Format(DicomCoreResource.QueryIsDisabledOnTag, queryParameter.Key));
+            }
 
             if (string.IsNullOrWhiteSpace(queryParameter.Value))
             {
@@ -168,7 +183,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return false;
         }
 
-        private static QueryTag GetSupportedQueryTag(DicomTag dicomTag, string attributeId, IEnumerable<QueryTag> queryTags)
+        private static QueryTag GetMatchingQueryTag(DicomTag dicomTag, string attributeId, IEnumerable<QueryTag> queryTags)
         {
             QueryTag queryTag = queryTags.FirstOrDefault(item =>
             {

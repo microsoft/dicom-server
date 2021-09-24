@@ -675,6 +675,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Query is disabled on specified query tag &apos;{0}&apos;..
+        /// </summary>
+        internal static string QueryIsDisabledOnTag {
+            get {
+                return ResourceManager.GetString("QueryIsDisabledOnTag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query.  Specified limit value {0} is outside the allowed range of {1}..{2}..
         /// </summary>
         internal static string QueryResultCountMaxExceeded {
