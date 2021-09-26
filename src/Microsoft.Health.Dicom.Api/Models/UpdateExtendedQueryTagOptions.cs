@@ -32,6 +32,12 @@ namespace Microsoft.Health.Dicom.Api.Models
             return new UpdateExtendedQueryTagEntry(QueryStatus.Value);
         }
 
+        public string FormatToLog()
+        {
+            // When there is ExtensionData, request fail for BadRequest, so no need to log.
+            return $"{nameof(QueryStatus)}: '{QueryStatus}'";
+        }
+
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (ExtensionData != null && ExtensionData.Count != 0)
