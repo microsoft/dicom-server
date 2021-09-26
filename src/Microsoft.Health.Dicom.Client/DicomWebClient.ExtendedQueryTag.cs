@@ -98,7 +98,7 @@ namespace Microsoft.Health.Dicom.Client
             EnsureArg.IsNotNull(newValue, nameof(newValue));
             EnsureArg.EnumIsDefined(newValue.QueryStatus, nameof(newValue));
             string jsonString = JsonConvert.SerializeObject(newValue, _jsonSerializerSettings);
-            var uri = new Uri($"/{_apiVersion}{DicomWebConstants.BaseExtendedQueryTagUri}", UriKind.Relative);
+            var uri = new Uri($"/{_apiVersion}{DicomWebConstants.BaseExtendedQueryTagUri}/{tagPath}", UriKind.Relative);
 
             using var request = new HttpRequestMessage(HttpMethod.Patch, uri);
             {

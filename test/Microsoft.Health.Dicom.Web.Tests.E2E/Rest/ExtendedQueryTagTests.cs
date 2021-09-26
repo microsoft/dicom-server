@@ -117,8 +117,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             instance1.NotValidated();
             instance2.NotValidated();
 
-            instance1.Add(tag, "foobar");
-            instance2.Add(tag, "invalid");
+            instance1.Add(tag, "foob");
+            instance2.Add(tag, "inva");
             instance3.Add(tag, tagValue);
 
             // Upload files (with a few errors)
@@ -152,11 +152,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
 
             // Enable
-            actual = await _tagManager.UpdateExtendedQueryTagAsync(tag.GetPath(), new UpdateExtendedQueryTagEntry() { QueryStatus = QueryStatus.Disabled });
+            actual = await _tagManager.UpdateExtendedQueryTagAsync(tag.GetPath(), new UpdateExtendedQueryTagEntry() { QueryStatus = QueryStatus.Enabled });
             Assert.Equal(QueryStatus.Enabled, actual.QueryStatus);
 
-            // TODO: QIDO should not throw exception, but erronous tags are in header
             var response = await _client.QueryInstancesAsync($"{tag.GetPath()}={tagValue}");
+
+            Assert.True(response.ResponseHeaders.Contains(DicomWebConstants.ErroneousDicomAttributesHeader));
+            var values = response.ResponseHeaders.GetValues(DicomWebConstants.ErroneousDicomAttributesHeader);
+            Assert.Single(values);
+            Assert.Equal(tag.GetPath(), values.First());
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
