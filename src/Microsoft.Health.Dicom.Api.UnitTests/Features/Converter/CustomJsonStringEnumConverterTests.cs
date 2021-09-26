@@ -22,6 +22,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Converter
         [Theory]
         [InlineData("\"Instance\"", QueryTagLevel.Instance)]
         [InlineData("\"instance\"", QueryTagLevel.Instance)] // lower case
+        [InlineData("\"0\"", QueryTagLevel.Instance)] // string number -- Enum.TryParse support this by default.
         public void GivenValidEnumString_WhenRead_ThenShouldReturnExpectedValue(string value, QueryTagLevel expected)
         {
             Assert.Equal(expected, JsonSerializer.Deserialize(value, typeof(QueryTagLevel), _options));

@@ -147,7 +147,7 @@
     <comment>{0} is the value. {1} is the type.</comment>
   </data>
   <data name="InvalidRequestBody" xml:space="preserve">
-    <value>The request body is not valid:  {0} - {1}</value>
+    <value>The request body is not valid: {0} - {1}</value>
     <comment>{0} is key, {1} is error message</comment>
   </data>
   <data name="MissingAuditInformation" xml:space="preserve">

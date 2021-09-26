@@ -21,12 +21,9 @@ namespace Microsoft.Health.Dicom.Api.Features.Converter
             if (reader.TokenType == JsonTokenType.String)
             {
                 string content = reader.GetString();
-                foreach (var item in Enum.GetValues(typeToConvert))
+                if (Enum.TryParse(typeToConvert, content, true, out object result))
                 {
-                    if (item.ToString().Equals(content, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return (T)item;
-                    }
+                    return (T)result;
                 }
             }
 

@@ -133,7 +133,7 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The request body is not valid:  {0} - {1}.
+        ///   Looks up a localized string similar to The request body is not valid: {0} - {1}.
         /// </summary>
         internal static string InvalidRequestBody {
             get {
