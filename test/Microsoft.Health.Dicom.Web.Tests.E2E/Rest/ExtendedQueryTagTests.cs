@@ -117,8 +117,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             instance1.NotValidated();
             instance2.NotValidated();
 
-            instance1.Add(tag, "foob");
-            instance2.Add(tag, "inva");
+            instance1.Add(tag, "foobar");
+            instance2.Add(tag, "invalid");
             instance3.Add(tag, tagValue);
 
             // Upload files (with a few errors)
