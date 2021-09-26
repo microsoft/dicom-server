@@ -151,7 +151,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.QueryInstancesAsync($"{tag.GetPath()}={tagValue}"));
             Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
 
-            // Enable
+            // Enable QIDO on Tag
             actual = await _tagManager.UpdateExtendedQueryTagAsync(tag.GetPath(), new UpdateExtendedQueryTagEntry() { QueryStatus = QueryStatus.Enabled });
             Assert.Equal(QueryStatus.Enabled, actual.QueryStatus);
 
@@ -162,6 +162,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Single(values);
             Assert.Equal(tag.GetPath(), values.First());
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            // Verify result
+            DicomDataset[] instances = await response.ToArrayAsync();
+            Assert.Contains(instances, instance => instance.ToInstanceIdentifier().Equals(instance3.ToInstanceIdentifier()));
         }
 
         [Theory]
