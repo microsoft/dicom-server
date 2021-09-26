@@ -96,8 +96,8 @@ namespace Microsoft.Health.Dicom.Client
         {
             EnsureArg.IsNotNullOrWhiteSpace(tagPath, nameof(tagPath));
             EnsureArg.IsNotNull(newValue, nameof(newValue));
-            EnsureArg.EnumIsDefined(newValue.QueryStatus, nameof(newValue.QueryStatus));
-            string jsonString = JsonConvert.SerializeObject(newValue);
+            EnsureArg.EnumIsDefined(newValue.QueryStatus, nameof(newValue));
+            string jsonString = JsonConvert.SerializeObject(newValue, _jsonSerializerSettings);
             var uri = new Uri($"/{_apiVersion}{DicomWebConstants.BaseExtendedQueryTagUri}", UriKind.Relative);
 
             using var request = new HttpRequestMessage(HttpMethod.Patch, uri);
@@ -106,8 +106,7 @@ namespace Microsoft.Health.Dicom.Client
                 request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType);
             }
 
-            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
-                .ConfigureAwait(false);
+            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
             await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
             return new DicomWebResponse<GetExtendedQueryTagEntry>(response, ValueFactory<GetExtendedQueryTagEntry>);
         }

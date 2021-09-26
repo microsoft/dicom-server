@@ -19,6 +19,7 @@ using EnsureThat;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using MediaTypeHeaderValue = Microsoft.Net.Http.Headers.MediaTypeHeaderValue;
 using NameValueHeaderValue = System.Net.Http.Headers.NameValueHeaderValue;
 
@@ -42,6 +43,9 @@ namespace Microsoft.Health.Dicom.Client
             _apiVersion = apiVersion;
             _jsonSerializerSettings = new JsonSerializerSettings();
             _jsonSerializerSettings.Converters.Add(new JsonDicomConverter(writeTagsAsKeywords: true, autoValidate: false));
+
+            // Used by extended qeury tag apis
+            _jsonSerializerSettings.Converters.Add(new StringEnumConverter());
 
             GetMemoryStream = () => new MemoryStream();
         }

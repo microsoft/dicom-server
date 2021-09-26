@@ -373,9 +373,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
                     {
                         { tag1.GetFriendlyName(), "CoronaPatient" },
                     },
-                    QueryResource.AllStudies);
+                    QueryResource.AllInstances);
 
-            Assert.Throws<QueryParseException>(() => _queryParser.Parse(parameters, tags));
+            var exp = Assert.Throws<QueryParseException>(() => _queryParser.Parse(parameters, tags));
+            Assert.Equal($"Query is disabled on specified attribute '{tag1.GetFriendlyName()}'.", exp.Message);
         }
 
         private void VerifyIncludeFieldsForValidAttributeIds(params string[] values)

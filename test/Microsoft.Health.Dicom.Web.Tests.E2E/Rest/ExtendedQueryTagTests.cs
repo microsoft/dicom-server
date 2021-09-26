@@ -105,6 +105,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             // Define tags
             DicomTag tag = DicomTag.PatientAge;
+            string tagValue = "053Y";
 
             // Define DICOM files
             DicomDataset instance1 = Samples.CreateRandomInstanceDataset();
@@ -118,7 +119,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             instance1.Add(tag, "foobar");
             instance2.Add(tag, "invalid");
-            instance3.Add(tag, "053Y");
+            instance3.Add(tag, tagValue);
 
             // Upload files (with a few errors)
             await _instanceManager.StoreAsync(new DicomFile(instance1));
@@ -137,69 +138,27 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             GetExtendedQueryTagEntry actual = await _tagManager.GetTagAsync(tag.GetPath());
             Assert.Equal(tag.GetPath(), actual.Path);
             Assert.Equal(2, actual.Errors.Count);
+            // It should be disabled by default
+            Assert.Equal(QueryStatus.Disabled, actual.QueryStatus);
 
-            // Query Errors
+            // Verify Errors
             var errors = await _tagManager.GetTagErrorsAsync(tag.GetPath(), 2, 0);
             Assert.Equal(2, errors.Count);
 
             Assert.Equal(errors[0].ErrorMessage, (await _tagManager.GetTagErrorsAsync(tag.GetPath(), 1, 0)).Single().ErrorMessage);
             Assert.Equal(errors[1].ErrorMessage, (await _tagManager.GetTagErrorsAsync(tag.GetPath(), 1, 1)).Single().ErrorMessage);
-        }
 
-
-        [Fact(Skip = "Pending on QIDO to respect QueryStatus")]
-        public async Task GivenExtendedQueryTagWithErrors_WhenUpdateQueryStatus_ThenQidoResultShouldChangeRespectively()
-        {
-            if (_isUsingInProcTestServer)
-            {
-                // AzureFunction doesn't have InProc test sever, skip this test.
-                return;
-            }
-
-            // Define tags
-            DicomTag tag = DicomTag.PatientAge;
-
-            // Define DICOM files
-            DicomDataset instance1 = Samples.CreateRandomInstanceDataset();
-            DicomDataset instance2 = Samples.CreateRandomInstanceDataset();
-            DicomDataset instance3 = Samples.CreateRandomInstanceDataset();
-
-            // Annotate files
-            // (Disable Auto-validate)
-            instance1.NotValidated();
-            instance2.NotValidated();
-
-            instance1.Add(tag, "foobar");
-            instance2.Add(tag, "invalid");
-            instance3.Add(tag, "053Y");
-
-            // Upload files (with a few errors)
-            await _instanceManager.StoreAsync(new DicomFile(instance1));
-            await _instanceManager.StoreAsync(new DicomFile(instance2));
-            await _instanceManager.StoreAsync(new DicomFile(instance3));
-
-            // Add extended query tags
-            var operationStatus = await _tagManager.AddTagsAsync(
-                new AddExtendedQueryTagEntry[]
-                {
-                    new AddExtendedQueryTagEntry { Path = tag.GetPath(), VR = tag.GetDefaultVR().Code, Level = QueryTagLevel.Instance },
-                });
-            Assert.Equal(OperationRuntimeStatus.Completed, operationStatus.Status);
-
-            // It should be disabled by default
-            GetExtendedQueryTagEntry actual = await _tagManager.GetTagAsync(tag.GetPath());
-            Assert.Equal(QueryStatus.Disabled, actual.QueryStatus);
-
-            // TODO: QIDO should throw exception
+            var exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.QueryInstancesAsync($"{tag.GetPath()}={tagValue}"));
+            Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
 
             // Enable
             actual = await _tagManager.UpdateExtendedQueryTagAsync(tag.GetPath(), new UpdateExtendedQueryTagEntry() { QueryStatus = QueryStatus.Disabled });
             Assert.Equal(QueryStatus.Enabled, actual.QueryStatus);
 
             // TODO: QIDO should not throw exception, but erronous tags are in header
+            var response = await _client.QueryInstancesAsync($"{tag.GetPath()}={tagValue}");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
-
-
 
         [Theory]
         [MemberData(nameof(GetRequestBodyWithMissingProperty))]
