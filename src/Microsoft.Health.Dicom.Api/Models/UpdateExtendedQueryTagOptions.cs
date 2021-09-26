@@ -3,10 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
@@ -34,8 +36,11 @@ namespace Microsoft.Health.Dicom.Api.Models
         {
             if (ExtensionData != null && ExtensionData.Count != 0)
             {
-                string addtionalFields = string.Join(",\"", ExtensionData.Keys);
-                yield return new ValidationResult(string.Format(CultureInfo.InvariantCulture, DicomApiResource.UnsupportedKeys, addtionalFields), ExtensionData.Keys);
+                return ExtensionData.Select(x => new ValidationResult(string.Format(CultureInfo.InvariantCulture, DicomApiResource.UnsupportedField, x.Key), new[] { x.Key }));
+            }
+            else
+            {
+                return Array.Empty<ValidationResult>();
             }
         }
     }

@@ -147,8 +147,8 @@
     <comment>{0} is the value. {1} is the type.</comment>
   </data>
   <data name="InvalidRequestBody" xml:space="preserve">
-    <value>The request body is not valid. Details: {0}</value>
-    <comment>{0} is the list of errors on the model state.</comment>
+    <value>The request body is not valid:  {0} - {1}</value>
+    <comment>{0} is key, {1} is error message</comment>
   </data>
   <data name="MissingAuditInformation" xml:space="preserve">
     <value>The audit information is missing for Controller: {0} and Action: {1}. This usually means the action is not marked with appropriate attribute.</value>
@@ -165,8 +165,8 @@
     <value>The specified content type '{0}' is not supported.</value>
     <comment>{0} is the specified content type. E.g., application/dicom</comment>
   </data>
-  <data name="UnsupportedKeys" xml:space="preserve">
-    <value>The key(s) are not supported: "{0}".</value>
-    <comment>{0} is key list.</comment>
+  <data name="UnsupportedField" xml:space="preserve">
+    <value>The field is not supported: "{0}".</value>
+    <comment>{0} is field.</comment>
   </data>
 </root>

@@ -133,7 +133,7 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The request body is not valid. Details: {0}.
+        ///   Looks up a localized string similar to The request body is not valid:  {0} - {1}.
         /// </summary>
         internal static string InvalidRequestBody {
             get {
@@ -178,11 +178,11 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The key(s) are not supported: &quot;{0}&quot;..
+        ///   Looks up a localized string similar to The field is not supported: &quot;{0}&quot;..
         /// </summary>
-        internal static string UnsupportedKeys {
+        internal static string UnsupportedField {
             get {
-                return ResourceManager.GetString("UnsupportedKeys", resourceCulture);
+                return ResourceManager.GetString("UnsupportedField", resourceCulture);
             }
         }
     }

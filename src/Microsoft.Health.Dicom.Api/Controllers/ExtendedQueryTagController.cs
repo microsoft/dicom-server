@@ -192,7 +192,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [VersionedRoute(KnownRoutes.UpdateExtendedQueryTagQueryStatusRoute, Name = KnownRouteNames.VersionedUpdateExtendedQueryTagQueryStatus)]
         [Route(KnownRoutes.UpdateExtendedQueryTagQueryStatusRoute, Name = KnownRouteNames.UpdateExtendedQueryTagQueryStatus)]
         [AuditEventType(AuditEventSubType.UpdateExtendedQueryTagQueryStatus)]
-        public async Task<IActionResult> UpdateTagAsync([FromRoute] string tagPath, [FromBody][Required] UpdateExtendedQueryTagOptions newValue)
+        public async Task<IActionResult> UpdateTagAsync([FromRoute] string tagPath, [FromBody] UpdateExtendedQueryTagOptions newValue)
         {
             _logger.LogInformation("DICOM Web Update Extended Query Tag Query Status request received for extended query tag {tagPath} and new value {newValue}", tagPath, newValue);
 
