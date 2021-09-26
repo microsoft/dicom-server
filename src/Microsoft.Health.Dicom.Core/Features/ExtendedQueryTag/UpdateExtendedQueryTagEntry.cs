@@ -3,7 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.ComponentModel.DataAnnotations;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
@@ -12,15 +12,14 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     /// </summary>
     public class UpdateExtendedQueryTagEntry
     {
+        public UpdateExtendedQueryTagEntry(QueryStatus queryStatus)
+        {
+            QueryStatus = EnsureArg.EnumIsDefined(queryStatus, nameof(queryStatus));
+        }
+
         /// <summary>
         /// Gets or sets query status.
-        /// </summary>
-        [Required]
-        public QueryStatus? QueryStatus { get; set; }
-
-        public override string ToString()
-        {
-            return $"QueryStatus: {QueryStatus}";
-        }
+        /// </summary>        
+        public QueryStatus QueryStatus { get; }
     }
 }

@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         {
             EnsureArg.IsNotNull(tagPath, nameof(tagPath));
             EnsureArg.IsNotNull(newValue?.QueryStatus, nameof(newValue.QueryStatus));
-            EnsureArg.EnumIsDefined(newValue.QueryStatus.Value, nameof(UpdateExtendedQueryTagEntry.QueryStatus));
+            EnsureArg.EnumIsDefined(newValue.QueryStatus, nameof(UpdateExtendedQueryTagEntry.QueryStatus));
             DicomTag[] tags;
             if (!_dicomTagParser.TryParse(tagPath, out tags, supportMultiple: false))
             {
@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidExtendedQueryTag, tagPath ?? string.Empty));
             }
             string normalizedPath = tags[0].GetPath();
-            var entry = await _extendedQueryTagStore.UpdateQueryStatusAsync(normalizedPath, newValue.QueryStatus.Value, cancellationToken);
+            var entry = await _extendedQueryTagStore.UpdateQueryStatusAsync(normalizedPath, newValue.QueryStatus, cancellationToken);
             return entry.ToGetExtendedQueryTagEntry(_urlResolver);
         }
     }

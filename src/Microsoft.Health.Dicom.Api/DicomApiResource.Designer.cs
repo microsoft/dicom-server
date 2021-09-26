@@ -176,5 +176,14 @@ namespace Microsoft.Health.Dicom.Api {
                 return ResourceManager.GetString("UnsupportedContentType", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The key(s) are not supported: &quot;{0}&quot;..
+        /// </summary>
+        internal static string UnsupportedKeys {
+            get {
+                return ResourceManager.GetString("UnsupportedKeys", resourceCulture);
+            }
+        }
     }
 }

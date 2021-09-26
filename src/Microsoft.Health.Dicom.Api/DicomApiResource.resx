@@ -165,4 +165,8 @@
     <value>The specified content type '{0}' is not supported.</value>
     <comment>{0} is the specified content type. E.g., application/dicom</comment>
   </data>
+  <data name="UnsupportedKeys" xml:space="preserve">
+    <value>The key(s) are not supported: "{0}".</value>
+    <comment>{0} is key list.</comment>
+  </data>
 </root>

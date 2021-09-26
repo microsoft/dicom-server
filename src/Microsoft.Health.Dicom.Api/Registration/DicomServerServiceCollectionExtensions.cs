@@ -94,6 +94,7 @@ namespace Microsoft.AspNetCore.Builder
                     options.EnableEndpointRouting = false;
                     options.RespectBrowserAcceptHeader = true;
                     options.OutputFormatters.Insert(0, new DicomJsonOutputFormatter());
+                    options.ModelBindingMessageProvider.SetMissingRequestBodyRequiredValueAccessor(() => "SetMissingRequestBodyRequiredValueAccessor");
                 })
                 //
                 //  JsonStringEnumConverter doesn't provide good enough error message, make custom one to fit our requirements.
