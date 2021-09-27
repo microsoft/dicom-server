@@ -121,6 +121,13 @@
     <value>The maximum length of a custom audit header value is {0}. The supplied custom audit header '{1}' has length of {2}.</value>
     <comment>PH0 is a constant defining the max length of a header.  PH1 is the name  of the header sent in the request.  PH2 is the length of the incoming header value.  Example: The maximum length of a custom audit header value is 2048. The supplied custom audit header 'X-MS-AZUREFHIR-AUDIT-SITE' has length of 3072.</comment>
   </data>
+  <data name="DuplicateAttributeId" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Duplicate AttributeId '{0}'. Each attribute is only allowed to be specified once.</value>
+    <comment>{0} specified attributeid</comment>
+  </data>
+  <data name="DuplicateParameter" xml:space="preserve">
+    <value>Cannot specify parameter more than once.</value>
+  </data>
   <data name="InternalServerError" xml:space="preserve">
     <value>The server encountered an internal error. Please retry the request. If the issue persists, please contact support.</value>
   </data>
@@ -130,6 +137,10 @@
   <data name="InvalidMultipartContentType" xml:space="preserve">
     <value>The content type '{0}' is either not multipart or is missing boundary.</value>
     <comment>{0} is the specified content type. E.g., application/dicom</comment>
+  </data>
+  <data name="InvalidParse" xml:space="preserve">
+    <value>Unable to parse value '{0}' as {1}.</value>
+    <comment>{0} is the value. {1} is the type.</comment>
   </data>
   <data name="InvalidRequestBody" xml:space="preserve">
     <value>The request body is not valid. Details: {0}</value>

@@ -4,18 +4,21 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Linq;
 using Dicom;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Query
 {
     public sealed class QueryResourceResponse
     {
-        public QueryResourceResponse(IEnumerable<DicomDataset> responseDataset = null)
+        public QueryResourceResponse(IEnumerable<DicomDataset> responseDataset, IReadOnlyCollection<string> erroneousTags)
         {
-            ResponseDataset = responseDataset ?? Enumerable.Empty<DicomDataset>();
+            ResponseDataset = EnsureArg.IsNotNull(responseDataset, nameof(responseDataset));
+            ErroneousTags = EnsureArg.IsNotNull(erroneousTags, nameof(erroneousTags));
         }
 
         public IEnumerable<DicomDataset> ResponseDataset { get; }
+
+        public IReadOnlyCollection<string> ErroneousTags { get; }
     }
 }

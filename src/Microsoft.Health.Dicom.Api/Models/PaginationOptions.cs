@@ -3,14 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Query.Model;
+using System;
+using System.ComponentModel.DataAnnotations;
 
-namespace Microsoft.Health.Dicom.Core.Features.Query
+namespace Microsoft.Health.Dicom.Api.Models
 {
-    public interface IQueryParser
+    public class PaginationOptions
     {
-        QueryExpression Parse(QueryParameters parameters, IReadOnlyCollection<QueryTag> queryTags);
+        [Range(0, int.MaxValue)]
+        public int Offset { get; set; }
+
+        [Range(1, 200)]
+        public int Limit { get; set; } = 100;
     }
 }

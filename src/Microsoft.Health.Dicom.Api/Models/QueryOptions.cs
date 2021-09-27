@@ -3,14 +3,18 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Query.Model;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Health.Dicom.Api.Features.ModelBinders;
 
-namespace Microsoft.Health.Dicom.Core.Features.Query
+namespace Microsoft.Health.Dicom.Api.Models
 {
-    public interface IQueryParser
+    public class QueryOptions : PaginationOptions
     {
-        QueryExpression Parse(QueryParameters parameters, IReadOnlyCollection<QueryTag> queryTags);
+        public bool FuzzyMatching { get; set; }
+
+        [ModelBinder(typeof(AggregateCsvModelBinder))]
+        public IReadOnlyList<string> IncludeField { get; set; } = Array.Empty<string>();
     }
 }
