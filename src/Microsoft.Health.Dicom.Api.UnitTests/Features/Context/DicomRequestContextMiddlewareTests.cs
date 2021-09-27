@@ -35,23 +35,23 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Context
         [Fact]
         public async Task GivenAnHttpRequest_WhenExecutingDicomRequestContextMiddleware_ThenResponseSizeShouldBeSet()
         {
-            long largeRequestLentgh = 2000000000; // 2gb
+            long largeRequestLength = 2000000000; // 2gb
             long headerSize = 2;
-            IDicomRequestContext dicomRequestContext = await SetupAsync(CreateHttpContext(), largeRequestLentgh);
+            IDicomRequestContext dicomRequestContext = await SetupAsync(CreateHttpContext(), largeRequestLength);
 
-            Assert.Equal(largeRequestLentgh + headerSize, dicomRequestContext.ResponseSize);
+            Assert.Equal(largeRequestLength + headerSize, dicomRequestContext.ResponseSize);
         }
 
         private async Task<IDicomRequestContext> SetupAsync(HttpContext httpContext, long byteLength = 256)
         {
             var dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-            var dicomContextMiddlware = new DicomRequestContextMiddleware(next: (innerHttpContext) =>
+            var dicomContextMiddleware = new DicomRequestContextMiddleware(next: (innerHttpContext) =>
             {
                 innerHttpContext.Response.Body.Write(new byte[byteLength]);
                 return Task.CompletedTask;
             });
 
-            await dicomContextMiddlware.Invoke(httpContext, dicomRequestContextAccessor);
+            await dicomContextMiddleware.Invoke(httpContext, dicomRequestContextAccessor);
 
             Assert.NotNull(dicomRequestContextAccessor.RequestContext);
 
