@@ -19,15 +19,15 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
 {
-    internal class SqlInstanceStoreV4 : SqlInstanceStoreV3
+    internal class SqlInstanceStoreV5 : SqlInstanceStoreV4
     {
 
-        public SqlInstanceStoreV4(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+        public SqlInstanceStoreV5(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
             : base(sqlConnectionWrapperFactory)
         {
         }
 
-        public override SchemaVersion Version => SchemaVersion.V4;
+        public override SchemaVersion Version => SchemaVersion.V5;
 
         public override async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersByWatermarkRangeAsync(
             WatermarkRange watermarkRange,
@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                V4.GetInstancesByWatermarkRange.PopulateCommand(
+                VLatest.GetInstancesByWatermarkRange.PopulateCommand(
                     sqlCommandWrapper,
                     watermarkRange.Start,
                     watermarkRange.End,
@@ -50,10 +50,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
                     while (await reader.ReadAsync(cancellationToken))
                     {
                         (string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark) = reader.ReadRow(
-                           V4.Instance.StudyInstanceUid,
-                           V4.Instance.SeriesInstanceUid,
-                           V4.Instance.SopInstanceUid,
-                           V4.Instance.Watermark);
+                           VLatest.Instance.StudyInstanceUid,
+                           VLatest.Instance.SeriesInstanceUid,
+                           VLatest.Instance.SopInstanceUid,
+                           VLatest.Instance.Watermark);
 
                         results.Add(new VersionedInstanceIdentifier(
                             rStudyInstanceUid,
@@ -80,7 +80,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
             using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
 
-            V4.GetInstanceBatches.PopulateCommand(sqlCommandWrapper, batchSize, batchCount, (byte)indexStatus, maxWatermark);
+            VLatest.GetInstanceBatches.PopulateCommand(sqlCommandWrapper, batchSize, batchCount, (byte)indexStatus, maxWatermark);
 
             try
             {
