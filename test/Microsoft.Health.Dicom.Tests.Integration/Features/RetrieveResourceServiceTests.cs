@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -37,6 +38,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         private readonly ITranscoder _retrieveTranscoder;
         private readonly IFrameHandler _frameHandler;
         private readonly IRetrieveTransferSyntaxHandler _retrieveTransferSyntaxHandler;
+        private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
         private readonly string _studyInstanceUid = TestUidGenerator.Generate();
@@ -52,10 +54,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             _fileStore = blobStorageFixture.FileStore;
             _retrieveTranscoder = Substitute.For<ITranscoder>();
             _frameHandler = Substitute.For<IFrameHandler>();
+            _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
             _retrieveTransferSyntaxHandler = new RetrieveTransferSyntaxHandler(NullLogger<RetrieveTransferSyntaxHandler>.Instance);
             _recyclableMemoryStreamManager = blobStorageFixture.RecyclableMemoryStreamManager;
             _retrieveResourceService = new RetrieveResourceService(
-                _instanceStore, _fileStore, _retrieveTranscoder, _frameHandler, _retrieveTransferSyntaxHandler, NullLogger<RetrieveResourceService>.Instance);
+                _instanceStore, _fileStore, _retrieveTranscoder, _frameHandler, _retrieveTransferSyntaxHandler, _dicomRequestContextAccessor, NullLogger<RetrieveResourceService>.Instance);
         }
 
         [Fact]
@@ -124,6 +127,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                 CancellationToken.None);
 
             ValidateResponseDicomFiles(response.ResponseStreams, datasets.Select(ds => ds).Where(ds => ds.ToInstanceIdentifier().SeriesInstanceUid == _firstSeriesInstanceUid));
+            ValidateDicomRequestIsPopulated();
         }
 
         private async Task<List<DicomDataset>> GenerateDicomDatasets(string seriesInstanceUid, int instancesinSeries, bool storeInstanceFile)
@@ -203,6 +207,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                     throw new NotImplementedException("Transcoded files do not have an implemented validation mechanism.");
                 }
             }
+        }
+
+        private void ValidateDicomRequestIsPopulated(bool isTranscodeRequested = false, long sizeOfTranscode = 0)
+        {
+            Assert.Equal(isTranscodeRequested, _dicomRequestContextAccessor.RequestContext.IsTranscodeRequested);
+            Assert.Equal(sizeOfTranscode, _dicomRequestContextAccessor.RequestContext.BytesTranscoded);
         }
 
         private byte[] DicomFileToByteArray(DicomFile dicomFile)

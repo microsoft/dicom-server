@@ -14,5 +14,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Context
         string SeriesInstanceUid { get; set; }
 
         string SopInstanceUid { get; set; }
+
+        bool IsTranscodeRequested { get; set; }
+
+        long BytesTranscoded { get; set; }
+
+        long ResponseSize { get; set; }
     }
 }
