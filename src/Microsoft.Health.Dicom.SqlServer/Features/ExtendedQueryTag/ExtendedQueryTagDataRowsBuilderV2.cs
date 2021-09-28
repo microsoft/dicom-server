@@ -18,14 +18,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
     /// <summary>
     /// Class that build ExtendedQueryTagRows.
     /// </summary>
-    internal static class ExtendedQueryTagDataRowsBuilder
+    internal static class ExtendedQueryTagDataRowsBuilderV2
+
     {
         private static readonly Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, DateTime?>> DataTimeReaders = new Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, DateTime?>>()
         {
             { DicomVR.DA, Core.Extensions.DicomDatasetExtensions.GetStringDateAsDate },
         };
 
-        public static ExtendedQueryTagDataRows Build(
+        public static ExtendedQueryTagDataRowsV2 Build(
             DicomDataset instance,
             IEnumerable<QueryTag> queryTags)
         {
@@ -35,7 +36,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             var stringRows = new List<InsertStringExtendedQueryTagTableTypeV1Row>();
             var longRows = new List<InsertLongExtendedQueryTagTableTypeV1Row>();
             var doubleRows = new List<InsertDoubleExtendedQueryTagTableTypeV1Row>();
-            var dateTimeRows = new List<InsertDateTimeExtendedQueryTagTableTypeV1Row>();
+            var dateTimeRows = new List<InsertDateTimeExtendedQueryTagTableTypeV2Row>();
             var personNamRows = new List<InsertPersonNameExtendedQueryTagTableTypeV1Row>();
 
             int maxVersion = 0;
@@ -59,7 +60,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 }
             }
 
-            return new ExtendedQueryTagDataRows
+            return new ExtendedQueryTagDataRowsV2
             {
                 StringRows = stringRows,
                 LongRows = longRows,
@@ -79,7 +80,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             }
         }
 
-        private static void AddDateTimeRow(DicomDataset instance, List<InsertDateTimeExtendedQueryTagTableTypeV1Row> dateTimeRows, QueryTag queryTag)
+        private static void AddDateTimeRow(DicomDataset instance, List<InsertDateTimeExtendedQueryTagTableTypeV2Row> dateTimeRows, QueryTag queryTag)
         {
             DateTime? dateVal = DataTimeReaders.TryGetValue(
                              queryTag.VR,
@@ -87,7 +88,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
             if (dateVal.HasValue)
             {
-                dateTimeRows.Add(new InsertDateTimeExtendedQueryTagTableTypeV1Row(queryTag.ExtendedQueryTagStoreEntry.Key, dateVal.Value, null, (byte)queryTag.Level));
+                dateTimeRows.Add(new InsertDateTimeExtendedQueryTagTableTypeV2Row(queryTag.ExtendedQueryTagStoreEntry.Key, dateVal.Value, null, (byte)queryTag.Level));
             }
         }
 

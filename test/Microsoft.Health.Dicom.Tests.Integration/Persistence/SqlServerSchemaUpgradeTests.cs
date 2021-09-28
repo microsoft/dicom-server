@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         /// This test validate it works by checking stored procedure compatiblity. 
         /// </summary>
         /// <param name="schemaVersion">New schema version</param>
-        [Theory]
+        [Theory(Skip = "Doesn't hold true in certain cases. Bug: 85480")]
         [MemberData(nameof(SchemaDiffVersions))]
         public async Task GivenANewSchemaVersion_WhenApplying_ShouldBackCompatible(int schemaVersion)
         {

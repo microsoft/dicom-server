@@ -640,6 +640,17 @@ CREATE TYPE dbo.InsertDateTimeExtendedQueryTagTableType_1 AS TABLE
 (
     TagKey                     INT,
     TagValue                   DATETIME2(7),
+    TagLevel                   TINYINT
+)
+
+/*************************************************************
+    Table valued parameter to insert into Extended Query Tag table for data type Date Time.
+    V2 contains the TagValueUTC which separates it from V1.
+*************************************************************/
+CREATE TYPE dbo.InsertDateTimeExtendedQueryTagTableType_2 AS TABLE
+(
+    TagKey                     INT,
+    TagValue                   DATETIME2(7),
     TagValueUTC                DATETIME2(7)         NULL,
     TagLevel                   TINYINT
 )
@@ -772,7 +783,7 @@ CREATE OR ALTER PROCEDURE dbo.AddInstance
     @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY,
     @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY,
     @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY,
-    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1 READONLY,
+    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY,
     @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY,
     @initialStatus                      TINYINT
 AS
@@ -1262,7 +1273,7 @@ CREATE OR ALTER PROCEDURE dbo.EndAddInstance
     @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1         READONLY,
     @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1             READONLY,
     @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1         READONLY,
-    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1     READONLY,
+    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2     READONLY,
     @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
     SET NOCOUNT ON
@@ -2281,7 +2292,8 @@ GO
 --         * Long extended query tag data
 --     @doubleExtendedQueryTags
 --         * Double extended query tag data
---     @dateTimeExtendedQueryTags
+--     @
+
 --         * DateTime extended query tag data
 --     @personNameExtendedQueryTags
 --         * PersonName extended query tag data
@@ -2293,7 +2305,7 @@ CREATE OR ALTER PROCEDURE dbo.IndexInstance
     @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1         READONLY,
     @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1             READONLY,
     @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1         READONLY,
-    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1     READONLY,
+    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2     READONLY,
     @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
     SET NOCOUNT    ON

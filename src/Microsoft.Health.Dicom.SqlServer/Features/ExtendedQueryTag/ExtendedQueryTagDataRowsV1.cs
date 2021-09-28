@@ -11,7 +11,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
     /// <summary>
     /// Represent rows for extended query tag index data.
     /// </summary>
-    internal class ExtendedQueryTagDataRows
+    internal class ExtendedQueryTagDataRowsV1
+
     {
         public int MaxTagKey { get; set; }
 

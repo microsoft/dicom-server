@@ -109,6 +109,44 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal System.Byte TagLevel { get; }
     }
 
+    internal class InsertDateTimeExtendedQueryTagTableTypeV2TableValuedParameterDefinition : TableValuedParameterDefinition<InsertDateTimeExtendedQueryTagTableTypeV2Row>
+    {
+        internal InsertDateTimeExtendedQueryTagTableTypeV2TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertDateTimeExtendedQueryTagTableType_2")
+        {
+        }
+
+        internal readonly IntColumn TagKey = new IntColumn("TagKey");
+        internal readonly DateTime2Column TagValue = new DateTime2Column("TagValue", 7);
+        internal readonly NullableDateTime2Column TagValueUTC = new NullableDateTime2Column("TagValueUTC", 7);
+        internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
+
+        protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagKey, TagValue, TagValueUTC, TagLevel };
+
+        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, InsertDateTimeExtendedQueryTagTableTypeV2Row rowData)
+        {
+            TagKey.Set(record, 0, rowData.TagKey);
+            TagValue.Set(record, 1, rowData.TagValue);
+            TagValueUTC.Set(record, 2, rowData.TagValueUTC);
+            TagLevel.Set(record, 3, rowData.TagLevel);
+        }
+    }
+
+    internal struct InsertDateTimeExtendedQueryTagTableTypeV2Row
+    {
+        internal InsertDateTimeExtendedQueryTagTableTypeV2Row(System.Int32 TagKey, System.DateTime TagValue, System.Nullable<System.DateTime> TagValueUTC, System.Byte TagLevel)
+        {
+            this.TagKey = TagKey;
+            this.TagValue = TagValue;
+            this.TagValueUTC = TagValueUTC;
+            this.TagLevel = TagLevel;
+        }
+
+        internal System.Int32 TagKey { get; }
+        internal System.DateTime TagValue { get; }
+        internal System.Nullable<System.DateTime> TagValueUTC { get; }
+        internal System.Byte TagLevel { get; }
+    }
+
     internal class InsertDoubleExtendedQueryTagTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<InsertDoubleExtendedQueryTagTableTypeV1Row>
     {
         internal InsertDoubleExtendedQueryTagTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertDoubleExtendedQueryTagTableType_1")
