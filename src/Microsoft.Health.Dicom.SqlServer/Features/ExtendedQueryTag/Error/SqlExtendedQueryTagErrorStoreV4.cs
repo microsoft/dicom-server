@@ -49,7 +49,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
 
             using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
             using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
-            V4.AddExtendedQueryTagError.PopulateCommand(
+            VLatest.AddExtendedQueryTagError.PopulateCommand(
                 sqlCommandWrapper,
                 tagKey,
                 (short)errorCode,
@@ -81,7 +81,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
             using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
             using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
 
-            V4.GetExtendedQueryTagErrors.PopulateCommand(sqlCommandWrapper, tagPath, limit, offset);
+            VLatest.GetExtendedQueryTagErrors.PopulateCommand(sqlCommandWrapper, tagPath, limit, offset);
 
             try
             {
@@ -89,12 +89,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
                 while (await reader.ReadAsync(cancellationToken))
                 {
                     (int tagkey, short errorCode, DateTime createdTime, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid) = reader.ReadRow(
-                        V4.ExtendedQueryTagError.TagKey,
-                        V4.ExtendedQueryTagError.ErrorCode,
-                        V4.ExtendedQueryTagError.CreatedTime,
-                        V4.Instance.StudyInstanceUid,
-                        V4.Instance.SeriesInstanceUid,
-                        V4.Instance.SopInstanceUid);
+                        VLatest.ExtendedQueryTagError.TagKey,
+                        VLatest.ExtendedQueryTagError.ErrorCode,
+                        VLatest.ExtendedQueryTagError.CreatedTime,
+                        VLatest.Instance.StudyInstanceUid,
+                        VLatest.Instance.SeriesInstanceUid,
+                        VLatest.Instance.SopInstanceUid);
 
                     results.Add(new ExtendedQueryTagError(createdTime, studyInstanceUid, seriesInstanceUid, sopInstanceUid, ((ValidationErrorCode)errorCode).GetMessage()));
                 }
