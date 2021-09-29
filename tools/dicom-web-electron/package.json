@@ -27,12 +27,12 @@
   "author": "Microsoft",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^9.4.0",
-    "electron-builder": "^22.9.1"
+    "electron": "^15.0.0",
+    "electron-builder": "^22.11.7"
   },
   "dependencies": {
-    "axios": "^0.21.2",
-    "form-data": "^3.0.0",
-    "jquery": "^3.5.1"
+    "axios": "^0.21.4",
+    "form-data": "^4.0.0",
+    "jquery": "^3.6.0"
   }
 }
