@@ -553,7 +553,6 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryT
 (
     TagKey,
     TagValue,
-    TagValueUTC,
     StudyKey,
     SeriesKey,
     InstanceKey

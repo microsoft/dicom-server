@@ -17,16 +17,6 @@ BEGIN
     ADD TagValueUTC DATETIME2(7) NULL
 END
 
-CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryTagDateTime
-(
-    TagKey,
-    TagValue,
-    TagValueUTC,
-    StudyKey,
-    SeriesKey,
-    InstanceKey
-) WITH (DROP_EXISTING = ON)
-
 /*************************************************************
     Table valued parameter to insert into Extended Query Tag table for data type Date Time.
     V2 contains the TagValueUTC which separates it from V1.
