@@ -1272,7 +1272,7 @@ CREATE OR ALTER PROCEDURE dbo.EndAddInstance
     @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1         READONLY,
     @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1             READONLY,
     @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1         READONLY,
-    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2     READONLY,
+    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1     READONLY,
     @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
     SET NOCOUNT ON
