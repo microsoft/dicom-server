@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -44,16 +43,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                var rows = ExtendedQueryTagDataRowsBuilderV2.Build(instance, queryTags.Where(tag => tag.IsExtendedQueryTag));
-                VLatest.AddInstanceTableValuedParameters parameters = new VLatest.AddInstanceTableValuedParameters(
+                var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags.Where(tag => tag.IsExtendedQueryTag), Version);
+                VLatest.AddInstanceV2TableValuedParameters parameters = new VLatest.AddInstanceV2TableValuedParameters(
                     rows.StringRows,
                     rows.LongRows,
                     rows.DoubleRows,
-                    rows.DateTimeRows,
+                    rows.DateTimeWithUTCRows,
                     rows.PersonNameRows
                 );
 
-                VLatest.AddInstance.PopulateCommand(
+                VLatest.AddInstanceV2.PopulateCommand(
                     sqlCommandWrapper,
                     instance.GetString(DicomTag.StudyInstanceUID),
                     instance.GetString(DicomTag.SeriesInstanceUID),
@@ -100,7 +99,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                var rows = ExtendedQueryTagDataRowsBuilderV2.Build(instance, queryTags);
+                var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags, Version);
                 VLatest.IndexInstanceTableValuedParameters parameters = new VLatest.IndexInstanceTableValuedParameters(
                     rows.StringRows,
                     rows.LongRows,
@@ -125,18 +124,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
                 }
             }
-        }
-
-        private static byte[] UlongToRowVersion(ulong? value)
-        {
-            if (!value.HasValue)
-            {
-                return null;
-            }
-
-            byte[] result = new byte[8];
-            BinaryPrimitives.WriteUInt64BigEndian(result, value.Value);
-            return result;
         }
     }
 }

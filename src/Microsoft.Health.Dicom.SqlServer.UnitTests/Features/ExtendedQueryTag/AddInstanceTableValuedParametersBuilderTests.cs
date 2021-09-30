@@ -9,6 +9,7 @@ using System.Linq;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Xunit;
 
@@ -23,7 +24,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
             DicomDataset dataset = new DicomDataset();
             dataset.Add(element);
             QueryTag tag = new QueryTag(element.Tag.BuildExtendedQueryTagStoreEntry(vr: element.ValueRepresentation.Code));
-            var parameters = ExtendedQueryTagDataRowsBuilderV2.Build(dataset, new QueryTag[] { tag });
+            var parameters = ExtendedQueryTagDataRowsBuilder.Build(dataset, new QueryTag[] { tag }, SchemaVersion.V5);
 
             ExtendedQueryTagDataType dataType = ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[element.ValueRepresentation.Code];
             switch (dataType)
@@ -38,7 +39,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
                     Assert.Equal(expectedValue, parameters.DoubleRows.First().TagValue);
                     break;
                 case ExtendedQueryTagDataType.DateTimeData:
-                    Assert.Equal(expectedValue, parameters.DateTimeRows.First().TagValue);
+                    Assert.Equal(expectedValue, parameters.DateTimeWithUTCRows.First().TagValue);
                     break;
                 case ExtendedQueryTagDataType.PersonNameData:
                     Assert.Equal(expectedValue, parameters.PersonNameRows.First().TagValue);

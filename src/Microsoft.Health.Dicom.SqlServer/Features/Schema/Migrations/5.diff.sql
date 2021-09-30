@@ -38,7 +38,7 @@ GO
 **************************************************************/
 --
 -- STORED PROCEDURE
---     AddInstance
+--     AddInstanceV2
 --
 -- DESCRIPTION
 --     Adds a DICOM instance.
@@ -79,7 +79,7 @@ GO
 -- RETURN VALUE
 --     The watermark (version).
 ------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.AddInstance
+CREATE OR ALTER PROCEDURE dbo.AddInstanceV2
     @studyInstanceUid                   VARCHAR(64),
     @seriesInstanceUid                  VARCHAR(64),
     @sopInstanceUid                     VARCHAR(64),
@@ -338,7 +338,7 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---    Index instance
+--    Index instance V2
 --
 -- DESCRIPTION
 --    Adds or updates the various extended query tag indices for a given DICOM instance.
@@ -360,7 +360,7 @@ GO
 -- RETURN VALUE
 --     None
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.IndexInstance
+CREATE OR ALTER PROCEDURE dbo.IndexInstanceV2
     @watermark                                                                   BIGINT,
     @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1         READONLY,
     @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1             READONLY,

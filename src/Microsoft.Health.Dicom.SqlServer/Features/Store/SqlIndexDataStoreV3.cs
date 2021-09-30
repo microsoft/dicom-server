@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                var rows = ExtendedQueryTagDataRowsBuilderV1.Build(instance, queryTags.Where(tag => tag.IsExtendedQueryTag));
+                var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags.Where(tag => tag.IsExtendedQueryTag), Version);
                 V3.AddInstanceTableValuedParameters parameters = new V3.AddInstanceTableValuedParameters(
                     rows.StringRows,
                     rows.LongRows,

@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
     /// <summary>
     /// Represent rows for extended query tag index data.
     /// </summary>
-    internal class ExtendedQueryTagDataRowsV1
+    internal class ExtendedQueryTagDataRows
 
     {
         public int MaxTagKey { get; set; }
@@ -23,6 +23,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         public IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> DoubleRows { get; set; }
 
         public IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV1Row> DateTimeRows { get; set; }
+
+        public IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> DateTimeWithUTCRows { get; set; }
 
         public IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameRows { get; set; }
     }
