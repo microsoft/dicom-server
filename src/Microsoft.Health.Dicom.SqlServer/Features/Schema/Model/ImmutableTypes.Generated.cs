@@ -117,33 +117,33 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
         internal readonly IntColumn TagKey = new IntColumn("TagKey");
         internal readonly DateTime2Column TagValue = new DateTime2Column("TagValue", 7);
-        internal readonly NullableDateTime2Column TagValueUTC = new NullableDateTime2Column("TagValueUTC", 7);
+        internal readonly NullableDateTime2Column TagValueUtc = new NullableDateTime2Column("TagValueUtc", 7);
         internal readonly TinyIntColumn TagLevel = new TinyIntColumn("TagLevel");
 
-        protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagKey, TagValue, TagValueUTC, TagLevel };
+        protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { TagKey, TagValue, TagValueUtc, TagLevel };
 
         protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, InsertDateTimeExtendedQueryTagTableTypeV2Row rowData)
         {
             TagKey.Set(record, 0, rowData.TagKey);
             TagValue.Set(record, 1, rowData.TagValue);
-            TagValueUTC.Set(record, 2, rowData.TagValueUTC);
+            TagValueUtc.Set(record, 2, rowData.TagValueUtc);
             TagLevel.Set(record, 3, rowData.TagLevel);
         }
     }
 
     internal struct InsertDateTimeExtendedQueryTagTableTypeV2Row
     {
-        internal InsertDateTimeExtendedQueryTagTableTypeV2Row(System.Int32 TagKey, System.DateTime TagValue, System.Nullable<System.DateTime> TagValueUTC, System.Byte TagLevel)
+        internal InsertDateTimeExtendedQueryTagTableTypeV2Row(System.Int32 TagKey, System.DateTime TagValue, System.Nullable<System.DateTime> TagValueUtc, System.Byte TagLevel)
         {
             this.TagKey = TagKey;
             this.TagValue = TagValue;
-            this.TagValueUTC = TagValueUTC;
+            this.TagValueUtc = TagValueUtc;
             this.TagLevel = TagLevel;
         }
 
         internal System.Int32 TagKey { get; }
         internal System.DateTime TagValue { get; }
-        internal System.Nullable<System.DateTime> TagValueUTC { get; }
+        internal System.Nullable<System.DateTime> TagValueUtc { get; }
         internal System.Byte TagLevel { get; }
     }
 

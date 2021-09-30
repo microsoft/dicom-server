@@ -9,17 +9,17 @@ IF NOT EXISTS
 (
     SELECT *
     FROM    sys.columns
-    WHERE   NAME = 'TagValueUTC'
+    WHERE   NAME = 'TagValueUtc'
             AND object_id = OBJECT_ID('dbo.ExtendedQueryTagDateTime')
 )
 BEGIN
     ALTER TABLE dbo.ExtendedQueryTagDateTime
-    ADD TagValueUTC DATETIME2(7) NULL
+    ADD TagValueUtc DATETIME2(7) NULL
 END
 
 /*************************************************************
     Table valued parameter to insert into Extended Query Tag table for data type Date Time.
-    V2 contains the TagValueUTC which separates it from V1.
+    V2 contains the TagValueUtc which separates it from V1.
 *************************************************************/
 IF TYPE_ID(N'InsertDateTimeExtendedQueryTagTableType_2') IS NULL
 BEGIN
@@ -27,7 +27,7 @@ CREATE TYPE dbo.InsertDateTimeExtendedQueryTagTableType_2 AS TABLE
 (
     TagKey                     INT,
     TagValue                   DATETIME2(7),
-    TagValueUTC                DATETIME2(7)         NULL,
+    TagValueUtc                DATETIME2(7)         NULL,
     TagLevel                   TINYINT
 )
 END
@@ -278,7 +278,7 @@ AS
         MERGE INTO dbo.ExtendedQueryTagDateTime AS T
         USING
         (
-            SELECT input.TagKey, input.TagValue, input.TagValueUTC, input.TagLevel
+            SELECT input.TagKey, input.TagValue, input.TagValueUtc, input.TagLevel
             FROM @dateTimeExtendedQueryTags input
             INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
             ON dbo.ExtendedQueryTag.TagKey = input.TagKey
@@ -291,7 +291,7 @@ AS
         WHEN MATCHED THEN
             UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
         WHEN NOT MATCHED THEN
-            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark, TagValueUTC)
+            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark, TagValueUtc)
             VALUES(
             S.TagKey,
             S.TagValue,
@@ -299,7 +299,7 @@ AS
             (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
             (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
             @newWatermark,
-            S.TagValueUTC);
+            S.TagValueUtc);
     END
 
     -- PersonName Key tags
@@ -501,7 +501,7 @@ AS
             MERGE INTO dbo.ExtendedQueryTagDateTime WITH (HOLDLOCK) AS T
             USING
             (
-                SELECT input.TagKey, input.TagValue, input.TagValueUTC, input.TagLevel
+                SELECT input.TagKey, input.TagValue, input.TagValueUtc, input.TagLevel
                 FROM @dateTimeExtendedQueryTags input
                 INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
                 ON dbo.ExtendedQueryTag.TagKey = input.TagKey
@@ -515,7 +515,7 @@ AS
                  -- When index already exist, update only when watermark is newer
                 UPDATE SET T.Watermark = IIF(@watermark > T.Watermark, @watermark, T.Watermark), T.TagValue = IIF(@watermark > T.Watermark, S.TagValue, T.TagValue)
             WHEN NOT MATCHED THEN
-                INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark, TagValueUTC)
+                INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark, TagValueUtc)
                 VALUES
                 (
                     S.TagKey,
@@ -524,7 +524,7 @@ AS
                     (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
                     (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
                     @watermark,
-                    S.TagValueUTC
+                    S.TagValueUtc
                 );
         END
 

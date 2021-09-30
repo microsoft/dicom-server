@@ -39,8 +39,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             var longRows = new List<InsertLongExtendedQueryTagTableTypeV1Row>();
             var doubleRows = new List<InsertDoubleExtendedQueryTagTableTypeV1Row>();
             var dateTimeRows = new List<InsertDateTimeExtendedQueryTagTableTypeV1Row>();
-            var dateTimeWithUTCRows = new List<InsertDateTimeExtendedQueryTagTableTypeV2Row>();
-            var personNamRows = new List<InsertPersonNameExtendedQueryTagTableTypeV1Row>();
+            var dateTimeWithUtcRows = new List<InsertDateTimeExtendedQueryTagTableTypeV2Row>();
+            var personNameRows = new List<InsertPersonNameExtendedQueryTagTableTypeV1Row>();
 
             int maxVersion = 0;
             foreach (QueryTag queryTag in queryTags.Where(x => x.IsExtendedQueryTag))
@@ -62,10 +62,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                         }
                         else
                         {
-                            AddDateTimeRow(instance, dateTimeWithUTCRows, queryTag);
+                            AddDateTimeWithUtcRow(instance, dateTimeWithUtcRows, queryTag);
                         }
                         break;
-                    case ExtendedQueryTagDataType.PersonNameData: AddPersonNameRow(instance, personNamRows, queryTag); break;
+                    case ExtendedQueryTagDataType.PersonNameData: AddPersonNameRow(instance, personNameRows, queryTag); break;
                     default:
                         Debug.Fail($"Not able to handle {dataType}");
                         break;
@@ -78,8 +78,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 LongRows = longRows,
                 DoubleRows = doubleRows,
                 DateTimeRows = dateTimeRows,
-                DateTimeWithUTCRows = dateTimeWithUTCRows,
-                PersonNameRows = personNamRows,
+                DateTimeWithUTCRows = dateTimeWithUtcRows,
+                PersonNameRows = personNameRows,
                 MaxTagKey = maxVersion,
             };
         }
@@ -105,7 +105,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             }
         }
 
-        private static void AddDateTimeRow(DicomDataset instance, List<InsertDateTimeExtendedQueryTagTableTypeV2Row> dateTimeRows, QueryTag queryTag)
+        private static void AddDateTimeWithUtcRow(DicomDataset instance, List<InsertDateTimeExtendedQueryTagTableTypeV2Row> dateTimeRows, QueryTag queryTag)
         {
             DateTime? dateVal = DataTimeReaders.TryGetValue(
                              queryTag.VR,
