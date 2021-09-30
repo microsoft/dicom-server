@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
                     }
                     else
                     {
-                        Assert.Equal(expectedValue, parameters.DateTimeWithUTCRows.First().TagValue);
+                        Assert.Equal(expectedValue, parameters.DateTimeWithUtcRows.First().TagValue);
                     }
                     break;
                 case ExtendedQueryTagDataType.PersonNameData:

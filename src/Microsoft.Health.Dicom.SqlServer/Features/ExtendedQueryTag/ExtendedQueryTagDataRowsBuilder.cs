@@ -78,7 +78,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 LongRows = longRows,
                 DoubleRows = doubleRows,
                 DateTimeRows = dateTimeRows,
-                DateTimeWithUTCRows = dateTimeWithUtcRows,
+                DateTimeWithUtcRows = dateTimeWithUtcRows,
                 PersonNameRows = personNameRows,
                 MaxTagKey = maxVersion,
             };

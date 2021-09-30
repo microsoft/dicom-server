@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     rows.StringRows,
                     rows.LongRows,
                     rows.DoubleRows,
-                    rows.DateTimeWithUTCRows,
+                    rows.DateTimeWithUtcRows,
                     rows.PersonNameRows
                 );
 

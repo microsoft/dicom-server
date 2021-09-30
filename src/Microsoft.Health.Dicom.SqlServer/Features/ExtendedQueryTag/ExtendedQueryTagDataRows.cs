@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         public IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV1Row> DateTimeRows { get; set; }
 
-        public IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> DateTimeWithUTCRows { get; set; }
+        public IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> DateTimeWithUtcRows { get; set; }
 
         public IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameRows { get; set; }
     }
