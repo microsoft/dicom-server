@@ -78,6 +78,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         /// </summary>
         DateIsInvalid = 1100,
 
+        /// <summary>
+        /// DateTime element has invalid value.
+        /// </summary>
+        DateTimeIsInvalid = 1101,
+
+        /// <summary>
+        /// Time element has invalid value.
+        /// </summary>
+        TimeIsInvalid = 1102,
+
         // Uid specific errors
 
         /// <summary>

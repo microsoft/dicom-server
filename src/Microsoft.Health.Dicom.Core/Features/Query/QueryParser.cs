@@ -27,6 +27,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         private readonly static Dictionary<DicomVR, Func<QueryTag, string, QueryFilterCondition>> ValueParsers = new Dictionary<DicomVR, Func<QueryTag, string, QueryFilterCondition>>
         {
             { DicomVR.DA, ParseDateTagValue },
+            { DicomVR.DT, ParseDateTimeTagValue },
+            { DicomVR.TM, ParseTimeTagValue },
 
             { DicomVR.UI, ParseStringTagValue },
             { DicomVR.LO, ParseStringTagValue },
@@ -49,6 +51,32 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         };
 
         public const string DateTagValueFormat = "yyyyMMdd";
+
+        public static readonly string[] DateTimeTagValueFormats =
+        {
+            "yyyyMMddHHmmss.FFFFFFzzz",
+            "yyyyMMddHHmmsszzz",
+            "yyyyMMddHHmmzzz",
+            "yyyyMMddHHzzz",
+            "yyyyMMddzzz",
+            "yyyyMMzzz",
+            "yyyyzzz",
+            "yyyyMMddHHmmss.FFFFFF",
+            "yyyyMMddHHmmss",
+            "yyyyMMddHHmm",
+            "yyyyMMddHH",
+            "yyyyMMdd",
+            "yyyyMM",
+            "yyyy"
+        };
+
+        public static readonly string[] TimeTagValueFormats =
+        {
+            "HHmmss.FFFFFF",
+            "HHmmss",
+            "HHmm",
+            "HH"
+        };
 
         public QueryParser(IDicomTagParser dicomTagPathParser)
             => _dicomTagPathParser = EnsureArg.IsNotNull(dicomTagPathParser, nameof(dicomTagPathParser));

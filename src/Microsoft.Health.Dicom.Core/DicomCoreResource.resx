@@ -418,4 +418,28 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>Query is disabled on specified attribute '{0}'.</value>
     <comment>'{0}' attribute in QIDO query. </comment>
   </data>
+  <data name="InvalidDateTimeRangeValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified date range '{0}' is invalid.
+The first part DateTime {1} should be lesser than or equal to the second part DateTime {2}.</value>
+    <comment>{0} DateTime range with &lt;DateTime1&gt;-&lt;DateTime2&gt; format. {1} is DateTime1. {2} is DateTime2.</comment>
+  </data>
+  <data name="InvalidDateTimeValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified DateTime value '{0}' is invalid for parameter '{1}'. DateTime should be valid and formatted as yyyyMMddHHmmss.FFFFFFzzz where yyyy is mandatory.</value>
+    <comment>{0} DateTime value. {1} parameter name.</comment>
+  </data>
+  <data name="InvalidTimeRangeValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified date range '{0}' is invalid.
+The first part time {1} should be lesser than or equal to the second part time {2}.</value>
+    <comment>{0} Time range with &lt;Time1&gt;-&lt;Time2&gt; format. {1} is Time1. {2} is Time2.</comment>
+  </data>
+  <data name="InvalidTimeValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified Time value '{0}' is invalid for parameter '{1}'. Time should be valid and formatted as HHmmss.FFFFFFzzz where HH is mandatory.</value>
+    <comment>{0} Time value. {1} parameter name.</comment>
+  </data>
+  <data name="ErrorMessageDateTimeIsInvalid" xml:space="preserve">
+    <value>Value cannot be parsed as a valid DateTime.</value>
+  </data>
+  <data name="ErrorMessageTimeIsInvalid" xml:space="preserve">
+    <value>Value cannot be parsed as a valid Time.</value>
+  </data>
 </root>

@@ -46,6 +46,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         public static readonly HashSet<DicomTag> CoreTags = new HashSet<DicomTag>(
             CoreStudyTags.Union(CoreSeriesTags).Union(CoreInstanceTags));
 
+        public static readonly HashSet<DicomVR> ValidRangeQueryTags = new HashSet<DicomVR>()
+        {
+            DicomVR.DA,
+            DicomVR.DT,
+            DicomVR.TM,
+        };
+
         public static readonly IReadOnlyDictionary<QueryResource, ImmutableHashSet<QueryTagLevel>> QueryResourceTypeToQueryLevelsMapping = new Dictionary<QueryResource, ImmutableHashSet<QueryTagLevel>>()
         {
             { QueryResource.AllStudies, ImmutableHashSet.Create(QueryTagLevel.Study) },
@@ -85,7 +92,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         public static bool IsValidRangeQueryTag(QueryTag queryTag)
         {
             EnsureArg.IsNotNull(queryTag, nameof(queryTag));
-            return queryTag.VR == DicomVR.DA;
+            return ValidRangeQueryTags.Contains(queryTag.VR);
         }
 
         public static bool IsValidFuzzyMatchingQueryTag(QueryTag queryTag)

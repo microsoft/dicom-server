@@ -157,6 +157,54 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         }
 
         [Fact]
+        public void GivenExtendedQueryDateTimeTag_WithUrl_ParseSucceeds()
+        {
+            QueryTag queryTag = new QueryTag(DicomTag.DateTime.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
+
+            QueryExpression queryExpression = _queryParser.Parse(CreateParameters(GetSingleton("DateTime", "20200301195109.10-20200501195110.20"), QueryResource.AllStudies), new[] { queryTag });
+            Assert.Equal(queryTag, queryExpression.FilterConditions.First().QueryTag);
+        }
+
+        [Theory]
+        [InlineData("19510910010203", "20200220020304")]
+        public void GivenDateTime_WithValidRangeMatch_CheckCondition(string minValue, string maxValue)
+        {
+            EnsureArg.IsNotNull(minValue, nameof(maxValue));
+            QueryTag queryTag = new QueryTag(DicomTag.DateTime.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
+
+            QueryExpression queryExpression = _queryParser.Parse(CreateParameters(GetSingleton("DateTime", string.Concat(minValue, "-", maxValue)), QueryResource.AllStudies), new[] { queryTag });
+            var cond = queryExpression.FilterConditions.First() as DateRangeValueMatchCondition;
+            Assert.NotNull(cond);
+            Assert.True(cond.QueryTag.Tag == DicomTag.DateTime);
+            Assert.True(cond.Minimum == DateTimeOffset.ParseExact(minValue, QueryParser.DateTimeTagValueFormats, null));
+            Assert.True(cond.Maximum == DateTimeOffset.ParseExact(maxValue, QueryParser.DateTimeTagValueFormats, null));
+        }
+
+        [Fact]
+        public void GivenExtendedQueryTimeTag_WithUrl_ParseSucceeds()
+        {
+            QueryTag queryTag = new QueryTag(DicomTag.Time.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
+
+            QueryExpression queryExpression = _queryParser.Parse(CreateParameters(GetSingleton("Time", "195109.10-195110.20"), QueryResource.AllStudies), new[] { queryTag });
+            Assert.Equal(queryTag, queryExpression.FilterConditions.First().QueryTag);
+        }
+
+        [Theory]
+        [InlineData("010203", "020304")]
+        public void GivenStudyTime_WithValidRangeMatch_CheckCondition(string minValue, string maxValue)
+        {
+            EnsureArg.IsNotNull(minValue, nameof(maxValue));
+            QueryTag queryTag = new QueryTag(DicomTag.Time.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
+
+            QueryExpression queryExpression = _queryParser.Parse(CreateParameters(GetSingleton("Time", string.Concat(minValue, "-", maxValue)), QueryResource.AllStudies), new[] { queryTag });
+            var cond = queryExpression.FilterConditions.First() as LongRangeValueMatchCondition;
+            Assert.NotNull(cond);
+            Assert.True(cond.QueryTag.Tag == DicomTag.Time);
+            Assert.True(cond.Minimum == DateTime.ParseExact(minValue, QueryParser.TimeTagValueFormats, null, System.Globalization.DateTimeStyles.NoCurrentDateDefault).Ticks);
+            Assert.True(cond.Maximum == DateTime.ParseExact(maxValue, QueryParser.TimeTagValueFormats, null, System.Globalization.DateTimeStyles.NoCurrentDateDefault).Ticks);
+        }
+
+        [Fact]
         public void GivenExtendedQueryPersonNameTag_WithUrl_ParseSucceeds()
         {
             QueryTag queryTag = new QueryTag(DicomTag.PatientBirthName.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Series));

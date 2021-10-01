@@ -33,6 +33,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         private static readonly IReadOnlyDictionary<DicomVR, DicomTagSqlEntry> ExtendedQueryTagVRToSqlMapping = new Dictionary<DicomVR, DicomTagSqlEntry>()
         {
                 { DicomVR.DA, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagDateTimeTable, VLatest.ExtendedQueryTagDateTime.TagValue, null, VLatest.ExtendedQueryTagDateTime.TagKey, true) },
+                { DicomVR.DT, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagDateTimeTable, VLatest.ExtendedQueryTagDateTime.TagValue, null, VLatest.ExtendedQueryTagDateTime.TagKey, true) },
+                { DicomVR.TM, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagLongTable, VLatest.ExtendedQueryTagLong.TagValue, null, VLatest.ExtendedQueryTagLong.TagKey, true) },
                 { DicomVR.AE, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagStringTable, VLatest.ExtendedQueryTagString.TagValue, null, VLatest.ExtendedQueryTagString.TagKey, true) },
                 { DicomVR.AS, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagStringTable, VLatest.ExtendedQueryTagString.TagValue, null, VLatest.ExtendedQueryTagString.TagKey, true) },
                 { DicomVR.CS, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagStringTable, VLatest.ExtendedQueryTagString.TagValue, null, VLatest.ExtendedQueryTagString.TagKey, true) },

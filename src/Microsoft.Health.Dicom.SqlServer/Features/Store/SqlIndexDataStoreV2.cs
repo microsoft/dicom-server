@@ -65,11 +65,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     instance.GetSingleValueOrDefault<string>(DicomTag.PatientID),
                     instance.GetSingleValueOrDefault<string>(DicomTag.PatientName),
                     instance.GetSingleValueOrDefault<string>(DicomTag.ReferringPhysicianName),
-                    instance.GetStringDateAsDate(DicomTag.StudyDate),
+                    instance.GetStringDateAsDate(DicomTag.StudyDate)?.DateTime,
                     instance.GetSingleValueOrDefault<string>(DicomTag.StudyDescription),
                     instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
                     instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
-                    instance.GetStringDateAsDate(DicomTag.PerformedProcedureStepStartDate),
+                    instance.GetStringDateAsDate(DicomTag.PerformedProcedureStepStartDate)?.DateTime,
                     (byte)IndexStatus.Creating,
                     parameters);
 
