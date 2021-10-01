@@ -121,7 +121,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     new SqlExtendedQueryTagStoreV2(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV2>.Instance),
                     new SqlExtendedQueryTagStoreV3(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV3>.Instance),
                     new SqlExtendedQueryTagStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV4>.Instance),
-                    new SqlExtendedQueryTagStoreV5(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV4>.Instance),
+                    new SqlExtendedQueryTagStoreV5(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV5>.Instance),
                 }));
 
             ExtendedQueryTagErrorStore = new SqlExtendedQueryTagErrorStore(new VersionedCache<ISqlExtendedQueryTagErrorStore>(
@@ -132,7 +132,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     new SqlExtendedQueryTagErrorStoreV2(),
                     new SqlExtendedQueryTagErrorStoreV3(),
                     new SqlExtendedQueryTagErrorStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV4>.Instance),
-                    new SqlExtendedQueryTagErrorStoreV5(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV4>.Instance),
+                    new SqlExtendedQueryTagErrorStoreV5(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV5>.Instance),
                }));
             IndexDataStoreTestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
             ExtendedQueryTagStoreTestHelper = new ExtendedQueryTagStoreTestHelper(TestConnectionString);

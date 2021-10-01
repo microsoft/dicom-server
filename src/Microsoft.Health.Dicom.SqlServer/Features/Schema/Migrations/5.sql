@@ -20,37 +20,8 @@ BEGIN
 END
 
 /*************************************************************
-    Partition Table
-    Table containing Partition Id
-**************************************************************/
-CREATE TABLE dbo.Partition (
-    PartitionKey            BIGINT                 NOT NULL, --PK
-    PartitionId             VARCHAR(64)            NOT NULL    DEFAULT 'Microsoft.Default',
-    --audit columns
-    CreatedDate             DATETIME2(7)           NOT NULL
-) WITH (DATA_COMPRESSION = PAGE)
-
-CREATE UNIQUE CLUSTERED INDEX IXC_Partition ON dbo.Partition
-(
-    PartitionKey
-)
-
-CREATE UNIQUE NONCLUSTERED INDEX IXC_Partition_PartitionKey_PartitionId on dbo.Partition
-(
-    PartitionKey,
-    PartitionId
-)
-
-IF NOT EXISTS (SELECT 1 FROM dbo.Partition WHERE PartitionId = 'Microsoft.Default')
-BEGIN
-    -- Inserting Default values since we are adding PartitionKey as NOT NULL columns in all the tables
-    INSERT INTO dbo.Partition (PartitionKey, PartitionId, CreatedDate)
-    VALUES (1, 'Microsoft.Default', SYSUTCDATETIME())
-END
-
-/*************************************************************
     Instance Table
-    Dicom instances with unique Partition key, Study, Series and Instance Uid 
+    Dicom instances with unique Study, Series and Instance Uid
 **************************************************************/
 CREATE TABLE dbo.Instance (
     InstanceKey             BIGINT                     NOT NULL, --PK
@@ -61,13 +32,12 @@ CREATE TABLE dbo.Instance (
     StudyInstanceUid        VARCHAR(64)                NOT NULL,
     SeriesInstanceUid       VARCHAR(64)                NOT NULL,
     SopInstanceUid          VARCHAR(64)                NOT NULL,
-    --data consistency columns
+    --data consitency columns
     Watermark               BIGINT                     NOT NULL,
     Status                  TINYINT                    NOT NULL,
     LastStatusUpdatedDate   DATETIME2(7)               NOT NULL,
     --audit columns
-    CreatedDate             DATETIME2(7)               NOT NULL,
-    PartitionKey            BIGINT                     NOT NULL DEFAULT 1 --FK
+    CreatedDate             DATETIME2(7)               NOT NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance
@@ -77,9 +47,8 @@ CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance
 )
 
 --Filter indexes
-CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
+CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
 (
-    PartitionKey,
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid
@@ -121,7 +90,6 @@ CREATE NONCLUSTERED INDEX IX_Instance_SopInstanceUid_Status on dbo.Instance
 )
 INCLUDE
 (
-    PartitionKey,
     StudyInstanceUid,
     SeriesInstanceUid,
     Watermark
@@ -142,7 +110,6 @@ CREATE NONCLUSTERED INDEX IX_Instance_SeriesKey_Status on dbo.Instance
 )
 INCLUDE
 (
-    PartitionKey,
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid,
@@ -157,7 +124,6 @@ CREATE NONCLUSTERED INDEX IX_Instance_StudyKey_Status on dbo.Instance
 )
 INCLUDE
 (
-    PartitionKey,
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid,
@@ -180,8 +146,7 @@ CREATE TABLE dbo.Study (
     AccessionNumber             NVARCHAR(16)                      NULL,
     PatientNameWords            AS REPLACE(REPLACE(PatientName, '^', ' '), '=', ' ') PERSISTED,
     ReferringPhysicianNameWords AS REPLACE(REPLACE(ReferringPhysicianName, '^', ' '), '=', ' ') PERSISTED,
-    PatientBirthDate            DATE                              NULL,
-    PartitionKey                BIGINT                            NOT NULL DEFAULT 1  --FK
+    PatientBirthDate            DATE                              NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Study ON dbo.Study
@@ -189,9 +154,8 @@ CREATE UNIQUE CLUSTERED INDEX IXC_Study ON dbo.Study
     StudyKey
 )
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Study_PartitionKey_StudyInstanceUid ON dbo.Study
+CREATE UNIQUE NONCLUSTERED INDEX IX_Study_StudyInstanceUid ON dbo.Study
 (
-    PartitionKey,
     StudyInstanceUid
 )
 INCLUDE
@@ -281,13 +245,11 @@ CREATE TABLE dbo.Series (
     SeriesInstanceUid                   VARCHAR(64)                NOT NULL,
     Modality                            NVARCHAR(16)               NULL,
     PerformedProcedureStepStartDate     DATE                       NULL,
-    ManufacturerModelName               NVARCHAR(64)               NULL,
-    PartitionKey                        BIGINT                     NOT NULL DEFAULT 1  --FK
+    ManufacturerModelName               NVARCHAR(64)               NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 
-CREATE UNIQUE CLUSTERED INDEX IXC_PartitionKey_Series ON dbo.Series
+CREATE UNIQUE CLUSTERED INDEX IXC_Series ON dbo.Series
 (
-    PartitionKey,
     StudyKey,
     SeriesKey
 )
@@ -298,9 +260,8 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Series_SeriesKey ON dbo.Series
 )
 WITH (DATA_COMPRESSION = PAGE)
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Series_PartitionKey_SeriesInstanceUid ON dbo.Series
+CREATE UNIQUE NONCLUSTERED INDEX IX_Series_SeriesInstanceUid ON dbo.Series
 (
-    PartitionKey,
     SeriesInstanceUid
 )
 INCLUDE
@@ -354,13 +315,11 @@ CREATE TABLE dbo.DeletedInstance
     Watermark           BIGINT            NOT NULL,
     DeletedDateTime     DATETIMEOFFSET(0) NOT NULL,
     RetryCount          INT               NOT NULL,
-    CleanupAfter        DATETIMEOFFSET(0) NOT NULL,
-    PartitionId         VARCHAR(64)       NOT NULL  DEFAULT 'Microsoft.Default'
+    CleanupAfter        DATETIMEOFFSET(0) NOT NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 
-CREATE UNIQUE CLUSTERED INDEX IXC_PartitionId_DeletedInstance ON dbo.DeletedInstance
+CREATE UNIQUE CLUSTERED INDEX IXC_DeletedInstance ON dbo.DeletedInstance
 (
-    PartitionId,
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid,
@@ -374,7 +333,6 @@ CREATE NONCLUSTERED INDEX IX_DeletedInstance_RetryCount_CleanupAfter ON dbo.Dele
 )
 INCLUDE
 (
-    PartitionId,
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid,
@@ -399,8 +357,7 @@ CREATE TABLE dbo.ChangeFeed (
     SeriesInstanceUid       VARCHAR(64)          NOT NULL,
     SopInstanceUid          VARCHAR(64)          NOT NULL,
     OriginalWatermark       BIGINT               NOT NULL,
-    CurrentWatermark        BIGINT               NULL,
-    PartitionId             VARCHAR(64)          NOT NULL  DEFAULT 'Microsoft.Default'
+    CurrentWatermark        BIGINT               NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
@@ -408,9 +365,8 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
     Sequence
 )
 
-CREATE NONCLUSTERED INDEX IX_ChangeFeed_PartitionId_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.ChangeFeed
+CREATE NONCLUSTERED INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.ChangeFeed
 (
-    PartitionId,
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid
@@ -589,7 +545,8 @@ CREATE TABLE dbo.ExtendedQueryTagDateTime (
     StudyKey                BIGINT               NOT NULL, --FK
     SeriesKey               BIGINT               NULL,     --FK
     InstanceKey             BIGINT               NULL,     --FK
-    Watermark               BIGINT               NOT NULL
+    Watermark               BIGINT               NOT NULL,
+    TagValueUtc             DATETIME2(7)         NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryTagDateTime
@@ -686,6 +643,18 @@ CREATE TYPE dbo.InsertDateTimeExtendedQueryTagTableType_1 AS TABLE
 )
 
 /*************************************************************
+    Table valued parameter to insert into Extended Query Tag table for data type Date Time.
+    V2 contains the TagValueUtc which separates it from V1.
+*************************************************************/
+CREATE TYPE dbo.InsertDateTimeExtendedQueryTagTableType_2 AS TABLE
+(
+    TagKey                     INT,
+    TagValue                   DATETIME2(7),
+    TagValueUtc                DATETIME2(7)         NULL,
+    TagLevel                   TINYINT
+)
+
+/*************************************************************
     Table valued parameter to insert into Extended Query Tag table for data type Person Name
 *************************************************************/
 CREATE TYPE dbo.InsertPersonNameExtendedQueryTagTableType_1 AS TABLE
@@ -747,14 +716,6 @@ CREATE SEQUENCE dbo.TagKeySequence
     NO CYCLE
     CACHE 10000
 
-CREATE SEQUENCE dbo.PartitionKeySequence
-    AS INT
-    START WITH 2
-    INCREMENT BY 1
-    MINVALUE 1
-    NO CYCLE
-    CACHE 1000000
-
 COMMIT TRANSACTION
 GO
 
@@ -769,8 +730,6 @@ GO
 --     Adds a DICOM instance.
 --
 -- PARAMETERS
---     @partitionId
---         * The Partition Id
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -807,7 +766,6 @@ GO
 --     The watermark (version).
 ------------------------------------------------------------------------
 CREATE OR ALTER PROCEDURE dbo.AddInstance
-    @partitionId                        VARCHAR(64)    = 'Microsoft.Default',
     @studyInstanceUid                   VARCHAR(64),
     @seriesInstanceUid                  VARCHAR(64),
     @sopInstanceUid                     VARCHAR(64),
@@ -839,26 +797,10 @@ AS
     DECLARE @studyKey BIGINT
     DECLARE @seriesKey BIGINT
     DECLARE @instanceKey BIGINT
-    DECLARE @partitionKey BIGINT
-
-    SELECT @partitionKey = PartitionKey
-    FROM dbo.Partition WITH(UPDLOCK)
-    WHERE PartitionId = @partitionId
-
-    IF @@ROWCOUNT = 0
-    BEGIN
-        SET @partitionKey = NEXT VALUE FOR dbo.PartitionKeySequence
-
-        INSERT INTO dbo.Partition
-            (PartitionKey, PartitionId, CreatedDate)
-        VALUES
-            (@partitionKey, @partitionId, SYSUTCDATETIME())
-    END
 
     SELECT @existingStatus = Status
     FROM dbo.Instance
-    WHERE PartitionKey = @partitionKey
-        AND StudyInstanceUid = @studyInstanceUid
+    WHERE StudyInstanceUid = @studyInstanceUid
         AND SeriesInstanceUid = @seriesInstanceUid
         AND SopInstanceUid = @sopInstanceUid
 
@@ -874,16 +816,15 @@ AS
     SELECT @studyKey = StudyKey
     FROM dbo.Study WITH(UPDLOCK)
     WHERE StudyInstanceUid = @studyInstanceUid
-    AND PartitionKey = @partitionKey
 
     IF @@ROWCOUNT = 0
     BEGIN
         SET @studyKey = NEXT VALUE FOR dbo.StudyKeySequence
 
         INSERT INTO dbo.Study
-            (PartitionKey, StudyKey, StudyInstanceUid, PatientId, PatientName, PatientBirthDate, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
+            (StudyKey, StudyInstanceUid, PatientId, PatientName, PatientBirthDate, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
         VALUES
-            (@partitionKey, @studyKey, @studyInstanceUid, @patientId, @patientName, @patientBirthDate, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
+            (@studyKey, @studyInstanceUid, @patientId, @patientName, @patientBirthDate, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
     END
     ELSE
     BEGIN
@@ -898,16 +839,15 @@ AS
     FROM dbo.Series WITH(UPDLOCK)
     WHERE StudyKey = @studyKey
     AND SeriesInstanceUid = @seriesInstanceUid
-    AND PartitionKey = @partitionKey
 
     IF @@ROWCOUNT = 0
     BEGIN
         SET @seriesKey = NEXT VALUE FOR dbo.SeriesKeySequence
 
         INSERT INTO dbo.Series
-            (PartitionKey, StudyKey, SeriesKey, SeriesInstanceUid, Modality, PerformedProcedureStepStartDate, ManufacturerModelName)
+            (StudyKey, SeriesKey, SeriesInstanceUid, Modality, PerformedProcedureStepStartDate, ManufacturerModelName)
         VALUES
-            (@partitionKey, @studyKey, @seriesKey, @seriesInstanceUid, @modality, @performedProcedureStepStartDate, @manufacturerModelName)
+            (@studyKey, @seriesKey, @seriesInstanceUid, @modality, @performedProcedureStepStartDate, @manufacturerModelName)
     END
     ELSE
     BEGIN
@@ -920,9 +860,9 @@ AS
 
     -- Insert Instance
     INSERT INTO dbo.Instance
-        (PartitionKey, StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
+        (StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
     VALUES
-        (@partitionKey, @studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
+        (@studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
 
     -- Insert Extended Query Tags
 
@@ -1082,6 +1022,309 @@ AS
 GO
 
 /*************************************************************
+    Stored procedures for adding an instance.
+**************************************************************/
+--
+-- STORED PROCEDURE
+--     AddInstanceV2
+--
+-- DESCRIPTION
+--     Adds a DICOM instance.
+--
+-- PARAMETERS
+--     @studyInstanceUid
+--         * The study instance UID.
+--     @seriesInstanceUid
+--         * The series instance UID.
+--     @sopInstanceUid
+--         * The SOP instance UID.
+--     @patientId
+--         * The Id of the patient.
+--     @patientName
+--         * The name of the patient.
+--     @referringPhysicianName
+--         * The referring physician name.
+--     @studyDate
+--         * The study date.
+--     @studyDescription
+--         * The study description.
+--     @accessionNumber
+--         * The accession number associated for the study.
+--     @modality
+--         * The modality associated for the series.
+--     @performedProcedureStepStartDate
+--         * The date when the procedure for the series was performed.
+--     @stringExtendedQueryTags
+--         * String extended query tag data
+--     @longExtendedQueryTags
+--         * Long extended query tag data
+--     @doubleExtendedQueryTags
+--         * Double extended query tag data
+--     @dateTimeExtendedQueryTags
+--         * DateTime extended query tag data
+--     @personNameExtendedQueryTags
+--         * PersonName extended query tag data
+-- RETURN VALUE
+--     The watermark (version).
+------------------------------------------------------------------------
+CREATE OR ALTER PROCEDURE dbo.AddInstanceV2
+    @studyInstanceUid                   VARCHAR(64),
+    @seriesInstanceUid                  VARCHAR(64),
+    @sopInstanceUid                     VARCHAR(64),
+    @patientId                          NVARCHAR(64),
+    @patientName                        NVARCHAR(325) = NULL,
+    @referringPhysicianName             NVARCHAR(325) = NULL,
+    @studyDate                          DATE = NULL,
+    @studyDescription                   NVARCHAR(64) = NULL,
+    @accessionNumber                    NVARCHAR(64) = NULL,
+    @modality                           NVARCHAR(16) = NULL,
+    @performedProcedureStepStartDate    DATE = NULL,
+    @patientBirthDate                   DATE = NULL,
+    @manufacturerModelName              NVARCHAR(64) = NULL,
+    @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY,
+    @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY,
+    @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY,
+    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY,
+    @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY,
+    @initialStatus                      TINYINT
+AS
+    SET NOCOUNT ON
+
+    SET XACT_ABORT ON
+    BEGIN TRANSACTION
+
+    DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
+    DECLARE @existingStatus TINYINT
+    DECLARE @newWatermark BIGINT
+    DECLARE @studyKey BIGINT
+    DECLARE @seriesKey BIGINT
+    DECLARE @instanceKey BIGINT
+
+    SELECT @existingStatus = Status
+    FROM dbo.Instance
+    WHERE StudyInstanceUid = @studyInstanceUid
+        AND SeriesInstanceUid = @seriesInstanceUid
+        AND SopInstanceUid = @sopInstanceUid
+
+    IF @@ROWCOUNT <> 0
+        -- The instance already exists. Set the state = @existingStatus to indicate what state it is in.
+        THROW 50409, 'Instance already exists', @existingStatus;
+
+    -- The instance does not exist, insert it.
+    SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence
+    SET @instanceKey = NEXT VALUE FOR dbo.InstanceKeySequence
+
+    -- Insert Study
+    SELECT @studyKey = StudyKey
+    FROM dbo.Study WITH(UPDLOCK)
+    WHERE StudyInstanceUid = @studyInstanceUid
+
+    IF @@ROWCOUNT = 0
+    BEGIN
+        SET @studyKey = NEXT VALUE FOR dbo.StudyKeySequence
+
+        INSERT INTO dbo.Study
+            (StudyKey, StudyInstanceUid, PatientId, PatientName, PatientBirthDate, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
+        VALUES
+            (@studyKey, @studyInstanceUid, @patientId, @patientName, @patientBirthDate, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
+    END
+    ELSE
+    BEGIN
+        -- Latest wins
+        UPDATE dbo.Study
+        SET PatientId = @patientId, PatientName = @patientName, PatientBirthDate = @patientBirthDate, ReferringPhysicianName = @referringPhysicianName, StudyDate = @studyDate, StudyDescription = @studyDescription, AccessionNumber = @accessionNumber
+        WHERE StudyKey = @studyKey
+    END
+
+    -- Insert Series
+    SELECT @seriesKey = SeriesKey
+    FROM dbo.Series WITH(UPDLOCK)
+    WHERE StudyKey = @studyKey
+    AND SeriesInstanceUid = @seriesInstanceUid
+
+    IF @@ROWCOUNT = 0
+    BEGIN
+        SET @seriesKey = NEXT VALUE FOR dbo.SeriesKeySequence
+
+        INSERT INTO dbo.Series
+            (StudyKey, SeriesKey, SeriesInstanceUid, Modality, PerformedProcedureStepStartDate, ManufacturerModelName)
+        VALUES
+            (@studyKey, @seriesKey, @seriesInstanceUid, @modality, @performedProcedureStepStartDate, @manufacturerModelName)
+    END
+    ELSE
+    BEGIN
+        -- Latest wins
+        UPDATE dbo.Series
+        SET Modality = @modality, PerformedProcedureStepStartDate = @performedProcedureStepStartDate, ManufacturerModelName = @manufacturerModelName
+        WHERE SeriesKey = @seriesKey
+        AND StudyKey = @studyKey
+    END
+
+    -- Insert Instance
+    INSERT INTO dbo.Instance
+        (StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
+    VALUES
+        (@studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
+
+    -- Insert Extended Query Tags
+
+    -- String Key tags
+    IF EXISTS (SELECT 1 FROM @stringExtendedQueryTags)
+    BEGIN
+        MERGE INTO dbo.ExtendedQueryTagString AS T
+        USING
+        (
+            SELECT input.TagKey, input.TagValue, input.TagLevel
+            FROM @stringExtendedQueryTags input
+            INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
+            ON dbo.ExtendedQueryTag.TagKey = input.TagKey
+            -- Not merge on extended query tag which is being deleted.
+            AND dbo.ExtendedQueryTag.TagStatus <> 2
+        ) AS S
+        ON T.TagKey = S.TagKey
+            AND T.StudyKey = @studyKey
+            -- Null SeriesKey indicates a Study level tag, no need to compare SeriesKey
+            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
+            -- Null InstanceKey indicates a Study/Series level tag, no to compare InstanceKey
+            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+        WHEN MATCHED THEN
+            UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
+        WHEN NOT MATCHED THEN
+            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+            VALUES(
+            S.TagKey,
+            S.TagValue,
+            @studyKey,
+            -- When TagLevel is not Study, we should fill SeriesKey
+            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+            -- When TagLevel is Instance, we should fill InstanceKey
+            (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+            @newWatermark);
+    END
+
+    -- Long Key tags
+    IF EXISTS (SELECT 1 FROM @longExtendedQueryTags)
+    BEGIN
+        MERGE INTO dbo.ExtendedQueryTagLong AS T
+        USING
+        (
+            SELECT input.TagKey, input.TagValue, input.TagLevel
+            FROM @longExtendedQueryTags input
+            INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
+            ON dbo.ExtendedQueryTag.TagKey = input.TagKey
+            AND dbo.ExtendedQueryTag.TagStatus <> 2
+        ) AS S
+        ON T.TagKey = S.TagKey
+            AND T.StudyKey = @studyKey
+            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
+            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+        WHEN MATCHED THEN
+            UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
+        WHEN NOT MATCHED THEN
+            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+            VALUES(
+            S.TagKey,
+            S.TagValue,
+            @studyKey,
+            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+            (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+            @newWatermark);
+    END
+
+    -- Double Key tags
+    IF EXISTS (SELECT 1 FROM @doubleExtendedQueryTags)
+    BEGIN
+        MERGE INTO dbo.ExtendedQueryTagDouble AS T
+        USING
+        (
+            SELECT input.TagKey, input.TagValue, input.TagLevel
+            FROM @doubleExtendedQueryTags input
+            INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
+            ON dbo.ExtendedQueryTag.TagKey = input.TagKey
+            AND dbo.ExtendedQueryTag.TagStatus <> 2
+        ) AS S
+        ON T.TagKey = S.TagKey
+            AND T.StudyKey = @studyKey
+            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
+            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+        WHEN MATCHED THEN
+            UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
+        WHEN NOT MATCHED THEN
+            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+            VALUES(
+            S.TagKey,
+            S.TagValue,
+            @studyKey,
+            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+            (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+            @newWatermark);
+    END
+
+    -- DateTime Key tags
+    IF EXISTS (SELECT 1 FROM @dateTimeExtendedQueryTags)
+    BEGIN
+        MERGE INTO dbo.ExtendedQueryTagDateTime AS T
+        USING
+        (
+            SELECT input.TagKey, input.TagValue, input.TagValueUtc, input.TagLevel
+            FROM @dateTimeExtendedQueryTags input
+            INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
+            ON dbo.ExtendedQueryTag.TagKey = input.TagKey
+            AND dbo.ExtendedQueryTag.TagStatus <> 2
+        ) AS S
+        ON T.TagKey = S.TagKey
+            AND T.StudyKey = @studyKey
+            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
+            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+        WHEN MATCHED THEN
+            UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
+        WHEN NOT MATCHED THEN
+            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark, TagValueUtc)
+            VALUES(
+            S.TagKey,
+            S.TagValue,
+            @studyKey,
+            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+            (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+            @newWatermark,
+            S.TagValueUtc);
+    END
+
+    -- PersonName Key tags
+    IF EXISTS (SELECT 1 FROM @personNameExtendedQueryTags)
+    BEGIN
+        MERGE INTO dbo.ExtendedQueryTagPersonName AS T
+        USING
+        (
+            SELECT input.TagKey, input.TagValue, input.TagLevel
+            FROM @personNameExtendedQueryTags input
+            INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
+            ON dbo.ExtendedQueryTag.TagKey = input.TagKey
+            AND dbo.ExtendedQueryTag.TagStatus <> 2
+        ) AS S
+        ON T.TagKey = S.TagKey
+            AND T.StudyKey = @studyKey
+            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
+            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+        WHEN MATCHED THEN
+            UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
+        WHEN NOT MATCHED THEN
+            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+            VALUES(
+            S.TagKey,
+            S.TagValue,
+            @studyKey,
+            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+            (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+            @newWatermark);
+    END
+
+    SELECT @newWatermark
+
+    COMMIT TRANSACTION
+GO
+
+/*************************************************************
     Stored procedures for updating an instance status.
 **************************************************************/
 --
@@ -1092,8 +1335,6 @@ GO
 --     Updates a DICOM instance status.
 --
 -- PARAMETERS
---     @partitionId
---         * The Partition ID.
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -1109,7 +1350,6 @@ GO
 --     None
 --
 CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatus
-    @partitionId        VARCHAR(64) = 'Microsoft.Default',
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64),
     @sopInstanceUid     VARCHAR(64),
@@ -1122,11 +1362,6 @@ AS
     BEGIN TRANSACTION
 
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
-    DECLARE @partitionKey BIGINT
-
-    SELECT @partitionKey = PartitionKey
-    FROM dbo.Partition WITH(UPDLOCK)
-    WHERE PartitionId = @partitionId
 
     UPDATE dbo.Instance
     SET Status = @status, LastStatusUpdatedDate = @currentDate
@@ -1134,7 +1369,6 @@ AS
     AND SeriesInstanceUid = @seriesInstanceUid
     AND SopInstanceUid = @sopInstanceUid
     AND Watermark = @watermark
-    AND PartitionKey = @partitionKey
 
     IF @@ROWCOUNT = 0
     BEGIN
@@ -1146,9 +1380,9 @@ AS
     -- Currently this procedure is used only updating the status to created
     -- If that changes an if condition is needed.
     INSERT INTO dbo.ChangeFeed
-        (Timestamp, Action, PartitionId, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+        (Timestamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
     VALUES
-        (@currentDate, 0, @partitionId, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)
+        (@currentDate, 0, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)
 
     -- Update existing instance currentWatermark to latest
     UPDATE dbo.ChangeFeed
@@ -1156,7 +1390,6 @@ AS
     WHERE StudyInstanceUid    = @studyInstanceUid
         AND SeriesInstanceUid = @seriesInstanceUid
         AND SopInstanceUid    = @sopInstanceUid
-        AND PartitionId       = @partitionId
 
     COMMIT TRANSACTION
 GO
@@ -1169,8 +1402,6 @@ GO
 --     Begins the addition of a DICOM instance.
 --
 -- PARAMETERS
---     @partitionId
---         * The Partition ID.
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -1207,7 +1438,6 @@ GO
 --     The watermark (version).
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.BeginAddInstance
-    @partitionId                        VARCHAR(64)   = 'Microsoft.Default',
     @studyInstanceUid                   VARCHAR(64),
     @seriesInstanceUid                  VARCHAR(64),
     @sopInstanceUid                     VARCHAR(64),
@@ -1232,28 +1462,12 @@ AS
     DECLARE @studyKey BIGINT
     DECLARE @seriesKey BIGINT
     DECLARE @instanceKey BIGINT
-    DECLARE @partitionKey BIGINT
-
-    SELECT @partitionKey = PartitionKey
-    FROM dbo.Partition WITH(UPDLOCK)
-    WHERE PartitionId = @partitionId
-
-    IF @@ROWCOUNT = 0
-    BEGIN
-        SET @partitionKey = NEXT VALUE FOR dbo.PartitionKeySequence
-
-        INSERT INTO dbo.Partition
-            (PartitionKey, PartitionId, CreatedDate)
-        VALUES
-            (@partitionKey, @partitionId, SYSUTCDATETIME())
-    END
 
     SELECT @existingStatus = Status
     FROM dbo.Instance WITH(HOLDLOCK)
     WHERE StudyInstanceUid = @studyInstanceUid
         AND SeriesInstanceUid = @seriesInstanceUid
         AND SopInstanceUid = @sopInstanceUid
-        AND PartitionKey = @partitionKey
 
     IF @@ROWCOUNT <> 0
         -- The instance already exists. Set the state = @existingStatus to indicate what state it is in.
@@ -1267,16 +1481,15 @@ AS
     SELECT @studyKey = StudyKey
     FROM dbo.Study WITH(HOLDLOCK)
     WHERE StudyInstanceUid = @studyInstanceUid
-    AND PartitionKey = @partitionKey
 
     IF @@ROWCOUNT = 0
     BEGIN
         SET @studyKey = NEXT VALUE FOR dbo.StudyKeySequence
 
         INSERT INTO dbo.Study
-            (PartitionKey, StudyKey, StudyInstanceUid, PatientId, PatientName, PatientBirthDate, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
+            (StudyKey, StudyInstanceUid, PatientId, PatientName, PatientBirthDate, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
         VALUES
-            (@partitionKey, @studyKey, @studyInstanceUid, @patientId, @patientName, @patientBirthDate, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
+            (@studyKey, @studyInstanceUid, @patientId, @patientName, @patientBirthDate, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
     END
     ELSE
     BEGIN
@@ -1291,16 +1504,15 @@ AS
     FROM dbo.Series WITH(HOLDLOCK)
     WHERE StudyKey = @studyKey
     AND SeriesInstanceUid = @seriesInstanceUid
-    AND PartitionKey = @partitionKey
 
     IF @@ROWCOUNT = 0
     BEGIN
         SET @seriesKey = NEXT VALUE FOR dbo.SeriesKeySequence
 
         INSERT INTO dbo.Series
-            (PartitionKey, StudyKey, SeriesKey, SeriesInstanceUid, Modality, PerformedProcedureStepStartDate, ManufacturerModelName)
+            (StudyKey, SeriesKey, SeriesInstanceUid, Modality, PerformedProcedureStepStartDate, ManufacturerModelName)
         VALUES
-            (@partitionKey, @studyKey, @seriesKey, @seriesInstanceUid, @modality, @performedProcedureStepStartDate, @manufacturerModelName)
+            (@studyKey, @seriesKey, @seriesInstanceUid, @modality, @performedProcedureStepStartDate, @manufacturerModelName)
     END
     ELSE
     BEGIN
@@ -1313,9 +1525,9 @@ AS
 
     -- Insert Instance
     INSERT INTO dbo.Instance
-        (PartitionKey, StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
+        (StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
     VALUES
-        (@partitionKey, @studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, 0, @currentDate, @currentDate)
+        (@studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, 0, @currentDate, @currentDate)
 
     SELECT @newWatermark
 
@@ -1330,8 +1542,6 @@ GO
 --     Completes the addition of a DICOM instance.
 --
 -- PARAMETERS
---     @partitionId
---         * The Partition ID.
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -1356,7 +1566,6 @@ GO
 --     None
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.EndAddInstance
-    @partitionId                        VARCHAR(64)   = 'Microsoft.Default',
     @studyInstanceUid  VARCHAR(64),
     @seriesInstanceUid VARCHAR(64),
     @sopInstanceUid    VARCHAR(64),
@@ -1379,11 +1588,6 @@ AS
             THROW 50409, 'Max extended query tag key does not match', 10
 
         DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
-        DECLARE @partitionKey BIGINT
-
-        SELECT @partitionKey = PartitionKey
-        FROM dbo.Partition WITH(UPDLOCK)
-        WHERE PartitionId = @partitionId
 
         UPDATE dbo.Instance
         SET Status = 1, LastStatusUpdatedDate = @currentDate
@@ -1391,7 +1595,6 @@ AS
             AND SeriesInstanceUid = @seriesInstanceUid
             AND SopInstanceUid = @sopInstanceUid
             AND Watermark = @watermark
-            AND PartitionKey = @partitionKey
 
         IF @@ROWCOUNT = 0
             THROW 50404, 'Instance does not exist', 1 -- The instance does not exist. Perhaps it was deleted?
@@ -1408,9 +1611,9 @@ AS
         -- Currently this procedure is used only updating the status to created
         -- If that changes an if condition is needed.
         INSERT INTO dbo.ChangeFeed
-            (Timestamp, Action, PartitionId, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+            (Timestamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
         VALUES
-            (@currentDate, 0, @partitionId, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)
+            (@currentDate, 0, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)
 
         -- Update existing instance currentWatermark to latest
         UPDATE dbo.ChangeFeed
@@ -1418,7 +1621,6 @@ AS
         WHERE StudyInstanceUid    = @studyInstanceUid
             AND SeriesInstanceUid = @seriesInstanceUid
             AND SopInstanceUid    = @sopInstanceUid
-            AND PartitionId       = @partitionId
 
     COMMIT TRANSACTION
 GO
@@ -1431,9 +1633,7 @@ GO
 --     Gets valid dicom instances at study/series/instance level
 --
 -- PARAMETERS
---     @partitionId
---         * The Partition ID.
---     @validStatus
+--     @invalidStatus
 --         * Filter criteria to search only valid instances
 --     @studyInstanceUid
 --         * The study instance UID.
@@ -1443,7 +1643,6 @@ GO
 --         * The SOP instance UID.
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.GetInstance (
-    @partitionId        VARCHAR(64) = 'Microsoft.Default',
     @validStatus        TINYINT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64) = NULL,
@@ -1454,23 +1653,16 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-    DECLARE @partitionKey BIGINT
-
-    SELECT @partitionKey = PartitionKey
-    FROM dbo.Partition WITH(UPDLOCK)
-    WHERE PartitionId = @partitionId
 
     SELECT  StudyInstanceUid,
             SeriesInstanceUid,
             SopInstanceUid,
-            Watermark,
-            @partitionId AS PartitionId
+            Watermark
     FROM    dbo.Instance
     WHERE   StudyInstanceUid        = @studyInstanceUid
             AND SeriesInstanceUid   = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
             AND SopInstanceUid      = ISNULL(@sopInstanceUid, SopInstanceUid)
             AND Status              = @validStatus
-            AND PartitionKey        = @partitionKey
 
 END
 GO
@@ -1505,11 +1697,8 @@ AS
     SELECT StudyInstanceUid,
            SeriesInstanceUid,
            SopInstanceUid,
-           Watermark,
-           p.PartitionId
-    FROM dbo.Instance i
-    JOIN dbo.Partition p
-    ON p.PartitionKey = i.PartitionKey
+           Watermark
+    FROM dbo.Instance
     WHERE Watermark BETWEEN @startWatermark AND @endWatermark
           AND Status = @status
 GO
@@ -1572,8 +1761,6 @@ GO
 --         * The date time offset that the instance can be cleaned up.
 --     @createdStatus
 --         * Status value representing the created state.
---     @partitionId
---         * The Partition ID.
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -1584,7 +1771,6 @@ GO
 CREATE OR ALTER PROCEDURE dbo.DeleteInstance
     @cleanupAfter       DATETIMEOFFSET(0),
     @createdStatus      TINYINT,
-    @partitionId        VARCHAR(64) = 'Microsoft.Default',
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64) = null,
     @sopInstanceUid     VARCHAR(64) = null
@@ -1595,22 +1781,16 @@ AS
     BEGIN TRANSACTION
 
     DECLARE @deletedInstances AS TABLE
-        (PartitionId VARCHAR(64),
-         StudyInstanceUid VARCHAR(64),
-         SeriesInstanceUid VARCHAR(64),
-         SopInstanceUid VARCHAR(64),
-         Status TINYINT,
-         Watermark BIGINT)
+        (StudyInstanceUid VARCHAR(64),
+            SeriesInstanceUid VARCHAR(64),
+            SopInstanceUid VARCHAR(64),
+            Status TINYINT,
+            Watermark BIGINT)
 
     DECLARE @studyKey BIGINT
     DECLARE @seriesKey BIGINT
     DECLARE @instanceKey BIGINT
     DECLARE @deletedDate DATETIME2 = SYSUTCDATETIME()
-    DECLARE @partitionKey BIGINT
-
-    SELECT @partitionKey = PartitionKey
-    FROM dbo.Partition WITH(UPDLOCK)
-    WHERE PartitionId = @partitionId
 
     -- Get the study, series and instance PK
     SELECT  @studyKey = StudyKey,
@@ -1620,16 +1800,14 @@ AS
     WHERE   StudyInstanceUid = @studyInstanceUid
     AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
     AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
-    AND     PartitionKey = @partitionKey
 
     -- Delete the instance and insert the details into DeletedInstance and ChangeFeed
     DELETE  dbo.Instance
-        OUTPUT @partitionId AS PartitionId, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark
+        OUTPUT deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark
         INTO @deletedInstances
     WHERE   StudyInstanceUid = @studyInstanceUid
     AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
     AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
-    AND     PartitionKey = @partitionKey
 
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance not found', 1
@@ -1701,13 +1879,13 @@ AS
     AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
 
     INSERT INTO dbo.DeletedInstance
-    (PartitionId, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
-    SELECT PartitionId, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter
+    (StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
+    SELECT StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter
     FROM @deletedInstances
 
     INSERT INTO dbo.ChangeFeed
-    (TimeStamp, Action, PartitionId, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-    SELECT @deletedDate, 1, PartitionId, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
+    (TimeStamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    SELECT @deletedDate, 1, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
     FROM @deletedInstances
     WHERE Status = @createdStatus
 
@@ -1718,20 +1896,17 @@ AS
     ON cf.StudyInstanceUid = d.StudyInstanceUid
         AND cf.SeriesInstanceUid = d.SeriesInstanceUid
         AND cf.SopInstanceUid = d.SopInstanceUid
-        AND cf.PartitionId = d.PartitionId
 
     -- If this is the last instance for a series, remove the series
     IF NOT EXISTS ( SELECT  *
                     FROM    dbo.Instance WITH(HOLDLOCK, UPDLOCK)
                     WHERE   StudyKey = @studyKey
-                    AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
-                    AND     PartitionKey      = @partitionKey)
+                    AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid))
     BEGIN
         DELETE
         FROM    dbo.Series
         WHERE   Studykey = @studyKey
         AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
-        AND     PartitionKey      = @partitionKey
 
         -- Deleting indexed series tags
         DELETE
@@ -1763,12 +1938,11 @@ AS
     -- If we've removing the series, see if it's the last for a study and if so, remove the study
     IF NOT EXISTS ( SELECT  *
                     FROM    dbo.Series WITH(HOLDLOCK, UPDLOCK)
-                    WHERE   StudyKey = @studyKey
-                    AND     PartitionKey = @partitionKey)
+                    WHERE   Studykey = @studyKey)
     BEGIN
         DELETE
         FROM    dbo.Study
-        WHERE   StudyKey = @studyKey
+        WHERE   Studykey = @studyKey
 
         -- Deleting indexed study tags
         DELETE
@@ -1814,7 +1988,7 @@ CREATE OR ALTER PROCEDURE dbo.RetrieveDeletedInstance
 AS
     SET NOCOUNT ON
 
-    SELECT  TOP (@count) PartitionId, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
+    SELECT  TOP (@count) StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
     FROM    dbo.DeletedInstance WITH (UPDLOCK, READPAST)
     WHERE   RetryCount <= @maxRetries
     AND     CleanupAfter < SYSUTCDATETIME()
@@ -1828,8 +2002,6 @@ GO
 --     Removes a deleted instance from the DeletedInstance table
 --
 -- PARAMETERS
---     @partitionId
---         * The Partition Id
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -1840,7 +2012,6 @@ GO
 --         * The watermark of the entry
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.DeleteDeletedInstance(
-    @partitionId        VARCHAR(64) = 'Microsoft.Default',
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64),
     @sopInstanceUid     VARCHAR(64),
@@ -1855,7 +2026,6 @@ AS
     AND     SeriesInstanceUid = @seriesInstanceUid
     AND     SopInstanceUid = @sopInstanceUid
     AND     Watermark = @watermark
-    AND     PartitionId = @partitionId
 GO
 
 /***************************************************************************************/
@@ -1866,8 +2036,6 @@ GO
 --     Increments the retryCount of and retryAfter of a deleted instance
 --
 -- PARAMETERS
---     @partitionId
---         * The Partition Id
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -1884,7 +2052,6 @@ GO
 --
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.IncrementDeletedInstanceRetry(
-    @partitionId        VARCHAR(64) = 'Microsoft.Default',
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64),
     @sopInstanceUid     VARCHAR(64),
@@ -1903,7 +2070,6 @@ AS
     AND     SeriesInstanceUid = @seriesInstanceUid
     AND     SopInstanceUid = @sopInstanceUid
     AND     Watermark = @watermark
-    AND     PartitionId = @partitionId
 
     SELECT @retryCount
 GO
@@ -1932,7 +2098,6 @@ BEGIN
     SELECT  Sequence,
             Timestamp,
             Action,
-            PartitionId,
             StudyInstanceUid,
             SeriesInstanceUid,
             SopInstanceUid,
@@ -1961,7 +2126,6 @@ BEGIN
             Sequence,
             Timestamp,
             Action,
-            PartitionId,
             StudyInstanceUid,
             SeriesInstanceUid,
             SopInstanceUid,
@@ -2061,7 +2225,7 @@ GO
 -- RETURN VALUE
 --     The corresponding extended query tags, if any.
 /***************************************************************************************/
-CREATE PROCEDURE dbo.GetExtendedQueryTagsByKey
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagsByKey
     @extendedQueryTagKeys dbo.ExtendedQueryTagKeyTableType_1 READONLY
 AS
 BEGIN
@@ -2436,7 +2600,7 @@ GO
 -- RETURN VALUE
 --     None
 /***************************************************************************************/
-CREATE PROCEDURE dbo.IndexInstance
+CREATE OR ALTER PROCEDURE dbo.IndexInstance
     @watermark                                                                   BIGINT,
     @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1         READONLY,
     @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1             READONLY,
@@ -2640,6 +2804,233 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
+--    Index instance V2
+--
+-- DESCRIPTION
+--    Adds or updates the various extended query tag indices for a given DICOM instance.
+--
+-- PARAMETERS
+--     @watermark
+--         * The Dicom instance watermark.
+--     @stringExtendedQueryTags
+--         * String extended query tag data
+--     @longExtendedQueryTags
+--         * Long extended query tag data
+--     @doubleExtendedQueryTags
+--         * Double extended query tag data
+--     @
+
+--         * DateTime extended query tag data
+--     @personNameExtendedQueryTags
+--         * PersonName extended query tag data
+-- RETURN VALUE
+--     None
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.IndexInstanceV2
+    @watermark                                                                   BIGINT,
+    @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1         READONLY,
+    @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1             READONLY,
+    @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1         READONLY,
+    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2     READONLY,
+    @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
+AS
+    SET NOCOUNT    ON
+    SET XACT_ABORT ON
+    BEGIN TRANSACTION
+
+        DECLARE @studyKey BIGINT
+        DECLARE @seriesKey BIGINT
+        DECLARE @instanceKey BIGINT
+
+        -- Add lock so that the instance cannot be removed
+        DECLARE @status TINYINT
+        SELECT
+            @studyKey = StudyKey,
+            @seriesKey = SeriesKey,
+            @instanceKey = InstanceKey,
+            @status = Status
+        FROM dbo.Instance WITH (HOLDLOCK)
+        WHERE Watermark = @watermark
+
+        IF @@ROWCOUNT = 0
+            THROW 50404, 'Instance does not exists', 1
+        IF @status <> 1 -- Created
+            THROW 50409, 'Instance has not yet been stored succssfully', 1
+
+        -- Insert Extended Query Tags
+
+        -- String Key tags
+        IF EXISTS (SELECT 1 FROM @stringExtendedQueryTags)
+        BEGIN
+            MERGE INTO dbo.ExtendedQueryTagString WITH (HOLDLOCK) AS T
+            USING
+            (
+                -- Locks tags in dbo.ExtendedQueryTag
+                SELECT input.TagKey, input.TagValue, input.TagLevel
+                FROM @stringExtendedQueryTags input
+                INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
+                ON dbo.ExtendedQueryTag.TagKey = input.TagKey
+                -- Only merge on extended query tag which is being adding.
+                AND dbo.ExtendedQueryTag.TagStatus <> 2
+            ) AS S
+            ON T.TagKey = S.TagKey
+                AND T.StudyKey = @studyKey
+                -- Null SeriesKey indicates a Study level tag, no need to compare SeriesKey
+                AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
+                -- Null InstanceKey indicates a Study/Series level tag, no to compare InstanceKey
+                AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+            WHEN MATCHED THEN
+                -- When index already exist, update only when watermark is newer
+                UPDATE SET T.Watermark = IIF(@watermark > T.Watermark, @watermark, T.Watermark), T.TagValue = IIF(@watermark > T.Watermark, S.TagValue, T.TagValue)
+            WHEN NOT MATCHED THEN
+                INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+                VALUES
+                (
+                    S.TagKey,
+                    S.TagValue,
+                    @studyKey,
+                    -- When TagLevel is not Study, we should fill SeriesKey
+                    (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+                    -- When TagLevel is Instance, we should fill InstanceKey
+                    (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+                    @watermark
+                );
+        END
+
+        -- Long Key tags
+        IF EXISTS (SELECT 1 FROM @longExtendedQueryTags)
+        BEGIN
+            MERGE INTO dbo.ExtendedQueryTagLong WITH (HOLDLOCK) AS T
+            USING
+            (
+                SELECT input.TagKey, input.TagValue, input.TagLevel
+                FROM @longExtendedQueryTags input
+                INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
+                ON dbo.ExtendedQueryTag.TagKey = input.TagKey
+                AND dbo.ExtendedQueryTag.TagStatus <> 2
+            ) AS S
+            ON T.TagKey = S.TagKey
+                AND T.StudyKey = @studyKey
+                AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
+                AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+            WHEN MATCHED THEN
+                 -- When index already exist, update only when watermark is newer
+                UPDATE SET T.Watermark = IIF(@watermark > T.Watermark, @watermark, T.Watermark), T.TagValue = IIF(@watermark > T.Watermark, S.TagValue, T.TagValue)
+            WHEN NOT MATCHED THEN
+                INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+                VALUES
+                (
+                    S.TagKey,
+                    S.TagValue,
+                    @studyKey,
+                    (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+                    (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+                    @watermark
+                );
+        END
+
+        -- Double Key tags
+        IF EXISTS (SELECT 1 FROM @doubleExtendedQueryTags)
+        BEGIN
+            MERGE INTO dbo.ExtendedQueryTagDouble WITH (HOLDLOCK) AS T
+            USING
+            (
+                SELECT input.TagKey, input.TagValue, input.TagLevel
+                FROM @doubleExtendedQueryTags input
+                INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
+                ON dbo.ExtendedQueryTag.TagKey = input.TagKey
+                AND dbo.ExtendedQueryTag.TagStatus <> 2
+            ) AS S
+            ON T.TagKey = S.TagKey
+                AND T.StudyKey = @studyKey
+                AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
+                AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+            WHEN MATCHED THEN
+                -- When index already exist, update only when watermark is newer
+                UPDATE SET T.Watermark = IIF(@watermark > T.Watermark, @watermark, T.Watermark), T.TagValue = IIF(@watermark > T.Watermark, S.TagValue, T.TagValue)
+            WHEN NOT MATCHED THEN
+                INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+                VALUES
+                (
+                    S.TagKey,
+                    S.TagValue,
+                    @studyKey,
+                    (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+                    (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+                    @watermark
+                );
+        END
+
+        -- DateTime Key tags
+        IF EXISTS (SELECT 1 FROM @dateTimeExtendedQueryTags)
+        BEGIN
+            MERGE INTO dbo.ExtendedQueryTagDateTime WITH (HOLDLOCK) AS T
+            USING
+            (
+                SELECT input.TagKey, input.TagValue, input.TagValueUtc, input.TagLevel
+                FROM @dateTimeExtendedQueryTags input
+                INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
+                ON dbo.ExtendedQueryTag.TagKey = input.TagKey
+                AND dbo.ExtendedQueryTag.TagStatus <> 2
+            ) AS S
+            ON T.TagKey = S.TagKey
+                AND T.StudyKey = @studyKey
+                AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
+                AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+            WHEN MATCHED THEN
+                 -- When index already exist, update only when watermark is newer
+                UPDATE SET T.Watermark = IIF(@watermark > T.Watermark, @watermark, T.Watermark), T.TagValue = IIF(@watermark > T.Watermark, S.TagValue, T.TagValue)
+            WHEN NOT MATCHED THEN
+                INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark, TagValueUtc)
+                VALUES
+                (
+                    S.TagKey,
+                    S.TagValue,
+                    @studyKey,
+                    (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+                    (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+                    @watermark,
+                    S.TagValueUtc
+                );
+        END
+
+        -- PersonName Key tags
+        IF EXISTS (SELECT 1 FROM @personNameExtendedQueryTags)
+        BEGIN
+            MERGE INTO dbo.ExtendedQueryTagPersonName WITH (HOLDLOCK) AS T
+            USING
+            (
+                SELECT input.TagKey, input.TagValue, input.TagLevel
+                FROM @personNameExtendedQueryTags input
+                INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
+                ON dbo.ExtendedQueryTag.TagKey = input.TagKey
+                AND dbo.ExtendedQueryTag.TagStatus <> 2
+            ) AS S
+            ON T.TagKey = S.TagKey
+                AND T.StudyKey = @studyKey
+                AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
+                AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+            WHEN MATCHED THEN
+                -- When index already exist, update only when watermark is newer
+                UPDATE SET T.Watermark = IIF(@watermark > T.Watermark, @watermark, T.Watermark), T.TagValue = IIF(@watermark > T.Watermark, S.TagValue, T.TagValue)
+            WHEN NOT MATCHED THEN
+                INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+                VALUES
+                (
+                    S.TagKey,
+                    S.TagValue,
+                    @studyKey,
+                    (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+                    (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+                    @watermark
+                );
+        END
+
+    COMMIT TRANSACTION
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
 --     AssignReindexingOperation
 --
 -- DESCRIPTION
@@ -2767,37 +3158,5 @@ BEGIN
     CREATE FULLTEXT INDEX ON ExtendedQueryTagPersonName(TagValueWords LANGUAGE 1033)
     KEY INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey
     WITH STOPLIST = OFF;
-END
-GO
-
-/*************************************************************
-Store Procedure that checks if there are already existing record in instance table
-**************************************************************/
-CREATE OR ALTER PROCEDURE dbo.CheckIfInstancesExist
-AS
-BEGIN
-    SET NOCOUNT     ON
-    SET XACT_ABORT  ON
-
-    SELECT TOP 1 InstanceKey
-    FROM dbo.Instance
-
-    IF @@ROWCOUNT <> 0
-       THROW 50410, 'Instances already exists', 1
-END
-GO
-
-/*************************************************************
-Stored Procedure that retrieves all partitions except default partition
-**************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetPartitions
-AS
-BEGIN
-    SET NOCOUNT     ON
-    SET XACT_ABORT  ON
-
-    SELECT PartitionId, CreatedDate
-    FROM dbo.Partition
-    WHERE PartitionId <> 'Microsoft.Default'
 END
 GO

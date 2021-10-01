@@ -13,8 +13,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
     {
         public SqlExtendedQueryTagErrorStoreV5(
            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
-           ILogger<ISqlExtendedQueryTagErrorStore> logger)
-            : base(sqlConnectionWrapperFactory, logger)
+           ILogger<SqlExtendedQueryTagErrorStoreV5> logger) : base(sqlConnectionWrapperFactory, logger)
         {
         }
 

@@ -12,6 +12,7 @@ using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -25,6 +26,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         private readonly ITranscoder _transcoder;
         private readonly IFrameHandler _frameHandler;
         private readonly IRetrieveTransferSyntaxHandler _retrieveTransferSyntaxHandler;
+        private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
         private readonly ILogger<RetrieveResourceService> _logger;
 
         public RetrieveResourceService(
@@ -33,6 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             ITranscoder transcoder,
             IFrameHandler frameHandler,
             IRetrieveTransferSyntaxHandler retrieveTransferSyntaxHandler,
+            IDicomRequestContextAccessor dicomRequestContextAccessor,
             ILogger<RetrieveResourceService> logger)
         {
             EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
@@ -40,6 +43,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             EnsureArg.IsNotNull(transcoder, nameof(transcoder));
             EnsureArg.IsNotNull(frameHandler, nameof(frameHandler));
             EnsureArg.IsNotNull(retrieveTransferSyntaxHandler, nameof(retrieveTransferSyntaxHandler));
+            EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _instanceStore = instanceStore;
@@ -47,6 +51,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             _transcoder = transcoder;
             _frameHandler = frameHandler;
             _retrieveTransferSyntaxHandler = retrieveTransferSyntaxHandler;
+            _dicomRequestContextAccessor = dicomRequestContextAccessor;
             _logger = logger;
         }
 
@@ -69,6 +74,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
                 Stream[] resultStreams = await Task.WhenAll(
                     retrieveInstances.Select(x => _blobDataStore.GetFileAsync(x, cancellationToken)));
+
+                long lengthOfResultStreams = resultStreams.Sum(stream => stream.Length);
+                _dicomRequestContextAccessor.RequestContext.IsTranscodeRequested = !isOriginalTransferSyntaxRequested;
+                _dicomRequestContextAccessor.RequestContext.BytesTranscoded = isOriginalTransferSyntaxRequested ? 0 : lengthOfResultStreams;
 
                 if (message.ResourceType == ResourceType.Frames)
                 {

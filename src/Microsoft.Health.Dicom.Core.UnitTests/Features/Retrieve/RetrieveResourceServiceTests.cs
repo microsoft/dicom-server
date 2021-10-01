@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages;
@@ -38,6 +39,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         private readonly ITranscoder _retrieveTranscoder;
         private readonly IFrameHandler _dicomFrameHandler;
         private readonly IRetrieveTransferSyntaxHandler _retrieveTransferSyntaxHandler;
+        private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
         private readonly ILogger<RetrieveResourceService> _logger;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
@@ -56,8 +58,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             _retrieveTransferSyntaxHandler = new RetrieveTransferSyntaxHandler(NullLogger<RetrieveTransferSyntaxHandler>.Instance);
             _logger = NullLogger<RetrieveResourceService>.Instance;
             _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
+            _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
             _retrieveResourceService = new RetrieveResourceService(
-                _instanceStore, _fileStore, _retrieveTranscoder, _dicomFrameHandler, _retrieveTransferSyntaxHandler, _logger);
+                _instanceStore, _fileStore, _retrieveTranscoder, _dicomFrameHandler, _retrieveTransferSyntaxHandler, _dicomRequestContextAccessor, _logger);
         }
 
         [Fact]
@@ -105,6 +108,38 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
 
             // Validate response status code and ensure response streams have expected files - they should be equivalent to what the store was set up to return.
             ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), response.ResponseStreams);
+
+            // Validate dicom request is populated with correct transcode values
+            ValidateDicomRequestIsPopulated();
+
+            // Dispose created streams.
+            streamsAndStoredFiles.ToList().ForEach(x => x.Value.Dispose());
+        }
+
+        [Fact]
+        public async Task GivenSpecificTransferSyntax_WhenRetrieveRequestForStudy_ThenInstancesInStudyAreTranscodedSuccesfully()
+        {
+            // Add multiple instances to validate that we return the requested instance and ignore the other(s).
+            List<VersionedInstanceIdentifier> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Study);
+
+            // For each instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
+            var streamsAndStoredFiles = versionedInstanceIdentifiers.Select(
+                x => StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(x)).Result).ToList();
+
+            streamsAndStoredFiles.ForEach(x => _fileStore.GetFileAsync(x.Key.Dataset.ToVersionedInstanceIdentifier(0), DefaultCancellationToken).Returns(x.Value));
+
+            string transferSyntax = "1.2.840.10008.1.2.1";
+            streamsAndStoredFiles.ForEach(x => _retrieveTranscoder.TranscodeFileAsync(x.Value, transferSyntax).Returns(x.Value));
+
+            RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
+                   new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy(transferSyntax: transferSyntax) }),
+                   DefaultCancellationToken);
+
+            // Validate response status code and ensure response streams have expected files - they should be equivalent to what the store was set up to return.
+            ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), response.ResponseStreams);
+
+            // Validate dicom request is populated with correct transcode values
+            ValidateDicomRequestIsPopulated(true, response.ResponseStreams.Sum(s => s.Length));
 
             // Dispose created streams.
             streamsAndStoredFiles.ToList().ForEach(x => x.Value.Dispose());
@@ -160,6 +195,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             // Validate response status code and ensure response streams have expected files - they should be equivalent to what the store was set up to return.
             ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), response.ResponseStreams);
 
+            // Validate dicom request is populated with correct transcode values
+            ValidateDicomRequestIsPopulated();
+
             // Dispose created streams.
             streamsAndStoredFiles.ToList().ForEach(x => x.Value.Dispose());
         }
@@ -210,6 +248,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
 
             // Validate response status code and ensure response stream has expected file - it should be equivalent to what the store was set up to return.
             ValidateResponseStreams(new List<DicomFile>() { streamAndStoredFile.Key }, response.ResponseStreams);
+
+            // Validate dicom request is populated with correct transcode values
+            ValidateDicomRequestIsPopulated();
 
             // Validate content type
             Assert.Equal(KnownContentTypes.ApplicationDicom, response.ContentType);
@@ -287,6 +328,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             AssertPixelDataEqual(DicomPixelData.Create(streamAndStoredFile.Key.Dataset).GetFrame(framesToRequest[0]), response.ResponseStreams.ToList()[0]);
             AssertPixelDataEqual(DicomPixelData.Create(streamAndStoredFile.Key.Dataset).GetFrame(framesToRequest[1]), response.ResponseStreams.ToList()[1]);
 
+            // Validate dicom request is populated with correct transcode values
+            ValidateDicomRequestIsPopulated();
+
             streamAndStoredFile.Value.Dispose();
         }
 
@@ -356,6 +400,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             stream.Position = 0;
 
             return new KeyValuePair<DicomFile, Stream>(dicomFile, stream);
+        }
+
+        private void ValidateDicomRequestIsPopulated(bool isTranscodeRequested = false, long sizeOfTranscode = 0)
+        {
+            Assert.Equal(isTranscodeRequested, _dicomRequestContextAccessor.RequestContext.IsTranscodeRequested);
+            Assert.Equal(sizeOfTranscode, _dicomRequestContextAccessor.RequestContext.BytesTranscoded);
         }
 
         private void ValidateResponseStreams(
