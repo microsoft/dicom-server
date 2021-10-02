@@ -253,7 +253,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             ValidateDicomRequestIsPopulated();
 
             // Validate content type
-            Assert.Equal(KnownContentTypes.ApplicationDicom, response.ContentType);
+            string contentTypePart = response.ContentType.Substring(0, response.ContentType.IndexOf(';'));
+            Assert.Equal(KnownContentTypes.ApplicationDicom, contentTypePart);
 
             // Dispose created streams.
             streamAndStoredFile.Value.Dispose();
