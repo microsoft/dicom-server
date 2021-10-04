@@ -19,7 +19,6 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Product>Microsoft Health</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <SdkPackageVersion>5.0.9</SdkPackageVersion>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
@@ -33,7 +32,7 @@
     </When>
     <Otherwise>
       <PropertyGroup>
-        <SdkPackageVersion>5.0.0</SdkPackageVersion>
+        <SdkPackageVersion>5.0.9</SdkPackageVersion>
       </PropertyGroup>
     </Otherwise>
   </Choose>
