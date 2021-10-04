@@ -20,7 +20,6 @@ steps:
     inputs:
       command: 'build'
       projects: '**/*.csproj'
-      verbosityRestore: detailed
       arguments: '--configuration $(buildConfiguration) -warnaserror -p:AssemblyVersion="$(assemblySemVer)" -p:FileVersion="$(assemblySemFileVer)" -p:InformationalVersion="$(informationalVersion)" -p:ContinuousIntegrationBuild=true'
 
   - task: DotNetCoreCLI@2

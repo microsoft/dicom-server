@@ -82,6 +82,8 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <!-- Add new sql changes here-->
+  <!-- If this sql needs to be in a transaction, tag it TSqlScript otherwise use SqlScript -->
   <ItemGroup>
     <TInitSqlScript Include="Features\Schema\Sql\Scripts\TransactionCheck.sql" />
 
@@ -100,7 +102,6 @@
     <TSqlScript Include="Features\Schema\Sql\Tables\ExtendedQueryTagPersonName.sql" />
     <TSqlScript Include="Features\Schema\Sql\Types\Types.sql" />
     <TSqlScript Include="Features\Schema\Sql\Scripts\Sequences.sql" />
-
     <SqlScript Include="Features\Schema\Sql\Sprocs\AddInstance.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\AddInstanceV2.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\UpdateInstanceStatus.sql" />
@@ -132,12 +133,13 @@
     <SqlScript Include="Features\Schema\Sql\Scripts\FullText.sql" />
   </ItemGroup>
   
+  <!-- Properties used by sql task to generate full script-->
   <PropertyGroup>
     <LatestSchemaVersion>5</LatestSchemaVersion>
     <IntermediateOutputPath>$(MSBuildThisFileDirectory)obj\$(Configuration)</IntermediateOutputPath>
     <GeneratedFullScriptPath>Features\Schema\Migrations\$(LatestSchemaVersion).sql</GeneratedFullScriptPath>
   </PropertyGroup>
-  
+  <!-- Target contains sql build tasks -->
   <Import Project="$(NuGetPackageRoot)microsoft.health.tools.sql.tasks\1.0.0\build\Sql.targets" />  
 
   <Target Name="ComputeGeneratorInputs" BeforeTargets="GenerateFiles">

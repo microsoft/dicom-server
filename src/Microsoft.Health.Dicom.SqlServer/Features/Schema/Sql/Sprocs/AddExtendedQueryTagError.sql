@@ -21,7 +21,6 @@ CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTagError
     @errorCode SMALLINT,
     @watermark BIGINT
 AS
-BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
     BEGIN TRANSACTION
@@ -57,4 +56,3 @@ BEGIN
         WHERE TagKey = @tagKey
 
     COMMIT TRANSACTION
-END
