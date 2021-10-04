@@ -11,7 +11,11 @@ using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Api.Features.Converter
 {
-    internal class CustomJsonStringEnumConverterImp<T> : JsonConverter<T>
+    /// <summary>
+    /// Enum JsonConverter to provide better error message to customer.
+    /// </summary>
+    /// <typeparam name="T">Enum type.</typeparam>
+    public sealed class EnumNameJsonConverter<T> : JsonConverter<T>
         where T : Enum
     {
         public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

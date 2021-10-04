@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Health.Dicom.Api.Features.Converter;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Api.Models
@@ -21,6 +22,7 @@ namespace Microsoft.Health.Dicom.Api.Models
         /// Gets or sets query status.
         /// </summary>
         [Required]
+        [JsonConverter(typeof(EnumNameJsonConverter<QueryStatus>))]
         public QueryStatus? QueryStatus { get; set; }
 
         [JsonExtensionData]
@@ -32,22 +34,12 @@ namespace Microsoft.Health.Dicom.Api.Models
             return new UpdateExtendedQueryTagEntry(QueryStatus.Value);
         }
 
-        public string FormatToLog()
-        {
-            // When there is ExtensionData, request fail for BadRequest, so no need to log.
-            return $"{nameof(QueryStatus)}: '{QueryStatus}'";
-        }
-
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            if (ExtensionData != null && ExtensionData.Count != 0)
-            {
-                return ExtensionData.Select(x => new ValidationResult(string.Format(CultureInfo.InvariantCulture, DicomApiResource.UnsupportedField, x.Key), new[] { x.Key }));
-            }
-            else
-            {
-                return Array.Empty<ValidationResult>();
-            }
+            return ExtensionData != null && ExtensionData.Count != 0
+                ? ExtensionData.Select(x => new ValidationResult(string.Format(CultureInfo.InvariantCulture, DicomApiResource.UnsupportedField, x.Key), new[] { x.Key }))
+                : Array.Empty<ValidationResult>();
+
         }
     }
 }

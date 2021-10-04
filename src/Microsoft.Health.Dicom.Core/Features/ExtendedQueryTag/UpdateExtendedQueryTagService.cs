@@ -31,10 +31,9 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         public async Task<GetExtendedQueryTagEntry> UpdateExtendedQueryTagAsync(string tagPath, UpdateExtendedQueryTagEntry newValue, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(tagPath, nameof(tagPath));
-            EnsureArg.IsNotNull(newValue?.QueryStatus, nameof(newValue.QueryStatus));
+            EnsureArg.IsNotNull(newValue?.QueryStatus, nameof(newValue));
             EnsureArg.EnumIsDefined(newValue.QueryStatus, nameof(UpdateExtendedQueryTagEntry.QueryStatus));
-            DicomTag[] tags;
-            if (!_dicomTagParser.TryParse(tagPath, out tags, supportMultiple: false))
+            if (!_dicomTagParser.TryParse(tagPath, out DicomTag[] tags, supportMultiple: false))
             {
                 throw new InvalidExtendedQueryTagPathException(
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidExtendedQueryTag, tagPath ?? string.Empty));

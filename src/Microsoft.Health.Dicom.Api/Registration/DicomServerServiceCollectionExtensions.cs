@@ -5,6 +5,7 @@
 
 using System;
 using System.Reflection;
+using System.Text.Json.Serialization;
 using EnsureThat;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -23,7 +24,6 @@ using Microsoft.Health.Api.Modules;
 using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 using Microsoft.Health.Dicom.Api.Features.Context;
-using Microsoft.Health.Dicom.Api.Features.Converter;
 using Microsoft.Health.Dicom.Api.Features.Formatters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Api.Features.Swagger;
@@ -96,10 +96,7 @@ namespace Microsoft.AspNetCore.Builder
                     options.OutputFormatters.Insert(0, new DicomJsonOutputFormatter());
                     options.ModelBindingMessageProvider.SetMissingRequestBodyRequiredValueAccessor(() => "SetMissingRequestBodyRequiredValueAccessor");
                 })
-                //
-                //  JsonStringEnumConverter doesn't provide good enough error message, make custom one to fit our requirements.
-                //  CustomJsonStringEnumConverter is used for extended query tag Apis.
-                .AddJsonSerializerOptions(o => o.Converters.Add(new CustomJsonStringEnumConverter()));
+                .AddJsonSerializerOptions(o => o.Converters.Add(new JsonStringEnumConverter()));
 
             services.AddApiVersioning(c =>
             {

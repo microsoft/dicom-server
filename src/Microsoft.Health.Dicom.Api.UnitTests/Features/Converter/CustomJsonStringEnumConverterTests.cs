@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Text.Json;
-using Microsoft.Health.Dicom.Api.Features.Converter;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Xunit;
 
@@ -16,7 +15,6 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Converter
         public CustomJsonStringEnumConverterTests()
         {
             _options = new JsonSerializerOptions();
-            _options.Converters.Add(new CustomJsonStringEnumConverter());
         }
 
         [Theory]
