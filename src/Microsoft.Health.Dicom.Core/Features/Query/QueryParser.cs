@@ -54,13 +54,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         public static readonly string[] DateTimeTagValueFormats =
         {
-            "yyyyMMddHHmmss.FFFFFFzzz",
-            "yyyyMMddHHmmsszzz",
-            "yyyyMMddHHmmzzz",
-            "yyyyMMddHHzzz",
-            "yyyyMMddzzz",
-            "yyyyMMzzz",
-            "yyyyzzz",
             "yyyyMMddHHmmss.FFFFFF",
             "yyyyMMddHHmmss",
             "yyyyMMddHHmm",
@@ -68,6 +61,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             "yyyyMMdd",
             "yyyyMM",
             "yyyy"
+        };
+
+        public static readonly string[] DateTimeTagValueWithOffsetFormats =
+        {
+            "yyyyMMddHHmmss.FFFFFFzzz",
+            "yyyyMMddHHmmsszzz",
+            "yyyyMMddHHmmzzz",
+            "yyyyMMddHHzzz",
+            "yyyyMMddzzz",
+            "yyyyMMzzz",
+            "yyyyzzz"
         };
 
         public static readonly string[] TimeTagValueFormats =

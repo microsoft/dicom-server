@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
         private const string DateFormatDA = "yyyyMMdd";
 
-        private static readonly string[] DateTimeFormatsDT =
+        public static readonly string[] DateTimeFormatsDT =
         {
             "yyyyMMddHHmmss.FFFFFFzzz",
             "yyyyMMddHHmmsszzz",

@@ -167,8 +167,8 @@ The first part date {1} should be lesser than or equal to the second part date {
     <comment>{0} date range with &lt;date1&gt;-&lt;date2&gt; format. {1} is date1. {2} is date2.</comment>
   </data>
   <data name="InvalidDateValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified Date value '{0}' is invalid for parameter '{1}'. Date should be valid and formatted as yyyyMMdd.</value>
-    <comment>{0} Date value. {1} parameter name.</comment>
+    <value>Invalid QIDO-RS query. Specified Date value '{0}' is invalid for attribute '{1}'. Date should be valid and formatted as yyyyMMdd.</value>
+    <comment>{0} Date value. {1} attribute name.</comment>
   </data>
   <data name="ErrorMessageUidIsInvalid" xml:space="preserve">
     <value>DICOM Identifier is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.</value>
@@ -424,8 +424,8 @@ The first part DateTime {1} should be lesser than or equal to the second part Da
     <comment>{0} DateTime range with &lt;DateTime1&gt;-&lt;DateTime2&gt; format. {1} is DateTime1. {2} is DateTime2.</comment>
   </data>
   <data name="InvalidDateTimeValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified DateTime value '{0}' is invalid for parameter '{1}'. DateTime should be valid and formatted as yyyyMMddHHmmss.FFFFFFzzz where yyyy is mandatory.</value>
-    <comment>{0} DateTime value. {1} parameter name.</comment>
+    <value>Invalid QIDO-RS query. Specified DateTime value '{0}' is invalid for attribute '{1}'. DateTime should be valid and formatted as yyyyMMddHHmmss.FFFFFF where yyyy is mandatory.</value>
+    <comment>{0} DateTime value. {1} attribute name.</comment>
   </data>
   <data name="InvalidTimeRangeValue" xml:space="preserve">
     <value>Invalid QIDO-RS query. Specified date range '{0}' is invalid.
@@ -441,5 +441,9 @@ The first part time {1} should be lesser than or equal to the second part time {
   </data>
   <data name="ErrorMessageTimeIsInvalid" xml:space="preserve">
     <value>Value cannot be parsed as a valid Time.</value>
+  </data>
+  <data name="DateTimeWithOffsetNotSupported" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified DateTime value '{0}' for attribute {1} contains offset which is not supported.</value>
+    <comment>{0} DateTime value. {1} attribute name.</comment>
   </data>
 </root>

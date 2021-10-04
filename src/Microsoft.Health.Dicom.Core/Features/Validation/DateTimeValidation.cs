@@ -13,24 +13,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
     internal class DateTimeValidation : ElementValidation
     {
-        private static readonly string[] DateTimeFormatsDT =
-        {
-            "yyyyMMddHHmmss.FFFFFFzzz",
-            "yyyyMMddHHmmsszzz",
-            "yyyyMMddHHmmzzz",
-            "yyyyMMddHHzzz",
-            "yyyyMMddzzz",
-            "yyyyMMzzz",
-            "yyyyzzz",
-            "yyyyMMddHHmmss.FFFFFF",
-            "yyyyMMddHHmmss",
-            "yyyyMMddHHmm",
-            "yyyyMMddHH",
-            "yyyyMMdd",
-            "yyyyMM",
-            "yyyy"
-        };
-
         public override void Validate(DicomElement dicomElement)
         {
             base.Validate(dicomElement);
@@ -42,7 +24,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 return;
             }
 
-            if (!DateTimeOffset.TryParseExact(value, DateTimeFormatsDT, CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
+            if (!DateTimeOffset.TryParseExact(value, Extensions.DicomDatasetExtensions.DateTimeFormatsDT, CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
             {
                 throw ElementValidationExceptionFactory.CreateDateIsInvalidException(name, value);
             }

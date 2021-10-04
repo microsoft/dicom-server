@@ -106,6 +106,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified DateTime value &apos;{0}&apos; for attribute {1} contains offset which is not supported..
+        /// </summary>
+        internal static string DateTimeWithOffsetNotSupported {
+            get {
+                return ResourceManager.GetString("DateTimeWithOffsetNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; failed validation for VR &apos;{1}&apos;: {2}.
         /// </summary>
         internal static string DicomElementValidationFailed {
@@ -415,7 +424,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified DateTime value &apos;{0}&apos; is invalid for parameter &apos;{1}&apos;. DateTime should be valid and formatted as yyyyMMddHHmmss.FFFFFFzzz where yyyy is mandatory..
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified DateTime value &apos;{0}&apos; is invalid for attribute &apos;{1}&apos;. DateTime should be valid and formatted as yyyyMMddHHmmss.FFFFFF where yyyy is mandatory..
         /// </summary>
         internal static string InvalidDateTimeValue {
             get {
@@ -424,7 +433,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified Date value &apos;{0}&apos; is invalid for parameter &apos;{1}&apos;. Date should be valid and formatted as yyyyMMdd..
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified Date value &apos;{0}&apos; is invalid for attribute &apos;{1}&apos;. Date should be valid and formatted as yyyyMMdd..
         /// </summary>
         internal static string InvalidDateValue {
             get {

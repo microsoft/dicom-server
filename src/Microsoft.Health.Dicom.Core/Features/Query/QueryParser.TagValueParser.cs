@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Net;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
@@ -137,9 +138,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         private static DateTime ParseDateTime(string dateTime, string tagName)
         {
+            // If the attribute has + in the value (for offset), it is converted to space by default.
+            // Encoding it to get the + back such that it can be parsed as an offset properly.
+            string encodedDateTime = WebUtility.UrlEncode(dateTime);
+
             if (!DateTimeOffset.TryParseExact(dateTime, DateTimeTagValueFormats, null, System.Globalization.DateTimeStyles.None, out DateTimeOffset parsedDateTimeOffset))
             {
-                throw new QueryParseException(string.Format(DicomCoreResource.InvalidDateTimeValue, dateTime, tagName));
+                if (DateTimeOffset.TryParseExact(encodedDateTime, DateTimeTagValueWithOffsetFormats, null, System.Globalization.DateTimeStyles.None, out DateTimeOffset parsedDateTimeOffsetNotSupported))
+                {
+                    throw new QueryParseException(string.Format(DicomCoreResource.DateTimeWithOffsetNotSupported, encodedDateTime, tagName));
+                }
+                else
+                {
+                    throw new QueryParseException(string.Format(DicomCoreResource.InvalidDateTimeValue, encodedDateTime, tagName));
+                }
             }
 
             return parsedDateTimeOffset.DateTime;
