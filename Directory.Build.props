@@ -19,7 +19,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Product>Microsoft Health</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <SdkPackageVersion>5.0.9</SdkPackageVersion>
+    <SdkPackageVersion>5.0.0</SdkPackageVersion>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
@@ -31,11 +31,6 @@
         <SdkPackageVersion>$(NetCoreApp3PackageVersion)</SdkPackageVersion>
       </PropertyGroup>
     </When>
-    <Otherwise>
-      <PropertyGroup>
-        <SdkPackageVersion>5.0.0</SdkPackageVersion>
-      </PropertyGroup>
-    </Otherwise>
   </Choose>
 
   <Choose>
