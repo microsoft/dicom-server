@@ -138,7 +138,7 @@
     <GeneratedFullScriptPath>Features\Schema\Migrations\$(LatestSchemaVersion).sql</GeneratedFullScriptPath>
   </PropertyGroup>
   
-  <Import Project="$(NuGetPackageRoot)Microsoft.Health.Tools.Sql.Tasks\1.0.0\build\Sql.targets" />  
+  <Import Project="$(NuGetPackageRoot)microsoft.health.tools.sql.tasks\1.0.0\build\Sql.targets" />  
 
   <Target Name="ComputeGeneratorInputs" BeforeTargets="GenerateFiles">
     <ItemGroup>
