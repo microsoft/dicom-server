@@ -28,7 +28,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static StudyTable Study = new StudyTable();
         internal readonly static AddExtendedQueryTagErrorProcedure AddExtendedQueryTagError = new AddExtendedQueryTagErrorProcedure();
         internal readonly static AddExtendedQueryTagsProcedure AddExtendedQueryTags = new AddExtendedQueryTagsProcedure();
-        internal readonly static AddInstanceProcedure AddInstance = new AddInstanceProcedure();
         internal readonly static AddInstanceV2Procedure AddInstanceV2 = new AddInstanceV2Procedure();
         internal readonly static AssignReindexingOperationProcedure AssignReindexingOperation = new AssignReindexingOperationProcedure();
         internal readonly static BeginAddInstanceProcedure BeginAddInstance = new BeginAddInstanceProcedure();
@@ -354,104 +353,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             internal global::System.Collections.Generic.IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> ExtendedQueryTags { get; }
-        }
-
-        internal class AddInstanceProcedure : StoredProcedure
-        {
-            internal AddInstanceProcedure() : base("dbo.AddInstance")
-            {
-            }
-
-            private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.String> _patientId = new ParameterDefinition<System.String>("@patientId", global::System.Data.SqlDbType.NVarChar, false, 64);
-            private readonly ParameterDefinition<System.String> _patientName = new ParameterDefinition<System.String>("@patientName", global::System.Data.SqlDbType.NVarChar, true, 325);
-            private readonly ParameterDefinition<System.String> _referringPhysicianName = new ParameterDefinition<System.String>("@referringPhysicianName", global::System.Data.SqlDbType.NVarChar, true, 325);
-            private readonly ParameterDefinition<System.Nullable<System.DateTime>> _studyDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@studyDate", global::System.Data.SqlDbType.Date, true);
-            private readonly ParameterDefinition<System.String> _studyDescription = new ParameterDefinition<System.String>("@studyDescription", global::System.Data.SqlDbType.NVarChar, true, 64);
-            private readonly ParameterDefinition<System.String> _accessionNumber = new ParameterDefinition<System.String>("@accessionNumber", global::System.Data.SqlDbType.NVarChar, true, 64);
-            private readonly ParameterDefinition<System.String> _modality = new ParameterDefinition<System.String>("@modality", global::System.Data.SqlDbType.NVarChar, true, 16);
-            private readonly ParameterDefinition<System.Nullable<System.DateTime>> _performedProcedureStepStartDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@performedProcedureStepStartDate", global::System.Data.SqlDbType.Date, true);
-            private readonly ParameterDefinition<System.Nullable<System.DateTime>> _patientBirthDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@patientBirthDate", global::System.Data.SqlDbType.Date, true);
-            private readonly ParameterDefinition<System.String> _manufacturerModelName = new ParameterDefinition<System.String>("@manufacturerModelName", global::System.Data.SqlDbType.NVarChar, true, 64);
-            private readonly InsertStringExtendedQueryTagTableTypeV1TableValuedParameterDefinition _stringExtendedQueryTags = new InsertStringExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@stringExtendedQueryTags");
-            private readonly InsertLongExtendedQueryTagTableTypeV1TableValuedParameterDefinition _longExtendedQueryTags = new InsertLongExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@longExtendedQueryTags");
-            private readonly InsertDoubleExtendedQueryTagTableTypeV1TableValuedParameterDefinition _doubleExtendedQueryTags = new InsertDoubleExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@doubleExtendedQueryTags");
-            private readonly InsertDateTimeExtendedQueryTagTableTypeV1TableValuedParameterDefinition _dateTimeExtendedQueryTags = new InsertDateTimeExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@dateTimeExtendedQueryTags");
-            private readonly InsertPersonNameExtendedQueryTagTableTypeV1TableValuedParameterDefinition _personNameExtendedQueryTags = new InsertPersonNameExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@personNameExtendedQueryTags");
-            private readonly ParameterDefinition<System.Byte> _initialStatus = new ParameterDefinition<System.Byte>("@initialStatus", global::System.Data.SqlDbType.TinyInt, false);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Nullable<System.DateTime> patientBirthDate, System.String manufacturerModelName, global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> stringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> longExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV1Row> dateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNameExtendedQueryTags, System.Byte initialStatus)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.AddInstance";
-                _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
-                _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
-                _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
-                _patientId.AddParameter(command.Parameters, patientId);
-                _patientName.AddParameter(command.Parameters, patientName);
-                _referringPhysicianName.AddParameter(command.Parameters, referringPhysicianName);
-                _studyDate.AddParameter(command.Parameters, studyDate);
-                _studyDescription.AddParameter(command.Parameters, studyDescription);
-                _accessionNumber.AddParameter(command.Parameters, accessionNumber);
-                _modality.AddParameter(command.Parameters, modality);
-                _performedProcedureStepStartDate.AddParameter(command.Parameters, performedProcedureStepStartDate);
-                _patientBirthDate.AddParameter(command.Parameters, patientBirthDate);
-                _manufacturerModelName.AddParameter(command.Parameters, manufacturerModelName);
-                _stringExtendedQueryTags.AddParameter(command.Parameters, stringExtendedQueryTags);
-                _longExtendedQueryTags.AddParameter(command.Parameters, longExtendedQueryTags);
-                _doubleExtendedQueryTags.AddParameter(command.Parameters, doubleExtendedQueryTags);
-                _dateTimeExtendedQueryTags.AddParameter(command.Parameters, dateTimeExtendedQueryTags);
-                _personNameExtendedQueryTags.AddParameter(command.Parameters, personNameExtendedQueryTags);
-                _initialStatus.AddParameter(command.Parameters, initialStatus);
-            }
-
-            public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Nullable<System.DateTime> patientBirthDate, System.String manufacturerModelName, System.Byte initialStatus, AddInstanceTableValuedParameters tableValuedParameters)
-            {
-                PopulateCommand(command, studyInstanceUid: studyInstanceUid, seriesInstanceUid: seriesInstanceUid, sopInstanceUid: sopInstanceUid, patientId: patientId, patientName: patientName, referringPhysicianName: referringPhysicianName, studyDate: studyDate, studyDescription: studyDescription, accessionNumber: accessionNumber, modality: modality, performedProcedureStepStartDate: performedProcedureStepStartDate, patientBirthDate: patientBirthDate, manufacturerModelName: manufacturerModelName, initialStatus: initialStatus, stringExtendedQueryTags: tableValuedParameters.StringExtendedQueryTags, longExtendedQueryTags: tableValuedParameters.LongExtendedQueryTags, doubleExtendedQueryTags: tableValuedParameters.DoubleExtendedQueryTags, dateTimeExtendedQueryTags: tableValuedParameters.DateTimeExtendedQueryTags, personNameExtendedQueryTags: tableValuedParameters.PersonNameExtendedQueryTags);
-            }
-        }
-
-        internal class AddInstanceTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, AddInstanceTableValuedParameters>
-        {
-            public AddInstanceTvpGenerator(ITableValuedParameterRowGenerator<TInput, InsertStringExtendedQueryTagTableTypeV1Row> InsertStringExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertLongExtendedQueryTagTableTypeV1Row> InsertLongExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertDoubleExtendedQueryTagTableTypeV1Row> InsertDoubleExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertDateTimeExtendedQueryTagTableTypeV1Row> InsertDateTimeExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertPersonNameExtendedQueryTagTableTypeV1Row> InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator)
-            {
-                this.InsertStringExtendedQueryTagTableTypeV1RowGenerator = InsertStringExtendedQueryTagTableTypeV1RowGenerator;
-                this.InsertLongExtendedQueryTagTableTypeV1RowGenerator = InsertLongExtendedQueryTagTableTypeV1RowGenerator;
-                this.InsertDoubleExtendedQueryTagTableTypeV1RowGenerator = InsertDoubleExtendedQueryTagTableTypeV1RowGenerator;
-                this.InsertDateTimeExtendedQueryTagTableTypeV1RowGenerator = InsertDateTimeExtendedQueryTagTableTypeV1RowGenerator;
-                this.InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator = InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator;
-            }
-
-            private readonly ITableValuedParameterRowGenerator<TInput, InsertStringExtendedQueryTagTableTypeV1Row> InsertStringExtendedQueryTagTableTypeV1RowGenerator;
-            private readonly ITableValuedParameterRowGenerator<TInput, InsertLongExtendedQueryTagTableTypeV1Row> InsertLongExtendedQueryTagTableTypeV1RowGenerator;
-            private readonly ITableValuedParameterRowGenerator<TInput, InsertDoubleExtendedQueryTagTableTypeV1Row> InsertDoubleExtendedQueryTagTableTypeV1RowGenerator;
-            private readonly ITableValuedParameterRowGenerator<TInput, InsertDateTimeExtendedQueryTagTableTypeV1Row> InsertDateTimeExtendedQueryTagTableTypeV1RowGenerator;
-            private readonly ITableValuedParameterRowGenerator<TInput, InsertPersonNameExtendedQueryTagTableTypeV1Row> InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator;
-
-            public AddInstanceTableValuedParameters Generate(TInput input)
-            {
-                return new AddInstanceTableValuedParameters(InsertStringExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertLongExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertDoubleExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertDateTimeExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input));
-            }
-        }
-
-        internal struct AddInstanceTableValuedParameters
-        {
-            internal AddInstanceTableValuedParameters(global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> StringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> LongExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> DoubleExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV1Row> DateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameExtendedQueryTags)
-            {
-                this.StringExtendedQueryTags = StringExtendedQueryTags;
-                this.LongExtendedQueryTags = LongExtendedQueryTags;
-                this.DoubleExtendedQueryTags = DoubleExtendedQueryTags;
-                this.DateTimeExtendedQueryTags = DateTimeExtendedQueryTags;
-                this.PersonNameExtendedQueryTags = PersonNameExtendedQueryTags;
-            }
-
-            internal global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> StringExtendedQueryTags { get; }
-            internal global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> LongExtendedQueryTags { get; }
-            internal global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> DoubleExtendedQueryTags { get; }
-            internal global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV1Row> DateTimeExtendedQueryTags { get; }
-            internal global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameExtendedQueryTags { get; }
         }
 
         internal class AddInstanceV2Procedure : StoredProcedure
