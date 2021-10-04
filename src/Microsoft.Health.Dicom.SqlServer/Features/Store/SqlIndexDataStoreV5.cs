@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,17 +23,17 @@ using Microsoft.Health.SqlServer.Features.Storage;
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 {
     /// <summary>
-    /// Sql IndexDataStore version 3.
+    /// Sql IndexDataStore version 5.
     /// </summary>
-    internal class SqlIndexDataStoreV3 : SqlIndexDataStoreV2
+    internal class SqlIndexDataStoreV5 : SqlIndexDataStoreV4
     {
-        public SqlIndexDataStoreV3(
+        public SqlIndexDataStoreV5(
             SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
             : base(sqlConnectionWrapperFactory)
         {
         }
 
-        public override SchemaVersion Version => SchemaVersion.V3;
+        public override SchemaVersion Version => SchemaVersion.V5;
 
         public override async Task<long> BeginCreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
@@ -45,15 +44,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags.Where(tag => tag.IsExtendedQueryTag), Version);
-                V3.AddInstanceTableValuedParameters parameters = new V3.AddInstanceTableValuedParameters(
+                VLatest.AddInstanceV2TableValuedParameters parameters = new VLatest.AddInstanceV2TableValuedParameters(
                     rows.StringRows,
                     rows.LongRows,
                     rows.DoubleRows,
-                    rows.DateTimeRows,
+                    rows.DateTimeWithUtcRows,
                     rows.PersonNameRows
                 );
 
-                V3.AddInstance.PopulateCommand(
+                VLatest.AddInstanceV2.PopulateCommand(
                     sqlCommandWrapper,
                     instance.GetString(DicomTag.StudyInstanceUID),
                     instance.GetString(DicomTag.SeriesInstanceUID),
@@ -88,6 +87,41 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     }
 
                     throw new DataStoreException(ex);
+                }
+            }
+        }
+
+        public override async Task ReindexInstanceAsync(DicomDataset instance, long watermark, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(instance, nameof(instance));
+            EnsureArg.IsNotNull(queryTags, nameof(queryTags));
+
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags, Version);
+                VLatest.IndexInstanceTableValuedParameters parameters = new VLatest.IndexInstanceTableValuedParameters(
+                    rows.StringRows,
+                    rows.LongRows,
+                    rows.DoubleRows,
+                    rows.DateTimeRows,
+                    rows.PersonNameRows);
+
+                VLatest.IndexInstance.PopulateCommand(sqlCommandWrapper, watermark, parameters);
+
+                try
+                {
+                    await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
+                }
+                catch (SqlException ex)
+                {
+                    throw ex.Number switch
+                    {
+                        SqlErrorCodes.NotFound => new InstanceNotFoundException(),
+                        SqlErrorCodes.Conflict => new PendingInstanceException(),
+                        _ => new DataStoreException(ex),
+                    };
+
                 }
             }
         }

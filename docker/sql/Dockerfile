@@ -5,7 +5,7 @@
 # https://docs.microsoft.com/en-us/sql/linux/quickstart-install-connect-ubuntu?view=sql-server-ver15
 
 # Ubuntu 20.04 LTS ("Focal Fossa")
-FROM ubuntu:20.04@sha256:9d6a8699fb5c9c39cf08a0871bd6219f0400981c570894cd8cbea30d3424a31f
+FROM ubuntu:20.04@sha256:44ab2c3b26363823dcb965498ab06abf74a1e6af20a732902250743df0d4172d
 
 # Install SQL Server 2019 and after its prerequisites
 RUN export DEBIAN_FRONTEND=noninteractive && \
