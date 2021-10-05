@@ -136,9 +136,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             // Check specific tag
             GetExtendedQueryTagEntry actual = await _tagManager.GetTagAsync(tag.GetPath());
             Assert.Equal(tag.GetPath(), actual.Path);
-
-            // Skip checking for now to unblock CI pipeline
-            // Assert.Equal(2, actual.Errors.Count);
+            Assert.Equal(2, actual.Errors.Count);
 
             // Query Errors
             var errors = await _tagManager.GetTagErrorsAsync(tag.GetPath(), 2, 0);
