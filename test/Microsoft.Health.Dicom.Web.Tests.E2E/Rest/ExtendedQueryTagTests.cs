@@ -94,7 +94,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Contains(instances, instance => instance.ToInstanceIdentifier().Equals(instance2.ToInstanceIdentifier()));
         }
 
-        [Fact(Skip = "BUG 85713 - Error Count doesn't match to actual record")]
+        [Fact]
         public async Task GivenExtendedQueryTagWithErrors_WhenReindexing_ThenShouldSucceedWithErrors()
         {
             if (_isUsingInProcTestServer)
