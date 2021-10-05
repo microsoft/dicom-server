@@ -18,7 +18,7 @@
     <PackageReference Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="$(HealthcareSharedPackageVersion)" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Health.SqlServer" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.SqlServer.Api" Version="$(HealthcareSharedPackageVersion)" />
-    <PackageReference Include="Microsoft.Health.Tools.Sql.Tasks" Version="1.0.0" />
+    <PackageReference Include="Microsoft.Health.Tools.Sql.Tasks" Version="2.0.0" />
     <PackageReference Include="Polly" Version="7.2.2" />
     <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
     <PackageReference Include="Scrutor" Version="3.3.0" />
@@ -140,7 +140,7 @@
     <GeneratedFullScriptPath>Features\Schema\Migrations\$(LatestSchemaVersion).sql</GeneratedFullScriptPath>
   </PropertyGroup>
   <!-- Target contains sql build tasks -->
-  <Import Project="$(NuGetPackageRoot)microsoft.health.tools.sql.tasks\1.0.0\build\Sql.targets" />  
+  <Import Project="$(NuGetPackageRoot)microsoft.health.tools.sql.tasks\2.0.0\build\Sql.targets" />  
 
   <Target Name="ComputeGeneratorInputs" BeforeTargets="GenerateFiles">
     <ItemGroup>
