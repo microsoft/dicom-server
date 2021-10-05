@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Core" Version="1.19.0" />
+    <PackageReference Include="Azure.Core" Version="1.20.0" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.10.0" />
     <PackageReference Include="Azure.Storage.Common" Version="12.9.0" />
     <PackageReference Include="Ensure.That" Version="10.1.0" />
