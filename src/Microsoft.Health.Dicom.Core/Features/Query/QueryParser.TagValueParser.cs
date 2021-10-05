@@ -130,9 +130,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             // Encoding it to get the + back such that it can be parsed as an offset properly.
             string encodedDateTime = WebUtility.UrlEncode(dateTime);
 
-            if (!DateTimeOffset.TryParseExact(dateTime, DateTimeTagValueFormats, null, System.Globalization.DateTimeStyles.None, out DateTimeOffset parsedDateTimeOffset))
+            if (!DateTime.TryParseExact(dateTime, DateTimeTagValueFormats, null, System.Globalization.DateTimeStyles.None, out DateTime parsedDateTime))
             {
-                if (DateTimeOffset.TryParseExact(encodedDateTime, DateTimeTagValueWithOffsetFormats, null, System.Globalization.DateTimeStyles.None, out DateTimeOffset parsedDateTimeOffsetNotSupported))
+                if (DateTime.TryParseExact(encodedDateTime, DateTimeTagValueWithOffsetFormats, null, System.Globalization.DateTimeStyles.None, out DateTime parsedDateTimeOffsetNotSupported))
                 {
                     throw new QueryParseException(string.Format(DicomCoreResource.DateTimeWithOffsetNotSupported, encodedDateTime, tagName));
                 }
@@ -142,7 +142,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 }
             }
 
-            return parsedDateTimeOffset.DateTime;
+            return parsedDateTime;
         }
 
         private static long ParseTime(string time, string tagName)

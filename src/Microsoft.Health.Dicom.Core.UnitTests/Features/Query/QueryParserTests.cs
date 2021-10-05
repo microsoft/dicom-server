@@ -176,8 +176,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var cond = queryExpression.FilterConditions.First() as DateRangeValueMatchCondition;
             Assert.NotNull(cond);
             Assert.True(cond.QueryTag.Tag == DicomTag.DateTime);
-            Assert.True(cond.Minimum == DateTimeOffset.ParseExact(minValue, QueryParser.DateTimeTagValueFormats, null));
-            Assert.True(cond.Maximum == DateTimeOffset.ParseExact(maxValue, QueryParser.DateTimeTagValueFormats, null));
+            Assert.True(cond.Minimum == DateTime.ParseExact(minValue, QueryParser.DateTimeTagValueFormats, null));
+            Assert.True(cond.Maximum == DateTime.ParseExact(maxValue, QueryParser.DateTimeTagValueFormats, null));
         }
 
         [Fact]
