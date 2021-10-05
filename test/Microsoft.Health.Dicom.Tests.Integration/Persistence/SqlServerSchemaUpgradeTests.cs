@@ -33,7 +33,32 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             SchemaCompareDatabaseEndpoint diffEndpoint = new SchemaCompareDatabaseEndpoint(diffFixture.TestConnectionString);
             var comparison = new SchemaComparison(snapshotEndpoint, diffEndpoint);
             SchemaComparisonResult result = comparison.Compare();
-            Assert.True(result.IsEqual);
+
+
+            // filter our sproc bodyscript differences because of auto-generation 
+            var actualDiffs = new List<SchemaDifference>();
+            if (result.IsEqual == false)
+            {
+                foreach (var diff in result.Differences)
+                {
+                    if (diff.Name == "SqlProcedure")
+                    {
+                        foreach (var childDiff in diff.Children)
+                        {
+                            if (childDiff.Name != "BodyScript")
+                            {
+                                actualDiffs.Add(diff);
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        actualDiffs.Add(diff);
+                    }
+                }
+            }
+            Assert.True(actualDiffs.Count == 0);
 
             // cleanup if succeeds
             await snapshotFixture.DisposeAsync();
