@@ -3,10 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Globalization;
 using Dicom;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation
@@ -24,10 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 return;
             }
 
-            if (!DateTimeOffset.TryParseExact(value, Extensions.DicomDatasetExtensions.DateTimeFormatsDT, CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
-            {
-                throw ElementValidationExceptionFactory.CreateDateIsInvalidException(name, value);
-            }
+            DicomValidation.ValidateDT(value);
         }
     }
 }

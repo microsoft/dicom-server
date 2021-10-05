@@ -60,8 +60,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
             _dicomDataset.Add(DicomTag.StudyDate, "20200301");
 
             Assert.Equal(
-                new DateTime(2020, 3, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                _dicomDataset.GetStringDateAsDate(DicomTag.StudyDate).Value.DateTime);
+                new DateTime(2020, 3, 1, 0, 0, 0, 0, DateTimeKind.Local),
+                _dicomDataset.GetStringDateAsDate(DicomTag.StudyDate).Value);
         }
 
         [Fact]
@@ -75,7 +75,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         [Fact]
         public void GivenNoDicomDateTimeValue_WhenGetStringDateTimeAsDateTimeIsCalled_ThenNullShouldBeReturned()
         {
-            Assert.Null(_dicomDataset.GetStringDateTimeAsDateTimeOffset(DicomTag.AcquisitionDateTime));
+            Assert.Null(_dicomDataset.GetStringDateTimeAsDateTime(DicomTag.AcquisitionDateTime));
         }
 
         [Theory]
@@ -88,22 +88,20 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
             int hour,
             int minute,
             int second,
-            int millisecond,
-            TimeSpan? offset
+            int millisecond
             )
         {
             _dicomDataset.Add(DicomTag.AcquisitionDateTime, acquisitionDateTime);
             Assert.Equal(
-                new DateTimeOffset(
+                new DateTime(
                     year,
                     month,
                     day,
                     hour,
                     minute,
                     second,
-                    millisecond,
-                    offset ?? TimeSpan.Zero).DateTime,
-                _dicomDataset.GetStringDateTimeAsDateTimeOffset(DicomTag.AcquisitionDateTime).Value.DateTime);
+                    millisecond),
+                _dicomDataset.GetStringDateTimeAsDateTime(DicomTag.AcquisitionDateTime).Value);
         }
 
         [Theory]
@@ -127,7 +125,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         {
             _dicomDataset.Add(DicomTag.AcquisitionDateTime, acquisitionDateTime);
 
-            Assert.Null(_dicomDataset.GetStringDateTimeAsDateTimeOffset(DicomTag.AcquisitionDateTime));
+            Assert.Null(_dicomDataset.GetStringDateTimeAsDateTime(DicomTag.AcquisitionDateTime));
         }
 
         [Fact]

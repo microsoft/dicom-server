@@ -26,8 +26,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         private readonly static Dictionary<DicomVR, Func<QueryTag, string, QueryFilterCondition>> ValueParsers = new Dictionary<DicomVR, Func<QueryTag, string, QueryFilterCondition>>
         {
-            { DicomVR.DA, ParseDateTagValue },
-            { DicomVR.DT, ParseDateTimeTagValue },
+            { DicomVR.DA, ParseDateOrTimeTagValue },
+            { DicomVR.DT, ParseDateOrTimeTagValue },
             { DicomVR.TM, ParseTimeTagValue },
 
             { DicomVR.UI, ParseStringTagValue },

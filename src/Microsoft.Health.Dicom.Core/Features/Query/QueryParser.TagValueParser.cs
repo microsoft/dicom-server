@@ -5,6 +5,7 @@
 
 using System;
 using System.Net;
+using Dicom;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
@@ -14,36 +15,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     /// </summary>
     public partial class QueryParser
     {
-        private static QueryFilterCondition ParseDateTagValue(QueryTag queryTag, string value)
+        private static QueryFilterCondition ParseDateOrTimeTagValue(QueryTag queryTag, string value)
         {
-            if (QueryLimit.IsValidRangeQueryTag(queryTag))
+            QueryFilterCondition queryFilterCondition = null;
+
+            if (queryTag.VR == DicomVR.DT)
             {
-                var splitString = value.Split('-');
-                if (splitString.Length == 2)
-                {
-                    string minDate = splitString[0].Trim();
-                    string maxDate = splitString[1].Trim();
-                    DateTime parsedMinDate = ParseDate(minDate, queryTag.GetName());
-                    DateTime parsedMaxDate = ParseDate(maxDate, queryTag.GetName());
-
-                    if (parsedMinDate > parsedMaxDate)
-                    {
-                        throw new QueryParseException(string.Format(
-                            DicomCoreResource.InvalidDateRangeValue,
-                            value,
-                            minDate,
-                            maxDate));
-                    }
-
-                    return new DateRangeValueMatchCondition(queryTag, parsedMinDate, parsedMaxDate);
-                }
+                queryFilterCondition = ParseDateOrTimeTagValue(queryTag, value, DicomCoreResource.InvalidDateTimeRangeValue, ParseDateTime);
+            }
+            else
+            {
+                queryFilterCondition = ParseDateOrTimeTagValue(queryTag, value, DicomCoreResource.InvalidDateRangeValue, ParseDate);
             }
 
-            DateTime parsedDate = ParseDate(value, queryTag.GetName());
-            return new DateSingleValueMatchCondition(queryTag, parsedDate);
+            return queryFilterCondition;
         }
 
-        private static QueryFilterCondition ParseDateTimeTagValue(QueryTag queryTag, string value)
+        private static QueryFilterCondition ParseDateOrTimeTagValue(QueryTag queryTag, string value, string exceptionBaseMessage, Func<string, string, DateTime> parseValue)
         {
             if (QueryLimit.IsValidRangeQueryTag(queryTag))
             {
@@ -52,13 +40,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 {
                     string minDateTime = splitString[0].Trim();
                     string maxDateTime = splitString[1].Trim();
-                    DateTime parsedMinDateTime = ParseDateTime(minDateTime, queryTag.GetName());
-                    DateTime parsedMaxDateTime = ParseDateTime(maxDateTime, queryTag.GetName());
+                    DateTime parsedMinDateTime = parseValue(minDateTime, queryTag.GetName());
+                    DateTime parsedMaxDateTime = parseValue(maxDateTime, queryTag.GetName());
 
                     if (parsedMinDateTime > parsedMaxDateTime)
                     {
                         throw new QueryParseException(string.Format(
-                            DicomCoreResource.InvalidDateTimeRangeValue,
+                            exceptionBaseMessage,
                             value,
                             minDateTime,
                             maxDateTime));
