@@ -48,29 +48,6 @@ POST https://{host}/extendedquerytags
 | ---- | -------- | ------------------------------------------------------------ | ----------- |
 | body |          | [Extended Query Tag for Adding](#Extended Query Tag for Adding)[] |             |
 
-**Example**
-
-```json
-[
-	{
-		"Path":"04011001",
-		"VR":"SS",
-		"PrivateCreator":"MicrosoftPC",
-		"Level":"Instance"
-	},
-	{
-		"Path":"ManufacturerModelName", 
-		"VR":"LO",
-		"Level":"Series"
-	},
-	{
-		"Path":"00100040", 
-		"VR":"CS",
-		"Level":"Study"
-	},
-]
-```
-
 #### Limitations
 
 Currently, only the following VR types are supported:
@@ -124,39 +101,6 @@ GET https://{host}/extendedquerytags
 | -------- | ------------------------------------------- | --------------------------- |
 | 200 (OK) | [Extended Query Tag](#Extended Query Tag)[] | Returns extended query tags |
 
-**Example**
-
-```json
-[
-    {
-        "status": "Ready",
-        "level": "Instance",
-        "errors": null,
-        "operation": null,
-        "queryStatus": "Enabled",
-        "path": "00080070",
-        "vr": "LO",
-        "privateCreator": null
-    },
-    {
-        "status": "Adding",
-        "level": "Study",
-        "errors": {
-            "count": 21,
-            "href": "https://localhost:63838/extendedquerytags/00101010/errors"
-        },
-        "operation": {
-            "id": "1a5d0306d9624f699929ee1a59ed57a0",
-            "href": "https://localhost:63838/operations/1a5d0306d9624f699929ee1a59ed57a0"
-        },
-        "queryStatus": "Disabled",
-        "path": "00101010",
-        "vr": "AS",
-        "privateCreator": null
-    }
-]
-```
-
 ### Get Extended Query Tag
 
 Get metadata of an extended query tag.
@@ -179,21 +123,6 @@ GET https://{host}/extendedquerytags/{tagPath}
 | 200 (OK)          | [Extended Query Tag](#Extended Query Tag) | Returns extended query tag                             |
 | 400 (Bad Request) |                                           | Requested tag path is invalid.                         |
 | 404 (Not Found)   |                                           | Extended query tag with requested tagPath is not found |
-
-**Example**
-
-```json
-{
-        "status": "Ready",
-        "level": "Instance",
-        "errors": null,
-        "operation": null,
-        "queryStatus": "Enabled",
-        "path": "00080070",
-        "vr": "LO",
-        "privateCreator": null
-}
-```
 
 ### Delete Extended Query Tag
 
@@ -253,21 +182,6 @@ PATCH https://{host}/extendedquerytags/{tagPath}
 | 400 (Bad Request) |                                           | Requested tag path or body is invalid                  |
 | 404 (Not Found)   |                                           | Extended query tag with requested tagPath is not found |
 
-**Example**
-
-```json
-{
-        "status": "Ready",
-        "level": "Instance",
-        "errors": null,
-        "operation": null,
-        "queryStatus": "Enabled",
-        "path": "00080070",
-        "vr": "LO",
-        "privateCreator": null
-}
-```
-
 ### List Extended Query Tag Errors
 
 Lists errors on an extended query tag.
@@ -291,27 +205,6 @@ GET https://{host}/extendedquerytags/{tagPath}/errors
 | 400 (Bad Request) |                                                          | Requested tag path is invalid.                         |
 | 404 (Not Found)   |                                                          | Extended query tag with requested tagPath is not found |
 
-**Example**
-
-```json
- [
-     {
-        "studyInstanceUid": "2.25.253658084841524753870559471415339023884",
-        "seriesInstanceUid": "2.25.309809095970466602239093351963447277833",
-        "sopInstanceUid": "2.25.225286918605419873651833906117051809629",
-        "createdTime": "2021-10-06T16:41:44.4783136",
-        "errorMessage": "Value length is not expected."
-    },
-    {
-        "studyInstanceUid": "2.25.196509150784672035838503876712626377778",
-        "seriesInstanceUid": "2.25.213723772800486220909599220564656502366",
-        "sopInstanceUid": "2.25.59253037831725331222382553080320418961",
-        "createdTime": "2021-10-06T16:41:44.5163125",
-        "errorMessage": "Value length is not expected."
-    }
-]
-```
-
 ### Get Operation
 
 Get metadata of an extended query tag operation.
@@ -334,24 +227,6 @@ GET https://{host}/operations/{operationId}
 | 200 (OK)        | [Extended Query Tag Operation](#Extended Query Tag Operation) | Returns extended query tag operation which is completed      |
 | 202 (Accepted)  | [Extended Query Tag Operation](#Extended Query Tag Operation) | Returns extended query tag operation which has not been completed yet. |
 | 404 (Not Found) |                                                              | The operation is not found                                   |
-
-**Example**
-
-```json
-{
-    "resources": [
-        "https://localhost:63838/extendedquerytags/00101010"
-    ],
-    "operationId": "a99a8b51-78d4-4fd9-b004-b6c0bcaccf1d",
-    "type": "Reindex",
-    "createdTime": "2021-10-06T16:40:02.5247083Z",
-    "lastUpdatedTime": "2021-10-06T16:40:04.5152934Z",
-    "status": "Running",
-    "percentComplete": 1
-}
-```
-
-### 
 
 ## QIDO with Extended Query Tags
 
@@ -411,6 +286,38 @@ Represents extended query tag .
 | Errors         | [Extended Query Tag Errors Reference](#Extended Query Tag Errors Reference) | Reference to extended query tag errors                       |
 | Operation      | [Operation Reference](#Operation Reference)                  | Reference to a long-running operation                        |
 
+**Example1:** a standard tag (0008,0070) in `Ready` status.
+
+```json
+{
+        "status": "Ready",
+        "level": "Instance",
+        "queryStatus": "Enabled",
+        "path": "00080070",
+        "vr": "LO"
+}
+```
+
+**Example2:**  a standard tag (0010,1010) in `Adding` status.  An operation with id `1a5d0306d9624f699929ee1a59ed57a0` is running on it, and 21 errors has occurred so far.
+
+```json
+{
+        "status": "Adding",
+        "level": "Study",
+        "errors": {
+            "count": 21,
+            "href": "https://localhost:63838/extendedquerytags/00101010/errors"
+        },
+        "operation": {
+            "id": "1a5d0306d9624f699929ee1a59ed57a0",
+            "href": "https://localhost:63838/operations/1a5d0306d9624f699929ee1a59ed57a0"
+        },
+        "queryStatus": "Disabled",
+        "path": "00101010",
+        "vr": "AS"
+}
+```
+
 ### Extended Query Tag Operation
 
 Represents an extended query tag operation.
@@ -424,6 +331,24 @@ Represents an extended query tag operation.
 | Status          | [Extended Query Tag Operation Runtime Status](#Extended Query Tag Operation Runtime Status) | Represents run time status of extended query tag operation   |
 | PercentComplete | Integer                                                      | Percentage of work that has been completed by the operation  |
 | Resources       | string[]                                                     | Collection of resources locations that the operation is creating or manipulating. |
+
+**Example:** a running Reindex operation. 
+
+```json
+{
+    "resources": [
+        "https://localhost:63838/extendedquerytags/00101010"
+    ],
+    "operationId": "a99a8b51-78d4-4fd9-b004-b6c0bcaccf1d",
+    "type": "Reindex",
+    "createdTime": "2021-10-06T16:40:02.5247083Z",
+    "lastUpdatedTime": "2021-10-06T16:40:04.5152934Z",
+    "status": "Running",
+    "percentComplete": 1
+}
+```
+
+
 
 ### Extended Query Tag Operation Runtime Status
 
@@ -445,8 +370,20 @@ Represent error on Extended query tag.
 | StudyInstanceUid  | string | Study instance Uid of erroneous Dicom Instance  |
 | SeriesInstanceUid | string | Series instance Uid of erroneous Dicom Instance |
 | SopInstanceUid    | string | Sop instance Uid of erroneous Dicom Instance    |
-| CreatedTime       | string | Time when error happened (UTC)                  |
+| CreatedTime       | string | Time when error occured(UTC)                    |
 | ErrorMessage      | string | Error message                                   |
+
+**Example**:  an unexpected value length error on an DICOM instance. It occurred at 2021-10-06T16:41:44.4783136.
+
+```json
+{
+        "studyInstanceUid": "2.25.253658084841524753870559471415339023884",
+        "seriesInstanceUid": "2.25.309809095970466602239093351963447277833",
+        "sopInstanceUid": "2.25.225286918605419873651833906117051809629",
+        "createdTime": "2021-10-06T16:41:44.4783136",
+        "errorMessage": "Value length is not expected."
+}
+```
 
 ### Extended Query Tag Errors Reference
 
@@ -516,4 +453,35 @@ Represents extended query tag for adding.
 | VR             |          | string                                                | Value representation of this tag.  It's optional for standard tag, and required for private tag. |
 | PrivateCreator |          | string                                                | Identification code of the implementer of this private tag. Only set when the tag is a private tag. |
 | Level          | True     | [Extended Query Tag Level](#Extended Query Tag Level) | Represents the hierarchy at which this tag is relevant. Should be one of Study,Series or Instance. |
+
+**Example1:** a private tag (0401,1001) with VR as SS, PivateCreator as MicrosoftPC, and on Instance level.
+
+```json
+{
+		"Path":"04011001",
+		"VR":"SS",
+		"PrivateCreator":"MicrosoftPC",
+		"Level":"Instance"
+}
+```
+
+**Example2:** a standard tag with attribute name as ManufacturerModelName,  VR as LO, and on Series level
+
+```json
+{
+		"Path":"ManufacturerModelName", 
+		"VR":"LO",
+		"Level":"Series"
+}
+```
+
+ **Example3: **a standard tag (0010,0040)  on Series level
+
+```json
+{
+		"Path":"00100040", 
+		"Level":"Study"
+}
+```
+
 
