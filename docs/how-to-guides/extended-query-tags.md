@@ -232,7 +232,11 @@ GET https://{host}/operations/{operationId}
 
 ## QIDO with Extended Query Tags
 
-When extended query tag is in `Ready` status, it can be used in [QIDO](../resources/conformance-statement.md#search-qido-rs). For example, if the tag Manufacturer Model Name (0008,1090) is added to the set of supported extended query tags, hereafter the following queries can be used to filter stored instances by Manufacturer Model Name (when tag has value on instance):
+#### Tag Status
+
+Attribute [Status](#extended-query-tag-status) of Extended query tag indicates current status. When extended query tag is added, its status is `Adding`, while a long-running operation is kicked off to reindex DICOM instances in the past, after it completes, tag status is `Ready`. When extended query tag is in `Ready` status, it can be used in [QIDO](../resources/conformance-statement.md#search-qido-rs). 
+
+For example, if the tag Manufacturer Model Name (0008,1090) is added, and in `Ready` status, hereafter the following queries can be used to filter stored instances by Manufacturer Model Name:
 
 ```http
 ../instances?ManufacturerModelName=Microsoft
@@ -246,7 +250,7 @@ They can also be used in conjunction with existing tags. E.g:
 
 > After extended query tag is added, any DICOM instance stored is indexed on it
 
-#### Query Status
+#### Tag Query Status
 
 Extended Query Tag has attribute [QueryStatus](#extended-query-tag-status), which indicates whether allow QIDO on the tag. When reindex operation fails to process one or more DICOM instances for the tag, the tag `QueryStatus` is set to `Disabled` automatically, and you need to call [Update Extended Query Tag](#update-extended-query-tag) API to enable it if still want to use it.  In this case, we wrap erroneous tags in response header `erroneous-dicom-attributes`.
 
@@ -407,8 +411,6 @@ The status of  extended query tag.
 | Adding   | string | The extended query tag  is be adding, and an operation is reindexing DICOM instances in the past. |
 | Ready    | string | The extended query tag  is ready for QIDO-RS                 |
 | Deleting | string | The extended query tag  is being deleted.                    |
-
->  Notes: when extended query tag is added, its status is `Adding`, while a long-running operation is kicked off to reindex DICOM instances in the past, after it completes, tag status is `Ready`. 
 
 ### Extended Query Tag Level
 
