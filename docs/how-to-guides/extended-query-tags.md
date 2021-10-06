@@ -37,7 +37,7 @@ POST https://{Host}/extendedquerytags
 
 
 
-<h4>URI Parameters</h4>
+#### URI Parameters
 
 | Name | In   | Required | Type   | Description      |
 | ---- | ---- | -------- | ------ | ---------------- |
@@ -45,7 +45,7 @@ POST https://{Host}/extendedquerytags
 
 
 
-<h4>Request Header</h4>
+#### Request Header
 
 | Name         | Required | Type   | Description                      |
 | ------------ | -------- | ------ | -------------------------------- |
@@ -55,14 +55,14 @@ POST https://{Host}/extendedquerytags
 
 #### Request Body
 
-| Name           | Required | Type   | Description                                                  |
-| -------------- | -------- | ------ | ------------------------------------------------------------ |
-| Path           | True     | string | Path of tag, normally composed of group id and element id. E.g. PatientId (0010,0020) has path 00100020. |
-| VR             |          | string | Value representation of this tag.  It's optional for standard tag, and required for private tag. |
-| PrivateCreator |          | string | Identification code of the implementer of this private tag. Only set when the tag is a private tag. |
-| Level          | True     | string | Represents the hierarchy at which this tag is relevant. Should be one of Study,Series or Instance. |
+| Name           | Required | Type                                                  | Description                                                  |
+| -------------- | -------- | ----------------------------------------------------- | ------------------------------------------------------------ |
+| Path           | True     | string                                                | Path of tag, normally composed of group id and element id. E.g. PatientId (0010,0020) has path 00100020. |
+| VR             |          | string                                                | Value representation of this tag.  It's optional for standard tag, and required for private tag. |
+| PrivateCreator |          | string                                                | Identification code of the implementer of this private tag. Only set when the tag is a private tag. |
+| Level          | True     | [Extended Query Tag Level](#Extended Query Tag Level) | Represents the hierarchy at which this tag is relevant. Should be one of Study,Series or Instance. |
 
-<h5>Example</h5>
+**Example**
 
 ```json
 [
@@ -101,9 +101,27 @@ POST https://{Host}/extendedquerytags
 
 ### List Extended Query Tags
 
-List all supported extended query tags with route: /extendedquerytags
+Lists metadata of all extended query tag(s).
+
+```http
+GET https://{Host}/extendedquerytags
+```
+
+#### URI Parameters
+
+| Name | In   | Required | Type   | Description      |
+| ---- | ---- | -------- | ------ | ---------------- |
+| Host | path | True     | string | The Dicom server |
+
+
 
 #### Response
+
+| Name           | Type                                        | Description                 |
+| -------------- | ------------------------------------------- | --------------------------- |
+| 200 (Accepted) | [Extended Query Tag](#Extended Query Tag)[] | Returns extended query tags |
+
+
 
 ```
 [
@@ -240,14 +258,58 @@ For optimal performance, it is not recommended to store more than 100 extended q
 
 
 
-<h3>Definitions</h3>
+## Definitions
 
-<h4>Operation</h4>
+### Operation
 
-The long time running operation.
+Represent a long-time running operation.
 
 | Name | Type   | Description          |
 | ---- | ------ | -------------------- |
 | Id   | string | operation id         |
 | Href | string | Uri to the operation |
+
+### Extended Query Tag
+
+Extended query tag metadata.
+
+| Name           | Type                                                         | Description                      |
+| -------------- | ------------------------------------------------------------ | -------------------------------- |
+| Path           | string                                                       | Uri to the operation             |
+| VR             | string                                                       |                                  |
+| PrivateCreator |                                                              |                                  |
+| Level          |                                                              |                                  |
+| Status         | [Extended Query Tag Status](#Extended Query Tag Status)      | Status of the extended query tag |
+| QueryStatus    |                                                              |                                  |
+| Errors         | [Extended Query Tag Errors Reference](#Extended Query Tag Errors Reference) |                                  |
+| Operation      | [Operation](#Operation)                                      |                                  |
+
+### Extended Query Tag Errors Reference
+
+Reference to extended query tag errors.
+
+| Name  | Type    | Description                                       |
+| ----- | ------- | ------------------------------------------------- |
+| Count | Integer | Total number of errors on the extended query tag. |
+| Href  | string  | Uri to extended query tag errors                  |
+
+### Extended Query Tag Status
+
+The status of  extended query tag.
+
+| Name     | Type   | Description                                                  |
+| -------- | ------ | ------------------------------------------------------------ |
+| Adding   | string | The extended query tag  is be adding, and an operation is reindexing DICOM instances in the past. |
+| Ready    | string | The extended query tag  is ready for QIDO-RS                 |
+| Deleting | string | The extended query tag  is being deleted.                    |
+
+### Extended Query Tag Level
+
+The level of extended query tag.
+
+| Name     | Type   | Description                                              |
+| -------- | ------ | -------------------------------------------------------- |
+| Instance | string | The extended query tag is relevant at the instance level |
+| Series   | string | The extended query tag is relevant at the series level   |
+| Study    | string | The extended query tag is relevant at the study level    |
 
