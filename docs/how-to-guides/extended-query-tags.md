@@ -19,7 +19,7 @@ To help manage the supported tags in a given DICOM server instance, a few APIs a
 | [Get Extended Query Tag](#Get Extended Query Tag)       | Returns metadata of an extended query tag.         |
 | [Delete Extended Query Tag](#Delete Extended Query Tag) | Delete an extended query tag.                      |
 | [Update Extended Query Tag](#Update Extended Query Tag) | Update an extended query tag.                      |
-| Get Extended Query Tag Errors                           | Returns errors for an extended query tag.          |
+| List Extended Query Tag Errors                          | Lists errors on an extended query tag.             |
 | Get Operation                                           | Returns metadata of a long-time running operation. |
 
 
@@ -268,6 +268,52 @@ PATCH https://{host}/extendedquerytags/{tagPath}
 }
 ```
 
+### List Extended Query Tag Errors
+
+Lists errors on an extended query tag.
+
+```http
+GET https://{host}/extendedquerytags/{tagPath}/errors
+```
+
+#### URI Parameters
+
+| Name    | In   | Required | Type   | Description                                                  |
+| ------- | ---- | -------- | ------ | ------------------------------------------------------------ |
+| host    | path | True     | string | The Dicom server                                             |
+| tagPath | path | True     | string | tagPath is the path for the tag. Either be tag or attribute name. E.g. `PatientId` is represented by `00100020` or `PatientId` |
+
+ 
+
+#### Responses
+
+| Name              | Type                                                     | Description                                            |
+| ----------------- | -------------------------------------------------------- | ------------------------------------------------------ |
+| 200 (OK)          | [Extended Query Tag Error](#Extended Query Tag Error) [] | Lists extended query tag errors                        |
+| 400 (Bad Request) |                                                          | Requested tag path is invalid.                         |
+| 404 (Not Found)   |                                                          | Extended query tag with requested tagPath is not found |
+
+**Example**
+
+```json
+ [
+     {
+        "studyInstanceUid": "2.25.253658084841524753870559471415339023884",
+        "seriesInstanceUid": "2.25.309809095970466602239093351963447277833",
+        "sopInstanceUid": "2.25.225286918605419873651833906117051809629",
+        "createdTime": "2021-10-06T16:41:44.4783136",
+        "errorMessage": "Value length is not expected."
+    },
+    {
+        "studyInstanceUid": "2.25.196509150784672035838503876712626377778",
+        "seriesInstanceUid": "2.25.213723772800486220909599220564656502366",
+        "sopInstanceUid": "2.25.59253037831725331222382553080320418961",
+        "createdTime": "2021-10-06T16:41:44.5163125",
+        "errorMessage": "Value length is not expected."
+    }
+]
+```
+
 ### 
 
 ## Integration with DICOMWeb™
@@ -356,6 +402,18 @@ Extended query tag metadata.
 | QueryStatus    | [Extended Query Tag Query Status](#Extended Query Tag Query Status) | Query status of extended query tag.                          |
 | Errors         | [Extended Query Tag Errors Reference](#Extended Query Tag Errors Reference) | Reference to extended query tag errors                       |
 | Operation      | [Operation Reference](#Operation Reference)                  | Reference to a long-time running operation                   |
+
+### Extended Query Tag Error
+
+Represent error on Extended query tag.
+
+| Name              | Type   | Description                                     |
+| ----------------- | ------ | ----------------------------------------------- |
+| StudyInstanceUid  | string | Study instance Uid of erroneous Dicom Instance  |
+| SeriesInstanceUid | string | Series instance Uid of erroneous Dicom Instance |
+| SopInstanceUid    | string | Sop instance Uid of erroneous Dicom Instance    |
+| CreatedTime       | string | Time when error happened (UTC)                  |
+| ErrorMessage      | string | Error message                                   |
 
 ### Extended Query Tag Errors Reference
 
