@@ -16,8 +16,8 @@ To help manage the supported tags in a given DICOM server instance, a few APIs a
 | ----------------------------------------------------- | -------------------------------------------------- |
 | [Add Extended Query Tags](#Add Extended Query Tags)   | Add extended query tag(s).                         |
 | [List Extended Query Tags](#List Extended Query Tags) | Lists metadata of all extended query tag(s).       |
+| [Get Extended Query Tag](#Get Extended Query Tag)     | Returns metadata of an extended query tag.         |
 | Delete Extended Query Tag                             | Delete an extended query tag.                      |
-| Get Extended Query Tag                                | Returns metadata of an extended query tag.         |
 | Update Extended Query Tag                             | Update an extended query tag.                      |
 | Get Extended Query Tag Errors                         | Returns errors for an extended query tag.          |
 | Get Operation                                         | Returns metadata of a long-time running operation. |
@@ -156,7 +156,7 @@ GET https://{host}/extendedquerytags
 
 ### 
 
-### Get an extended query tag
+### Get Extended Query Tag
 
 Get metadata of an extended query tag.
 
@@ -196,21 +196,30 @@ GET https://{host}/extendedquerytags/{tagPath}
 }
 ```
 
-### Remove an extended query tag
+### Delete Extended Query Tag
 
-Remove support for a particular extended query tag using route: /extendedquerytags/{tagPath}
+Delete an extended query tag.
 
-#### Parameter
+```http
+DELETE https://{host}/extendedquerytags/{tagPath}
+```
 
-tagPath is the path for the tag, normally composed of group id and element id. E.g. PatientId (0010,0020) has path 00100020.
+#### URI Parameters
 
-#### Response status codes
+| Name    | In   | Required | Type   | Description                                                  |
+| ------- | ---- | -------- | ------ | ------------------------------------------------------------ |
+| host    | path | True     | string | The Dicom server                                             |
+| tagPath | path | True     | string | tagPath is the path for the tag. Either be tag or attribute name. E.g. `PatientId` is represented by `00100020` or `PatientId` |
 
-| Code              | Description                                                  |
-| ----------------- | ------------------------------------------------------------ |
-| 204 (No Content)  | Extended query tag with requested tagPath has been successfully deleted. |
-| 400 (Bad Request) | Requested tag path is invalid.                               |
-| 404 (Not Found)   | Extended query tag with requested tagPath is not found       |
+#### Responses
+
+| Name              | Type | Description                                                  |
+| ----------------- | ---- | ------------------------------------------------------------ |
+| 204 (No Content)  |      | Extended query tag with requested tagPath has been successfully deleted. |
+| 400 (Bad Request) |      | Requested tag path is invalid.                               |
+| 404 (Not Found)   |      | Extended query tag with requested tagPath is not found       |
+
+#### 
 
 ## Integration with DICOMweb™
 
