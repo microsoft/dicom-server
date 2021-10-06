@@ -281,11 +281,11 @@ Represents extended query tag .
 
 ```json
 {
-        "status": "Ready",
-        "level": "Instance",
-        "queryStatus": "Enabled",
-        "path": "00080070",
-        "vr": "LO"
+    "status": "Ready",
+    "level": "Instance",
+    "queryStatus": "Enabled",
+    "path": "00080070",
+    "vr": "LO"
 }
 ```
 
@@ -293,19 +293,19 @@ Represents extended query tag .
 
 ```json
 {
-        "status": "Adding",
-        "level": "Study",
-        "errors": {
-            "count": 21,
-            "href": "https://localhost:63838/extendedquerytags/00101010/errors"
-        },
-        "operation": {
-            "id": "1a5d0306d9624f699929ee1a59ed57a0",
-            "href": "https://localhost:63838/operations/1a5d0306d9624f699929ee1a59ed57a0"
-        },
-        "queryStatus": "Disabled",
-        "path": "00101010",
-        "vr": "AS"
+    "status": "Adding",
+    "level": "Study",
+    "errors": {
+        "count": 21,
+        "href": "https://localhost:63838/extendedquerytags/00101010/errors"
+    },
+    "operation": {
+        "id": "1a5d0306d9624f699929ee1a59ed57a0",
+        "href": "https://localhost:63838/operations/1a5d0306d9624f699929ee1a59ed57a0"
+    },
+    "queryStatus": "Disabled",
+    "path": "00101010",
+    "vr": "AS"
 }
 ```
 
@@ -328,7 +328,7 @@ Represents an extended query tag operation.
 | OperationType   | [Extended Query Tag Operation Type](#extended-query-tag-operation-type) | Type of  the long running operation                          |
 | CreatedTime     | string                                                       | Time when the operation is created                           |
 | LastUpdatedTime | string                                                       | Time when the operation is updated last time                 |
-| Status          | [Extended Query Tag Operation Runtime Status](#extended-query-tag-operation-runtime-status) | Represents run time status of extended query tag operation   |
+| Status          | [Extended Query Tag Operation Status](#extended-query-tag-operation-status) | Represents run time status of extended query tag operation   |
 | PercentComplete | Integer                                                      | Percentage of work that has been completed by the operation  |
 | Resources       | string[]                                                     | Collection of resources locations that the operation is creating or manipulating. |
 
@@ -344,13 +344,13 @@ Represents an extended query tag operation.
     "createdTime": "2021-10-06T16:40:02.5247083Z",
     "lastUpdatedTime": "2021-10-06T16:40:04.5152934Z",
     "status": "Running",
-    "percentComplete": 1
+    "percentComplete": 10
 }
 ```
 
 
 
-### Extended Query Tag Operation Runtime Status
+### Extended Query Tag Operation Status
 
 Represents run time status of extended query tag operation
 
@@ -377,11 +377,11 @@ Represent error on Extended query tag.
 
 ```json
 {
-        "studyInstanceUid": "2.25.253658084841524753870559471415339023884",
-        "seriesInstanceUid": "2.25.309809095970466602239093351963447277833",
-        "sopInstanceUid": "2.25.225286918605419873651833906117051809629",
-        "createdTime": "2021-10-06T16:41:44.4783136",
-        "errorMessage": "Value length is not expected."
+    "studyInstanceUid": "2.25.253658084841524753870559471415339023884",
+    "seriesInstanceUid": "2.25.309809095970466602239093351963447277833",
+    "sopInstanceUid": "2.25.225286918605419873651833906117051809629",
+    "createdTime": "2021-10-06T16:41:44.4783136",
+    "errorMessage": "Value length is not expected."
 }
 ```
 
@@ -456,10 +456,10 @@ Represents extended query tag for adding.
 
 ```json
 {
-		"Path":"04011001",
-		"VR":"SS",
-		"PrivateCreator":"MicrosoftPC",
-		"Level":"Instance"
+    "Path": "04011001",
+    "VR": "SS",
+    "PrivateCreator": "MicrosoftPC",
+    "Level": "Instance"
 }
 ```
 
@@ -467,9 +467,9 @@ Represents extended query tag for adding.
 
 ```json
 {
-		"Path":"ManufacturerModelName", 
-		"VR":"LO",
-		"Level":"Series"
+    "Path": "ManufacturerModelName",
+    "VR": "LO",
+    "Level": "Series"
 }
 ```
 
@@ -477,7 +477,7 @@ Represents extended query tag for adding.
 
 ```json
 {
-		"Path":"00100040", 
-		"Level":"Study"
+    "Path": "00100040",
+    "Level": "Study"
 }
 ```
