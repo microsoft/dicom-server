@@ -2,73 +2,69 @@
 
 ## Overview
 
-Extended query tags allows querying over DICOM tags that are not supported by the DICOMweb™ standard for [QIDO-RS](../resources/conformance-statement.md#search-qido-rs). By enabling this feature, it is possible to query against tags supported by QIDO-RS, publicly defined or "standard" DICOM tags that are not natively supported and private tags.
+Extended query tags allows querying over DICOM tags that are not supported by the DICOMweb™ standard for [QIDO-RS](../resources/conformance-statement.md#search-qido-rs). By enabling this feature, it is possible to query against tags supported by QIDO-RS, publicly defined standard DICOM tags that are not natively supported and private tags.
 
-## Prerequisites
 
-To use this feature, a [Medical Imaging Server for DICOM is required](../quickstarts/deploy-via-azure.md).
 
-### Settings
+## Apis
 
-The current support for the extended query tags feature is exposed in configuration in the following way:
+API Version: v1.0-prerelease
 
+To help manage the supported tags in a given DICOM server instance, a few APIs are available.
+
+| Api                                                   | Description                                        |
+| ----------------------------------------------------- | -------------------------------------------------- |
+| [Add Extended Query Tags](#Add Extended Query Tags)   | Add extended query tag(s).                         |
+| [List Extended Query Tags](#List Extended Query Tags) | Lists metadata of all extended query tag(s).       |
+| Delete Extended Query Tag                             | Delete an extended query tag.                      |
+| Get Extended Query Tag                                | Returns metadata of an extended query tag.         |
+| Update Extended Query Tag                             | Update an extended query tag.                      |
+| Get Extended Query Tag Errors                         | Returns errors for an extended query tag.          |
+| Get Operation                                         | Returns metadata of a long-time running operation. |
+|                                                       |                                                    |
+
+
+
+
+
+### Add Extended Query Tags 
+
+Add extended query tags, and starts long-time running operation which reindexes DICOM instances stored in the past.
+
+```http
+POST https://{Host}/extendedquerytags
 ```
-{
-    "DicomServer": {
-        "Features": {
-            "EnableExtendedQueryTags": false
-        }
-}
-```
 
-The "EnableExtendedQueryTags" element can be set to true to enable use of this feature. Currently, it is false by default.
 
-## Management APIs
 
-To help manage the supported tags in a given DICOM server instance, a few management APIs are available.
+<h4>URI Parameters</h4>
 
-| Verb   | Route                        | Returns     | Description                                                  |
-| ------ | ---------------------------- | ----------- | ------------------------------------------------------------ |
-| POST   | /extendedquerytags           | Json Object | [Add extended query tag(s) to supported set](#add-extended-query-tags) |
-| GET    | /extendedquerytags           | Json Array  | [List all supported extended query tags](#list-all-supported-extended-query-tags) |
-| GET    | /extendedquerytags/{tagPath} | Json Object | [Detail an extended query tag's metadata](#get-an-extended-query-tag) |
-| DELETE | /extendedquerytags/{tagPath} |             | [Remove support for specified extended query tag](#remove-an-extended-query-tag) |
+| Name | In   | Required | Type   | Description      |
+| ---- | ---- | -------- | ------ | ---------------- |
+| Host | path | True     | string | The Dicom server |
 
-### Object Model
 
-| Field          | Type   | Description                                                  |
-| -------------- | ------ | ------------------------------------------------------------ |
-| Path           | string | Path of tag, normally composed of group id and element id. E.g. PatientId (0010,0020) has path 00100020. |
-| VR             | string | Value representation of this tag.                            |
-| PrivateCreator | string | Identification code of the implementer of this private tag. Only set when the tag is a private tag. |
-| Level          | string | Represents the hierarchy at which this tag is relevant.      |
-| Status         | string | Current state this tag is in. Not set when making a request to create a tag. |
 
-### Level
+<h4>Request Header</h4>
 
-| Level    | Description                                      |
-| -------- | ------------------------------------------------ |
-| Instance | Tag is relevant at the instance level of detail. |
-| Series   | Tag is relevant at the series level of detail.   |
-| Study    | Tag is relevant at the study level of detail.    |
+| Name         | Required | Type   | Description                      |
+| ------------ | -------- | ------ | -------------------------------- |
+| Content-Type | True     | string | `application/json` is supported. |
 
-### Status
 
-| Status   | Description                                      |
-| -------- | ------------------------------------------------ |
-| Adding   | The tag is being added to the supported set.     |
-| Ready    | The tag has been added to the supported set.     |
-| Deleting | The tag is being removed from the supported set. |
-
-### Add extended query tags 
-
-Add extended query tags to supported set with route:  /extendedquerytags
-
-`Content-Type` of `application/json` is supported.
 
 #### Request Body
 
-```
+| Name           | Required | Type   | Description                                                  |
+| -------------- | -------- | ------ | ------------------------------------------------------------ |
+| Path           | True     | string | Path of tag, normally composed of group id and element id. E.g. PatientId (0010,0020) has path 00100020. |
+| VR             |          | string | Value representation of this tag.  It's optional for standard tag, and required for private tag. |
+| PrivateCreator |          | string | Identification code of the implementer of this private tag. Only set when the tag is a private tag. |
+| Level          | True     | string | Represents the hierarchy at which this tag is relevant. Should be one of Study,Series or Instance. |
+
+<h5>Example</h5>
+
+```json
 [
 	{
 		"Path":"04011001",
@@ -89,21 +85,21 @@ Add extended query tags to supported set with route:  /extendedquerytags
 ]
 ```
 
-#### Response
 
-```
-{}
-```
 
-#### Response status codes
+#### Responses
 
-| Code              | Description                                            |
-| ----------------- | ------------------------------------------------------ |
-| 202 (Accepted)    | Extended query tag(s) have been successfully stored.   |
-| 400 (Bad Request) | Requested extended query path has invalid data.        |
-| 409 (Conflict)    | One or more requested query tags already is supported. |
+| Name              | Type                    | Description                                             |
+| ----------------- | ----------------------- | ------------------------------------------------------- |
+| 202 (Accepted)    | [Operation](#Operation) | Extended query tag(s) have been successfully stored.    |
+| 400 (Bad Request) |                         | Request body has invalid data.                          |
+| 409 (Conflict)    |                         | One or more requested query tags already are supported. |
 
-### List all supported extended query tags
+
+
+
+
+### List Extended Query Tags
 
 List all supported extended query tags with route: /extendedquerytags
 
@@ -242,8 +238,16 @@ Querying against instances that were stored prior to an extended query tag being
 
 For optimal performance, it is not recommended to store more than 100 extended query tags.
 
-## Summary
 
-In this resource, we reviewed extended query tags, how to use them and how they can enable searching on a wider pool of DICOM tags. 
 
-- To get started with the Medical Imaging Server for DICOM, [Deploy to Azure](../quickstarts/deploy-via-azure.md).
+<h3>Definitions</h3>
+
+<h4>Operation</h4>
+
+The long time running operation.
+
+| Name | Type   | Description          |
+| ---- | ------ | -------------------- |
+| Id   | string | operation id         |
+| Href | string | Uri to the operation |
+
