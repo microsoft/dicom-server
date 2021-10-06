@@ -12,15 +12,15 @@ API Version: v1.0-prerelease
 
 To help manage the supported tags in a given DICOM server instance, a few APIs are available.
 
-| Api                                                     | Description                                        |
-| ------------------------------------------------------- | -------------------------------------------------- |
-| [Add Extended Query Tags](#Add Extended Query Tags)     | Add extended query tag(s).                         |
-| [List Extended Query Tags](#List Extended Query Tags)   | Lists metadata of all extended query tag(s).       |
-| [Get Extended Query Tag](#Get Extended Query Tag)       | Returns metadata of an extended query tag.         |
-| [Delete Extended Query Tag](#Delete Extended Query Tag) | Delete an extended query tag.                      |
-| [Update Extended Query Tag](#Update Extended Query Tag) | Update an extended query tag.                      |
-| List Extended Query Tag Errors                          | Lists errors on an extended query tag.             |
-| Get Operation                                           | Returns metadata of a long-time running operation. |
+| Api                                                          | Description                                        |
+| ------------------------------------------------------------ | -------------------------------------------------- |
+| [Add Extended Query Tags](#Add Extended Query Tags)          | Add extended query tag(s).                         |
+| [List Extended Query Tags](#List Extended Query Tags)        | Lists metadata of all extended query tag(s).       |
+| [Get Extended Query Tag](#Get Extended Query Tag)            | Returns metadata of an extended query tag.         |
+| [Delete Extended Query Tag](#Delete Extended Query Tag)      | Delete an extended query tag.                      |
+| [Update Extended Query Tag](#Update Extended Query Tag)      | Update an extended query tag.                      |
+| [List Extended Query Tag Errors](#List Extended Query Tag Errors) | Lists errors on an extended query tag.             |
+| Get Operation                                                | Returns metadata of a long-time running operation. |
 
 
 
