@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.Client
             _jsonSerializerSettings = new JsonSerializerSettings();
             _jsonSerializerSettings.Converters.Add(new JsonDicomConverter(writeTagsAsKeywords: true, autoValidate: false));
 
-            // Used by extended qeury tag apis
+            // Used by extended query tag apis
             _jsonSerializerSettings.Converters.Add(new StringEnumConverter());
 
             GetMemoryStream = () => new MemoryStream();

@@ -31,6 +31,9 @@ namespace Microsoft.Health.Dicom.Client.Models
         /// </summary>
         public ExtendedQueryTagStatus Status { get; set; }
 
+        /// <summary>
+        /// Query Status of this tag.
+        /// </summary>
         public QueryStatus QueryStatus { get; set; }
 
         /// <summary>

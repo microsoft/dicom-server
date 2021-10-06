@@ -52,8 +52,6 @@ namespace Microsoft.Health.Dicom.Client
         public const string VideoMpeg2MediaType = "video/mpeg2";
         public const string VideoMp4MediaType = "video/mp4";
 
-        public const string ErroneousDicomAttributesHeader = "erroneous-dicom-attributes";
-
         public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicom = new MediaTypeWithQualityHeaderValue(ApplicationDicomMediaType);
         public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationOctetStream = new MediaTypeWithQualityHeaderValue(ApplicationOctetStreamMediaType);
         public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicomJson = new MediaTypeWithQualityHeaderValue(ApplicationDicomJsonMediaType);

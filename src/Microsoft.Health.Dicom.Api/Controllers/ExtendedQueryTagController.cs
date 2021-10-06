@@ -186,12 +186,12 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [HttpPatch]
         [Produces(KnownContentTypes.ApplicationJson)]
         [BodyModelStateValidator]
-        [ProducesResponseType(typeof(IEnumerable<GetExtendedQueryTagEntry>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(GetExtendedQueryTagEntry), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
-        [VersionedRoute(KnownRoutes.UpdateExtendedQueryTagQueryStatusRoute, Name = KnownRouteNames.VersionedUpdateExtendedQueryTagQueryStatus)]
-        [Route(KnownRoutes.UpdateExtendedQueryTagQueryStatusRoute, Name = KnownRouteNames.UpdateExtendedQueryTagQueryStatus)]
-        [AuditEventType(AuditEventSubType.UpdateExtendedQueryTagQueryStatus)]
+        [VersionedRoute(KnownRoutes.UpdateExtendedQueryTagQueryStatusRoute)]
+        [Route(KnownRoutes.UpdateExtendedQueryTagQueryStatusRoute)]
+        [AuditEventType(AuditEventSubType.UpdateExtendedQueryTag)]
         public async Task<IActionResult> UpdateTagAsync([FromRoute] string tagPath, [FromBody] UpdateExtendedQueryTagOptions newValue)
         {
             EnsureArg.IsNotNull(newValue, nameof(newValue));

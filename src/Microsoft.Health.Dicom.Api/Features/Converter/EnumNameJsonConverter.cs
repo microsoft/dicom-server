@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Converter
     /// </summary>
     /// <typeparam name="T">Enum type.</typeparam>
     public sealed class EnumNameJsonConverter<T> : JsonConverter<T>
-        where T : Enum
+        where T : struct, Enum
     {
         public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
@@ -25,9 +25,9 @@ namespace Microsoft.Health.Dicom.Api.Features.Converter
             if (reader.TokenType == JsonTokenType.String)
             {
                 string content = reader.GetString();
-                if (Enum.TryParse(typeToConvert, content, true, out object result))
+                if (Enum.TryParse(content, true, out T result))
                 {
-                    return (T)result;
+                    return result;
                 }
             }
 
@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Converter
         public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
         {
             EnsureArg.IsNotNull(writer);
-            writer.WriteStringValue(value?.ToString());
+            writer.WriteStringValue(value.ToString());
         }
     }
 }

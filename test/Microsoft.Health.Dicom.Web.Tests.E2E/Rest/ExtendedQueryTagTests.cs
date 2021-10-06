@@ -22,6 +22,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     public class ExtendedQueryTagTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
     {
+        private const string ErroneousDicomAttributesHeader = "erroneous-dicom-attributes";
         private readonly IDicomWebClient _client;
         private readonly DicomTagsManager _tagManager;
         private readonly DicomInstancesManager _instanceManager;
@@ -157,8 +158,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             var response = await _client.QueryInstancesAsync($"{tag.GetPath()}={tagValue}");
 
-            Assert.True(response.ResponseHeaders.Contains(DicomWebConstants.ErroneousDicomAttributesHeader));
-            var values = response.ResponseHeaders.GetValues(DicomWebConstants.ErroneousDicomAttributesHeader);
+            Assert.True(response.ResponseHeaders.Contains(ErroneousDicomAttributesHeader));
+            var values = response.ResponseHeaders.GetValues(ErroneousDicomAttributesHeader);
             Assert.Single(values);
             Assert.Equal(tag.GetPath(), values.First());
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

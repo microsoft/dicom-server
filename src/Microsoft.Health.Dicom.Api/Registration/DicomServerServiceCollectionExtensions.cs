@@ -94,7 +94,6 @@ namespace Microsoft.AspNetCore.Builder
                     options.EnableEndpointRouting = false;
                     options.RespectBrowserAcceptHeader = true;
                     options.OutputFormatters.Insert(0, new DicomJsonOutputFormatter());
-                    options.ModelBindingMessageProvider.SetMissingRequestBodyRequiredValueAccessor(() => "SetMissingRequestBodyRequiredValueAccessor");
                 })
                 .AddJsonSerializerOptions(o => o.Converters.Add(new JsonStringEnumConverter()));
 

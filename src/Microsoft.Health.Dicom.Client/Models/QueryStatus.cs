@@ -5,6 +5,9 @@
 
 namespace Microsoft.Health.Dicom.Client.Models
 {
+    /// <summary>
+    /// Query status on an extended query tag.
+    /// </summary>
     public enum QueryStatus
     {
         /// <summary>
