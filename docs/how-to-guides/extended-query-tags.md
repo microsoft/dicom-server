@@ -12,16 +12,16 @@ API Version: v1.0-prerelease
 
 To help manage the supported tags in a given DICOM server instance, a few APIs are available.
 
-| Api                                                   | Description                                        |
-| ----------------------------------------------------- | -------------------------------------------------- |
-| [Add Extended Query Tags](#Add Extended Query Tags)   | Add extended query tag(s).                         |
-| [List Extended Query Tags](#List Extended Query Tags) | Lists metadata of all extended query tag(s).       |
-| [Get Extended Query Tag](#Get Extended Query Tag)     | Returns metadata of an extended query tag.         |
-| Delete Extended Query Tag                             | Delete an extended query tag.                      |
-| Update Extended Query Tag                             | Update an extended query tag.                      |
-| Get Extended Query Tag Errors                         | Returns errors for an extended query tag.          |
-| Get Operation                                         | Returns metadata of a long-time running operation. |
-|                                                       |                                                    |
+| Api                                                     | Description                                        |
+| ------------------------------------------------------- | -------------------------------------------------- |
+| [Add Extended Query Tags](#Add Extended Query Tags)     | Add extended query tag(s).                         |
+| [List Extended Query Tags](#List Extended Query Tags)   | Lists metadata of all extended query tag(s).       |
+| [Get Extended Query Tag](#Get Extended Query Tag)       | Returns metadata of an extended query tag.         |
+| [Delete Extended Query Tag](#Delete Extended Query Tag) | Delete an extended query tag.                      |
+| Update Extended Query Tag                               | Update an extended query tag.                      |
+| Get Extended Query Tag Errors                           | Returns errors for an extended query tag.          |
+| Get Operation                                           | Returns metadata of a long-time running operation. |
+|                                                         |                                                    |
 
 
 
@@ -219,9 +219,44 @@ DELETE https://{host}/extendedquerytags/{tagPath}
 | 400 (Bad Request) |      | Requested tag path is invalid.                               |
 | 404 (Not Found)   |      | Extended query tag with requested tagPath is not found       |
 
+### Update Extended Query Tag
+
+Update an extended query tag.
+
+```http
+PATCH https://{host}/extendedquerytags/{tagPath}
+```
+
+#### URI Parameters
+
+| Name    | In   | Required | Type   | Description                                                  |
+| ------- | ---- | -------- | ------ | ------------------------------------------------------------ |
+| host    | path | True     | string | The Dicom server                                             |
+| tagPath | path | True     | string | tagPath is the path for the tag. Either be tag or attribute name. E.g. `PatientId` is represented by `00100020` or `PatientId` |
+
+#### Request Header
+
+| Name         | Required | Type   | Description                      |
+| ------------ | -------- | ------ | -------------------------------- |
+| Content-Type | True     | string | `application/json` is supported. |
+
+#### Request Body
+
+| Name | Required | Type                                                         | Description |
+| ---- | -------- | ------------------------------------------------------------ | ----------- |
+| body | True     | [Entry of Updating Extended Query Tag](#Entry of Updating Extended Query Tag) |             |
+
+#### Responses
+
+| Name              | Type                                      | Description                                            |
+| ----------------- | ----------------------------------------- | ------------------------------------------------------ |
+| 20 (OK)           | [Extended Query Tag](#Extended Query Tag) | Metadata of updated extended query tag                 |
+| 400 (Bad Request) |                                           | Requested tag path or body is invalid                  |
+| 404 (Not Found)   |                                           | Extended query tag with requested tagPath is not found |
+
 #### 
 
-## Integration with DICOMweb™
+## Integration with DICOMWeb™
 
 ### Querying against extended query tags
 
@@ -347,3 +382,13 @@ The query status of extended query tag.
 | -------- | ------ | --------------------------------------------------- |
 | Disabled | string | The extended query tag is not allowed to be queried |
 | Enabled  | string | The extended query tag is allowed to be queried     |
+
+
+
+### Entry of Updating Extended Query Tag
+
+Entry of updating extended query tag
+
+| Name        | Type                                                         | Description                            |
+| ----------- | ------------------------------------------------------------ | -------------------------------------- |
+| QueryStatus | [Extended Query Tag Query Status](#Extended Query Tag Query Status) | The query status of extended query tag |
