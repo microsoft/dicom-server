@@ -46,7 +46,7 @@ POST https://{host}/extendedquerytags
 
 | Name | Required | Type                                                         | Description |
 | ---- | -------- | ------------------------------------------------------------ | ----------- |
-| body |          | [Entry of Adding Extended Query Tag](#Entry of Adding Extended Query Tag) |             |
+| body |          | [Extended Query Tag for Adding](#Extended Query Tag for Adding)[] |             |
 
 **Example**
 
@@ -71,8 +71,6 @@ POST https://{host}/extendedquerytags
 ]
 ```
 
-> Notes: you can add up to 128 extended query tags.
-
 #### Limitations
 
 Currently, only the following VR types are supported:
@@ -95,6 +93,8 @@ Currently, only the following VR types are supported:
 - Unsigned Short (US)
 
 Sequential tags i.e. tags under a tag of type Sequence of Items (SQ) are currently not supported.
+
+You can add up to 128 extended query tags.
 
 #### Responses
 
@@ -243,7 +243,7 @@ PATCH https://{host}/extendedquerytags/{tagPath}
 
 | Name | Required | Type                                                         | Description |
 | ---- | -------- | ------------------------------------------------------------ | ----------- |
-| body |          | [Entry of Updating Extended Query Tag](#Entry of Updating Extended Query Tag) |             |
+| body |          | [Extended Query Tag for Updating](#Extended Query Tag for Updating) |             |
 
 #### Responses
 
@@ -355,7 +355,7 @@ GET https://{host}/operations/{operationId}
 
 ## QIDO with Extended Query Tags
 
-All new DICOM instances that are stored after an extended query tag is in the "Adding" state, are queryable with that tag in [QIDO](../resources/conformance-statement.md#search-qido-rs). For example, if the tag Manufacturer Model Name (0008,1090) is added to the set of supported extended query tags, hereafter the following queries can be used to filter stored instances by Manufacturer Model Name (when tag has value on instance):
+When extended query tag is in `Ready` status, it can be used in [QIDO](../resources/conformance-statement.md#search-qido-rs). For example, if the tag Manufacturer Model Name (0008,1090) is added to the set of supported extended query tags, hereafter the following queries can be used to filter stored instances by Manufacturer Model Name (when tag has value on instance):
 
 ```http
 ../instances?ManufacturerModelName=Microsoft
@@ -371,6 +371,8 @@ They can also be used in conjunction with existing tags. E.g:
 ../instances?00081090=Microsoft&PatientName=Jo&fuzzyMatching=true
 ```
 
+> Notes: 
+
 #### Search Matching
 
 The matching types stated below are valid for extended query tags.
@@ -380,8 +382,6 @@ The matching types stated below are valid for extended query tags.
 | Range Query | Date (DA)       | {attributeID}={value1}-{value2}. For date/ time values, we supported an inclusive range on the tag. This will be mapped to `attributeID >= {value1} AND attributeID <= {value2}`. |
 | Exact Match | All             | {attributeID}={value1}                                       |
 | Fuzzy Match | PersonName (PN) | Matches any component of the patient name which starts with the value. |
-
-
 
 
 
@@ -398,7 +398,7 @@ Reference to a long-running operation.
 
 ### Extended Query Tag
 
-Extended query tag metadata.
+Represents extended query tag .
 
 | Name           | Type                                                         | Description                                                  |
 | -------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -431,10 +431,10 @@ Represents run time status of extended query tag operation
 
 | Name       | Type   | Description                                                  |
 | ---------- | ------ | ------------------------------------------------------------ |
-| NotStarted | string | Specifies a state where execution is not started             |
-| Running    | string | Specifies a state where the operation is executing and has not yet finished |
-| Completed  | string | Specifies a state where the operation has finished successfully |
-| Failed     | string | Specifies a state where the operation has stopped prematurely after encountering one or more errors. |
+| NotStarted | string | The operation is not started                                 |
+| Running    | string | The operation is executing and has not yet finished          |
+| Completed  | string | The operation has finished successfully                      |
+| Failed     | string | The operation has stopped prematurely after encountering one or more errors. |
 
 ### Extended Query Tag Error
 
@@ -475,6 +475,8 @@ The status of  extended query tag.
 | Ready    | string | The extended query tag  is ready for QIDO-RS                 |
 | Deleting | string | The extended query tag  is being deleted.                    |
 
+>  Notes: when extended query tag is added, its status is `Adding`, while a long-running operation is kicked off to reindex DICOM instances in the past, after it completes, tag status is `Ready`. 
+
 ### Extended Query Tag Level
 
 The level of extended query tag.
@@ -494,19 +496,19 @@ The query status of extended query tag.
 | Disabled | string | The extended query tag is not allowed to be queried |
 | Enabled  | string | The extended query tag is allowed to be queried     |
 
-> Note:  Errors during reindex operation disables QIDO on the extended query tag
+> Note:  Errors during reindex operation disables QIDO on the extended query tag. You can call [Update Extended Query Tag](#Update Extended Query Tag) API to enable it.
 
-### Entry of Updating Extended Query Tag
+### Extended Query Tag for Updating
 
-Entry of updating extended query tag
+Represents extended query tag for updating.
 
 | Name        | Type                                                         | Description                            |
 | ----------- | ------------------------------------------------------------ | -------------------------------------- |
 | QueryStatus | [Extended Query Tag Query Status](#Extended Query Tag Query Status) | The query status of extended query tag |
 
-### Entry of Adding Extended Query Tag
+### Extended Query Tag for Adding
 
-Entry of adding extended query tag
+Represents extended query tag for adding.
 
 | Name           | Required | Type                                                  | Description                                                  |
 | -------------- | -------- | ----------------------------------------------------- | ------------------------------------------------------------ |
