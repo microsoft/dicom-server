@@ -50,28 +50,30 @@ POST https://{host}/extendedquerytags
 
 #### Limitations
 
-Currently, only the following VR types are supported:
+The following VR types are supported:
 
-- Application Entity (AE)
-- Age String (AS)
-- Code String (CS)
-- Date (DA)
-- Decimal String (DS)
-- Floating Point Double (FD)
-- Floating Point Single (FL)
-- Integer String (IS)
-- Long String (LO)
-- Person Name (PN)
-- Short String (SH)
-- Signed Long (SL)
-- Signed Short (SS)
-- Unique Identifier [UID] (UI)
-- Unsigned Long (UL)
-- Unsigned Short (US)
+| VR   | Description           | Single Value Matching | Range Matching | Fuzzy Matching |
+| ---- | --------------------- | --------------------- | -------------- | -------------- |
+| AE   | Application Entity    | X                     |                |                |
+| AS   | Age String            | X                     |                |                |
+| CS   | Code String           | X                     |                |                |
+| DA   | Date                  | X                     | X              |                |
+| DS   | Decimal String        | X                     |                |                |
+| FD   | Floating Point Double | X                     |                |                |
+| FL   | Floating Point Single | X                     |                |                |
+| IS   | Integer String        | X                     |                |                |
+| LO   | Long String           | X                     |                |                |
+| PN   | Person Name           | X                     |                | X              |
+| SH   | Short String          | X                     |                |                |
+| SL   | Signed Long           | X                     |                |                |
+| SS   | Signed Short          | X                     |                |                |
+| UI   | Unique Identifier     | X                     |                |                |
+| UL   | Unsigned Long         | X                     |                |                |
+| US   | Unsigned Short        | X                     |                |                |
 
-Sequential tags i.e. tags under a tag of type Sequence of Items (SQ) are currently not supported.
+> Note: Sequential tags i.e. tags under a tag of type Sequence of Items (SQ) are currently not supported.
 
-You can add up to 128 extended query tags.
+>  Note: You can add up to 128 extended query tags.
 
 #### Responses
 
@@ -236,40 +238,25 @@ When extended query tag is in `Ready` status, it can be used in [QIDO](../resour
 ../instances?ManufacturerModelName=Microsoft
 ```
 
-```http
-../instances?00081090=Microsoft
-```
-
 They can also be used in conjunction with existing tags. E.g:
 
 ```http
 ../instances?00081090=Microsoft&PatientName=Jo&fuzzyMatching=true
 ```
 
-> Notes: 
+> After extended query tag is added, any DICOM instance stored is indexed on it
 
-#### Search Matching
+#### Query Status
 
-The matching types stated below are valid for extended query tags.
+Extended Query Tag has attribute [QueryStatus](#Extended Query Tag Status), which indicates whether allow QIDO on the tag. When reindex operation fails to process one or more DICOM instances for the tag, the tag `QueryStatus` is set to `Disabled` automatically, and you need to call [Update Extended Query Tag](#Update Extended Query Tag) API to enable it if still want to use it.  In this case, we wrap erroneous tags in response header `erroneous-dicom-attributes`.
 
-| Search Type | Supported VR    | Example                                                      |
-| :---------- | :-------------- | :----------------------------------------------------------- |
-| Range Query | Date (DA)       | {attributeID}={value1}-{value2}. For date/ time values, we supported an inclusive range on the tag. This will be mapped to `attributeID >= {value1} AND attributeID <= {value2}`. |
-| Exact Match | All             | {attributeID}={value1}                                       |
-| Fuzzy Match | PersonName (PN) | Matches any component of the patient name which starts with the value. |
+For example, extended query tag `PatientAge` has errors during reindexing, but get enabled manually.  For query below, you should be able to see header `erroneous-dicom-attributes` as `PatientAge` in response.
 
-
+```http
+../instances?PatientAge=035Y
+```
 
 ## Definitions
-
-### Extended Query Tag Operation Reference
-
-Reference to a long-running operation.
-
-| Name | Type   | Description          |
-| ---- | ------ | -------------------- |
-| Id   | string | operation id         |
-| Href | string | Uri to the operation |
 
 ### Extended Query Tag
 
@@ -317,6 +304,15 @@ Represents extended query tag .
         "vr": "AS"
 }
 ```
+
+### Extended Query Tag Operation Reference
+
+Reference to a long-running operation.
+
+| Name | Type   | Description          |
+| ---- | ------ | -------------------- |
+| Id   | string | operation id         |
+| Href | string | Uri to the operation |
 
 ### Extended Query Tag Operation
 
