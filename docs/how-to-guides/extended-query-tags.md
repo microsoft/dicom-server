@@ -314,6 +314,47 @@ GET https://{host}/extendedquerytags/{tagPath}/errors
 ]
 ```
 
+### Get Operation
+
+Get metadata of an extended query tag.
+
+```http
+GET https://{host}/operations/{operationId}
+```
+
+#### URI Parameters
+
+| Name        | In   | Required | Type   | Description      |
+| ----------- | ---- | -------- | ------ | ---------------- |
+| host        | path | True     | string | The Dicom server |
+| operationId | path | True     | string | The operation id |
+
+ 
+
+#### Responses
+
+| Name            | Type                                                         | Description                                                  |
+| --------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 200 (OK)        | [Extended Query Tag Operation](#Extended Query Tag Operation) | Returns extended query tag operation which is completed      |
+| 202 (Accepted)  | [Extended Query Tag Operation](#Extended Query Tag Operation) | Returns extended query tag operation which has not been completed yet. |
+| 404 (Not Found) |                                                              | The operation is not found                                   |
+
+**Example**
+
+```json
+{
+    "resources": [
+        "https://localhost:63838/extendedquerytags/00101010"
+    ],
+    "operationId": "a99a8b51-78d4-4fd9-b004-b6c0bcaccf1d",
+    "type": "Reindex",
+    "createdTime": "2021-10-06T16:40:02.5247083Z",
+    "lastUpdatedTime": "2021-10-06T16:40:04.5152934Z",
+    "status": "Running",
+    "percentComplete": 1
+}
+```
+
 ### 
 
 ## Integration with DICOMWeb™
@@ -403,6 +444,31 @@ Extended query tag metadata.
 | Errors         | [Extended Query Tag Errors Reference](#Extended Query Tag Errors Reference) | Reference to extended query tag errors                       |
 | Operation      | [Operation Reference](#Operation Reference)                  | Reference to a long-time running operation                   |
 
+### Extended Query Tag Operation
+
+Represents an extended query tag operation.
+
+| Name            | Type                                                         | Description                                                  |
+| --------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| OperationId     | string                                                       | The operation Id                                             |
+| OperationType   | [Extended Query Tag Operation Type](#Extended Query Tag Operation Type) | Type of  the long running operation                          |
+| CreatedTime     | string                                                       | Time when the operation is created                           |
+| LastUpdatedTime | string                                                       | Time when the operation is updated last time                 |
+| Status          | [Extended Query Tag Operation Runtime Status](#Extended Query Tag Operation Runtime Status) | Represents run time status of extended query tag operation   |
+| PercentComplete | Integer                                                      | Percentage of work that has been completed by the operation  |
+| Resources       | string[]                                                     | Collection of resources locations that the operation is creating or manipulating. |
+
+### Extended Query Tag Operation Runtime Status
+
+Represents run time status of extended query tag operation
+
+| Name       | Type   | Description                                                  |
+| ---------- | ------ | ------------------------------------------------------------ |
+| NotStarted | string | Specifies a state where execution is not started             |
+| Running    | string | Specifies a state where the operation is executing and has not yet finished |
+| Completed  | string | Specifies a state where the operation has finished successfully |
+| Failed     | string | Specifies a state where the operation has stopped prematurely after encountering one or more errors. |
+
 ### Extended Query Tag Error
 
 Represent error on Extended query tag.
@@ -423,6 +489,14 @@ Reference to extended query tag errors.
 | ----- | ------- | ------------------------------------------------- |
 | Count | Integer | Total number of errors on the extended query tag. |
 | Href  | string  | Uri to extended query tag errors                  |
+
+### Extended Query Tag Operation Type
+
+The type of  extended query tag operation.
+
+| Name    | Type   | Description                                                  |
+| ------- | ------ | ------------------------------------------------------------ |
+| Reindex | string | A reindexing operation that updates the indicies for previously added data based on new tags. |
 
 ### Extended Query Tag Status
 
