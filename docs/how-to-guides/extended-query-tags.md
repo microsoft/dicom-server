@@ -115,43 +115,46 @@ GET https://{Host}/extendedquerytags
 
 
 
-#### Response
+#### Responses
 
 | Name           | Type                                        | Description                 |
 | -------------- | ------------------------------------------- | --------------------------- |
 | 200 (Accepted) | [Extended Query Tag](#Extended Query Tag)[] | Returns extended query tags |
 
+**Example**
 
-
-```
+```json
 [
-	{
-		"Path":"04011001",
-		"VR":"SS",
-		"PrivateCreator":"MicrosoftPC",
-		"Level":"Instance",
-		"Status":"Adding"
-	},
-	{
-		"Path":"00081090",
-		"VR":"LO",
-		"Level":"Series",
-		"Status":"Ready"
-	},
-	{
-		"Path":"00100040",
-		"VR":"CS",
-		"Level":"Study",
-		"Status":"Deleting"
-	},
+    {
+        "status": "Ready",
+        "level": "Instance",
+        "errors": null,
+        "operation": null,
+        "queryStatus": "Enabled",
+        "path": "00080070",
+        "vr": "LO",
+        "privateCreator": null
+    },
+    {
+        "status": "Adding",
+        "level": "Study",
+        "errors": {
+            "count": 21,
+            "href": "https://localhost:63838/extendedquerytags/00101010/errors"
+        },
+        "operation": {
+            "id": "1a5d0306d9624f699929ee1a59ed57a0",
+            "href": "https://localhost:63838/operations/1a5d0306d9624f699929ee1a59ed57a0"
+        },
+        "queryStatus": "Disabled",
+        "path": "00101010",
+        "vr": "AS",
+        "privateCreator": null
+    }
 ]
 ```
 
-### Response status codes
-
-| Code     | Description                                          |
-| -------- | ---------------------------------------------------- |
-| 200 (OK) | Extended query tags have been successfully returned. |
+### 
 
 ### Get an extended query tag
 
@@ -260,9 +263,9 @@ For optimal performance, it is not recommended to store more than 100 extended q
 
 ## Definitions
 
-### Operation
+### Operation Reference
 
-Represent a long-time running operation.
+Reference to a long-time running operation.
 
 | Name | Type   | Description          |
 | ---- | ------ | -------------------- |
@@ -273,16 +276,16 @@ Represent a long-time running operation.
 
 Extended query tag metadata.
 
-| Name           | Type                                                         | Description                      |
-| -------------- | ------------------------------------------------------------ | -------------------------------- |
-| Path           | string                                                       | Uri to the operation             |
-| VR             | string                                                       |                                  |
-| PrivateCreator |                                                              |                                  |
-| Level          |                                                              |                                  |
-| Status         | [Extended Query Tag Status](#Extended Query Tag Status)      | Status of the extended query tag |
-| QueryStatus    |                                                              |                                  |
-| Errors         | [Extended Query Tag Errors Reference](#Extended Query Tag Errors Reference) |                                  |
-| Operation      | [Operation](#Operation)                                      |                                  |
+| Name           | Type                                                         | Description                                                  |
+| -------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Path           | string                                                       | Path of tag, normally composed of group id and element id. E.g. PatientId (0010,0020) has path 00100020. |
+| VR             | string                                                       | Value representation of this tag                             |
+| PrivateCreator | string                                                       | Identification code of the implementer of this private tag   |
+| Level          | [Extended Query Tag Level](#Extended Query Tag Level)        | Level of extended query tag                                  |
+| Status         | [Extended Query Tag Status](#Extended Query Tag Status)      | Status of the extended query tag                             |
+| QueryStatus    | [Extended Query Tag Query Status](#Extended Query Tag Query Status) | Query status of extended query tag.                          |
+| Errors         | [Extended Query Tag Errors Reference](#Extended Query Tag Errors Reference) | Reference to extended query tag errors                       |
+| Operation      | [Operation Reference](#Operation Reference)                  | Reference to a long-time running operation                   |
 
 ### Extended Query Tag Errors Reference
 
@@ -313,3 +316,13 @@ The level of extended query tag.
 | Series   | string | The extended query tag is relevant at the series level   |
 | Study    | string | The extended query tag is relevant at the study level    |
 
+
+
+### Extended Query Tag Query Status
+
+The query status of extended query tag.
+
+| Name     | Type   | Description                                         |
+| -------- | ------ | --------------------------------------------------- |
+| Disabled | string | The extended query tag is not allowed to be queried |
+| Enabled  | string | The extended query tag is allowed to be queried     |
