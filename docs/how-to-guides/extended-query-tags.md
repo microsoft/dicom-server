@@ -12,29 +12,23 @@ API Version: v1.0-prerelease
 
 To help manage the supported tags in a given DICOM server instance, a few APIs are available.
 
-| Api                                                          | Description                                        |
-| ------------------------------------------------------------ | -------------------------------------------------- |
-| [Add Extended Query Tags](#Add Extended Query Tags)          | Add extended query tag(s).                         |
-| [List Extended Query Tags](#List Extended Query Tags)        | Lists metadata of all extended query tag(s).       |
-| [Get Extended Query Tag](#Get Extended Query Tag)            | Returns metadata of an extended query tag.         |
-| [Delete Extended Query Tag](#Delete Extended Query Tag)      | Delete an extended query tag.                      |
-| [Update Extended Query Tag](#Update Extended Query Tag)      | Update an extended query tag.                      |
-| [List Extended Query Tag Errors](#List Extended Query Tag Errors) | Lists errors on an extended query tag.             |
-| Get Operation                                                | Returns metadata of a long-time running operation. |
-
-
-
-
+| Api                                                          | Description                                  |
+| ------------------------------------------------------------ | -------------------------------------------- |
+| [Add Extended Query Tags](#Add Extended Query Tags)          | Add extended query tag(s)                    |
+| [List Extended Query Tags](#List Extended Query Tags)        | Lists metadata of all extended query tag(s)  |
+| [Get Extended Query Tag](#Get Extended Query Tag)            | Returns metadata of an extended query tag    |
+| [Delete Extended Query Tag](#Delete Extended Query Tag)      | Delete an extended query tag                 |
+| [Update Extended Query Tag](#Update Extended Query Tag)      | Update an extended query tag                 |
+| [List Extended Query Tag Errors](#List Extended Query Tag Errors) | Lists errors on an extended query tag        |
+| [Get Operation](#Get Operation)                              | Returns metadata of a long-running operation |
 
 ### Add Extended Query Tags 
 
-Add extended query tags, and starts long-time running operation which reindexes DICOM instances stored in the past.
+Add extended query tags, and starts long-running operation which reindexes DICOM instances stored in the past.
 
 ```http
 POST https://{host}/extendedquerytags
 ```
-
-
 
 #### URI Parameters
 
@@ -42,24 +36,17 @@ POST https://{host}/extendedquerytags
 | ---- | ---- | -------- | ------ | ---------------- |
 | Host | path | True     | string | The Dicom server |
 
-
-
 #### Request Header
 
 | Name         | Required | Type   | Description                      |
 | ------------ | -------- | ------ | -------------------------------- |
 | Content-Type | True     | string | `application/json` is supported. |
 
-
-
 #### Request Body
 
-| Name           | Required | Type                                                  | Description                                                  |
-| -------------- | -------- | ----------------------------------------------------- | ------------------------------------------------------------ |
-| Path           | True     | string                                                | Path of tag, normally composed of group id and element id. E.g. PatientId (0010,0020) has path 00100020. |
-| VR             |          | string                                                | Value representation of this tag.  It's optional for standard tag, and required for private tag. |
-| PrivateCreator |          | string                                                | Identification code of the implementer of this private tag. Only set when the tag is a private tag. |
-| Level          | True     | [Extended Query Tag Level](#Extended Query Tag Level) | Represents the hierarchy at which this tag is relevant. Should be one of Study,Series or Instance. |
+| Name | Required | Type                                                         | Description |
+| ---- | -------- | ------------------------------------------------------------ | ----------- |
+| body |          | [Entry of Adding Extended Query Tag](#Entry of Adding Extended Query Tag) |             |
 
 **Example**
 
@@ -84,19 +71,38 @@ POST https://{host}/extendedquerytags
 ]
 ```
 
+> Notes: you can add up to 128 extended query tags.
 
+#### Limitations
+
+Currently, only the following VR types are supported:
+
+- Application Entity (AE)
+- Age String (AS)
+- Code String (CS)
+- Date (DA)
+- Decimal String (DS)
+- Floating Point Double (FD)
+- Floating Point Single (FL)
+- Integer String (IS)
+- Long String (LO)
+- Person Name (PN)
+- Short String (SH)
+- Signed Long (SL)
+- Signed Short (SS)
+- Unique Identifier [UID] (UI)
+- Unsigned Long (UL)
+- Unsigned Short (US)
+
+Sequential tags i.e. tags under a tag of type Sequence of Items (SQ) are currently not supported.
 
 #### Responses
 
-| Name              | Type                    | Description                                             |
-| ----------------- | ----------------------- | ------------------------------------------------------- |
-| 202 (Accepted)    | [Operation](#Operation) | Extended query tag(s) have been successfully stored.    |
-| 400 (Bad Request) |                         | Request body has invalid data.                          |
-| 409 (Conflict)    |                         | One or more requested query tags already are supported. |
-
-
-
-
+| Name              | Type                                                         | Description                                                  |
+| ----------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 202 (Accepted)    | [Extended Query Tag Operation Reference](#Extended Query Tag Operation Reference) | Extended query tag(s) have been added, and a long-running operation will be kicked off to reindex DICOM instances in the past. |
+| 400 (Bad Request) |                                                              | Request body has invalid data.                               |
+| 409 (Conflict)    |                                                              | One or more requested query tags already are supported.      |
 
 ### List Extended Query Tags
 
@@ -111,8 +117,6 @@ GET https://{host}/extendedquerytags
 | Name | In   | Required | Type   | Description      |
 | ---- | ---- | -------- | ------ | ---------------- |
 | Host | path | True     | string | The Dicom server |
-
-
 
 #### Responses
 
@@ -153,8 +157,6 @@ GET https://{host}/extendedquerytags
 ]
 ```
 
-### 
-
 ### Get Extended Query Tag
 
 Get metadata of an extended query tag.
@@ -170,9 +172,7 @@ GET https://{host}/extendedquerytags/{tagPath}
 | host    | path | True     | string | The Dicom server                                             |
 | tagPath | path | True     | string | tagPath is the path for the tag. Either be tag or attribute name. E.g. `PatientId` is represented by `00100020` or `PatientId` |
 
- 
-
-#### Responses
+####  Responses
 
 | Name              | Type                                      | Description                                            |
 | ----------------- | ----------------------------------------- | ------------------------------------------------------ |
@@ -243,7 +243,7 @@ PATCH https://{host}/extendedquerytags/{tagPath}
 
 | Name | Required | Type                                                         | Description |
 | ---- | -------- | ------------------------------------------------------------ | ----------- |
-| body | True     | [Entry of Updating Extended Query Tag](#Entry of Updating Extended Query Tag) |             |
+| body |          | [Entry of Updating Extended Query Tag](#Entry of Updating Extended Query Tag) |             |
 
 #### Responses
 
@@ -283,9 +283,7 @@ GET https://{host}/extendedquerytags/{tagPath}/errors
 | host    | path | True     | string | The Dicom server                                             |
 | tagPath | path | True     | string | tagPath is the path for the tag. Either be tag or attribute name. E.g. `PatientId` is represented by `00100020` or `PatientId` |
 
- 
-
-#### Responses
+####  Responses
 
 | Name              | Type                                                     | Description                                            |
 | ----------------- | -------------------------------------------------------- | ------------------------------------------------------ |
@@ -316,7 +314,7 @@ GET https://{host}/extendedquerytags/{tagPath}/errors
 
 ### Get Operation
 
-Get metadata of an extended query tag.
+Get metadata of an extended query tag operation.
 
 ```http
 GET https://{host}/operations/{operationId}
@@ -328,8 +326,6 @@ GET https://{host}/operations/{operationId}
 | ----------- | ---- | -------- | ------ | ---------------- |
 | host        | path | True     | string | The Dicom server |
 | operationId | path | True     | string | The operation id |
-
- 
 
 #### Responses
 
@@ -357,23 +353,21 @@ GET https://{host}/operations/{operationId}
 
 ### 
 
-## Integration with DICOMWeb™
+## QIDO with Extended Query Tags
 
-### Querying against extended query tags
+All new DICOM instances that are stored after an extended query tag is in the "Adding" state, are queryable with that tag in [QIDO](../resources/conformance-statement.md#search-qido-rs). For example, if the tag Manufacturer Model Name (0008,1090) is added to the set of supported extended query tags, hereafter the following queries can be used to filter stored instances by Manufacturer Model Name (when tag has value on instance):
 
-All new DICOM instances that are stored after an extended query tag is in the "Ready" state, are queryable with that tag in [QIDO](../resources/conformance-statement.md#search-qido-rs). For example, if the tag Manufacturer Model Name (0008,1090) is added to the set of supported extended query tags, hereafter the following queries can be used to filter stored instances by Manufacturer Model Name (when tag has value on instance):
-
-```
+```http
 ../instances?ManufacturerModelName=Microsoft
 ```
 
-```
+```http
 ../instances?00081090=Microsoft
 ```
 
 They can also be used in conjunction with existing tags. E.g:
 
-```
+```http
 ../instances?00081090=Microsoft&PatientName=Jo&fuzzyMatching=true
 ```
 
@@ -387,42 +381,15 @@ The matching types stated below are valid for extended query tags.
 | Exact Match | All             | {attributeID}={value1}                                       |
 | Fuzzy Match | PersonName (PN) | Matches any component of the patient name which starts with the value. |
 
-## Limitations
 
-Currently, only the following VR types are supported:
-
-- Application Entity (AE)
-- Age String (AS)
-- Code String (CS)
-- Date (DA)
-- Decimal String (DS)
-- Floating Point Double (FD)
-- Floating Point Single (FL)
-- Integer String (IS)
-- Long String (LO)
-- Person Name (PN)
-- Short String (SH)
-- Signed Long (SL)
-- Signed Short (SS)
-- Unique Identifier [UID] (UI)
-- Unsigned Long (UL)
-- Unsigned Short (US)
-
-Sequential tags i.e. tags under a tag of type Sequence of Items (SQ) are currently not supported.
-
-All management APIs are currently synchronous. This means that a [delete](#remove-an-extended-query-tag) request may run long as it attempts to remove any infrastructure that was put in place to support querying against the extended query tag. 
-
-Querying against instances that were stored prior to an extended query tag being added is also not supported. Historical instances would need to be deleted and re-added to enable searching against new extended query tags.
-
-For optimal performance, it is not recommended to store more than 100 extended query tags.
 
 
 
 ## Definitions
 
-### Operation Reference
+### Extended Query Tag Operation Reference
 
-Reference to a long-time running operation.
+Reference to a long-running operation.
 
 | Name | Type   | Description          |
 | ---- | ------ | -------------------- |
@@ -442,7 +409,7 @@ Extended query tag metadata.
 | Status         | [Extended Query Tag Status](#Extended Query Tag Status)      | Status of the extended query tag                             |
 | QueryStatus    | [Extended Query Tag Query Status](#Extended Query Tag Query Status) | Query status of extended query tag.                          |
 | Errors         | [Extended Query Tag Errors Reference](#Extended Query Tag Errors Reference) | Reference to extended query tag errors                       |
-| Operation      | [Operation Reference](#Operation Reference)                  | Reference to a long-time running operation                   |
+| Operation      | [Operation Reference](#Operation Reference)                  | Reference to a long-running operation                        |
 
 ### Extended Query Tag Operation
 
@@ -518,8 +485,6 @@ The level of extended query tag.
 | Series   | string | The extended query tag is relevant at the series level   |
 | Study    | string | The extended query tag is relevant at the study level    |
 
-
-
 ### Extended Query Tag Query Status
 
 The query status of extended query tag.
@@ -529,7 +494,7 @@ The query status of extended query tag.
 | Disabled | string | The extended query tag is not allowed to be queried |
 | Enabled  | string | The extended query tag is allowed to be queried     |
 
-
+> Note:  Errors during reindex operation disables QIDO on the extended query tag
 
 ### Entry of Updating Extended Query Tag
 
@@ -538,3 +503,15 @@ Entry of updating extended query tag
 | Name        | Type                                                         | Description                            |
 | ----------- | ------------------------------------------------------------ | -------------------------------------- |
 | QueryStatus | [Extended Query Tag Query Status](#Extended Query Tag Query Status) | The query status of extended query tag |
+
+### Entry of Adding Extended Query Tag
+
+Entry of adding extended query tag
+
+| Name           | Required | Type                                                  | Description                                                  |
+| -------------- | -------- | ----------------------------------------------------- | ------------------------------------------------------------ |
+| Path           | True     | string                                                | Path of tag, normally composed of group id and element id. E.g. PatientId (0010,0020) has path 00100020. |
+| VR             |          | string                                                | Value representation of this tag.  It's optional for standard tag, and required for private tag. |
+| PrivateCreator |          | string                                                | Identification code of the implementer of this private tag. Only set when the tag is a private tag. |
+| Level          | True     | [Extended Query Tag Level](#Extended Query Tag Level) | Represents the hierarchy at which this tag is relevant. Should be one of Study,Series or Instance. |
+
