@@ -18,7 +18,7 @@
     <PackageReference Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="$(HealthcareSharedPackageVersion)" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Health.SqlServer" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.SqlServer.Api" Version="$(HealthcareSharedPackageVersion)" />
-    <PackageReference Include="Microsoft.Health.Tools.Sql.Tasks" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Health.Tools.Sql.Tasks" Version="3.2.14" />
     <PackageReference Include="Polly" Version="7.2.2" />
     <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
     <PackageReference Include="Scrutor" Version="3.3.0" />
