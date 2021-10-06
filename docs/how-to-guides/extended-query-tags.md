@@ -32,7 +32,7 @@ To help manage the supported tags in a given DICOM server instance, a few APIs a
 Add extended query tags, and starts long-time running operation which reindexes DICOM instances stored in the past.
 
 ```http
-POST https://{Host}/extendedquerytags
+POST https://{host}/extendedquerytags
 ```
 
 
@@ -104,7 +104,7 @@ POST https://{Host}/extendedquerytags
 Lists metadata of all extended query tag(s).
 
 ```http
-GET https://{Host}/extendedquerytags
+GET https://{host}/extendedquerytags
 ```
 
 #### URI Parameters
@@ -117,9 +117,9 @@ GET https://{Host}/extendedquerytags
 
 #### Responses
 
-| Name           | Type                                        | Description                 |
-| -------------- | ------------------------------------------- | --------------------------- |
-| 200 (Accepted) | [Extended Query Tag](#Extended Query Tag)[] | Returns extended query tags |
+| Name     | Type                                        | Description                 |
+| -------- | ------------------------------------------- | --------------------------- |
+| 200 (OK) | [Extended Query Tag](#Extended Query Tag)[] | Returns extended query tags |
 
 **Example**
 
@@ -158,31 +158,43 @@ GET https://{Host}/extendedquerytags
 
 ### Get an extended query tag
 
-Detail an extended query tag's metadata using the route: /extendedquerytags/{tagPath}
+Get metadata of an extended query tag.
 
-#### Parameter
-
-tagPath is the path for the tag, normally composed of group id and element id. E.g. PatientId (0010,0020) has path 00100020.
-
-#### Response
-
+```http
+GET https://{host}/extendedquerytags/{tagPath}
 ```
+
+#### URI Parameters
+
+| Name    | In   | Required | Type   | Description                                                  |
+| ------- | ---- | -------- | ------ | ------------------------------------------------------------ |
+| host    | path | True     | string | The Dicom server                                             |
+| tagPath | path | True     | string | tagPath is the path for the tag. Either be tag or attribute name. E.g. `PatientId` is represented by `00100020` or `PatientId` |
+
+ 
+
+#### Responses
+
+| Name              | Type                                      | Description                                            |
+| ----------------- | ----------------------------------------- | ------------------------------------------------------ |
+| 200 (OK)          | [Extended Query Tag](#Extended Query Tag) | Returns extended query tag                             |
+| 400 (Bad Request) |                                           | Requested tag path is invalid.                         |
+| 404 (Not Found)   |                                           | Extended query tag with requested tagPath is not found |
+
+**Example**
+
+```json
 {
-    "Path":"04011001",
-    "VR":"SS",
-    "PrivateCreator":"MicrosoftPC",
-    "Level":"Instance",
-    "Status":"Adding"
+        "status": "Ready",
+        "level": "Instance",
+        "errors": null,
+        "operation": null,
+        "queryStatus": "Enabled",
+        "path": "00080070",
+        "vr": "LO",
+        "privateCreator": null
 }
 ```
-
-#### Response status codes
-
-| Code              | Description                                                  |
-| ----------------- | ------------------------------------------------------------ |
-| 200 (OK)          | Extended query tag with requested tagPath is successfully returned. |
-| 400 (Bad Request) | Requested tag path is invalid.                               |
-| 404 (Not Found)   | Extended query tag with requested tagPath is not found       |
 
 ### Remove an extended query tag
 
