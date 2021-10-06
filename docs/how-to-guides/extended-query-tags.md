@@ -18,10 +18,9 @@ To help manage the supported tags in a given DICOM server instance, a few APIs a
 | [List Extended Query Tags](#List Extended Query Tags)   | Lists metadata of all extended query tag(s).       |
 | [Get Extended Query Tag](#Get Extended Query Tag)       | Returns metadata of an extended query tag.         |
 | [Delete Extended Query Tag](#Delete Extended Query Tag) | Delete an extended query tag.                      |
-| Update Extended Query Tag                               | Update an extended query tag.                      |
+| [Update Extended Query Tag](#Update Extended Query Tag) | Update an extended query tag.                      |
 | Get Extended Query Tag Errors                           | Returns errors for an extended query tag.          |
 | Get Operation                                           | Returns metadata of a long-time running operation. |
-|                                                         |                                                    |
 
 
 
@@ -254,7 +253,22 @@ PATCH https://{host}/extendedquerytags/{tagPath}
 | 400 (Bad Request) |                                           | Requested tag path or body is invalid                  |
 | 404 (Not Found)   |                                           | Extended query tag with requested tagPath is not found |
 
-#### 
+**Example**
+
+```json
+{
+        "status": "Ready",
+        "level": "Instance",
+        "errors": null,
+        "operation": null,
+        "queryStatus": "Enabled",
+        "path": "00080070",
+        "vr": "LO",
+        "privateCreator": null
+}
+```
+
+### 
 
 ## Integration with DICOMWeb™
 
