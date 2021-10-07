@@ -55,7 +55,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// </summary>
         /// <param name="resolver">An optional <see cref="IUrlResolver"/> for resolving resource paths.</param>
         /// <returns>The extended query tag entry.</returns>
-        public GetExtendedQueryTagEntry ToExtendedQueryTagEntry(IUrlResolver resolver = null)
+        public GetExtendedQueryTagEntry ToGetExtendedQueryTagEntry(IUrlResolver resolver = null)
         {
             return new GetExtendedQueryTagEntry
             {
@@ -70,6 +70,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 Operation = OperationId.HasValue && resolver != null
                     ? new OperationReference(OperationId.GetValueOrDefault(), resolver.ResolveOperationStatusUri(OperationId.GetValueOrDefault()))
                     : null,
+                QueryStatus = QueryStatus
             };
         }
     }

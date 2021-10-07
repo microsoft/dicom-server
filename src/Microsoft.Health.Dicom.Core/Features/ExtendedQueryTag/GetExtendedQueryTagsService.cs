@@ -53,13 +53,13 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             }
 
             ExtendedQueryTagStoreJoinEntry extendedQueryTag = await _extendedQueryTagStore.GetExtendedQueryTagAsync(numericalTagPath, cancellationToken);
-            return new GetExtendedQueryTagResponse(extendedQueryTag.ToExtendedQueryTagEntry(_urlResolver));
+            return new GetExtendedQueryTagResponse(extendedQueryTag.ToGetExtendedQueryTagEntry(_urlResolver));
         }
 
         public async Task<GetExtendedQueryTagsResponse> GetExtendedQueryTagsAsync(int limit, int offset = 0, CancellationToken cancellationToken = default)
         {
             IReadOnlyList<ExtendedQueryTagStoreJoinEntry> extendedQueryTags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(limit, offset, cancellationToken);
-            return new GetExtendedQueryTagsResponse(extendedQueryTags.Select(x => x.ToExtendedQueryTagEntry(_urlResolver)));
+            return new GetExtendedQueryTagsResponse(extendedQueryTags.Select(x => x.ToGetExtendedQueryTagEntry(_urlResolver)));
         }
     }
 }
