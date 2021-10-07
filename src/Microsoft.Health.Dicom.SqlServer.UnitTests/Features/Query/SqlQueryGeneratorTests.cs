@@ -311,7 +311,10 @@ AND ctdt1.TagValue BETWEEN @p1 AND @p2";
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
             var includeField = new QueryIncludeField(new List<DicomTag>());
             var queryTag = new QueryTag(DicomTag.Time.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
-            var filter = new LongRangeValueMatchCondition(queryTag, DateTime.ParseExact("111213.123", QueryParser.TimeTagValueFormats, null).Ticks, DateTime.ParseExact("121314.123", QueryParser.TimeTagValueFormats, null).Ticks);
+
+            long minTicks = new DicomTime(queryTag.Tag, new string[] { "111213.123" }).Get<DateTime>().Ticks;
+            long maxTicks = new DicomTime(queryTag.Tag, new string[] { "111214.123" }).Get<DateTime>().Ticks;
+            var filter = new LongRangeValueMatchCondition(queryTag, minTicks, maxTicks);
 
             filter.QueryTag = queryTag;
             var filters = new List<QueryFilterCondition>()

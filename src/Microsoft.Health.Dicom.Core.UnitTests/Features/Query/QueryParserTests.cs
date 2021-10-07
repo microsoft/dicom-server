@@ -200,8 +200,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             var cond = queryExpression.FilterConditions.First() as LongRangeValueMatchCondition;
             Assert.NotNull(cond);
             Assert.True(cond.QueryTag.Tag == DicomTag.Time);
-            Assert.True(cond.Minimum == DateTime.ParseExact(minValue, QueryParser.TimeTagValueFormats, null, System.Globalization.DateTimeStyles.NoCurrentDateDefault).Ticks);
-            Assert.True(cond.Maximum == DateTime.ParseExact(maxValue, QueryParser.TimeTagValueFormats, null, System.Globalization.DateTimeStyles.NoCurrentDateDefault).Ticks);
+
+            long minTicks = new DicomTime(cond.QueryTag.Tag, new string[] { minValue }).Get<DateTime>().Ticks;
+            long maxTicks = new DicomTime(cond.QueryTag.Tag, new string[] { maxValue }).Get<DateTime>().Ticks;
+
+            Assert.True(cond.Minimum == minTicks);
+            Assert.True(cond.Maximum == maxTicks);
         }
 
         [Fact]

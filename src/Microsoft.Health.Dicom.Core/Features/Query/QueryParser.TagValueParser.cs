@@ -69,8 +69,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 {
                     string minTime = splitString[0].Trim();
                     string maxTime = splitString[1].Trim();
-                    long parsedMinTime = ParseTime(minTime, queryTag.GetName());
-                    long parsedMaxTime = ParseTime(maxTime, queryTag.GetName());
+                    long parsedMinTime = ParseTime(minTime, queryTag);
+                    long parsedMaxTime = ParseTime(maxTime, queryTag);
 
                     if (parsedMinTime > parsedMaxTime)
                     {
@@ -85,7 +85,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 }
             }
 
-            long parsedTime = ParseTime(value, queryTag.GetName());
+            long parsedTime = ParseTime(value, queryTag);
             return new LongSingleValueMatchCondition(queryTag, parsedTime);
         }
 
@@ -145,14 +145,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return parsedDateTime;
         }
 
-        private static long ParseTime(string time, string tagName)
+        private static long ParseTime(string time, QueryTag queryTag)
         {
-            if (!DateTime.TryParseExact(time, TimeTagValueFormats, null, System.Globalization.DateTimeStyles.NoCurrentDateDefault, out DateTime parsedTime))
+            DateTime timeValue;
+
+            try
             {
-                throw new QueryParseException(string.Format(DicomCoreResource.InvalidTimeValue, time, tagName));
+                DicomTime dicomTime = new DicomTime(queryTag.Tag, new string[] { time });
+                timeValue = dicomTime.Get<DateTime>();
+            }
+            catch (Exception)
+            {
+                throw new QueryParseException(string.Format(DicomCoreResource.InvalidTimeValue, time, queryTag.GetName()));
             }
 
-            return parsedTime.Ticks;
+            return timeValue.Ticks;
         }
     }
 }

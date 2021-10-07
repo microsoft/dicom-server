@@ -75,7 +75,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         [Fact]
         public void GivenNoDicomDateTimeValue_WhenGetStringDateTimeAsDateTimeIsCalled_ThenNullShouldBeReturned()
         {
-            Assert.Null(_dicomDataset.GetStringDateTimeAsDateTime(DicomTag.AcquisitionDateTime));
+            Assert.Null(_dicomDataset.GetStringDateTimeAsLocalAndUtcDateTimes(DicomTag.AcquisitionDateTime));
         }
 
         [Theory]
@@ -101,7 +101,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
                     minute,
                     second,
                     millisecond),
-                _dicomDataset.GetStringDateTimeAsDateTime(DicomTag.AcquisitionDateTime).Value);
+                _dicomDataset.GetStringDateTimeAsLocalAndUtcDateTimes(DicomTag.AcquisitionDateTime).Item1.Value);
         }
 
         [Theory]
@@ -125,7 +125,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         {
             _dicomDataset.Add(DicomTag.AcquisitionDateTime, acquisitionDateTime);
 
-            Assert.Null(_dicomDataset.GetStringDateTimeAsDateTime(DicomTag.AcquisitionDateTime));
+            Assert.Null(_dicomDataset.GetStringDateTimeAsLocalAndUtcDateTimes(DicomTag.AcquisitionDateTime).Item1);
         }
 
         [Fact]

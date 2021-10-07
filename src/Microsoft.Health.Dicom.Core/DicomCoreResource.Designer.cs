@@ -560,7 +560,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified Time value &apos;{0}&apos; is invalid for parameter &apos;{1}&apos;. Time should be valid and formatted as HHmmss.FFFFFFzzz where HH is mandatory..
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified Time value &apos;{0}&apos; is invalid for parameter &apos;{1}&apos;. Time should be valid and formatted as HHmmss.FFFFFF where HH is mandatory..
         /// </summary>
         internal static string InvalidTimeValue {
             get {

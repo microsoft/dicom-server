@@ -74,14 +74,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             "yyyyzzz"
         };
 
-        public static readonly string[] TimeTagValueFormats =
-        {
-            "HHmmss.FFFFFF",
-            "HHmmss",
-            "HHmm",
-            "HH"
-        };
-
         public QueryParser(IDicomTagParser dicomTagPathParser)
             => _dicomTagPathParser = EnsureArg.IsNotNull(dicomTagPathParser, nameof(dicomTagPathParser));
 

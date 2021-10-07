@@ -27,9 +27,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             { DicomVR.DA, Core.Extensions.DicomDatasetExtensions.GetStringDateAsDate }
         };
 
-        private static readonly Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, bool, DateTime?>> DateTimeReaders = new Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, bool, DateTime?>>()
+        private static readonly Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, Tuple<DateTime?, DateTime?>>> DateTimeReaders = new Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, Tuple<DateTime?, DateTime?>>>()
         {
-            { DicomVR.DT, Core.Extensions.DicomDatasetExtensions.GetStringDateTimeAsDateTime }
+            { DicomVR.DT, Core.Extensions.DicomDatasetExtensions.GetStringDateTimeAsLocalAndUtcDateTimes }
         };
 
         private static readonly Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, long?>> LongReaders = new Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, long?>>()
@@ -112,7 +112,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 case "DT":
                     dateVal = DateTimeReaders.TryGetValue(
                                 queryTag.VR,
-                                out Func<DicomDataset, DicomTag, DicomVR, bool, DateTime?> dateTimeReader) ? dateTimeReader.Invoke(instance, queryTag.Tag, queryTag.VR, false) : null;
+                                out Func<DicomDataset, DicomTag, DicomVR, Tuple<DateTime?, DateTime?>> dateTimeReader) ? dateTimeReader.Invoke(instance, queryTag.Tag, queryTag.VR).Item1 : null;
                     break;
                 case "DA":
                 default:
@@ -136,13 +136,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             switch (queryTag.VR.Code)
             {
                 case "DT":
-                    dateVal = DateTimeReaders.TryGetValue(
-                                queryTag.VR,
-                                out Func<DicomDataset, DicomTag, DicomVR, bool, DateTime?> readerDT) ? readerDT.Invoke(instance, queryTag.Tag, queryTag.VR, false) : null;
-
-                    dateUtcVal = DateTimeReaders.TryGetValue(
-                                    queryTag.VR,
-                                    out Func<DicomDataset, DicomTag, DicomVR, bool, DateTime?> readerUtcDT) ? readerUtcDT.Invoke(instance, queryTag.Tag, queryTag.VR, true) : null;
+                    Tuple<DateTime?, DateTime?> localAndUtcDateTimes = DateTimeReaders.TryGetValue(
+                                                                            queryTag.VR,
+                                                                            out Func<DicomDataset, DicomTag, DicomVR, Tuple<DateTime?, DateTime?>> readerDT) ? readerDT.Invoke(instance, queryTag.Tag, queryTag.VR) : null;
+                    if (localAndUtcDateTimes != null)
+                    {
+                        dateVal = localAndUtcDateTimes.Item1;
+                        dateUtcVal = localAndUtcDateTimes.Item2;
+                    }
                     break;
                 case "DA":
                 default:

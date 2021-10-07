@@ -433,7 +433,7 @@ The first part time {1} should be lesser than or equal to the second part time {
     <comment>{0} Time range with &lt;Time1&gt;-&lt;Time2&gt; format. {1} is Time1. {2} is Time2.</comment>
   </data>
   <data name="InvalidTimeValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified Time value '{0}' is invalid for parameter '{1}'. Time should be valid and formatted as HHmmss.FFFFFFzzz where HH is mandatory.</value>
+    <value>Invalid QIDO-RS query. Specified Time value '{0}' is invalid for parameter '{1}'. Time should be valid and formatted as HHmmss.FFFFFF where HH is mandatory.</value>
     <comment>{0} Time value. {1} parameter name.</comment>
   </data>
   <data name="ErrorMessageDateTimeIsInvalid" xml:space="preserve">
