@@ -8,13 +8,14 @@
     Note: The primary key is designed on the assumption that tags only occur once in an instance.
 **************************************************************/
 CREATE TABLE dbo.ExtendedQueryTagPersonName (
-    TagKey                  INT                  NOT NULL, --FK
+    TagKey                  INT                  NOT NULL,              --FK
     TagValue                NVARCHAR(200)        COLLATE SQL_Latin1_General_CP1_CI_AI NOT NULL,
-    StudyKey                BIGINT               NOT NULL, --FK
-    SeriesKey               BIGINT               NULL,     --FK
-    InstanceKey             BIGINT               NULL,     --FK
+    PartitionKey            INT                  NOT NULL DEFAULT 1,    --FK
+    StudyKey                BIGINT               NOT NULL,              --FK
+    SeriesKey               BIGINT               NULL,                  --FK
+    InstanceKey             BIGINT               NULL,                  --FK
     Watermark               BIGINT               NOT NULL,
-    WatermarkAndTagKey      AS CONCAT(TagKey, '.', Watermark), --PK
+    WatermarkAndTagKey      AS CONCAT(TagKey, '.', Watermark),          --PK
     TagValueWords           AS REPLACE(REPLACE(TagValue, '^', ' '), '=', ' ') PERSISTED,
 ) WITH (DATA_COMPRESSION = PAGE)
 
@@ -22,6 +23,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName ON dbo.ExtendedQuer
 (
     TagKey,
     TagValue,
+    PartitionKey,
     StudyKey,
     SeriesKey,
     InstanceKey

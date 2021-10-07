@@ -4,8 +4,9 @@
 **************************************************************/
 
 CREATE TABLE dbo.Series (
-    SeriesKey                           BIGINT                     NOT NULL, --PK
-    StudyKey                            BIGINT                     NOT NULL, --FK
+    SeriesKey                           BIGINT                     NOT NULL,            --PK
+    PartitionKey                        INT                        NOT NULL DEFAULT 1,  --FK
+    StudyKey                            BIGINT                     NOT NULL,            --FK
     SeriesInstanceUid                   VARCHAR(64)                NOT NULL,
     Modality                            NVARCHAR(16)               NULL,
     PerformedProcedureStepStartDate     DATE                       NULL,
@@ -14,6 +15,7 @@ CREATE TABLE dbo.Series (
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Series ON dbo.Series
 (
+    PartitionKey,
     StudyKey,
     SeriesKey
 )
@@ -24,45 +26,23 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Series_SeriesKey ON dbo.Series
 )
 WITH (DATA_COMPRESSION = PAGE)
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Series_SeriesInstanceUid ON dbo.Series
+CREATE UNIQUE NONCLUSTERED INDEX IX_Series_StudyKey_SeriesInstanceUid ON dbo.Series
 (
+    StudyKey,
     SeriesInstanceUid
-)
-INCLUDE
-(
-    StudyKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Series_Modality ON dbo.Series
 (
     Modality
-)
-INCLUDE
-(
-    StudyKey,
-    SeriesKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Series_PerformedProcedureStepStartDate ON dbo.Series
 (
     PerformedProcedureStepStartDate
-)
-INCLUDE
-(
-    StudyKey,
-    SeriesKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Series_ManufacturerModelName ON dbo.Series
 (
     ManufacturerModelName
-)
-INCLUDE
-(
-    StudyKey,
-    SeriesKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+) WITH (DATA_COMPRESSION = PAGE)

@@ -4,6 +4,7 @@
 **************************************************************/
 CREATE TABLE dbo.DeletedInstance
 (
+    PartitionName       VARCHAR(64)       NOT NULL DEFAULT 'Microsoft.Default',
     StudyInstanceUid    VARCHAR(64)       NOT NULL,
     SeriesInstanceUid   VARCHAR(64)       NOT NULL,
     SopInstanceUid      VARCHAR(64)       NOT NULL,
@@ -15,23 +16,16 @@ CREATE TABLE dbo.DeletedInstance
 
 CREATE UNIQUE CLUSTERED INDEX IXC_DeletedInstance ON dbo.DeletedInstance
 (
+    PartitionName,
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid,
-    WaterMark
+    Watermark
 )
 
 CREATE NONCLUSTERED INDEX IX_DeletedInstance_RetryCount_CleanupAfter ON dbo.DeletedInstance
 (
     RetryCount,
     CleanupAfter
-)
-INCLUDE
-(
-    StudyInstanceUid,
-    SeriesInstanceUid,
-    SopInstanceUid,
-    Watermark
-)
-WITH (DATA_COMPRESSION = PAGE)
+) WITH (DATA_COMPRESSION = PAGE)
 

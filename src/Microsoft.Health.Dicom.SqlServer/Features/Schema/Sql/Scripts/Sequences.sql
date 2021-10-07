@@ -41,3 +41,11 @@ CREATE SEQUENCE dbo.TagKeySequence
     MINVALUE 1
     NO CYCLE
     CACHE 10000
+
+CREATE SEQUENCE dbo.PartitionKeySequence
+    AS INT
+    START WITH 2    -- skipping the default partition
+    INCREMENT BY 1
+    MINVALUE 1
+    NO CYCLE
+    CACHE 10000

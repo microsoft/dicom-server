@@ -1,17 +1,19 @@
 /*************************************************************
     Instance Table
-    Dicom instances with unique Study, Series and Instance Uid
+    Dicom instances with unique Partition Name, and Study, Series and Instance Uid
 **************************************************************/
 CREATE TABLE dbo.Instance (
-    InstanceKey             BIGINT                     NOT NULL, --PK
-    SeriesKey               BIGINT                     NOT NULL, --FK
+    InstanceKey             BIGINT                     NOT NULL,            --PK
+    SeriesKey               BIGINT                     NOT NULL,            --FK
     -- StudyKey needed to join directly from Study table to find a instance
-    StudyKey                BIGINT                     NOT NULL, --FK
+    StudyKey                BIGINT                     NOT NULL,            --FK
+    PartitionKey            INT                        NOT NULL DEFAULT 1,  --FK
     --instance keys used in WADO
+    PartitionName           VARCHAR(64)                NOT NULL DEFAULT 'Microsoft.Default',
     StudyInstanceUid        VARCHAR(64)                NOT NULL,
     SeriesInstanceUid       VARCHAR(64)                NOT NULL,
     SopInstanceUid          VARCHAR(64)                NOT NULL,
-    --data consitency columns
+    --data consistency columns
     Watermark               BIGINT                     NOT NULL,
     Status                  TINYINT                    NOT NULL,
     LastStatusUpdatedDate   DATETIME2(7)               NOT NULL,
@@ -26,8 +28,9 @@ CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance
 )
 
 --Filter indexes
-CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
+CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionName_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
 (
+    PartitionName,
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid
@@ -39,8 +42,9 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
-CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_Status on dbo.Instance
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionName_StudyInstanceUid_Status on dbo.Instance
 (
+    PartitionName,
     StudyInstanceUid,
     Status
 )
@@ -50,8 +54,9 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
-CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status on dbo.Instance
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionName_StudyInstanceUid_SeriesInstanceUid_Status on dbo.Instance
 (
+    PartitionName,
     StudyInstanceUid,
     SeriesInstanceUid,
     Status
@@ -62,8 +67,9 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
-CREATE NONCLUSTERED INDEX IX_Instance_SopInstanceUid_Status on dbo.Instance
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionName_SopInstanceUid_Status on dbo.Instance
 (
+    PartitionName,
     SopInstanceUid,
     Status
 )
@@ -82,8 +88,9 @@ CREATE NONCLUSTERED INDEX IX_Instance_Watermark on dbo.Instance
 WITH (DATA_COMPRESSION = PAGE)
 
 --Cross apply indexes
-CREATE NONCLUSTERED INDEX IX_Instance_SeriesKey_Status on dbo.Instance
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SeriesKey_Status on dbo.Instance
 (
+    PartitionKey,
     SeriesKey,
     Status
 )
@@ -96,8 +103,9 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
-CREATE NONCLUSTERED INDEX IX_Instance_StudyKey_Status on dbo.Instance
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyKey_Status on dbo.Instance
 (
+    PartitionKey,
     StudyKey,
     Status
 )

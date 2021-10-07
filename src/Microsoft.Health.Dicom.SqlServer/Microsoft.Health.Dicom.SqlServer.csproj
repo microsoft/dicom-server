@@ -80,6 +80,11 @@
       <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
       <MutableClassVersion>Latest</MutableClassVersion>
     </EmbeddedResource>
+    <EmbeddedResource Include="Features\Schema\Migrations\6.sql">
+      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
+      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
+      <MutableClassVersion>6</MutableClassVersion>
+    </EmbeddedResource>
   </ItemGroup>
 
   <!-- Add new sql changes here-->
@@ -88,6 +93,7 @@
     <TInitSqlScript Include="Features\Schema\Sql\Scripts\TransactionCheck.sql" />
 
     <TSqlScript Include="Features\Schema\Sql\Tables\Instance.sql" />
+    <TSqlScript Include="Features\Schema\Sql\Tables\Partition.sql" />
     <TSqlScript Include="Features\Schema\Sql\Tables\Study.sql" />
     <TSqlScript Include="Features\Schema\Sql\Tables\Series.sql" />
     <TSqlScript Include="Features\Schema\Sql\Tables\DeletedInstance.sql" />
@@ -104,22 +110,35 @@
     <TSqlScript Include="Features\Schema\Sql\Scripts\Sequences.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\AddInstance.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\AddInstanceV2.sql" />
+    <SqlScript Include="Features\Schema\Sql\Sprocs\AddInstanceV3.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\UpdateInstanceStatus.sql" />
+    <SqlScript Include="Features\Schema\Sql\Sprocs\UpdateInstanceStatusV2.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\BeginAddInstance.sql" />
+    <SqlScript Include="Features\Schema\Sql\Sprocs\BeginAddInstanceV2.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\EndAddInstance.sql" />
+    <SqlScript Include="Features\Schema\Sql\Sprocs\EndAddInstanceV2.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\GetInstance.sql" />
+    <SqlScript Include="Features\Schema\Sql\Sprocs\GetInstanceV2.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\GetInstancesByWatermarkRange.sql" />
+    <SqlScript Include="Features\Schema\Sql\Sprocs\GetInstancesByWatermarkRangeV2.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\GetInstanceBatches.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\DeleteInstance.sql" />
+    <SqlScript Include="Features\Schema\Sql\Sprocs\DeleteInstanceV2.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\RetrieveDeletedInstance.sql" />
+    <SqlScript Include="Features\Schema\Sql\Sprocs\RetrieveDeletedInstanceV2.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\DeleteDeletedInstance.sql" />
+    <SqlScript Include="Features\Schema\Sql\Sprocs\DeleteDeletedInstanceV2.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\IncrementDeletedInstanceRetry.sql" />
+    <SqlScript Include="Features\Schema\Sql\Sprocs\IncrementDeletedInstanceRetryV2.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\GetChangeFeed.sql" />
+    <SqlScript Include="Features\Schema\Sql\Sprocs\GetChangeFeedV2.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\GetChangeFeedLatest.sql" />
+    <SqlScript Include="Features\Schema\Sql\Sprocs\GetChangeFeedLatestV2.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\GetExtendedQueryTag.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\GetExtendedQueryTags.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\GetExtendedQueryTagsByKey.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\GetExtendedQueryTagErrors.sql" />
+    <SqlScript Include="Features\Schema\Sql\Sprocs\GetExtendedQueryTagErrorsV2.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\GetExtendedQueryTagsByOperation.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\AddExtendedQueryTags.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\UpdateExtendedQueryTagQueryStatus.sql" />
@@ -127,6 +146,7 @@
     <SqlScript Include="Features\Schema\Sql\Sprocs\DeleteExtendedQueryTag.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\IndexInstance.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\IndexInstanceV2.sql" />
+    <SqlScript Include="Features\Schema\Sql\Sprocs\IndexInstanceV3.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\AssignReindexingOperation.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\CompleteReindexing.sql" />
 

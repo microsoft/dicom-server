@@ -7,11 +7,12 @@
             the value on the instance with the highest watermark wins.
 **************************************************************/
 CREATE TABLE dbo.ExtendedQueryTagDateTime (
-    TagKey                  INT                  NOT NULL, --PK
+    TagKey                  INT                  NOT NULL,              --PK
     TagValue                DATETIME2(7)         NOT NULL,
-    StudyKey                BIGINT               NOT NULL, --FK
-    SeriesKey               BIGINT               NULL,     --FK
-    InstanceKey             BIGINT               NULL,     --FK
+    PartitionKey            INT                  NOT NULL DEFAULT 1,    --FK
+    StudyKey                BIGINT               NOT NULL,              --FK
+    SeriesKey               BIGINT               NULL,                  --FK
+    InstanceKey             BIGINT               NULL,                  --FK
     Watermark               BIGINT               NOT NULL,
     TagValueUtc             DATETIME2(7)         NULL
 ) WITH (DATA_COMPRESSION = PAGE)
@@ -20,6 +21,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryT
 (
     TagKey,
     TagValue,
+    PartitionKey,
     StudyKey,
     SeriesKey,
     InstanceKey

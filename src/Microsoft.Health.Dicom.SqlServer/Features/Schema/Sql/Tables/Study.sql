@@ -3,7 +3,8 @@
     Table containing normalized standard Study tags
 **************************************************************/
 CREATE TABLE dbo.Study (
-    StudyKey                    BIGINT                            NOT NULL, --PK
+    StudyKey                    BIGINT                            NOT NULL,             --PK
+    PartitionKey                INT                               NOT NULL DEFAULT 1,   --FK
     StudyInstanceUid            VARCHAR(64)                       NOT NULL,
     PatientId                   NVARCHAR(64)                      NOT NULL,
     PatientName                 NVARCHAR(200)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
@@ -18,85 +19,52 @@ CREATE TABLE dbo.Study (
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Study ON dbo.Study
 (
+    PartitionKey,
     StudyKey
 )
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Study_StudyInstanceUid ON dbo.Study
-(
-    StudyInstanceUid
-)
-INCLUDE
+CREATE UNIQUE NONCLUSTERED INDEX IX_Study_StudyKey ON dbo.Study
 (
     StudyKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+) WITH (DATA_COMPRESSION = PAGE)
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_Study_PartitionKey_StudyInstanceUid ON dbo.Study
+(
+    PartitionKey,
+    StudyInstanceUid
+) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Study_PatientId ON dbo.Study
 (
     PatientId
-)
-INCLUDE
-(
-    StudyKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Study_PatientName ON dbo.Study
 (
     PatientName
-)
-INCLUDE
-(
-    StudyKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Study_ReferringPhysicianName ON dbo.Study
 (
     ReferringPhysicianName
-)
-INCLUDE
-(
-    StudyKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Study_StudyDate ON dbo.Study
 (
     StudyDate
-)
-INCLUDE
-(
-    StudyKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Study_StudyDescription ON dbo.Study
 (
     StudyDescription
-)
-INCLUDE
-(
-    StudyKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Study_AccessionNumber ON dbo.Study
 (
     AccessionNumber
-)
-INCLUDE
-(
-    StudyKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE NONCLUSTERED INDEX IX_Study_PatientBirthDate ON dbo.Study
 (
     PatientBirthDate
-)
-INCLUDE
-(
-    StudyKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+) WITH (DATA_COMPRESSION = PAGE)
