@@ -1,7 +1,10 @@
 /**************************************************************/
 --
 -- STORED PROCEDURE
---     GetInstancesByWatermarkRange
+--     GetInstancesByWatermarkRangeV2
+--
+-- FIRST SCHEMA VERSION
+--     6
 --
 -- DESCRIPTION
 --     Get instances by given watermark range.
@@ -16,7 +19,7 @@
 -- RETURN VALUE
 --     The instance identifiers.
 ------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.GetInstancesByWatermarkRange
+CREATE OR ALTER PROCEDURE dbo.GetInstancesByWatermarkRangeV2
     @startWatermark BIGINT,
     @endWatermark BIGINT,
     @status TINYINT
@@ -24,7 +27,8 @@ AS
 BEGIN
     SET NOCOUNT ON
     SET XACT_ABORT ON
-    SELECT StudyInstanceUid,
+    SELECT PartitionName,
+           StudyInstanceUid,
            SeriesInstanceUid,
            SopInstanceUid,
            Watermark

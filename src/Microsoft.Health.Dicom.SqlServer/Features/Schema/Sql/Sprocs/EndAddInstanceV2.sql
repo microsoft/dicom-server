@@ -1,11 +1,16 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---     EndAddInstance
+--     EndAddInstanceV2
+--
+-- FIRST SCHEMA VERSION
+--     6
 --
 -- DESCRIPTION
 --     Completes the addition of a DICOM instance.
 --
 -- PARAMETERS
+--     @partitionName
+--         * The client-provided data partition name.
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -29,7 +34,8 @@
 -- RETURN VALUE
 --     None
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.EndAddInstance
+CREATE OR ALTER PROCEDURE dbo.EndAddInstanceV2
+    @partitionName     VARCHAR(64),
     @studyInstanceUid  VARCHAR(64),
     @seriesInstanceUid VARCHAR(64),
     @sopInstanceUid    VARCHAR(64),
@@ -55,7 +61,8 @@ AS
 
         UPDATE dbo.Instance
         SET Status = 1, LastStatusUpdatedDate = @currentDate
-        WHERE StudyInstanceUid = @studyInstanceUid
+        WHERE PartitionName = @partitionName
+            AND StudyInstanceUid = @studyInstanceUid
             AND SeriesInstanceUid = @seriesInstanceUid
             AND SopInstanceUid = @sopInstanceUid
             AND Watermark = @watermark
@@ -75,15 +82,16 @@ AS
         -- Currently this procedure is used only updating the status to created
         -- If that changes an if condition is needed.
         INSERT INTO dbo.ChangeFeed
-            (Timestamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+            (Timestamp, Action, PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
         VALUES
-            (@currentDate, 0, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)
+            (@currentDate, 0, @partitionName, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)
 
         -- Update existing instance currentWatermark to latest
         UPDATE dbo.ChangeFeed
         SET CurrentWatermark      = @watermark
-        WHERE StudyInstanceUid    = @studyInstanceUid
+        WHERE PartitionName = @partitionName
+            AND StudyInstanceUid = @studyInstanceUid
             AND SeriesInstanceUid = @seriesInstanceUid
-            AND SopInstanceUid    = @sopInstanceUid
+            AND SopInstanceUid = @sopInstanceUid
 
     COMMIT TRANSACTION

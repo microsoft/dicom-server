@@ -1,6 +1,9 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetInstance
+--     GetInstanceV2
+--
+-- FIRST SCHEMA VERSION
+--     6
 --
 -- DESCRIPTION
 --     Gets valid dicom instances at study/series/instance level
@@ -8,6 +11,8 @@
 -- PARAMETERS
 --     @invalidStatus
 --         * Filter criteria to search only valid instances
+--     @partitionName
+--         * The client-provided data partition name.
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -15,8 +20,9 @@
 --     @sopInstanceUid
 --         * The SOP instance UID.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetInstance (
+CREATE OR ALTER PROCEDURE dbo.GetInstanceV2 (
     @validStatus        TINYINT,
+    @partitionName      VARCHAR(64),
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64) = NULL,
     @sopInstanceUid     VARCHAR(64) = NULL
@@ -32,7 +38,8 @@ BEGIN
             SopInstanceUid,
             Watermark
     FROM    dbo.Instance
-    WHERE   StudyInstanceUid        = @studyInstanceUid
+    WHERE   PartitionName           = @partitionName
+            AND StudyInstanceUid    = @studyInstanceUid
             AND SeriesInstanceUid   = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
             AND SopInstanceUid      = ISNULL(@sopInstanceUid, SopInstanceUid)
             AND Status              = @validStatus

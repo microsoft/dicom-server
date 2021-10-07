@@ -1,6 +1,9 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---     RetrieveDeletedInstance
+--     RetrieveDeletedInstanceV2
+--
+-- FIRST SCHEMA VERSION
+--     6
 --
 -- DESCRIPTION
 --     Retrieves deleted instances where the cleanupAfter is less than the current date in and the retry count hasn't been exceeded
@@ -11,14 +14,14 @@
 --     @maxRetries
 --         * The maximum number of times to retry a cleanup
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.RetrieveDeletedInstance
+CREATE OR ALTER PROCEDURE dbo.RetrieveDeletedInstanceV2
     @count          INT,
     @maxRetries     INT
 AS
 BEGIN
     SET NOCOUNT ON
 
-    SELECT  TOP (@count) StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
+    SELECT  TOP (@count) PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
     FROM    dbo.DeletedInstance WITH (UPDLOCK, READPAST)
     WHERE   RetryCount <= @maxRetries
     AND     CleanupAfter < SYSUTCDATETIME()

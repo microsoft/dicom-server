@@ -1,11 +1,14 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetChangeFeedLatest
+--     GetChangeFeedLatestV2
+--
+-- FIRST SCHEMA VERSION
+--     6
 --
 -- DESCRIPTION
 --     Gets the latest dicom change
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetChangeFeedLatest
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedLatestV2
 AS
 BEGIN
     SET NOCOUNT     ON
@@ -15,6 +18,7 @@ BEGIN
             Sequence,
             Timestamp,
             Action,
+            PartitionName,
             StudyInstanceUid,
             SeriesInstanceUid,
             SopInstanceUid,

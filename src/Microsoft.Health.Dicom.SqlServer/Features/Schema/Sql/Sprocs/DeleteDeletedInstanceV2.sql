@@ -1,11 +1,16 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---     DeleteDeletedInstance
+--     DeleteDeletedInstanceV2
+--
+-- FIRST SCHEMA VERSION
+--     6
 --
 -- DESCRIPTION
 --     Removes a deleted instance from the DeletedInstance table
 --
 -- PARAMETERS
+--     @partitionName
+--         * The client-provided data partition name.
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -15,7 +20,8 @@
 --     @watermark
 --         * The watermark of the entry
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.DeleteDeletedInstance(
+CREATE OR ALTER PROCEDURE dbo.DeleteDeletedInstanceV2(
+    @partitionName      VARCHAR(64),
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64),
     @sopInstanceUid     VARCHAR(64),
@@ -26,7 +32,8 @@ AS
 
     DELETE
     FROM    dbo.DeletedInstance
-    WHERE   StudyInstanceUid = @studyInstanceUid
-    AND     SeriesInstanceUid = @seriesInstanceUid
-    AND     SopInstanceUid = @sopInstanceUid
-    AND     Watermark = @watermark
+    WHERE   PartitionName = @partitionName
+        AND     StudyInstanceUid = @studyInstanceUid
+        AND     SeriesInstanceUid = @seriesInstanceUid
+        AND     SopInstanceUid = @sopInstanceUid
+        AND     Watermark = @watermark

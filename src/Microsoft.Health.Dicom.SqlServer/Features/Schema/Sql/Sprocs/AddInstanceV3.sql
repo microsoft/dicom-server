@@ -1,14 +1,19 @@
-﻿/*************************************************************
-    Stored procedures for adding an instance.
+﻿ /*************************************************************
+    Stored procedure for adding an instance.
 **************************************************************/
 --
 -- STORED PROCEDURE
---     AddInstanceV2
+--     AddInstanceV3
+--
+-- FIRST SCHEMA VERSION
+--     6
 --
 -- DESCRIPTION
---     Adds a DICOM instance.
+--     Adds a DICOM instance, now with partition.
 --
 -- PARAMETERS
+--     @partitionName
+--         * The client-provided data partition name.
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -44,7 +49,8 @@
 -- RETURN VALUE
 --     The watermark (version).
 ------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.AddInstanceV2
+CREATE OR ALTER PROCEDURE dbo.AddInstanceV3
+    @partitionName                      VARCHAR(64),
     @studyInstanceUid                   VARCHAR(64),
     @seriesInstanceUid                  VARCHAR(64),
     @sopInstanceUid                     VARCHAR(64),
@@ -73,13 +79,15 @@ AS
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
     DECLARE @existingStatus TINYINT
     DECLARE @newWatermark BIGINT
+    DECLARE @partitionKey INT
     DECLARE @studyKey BIGINT
     DECLARE @seriesKey BIGINT
     DECLARE @instanceKey BIGINT
 
     SELECT @existingStatus = Status
     FROM dbo.Instance
-    WHERE StudyInstanceUid = @studyInstanceUid
+    WHERE PartitionName = @partitionName
+        AND StudyInstanceUid = @studyInstanceUid
         AND SeriesInstanceUid = @seriesInstanceUid
         AND SopInstanceUid = @sopInstanceUid
 
@@ -91,19 +99,35 @@ AS
     SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence
     SET @instanceKey = NEXT VALUE FOR dbo.InstanceKeySequence
 
+    -- Insert Partition
+    SELECT @partitionKey = PartitionKey
+    FROM dbo.Partition
+    WHERE PartitionName = @partitionName
+
+    IF @@ROWCOUNT = 0
+    BEGIN
+        SET @partitionKey = NEXT VALUE FOR dbo.PartitionKeySequence
+
+        INSERT INTO dbo.Partition
+            (PartitionKey, PartitionName, CreatedDate)
+        VALUES
+            (@partitionKey, @partitionName, @currentDate)
+    END
+
     -- Insert Study
     SELECT @studyKey = StudyKey
     FROM dbo.Study WITH(UPDLOCK)
-    WHERE StudyInstanceUid = @studyInstanceUid
+    WHERE PartitionKey = @partitionKey
+        AND StudyInstanceUid = @studyInstanceUid
 
     IF @@ROWCOUNT = 0
     BEGIN
         SET @studyKey = NEXT VALUE FOR dbo.StudyKeySequence
 
         INSERT INTO dbo.Study
-            (StudyKey, StudyInstanceUid, PatientId, PatientName, PatientBirthDate, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
+            (PartitionKey, StudyKey, StudyInstanceUid, PatientId, PatientName, PatientBirthDate, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
         VALUES
-            (@studyKey, @studyInstanceUid, @patientId, @patientName, @patientBirthDate, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
+            (@partitionKey, @studyKey, @studyInstanceUid, @patientId, @patientName, @patientBirthDate, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
     END
     ELSE
     BEGIN
@@ -124,9 +148,9 @@ AS
         SET @seriesKey = NEXT VALUE FOR dbo.SeriesKeySequence
 
         INSERT INTO dbo.Series
-            (StudyKey, SeriesKey, SeriesInstanceUid, Modality, PerformedProcedureStepStartDate, ManufacturerModelName)
+            (PartitionKey, StudyKey, SeriesKey, SeriesInstanceUid, Modality, PerformedProcedureStepStartDate, ManufacturerModelName)
         VALUES
-            (@studyKey, @seriesKey, @seriesInstanceUid, @modality, @performedProcedureStepStartDate, @manufacturerModelName)
+            (@partitionKey, @studyKey, @seriesKey, @seriesInstanceUid, @modality, @performedProcedureStepStartDate, @manufacturerModelName)
     END
     ELSE
     BEGIN
@@ -135,13 +159,14 @@ AS
         SET Modality = @modality, PerformedProcedureStepStartDate = @performedProcedureStepStartDate, ManufacturerModelName = @manufacturerModelName
         WHERE SeriesKey = @seriesKey
         AND StudyKey = @studyKey
+        AND PartitionKey = @partitionKey
     END
 
     -- Insert Instance
     INSERT INTO dbo.Instance
-        (StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
+        (PartitionKey, StudyKey, SeriesKey, InstanceKey, PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
     VALUES
-        (@studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
+        (@partitionKey, @studyKey, @seriesKey, @instanceKey, @partitionName, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
 
     -- Insert Extended Query Tags
 
@@ -159,6 +184,7 @@ AS
             AND dbo.ExtendedQueryTag.TagStatus <> 2
         ) AS S
         ON T.TagKey = S.TagKey
+            AND T.PartitionKey = @partitionKey
             AND T.StudyKey = @studyKey
             -- Null SeriesKey indicates a Study level tag, no need to compare SeriesKey
             AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
@@ -167,10 +193,11 @@ AS
         WHEN MATCHED THEN
             UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
         WHEN NOT MATCHED THEN
-            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+            INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark)
             VALUES(
             S.TagKey,
             S.TagValue,
+            @partitionKey,
             @studyKey,
             -- When TagLevel is not Study, we should fill SeriesKey
             (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
@@ -192,16 +219,18 @@ AS
             AND dbo.ExtendedQueryTag.TagStatus <> 2
         ) AS S
         ON T.TagKey = S.TagKey
+            AND T.PartitionKey = @partitionKey
             AND T.StudyKey = @studyKey
             AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
             AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
         WHEN MATCHED THEN
             UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
         WHEN NOT MATCHED THEN
-            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+            INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark)
             VALUES(
             S.TagKey,
             S.TagValue,
+            @partitionKey,
             @studyKey,
             (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
             (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
@@ -221,16 +250,18 @@ AS
             AND dbo.ExtendedQueryTag.TagStatus <> 2
         ) AS S
         ON T.TagKey = S.TagKey
+            AND T.PartitionKey = @partitionKey
             AND T.StudyKey = @studyKey
             AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
             AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
         WHEN MATCHED THEN
             UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
         WHEN NOT MATCHED THEN
-            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+            INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark)
             VALUES(
             S.TagKey,
             S.TagValue,
+            @partitionKey,
             @studyKey,
             (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
             (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
@@ -250,16 +281,18 @@ AS
             AND dbo.ExtendedQueryTag.TagStatus <> 2
         ) AS S
         ON T.TagKey = S.TagKey
+            AND T.PartitionKey = @partitionKey
             AND T.StudyKey = @studyKey
             AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
             AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
         WHEN MATCHED THEN
             UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
         WHEN NOT MATCHED THEN
-            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark, TagValueUtc)
+            INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark, TagValueUtc)
             VALUES(
             S.TagKey,
             S.TagValue,
+            @partitionKey,
             @studyKey,
             (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
             (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
@@ -280,16 +313,18 @@ AS
             AND dbo.ExtendedQueryTag.TagStatus <> 2
         ) AS S
         ON T.TagKey = S.TagKey
+            AND T.PartitionKey = @partitionKey
             AND T.StudyKey = @studyKey
             AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
             AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
         WHEN MATCHED THEN
             UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
         WHEN NOT MATCHED THEN
-            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+            INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark)
             VALUES(
             S.TagKey,
             S.TagValue,
+            @partitionKey,
             @studyKey,
             (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
             (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),

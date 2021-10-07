@@ -1,6 +1,9 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---    Index instance V2
+--    Index instance V3
+--
+-- FIRST SCHEMA VERSION
+--     6
 --
 -- DESCRIPTION
 --    Adds or updates the various extended query tag indices for a given DICOM instance.
@@ -14,15 +17,14 @@
 --         * Long extended query tag data
 --     @doubleExtendedQueryTags
 --         * Double extended query tag data
---     @
-
+--     @dateTimeExtendedQueryTags
 --         * DateTime extended query tag data
 --     @personNameExtendedQueryTags
 --         * PersonName extended query tag data
 -- RETURN VALUE
 --     None
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.IndexInstanceV2
+CREATE OR ALTER PROCEDURE dbo.IndexInstanceV3
     @watermark                                                                   BIGINT,
     @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1         READONLY,
     @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1             READONLY,
@@ -35,6 +37,7 @@ BEGIN
     SET XACT_ABORT ON
     BEGIN TRANSACTION
 
+        DECLARE @partitionKey INT
         DECLARE @studyKey BIGINT
         DECLARE @seriesKey BIGINT
         DECLARE @instanceKey BIGINT
@@ -42,6 +45,7 @@ BEGIN
         -- Add lock so that the instance cannot be removed
         DECLARE @status TINYINT
         SELECT
+            @partitionKey = PartitionKey,
             @studyKey = StudyKey,
             @seriesKey = SeriesKey,
             @instanceKey = InstanceKey,
@@ -71,6 +75,7 @@ BEGIN
                 AND dbo.ExtendedQueryTag.TagStatus <> 2
             ) AS S
             ON T.TagKey = S.TagKey
+                AND T.PartitionKey = @partitionKey
                 AND T.StudyKey = @studyKey
                 -- Null SeriesKey indicates a Study level tag, no need to compare SeriesKey
                 AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
@@ -80,11 +85,12 @@ BEGIN
                 -- When index already exist, update only when watermark is newer
                 UPDATE SET T.Watermark = IIF(@watermark > T.Watermark, @watermark, T.Watermark), T.TagValue = IIF(@watermark > T.Watermark, S.TagValue, T.TagValue)
             WHEN NOT MATCHED THEN
-                INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+                INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark)
                 VALUES
                 (
                     S.TagKey,
                     S.TagValue,
+                    @partitionKey,
                     @studyKey,
                     -- When TagLevel is not Study, we should fill SeriesKey
                     (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
@@ -107,6 +113,7 @@ BEGIN
                 AND dbo.ExtendedQueryTag.TagStatus <> 2
             ) AS S
             ON T.TagKey = S.TagKey
+                AND T.PartitionKey = @partitionKey
                 AND T.StudyKey = @studyKey
                 AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
                 AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
@@ -114,11 +121,12 @@ BEGIN
                  -- When index already exist, update only when watermark is newer
                 UPDATE SET T.Watermark = IIF(@watermark > T.Watermark, @watermark, T.Watermark), T.TagValue = IIF(@watermark > T.Watermark, S.TagValue, T.TagValue)
             WHEN NOT MATCHED THEN
-                INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+                INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark)
                 VALUES
                 (
                     S.TagKey,
                     S.TagValue,
+                    @partitionKey,
                     @studyKey,
                     (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
                     (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
@@ -139,6 +147,7 @@ BEGIN
                 AND dbo.ExtendedQueryTag.TagStatus <> 2
             ) AS S
             ON T.TagKey = S.TagKey
+                AND T.PartitionKey = @partitionKey
                 AND T.StudyKey = @studyKey
                 AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
                 AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
@@ -146,11 +155,12 @@ BEGIN
                 -- When index already exist, update only when watermark is newer
                 UPDATE SET T.Watermark = IIF(@watermark > T.Watermark, @watermark, T.Watermark), T.TagValue = IIF(@watermark > T.Watermark, S.TagValue, T.TagValue)
             WHEN NOT MATCHED THEN
-                INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+              INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark)
                 VALUES
                 (
                     S.TagKey,
                     S.TagValue,
+                    @partitionKey,
                     @studyKey,
                     (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
                     (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
@@ -171,6 +181,7 @@ BEGIN
                 AND dbo.ExtendedQueryTag.TagStatus <> 2
             ) AS S
             ON T.TagKey = S.TagKey
+                AND T.PartitionKey = @partitionKey
                 AND T.StudyKey = @studyKey
                 AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
                 AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
@@ -178,11 +189,12 @@ BEGIN
                  -- When index already exist, update only when watermark is newer
                 UPDATE SET T.Watermark = IIF(@watermark > T.Watermark, @watermark, T.Watermark), T.TagValue = IIF(@watermark > T.Watermark, S.TagValue, T.TagValue)
             WHEN NOT MATCHED THEN
-                INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark, TagValueUtc)
+               INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark)
                 VALUES
                 (
                     S.TagKey,
                     S.TagValue,
+                    @partitionKey,
                     @studyKey,
                     (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
                     (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
@@ -204,6 +216,7 @@ BEGIN
                 AND dbo.ExtendedQueryTag.TagStatus <> 2
             ) AS S
             ON T.TagKey = S.TagKey
+                AND T.PartitionKey = @partitionKey
                 AND T.StudyKey = @studyKey
                 AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
                 AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
@@ -211,11 +224,12 @@ BEGIN
                 -- When index already exist, update only when watermark is newer
                 UPDATE SET T.Watermark = IIF(@watermark > T.Watermark, @watermark, T.Watermark), T.TagValue = IIF(@watermark > T.Watermark, S.TagValue, T.TagValue)
             WHEN NOT MATCHED THEN
-                INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
+               INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark)
                 VALUES
                 (
                     S.TagKey,
                     S.TagValue,
+                    @partitionKey,
                     @studyKey,
                     (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
                     (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),

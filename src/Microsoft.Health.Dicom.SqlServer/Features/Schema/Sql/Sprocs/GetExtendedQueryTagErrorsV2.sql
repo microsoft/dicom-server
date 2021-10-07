@@ -1,6 +1,9 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetExtendedQueryTagErrors
+--     GetExtendedQueryTagErrorsV2
+--
+-- FIRST SCHEMA VERSION
+--     6
 --
 -- DESCRIPTION
 --     Gets the extended query tag errors by tag path.
@@ -16,7 +19,7 @@
 -- RETURN VALUE
 --     The tag error fields and the corresponding instance UIDs.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrors
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrorsV2
     @tagPath VARCHAR(64),
     @limit   INT,
     @offset  INT
@@ -38,6 +41,7 @@ BEGIN
         TagKey,
         ErrorCode,
         CreatedTime,
+        PartitionName,
         StudyInstanceUid,
         SeriesInstanceUid,
         SopInstanceUid

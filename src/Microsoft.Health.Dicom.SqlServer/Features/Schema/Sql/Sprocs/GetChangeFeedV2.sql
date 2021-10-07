@@ -1,6 +1,9 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetChangeFeed
+--     GetChangeFeedV2
+--
+-- FIRST SCHEMA VERSION
+--     6
 --
 -- DESCRIPTION
 --     Gets a stream of dicom changes (instance adds and deletes)
@@ -11,7 +14,7 @@
 --     @offet
 --         * Rows to skip
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetChangeFeed (
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedV2 (
     @limit      INT,
     @offset     BIGINT)
 AS
@@ -22,6 +25,7 @@ BEGIN
     SELECT  Sequence,
             Timestamp,
             Action,
+            PartitionName,
             StudyInstanceUid,
             SeriesInstanceUid,
             SopInstanceUid,

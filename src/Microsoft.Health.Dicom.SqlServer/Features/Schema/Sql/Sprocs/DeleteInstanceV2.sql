@@ -1,11 +1,16 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---     DeleteInstance
+--     DeleteInstanceV2
+--
+-- FIRST SCHEMA VERSION
+--     6
 --
 -- DESCRIPTION
 --     Removes the specified instance(s) and places them in the DeletedInstance table for later removal
 --
 -- PARAMETERS
+--     @partitionName
+--         * The client-provided data partition name.
 --     @cleanupAfter
 --         * The date time offset that the instance can be cleaned up.
 --     @createdStatus
@@ -17,9 +22,10 @@
 --     @sopInstanceUid
 --         * The SOP instance UID.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.DeleteInstance
+CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV2
     @cleanupAfter       DATETIMEOFFSET(0),
     @createdStatus      TINYINT,
+    @partitionName      VARCHAR(64),
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64) = null,
     @sopInstanceUid     VARCHAR(64) = null
@@ -30,33 +36,38 @@ AS
     BEGIN TRANSACTION
 
     DECLARE @deletedInstances AS TABLE
-        (StudyInstanceUid VARCHAR(64),
+        (PartitionName VARCHAR(64),
+            StudyInstanceUid VARCHAR(64),
             SeriesInstanceUid VARCHAR(64),
             SopInstanceUid VARCHAR(64),
             Status TINYINT,
             Watermark BIGINT)
 
+    DECLARE @partitionKey INT
     DECLARE @studyKey BIGINT
     DECLARE @seriesKey BIGINT
     DECLARE @instanceKey BIGINT
     DECLARE @deletedDate DATETIME2 = SYSUTCDATETIME()
 
-    -- Get the study, series and instance PK
-    SELECT  @studyKey = StudyKey,
+    -- Get the partition, study, series and instance PK
+    SELECT  @partitionKey = PartitionKey,
+    @studyKey = StudyKey,
     @seriesKey = CASE @seriesInstanceUid WHEN NULL THEN NULL ELSE SeriesKey END,
     @instanceKey = CASE @sopInstanceUid WHEN NULL THEN NULL ELSE InstanceKey END
     FROM    dbo.Instance
-    WHERE   StudyInstanceUid = @studyInstanceUid
-    AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
-    AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
+    WHERE   PartitionName = @partitionName
+        AND     StudyInstanceUid = @studyInstanceUid
+        AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
+        AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
 
     -- Delete the instance and insert the details into DeletedInstance and ChangeFeed
     DELETE  dbo.Instance
-        OUTPUT deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark
+        OUTPUT deleted.PartitionName, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark
         INTO @deletedInstances
-    WHERE   StudyInstanceUid = @studyInstanceUid
-    AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
-    AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
+    WHERE   PartitionName = @partitionName
+        AND     StudyInstanceUid = @studyInstanceUid
+        AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
+        AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
 
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance not found', 1
@@ -128,13 +139,13 @@ AS
     AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
 
     INSERT INTO dbo.DeletedInstance
-    (StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
-    SELECT StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter
+    (PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
+    SELECT PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter
     FROM @deletedInstances
 
     INSERT INTO dbo.ChangeFeed
-    (TimeStamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-    SELECT @deletedDate, 1, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
+    (TimeStamp, Action, PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    SELECT @deletedDate, 1, PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
     FROM @deletedInstances
     WHERE Status = @createdStatus
 
@@ -142,7 +153,8 @@ AS
     SET cf.CurrentWatermark = NULL
     FROM dbo.ChangeFeed cf WITH(FORCESEEK)
     JOIN @deletedInstances d
-    ON cf.StudyInstanceUid = d.StudyInstanceUid
+    ON cf.PartitionName = d.PartitionName
+        AND cf.StudyInstanceUid = d.StudyInstanceUid
         AND cf.SeriesInstanceUid = d.SeriesInstanceUid
         AND cf.SopInstanceUid = d.SopInstanceUid
 
@@ -154,7 +166,7 @@ AS
     BEGIN
         DELETE
         FROM    dbo.Series
-        WHERE   Studykey = @studyKey
+        WHERE   StudyKey = @studyKey
         AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
 
         -- Deleting indexed series tags
@@ -191,7 +203,7 @@ AS
     BEGIN
         DELETE
         FROM    dbo.Study
-        WHERE   Studykey = @studyKey
+        WHERE   StudyKey = @studyKey
 
         -- Deleting indexed study tags
         DELETE
