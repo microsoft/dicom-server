@@ -183,6 +183,26 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return StatusCode((int)HttpStatusCode.OK, response.ExtendedQueryTagErrors);
         }
 
+        [HttpPatch]
+        [Produces(KnownContentTypes.ApplicationJson)]
+        [BodyModelStateValidator]
+        [ProducesResponseType(typeof(GetExtendedQueryTagEntry), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [VersionedRoute(KnownRoutes.UpdateExtendedQueryTagQueryStatusRoute)]
+        [Route(KnownRoutes.UpdateExtendedQueryTagQueryStatusRoute)]
+        [AuditEventType(AuditEventSubType.UpdateExtendedQueryTag)]
+        public async Task<IActionResult> UpdateTagAsync([FromRoute] string tagPath, [FromBody] UpdateExtendedQueryTagOptions newValue)
+        {
+            EnsureArg.IsNotNull(newValue, nameof(newValue));
+            _logger.LogInformation("DICOM Web Update Extended Query Tag Query Status request received for extended query tag {tagPath} and new value {newValue}", tagPath, $"{nameof(newValue.QueryStatus)}: '{newValue.QueryStatus}'");
+
+            EnsureFeatureIsEnabled();
+            var response = await _mediator.UpdateExtendedQueryTagAsync(tagPath, newValue.ToEntry(), HttpContext.RequestAborted);
+
+            return StatusCode((int)HttpStatusCode.OK, response.TagEntry);
+        }
+
         private void EnsureFeatureIsEnabled()
         {
             if (!_featureEnabled)

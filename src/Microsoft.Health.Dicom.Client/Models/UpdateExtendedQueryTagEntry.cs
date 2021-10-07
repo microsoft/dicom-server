@@ -3,19 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
+namespace Microsoft.Health.Dicom.Client.Models
 {
     /// <summary>
-    /// Enum to keep track of available SQL schema versions.
+    /// Encapsulate parameters for updating extended query tag.
     /// </summary>
-    public enum SchemaVersion
+    public class UpdateExtendedQueryTagEntry
     {
-        Unknown = 0,
-        V1 = 1,
-        V2 = 2,
-        V3 = 3,
-        V4 = 4,
-        V5 = 5,
-        V6 = 6,
+        /// <summary>
+        /// Gets or sets query status.
+        /// </summary>
+        public QueryStatus QueryStatus { get; set; }
     }
 }

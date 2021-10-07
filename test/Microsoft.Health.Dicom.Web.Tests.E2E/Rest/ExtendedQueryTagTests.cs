@@ -22,6 +22,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     public class ExtendedQueryTagTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
     {
+        private const string ErroneousDicomAttributesHeader = "erroneous-dicom-attributes";
         private readonly IDicomWebClient _client;
         private readonly DicomTagsManager _tagManager;
         private readonly DicomInstancesManager _instanceManager;
@@ -105,6 +106,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             // Define tags
             DicomTag tag = DicomTag.PatientAge;
+            string tagValue = "053Y";
 
             // Define DICOM files
             DicomDataset instance1 = Samples.CreateRandomInstanceDataset();
@@ -118,7 +120,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             instance1.Add(tag, "foobar");
             instance2.Add(tag, "invalid");
-            instance3.Add(tag, "053Y");
+            instance3.Add(tag, tagValue);
 
             // Upload files (with a few errors)
             await _instanceManager.StoreAsync(new DicomFile(instance1));
@@ -137,13 +139,34 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             GetExtendedQueryTagEntry actual = await _tagManager.GetTagAsync(tag.GetPath());
             Assert.Equal(tag.GetPath(), actual.Path);
             Assert.Equal(2, actual.Errors.Count);
+            // It should be disabled by default
+            Assert.Equal(QueryStatus.Disabled, actual.QueryStatus);
 
-            // Query Errors
+            // Verify Errors
             var errors = await _tagManager.GetTagErrorsAsync(tag.GetPath(), 2, 0);
             Assert.Equal(2, errors.Count);
 
             Assert.Equal(errors[0].ErrorMessage, (await _tagManager.GetTagErrorsAsync(tag.GetPath(), 1, 0)).Single().ErrorMessage);
             Assert.Equal(errors[1].ErrorMessage, (await _tagManager.GetTagErrorsAsync(tag.GetPath(), 1, 1)).Single().ErrorMessage);
+
+            var exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.QueryInstancesAsync($"{tag.GetPath()}={tagValue}"));
+            Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
+
+            // Enable QIDO on Tag
+            actual = await _tagManager.UpdateExtendedQueryTagAsync(tag.GetPath(), new UpdateExtendedQueryTagEntry() { QueryStatus = QueryStatus.Enabled });
+            Assert.Equal(QueryStatus.Enabled, actual.QueryStatus);
+
+            var response = await _client.QueryInstancesAsync($"{tag.GetPath()}={tagValue}");
+
+            Assert.True(response.ResponseHeaders.Contains(ErroneousDicomAttributesHeader));
+            var values = response.ResponseHeaders.GetValues(ErroneousDicomAttributesHeader);
+            Assert.Single(values);
+            Assert.Equal(tag.GetPath(), values.First());
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            // Verify result
+            DicomDataset[] instances = await response.ToArrayAsync();
+            Assert.Contains(instances, instance => instance.ToInstanceIdentifier().Equals(instance3.ToInstanceIdentifier()));
         }
 
         [Theory]
@@ -159,7 +182,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             HttpResponseMessage response = await _client.HttpClient.SendAsync(request, default(CancellationToken))
                 .ConfigureAwait(false);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Contains(string.Format("The request body is not valid. Details: \r\nThe Dicom Tag Property {0} must be specified and must not be null, empty or whitespace", missingProperty), response.Content.ReadAsStringAsync().Result);
+            Assert.Contains(string.Format("The field '[0].{0}' in request body is invalid: The Dicom Tag Property {0} must be specified and must not be null, empty or whitespace", missingProperty), response.Content.ReadAsStringAsync().Result);
         }
 
         [Fact]
@@ -174,7 +197,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             HttpResponseMessage response = await _client.HttpClient.SendAsync(request, default(CancellationToken)).ConfigureAwait(false);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Equal("The request body is not valid. Details: \r\nInput Dicom Tag Level 'Studys' is invalid. It must have value 'Study', 'Series' or 'Instance'.", response.Content.ReadAsStringAsync().Result);
+            Assert.Equal("The field '[0].Level' in request body is invalid: Input Dicom Tag Level 'Studys' is invalid. It must have value 'Study', 'Series' or 'Instance'.", response.Content.ReadAsStringAsync().Result);
         }
 
         public static IEnumerable<object[]> GetRequestBodyWithMissingProperty
