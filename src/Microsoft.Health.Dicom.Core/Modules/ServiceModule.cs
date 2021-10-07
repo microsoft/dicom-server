@@ -176,6 +176,11 @@ namespace Microsoft.Health.Dicom.Core.Modules
                     .AsSelf()
                     .AsImplementedInterfaces();
 
+                services.Add<UpdateExtendedQueryTagService>()
+                 .Scoped()
+                 .AsSelf()
+                 .AsImplementedInterfaces();
+
                 services.Add<ExtendedQueryTagErrorsService>()
                     .Scoped()
                     .AsSelf()

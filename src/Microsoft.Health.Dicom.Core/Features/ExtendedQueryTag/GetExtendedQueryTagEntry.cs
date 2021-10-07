@@ -32,9 +32,11 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// </summary>
         public OperationReference Operation { get; set; }
 
+        public QueryStatus QueryStatus { get; set; }
+
         public override string ToString()
         {
-            return $"Path: {Path}, VR:{VR}, PrivateCreator:{PrivateCreator}, Level:{Level}, Status:{Status}, Errors: {Errors?.Count ?? 0}, OperationId: {Operation?.Id}";
+            return $"Path: {Path}, VR:{VR}, PrivateCreator:{PrivateCreator}, Level:{Level}, Status:{Status}, Errors: {Errors?.Count ?? 0}, OperationId: {Operation?.Id}, QueryStatus: {QueryStatus}";
         }
     }
 }
