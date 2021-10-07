@@ -69,6 +69,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
             await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.GetTagsAsync(new PaginationOptions()));
             await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.PostAsync(Array.Empty<AddExtendedQueryTagEntry>()));
             await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.DeleteAsync(DicomTag.PageNumberVector.GetPath()));
+            await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.UpdateTagAsync(DicomTag.PageNumberVector.GetPath(), new UpdateExtendedQueryTagOptions()));
         }
 
         [Fact]

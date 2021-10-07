@@ -62,7 +62,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             GetExtendedQueryTagsResponse response = await _getExtendedQueryTagsService.GetExtendedQueryTagsAsync(101, 303);
             await _extendedQueryTagStore.Received(1).GetExtendedQueryTagsAsync(101, 303);
 
-            var expected = new GetExtendedQueryTagEntry[] { tag1.ToExtendedQueryTagEntry(_urlResolver), tag2.ToExtendedQueryTagEntry(_urlResolver) };
+            var expected = new GetExtendedQueryTagEntry[] { tag1.ToGetExtendedQueryTagEntry(_urlResolver), tag2.ToGetExtendedQueryTagEntry(_urlResolver) };
             Assert.Equal(expected, response.ExtendedQueryTags, ExtendedQueryTagEntryEqualityComparer.Default);
             _urlResolver.Received(2).ResolveOperationStatusUri(operationId);
             _urlResolver.Received(2).ResolveQueryTagErrorsUri(tag2.Path);
@@ -108,7 +108,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             await _extendedQueryTagStore.Received(1).GetExtendedQueryTagAsync(tagPath, default);
             _urlResolver.DidNotReceiveWithAnyArgs().ResolveQueryTagErrorsUri(default);
 
-            Assert.Equal(stored.ToExtendedQueryTagEntry(), response.ExtendedQueryTag, ExtendedQueryTagEntryEqualityComparer.Default);
+            Assert.Equal(stored.ToGetExtendedQueryTagEntry(), response.ExtendedQueryTag, ExtendedQueryTagEntryEqualityComparer.Default);
         }
 
         private static ExtendedQueryTagStoreJoinEntry CreateJoinEntry(

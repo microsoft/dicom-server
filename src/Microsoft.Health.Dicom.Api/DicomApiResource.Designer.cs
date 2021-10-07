@@ -97,6 +97,15 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The value is not valid. It need to be one of &quot;{0}&quot;..
+        /// </summary>
+        internal static string InvalidEnumValue {
+            get {
+                return ResourceManager.GetString("InvalidEnumValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to There was an error reading the multipart request..
         /// </summary>
         internal static string InvalidMultipartBodyPart {
@@ -124,7 +133,7 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The request body is not valid. Details: {0}.
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in request body is invalid: {1}.
         /// </summary>
         internal static string InvalidRequestBody {
             get {
@@ -165,6 +174,15 @@ namespace Microsoft.Health.Dicom.Api {
         internal static string UnsupportedContentType {
             get {
                 return ResourceManager.GetString("UnsupportedContentType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field is not supported: &quot;{0}&quot;..
+        /// </summary>
+        internal static string UnsupportedField {
+            get {
+                return ResourceManager.GetString("UnsupportedField", resourceCulture);
             }
         }
     }
