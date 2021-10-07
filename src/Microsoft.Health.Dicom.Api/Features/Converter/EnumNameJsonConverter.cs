@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Converter
         public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
         {
             EnsureArg.IsNotNull(writer);
-            writer.WriteStringValue(value.ToString());
+            writer.WriteStringValue(Enum.GetName<T>(value));
         }
     }
 }
