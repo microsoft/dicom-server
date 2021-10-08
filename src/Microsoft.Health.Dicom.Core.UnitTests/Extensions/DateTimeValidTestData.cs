@@ -12,14 +12,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
     {
         public IEnumerator<object[]> GetEnumerator()
         {
-            yield return new object[] { "20200301010203.123+0500", 2020, 03, 01, 06, 02, 03, 123 };
-            yield return new object[] { "20200301010203.123-0500", 2020, 02, 29, 20, 02, 03, 123 };
-            yield return new object[] { "20200301010203-0500", 2020, 02, 29, 20, 02, 03, 0 };
-            yield return new object[] { "202003010102-0500", 2020, 02, 29, 20, 02, 0, 0 };
-            yield return new object[] { "2020030101-0500", 2020, 02, 29, 20, 0, 0, 0 };
-            yield return new object[] { "20200301-0500", 2020, 02, 29, 19, 0, 0, 0 };
-            yield return new object[] { "202003-0500", 2020, 02, 29, 19, 0, 0, 0 };
-            yield return new object[] { "2020-0500", 2019, 12, 31, 19, 0, 0, 0 };
+            yield return new object[] { "20200301010203.123+0500", 2020, 03, 01, 01, 02, 03, 123 };
+            yield return new object[] { "20200301010203.123-0500", 2020, 03, 01, 01, 02, 03, 123 };
+            yield return new object[] { "20200301010203-0500", 2020, 03, 01, 01, 02, 03, 0 };
+            yield return new object[] { "202003010102-0500", 2020, 03, 01, 01, 02, 0, 0 };
+            yield return new object[] { "2020030101-0500", 2020, 03, 01, 01, 0, 0, 0 };
+            yield return new object[] { "20200301-0500", 2020, 03, 01, 0, 0, 0, 0 };
+            yield return new object[] { "202003-0500", 2020, 03, 01, 00, 0, 0, 0 };
+            yield return new object[] { "2020-0500", 2020, 01, 01, 00, 0, 0, 0 };
             yield return new object[] { "20200301010203.123", 2020, 03, 01, 01, 02, 03, 123 };
             yield return new object[] { "20200301010203", 2020, 03, 01, 01, 02, 03, 0 };
             yield return new object[] { "202003010102", 2020, 03, 01, 01, 02, 0, 0 };

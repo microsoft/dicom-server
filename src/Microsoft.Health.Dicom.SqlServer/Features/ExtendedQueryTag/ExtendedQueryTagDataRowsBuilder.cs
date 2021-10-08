@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         private static readonly Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, Tuple<DateTime?, DateTime?>>> DateTimeReaders = new Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, Tuple<DateTime?, DateTime?>>>()
         {
-            { DicomVR.DT, Core.Extensions.DicomDatasetExtensions.GetStringDateTimeAsLocalAndUtcDateTimes }
+            { DicomVR.DT, Core.Extensions.DicomDatasetExtensions.GetStringDateTimeAsLiteralAndUtcDateTimes }
         };
 
         private static readonly Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, long?>> LongReaders = new Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, long?>>()
@@ -139,11 +139,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                     Tuple<DateTime?, DateTime?> localAndUtcDateTimes = DateTimeReaders.TryGetValue(
                                                                             queryTag.VR,
                                                                             out Func<DicomDataset, DicomTag, DicomVR, Tuple<DateTime?, DateTime?>> readerDT) ? readerDT.Invoke(instance, queryTag.Tag, queryTag.VR) : null;
-                    if (localAndUtcDateTimes != null)
-                    {
-                        dateVal = localAndUtcDateTimes.Item1;
-                        dateUtcVal = localAndUtcDateTimes.Item2;
-                    }
+                    dateVal = localAndUtcDateTimes.Item1;
+                    dateUtcVal = localAndUtcDateTimes.Item2;
                     break;
                 case "DA":
                 default:

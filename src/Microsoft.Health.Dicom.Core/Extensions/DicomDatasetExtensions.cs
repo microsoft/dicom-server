@@ -34,7 +34,30 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
         private const string DateFormatDA = "yyyyMMdd";
 
-        private const string DateTimeOffsetFormat = "hhmm";
+        private static readonly string[] DateTimeFormatsDT =
+        {
+            "yyyyMMddHHmmss.FFFFFFzzz",
+            "yyyyMMddHHmmsszzz",
+            "yyyyMMddHHmmzzz",
+            "yyyyMMddHHzzz",
+            "yyyyMMddzzz",
+            "yyyyMMzzz",
+            "yyyyzzz",
+            "yyyyMMddHHmmss.FFFFFF",
+            "yyyyMMddHHmmss",
+            "yyyyMMddHHmm",
+            "yyyyMMddHH",
+            "yyyyMMdd",
+            "yyyyMM",
+            "yyyy"
+        };
+
+        private static readonly string[] DateTimeOffsetFormats = new string[]
+        {
+            "hhmm",
+            "\\+hhmm",
+            "\\-hhmm"
+        };
 
         /// <summary>
         /// Gets a single value if the value exists; otherwise the default value for the type <typeparamref name="T"/>.
@@ -74,150 +97,56 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         /// <summary>
-        /// Gets the DT VR values as local <see cref="DateTime"/> and UTC <see cref="DateTime"/>.
+        /// Gets the DT VR values as literal <see cref="DateTime"/> and UTC <see cref="DateTime"/>.
+        /// If offset is not provided in the value and in the TimezoneOffsetFromUTC fields, UTC DateTime will be null.
         /// </summary>
         /// <param name="dicomDataset">The dataset to get the VR value from.</param>
         /// <param name="dicomTag">The DICOM tag.</param>
         /// <param name="expectedVR">Expected VR of the element.</param>
         /// <remarks>If expectedVR is provided, and not match, will return null.</remarks>
-        /// <returns>A <see cref="Tuple{T1, T2}"/> of (<see cref="Nullable{T}"/> <see cref="DateTime"/>, <see cref="Nullable{T}"/> <see cref="DateTime"/>) representing local date time and utc date time respectively is returned if the value exists and conforms to the DT format; othewise <c>null</c> is returned if value is empty; or <c>null</c> for each of the DateTimes if value is provided.</returns>
-        public static Tuple<DateTime?, DateTime?> GetStringDateTimeAsLocalAndUtcDateTimes(this DicomDataset dicomDataset, DicomTag dicomTag, DicomVR expectedVR = null)
+        /// <returns>A <see cref="Tuple{T1, T2}"/> of (<see cref="Nullable{T}"/> <see cref="DateTime"/>, <see cref="Nullable{T}"/> <see cref="DateTime"/>) representing literal date time and Utc date time respectively is returned. If value does not exist or does not conform to the DT format, <c>null</c> is returned for DateTimes. If offset information is not present, <c>null</c> is returned for Item2 i.e. Utc Date Time.</returns>
+        public static Tuple<DateTime?, DateTime?> GetStringDateTimeAsLiteralAndUtcDateTimes(this DicomDataset dicomDataset, DicomTag dicomTag, DicomVR expectedVR = null)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
             string stringDateTime = dicomDataset.GetSingleValueOrDefault<string>(dicomTag, expectedVR: expectedVR);
 
             if (string.IsNullOrEmpty(stringDateTime))
             {
-                return null;
+                // If no valid data found, return null values in tuple.
+                return new Tuple<DateTime?, DateTime?>(null, null);
             }
 
-            DateTime? localDateTime = GetStringDateTimeAsLocalDateTime(dicomTag, stringDateTime);
-            DateTime? utcDateTime = GetStringDateTimeAsUtcDateTime(dicomDataset, dicomTag, stringDateTime);
+            Tuple<DateTime?, DateTime?> result = new Tuple<DateTime?, DateTime?>(null, null);
 
-            return new Tuple<DateTime?, DateTime?>(localDateTime, utcDateTime);
-        }
-
-        /// <summary>
-        /// Gets the UTC DT VR value as <see cref="DateTime"/>.
-        /// If offset is present in the DT value, value is considered to be in UTC timezone.
-        /// If offset is not present, DT value is considered to be in local.
-        ///     If TimezoneOffsetFromUTC is present, this offset value is used to convert local timezone to UTC.
-        ///     Else, local value is returned as the UTC value as well.
-        /// </summary>
-        /// <param name="dicomDataset">The dataset to get the VR value from.</param>
-        /// <param name="dicomTag">The DICOM tag.</param>
-        /// <param name="stringDateTime">String date time value.</param>
-        /// <remarks>If expectedVR is provided, and not match, will return null.</remarks>
-        /// <returns>An instance of <see cref="DateTime"/> containing UTC date time if the value exists and conforms to the DT format; othewise <c>null</c>.</returns>
-        private static DateTime? GetStringDateTimeAsUtcDateTime(this DicomDataset dicomDataset, DicomTag dicomTag, string stringDateTime)
-        {
-            DateTime? result;
-            int offsetIndex = stringDateTime.IndexOfAny(new char[] { '-', '+' });
-
-            // If offset is present, time is considered to be present in UTC.
-            if (offsetIndex != -1)
+            // Parsing as DateTime such that we can know the DateTimeKind.
+            // If offset is present in the value, DateTimeKind is Local, else it is Unspecified.
+            // Ideally would like to work with just DateTimeOffsets to avoid parsing multiple times, but DateTimeKind does not work as expected with DateTimeOffset.
+            if (DateTime.TryParseExact(stringDateTime, DateTimeFormatsDT, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTime))
             {
-                result = GetDateTime(dicomTag, stringDateTime.Substring(0, offsetIndex));
-            }
-            else
-            {
-                // If offset is not present, check if TimezoneOffsetFromUTC value is present.
-                string offset = dicomDataset.GetSingleValueOrDefault<string>(DicomTag.TimezoneOffsetFromUTC, expectedVR: DicomVR.SH);
+                // Using DateTimeStyles.AssumeUniversal here such that when applying offset, local timezone (offset) is not taken into account.
+                DateTimeOffset.TryParseExact(stringDateTime, DateTimeFormatsDT, null, DateTimeStyles.AssumeUniversal, out DateTimeOffset dateTimeOffset);
 
-                // If timezone offset from UTC information is not found, we store the provided value for UTC as well.
-                if (string.IsNullOrEmpty(offset))
+                // Unspecified means that the offset is not present in the value.
+                if (dateTime.Kind == DateTimeKind.Unspecified)
                 {
-                    result = GetDateTime(dicomTag, stringDateTime);
-                }
-                else
-                {
-                    // timezone offset from UTC information is found. Need to use this to convert date time from local timezone to UTC.
+                    // Check if offset is present in TimezoneOffsetFromUTC
+                    TimeSpan? offset = dicomDataset.GetTimezoneOffsetFromUtcAsTimeSpan();
 
-                    bool isNegativeOffset = offset[0] == '-';
-
-                    // Eliminating the positive or negative sign from the offset.
-                    offset = offset.Substring(1);
-
-                    // If valid offset is present, apply that offset to the given datetime value and return the updated DateTime.
-                    if (!string.IsNullOrEmpty(offset) && TimeSpan.TryParseExact(offset, DateTimeOffsetFormat, null, out TimeSpan offsetTimeSpan))
+                    if (offset != null)
                     {
-                        // Since converting from local to UTC, offset needs to be applied in the reverse direction.
-                        // E.g. if offset is +0300, 3 hours should be subtracted from local to get the UTC date time.
-                        result = GetDateTime(dicomTag, stringDateTime);
-
-                        if (result.HasValue)
-                        {
-                            if (isNegativeOffset)
-                            {
-                                result = result.Value.Add(offsetTimeSpan);
-                            }
-                            else
-                            {
-                                result = result.Value.Subtract(offsetTimeSpan);
-                            }
-                        }
+                        // If we can parse the offset, use that offset to calculate UTC Date Time.
+                        result = new Tuple<DateTime?, DateTime?>(dateTimeOffset.DateTime, dateTimeOffset.ToOffset(offset.Value).DateTime);
                     }
                     else
                     {
-                        result = GetDateTime(dicomTag, stringDateTime);
-                    }
-                }
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Gets the Local DT VR value as <see cref="DateTime"/>.
-        /// If offset is not present in the DT value, value is considered to be in local timezone.
-        /// If offset is present, DT value is considered to be in UTC and is converted to local timezone by applying the offset.
-        /// </summary>
-        /// <param name="stringDateTime">String date time value.</param>
-        /// <param name="dicomTag">The DICOM Tag.</param>
-        /// <remarks>If expectedVR is provided, and not match, will return null.</remarks>
-        /// <returns>An instance of <see cref="DateTime"/> containing local datetime value if the value exists and conforms to the DT format; othewise <c>null</c>.</returns>
-        private static DateTime? GetStringDateTimeAsLocalDateTime(DicomTag dicomTag, string stringDateTime)
-        {
-            DateTime? result;
-            int offsetIndex = stringDateTime.IndexOfAny(new char[] { '-', '+' });
-
-            // If offset is not present, time is considered to be present in local time.
-            if (offsetIndex == -1)
-            {
-                result = GetDateTime(dicomTag, stringDateTime);
-            }
-            else
-            {
-                // If offset is present, the datetime value is considered to be in UTC.
-                // Need to convert this date time to local by applying the offset.
-
-                string offset = stringDateTime.Substring(offsetIndex);
-                bool isNegativeOffset = offset[0] == '-';
-
-                // Eliminating the positive or negative sign from the offset.
-                offset = offset.Substring(1);
-
-                // If valid offset is present, apply that offset to the given datetime value and return the updated DateTime.
-                if (!string.IsNullOrEmpty(offset) && TimeSpan.TryParseExact(offset, DateTimeOffsetFormat, null, out TimeSpan offsetTimeSpan))
-                {
-                    // Since converting from UTC to local, offset will be applied without any modification.
-                    result = GetDateTime(dicomTag, stringDateTime.Substring(0, offsetIndex));
-
-                    if (result.HasValue)
-                    {
-                        if (isNegativeOffset)
-                        {
-                            result = result.Value.Subtract(offsetTimeSpan);
-                        }
-                        else
-                        {
-                            result = result.Value.Add(offsetTimeSpan);
-                        }
+                        // If either offset is not present or could not be parsed, UTC should be null.
+                        result = new Tuple<DateTime?, DateTime?>(dateTimeOffset.DateTime, null);
                     }
                 }
                 else
                 {
-                    result = GetDateTime(dicomTag, stringDateTime);
+                    // If offset is present in the value, it can simply be converted to UTC
+                    result = new Tuple<DateTime?, DateTime?>(dateTimeOffset.DateTime, dateTimeOffset.UtcDateTime);
                 }
             }
 
@@ -225,26 +154,24 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         /// <summary>
-        /// Get <see cref="DateTime" /> object after parsing the input <c>stringDateTime</c>.
+        /// Get TimezoneOffsetFromUTC value as TimeSpan.
         /// </summary>
-        /// <param name="dicomTag">the DICOM tag.</param>
-        /// <param name="stringDateTime">String date time value.</param>
-        /// <returns>An instance of <see cref="DateTime"/> if the value exists and conforms to the DT format; otherwise <c>null</c>.</returns>
-        private static DateTime? GetDateTime(DicomTag dicomTag, string stringDateTime)
+        /// <param name="dicomDataset">The dataset to get the TimezoneOffsetFromUTC value from.</param>
+        /// <returns>An instance of <see cref="Nullable"/> <see cref="TimeSpan"/>. If value is not found or could not be parsed, <c>null</c> is returned.</returns>
+        private static TimeSpan? GetTimezoneOffsetFromUtcAsTimeSpan(this DicomDataset dicomDataset)
         {
-            DateTime? result;
+            // Cannot parse it directly as TimeSpan as the offset needs to follow specific formats.
+            string offset = dicomDataset.GetSingleValueOrDefault<string>(DicomTag.TimezoneOffsetFromUTC, expectedVR: DicomVR.SH);
 
-            try
+            if (!string.IsNullOrEmpty(offset))
             {
-                DicomDateTime dicomDateTime = new DicomDateTime(dicomTag, new string[] { stringDateTime });
-                result = dicomDateTime.Get<DateTime>();
-            }
-            catch (Exception)
-            {
-                result = null;
+                if (TimeSpan.TryParseExact(offset, DateTimeOffsetFormats, CultureInfo.InvariantCulture, out TimeSpan timeSpan))
+                {
+                    return timeSpan;
+                }
             }
 
-            return result;
+            return null;
         }
 
         /// <summary>
@@ -258,7 +185,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         public static long? GetStringTimeAsLong(this DicomDataset dicomDataset, DicomTag dicomTag, DicomVR expectedVR = null)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
-            long? result;
+            long? result = null;
 
             try
             {
@@ -269,7 +196,8 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                 result = null;
             }
 
-            return result;
+            // If parsing fails for Time, a default value of 0 is returned. Since expected outcome is null, testing here and returning expected result.
+            return result == 0 ? null : result;
         }
 
         /// <summary>

@@ -75,12 +75,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         [Fact]
         public void GivenNoDicomDateTimeValue_WhenGetStringDateTimeAsDateTimeIsCalled_ThenNullShouldBeReturned()
         {
-            Assert.Null(_dicomDataset.GetStringDateTimeAsLocalAndUtcDateTimes(DicomTag.AcquisitionDateTime));
+            Tuple<DateTime?, DateTime?> result = _dicomDataset.GetStringDateTimeAsLiteralAndUtcDateTimes(DicomTag.AcquisitionDateTime);
+            Assert.Null(result.Item1);
+            Assert.Null(result.Item2);
         }
 
         [Theory]
         [ClassData(typeof(DateTimeValidTestData))]
-        public void GivenAValidDicomDateTimeValue_WhenGetStringDateTimeAsDateTimeIsCalled_ThenCorrectDateTimeShouldBeReturned(
+        public void GivenAValidDicomDateTimeValue_WhenGetStringDateTimeAsLiteralAndUtcDateTimesIsCalled_ThenCorrectLiteralDateTimesShouldBeReturned(
             string acquisitionDateTime,
             int year,
             int month,
@@ -101,7 +103,41 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
                     minute,
                     second,
                     millisecond),
-                _dicomDataset.GetStringDateTimeAsLocalAndUtcDateTimes(DicomTag.AcquisitionDateTime).Item1.Value);
+                _dicomDataset.GetStringDateTimeAsLiteralAndUtcDateTimes(DicomTag.AcquisitionDateTime).Item1.Value);
+        }
+
+        [Theory]
+        [ClassData(typeof(DateTimeValidUtcTestData))]
+        public void GivenAValidDicomDateTimeValueWithOffset_WhenGetStringDateTimeAsLiteralAndUtcDateTimesIsCalled_ThenCorrectUtcDateTimesShouldBeReturned(
+            string acquisitionDateTime,
+            int year,
+            int month,
+            int day,
+            int hour,
+            int minute,
+            int second,
+            int millisecond
+            )
+        {
+            _dicomDataset.Add(DicomTag.AcquisitionDateTime, acquisitionDateTime);
+            Assert.Equal(
+                new DateTime(
+                    year,
+                    month,
+                    day,
+                    hour,
+                    minute,
+                    second,
+                    millisecond),
+                _dicomDataset.GetStringDateTimeAsLiteralAndUtcDateTimes(DicomTag.AcquisitionDateTime).Item2.Value);
+        }
+
+        [Fact]
+        public void GivenAValidDicomDateTimeValueWithoutOffset_WhenGetStringDateTimeAsLiteralAndUtcDateTimesIsCalled_ThenNullIsReturnedForUtcDateTime()
+        {
+            _dicomDataset.Add(DicomTag.AcquisitionDateTime, "20200102030405.678");
+
+            Assert.Null(_dicomDataset.GetStringDateTimeAsLiteralAndUtcDateTimes(DicomTag.AcquisitionDateTime).Item2);
         }
 
         [Theory]
@@ -121,11 +157,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         [InlineData("20200301019903")]
         [InlineData("20200301010299")]
         [InlineData("31")]
-        public void GivenAnInvalidDicomDateTimeValue_WhenGetStringDateTimeAsDateTimeIsCalled_ThenNullShouldBeReturned(string acquisitionDateTime)
+        public void GivenAnInvalidDicomDateTimeValue_WhenGetStringDateTimeAsLiteralAndUtcDateTimesIsCalled_ThenNullShouldBeReturned(string acquisitionDateTime)
         {
             _dicomDataset.Add(DicomTag.AcquisitionDateTime, acquisitionDateTime);
 
-            Assert.Null(_dicomDataset.GetStringDateTimeAsLocalAndUtcDateTimes(DicomTag.AcquisitionDateTime).Item1);
+            Assert.Null(_dicomDataset.GetStringDateTimeAsLiteralAndUtcDateTimes(DicomTag.AcquisitionDateTime).Item1);
         }
 
         [Fact]
