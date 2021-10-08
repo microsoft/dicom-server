@@ -165,7 +165,16 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
             if (!string.IsNullOrEmpty(offset))
             {
-                if (TimeSpan.TryParseExact(offset, DateTimeOffsetFormats, CultureInfo.InvariantCulture, out TimeSpan timeSpan))
+                TimeSpan timeSpan;
+
+                // Need to look at offset string to figure out positive or negative offset
+                // as timespan ParseExact does not support negative offsets by default.
+                // Applying TimeSpanStyles.AssumeNegative is the only documented way to handle negative offsets for this method.
+                bool isSuccess = offset[0] == '-' ?
+                    TimeSpan.TryParseExact(offset, DateTimeOffsetFormats, CultureInfo.InvariantCulture, TimeSpanStyles.AssumeNegative, out timeSpan) :
+                    TimeSpan.TryParseExact(offset, DateTimeOffsetFormats, CultureInfo.InvariantCulture, out timeSpan);
+
+                if (isSuccess)
                 {
                     return timeSpan;
                 }
