@@ -8,11 +8,11 @@
 CREATE TABLE dbo.ExtendedQueryTagString (
     TagKey                  INT                  NOT NULL,              --PK
     TagValue                NVARCHAR(64)         NOT NULL,
-    PartitionKey            INT                  NOT NULL DEFAULT 1,    --FK
     StudyKey                BIGINT               NOT NULL,              --FK
     SeriesKey               BIGINT               NULL,                  --FK
     InstanceKey             BIGINT               NULL,                  --FK
-    Watermark               BIGINT               NOT NULL
+    Watermark               BIGINT               NOT NULL,
+    PartitionKey            INT                  NOT NULL DEFAULT 1     --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString ON dbo.ExtendedQueryTagString

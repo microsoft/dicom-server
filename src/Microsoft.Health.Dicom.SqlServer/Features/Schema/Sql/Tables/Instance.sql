@@ -7,9 +7,7 @@ CREATE TABLE dbo.Instance (
     SeriesKey               BIGINT                     NOT NULL,            --FK
     -- StudyKey needed to join directly from Study table to find a instance
     StudyKey                BIGINT                     NOT NULL,            --FK
-    PartitionKey            INT                        NOT NULL DEFAULT 1,  --FK
     --instance keys used in WADO
-    PartitionName           VARCHAR(64)                NOT NULL DEFAULT 'Microsoft.Default',
     StudyInstanceUid        VARCHAR(64)                NOT NULL,
     SeriesInstanceUid       VARCHAR(64)                NOT NULL,
     SopInstanceUid          VARCHAR(64)                NOT NULL,
@@ -18,7 +16,9 @@ CREATE TABLE dbo.Instance (
     Status                  TINYINT                    NOT NULL,
     LastStatusUpdatedDate   DATETIME2(7)               NOT NULL,
     --audit columns
-    CreatedDate             DATETIME2(7)               NOT NULL
+    CreatedDate             DATETIME2(7)               NOT NULL,
+    PartitionKey            INT                        NOT NULL DEFAULT 1,  --FK
+    PartitionName           VARCHAR(64)                NOT NULL DEFAULT 'Microsoft.Default'
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance

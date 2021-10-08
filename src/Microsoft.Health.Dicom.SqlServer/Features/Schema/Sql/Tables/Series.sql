@@ -5,12 +5,12 @@
 
 CREATE TABLE dbo.Series (
     SeriesKey                           BIGINT                     NOT NULL,            --PK
-    PartitionKey                        INT                        NOT NULL DEFAULT 1,  --FK
     StudyKey                            BIGINT                     NOT NULL,            --FK
     SeriesInstanceUid                   VARCHAR(64)                NOT NULL,
     Modality                            NVARCHAR(16)               NULL,
     PerformedProcedureStepStartDate     DATE                       NULL,
-    ManufacturerModelName               NVARCHAR(64)               NULL
+    ManufacturerModelName               NVARCHAR(64)               NULL,
+    PartitionKey                        INT                        NOT NULL DEFAULT 1   --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Series ON dbo.Series

@@ -9,12 +9,12 @@
 CREATE TABLE dbo.ExtendedQueryTagDateTime (
     TagKey                  INT                  NOT NULL,              --PK
     TagValue                DATETIME2(7)         NOT NULL,
-    PartitionKey            INT                  NOT NULL DEFAULT 1,    --FK
     StudyKey                BIGINT               NOT NULL,              --FK
     SeriesKey               BIGINT               NULL,                  --FK
     InstanceKey             BIGINT               NULL,                  --FK
     Watermark               BIGINT               NOT NULL,
-    TagValueUtc             DATETIME2(7)         NULL
+    TagValueUtc             DATETIME2(7)         NULL,
+    PartitionKey            INT                  NOT NULL DEFAULT 1     --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryTagDateTime

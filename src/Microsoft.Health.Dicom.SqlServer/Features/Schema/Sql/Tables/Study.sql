@@ -4,7 +4,6 @@
 **************************************************************/
 CREATE TABLE dbo.Study (
     StudyKey                    BIGINT                            NOT NULL,             --PK
-    PartitionKey                INT                               NOT NULL DEFAULT 1,   --FK
     StudyInstanceUid            VARCHAR(64)                       NOT NULL,
     PatientId                   NVARCHAR(64)                      NOT NULL,
     PatientName                 NVARCHAR(200)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
@@ -14,7 +13,8 @@ CREATE TABLE dbo.Study (
     AccessionNumber             NVARCHAR(16)                      NULL,
     PatientNameWords            AS REPLACE(REPLACE(PatientName, '^', ' '), '=', ' ') PERSISTED,
     ReferringPhysicianNameWords AS REPLACE(REPLACE(ReferringPhysicianName, '^', ' '), '=', ' ') PERSISTED,
-    PatientBirthDate            DATE                              NULL
+    PatientBirthDate            DATE                              NULL,
+    PartitionKey                INT                               NOT NULL DEFAULT 1    --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Study ON dbo.Study

@@ -11,12 +11,12 @@ CREATE TABLE dbo.ChangeFeed (
     Sequence                BIGINT IDENTITY(1,1) NOT NULL,
     Timestamp               DATETIMEOFFSET(7)    NOT NULL,
     Action                  TINYINT              NOT NULL,
-    PartitionName           VARCHAR(64)          NOT NULL DEFAULT 'Microsoft.Default',
     StudyInstanceUid        VARCHAR(64)          NOT NULL,
     SeriesInstanceUid       VARCHAR(64)          NOT NULL,
     SopInstanceUid          VARCHAR(64)          NOT NULL,
     OriginalWatermark       BIGINT               NOT NULL,
-    CurrentWatermark        BIGINT               NULL
+    CurrentWatermark        BIGINT               NULL,
+    PartitionName           VARCHAR(64)          NOT NULL DEFAULT 'Microsoft.Default'
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed

@@ -9,11 +9,11 @@
 CREATE TABLE dbo.ExtendedQueryTagDouble (
     TagKey                  INT                  NOT NULL,              --PK
     TagValue                FLOAT(53)            NOT NULL,
-    PartitionKey            INT                  NOT NULL DEFAULT 1,    --FK
     StudyKey                BIGINT               NOT NULL,              --FK
     SeriesKey               BIGINT               NULL,                  --FK
     InstanceKey             BIGINT               NULL,                  --FK
-    Watermark               BIGINT               NOT NULL
+    Watermark               BIGINT               NOT NULL,
+    PartitionKey            INT                  NOT NULL DEFAULT 1     --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble ON dbo.ExtendedQueryTagDouble
