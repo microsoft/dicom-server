@@ -96,6 +96,7 @@ CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SeriesKey_Status on dbo.Insta
 )
 INCLUDE
 (
+    PartitionName,
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid,
@@ -111,6 +112,7 @@ CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyKey_Status on dbo.Instan
 )
 INCLUDE
 (
+    PartitionName,
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid,

@@ -1769,13 +1769,9 @@ COMMIT TRANSACTION
 Drop Study fulltext index outside transaction
 **************************************************************/
 
-IF EXISTS (
-    SELECT i.name
-    FROM sys.indexes i
-    JOIN sys.fulltext_indexes fi
-        ON (i.index_id = fi.unique_index_id)
-    WHERE i.name = 'IXC_Study'
-        AND i.object_id = OBJECT_ID('dbo.Study'))
+IF EXISTS (SELECT *
+               FROM   sys.fulltext_indexes
+               WHERE  object_id = object_id('dbo.Study'))
 BEGIN
     -- This index uses IXC_Study as it's unique index, so must be dropped first.
     -- We'll restore the fulltext index with a new unique index after this transaction.
@@ -1809,6 +1805,11 @@ BEGIN
         ONLINE = ON
     )
 
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Study_StudyKey ON dbo.Study
+    (
+        StudyKey
+    ) WITH (DATA_COMPRESSION = PAGE)
+
     DROP INDEX IX_Study_StudyInstanceUid ON dbo.Study
 
     CREATE UNIQUE NONCLUSTERED INDEX IX_Study_PartitionKey_StudyInstanceUid ON dbo.Study
@@ -1816,6 +1817,84 @@ BEGIN
         PartitionKey,
         StudyInstanceUid
     ) WITH (DATA_COMPRESSION = PAGE)
+
+    CREATE NONCLUSTERED INDEX IX_Study_PatientId ON dbo.Study
+    (
+        PatientId
+    )
+    WITH
+    (
+        DATA_COMPRESSION = PAGE,
+        DROP_EXISTING = ON,
+        ONLINE = ON
+    )
+
+    CREATE NONCLUSTERED INDEX IX_Study_PatientName ON dbo.Study
+    (
+        PatientName
+    )
+    WITH
+    (
+        DATA_COMPRESSION = PAGE,
+        DROP_EXISTING = ON,
+        ONLINE = ON
+    )
+
+    CREATE NONCLUSTERED INDEX IX_Study_ReferringPhysicianName ON dbo.Study
+    (
+        ReferringPhysicianName
+    )
+    WITH
+    (
+        DATA_COMPRESSION = PAGE,
+        DROP_EXISTING = ON,
+        ONLINE = ON
+    )
+
+    CREATE NONCLUSTERED INDEX IX_Study_StudyDate ON dbo.Study
+    (
+        StudyDate
+    )
+    WITH
+    (
+        DATA_COMPRESSION = PAGE,
+        DROP_EXISTING = ON,
+        ONLINE = ON
+    )
+
+    CREATE NONCLUSTERED INDEX IX_Study_StudyDescription ON dbo.Study
+    (
+        StudyDescription
+    )
+    WITH
+    (
+        DATA_COMPRESSION = PAGE,
+        DROP_EXISTING = ON,
+        ONLINE = ON
+    )
+
+    CREATE NONCLUSTERED INDEX IX_Study_AccessionNumber ON dbo.Study
+    (
+        AccessionNumber
+    )
+    WITH
+    (
+        DATA_COMPRESSION = PAGE,
+        DROP_EXISTING = ON,
+        ONLINE = ON
+    )
+
+    CREATE NONCLUSTERED INDEX IX_Study_PatientBirthDate ON dbo.Study
+    (
+        PatientBirthDate
+    )
+    WITH
+    (
+        DATA_COMPRESSION = PAGE,
+        DROP_EXISTING = ON,
+        ONLINE = ON
+    )
+
 END
 GO
 
@@ -1840,6 +1919,17 @@ BEGIN
         ONLINE = ON
     )
 
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Series_SeriesKey ON dbo.Series
+    (
+        SeriesKey
+    )
+    WITH
+    (
+        DATA_COMPRESSION = PAGE,
+        DROP_EXISTING = ON,
+        ONLINE = ON
+    )
+
     DROP INDEX IX_Series_SeriesInstanceUid ON dbo.Series
 
     CREATE UNIQUE NONCLUSTERED INDEX IX_Series_StudyKey_SeriesInstanceUid ON dbo.Series
@@ -1847,6 +1937,40 @@ BEGIN
         StudyKey,
         SeriesInstanceUid
     ) WITH (DATA_COMPRESSION = PAGE)
+
+    CREATE NONCLUSTERED INDEX IX_Series_Modality ON dbo.Series
+    (
+        Modality
+    )
+    WITH
+    (
+        DATA_COMPRESSION = PAGE,
+        DROP_EXISTING = ON,
+        ONLINE = ON
+    )
+
+    CREATE NONCLUSTERED INDEX IX_Series_PerformedProcedureStepStartDate ON dbo.Series
+    (
+        PerformedProcedureStepStartDate
+    )
+    WITH
+    (
+        DATA_COMPRESSION = PAGE,
+        DROP_EXISTING = ON,
+        ONLINE = ON
+    )
+
+    CREATE NONCLUSTERED INDEX IX_Series_ManufacturerModelName ON dbo.Series
+    (
+        ManufacturerModelName
+    )
+    WITH
+    (
+        DATA_COMPRESSION = PAGE,
+        DROP_EXISTING = ON,
+        ONLINE = ON
+    )
+
 END
 GO
 
@@ -1868,16 +1992,27 @@ BEGIN
         StudyInstanceUid,
         SeriesInstanceUid,
         SopInstanceUid
-    ) WITH (DATA_COMPRESSION = PAGE)
+    )
+    INCLUDE
+    (
+        Status,
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE)
 
     DROP INDEX IX_Instance_StudyInstanceUid_Status ON dbo.Instance
 
-    CREATE NONCLUSTERED INDEX IX_Instance_PartitionName_StudyInstanceUid_Status ON dbo.Instance
+    CREATE NONCLUSTERED INDEX IX_Instance_PartitionName_StudyInstanceUid_Status on dbo.Instance
     (
         PartitionName,
         StudyInstanceUid,
         Status
-    ) WITH (DATA_COMPRESSION = PAGE)
+    )
+    INCLUDE
+    (
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE)
 
     DROP INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status ON dbo.Instance
 
@@ -1887,34 +2022,65 @@ BEGIN
         StudyInstanceUid,
         SeriesInstanceUid,
         Status
-    ) WITH (DATA_COMPRESSION = PAGE)
+    )
+    INCLUDE
+    (
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE)
 
     DROP INDEX IX_Instance_SopInstanceUid_Status ON dbo.Instance
 
-    CREATE NONCLUSTERED INDEX IX_Instance_PartitionName_SopInstanceUid_Status ON dbo.Instance
+    CREATE NONCLUSTERED INDEX IX_Instance_PartitionName_SopInstanceUid_Status on dbo.Instance
     (
         PartitionName,
         SopInstanceUid,
         Status
-    ) WITH (DATA_COMPRESSION = PAGE)
+    )
+    INCLUDE
+    (
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE)
 
     DROP INDEX IX_Instance_SeriesKey_Status ON dbo.Instance
 
-    CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SeriesKey_Status ON dbo.Instance
+    CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SeriesKey_Status on dbo.Instance
     (
         PartitionKey,
         SeriesKey,
         Status
-    ) WITH (DATA_COMPRESSION = PAGE)
+    )
+    INCLUDE
+    (
+        PartitionName,
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid,
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE)
 
     DROP INDEX IX_Instance_StudyKey_Status ON dbo.Instance
 
-    CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyKey_Status ON dbo.Instance
+    CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyKey_Status on dbo.Instance
     (
         PartitionKey,
         StudyKey,
         Status
-    ) WITH (DATA_COMPRESSION = PAGE)
+    )
+    INCLUDE
+    (
+        PartitionName,
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid,
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+
 END
 GO
 
@@ -1962,6 +2128,19 @@ BEGIN
         DROP_EXISTING = ON,
         ONLINE = ON
     )
+
+    CREATE NONCLUSTERED INDEX IX_DeletedInstance_RetryCount_CleanupAfter ON dbo.DeletedInstance
+    (
+        RetryCount,
+        CleanupAfter
+    )
+    WITH
+    (
+        DATA_COMPRESSION = PAGE,
+        DROP_EXISTING = ON,
+        ONLINE = ON
+    )
+
 END
 GO
 
@@ -2113,13 +2292,9 @@ COMMIT TRANSACTION
 Full text catalog and index creation outside transaction
 **************************************************************/
 
-IF EXISTS (
-    SELECT i.name
-    FROM sys.indexes i
-    JOIN sys.fulltext_indexes fi
-        ON (i.index_id = fi.unique_index_id)
-    WHERE i.name = 'IXC_Study'
-        AND i.object_id = OBJECT_ID('dbo.Study'))
+IF NOT EXISTS (SELECT *
+               FROM   sys.fulltext_indexes
+               WHERE  object_id = object_id('dbo.Study'))
 BEGIN
     CREATE FULLTEXT INDEX ON Study(PatientNameWords, ReferringPhysicianNameWords LANGUAGE 1033)
     KEY INDEX IX_Study_StudyKey

@@ -64,12 +64,12 @@ CREATE TABLE dbo.ChangeFeed (
     Sequence          BIGINT             IDENTITY (1, 1) NOT NULL,
     Timestamp         DATETIMEOFFSET (7) NOT NULL,
     Action            TINYINT            NOT NULL,
-    PartitionName     VARCHAR (64)       DEFAULT 'Microsoft.Default' NOT NULL,
     StudyInstanceUid  VARCHAR (64)       NOT NULL,
     SeriesInstanceUid VARCHAR (64)       NOT NULL,
     SopInstanceUid    VARCHAR (64)       NOT NULL,
     OriginalWatermark BIGINT             NOT NULL,
-    CurrentWatermark  BIGINT             NULL
+    CurrentWatermark  BIGINT             NULL,
+    PartitionName     VARCHAR (64)       DEFAULT 'Microsoft.Default' NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
@@ -77,17 +77,17 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed
     ON dbo.ChangeFeed(Sequence);
 
 CREATE NONCLUSTERED INDEX IX_ChangeFeed_PartitionName_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid
-    ON dbo.ChangeFeed(PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid);
+    ON dbo.ChangeFeed(PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.DeletedInstance (
-    PartitionName     VARCHAR (64)       DEFAULT 'Microsoft.Default' NOT NULL,
     StudyInstanceUid  VARCHAR (64)       NOT NULL,
     SeriesInstanceUid VARCHAR (64)       NOT NULL,
     SopInstanceUid    VARCHAR (64)       NOT NULL,
     Watermark         BIGINT             NOT NULL,
     DeletedDateTime   DATETIMEOFFSET (0) NOT NULL,
     RetryCount        INT                NOT NULL,
-    CleanupAfter      DATETIMEOFFSET (0) NOT NULL
+    CleanupAfter      DATETIMEOFFSET (0) NOT NULL,
+    PartitionName     VARCHAR (64)       DEFAULT 'Microsoft.Default' NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
@@ -117,12 +117,12 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath
 CREATE TABLE dbo.ExtendedQueryTagDateTime (
     TagKey       INT           NOT NULL,
     TagValue     DATETIME2 (7) NOT NULL,
-    PartitionKey INT           DEFAULT 1 NOT NULL,
     StudyKey     BIGINT        NOT NULL,
     SeriesKey    BIGINT        NULL,
     InstanceKey  BIGINT        NULL,
     Watermark    BIGINT        NOT NULL,
-    TagValueUtc  DATETIME2 (7) NULL
+    TagValueUtc  DATETIME2 (7) NULL,
+    PartitionKey INT           DEFAULT 1 NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
@@ -132,11 +132,11 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime
 CREATE TABLE dbo.ExtendedQueryTagDouble (
     TagKey       INT        NOT NULL,
     TagValue     FLOAT (53) NOT NULL,
-    PartitionKey INT        DEFAULT 1 NOT NULL,
     StudyKey     BIGINT     NOT NULL,
     SeriesKey    BIGINT     NULL,
     InstanceKey  BIGINT     NULL,
-    Watermark    BIGINT     NOT NULL
+    Watermark    BIGINT     NOT NULL,
+    PartitionKey INT        DEFAULT 1 NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
@@ -160,11 +160,11 @@ CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagError_CreatedTime_Watermark_TagKey
 CREATE TABLE dbo.ExtendedQueryTagLong (
     TagKey       INT    NOT NULL,
     TagValue     BIGINT NOT NULL,
-    PartitionKey INT    DEFAULT 1 NOT NULL,
     StudyKey     BIGINT NOT NULL,
     SeriesKey    BIGINT NULL,
     InstanceKey  BIGINT NULL,
-    Watermark    BIGINT NOT NULL
+    Watermark    BIGINT NOT NULL,
+    PartitionKey INT    DEFAULT 1 NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
@@ -186,13 +186,13 @@ CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagOperation_OperationId
 CREATE TABLE dbo.ExtendedQueryTagPersonName (
     TagKey             INT            NOT NULL,
     TagValue           NVARCHAR (200) COLLATE SQL_Latin1_General_CP1_CI_AI NOT NULL,
-    PartitionKey       INT            DEFAULT 1 NOT NULL,
     StudyKey           BIGINT         NOT NULL,
     SeriesKey          BIGINT         NULL,
     InstanceKey        BIGINT         NULL,
     Watermark          BIGINT         NOT NULL,
     WatermarkAndTagKey AS             CONCAT(TagKey, '.', Watermark),
-    TagValueWords      AS             REPLACE(REPLACE(TagValue, '^', ' '), '=', ' ') PERSISTED
+    TagValueWords      AS             REPLACE(REPLACE(TagValue, '^', ' '), '=', ' ') PERSISTED,
+    PartitionKey       INT            DEFAULT 1 NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
@@ -205,11 +205,11 @@ CREATE UNIQUE NONCLUSTERED INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagK
 CREATE TABLE dbo.ExtendedQueryTagString (
     TagKey       INT           NOT NULL,
     TagValue     NVARCHAR (64) NOT NULL,
-    PartitionKey INT           DEFAULT 1 NOT NULL,
     StudyKey     BIGINT        NOT NULL,
     SeriesKey    BIGINT        NULL,
     InstanceKey  BIGINT        NULL,
-    Watermark    BIGINT        NOT NULL
+    Watermark    BIGINT        NOT NULL,
+    PartitionKey INT           DEFAULT 1 NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
@@ -220,15 +220,15 @@ CREATE TABLE dbo.Instance (
     InstanceKey           BIGINT        NOT NULL,
     SeriesKey             BIGINT        NOT NULL,
     StudyKey              BIGINT        NOT NULL,
-    PartitionKey          INT           DEFAULT 1 NOT NULL,
-    PartitionName         VARCHAR (64)  DEFAULT 'Microsoft.Default' NOT NULL,
     StudyInstanceUid      VARCHAR (64)  NOT NULL,
     SeriesInstanceUid     VARCHAR (64)  NOT NULL,
     SopInstanceUid        VARCHAR (64)  NOT NULL,
     Watermark             BIGINT        NOT NULL,
     Status                TINYINT       NOT NULL,
     LastStatusUpdatedDate DATETIME2 (7) NOT NULL,
-    CreatedDate           DATETIME2 (7) NOT NULL
+    CreatedDate           DATETIME2 (7) NOT NULL,
+    PartitionKey          INT           DEFAULT 1 NOT NULL,
+    PartitionName         VARCHAR (64)  DEFAULT 'Microsoft.Default' NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
@@ -256,11 +256,11 @@ CREATE NONCLUSTERED INDEX IX_Instance_Watermark
 
 CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SeriesKey_Status
     ON dbo.Instance(PartitionKey, SeriesKey, Status)
-    INCLUDE(StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark) WITH (DATA_COMPRESSION = PAGE);
+    INCLUDE(PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyKey_Status
     ON dbo.Instance(PartitionKey, StudyKey, Status)
-    INCLUDE(StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark) WITH (DATA_COMPRESSION = PAGE);
+    INCLUDE(PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.Partition (
     PartitionKey  INT           NOT NULL,
@@ -280,12 +280,12 @@ VALUES                    (1, 'Microsoft.Default', SYSUTCDATETIME());
 
 CREATE TABLE dbo.Series (
     SeriesKey                       BIGINT        NOT NULL,
-    PartitionKey                    INT           DEFAULT 1 NOT NULL,
     StudyKey                        BIGINT        NOT NULL,
     SeriesInstanceUid               VARCHAR (64)  NOT NULL,
     Modality                        NVARCHAR (16) NULL,
     PerformedProcedureStepStartDate DATE          NULL,
-    ManufacturerModelName           NVARCHAR (64) NULL
+    ManufacturerModelName           NVARCHAR (64) NULL,
+    PartitionKey                    INT           DEFAULT 1 NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
@@ -309,7 +309,6 @@ CREATE NONCLUSTERED INDEX IX_Series_ManufacturerModelName
 
 CREATE TABLE dbo.Study (
     StudyKey                    BIGINT         NOT NULL,
-    PartitionKey                INT            DEFAULT 1 NOT NULL,
     StudyInstanceUid            VARCHAR (64)   NOT NULL,
     PatientId                   NVARCHAR (64)  NOT NULL,
     PatientName                 NVARCHAR (200) COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
@@ -319,7 +318,8 @@ CREATE TABLE dbo.Study (
     AccessionNumber             NVARCHAR (16)  NULL,
     PatientNameWords            AS             REPLACE(REPLACE(PatientName, '^', ' '), '=', ' ') PERSISTED,
     ReferringPhysicianNameWords AS             REPLACE(REPLACE(ReferringPhysicianName, '^', ' '), '=', ' ') PERSISTED,
-    PatientBirthDate            DATE           NULL
+    PatientBirthDate            DATE           NULL,
+    PartitionKey                INT            DEFAULT 1 NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 

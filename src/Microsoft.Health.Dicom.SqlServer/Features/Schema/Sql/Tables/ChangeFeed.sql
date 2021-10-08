@@ -30,4 +30,4 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_PartitionName_StudyInstanceUid_SeriesIns
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid
-)
+) WITH (DATA_COMPRESSION = PAGE)

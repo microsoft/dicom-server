@@ -79,12 +79,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly BigIntColumn Sequence = new BigIntColumn("Sequence");
             internal readonly DateTimeOffsetColumn Timestamp = new DateTimeOffsetColumn("Timestamp", 7);
             internal readonly TinyIntColumn Action = new TinyIntColumn("Action");
-            internal readonly VarCharColumn PartitionName = new VarCharColumn("PartitionName", 64);
             internal readonly VarCharColumn StudyInstanceUid = new VarCharColumn("StudyInstanceUid", 64);
             internal readonly VarCharColumn SeriesInstanceUid = new VarCharColumn("SeriesInstanceUid", 64);
             internal readonly VarCharColumn SopInstanceUid = new VarCharColumn("SopInstanceUid", 64);
             internal readonly BigIntColumn OriginalWatermark = new BigIntColumn("OriginalWatermark");
             internal readonly NullableBigIntColumn CurrentWatermark = new NullableBigIntColumn("CurrentWatermark");
+            internal readonly VarCharColumn PartitionName = new VarCharColumn("PartitionName", 64);
             internal readonly Index IXC_ChangeFeed = new Index("IXC_ChangeFeed");
             internal readonly Index IX_ChangeFeed_PartitionName_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_ChangeFeed_PartitionName_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
         }
@@ -95,7 +95,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
-            internal readonly VarCharColumn PartitionName = new VarCharColumn("PartitionName", 64);
             internal readonly VarCharColumn StudyInstanceUid = new VarCharColumn("StudyInstanceUid", 64);
             internal readonly VarCharColumn SeriesInstanceUid = new VarCharColumn("SeriesInstanceUid", 64);
             internal readonly VarCharColumn SopInstanceUid = new VarCharColumn("SopInstanceUid", 64);
@@ -103,6 +102,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly DateTimeOffsetColumn DeletedDateTime = new DateTimeOffsetColumn("DeletedDateTime", 0);
             internal readonly IntColumn RetryCount = new IntColumn("RetryCount");
             internal readonly DateTimeOffsetColumn CleanupAfter = new DateTimeOffsetColumn("CleanupAfter", 0);
+            internal readonly VarCharColumn PartitionName = new VarCharColumn("PartitionName", 64);
             internal readonly Index IXC_DeletedInstance = new Index("IXC_DeletedInstance");
             internal readonly Index IX_DeletedInstance_RetryCount_CleanupAfter = new Index("IX_DeletedInstance_RetryCount_CleanupAfter");
         }
@@ -133,12 +133,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
             internal readonly IntColumn TagKey = new IntColumn("TagKey");
             internal readonly DateTime2Column TagValue = new DateTime2Column("TagValue", 7);
-            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
             internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
             internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly NullableDateTime2Column TagValueUtc = new NullableDateTime2Column("TagValueUtc", 7);
+            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_ExtendedQueryTagDateTime = new Index("IXC_ExtendedQueryTagDateTime");
         }
 
@@ -150,11 +150,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
             internal readonly IntColumn TagKey = new IntColumn("TagKey");
             internal readonly FloatColumn TagValue = new FloatColumn("TagValue", 53);
-            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
             internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
             internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
+            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_ExtendedQueryTagDouble = new Index("IXC_ExtendedQueryTagDouble");
         }
 
@@ -180,11 +180,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
             internal readonly IntColumn TagKey = new IntColumn("TagKey");
             internal readonly BigIntColumn TagValue = new BigIntColumn("TagValue");
-            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
             internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
             internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
+            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_ExtendedQueryTagLong = new Index("IXC_ExtendedQueryTagLong");
         }
 
@@ -208,13 +208,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
             internal readonly IntColumn TagKey = new IntColumn("TagKey");
             internal readonly NVarCharColumn TagValue = new NVarCharColumn("TagValue", 200, "SQL_Latin1_General_CP1_CI_AI");
-            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
             internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
             internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal const string WatermarkAndTagKey = "WatermarkAndTagKey";
             internal const string TagValueWords = "TagValueWords";
+            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_ExtendedQueryTagPersonName = new Index("IXC_ExtendedQueryTagPersonName");
             internal readonly Index IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey = new Index("IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey");
         }
@@ -227,11 +227,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
             internal readonly IntColumn TagKey = new IntColumn("TagKey");
             internal readonly NVarCharColumn TagValue = new NVarCharColumn("TagValue", 64);
-            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
             internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
             internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
+            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_ExtendedQueryTagString = new Index("IXC_ExtendedQueryTagString");
         }
 
@@ -244,8 +244,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly BigIntColumn InstanceKey = new BigIntColumn("InstanceKey");
             internal readonly BigIntColumn SeriesKey = new BigIntColumn("SeriesKey");
             internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
-            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
-            internal readonly VarCharColumn PartitionName = new VarCharColumn("PartitionName", 64);
             internal readonly VarCharColumn StudyInstanceUid = new VarCharColumn("StudyInstanceUid", 64);
             internal readonly VarCharColumn SeriesInstanceUid = new VarCharColumn("SeriesInstanceUid", 64);
             internal readonly VarCharColumn SopInstanceUid = new VarCharColumn("SopInstanceUid", 64);
@@ -253,6 +251,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly TinyIntColumn Status = new TinyIntColumn("Status");
             internal readonly DateTime2Column LastStatusUpdatedDate = new DateTime2Column("LastStatusUpdatedDate", 7);
             internal readonly DateTime2Column CreatedDate = new DateTime2Column("CreatedDate", 7);
+            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
+            internal readonly VarCharColumn PartitionName = new VarCharColumn("PartitionName", 64);
             internal readonly Index IXC_Instance = new Index("IXC_Instance");
             internal readonly Index IX_Instance_PartitionName_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_Instance_PartitionName_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
             internal readonly Index IX_Instance_PartitionName_StudyInstanceUid_Status = new Index("IX_Instance_PartitionName_StudyInstanceUid_Status");
@@ -283,12 +283,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             internal readonly BigIntColumn SeriesKey = new BigIntColumn("SeriesKey");
-            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
             internal readonly VarCharColumn SeriesInstanceUid = new VarCharColumn("SeriesInstanceUid", 64);
             internal readonly NullableNVarCharColumn Modality = new NullableNVarCharColumn("Modality", 16);
             internal readonly NullableDateColumn PerformedProcedureStepStartDate = new NullableDateColumn("PerformedProcedureStepStartDate");
             internal readonly NullableNVarCharColumn ManufacturerModelName = new NullableNVarCharColumn("ManufacturerModelName", 64);
+            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_Series = new Index("IXC_Series");
             internal readonly Index IX_Series_SeriesKey = new Index("IX_Series_SeriesKey");
             internal readonly Index IX_Series_StudyKey_SeriesInstanceUid = new Index("IX_Series_StudyKey_SeriesInstanceUid");
@@ -304,7 +304,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
-            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly VarCharColumn StudyInstanceUid = new VarCharColumn("StudyInstanceUid", 64);
             internal readonly NVarCharColumn PatientId = new NVarCharColumn("PatientId", 64);
             internal readonly NullableNVarCharColumn PatientName = new NullableNVarCharColumn("PatientName", 200, "SQL_Latin1_General_CP1_CI_AI");
@@ -315,6 +314,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal const string PatientNameWords = "PatientNameWords";
             internal const string ReferringPhysicianNameWords = "ReferringPhysicianNameWords";
             internal readonly NullableDateColumn PatientBirthDate = new NullableDateColumn("PatientBirthDate");
+            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_Study = new Index("IXC_Study");
             internal readonly Index IX_Study_StudyKey = new Index("IX_Study_StudyKey");
             internal readonly Index IX_Study_PartitionKey_StudyInstanceUid = new Index("IX_Study_PartitionKey_StudyInstanceUid");
