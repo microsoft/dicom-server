@@ -23,6 +23,13 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
     TagKey
 )
 
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagKey_TagStatus ON dbo.ExtendedQueryTag
+(
+    TagKey,
+    TagStatus
+)
+WITH (DATA_COMPRESSION = PAGE)
+
 CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath ON dbo.ExtendedQueryTag
 (
     TagPath

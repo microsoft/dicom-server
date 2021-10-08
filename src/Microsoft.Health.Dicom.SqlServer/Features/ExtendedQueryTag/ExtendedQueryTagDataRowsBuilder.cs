@@ -42,12 +42,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             var dateTimeWithUtcRows = new List<InsertDateTimeExtendedQueryTagTableTypeV2Row>();
             var personNameRows = new List<InsertPersonNameExtendedQueryTagTableTypeV1Row>();
 
-            int maxVersion = 0;
             foreach (QueryTag queryTag in queryTags.Where(x => x.IsExtendedQueryTag))
             {
-                // Update MaxVersion
-                maxVersion = Math.Max(maxVersion, queryTag.ExtendedQueryTagStoreEntry.Key);
-
                 // Create row
                 ExtendedQueryTagDataType dataType = ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[queryTag.VR.Code];
                 switch (dataType)
@@ -80,9 +76,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 DateTimeRows = dateTimeRows,
                 DateTimeWithUtcRows = dateTimeWithUtcRows,
                 PersonNameRows = personNameRows,
-                MaxTagKey = maxVersion,
             };
         }
+
+        public static int GetMaxTagKey(IEnumerable<QueryTag> queryTags)
+            => EnsureArg.IsNotNull(queryTags, nameof(queryTags))
+                .Where(x => x.IsExtendedQueryTag)
+                .Select(x => x.ExtendedQueryTagStoreEntry.Key)
+                .Max();
 
         private static void AddPersonNameRow(DicomDataset instance, List<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNamRows, QueryTag queryTag)
         {

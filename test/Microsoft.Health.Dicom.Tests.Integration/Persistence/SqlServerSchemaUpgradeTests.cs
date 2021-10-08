@@ -34,10 +34,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var comparison = new SchemaComparison(snapshotEndpoint, diffEndpoint);
             SchemaComparisonResult result = comparison.Compare();
 
-
             // filter our sproc bodyscript differences because of auto-generation 
             var actualDiffs = new List<SchemaDifference>();
-            if (result.IsEqual == false)
+            if (!result.IsEqual)
             {
                 foreach (var diff in result.Differences)
                 {
@@ -58,7 +57,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     }
                 }
             }
-            Assert.True(actualDiffs.Count == 0);
+
+            Assert.Empty(actualDiffs);
 
             // cleanup if succeeds
             await snapshotFixture.DisposeAsync();
@@ -86,7 +86,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var newProcedures = SqlTestUtils.GetStoredProcedures(newSqlStore);
 
             // Validate if stored procedures are compatible
-            StoredProcedureCompatibleValidator.Validate(newProcedures, oldProcedures);
+            StoredProcedureCompatibleValidator.Validate(schemaVersion, newProcedures, oldProcedures);
 
             // Dispose if pass
             await oldSqlStore.DisposeAsync();
