@@ -189,7 +189,7 @@ BEGIN
                  -- When index already exist, update only when watermark is newer
                 UPDATE SET T.Watermark = IIF(@watermark > T.Watermark, @watermark, T.Watermark), T.TagValue = IIF(@watermark > T.Watermark, S.TagValue, T.TagValue)
             WHEN NOT MATCHED THEN
-               INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark)
+               INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark, TagValueUtc)
                 VALUES
                 (
                     S.TagKey,

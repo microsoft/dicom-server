@@ -152,7 +152,7 @@ AS
     INSERT INTO dbo.Instance
         (PartitionKey, StudyKey, SeriesKey, InstanceKey, PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
     VALUES
-        (@partitionKey, @studyKey, @seriesKey, @instanceKey, @partitionName, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
+        (@partitionKey, @studyKey, @seriesKey, @instanceKey, @partitionName, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, 0, @currentDate, @currentDate)
 
     SELECT @newWatermark
 

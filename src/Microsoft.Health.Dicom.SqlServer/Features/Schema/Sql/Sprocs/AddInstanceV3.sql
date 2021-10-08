@@ -46,6 +46,8 @@
 --         * DateTime extended query tag data
 --     @personNameExtendedQueryTags
 --         * PersonName extended query tag data
+--     @initialStatus
+--         * The initial status of the instance (0 | 1 | 2)
 -- RETURN VALUE
 --     The watermark (version).
 ------------------------------------------------------------------------

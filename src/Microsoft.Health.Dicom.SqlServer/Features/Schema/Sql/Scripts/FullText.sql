@@ -16,7 +16,7 @@ IF NOT EXISTS (
     where object_id = object_id('dbo.Study'))
 BEGIN
     CREATE FULLTEXT INDEX ON Study(PatientNameWords, ReferringPhysicianNameWords LANGUAGE 1033)
-    KEY INDEX IXC_Study
+    KEY INDEX IX_Study_StudyKey
     WITH STOPLIST = OFF;
 END
 GO

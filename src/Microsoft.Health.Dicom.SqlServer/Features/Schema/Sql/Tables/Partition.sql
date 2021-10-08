@@ -14,7 +14,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_Partition ON dbo.Partition
     PartitionKey
 )
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Partition_PartitionName ON dbo.Study
+CREATE UNIQUE NONCLUSTERED INDEX IX_Partition_PartitionName ON dbo.Partition
 (
     PartitionName
 ) WITH (DATA_COMPRESSION = PAGE)
