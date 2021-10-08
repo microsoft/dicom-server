@@ -258,13 +258,11 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         public static long? GetStringTimeAsLong(this DicomDataset dicomDataset, DicomTag dicomTag, DicomVR expectedVR = null)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
-            string stringTime = dicomDataset.GetSingleValueOrDefault<string>(dicomTag, expectedVR: expectedVR);
-
             long? result;
+
             try
             {
-                DicomTime dicomTime = new DicomTime(dicomTag, new string[] { stringTime });
-                result = dicomTime.Get<DateTime>().Ticks;
+                result = dicomDataset.GetSingleValueOrDefault<DateTime>(dicomTag, expectedVR: expectedVR).Ticks;
             }
             catch (Exception)
             {
