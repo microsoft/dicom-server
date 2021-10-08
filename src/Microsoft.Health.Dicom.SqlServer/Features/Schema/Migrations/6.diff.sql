@@ -183,8 +183,7 @@ GO
 /*************************************************************
     Stored procedures that are no longer necessary
 *************************************************************/
-DROP PROCEDURE IF EXISTS dbo.BeginAddInstance
-DROP PROCEDURE IF EXISTS dbo.EndAddInstance
+DROP PROCEDURE IF EXISTS dbo.BeginAddInstance, dbo.EndAddInstance
 GO
 
 /***************************************************************************************/
@@ -230,7 +229,6 @@ CREATE OR ALTER PROCEDURE dbo.IndexInstanceCore
     @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
 BEGIN
-
     -- String Key tags
     IF EXISTS (SELECT 1 FROM @stringExtendedQueryTags)
     BEGIN
@@ -397,7 +395,6 @@ BEGIN
                 @watermark
             );
     END
-
 END
 GO
 
@@ -708,7 +705,7 @@ BEGIN
 
     COMMIT TRANSACTION
 END
-
+GO
 
 COMMIT TRANSACTION
 GO

@@ -80,10 +80,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         }
 
         public static int GetMaxTagKey(IEnumerable<QueryTag> queryTags)
-            => EnsureArg.IsNotNull(queryTags, nameof(queryTags))
-                .Where(x => x.IsExtendedQueryTag)
-                .Select(x => x.ExtendedQueryTagStoreEntry.Key)
-                .Max();
+        {
+            EnsureArg.IsNotNull(queryTags, nameof(queryTags));
+
+            int max = 0;
+            foreach (QueryTag tag in queryTags.Where(x => x.IsExtendedQueryTag))
+            {
+                max = Math.Max(max, tag.ExtendedQueryTagStoreEntry.Key);
+            }
+
+            return max;
+        }
 
         private static void AddPersonNameRow(DicomDataset instance, List<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNamRows, QueryTag queryTag)
         {

@@ -41,7 +41,6 @@ CREATE OR ALTER PROCEDURE dbo.IndexInstanceCore
     @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
 BEGIN
-
     -- String Key tags
     IF EXISTS (SELECT 1 FROM @stringExtendedQueryTags)
     BEGIN
@@ -208,5 +207,4 @@ BEGIN
                 @watermark
             );
     END
-
 END
