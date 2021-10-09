@@ -21,6 +21,24 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         }
 
         [Fact]
+        public void GivenDateTimeIsInvalidException_WhenGetMessage_ShouldReturnExpected()
+        {
+            var name = "tagname";
+            var value = "tagvalue";
+            var exception = ElementValidationExceptionFactory.CreateDateTimeIsInvalidException(name, value);
+            Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR 'DT': Value cannot be parsed as a valid DateTime.", exception.Message);
+        }
+
+        [Fact]
+        public void GivenTimeIsInvalidException_WhenGetMessage_ShouldReturnExpected()
+        {
+            var name = "tagname";
+            var value = "tagvalue";
+            var exception = ElementValidationExceptionFactory.CreateTimeIsInvalidException(name, value);
+            Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR 'TM': Value cannot be parsed as a valid Time.", exception.Message);
+        }
+
+        [Fact]
         public void GivenExceedMaxLengthException_WhenGetMessage_ShouldReturnExpected()
         {
             var name = "tagname";
