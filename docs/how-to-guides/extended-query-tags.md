@@ -236,7 +236,7 @@ Currently, only the following VR types are supported:
 - Unsigned Long (UL)
 - Unsigned Short (US)
 
-Sequential tags i.e. tags under a tag of type Sequence of Items (SQ) are currently not supported.
+Sequential tags i.e. tags under a tag of type Sequence of Items (SQ) are currently not supported. Passing in offsets when querying on DT type is also not supported.
 
 All management APIs are currently synchronous. This means that a [delete](#remove-an-extended-query-tag) request may run long as it attempts to remove any infrastructure that was put in place to support querying against the extended query tag. 
 
