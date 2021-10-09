@@ -23,9 +23,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// </summary>
         /// <param name="dicomDataset">The DICOM dataset to index.</param>
         /// <param name="queryTags">Queryable dicom tags</param>
+        /// <param name="partitionName">Optional client-specified partition name.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous add operation.</returns>
-        Task<long> BeginCreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
+        Task<long> BeginCreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, string partitionName = DefaultPartition.Name, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously reindex a DICOM instance.
@@ -33,18 +34,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <param name="dicomDataset">The DICOM dataset to reindex.</param>
         /// <param name="watermark">The DICOM instance watermark.</param>
         /// <param name="queryTags">Queryable dicom tags</param>
+        /// <param name="partitionName">Optional client-specified partition name.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous reindex operation.</returns>
-        Task ReindexInstanceAsync(DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
+        Task ReindexInstanceAsync(DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, string partitionName = DefaultPartition.Name, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously deletes the indices of all instances which belongs to the study specified by the <paramref name="studyInstanceUid"/>.
         /// </summary>
         /// <param name="studyInstanceUid">The StudyInstanceUID.</param>
         /// <param name="cleanupAfter">The date that the record can be cleaned up.</param>
+        /// <param name="partitionName">Optional client-specified partition name.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous delete operation.</returns>
-        Task DeleteStudyIndexAsync(string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
+        Task DeleteStudyIndexAsync(string studyInstanceUid, DateTimeOffset cleanupAfter, string partitionName = DefaultPartition.Name, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously deletes the indices of all instances which belong to the series specified by the <paramref name="studyInstanceUid"/> and <paramref name="seriesInstanceUid"/>.
@@ -52,9 +55,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <param name="studyInstanceUid">The StudyInstanceUID.</param>
         /// <param name="seriesInstanceUid">The SeriesInstanceUID.</param>
         /// <param name="cleanupAfter">The date that the record can be cleaned up.</param>
+        /// <param name="partitionName">Optional client-specified partition name.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous delete operation.</returns>
-        Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
+        Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, string partitionName = DefaultPartition.Name, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously deletes the indices of the instance specified by the <paramref name="studyInstanceUid"/>, <paramref name="seriesInstanceUid"/>, and <paramref name="sopInstanceUid"/>.
@@ -63,9 +67,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <param name="seriesInstanceUid">The SeriesInstanceUID.</param>
         /// <param name="sopInstanceUid">The SopInstanceUID.</param>
         /// <param name="cleanupAfter">The date that the record can be cleaned up.</param>
+        /// <param name="partitionName">Optional client-specified partition name.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous delete operation.</returns>
-        Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
+        Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, string partitionName = DefaultPartition.Name, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously completes the addition of a DICOM instance.
@@ -73,10 +78,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <param name="dicomDataset">The DICOM dataset whose status should be updated.</param>
         /// <param name="watermark">The DICOM instance watermark.</param>
         /// <param name="queryTags">Queryable dicom tags</param>
+        /// <param name="partitionName">Optional client-specified partition name.</param>
         /// <param name="allowExpiredTags">Optionally allow an out-of-date snapshot of <paramref name="queryTags"/>.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous update operation.</returns>
-        Task EndCreateInstanceIndexAsync(DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, bool allowExpiredTags = false, CancellationToken cancellationToken = default);
+        Task EndCreateInstanceIndexAsync(DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, string partitionName = DefaultPartition.Name, bool allowExpiredTags = false, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Return a collection of deleted instances.

@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
 
             // Only reindex on valid query tags
             var validQueryTags = await _dicomDatasetReindexValidator.ValidateAsync(dataset, versionedInstanceId.Version, entries.Select(x => new QueryTag(x)).ToList(), cancellationToken);
-            await _indexDataStore.ReindexInstanceAsync(dataset, versionedInstanceId.Version, validQueryTags, cancellationToken);
+            await _indexDataStore.ReindexInstanceAsync(dataset, versionedInstanceId.Version, validQueryTags, versionedInstanceId.PartitionName, cancellationToken);
         }
     }
 }

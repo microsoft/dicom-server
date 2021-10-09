@@ -54,7 +54,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
             IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
-            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dicomDataset, queryTags, cancellationToken);
+            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dicomDataset, queryTags, null, cancellationToken);
             var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(watermark);
 
             try
@@ -103,6 +103,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                     versionedInstanceIdentifier.StudyInstanceUid,
                     versionedInstanceIdentifier.SeriesInstanceUid,
                     versionedInstanceIdentifier.SopInstanceUid,
+                    versionedInstanceIdentifier.PartitionName,
                     CancellationToken.None);
             }
             catch (Exception)

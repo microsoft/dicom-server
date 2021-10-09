@@ -51,27 +51,27 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
             _logger = logger;
         }
 
-        public Task DeleteStudyAsync(string studyInstanceUid, CancellationToken cancellationToken)
+        public Task DeleteStudyAsync(string studyInstanceUid, string partitionName = DefaultPartition.Name, CancellationToken cancellationToken = default)
         {
             DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.DeleteDelay);
-            return _indexDataStore.DeleteStudyIndexAsync(studyInstanceUid, cleanupAfter, cancellationToken);
+            return _indexDataStore.DeleteStudyIndexAsync(studyInstanceUid, cleanupAfter, partitionName, cancellationToken);
         }
 
-        public Task DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken)
+        public Task DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid, string partitionName = DefaultPartition.Name, CancellationToken cancellationToken = default)
         {
             DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.DeleteDelay);
-            return _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
+            return _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, cleanupAfter, partitionName, cancellationToken);
         }
 
-        public Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
+        public Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string partitionName = DefaultPartition.Name, CancellationToken cancellationToken = default)
         {
             DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.DeleteDelay);
-            return _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
+            return _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, partitionName, cancellationToken);
         }
 
-        public Task DeleteInstanceNowAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
+        public Task DeleteInstanceNowAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string partitionName = DefaultPartition.Name, CancellationToken cancellationToken = default)
         {
-            return _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow, cancellationToken);
+            return _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow, partitionName, cancellationToken);
         }
 
         public async Task<(bool success, int retrievedInstanceCount)> CleanupDeletedInstancesAsync(CancellationToken cancellationToken)

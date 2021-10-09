@@ -40,11 +40,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 default,
                 "The DICOM instance has been successfully created with version '{Version}'.");
 
-        private static readonly Action<ILogger, string, string, string, DateTimeOffset, Exception> LogDeleteInstanceIndexDelegate =
-            LoggerMessage.Define<string, string, string, DateTimeOffset>(
+        private static readonly Action<ILogger, InstanceIdentifier, DateTimeOffset, Exception> LogDeleteInstanceIndexDelegate =
+            LoggerMessage.Define<InstanceIdentifier, DateTimeOffset>(
                 LogLevel.Debug,
                 default,
-                "Deleting DICOM instance index with Study '{StudyInstanceUid}', Series '{SeriesInstanceUid}, and SopInstance '{SopInstanceUid}' to be cleaned up after '{CleanupAfter}'.");
+                "Deleting DICOM instance index with '{DicomInstanceIdentifier}' to be cleaned up after '{CleanupAfter}'.");
 
         private static readonly Action<ILogger, string, string, DateTimeOffset, Exception> LogDeleteSeriesIndexDelegate =
             LoggerMessage.Define<string, string, DateTimeOffset>(
@@ -120,7 +120,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         protected IIndexDataStore IndexDataStore { get; }
 
         /// <inheritdoc />
-        public async Task<long> BeginCreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+        public async Task<long> BeginCreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, string partitionName = DefaultPartition.Name, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
@@ -128,7 +128,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             try
             {
-                long version = await IndexDataStore.BeginCreateInstanceIndexAsync(dicomDataset, queryTags, cancellationToken);
+                long version = await IndexDataStore.BeginCreateInstanceIndexAsync(dicomDataset, queryTags, partitionName, cancellationToken);
 
                 LogCreateInstanceIndexSucceededDelegate(_logger, version, null);
 
@@ -143,14 +143,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task ReindexInstanceAsync(DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+        public async Task ReindexInstanceAsync(DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, string partitionName = DefaultPartition.Name, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomDataset);
             LogReindexIndexDelegate(_logger, dicomDataset.ToInstanceIdentifier(), null);
 
             try
             {
-                await IndexDataStore.ReindexInstanceAsync(dicomDataset, watermark, queryTags, cancellationToken);
+                await IndexDataStore.ReindexInstanceAsync(dicomDataset, watermark, queryTags, partitionName, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
 
@@ -164,13 +164,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, string partitionName = DefaultPartition.Name, CancellationToken cancellationToken = default)
         {
-            LogDeleteInstanceIndexDelegate(_logger, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, null);
+            LogDeleteInstanceIndexDelegate(_logger, new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partitionName), cleanupAfter, null);
 
             try
             {
-                await IndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
+                await IndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, partitionName, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }
@@ -183,13 +183,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, string partitionName = DefaultPartition.Name, CancellationToken cancellationToken = default)
         {
             LogDeleteSeriesIndexDelegate(_logger, studyInstanceUid, seriesInstanceUid, cleanupAfter, null);
 
             try
             {
-                await IndexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
+                await IndexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, cleanupAfter, partitionName, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }
@@ -202,13 +202,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task DeleteStudyIndexAsync(string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public async Task DeleteStudyIndexAsync(string studyInstanceUid, DateTimeOffset cleanupAfter, string partitionName = DefaultPartition.Name, CancellationToken cancellationToken = default)
         {
             LogDeleteStudyInstanceIndexDelegate(_logger, studyInstanceUid, cleanupAfter, null);
 
             try
             {
-                await IndexDataStore.DeleteStudyIndexAsync(studyInstanceUid, cleanupAfter, cancellationToken);
+                await IndexDataStore.DeleteStudyIndexAsync(studyInstanceUid, cleanupAfter, partitionName, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }
@@ -221,13 +221,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task EndCreateInstanceIndexAsync(DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, bool allowExpiredTags = false, CancellationToken cancellationToken = default)
+        public async Task EndCreateInstanceIndexAsync(DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, string partitionName = DefaultPartition.Name, bool allowExpiredTags = false, CancellationToken cancellationToken = default)
         {
             LogEndAddInstanceDelegate(_logger, dicomDataset.ToVersionedInstanceIdentifier(watermark), null);
 
             try
             {
-                await IndexDataStore.EndCreateInstanceIndexAsync(dicomDataset, watermark, queryTags, allowExpiredTags, cancellationToken);
+                await IndexDataStore.EndCreateInstanceIndexAsync(dicomDataset, watermark, queryTags, partitionName, allowExpiredTags, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }
