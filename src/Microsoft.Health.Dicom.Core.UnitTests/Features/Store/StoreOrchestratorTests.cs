@@ -64,7 +64,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             _dicomInstanceEntry.GetStreamAsync(DefaultCancellationToken).Returns(_stream);
 
             _indexDataStore
-                .BeginCreateInstanceIndexAsync(_dicomDataset, Arg.Any<IEnumerable<QueryTag>>(), DefaultCancellationToken)
+                .BeginCreateInstanceIndexAsync(_dicomDataset, Arg.Any<IEnumerable<QueryTag>>())
                 .Returns(DefaultVersion);
 
             _queryTagService
@@ -110,8 +110,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         {
             _metadataStore.StoreInstanceMetadataAsync(
                 _dicomDataset,
-                DefaultVersion,
-                DefaultCancellationToken)
+                DefaultVersion)
                 .Throws(new Exception());
 
             _indexDataStore.ClearReceivedCalls();
@@ -128,11 +127,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         {
             _metadataStore.StoreInstanceMetadataAsync(
                 _dicomDataset,
-                DefaultVersion,
-                DefaultCancellationToken)
+                DefaultVersion)
                 .Throws(new ArgumentException());
 
-            _indexDataStore.DeleteInstanceIndexAsync(default, default, default, default, default).ThrowsForAnyArgs(new InvalidOperationException());
+            _indexDataStore.DeleteInstanceIndexAsync(default, default, default, default).ThrowsForAnyArgs(new InvalidOperationException());
 
             await Assert.ThrowsAsync<ArgumentException>(() => _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken));
         }
@@ -146,9 +144,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                 .EndCreateInstanceIndexAsync(
                     _dicomDataset,
                     DefaultVersionedInstanceIdentifier.Version,
-                    expectedTags,
-                    false,
-                    DefaultCancellationToken);
+                    expectedTags);
 
         private Task ValidateCleanupAsync()
             => _deleteService
@@ -156,7 +152,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                 .DeleteInstanceNowAsync(
                     DefaultStudyInstanceUid,
                     DefaultSeriesInstanceUid,
-                    DefaultSopInstanceUid,
-                    CancellationToken.None);
+                    DefaultSopInstanceUid);
     }
 }
