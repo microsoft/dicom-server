@@ -102,9 +102,6 @@ CREATE TABLE dbo.ExtendedQueryTag (
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag
     ON dbo.ExtendedQueryTag(TagKey);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagKey_TagStatus
-    ON dbo.ExtendedQueryTag(TagKey, TagStatus) WITH (DATA_COMPRESSION = PAGE);
-
 CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath
     ON dbo.ExtendedQueryTag(TagPath);
 
@@ -124,7 +121,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_TagKey_StudyKey_SeriesKey_InstanceKey
     ON dbo.ExtendedQueryTagDateTime(TagKey, StudyKey, SeriesKey, InstanceKey)
-    INCLUDE(TagValue, TagValueUtc, Watermark) WITH (DATA_COMPRESSION = PAGE);
+    INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.ExtendedQueryTagDouble (
     TagKey      INT        NOT NULL,
@@ -141,7 +138,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_TagKey_StudyKey_SeriesKey_InstanceKey
     ON dbo.ExtendedQueryTagDouble(TagKey, StudyKey, SeriesKey, InstanceKey)
-    INCLUDE(TagValue, Watermark) WITH (DATA_COMPRESSION = PAGE);
+    INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.ExtendedQueryTagError (
     TagKey      INT           NOT NULL,
@@ -172,7 +169,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_TagKey_StudyKey_SeriesKey_InstanceKey
     ON dbo.ExtendedQueryTagLong(TagKey, StudyKey, SeriesKey, InstanceKey)
-    INCLUDE(TagValue, Watermark) WITH (DATA_COMPRESSION = PAGE);
+    INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.ExtendedQueryTagOperation (
     TagKey      INT              NOT NULL,
@@ -203,7 +200,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_TagKey_StudyKey_SeriesKey_InstanceKey
     ON dbo.ExtendedQueryTagPersonName(TagKey, StudyKey, SeriesKey, InstanceKey)
-    INCLUDE(TagValue, Watermark) WITH (DATA_COMPRESSION = PAGE);
+    INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE NONCLUSTERED INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey
     ON dbo.ExtendedQueryTagPersonName(WatermarkAndTagKey) WITH (DATA_COMPRESSION = PAGE);
@@ -223,7 +220,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagString_TagKey_StudyKey_SeriesKey_InstanceKey
     ON dbo.ExtendedQueryTagString(TagKey, StudyKey, SeriesKey, InstanceKey)
-    INCLUDE(TagValue, Watermark) WITH (DATA_COMPRESSION = PAGE);
+    INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.Instance (
     InstanceKey           BIGINT        NOT NULL,

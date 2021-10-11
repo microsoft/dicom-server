@@ -103,7 +103,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly TinyIntColumn QueryStatus = new TinyIntColumn("QueryStatus");
             internal readonly IntColumn ErrorCount = new IntColumn("ErrorCount");
             internal readonly Index IXC_ExtendedQueryTag = new Index("IXC_ExtendedQueryTag");
-            internal readonly Index IX_ExtendedQueryTag_TagKey_TagStatus = new Index("IX_ExtendedQueryTag_TagKey_TagStatus");
             internal readonly Index IX_ExtendedQueryTag_TagPath = new Index("IX_ExtendedQueryTag_TagPath");
         }
 

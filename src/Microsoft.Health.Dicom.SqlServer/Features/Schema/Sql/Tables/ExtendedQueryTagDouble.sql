@@ -33,7 +33,6 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_TagKey_StudyKey_Serie
 )
 INCLUDE
 (
-    TagValue,
     Watermark
 )
 WITH (DATA_COMPRESSION = PAGE)

@@ -28,20 +28,6 @@ GO
 
 IF NOT EXISTS (
     SELECT *
-    FROM sys.indexes
-    WHERE name='IX_ExtendedQueryTag_TagKey_TagStatus' AND object_id = OBJECT_ID('dbo.ExtendedQueryTag'))
-BEGIN
-    CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagKey_TagStatus ON dbo.ExtendedQueryTag
-    (
-        TagKey,
-        TagStatus
-    )
-    WITH (DATA_COMPRESSION = PAGE)
-END
-GO
-
-IF NOT EXISTS (
-    SELECT *
     FROM sys.columns c
     INNER JOIN sys.index_columns ic
     ON c.object_id = ic.object_id AND ic.column_id = c.column_id
@@ -75,8 +61,6 @@ BEGIN
     )
     INCLUDE
     (
-        TagValue,
-        TagValueUtc,
         Watermark
     )
     WITH (DATA_COMPRESSION = PAGE)
@@ -97,7 +81,6 @@ BEGIN
     )
     INCLUDE
     (
-        TagValue,
         Watermark
     )
     WITH (DATA_COMPRESSION = PAGE)
@@ -118,7 +101,6 @@ BEGIN
     )
     INCLUDE
     (
-        TagValue,
         Watermark
     )
     WITH (DATA_COMPRESSION = PAGE)
@@ -139,7 +121,6 @@ BEGIN
     )
     INCLUDE
     (
-        TagValue,
         Watermark
     )
     WITH (DATA_COMPRESSION = PAGE)
@@ -173,7 +154,6 @@ BEGIN
     )
     INCLUDE
     (
-        TagValue,
         Watermark
     )
     WITH (DATA_COMPRESSION = PAGE)
