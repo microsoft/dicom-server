@@ -143,16 +143,25 @@ BEGIN
     VALUES
         (@studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
 
-    EXEC dbo.IndexInstanceCore
-        @studyKey,
-        @seriesKey,
-        @instanceKey,
-        @newWatermark,
-        @stringExtendedQueryTags,
-        @longExtendedQueryTags,
-        @doubleExtendedQueryTags,
-        @dateTimeExtendedQueryTags,
-        @personNameExtendedQueryTags
+    BEGIN TRY
+
+        EXEC dbo.IIndexInstanceCore
+            @studyKey,
+            @seriesKey,
+            @instanceKey,
+            @newWatermark,
+            @stringExtendedQueryTags,
+            @longExtendedQueryTags,
+            @doubleExtendedQueryTags,
+            @dateTimeExtendedQueryTags,
+            @personNameExtendedQueryTags
+
+    END TRY
+    BEGIN CATCH
+
+        THROW
+
+    END CATCH
 
     SELECT @newWatermark
 

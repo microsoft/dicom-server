@@ -197,7 +197,7 @@ GO
 -- RETURN VALUE
 --     None
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.IndexInstanceCore
+CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCore
     @studyKey                                                                    BIGINT,
     @seriesKey                                                                   BIGINT,
     @instanceKey                                                                 BIGINT,
@@ -523,16 +523,25 @@ BEGIN
     VALUES
         (@studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
 
-    EXEC dbo.IndexInstanceCore
-        @studyKey,
-        @seriesKey,
-        @instanceKey,
-        @newWatermark,
-        @stringExtendedQueryTags,
-        @longExtendedQueryTags,
-        @doubleExtendedQueryTags,
-        @dateTimeExtendedQueryTags,
-        @personNameExtendedQueryTags
+    BEGIN TRY
+
+        EXEC dbo.IIndexInstanceCore
+            @studyKey,
+            @seriesKey,
+            @instanceKey,
+            @newWatermark,
+            @stringExtendedQueryTags,
+            @longExtendedQueryTags,
+            @doubleExtendedQueryTags,
+            @dateTimeExtendedQueryTags,
+            @personNameExtendedQueryTags
+
+    END TRY
+    BEGIN CATCH
+
+        THROW
+
+    END CATCH
 
     SELECT @newWatermark
 
@@ -595,16 +604,25 @@ BEGIN
         IF @status <> 1 -- Created
             THROW 50409, 'Instance has not yet been stored succssfully', 1
 
-        EXEC dbo.IndexInstanceCore
-            @studyKey,
-            @seriesKey,
-            @instanceKey,
-            @watermark,
-            @stringExtendedQueryTags,
-            @longExtendedQueryTags,
-            @doubleExtendedQueryTags,
-            @dateTimeExtendedQueryTags,
-            @personNameExtendedQueryTags
+        BEGIN TRY
+
+            EXEC dbo.IIndexInstanceCore
+                @studyKey,
+                @seriesKey,
+                @instanceKey,
+                @watermark,
+                @stringExtendedQueryTags,
+                @longExtendedQueryTags,
+                @doubleExtendedQueryTags,
+                @dateTimeExtendedQueryTags,
+                @personNameExtendedQueryTags
+
+        END TRY
+        BEGIN CATCH
+
+            THROW
+
+        END CATCH
 
     COMMIT TRANSACTION
 END

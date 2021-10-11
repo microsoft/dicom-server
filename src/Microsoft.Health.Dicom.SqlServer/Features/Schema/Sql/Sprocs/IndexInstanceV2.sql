@@ -53,16 +53,25 @@ BEGIN
         IF @status <> 1 -- Created
             THROW 50409, 'Instance has not yet been stored succssfully', 1
 
-        EXEC dbo.IndexInstanceCore
-            @studyKey,
-            @seriesKey,
-            @instanceKey,
-            @watermark,
-            @stringExtendedQueryTags,
-            @longExtendedQueryTags,
-            @doubleExtendedQueryTags,
-            @dateTimeExtendedQueryTags,
-            @personNameExtendedQueryTags
+        BEGIN TRY
+
+            EXEC dbo.IIndexInstanceCore
+                @studyKey,
+                @seriesKey,
+                @instanceKey,
+                @watermark,
+                @stringExtendedQueryTags,
+                @longExtendedQueryTags,
+                @doubleExtendedQueryTags,
+                @dateTimeExtendedQueryTags,
+                @personNameExtendedQueryTags
+
+        END TRY
+        BEGIN CATCH
+
+            THROW
+
+        END CATCH
 
     COMMIT TRANSACTION
 END

@@ -29,7 +29,7 @@
 -- RETURN VALUE
 --     None
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.IndexInstanceCore
+CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCore
     @studyKey                                                                    BIGINT,
     @seriesKey                                                                   BIGINT,
     @instanceKey                                                                 BIGINT,
