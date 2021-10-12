@@ -550,6 +550,16 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified range is invalid.
+        ///Both parts in the range cannot be empty..
+        /// </summary>
+        internal static string InvalidRangeValues {
+            get {
+                return ResourceManager.GetString("InvalidRangeValues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified date range &apos;{0}&apos; is invalid.
         ///The first part time {1} should be lesser than or equal to the second part time {2}..
         /// </summary>
