@@ -8,6 +8,7 @@ using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
@@ -32,7 +33,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             string sopInstanceUid,
             CancellationToken cancellationToken)
         {
-            return GetInstanceIdentifierImp("Microsoft.Default", studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
+            return GetInstanceIdentifierImp(DefaultPartition.Name, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
         }
 
         public override Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
@@ -40,14 +41,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             string seriesInstanceUid,
             CancellationToken cancellationToken)
         {
-            return GetInstanceIdentifierImp("Microsoft.Default", studyInstanceUid, cancellationToken, seriesInstanceUid);
+            return GetInstanceIdentifierImp(DefaultPartition.Name, studyInstanceUid, cancellationToken, seriesInstanceUid);
         }
 
         public override Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
             string studyInstanceUid,
             CancellationToken cancellationToken)
         {
-            return GetInstanceIdentifierImp("Microsoft.Default", studyInstanceUid, cancellationToken);
+            return GetInstanceIdentifierImp(DefaultPartition.Name, studyInstanceUid, cancellationToken);
         }
 
         public override async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersByWatermarkRangeAsync(

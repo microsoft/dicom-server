@@ -16,6 +16,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
@@ -56,7 +57,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
                 VLatest.AddInstanceV3.PopulateCommand(
                     sqlCommandWrapper,
-                    "Microsoft.Default",
+                    DefaultPartition.Name,
                     instance.GetString(DicomTag.StudyInstanceUID),
                     instance.GetString(DicomTag.SeriesInstanceUID),
                     instance.GetString(DicomTag.SOPInstanceUID),
@@ -100,7 +101,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
             EnsureArg.IsNotNullOrEmpty(sopInstanceUid, nameof(sopInstanceUid));
 
-            await DeleteInstanceAsync("Microsoft.Default", studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
+            await DeleteInstanceAsync(DefaultPartition.Name, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
         }
 
         public override async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
@@ -108,14 +109,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
 
-            await DeleteInstanceAsync("Microsoft.Default", studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cleanupAfter, cancellationToken);
+            await DeleteInstanceAsync(DefaultPartition.Name, studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cleanupAfter, cancellationToken);
         }
 
         public override async Task DeleteStudyIndexAsync(string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
 
-            await DeleteInstanceAsync("Microsoft.Default", studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cleanupAfter, cancellationToken);
+            await DeleteInstanceAsync(DefaultPartition.Name, studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cleanupAfter, cancellationToken);
         }
 
         public override async Task EndCreateInstanceIndexAsync(
@@ -132,7 +133,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             {
                 VLatest.UpdateInstanceStatusV2.PopulateCommand(
                     sqlCommandWrapper,
-                    "Microsoft.Default",
+                    DefaultPartition.Name,
                     dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
                     dicomDataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
                     dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
@@ -206,7 +207,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             {
                 VLatest.DeleteDeletedInstanceV2.PopulateCommand(
                     sqlCommandWrapper,
-                    "Microsoft.Default",
+                    DefaultPartition.Name,
                     versionedInstanceIdentifier.StudyInstanceUid,
                     versionedInstanceIdentifier.SeriesInstanceUid,
                     versionedInstanceIdentifier.SopInstanceUid,
@@ -230,7 +231,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             {
                 VLatest.IncrementDeletedInstanceRetryV2.PopulateCommand(
                     sqlCommandWrapper,
-                    "Microsoft.Default",
+                    DefaultPartition.Name,
                     versionedInstanceIdentifier.StudyInstanceUid,
                     versionedInstanceIdentifier.SeriesInstanceUid,
                     versionedInstanceIdentifier.SopInstanceUid,

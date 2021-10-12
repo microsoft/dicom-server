@@ -1276,7 +1276,8 @@ BEGIN
     SET XACT_ABORT  ON
 
 
-    SELECT  StudyInstanceUid,
+    SELECT  PartitionName,
+            StudyInstanceUid,
             SeriesInstanceUid,
             SopInstanceUid,
             Watermark
