@@ -209,7 +209,7 @@ The matching types stated below are valid for extended query tags.
 
 | Search Type | Supported VR    | Example                                                      |
 | :---------- | :-------------- | :----------------------------------------------------------- |
-| Range Query | Date (DA), Date Time (DT), Time (TM)       | {attributeID}={value1}-{value2}. For date/ time values, we supported an inclusive range on the tag. This will be mapped to `attributeID >= {value1} AND attributeID <= {value2}`. |
+| Range Query | Date (DA), Date Time (DT), Time (TM)       | {attributeID}={value1}-{value2}. For date/ time values, we support an inclusive range on the tag. This will be mapped to `attributeID >= {value1} AND attributeID <= {value2}`. If {value1} is not specified, all occurrences of dates/times prior to and including {value2} will be matched. Likewise, if {value2} is not specified, all occurrences of {value1} and subsequent dates/times will be matched. However, one of these values has to be present. |
 | Exact Match | All             | {attributeID}={value1}                                       |
 | Fuzzy Match | PersonName (PN) | Matches any component of the patient name which starts with the value. |
 

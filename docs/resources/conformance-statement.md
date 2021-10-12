@@ -310,7 +310,7 @@ We support below matching types.
 
 | Search Type | Supported Attribute | Example |
 | :---------- | :------------------ | :------ |
-| Range Query | StudyDate, PatientBirthDate | {attributeID}={value1}-{value2}. For date/ time values, we supported an inclusive range on the tag. This will be mapped to `attributeID >= {value1} AND attributeID <= {value2}`. |
+| Range Query | StudyDate, PatientBirthDate | {attributeID}={value1}-{value2}. For date/ time values, we support an inclusive range on the tag. This will be mapped to `attributeID >= {value1} AND attributeID <= {value2}`. If {value1} is not specified, all occurrences of dates/times prior to and including {value2} will be matched. Likewise, if {value2} is not specified, all occurrences of {value1} and subsequent dates/times will be matched. However, one of these values has to be present. |
 | Exact Match | All supported attributes | {attributeID}={value1} |
 | Fuzzy Match | PatientName, ReferringPhysicianName | Matches any component of the name which starts with the value. |
 
