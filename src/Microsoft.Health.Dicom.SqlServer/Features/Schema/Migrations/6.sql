@@ -2524,9 +2524,7 @@ WHERE  StudyInstanceUid = @studyInstanceUid
        AND SopInstanceUid = @sopInstanceUid
        AND Watermark = @watermark;
 IF @@ROWCOUNT = 0
-    BEGIN
-        THROW 50404, 'Instance does not exist', 1;
-    END
+    THROW 50404, 'Instance does not exist', 1;
 INSERT  INTO dbo.ChangeFeed (Timestamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
 VALUES                     (@currentDate, 0, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
 UPDATE dbo.ChangeFeed

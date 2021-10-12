@@ -45,10 +45,8 @@ AS
     AND Watermark = @watermark
 
     IF @@ROWCOUNT = 0
-    BEGIN
         -- The instance does not exist. Perhaps it was deleted?
         THROW 50404, 'Instance does not exist', 1;
-    END
 
     -- Insert to change feed.
     -- Currently this procedure is used only updating the status to created

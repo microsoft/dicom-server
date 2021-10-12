@@ -24,6 +24,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
     Sequence
 )
 
+-- Used to update all change feed entries for a particular instance (e.g. DeleteInstance)
 CREATE NONCLUSTERED INDEX IX_ChangeFeed_PartitionName_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.ChangeFeed
 (
     PartitionName,

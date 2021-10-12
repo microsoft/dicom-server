@@ -11,6 +11,25 @@ SET XACT_ABORT ON
 BEGIN TRANSACTION
 
 /*************************************************************
+    Partition Sequence
+    Create sequence for partition key, with default value 1 reserved.
+**************************************************************/
+IF NOT EXISTS
+(
+    SELECT * FROM sys.sequences
+    WHERE Name = 'PartitionKeySequence'
+)
+BEGIN
+    CREATE SEQUENCE dbo.PartitionKeySequence
+    AS INT
+    START WITH 2    -- skipping the default partition
+    INCREMENT BY 1
+    MINVALUE 1
+    NO CYCLE
+    CACHE 10000
+END
+
+/*************************************************************
     Partition Table
     Create table containing data partitions for light-weight multitenancy.
 **************************************************************/
@@ -43,25 +62,6 @@ BEGIN
         (PartitionKey, PartitionName, CreatedDate)
     VALUES
         (1, 'Microsoft.Default', SYSUTCDATETIME())
-END
-
-/*************************************************************
-    Partition Sequence
-    Create sequence for partition key, with default value 1 reserved.
-**************************************************************/
-IF NOT EXISTS
-(
-    SELECT * FROM sys.sequences
-    WHERE Name = 'PartitionKeySequence'
-)
-BEGIN
-    CREATE SEQUENCE dbo.PartitionKeySequence
-    AS INT
-    START WITH 2    -- skipping the default partition
-    INCREMENT BY 1
-    MINVALUE 1
-    NO CYCLE
-    CACHE 10000
 END
 
 /*************************************************************
@@ -1785,16 +1785,26 @@ GO
 **************************************************************/
 SET XACT_ABORT ON
 BEGIN TRANSACTION
+BEGIN TRY           -- wrapping the contents of this transaction in try/catch because errors on index
+                    -- operations won't rollback unless caught and re-thrown
 
 /*******************        Study       **********************/
+
+-- This pattern is followed for several tables below. We are recreating the clustered index, adding
+-- PartitionKey or PartitionName, and then recreating all non-clustered indexes, dropping and creating
+-- with a new name if we are adding new keys, or recreating to properly include the new clustered
+-- index keys.
+-- We first check if one of the old non-clustered indexes that should be dropped is present. If so,
+-- we assume that this portion of the transaction has not successfully completed so far, and proceed.
 IF EXISTS 
 (
     SELECT *
     FROM    sys.indexes
-    WHERE   NAME = 'IX_Study_StudyInstanceUid'
+    WHERE   NAME = 'IX_Study_StudyInstanceUid'  -- A non-clustered index that would be dropped if previously run
         AND Object_id = OBJECT_ID('dbo.Study')
 )
 BEGIN
+    -- recreate the clustered index
     CREATE UNIQUE CLUSTERED INDEX IXC_Study ON dbo.Study
     (
         PartitionKey,
@@ -1806,11 +1816,13 @@ BEGIN
         ONLINE = ON
     )
 
+    -- Add a new index
     CREATE UNIQUE NONCLUSTERED INDEX IX_Study_StudyKey ON dbo.Study
     (
         StudyKey
     ) WITH (DATA_COMPRESSION = PAGE)
 
+    -- Drop an existing index and create with a new name to reflect new keys
     DROP INDEX IX_Study_StudyInstanceUid ON dbo.Study
 
     CREATE UNIQUE NONCLUSTERED INDEX IX_Study_PartitionKey_StudyInstanceUid ON dbo.Study
@@ -1819,6 +1831,7 @@ BEGIN
         StudyInstanceUid
     ) WITH (DATA_COMPRESSION = PAGE)
 
+    -- Recreate index in order to reflect new clustered index keys, so below
     CREATE NONCLUSTERED INDEX IX_Study_PatientId ON dbo.Study
     (
         PatientId
@@ -1897,7 +1910,6 @@ BEGIN
     )
 
 END
-GO
 
 /*******************        Series       **********************/
 IF EXISTS 
@@ -1973,7 +1985,6 @@ BEGIN
     )
 
 END
-GO
 
 /*******************        Instance       **********************/
 
@@ -2083,7 +2094,6 @@ BEGIN
     WITH (DATA_COMPRESSION = PAGE)
 
 END
-GO
 
 /*******************       ChangeFeed      **********************/
 IF EXISTS 
@@ -2104,7 +2114,6 @@ BEGIN
         SopInstanceUid
     ) WITH (DATA_COMPRESSION = PAGE)
 END
-GO
 
 /***************        DeletedInstance       *******************/
 IF NOT EXISTS  (SELECT  *
@@ -2147,7 +2156,6 @@ BEGIN
     )
 
 END
-GO
 
 /***********        ExtendedQueryTagDateTime       **************/
 
@@ -2179,7 +2187,6 @@ BEGIN
         ONLINE = ON
     )
 END
-GO
 
 /************        ExtendedQueryTagDouble       ***************/
 
@@ -2211,7 +2218,6 @@ BEGIN
         ONLINE = ON
     )
 END
-GO
 
 /*************        ExtendedQueryTagLong       ****************/
 
@@ -2244,7 +2250,6 @@ BEGIN
         ONLINE = ON
     )
 END
-GO
 
 /**********        ExtendedQueryTagPersonName       *************/
 
@@ -2276,7 +2281,6 @@ BEGIN
         ONLINE = ON
     )
 END
-GO
 
 /************        ExtendedQueryTagString       ***************/
 
@@ -2309,9 +2313,15 @@ BEGIN
         ONLINE = ON
     )
 END
-GO
 
 COMMIT TRANSACTION
+
+END TRY
+BEGIN CATCH
+    ROLLBACK;
+    THROW;
+END CATCH
+
 
 /*************************************************************
 Full text catalog and index creation outside transaction
