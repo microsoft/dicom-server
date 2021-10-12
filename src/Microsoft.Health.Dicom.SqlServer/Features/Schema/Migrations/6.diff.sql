@@ -2106,14 +2106,18 @@ END
 GO
 
 /***************        DeletedInstance       *******************/
-SELECT ic.index_column_id 
-FROM sys.indexes i
-JOIN sys.index_columns ic
-    ON i.index_id = ic.index_id
-WHERE i.name = 'IXC_DeletedInstance'
-    AND ic.object_id = OBJECT_ID('dbo.DeletedInstance')
-
-IF @@ROWCOUNT < 5
+IF NOT EXISTS  (SELECT  *
+    FROM    sys.index_columns ic
+    JOIN    sys.indexes i
+    ON      ic.object_id = i.object_id
+            AND ic.index_id = i.index_id
+    JOIN    sys.columns c
+    ON      c.object_id = i.object_id
+            AND c.column_id = ic.column_id
+    WHERE   i.name = 'IXC_DeletedInstance'
+            AND ic.object_id = OBJECT_ID('dbo.DeletedInstance')
+            AND ic.is_included_column = 0
+            AND c.name = 'PartitionName')
 BEGIN
    CREATE UNIQUE CLUSTERED INDEX IXC_DeletedInstance ON dbo.DeletedInstance
     (
@@ -2146,14 +2150,18 @@ GO
 
 /***********        ExtendedQueryTagDateTime       **************/
 
-SELECT ic.index_column_id
-FROM sys.indexes i
-JOIN sys.index_columns ic
-    ON i.index_id = ic.index_id
-WHERE i.name = 'IXC_ExtendedQueryTagDateTime'
-    AND ic.object_id = OBJECT_ID('dbo.ExtendedQueryTagDateTime')
-
-IF @@ROWCOUNT < 6
+IF NOT EXISTS  (SELECT  *
+    FROM    sys.index_columns ic
+    JOIN    sys.indexes i
+    ON      ic.object_id = i.object_id
+            AND ic.index_id = i.index_id
+    JOIN    sys.columns c
+    ON      c.object_id = i.object_id
+            AND c.column_id = ic.column_id
+    WHERE   i.name = 'IXC_ExtendedQueryTagDateTime'
+            AND ic.object_id = OBJECT_ID('dbo.ExtendedQueryTagDateTime')
+            AND ic.is_included_column = 0
+            AND c.name = 'PartitionKey')
 BEGIN
     CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryTagDateTime
     (
@@ -2174,14 +2182,18 @@ GO
 
 /************        ExtendedQueryTagDouble       ***************/
 
-SELECT ic.index_column_id
-FROM sys.indexes i
-JOIN sys.index_columns ic
-    ON i.index_id = ic.index_id
-WHERE i.name = 'IXC_ExtendedQueryTagDouble'
-    AND ic.object_id = OBJECT_ID('dbo.ExtendedQueryTagDouble')
-
-IF @@ROWCOUNT < 6
+IF NOT EXISTS  (SELECT  *
+    FROM    sys.index_columns ic
+    JOIN    sys.indexes i
+    ON      ic.object_id = i.object_id
+            AND ic.index_id = i.index_id
+    JOIN    sys.columns c
+    ON      c.object_id = i.object_id
+            AND c.column_id = ic.column_id
+    WHERE   i.name = 'IXC_ExtendedQueryTagDouble'
+            AND ic.object_id = OBJECT_ID('dbo.ExtendedQueryTagDouble')
+            AND ic.is_included_column = 0
+            AND c.name = 'PartitionKey')
 BEGIN
     CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble ON dbo.ExtendedQueryTagDouble
     (
@@ -2202,14 +2214,18 @@ GO
 
 /*************        ExtendedQueryTagLong       ****************/
 
-SELECT ic.index_column_id
-FROM sys.indexes i
-JOIN sys.index_columns ic
-    ON i.index_id = ic.index_id
-WHERE i.name = 'IXC_ExtendedQueryTagLong'
-    AND ic.object_id = OBJECT_ID('dbo.ExtendedQueryTagLong')
-
-IF @@ROWCOUNT < 6
+IF NOT EXISTS  (SELECT  *
+    FROM    sys.index_columns ic
+    JOIN    sys.indexes i
+    ON      ic.object_id = i.object_id
+            AND ic.index_id = i.index_id
+    JOIN    sys.columns c
+    ON      c.object_id = i.object_id
+            AND c.column_id = ic.column_id
+    WHERE   i.name = 'IXC_ExtendedQueryTagLong'
+            AND ic.object_id = OBJECT_ID('dbo.ExtendedQueryTagLong')
+            AND ic.is_included_column = 0
+            AND c.name = 'PartitionKey')
 BEGIN
     
     CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong ON dbo.ExtendedQueryTagLong
@@ -2231,14 +2247,18 @@ GO
 
 /**********        ExtendedQueryTagPersonName       *************/
 
-SELECT ic.index_column_id
-FROM sys.indexes i
-JOIN sys.index_columns ic
-    ON i.index_id = ic.index_id
-WHERE i.name = 'IXC_ExtendedQueryTagPersonName'
-    AND ic.object_id = OBJECT_ID('dbo.ExtendedQueryTagPersonName')
-
-IF @@ROWCOUNT < 6
+IF NOT EXISTS  (SELECT  *
+    FROM    sys.index_columns ic
+    JOIN    sys.indexes i
+    ON      ic.object_id = i.object_id
+            AND ic.index_id = i.index_id
+    JOIN    sys.columns c
+    ON      c.object_id = i.object_id
+            AND c.column_id = ic.column_id
+    WHERE   i.name = 'IXC_ExtendedQueryTagPersonName'
+            AND ic.object_id = OBJECT_ID('dbo.ExtendedQueryTagPersonName')
+            AND ic.is_included_column = 0
+            AND c.name = 'PartitionKey')
 BEGIN
         CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName ON dbo.ExtendedQueryTagPersonName
     (
@@ -2259,14 +2279,18 @@ GO
 
 /************        ExtendedQueryTagString       ***************/
 
-SELECT ic.index_column_id
-FROM sys.indexes i
-JOIN sys.index_columns ic
-    ON i.index_id = ic.index_id
-WHERE i.name = 'IXC_ExtendedQueryTagString'
-    AND ic.object_id = OBJECT_ID('dbo.ExtendedQueryTagString')
-
-IF @@ROWCOUNT < 6
+IF NOT EXISTS  (SELECT  *
+    FROM    sys.index_columns ic
+    JOIN    sys.indexes i
+    ON      ic.object_id = i.object_id
+            AND ic.index_id = i.index_id
+    JOIN    sys.columns c
+    ON      c.object_id = i.object_id
+            AND c.column_id = ic.column_id
+    WHERE   i.name = 'IXC_ExtendedQueryTagString'
+            AND ic.object_id = OBJECT_ID('dbo.ExtendedQueryTagString')
+            AND ic.is_included_column = 0
+            AND c.name = 'PartitionKey')
 BEGIN
     
     CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString ON dbo.ExtendedQueryTagString
