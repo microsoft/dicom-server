@@ -205,7 +205,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         private static IActionResult CreateResult(RetrieveResourceResponse response)
         {
-            return new MultipartResult((int)HttpStatusCode.OK, response.ResponseStreams.Select(x => new MultipartItem(response.ContentType, x)).ToList());
+            return new MultipartResult((int)HttpStatusCode.OK, response.ResponseStreams.Select(x => new MultipartItem(response.ContentType, x, response.TransferSyntax)).ToList());
         }
     }
 }

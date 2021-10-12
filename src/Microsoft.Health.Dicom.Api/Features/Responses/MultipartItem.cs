@@ -16,13 +16,18 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
         private bool _disposed;
         private readonly StreamContent _streamContent;
 
-        public MultipartItem(string contentType, Stream stream)
+        public MultipartItem(string contentType, Stream stream, string transferSyntax = "")
         {
             EnsureArg.IsNotNullOrWhiteSpace(contentType, nameof(contentType));
             EnsureArg.IsNotNull(stream, nameof(stream));
 
             _streamContent = new StreamContent(stream);
-            _streamContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+            var mediaType = new MediaTypeHeaderValue(contentType);
+
+            if (!string.IsNullOrEmpty(transferSyntax))
+                mediaType.Parameters.Add(new NameValueHeaderValue("transfer-syntax", transferSyntax));
+
+            _streamContent.Headers.ContentType = mediaType;
         }
 
         public HttpContent Content => _streamContent;
