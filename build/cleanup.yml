@@ -19,7 +19,10 @@ jobs:
       azurePowerShellVersion: latestVersion
       ScriptType: InlineScript
       Inline: |
-        Get-AzKeyVault -VaultName $(deploymentName) -Location $(resourceGroupRegion) -InRemovedState | Remove-AzKeyVault -VaultName $(deploymentName) -InRemovedState -Location $(resourceGroupRegion) -Force
+        if (Get-AzKeyVault -VaultName $(deploymentName) -Location $(resourceGroupRegion) -InRemovedState)
+        {
+            Remove-AzKeyVault -VaultName $(deploymentName) -InRemovedState -Location $(resourceGroupRegion) -Force
+        }
 
 - job: cleanupAad
   displayName: 'Cleanup Azure Active Directory'
