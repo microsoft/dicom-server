@@ -551,7 +551,8 @@ namespace Microsoft.Health.Dicom.Core {
         
         /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified range is invalid.
-        ///Both parts in the range cannot be empty..
+        ///Both parts in the range cannot be empty.
+        ///For details on valid range queries, please refer to Search Matching section in Conformance Statement (https://github.com/microsoft/dicom-server/blob/main/docs/resources/conformance-statement.md#search-matching)..
         /// </summary>
         internal static string InvalidRangeValues {
             get {
