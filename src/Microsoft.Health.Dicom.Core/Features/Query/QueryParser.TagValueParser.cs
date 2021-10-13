@@ -40,8 +40,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 {
                     string minDateTime = splitString[0].Trim();
                     string maxDateTime = splitString[1].Trim();
-                    DateTime parsedMinDateTime = parseValue(minDateTime, queryTag.GetName());
-                    DateTime parsedMaxDateTime = parseValue(maxDateTime, queryTag.GetName());
+
+                    // Make sure both parts of the range values are not empty.
+                    // If so, throw an exception.
+                    ValidateEmptyValuesForRangeQuery(minDateTime, maxDateTime);
+
+                    DateTime parsedMinDateTime = string.IsNullOrEmpty(minDateTime) ? DateTime.MinValue : parseValue(minDateTime, queryTag.GetName());
+                    DateTime parsedMaxDateTime = string.IsNullOrEmpty(maxDateTime) ? DateTime.MaxValue : parseValue(maxDateTime, queryTag.GetName());
 
                     if (parsedMinDateTime > parsedMaxDateTime)
                     {
@@ -56,7 +61,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 }
             }
 
-            DateTime parsedDateTime = ParseDateTime(value, queryTag.GetName());
+            DateTime parsedDateTime = parseValue(value, queryTag.GetName());
             return new DateSingleValueMatchCondition(queryTag, parsedDateTime);
         }
 
@@ -69,8 +74,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 {
                     string minTime = splitString[0].Trim();
                     string maxTime = splitString[1].Trim();
-                    long parsedMinTime = ParseTime(minTime, queryTag);
-                    long parsedMaxTime = ParseTime(maxTime, queryTag);
+
+                    // Make sure both parts of the range values are not empty.
+                    // If so, throw an exception.
+                    ValidateEmptyValuesForRangeQuery(minTime, maxTime);
+
+                    long parsedMinTime = string.IsNullOrEmpty(minTime) ? 0 : ParseTime(minTime, queryTag);
+                    long parsedMaxTime = string.IsNullOrEmpty(maxTime) ? TimeSpan.TicksPerDay : ParseTime(maxTime, queryTag);
 
                     if (parsedMinTime > parsedMaxTime)
                     {
@@ -160,6 +170,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             }
 
             return timeValue.Ticks;
+        }
+
+        /// <summary>
+        /// Validate if both values for range query are not empty.
+        /// If so, throws an exception.
+        /// </summary>
+        /// <param name="value1">Value 1 of range query.</param>
+        /// <param name="value2">Value 2 of range query.</param>
+        private static void ValidateEmptyValuesForRangeQuery(string value1, string value2)
+        {
+            if (string.IsNullOrEmpty(value1) && string.IsNullOrEmpty(value2))
+            {
+                throw new QueryParseException(DicomCoreResource.InvalidRangeValues);
+            }
         }
     }
 }
