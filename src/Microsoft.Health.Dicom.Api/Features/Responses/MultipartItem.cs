@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
         private bool _disposed;
         private readonly StreamContent _streamContent;
 
-        public MultipartItem(string contentType, Stream stream, string transferSyntax = "")
+        public MultipartItem(string contentType, Stream stream, string transferSyntax = default)
         {
             EnsureArg.IsNotNullOrWhiteSpace(contentType, nameof(contentType));
             EnsureArg.IsNotNull(stream, nameof(stream));
@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
             _streamContent = new StreamContent(stream);
             var mediaType = new MediaTypeHeaderValue(contentType);
 
-            if (!string.IsNullOrEmpty(transferSyntax))
+            if (!string.IsNullOrWhiteSpace(transferSyntax))
                 mediaType.Parameters.Add(new NameValueHeaderValue("transfer-syntax", transferSyntax));
 
             _streamContent.Headers.ContentType = mediaType;
