@@ -100,14 +100,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags, Version);
-                VLatest.IndexInstanceTableValuedParameters parameters = new VLatest.IndexInstanceTableValuedParameters(
+                VLatest.IndexInstanceV2TableValuedParameters parameters = new VLatest.IndexInstanceV2TableValuedParameters(
                     rows.StringRows,
                     rows.LongRows,
                     rows.DoubleRows,
-                    rows.DateTimeRows,
+                    rows.DateTimeWithUtcRows,
                     rows.PersonNameRows);
 
-                VLatest.IndexInstance.PopulateCommand(sqlCommandWrapper, watermark, parameters);
+                VLatest.IndexInstanceV2.PopulateCommand(sqlCommandWrapper, watermark, parameters);
 
                 try
                 {

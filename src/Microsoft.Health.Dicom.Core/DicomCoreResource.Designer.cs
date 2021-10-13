@@ -106,6 +106,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified DateTime value &apos;{0}&apos; for attribute {1} contains offset which is not supported..
+        /// </summary>
+        internal static string DateTimeWithOffsetNotSupported {
+            get {
+                return ResourceManager.GetString("DateTimeWithOffsetNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; failed validation for VR &apos;{1}&apos;: {2}.
         /// </summary>
         internal static string DicomElementValidationFailed {
@@ -196,6 +205,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Value cannot be parsed as a valid DateTime..
+        /// </summary>
+        internal static string ErrorMessageDateTimeIsInvalid {
+            get {
+                return ResourceManager.GetString("ErrorMessageDateTimeIsInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Value length exceeds maximum length of {0}..
         /// </summary>
         internal static string ErrorMessageExceedMaxLength {
@@ -246,6 +264,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string ErrorMessagePersonNameGroupExceedMaxLength {
             get {
                 return ResourceManager.GetString("ErrorMessagePersonNameGroupExceedMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value cannot be parsed as a valid Time..
+        /// </summary>
+        internal static string ErrorMessageTimeIsInvalid {
+            get {
+                return ResourceManager.GetString("ErrorMessageTimeIsInvalid", resourceCulture);
             }
         }
         
@@ -387,7 +414,26 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified Date value &apos;{0}&apos; is invalid for parameter &apos;{1}&apos;. Date should be valid and formatted as yyyyMMdd..
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified date range &apos;{0}&apos; is invalid.
+        ///The first part DateTime {1} should be lesser than or equal to the second part DateTime {2}..
+        /// </summary>
+        internal static string InvalidDateTimeRangeValue {
+            get {
+                return ResourceManager.GetString("InvalidDateTimeRangeValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified DateTime value &apos;{0}&apos; is invalid for attribute &apos;{1}&apos;. DateTime should be valid and formatted as yyyyMMddHHmmss.FFFFFF where yyyy is mandatory..
+        /// </summary>
+        internal static string InvalidDateTimeValue {
+            get {
+                return ResourceManager.GetString("InvalidDateTimeValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified Date value &apos;{0}&apos; is invalid for attribute &apos;{1}&apos;. Date should be valid and formatted as yyyyMMdd..
         /// </summary>
         internal static string InvalidDateValue {
             get {
@@ -500,6 +546,36 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string InvalidQueryStringValue {
             get {
                 return ResourceManager.GetString("InvalidQueryStringValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified range is invalid.
+        ///Both parts in the range cannot be empty.
+        ///For details on valid range queries, please refer to Search Matching section in Conformance Statement (https://github.com/microsoft/dicom-server/blob/main/docs/resources/conformance-statement.md#search-matching)..
+        /// </summary>
+        internal static string InvalidRangeValues {
+            get {
+                return ResourceManager.GetString("InvalidRangeValues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified date range &apos;{0}&apos; is invalid.
+        ///The first part time {1} should be lesser than or equal to the second part time {2}..
+        /// </summary>
+        internal static string InvalidTimeRangeValue {
+            get {
+                return ResourceManager.GetString("InvalidTimeRangeValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified Time value &apos;{0}&apos; is invalid for parameter &apos;{1}&apos;. Time should be valid and formatted as HHmmss.FFFFFF where HH is mandatory..
+        /// </summary>
+        internal static string InvalidTimeValue {
+            get {
+                return ResourceManager.GetString("InvalidTimeValue", resourceCulture);
             }
         }
         

@@ -27,6 +27,8 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             { PersonNameExceedMaxComponents, DicomCoreResource.ErrorMessagePersonNameExceedMaxComponents},
 
             { DateIsInvalid, DicomCoreResource.ErrorMessageDateIsInvalid },
+            { DateTimeIsInvalid, DicomCoreResource.ErrorMessageDateTimeIsInvalid },
+            { TimeIsInvalid, DicomCoreResource.ErrorMessageTimeIsInvalid },
 
             { UidIsInvalid, DicomCoreResource.ErrorMessageUidIsInvalid},
         };

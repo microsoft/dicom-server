@@ -12,6 +12,17 @@ jobs:
       ScriptType: InlineScript
       Inline: |
         Get-AzResourceGroup -Name $(deploymentName) | Remove-AzResourceGroup -Verbose -Force
+  - task: AzurePowerShell@4
+    displayName: 'Purge key vault'
+    inputs:
+      azureSubscription: $(azureSubscriptionName)
+      azurePowerShellVersion: latestVersion
+      ScriptType: InlineScript
+      Inline: |
+        if (Get-AzKeyVault -VaultName $(deploymentName) -Location $(resourceGroupRegion) -InRemovedState)
+        {
+            Remove-AzKeyVault -VaultName $(deploymentName) -InRemovedState -Location $(resourceGroupRegion) -Force
+        }
 
 - job: cleanupAad
   displayName: 'Cleanup Azure Active Directory'
