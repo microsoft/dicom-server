@@ -24,3 +24,16 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryT
     SeriesKey,
     InstanceKey
 )
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_TagKey_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagDateTime
+(
+    TagKey,
+    StudyKey,
+    SeriesKey,
+    InstanceKey
+)
+INCLUDE
+(
+    Watermark
+)
+WITH (DATA_COMPRESSION = PAGE)
