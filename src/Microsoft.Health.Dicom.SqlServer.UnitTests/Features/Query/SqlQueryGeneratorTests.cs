@@ -21,6 +21,8 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
 {
     public class SqlQueryGeneratorTests
     {
+        private const string SqlDateFormat = "yyyy-MM-dd HH:mm:ss.ffffff";
+
         [Fact]
         public void GivenStudyDate_WhenIELevelStudy_ValidateDistinctStudyStudies()
         {
@@ -274,8 +276,79 @@ AND ctdt1.TagValue BETWEEN @p1 AND @p2";
 
             string builtString = stringBuilder.ToString();
             Assert.Equal(queryTag.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
-            Assert.Equal(filter.Minimum.ToString("yyyy-MM-dd"), sqlParameterCollection[1].Value.ToString());
-            Assert.Equal(filter.Maximum.ToString("yyyy-MM-dd"), sqlParameterCollection[2].Value.ToString());
+            Assert.Equal(filter.Minimum.ToString(SqlDateFormat), sqlParameterCollection[1].Value.ToString());
+            Assert.Equal(filter.Maximum.ToString(SqlDateFormat), sqlParameterCollection[2].Value.ToString());
+            Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
+            Assert.Contains(expectedFilters, builtString);
+        }
+
+        [Fact]
+        public void GivenDateTimeExtendedQueryTagFilter_WhenIELevelStudy_ValidateExtendedQueryTagFilter()
+        {
+            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+            var includeField = new QueryIncludeField(new List<DicomTag>());
+            var queryTag = new QueryTag(DicomTag.DateTime.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
+            var filter = new DateRangeValueMatchCondition(queryTag, DateTime.ParseExact("19510910111213.123", QueryParser.DateTimeTagValueFormats, null), DateTime.ParseExact("19571110111213.123", QueryParser.DateTimeTagValueFormats, null));
+
+            filter.QueryTag = queryTag;
+            var filters = new List<QueryFilterCondition>()
+            {
+                filter,
+            };
+            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
+
+            SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
+            var parm = new SqlQueryParameterManager(sqlParameterCollection);
+            new SqlQueryGenerator(stringBuilder, query, parm);
+
+            string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagDateTime ctdt1
+ON ctdt1.StudyKey = st.StudyKey
+WHERE";
+
+            string expectedFilters = @"AND ctdt1.TagKey=@p0
+AND ctdt1.TagValue BETWEEN @p1 AND @p2";
+
+            string builtString = stringBuilder.ToString();
+            Assert.Equal(queryTag.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
+            Assert.Equal(filter.Minimum.ToString(SqlDateFormat), sqlParameterCollection[1].Value.ToString());
+            Assert.Equal(filter.Maximum.ToString(SqlDateFormat), sqlParameterCollection[2].Value.ToString());
+            Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
+            Assert.Contains(expectedFilters, builtString);
+        }
+
+        [Fact]
+        public void GivenTimeExtendedQueryTagFilter_WhenIELevelStudy_ValidateExtendedQueryTagFilter()
+        {
+            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+            var includeField = new QueryIncludeField(new List<DicomTag>());
+            var queryTag = new QueryTag(DicomTag.Time.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
+
+            long minTicks = new DicomTime(queryTag.Tag, new string[] { "111213.123" }).Get<DateTime>().Ticks;
+            long maxTicks = new DicomTime(queryTag.Tag, new string[] { "111214.123" }).Get<DateTime>().Ticks;
+            var filter = new LongRangeValueMatchCondition(queryTag, minTicks, maxTicks);
+
+            filter.QueryTag = queryTag;
+            var filters = new List<QueryFilterCondition>()
+            {
+                filter,
+            };
+            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
+
+            SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
+            var parm = new SqlQueryParameterManager(sqlParameterCollection);
+            new SqlQueryGenerator(stringBuilder, query, parm);
+
+            string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagLong ctl1
+ON ctl1.StudyKey = st.StudyKey
+WHERE";
+
+            string expectedFilters = @"AND ctl1.TagKey=@p0
+AND ctl1.TagValue BETWEEN @p1 AND @p2";
+
+            string builtString = stringBuilder.ToString();
+            Assert.Equal(queryTag.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
+            Assert.Equal(filter.Minimum.ToString(), sqlParameterCollection[1].Value.ToString());
+            Assert.Equal(filter.Maximum.ToString(), sqlParameterCollection[2].Value.ToString());
             Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
             Assert.Contains(expectedFilters, builtString);
         }

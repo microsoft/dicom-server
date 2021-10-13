@@ -22,9 +22,19 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
     internal static class ExtendedQueryTagDataRowsBuilder
 
     {
-        private static readonly Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, DateTime?>> DataTimeReaders = new Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, DateTime?>>()
+        private static readonly Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, DateTime?>> DateReaders = new Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, DateTime?>>()
         {
-            { DicomVR.DA, Core.Extensions.DicomDatasetExtensions.GetStringDateAsDate },
+            { DicomVR.DA, Core.Extensions.DicomDatasetExtensions.GetStringDateAsDate }
+        };
+
+        private static readonly Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, Tuple<DateTime?, DateTime?>>> DateTimeReaders = new Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, Tuple<DateTime?, DateTime?>>>()
+        {
+            { DicomVR.DT, Core.Extensions.DicomDatasetExtensions.GetStringDateTimeAsLiteralAndUtcDateTimes }
+        };
+
+        private static readonly Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, long?>> LongReaders = new Dictionary<DicomVR, Func<DicomDataset, DicomTag, DicomVR, long?>>()
+        {
+            { DicomVR.TM, Core.Extensions.DicomDatasetExtensions.GetStringTimeAsLong }
         };
 
         public static ExtendedQueryTagDataRows Build(
@@ -95,9 +105,22 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         private static void AddDateTimeRow(DicomDataset instance, List<InsertDateTimeExtendedQueryTagTableTypeV1Row> dateTimeRows, QueryTag queryTag)
         {
-            DateTime? dateVal = DataTimeReaders.TryGetValue(
-                             queryTag.VR,
-                             out Func<DicomDataset, DicomTag, DicomVR, DateTime?> reader) ? reader.Invoke(instance, queryTag.Tag, queryTag.VR) : null;
+            DateTime? dateVal = null;
+
+            switch (queryTag.VR.Code)
+            {
+                case "DT":
+                    dateVal = DateTimeReaders.TryGetValue(
+                                queryTag.VR,
+                                out Func<DicomDataset, DicomTag, DicomVR, Tuple<DateTime?, DateTime?>> dateTimeReader) ? dateTimeReader.Invoke(instance, queryTag.Tag, queryTag.VR).Item1 : null;
+                    break;
+                case "DA":
+                default:
+                    dateVal = DateReaders.TryGetValue(
+                                    queryTag.VR,
+                                    out Func<DicomDataset, DicomTag, DicomVR, DateTime?> reader) ? reader.Invoke(instance, queryTag.Tag, queryTag.VR) : null;
+                    break;
+            }
 
             if (dateVal.HasValue)
             {
@@ -107,13 +130,29 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         private static void AddDateTimeWithUtcRow(DicomDataset instance, List<InsertDateTimeExtendedQueryTagTableTypeV2Row> dateTimeRows, QueryTag queryTag)
         {
-            DateTime? dateVal = DataTimeReaders.TryGetValue(
-                             queryTag.VR,
-                             out Func<DicomDataset, DicomTag, DicomVR, DateTime?> reader) ? reader.Invoke(instance, queryTag.Tag, queryTag.VR) : null;
+            DateTime? dateVal = null;
+            DateTime? dateUtcVal = null;
+
+            switch (queryTag.VR.Code)
+            {
+                case "DT":
+                    Tuple<DateTime?, DateTime?> localAndUtcDateTimes = DateTimeReaders.TryGetValue(
+                                                                            queryTag.VR,
+                                                                            out Func<DicomDataset, DicomTag, DicomVR, Tuple<DateTime?, DateTime?>> readerDT) ? readerDT.Invoke(instance, queryTag.Tag, queryTag.VR) : null;
+                    dateVal = localAndUtcDateTimes.Item1;
+                    dateUtcVal = localAndUtcDateTimes.Item2;
+                    break;
+                case "DA":
+                default:
+                    dateVal = DateReaders.TryGetValue(
+                                    queryTag.VR,
+                                    out Func<DicomDataset, DicomTag, DicomVR, DateTime?> readerDA) ? readerDA.Invoke(instance, queryTag.Tag, queryTag.VR) : null;
+                    break;
+            }
 
             if (dateVal.HasValue)
             {
-                dateTimeRows.Add(new InsertDateTimeExtendedQueryTagTableTypeV2Row(queryTag.ExtendedQueryTagStoreEntry.Key, dateVal.Value, null, (byte)queryTag.Level));
+                dateTimeRows.Add(new InsertDateTimeExtendedQueryTagTableTypeV2Row(queryTag.ExtendedQueryTagStoreEntry.Key, dateVal.Value, dateUtcVal.HasValue ? dateUtcVal.Value : null, (byte)queryTag.Level));
             }
         }
 
@@ -128,7 +167,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         private static void AddLongRow(DicomDataset instance, List<InsertLongExtendedQueryTagTableTypeV1Row> longRows, QueryTag queryTag)
         {
-            long? longVal = instance.GetSingleValueOrDefault<long>(queryTag.Tag, expectedVR: queryTag.VR);
+            long? longVal = LongReaders.TryGetValue(
+                             queryTag.VR,
+                             out Func<DicomDataset, DicomTag, DicomVR, long?> reader) ? reader.Invoke(instance, queryTag.Tag, queryTag.VR) :
+                             instance.GetSingleValueOrDefault<long>(queryTag.Tag, expectedVR: queryTag.VR);
 
             if (longVal.HasValue)
             {
