@@ -7,43 +7,22 @@ BEGIN TRANSACTION
 
 IF NOT EXISTS (
     SELECT *
-    FROM sys.columns c
-    INNER JOIN sys.index_columns ic
-    ON c.object_id = ic.object_id AND ic.column_id = c.column_id
-    INNER JOIN sys.indexes i
-    ON ic.object_id = i.object_id AND ic.index_id = i.index_id
-    WHERE i.name='IX_Instance_Watermark' AND i.object_id = OBJECT_ID('dbo.Instance') and c.name = 'Status')
+    FROM sys.indexes
+    WHERE name='IX_Instance_Watermark_Status' AND object_id = OBJECT_ID('dbo.Instance'))
 BEGIN
-    CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_Watermark on dbo.Instance
+    DROP INDEX IF EXISTS IX_Instance_Watermark on dbo.Instance
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_Watermark_Status on dbo.Instance
     (
-        Watermark
+        Watermark,
+        Status
     )
     INCLUDE
     (
-        Status
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid
     )
-    WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING = ON, ONLINE = ON)
-END
-GO
-
-IF NOT EXISTS (
-    SELECT *
-    FROM sys.columns c
-    INNER JOIN sys.index_columns ic
-    ON c.object_id = ic.object_id AND ic.column_id = c.column_id
-    INNER JOIN sys.indexes i
-    ON ic.object_id = i.object_id AND ic.index_id = i.index_id
-    WHERE i.name='IXC_ExtendedQueryTagDateTime' AND i.object_id = OBJECT_ID('dbo.ExtendedQueryTagDateTime') and c.name = 'TagValueUtc')
-BEGIN
-    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryTagDateTime
-    (
-        TagKey,
-        TagValue,
-        TagValueUtc,
-        StudyKey,
-        SeriesKey,
-        InstanceKey
-    ) WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING = ON, ONLINE = ON)
+    WITH (DATA_COMPRESSION = PAGE)
 END
 GO
 
@@ -702,6 +681,51 @@ BEGIN
         AND SopInstanceUid    = @sopInstanceUid
 
     COMMIT TRANSACTION
+END
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     GetInstanceBatches
+--
+-- DESCRIPTION
+--     Divides up the instances into a configurable number of batches.
+--
+-- PARAMETERS
+--     @batchSize
+--         * The desired number of instances per batch. Actual number may be smaller.
+--     @batchCount
+--         * The desired number of batches. Actual number may be smaller.
+--     @status
+--         * The instance status.
+--     @maxWatermark
+--         * The optional inclusive maximum watermark.
+--
+-- RETURN VALUE
+--     The batches as defined by their inclusive minimum and maximum values.
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.GetInstanceBatches
+    @batchSize INT,
+    @batchCount INT,
+    @status TINYINT,
+    @maxWatermark BIGINT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    SELECT
+        MIN(Watermark) AS MinWatermark,
+        MAX(Watermark) AS MaxWatermark
+    FROM
+    (
+        SELECT TOP (@batchSize * @batchCount)
+            Watermark,
+            (ROW_NUMBER() OVER(ORDER BY Watermark DESC) - 1) / @batchSize AS Batch
+        FROM dbo.Instance
+        WHERE Watermark <= ISNULL(@maxWatermark, Watermark) AND Status = @status
+    ) AS I
+    GROUP BY Batch
+    ORDER BY Batch ASC
 END
 GO
 

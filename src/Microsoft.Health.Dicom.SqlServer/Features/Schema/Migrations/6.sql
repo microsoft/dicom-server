@@ -117,7 +117,7 @@ CREATE TABLE dbo.ExtendedQueryTagDateTime (
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime
-    ON dbo.ExtendedQueryTagDateTime(TagKey, TagValue, TagValueUtc, StudyKey, SeriesKey, InstanceKey);
+    ON dbo.ExtendedQueryTagDateTime(TagKey, TagValue, StudyKey, SeriesKey, InstanceKey);
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_TagKey_StudyKey_SeriesKey_InstanceKey
     ON dbo.ExtendedQueryTagDateTime(TagKey, StudyKey, SeriesKey, InstanceKey)
@@ -255,9 +255,9 @@ CREATE NONCLUSTERED INDEX IX_Instance_SopInstanceUid_Status
     ON dbo.Instance(SopInstanceUid, Status)
     INCLUDE(StudyInstanceUid, SeriesInstanceUid, Watermark) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_Watermark
-    ON dbo.Instance(Watermark)
-    INCLUDE(Status) WITH (DATA_COMPRESSION = PAGE);
+CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_Watermark_Status
+    ON dbo.Instance(Watermark, Status)
+    INCLUDE(StudyInstanceUid, SeriesInstanceUid, SopInstanceUid) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE NONCLUSTERED INDEX IX_Instance_SeriesKey_Status
     ON dbo.Instance(SeriesKey, Status)
@@ -1218,7 +1218,6 @@ CREATE OR ALTER PROCEDURE dbo.GetInstanceBatches
 AS
 BEGIN
     SET NOCOUNT ON;
-    SET XACT_ABORT ON;
     SELECT   MIN(Watermark) AS MinWatermark,
              MAX(Watermark) AS MaxWatermark
     FROM     (SELECT TOP (@batchSize * @batchCount) Watermark,

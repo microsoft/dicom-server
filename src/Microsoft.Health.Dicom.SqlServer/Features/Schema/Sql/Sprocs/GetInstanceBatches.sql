@@ -25,8 +25,7 @@ CREATE OR ALTER PROCEDURE dbo.GetInstanceBatches
     @maxWatermark BIGINT = NULL
 AS
 BEGIN
-    SET NOCOUNT     ON
-    SET XACT_ABORT  ON
+    SET NOCOUNT ON
 
     SELECT
         MIN(Watermark) AS MinWatermark,
