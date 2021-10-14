@@ -52,9 +52,9 @@ BEGIN
         AND SopInstanceUid = @sopInstanceUid
         AND Watermark = @watermark
 
-    -- The instance does not exist. Perhaps it was deleted?
     IF @@ROWCOUNT = 0
-        THROW 50404, 'Instance does not exist', 1
+        -- The instance does not exist. Perhaps it was deleted?
+        THROW 50404, 'Instance does not exist', 1;
 
     -- Insert to change feed.
     -- Currently this procedure is used only updating the status to created

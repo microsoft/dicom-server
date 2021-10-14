@@ -127,6 +127,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())

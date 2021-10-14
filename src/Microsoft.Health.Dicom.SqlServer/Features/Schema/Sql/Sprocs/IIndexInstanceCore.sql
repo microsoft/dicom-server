@@ -8,6 +8,8 @@
 --    stored procedures whose logic may vary.
 --
 -- PARAMETERS
+--     @partitionKey
+--         * The internal key for the data partition
 --     @studyKey
 --         * The internal key for the study
 --     @seriesKey

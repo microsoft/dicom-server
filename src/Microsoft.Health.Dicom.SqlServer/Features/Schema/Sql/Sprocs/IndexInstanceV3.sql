@@ -55,6 +55,9 @@ BEGIN
         IF @status <> 1 -- Created
             THROW 50409, 'Instance has not yet been stored succssfully', 1
 
+        -- Insert Extended Query Tags
+
+        -- String Key tags
         BEGIN TRY
 
             EXEC dbo.IIndexInstanceCore

@@ -272,7 +272,7 @@ CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SopInstanceUid_Status
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_Watermark_Status
     ON dbo.Instance(Watermark, Status)
-    INCLUDE(StudyInstanceUid, SeriesInstanceUid, SopInstanceUid) WITH (DATA_COMPRESSION = PAGE);
+    INCLUDE(PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SeriesKey_Status
     ON dbo.Instance(PartitionKey, SeriesKey, Status)
@@ -776,7 +776,7 @@ BEGIN
     INSERT  INTO dbo.Instance (StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
     VALUES                   (@studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate);
     BEGIN TRY
-        EXECUTE dbo.IIndexInstanceCore @studyKey, @seriesKey, @instanceKey, @newWatermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
+        EXECUTE dbo.IIndexInstanceCore 0, @studyKey, @seriesKey, @instanceKey, @newWatermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
     END TRY
     BEGIN CATCH
         THROW;

@@ -56,6 +56,7 @@ BEGIN
         BEGIN TRY
 
             EXEC dbo.IIndexInstanceCore
+                0,
                 @studyKey,
                 @seriesKey,
                 @instanceKey,
