@@ -20,6 +20,22 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
             return new ElementValidationException(name, DicomVR.DA, value, ValidationErrorCode.DateIsInvalid, DicomCoreResource.ErrorMessageDateIsInvalid);
         }
 
+        public static ElementValidationException CreateDateTimeIsInvalidException(string name, string value)
+        {
+            EnsureArg.IsNotNull(name, nameof(name));
+            EnsureArg.IsNotNull(value, nameof(value));
+
+            return new ElementValidationException(name, DicomVR.DT, value, ValidationErrorCode.DateTimeIsInvalid, DicomCoreResource.ErrorMessageDateTimeIsInvalid);
+        }
+
+        public static ElementValidationException CreateTimeIsInvalidException(string name, string value)
+        {
+            EnsureArg.IsNotNull(name, nameof(name));
+            EnsureArg.IsNotNull(value, nameof(value));
+
+            return new ElementValidationException(name, DicomVR.TM, value, ValidationErrorCode.TimeIsInvalid, DicomCoreResource.ErrorMessageTimeIsInvalid);
+        }
+
         public static ElementValidationException CreateExceedMaxLengthException(string name, DicomVR vr, string value, int maxlength)
         {
             EnsureArg.IsNotNull(name, nameof(name));

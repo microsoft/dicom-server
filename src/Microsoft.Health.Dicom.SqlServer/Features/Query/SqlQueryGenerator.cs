@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         private readonly IndentedStringBuilder _stringBuilder;
         private readonly QueryExpression _queryExpression;
         private readonly SqlQueryParameterManager _parameters;
-        private const string SqlDateFormat = "yyyy-MM-dd";
+        private const string SqlDateFormat = "yyyy-MM-dd HH:mm:ss.ffffff";
         private const string InstanceTableAlias = "i";
         private const string StudyTableAlias = "st";
         private const string SeriesTableAlias = "se";
@@ -339,6 +339,24 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 .Append(dicomTagSqlEntry.SqlColumn, tableAlias)
                 .Append("=")
                 .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, doubleSingleValueMatchCondition.Value))
+                .AppendLine();
+        }
+
+        public override void Visit(LongRangeValueMatchCondition rangeValueMatchCondition)
+        {
+            var queryTag = rangeValueMatchCondition.QueryTag;
+            var dicomTagSqlEntry = DicomTagSqlEntry.GetDicomTagSqlEntry(queryTag);
+            var tableAlias = GetTableAlias(dicomTagSqlEntry, queryTag.IsExtendedQueryTag ? queryTag.ExtendedQueryTagStoreEntry.Key : null);
+            _stringBuilder
+                .Append("AND ");
+
+            AppendExtendedQueryTagKeyFilter(dicomTagSqlEntry, tableAlias, rangeValueMatchCondition);
+
+            _stringBuilder
+                .Append(dicomTagSqlEntry.SqlColumn, tableAlias).Append(" BETWEEN ")
+                .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, rangeValueMatchCondition.Minimum.ToString()))
+                .Append(" AND ")
+                .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, rangeValueMatchCondition.Maximum.ToString()))
                 .AppendLine();
         }
 
