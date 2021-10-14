@@ -9,8 +9,8 @@
 --     Removes a deleted instance from the DeletedInstance table
 --
 -- PARAMETERS
---     @partitionName
---         * The client-provided data partition name.
+--     @partitionKey
+--         * The Partition key
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -21,7 +21,7 @@
 --         * The watermark of the entry
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.DeleteDeletedInstanceV2(
-    @partitionName      VARCHAR(64),
+    @partitionKey       INT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64),
     @sopInstanceUid     VARCHAR(64),
@@ -32,7 +32,7 @@ AS
 
     DELETE
     FROM    dbo.DeletedInstance
-    WHERE   PartitionName = @partitionName
+    WHERE   PartitionKey = @partitionKey
         AND     StudyInstanceUid = @studyInstanceUid
         AND     SeriesInstanceUid = @seriesInstanceUid
         AND     SopInstanceUid = @sopInstanceUid

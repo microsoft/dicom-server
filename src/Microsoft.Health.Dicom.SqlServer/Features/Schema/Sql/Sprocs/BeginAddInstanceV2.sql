@@ -74,22 +74,11 @@ AS
     DECLARE @seriesKey BIGINT
     DECLARE @instanceKey BIGINT
 
-    SELECT @existingStatus = Status
-    FROM dbo.Instance WITH(HOLDLOCK)
-    WHERE PartitionName = @partitionName
-        AND StudyInstanceUid = @studyInstanceUid
-        AND SeriesInstanceUid = @seriesInstanceUid
-        AND SopInstanceUid = @sopInstanceUid
-
-    IF @@ROWCOUNT <> 0
-        -- The instance already exists. Set the state = @existingStatus to indicate what state it is in.
-        THROW 50409, 'Instance already exists', @existingStatus;
-
-    -- Insert Partition
     SELECT @partitionKey = PartitionKey
     FROM dbo.Partition
     WHERE PartitionName = @partitionName
 
+     -- Insert Partition
     IF @@ROWCOUNT = 0
     BEGIN
         SET @partitionKey = NEXT VALUE FOR dbo.PartitionKeySequence
@@ -99,6 +88,17 @@ AS
         VALUES
             (@partitionKey, @partitionName, @currentDate)
     END
+
+    SELECT @existingStatus = Status
+    FROM dbo.Instance WITH(HOLDLOCK)
+    WHERE PartitionKey = @partitionKey
+        AND StudyInstanceUid = @studyInstanceUid
+        AND SeriesInstanceUid = @seriesInstanceUid
+        AND SopInstanceUid = @sopInstanceUid
+
+    IF @@ROWCOUNT <> 0
+        -- The instance already exists. Set the state = @existingStatus to indicate what state it is in.
+        THROW 50409, 'Instance already exists', @existingStatus;
 
     -- Insert Study
     SELECT @studyKey = StudyKey
@@ -150,9 +150,9 @@ AS
 
     -- Insert Instance
     INSERT INTO dbo.Instance
-        (PartitionKey, StudyKey, SeriesKey, InstanceKey, PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
+        (PartitionKey, StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
     VALUES
-        (@partitionKey, @studyKey, @seriesKey, @instanceKey, @partitionName, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, 0, @currentDate, @currentDate)
+        (@partitionKey, @studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, 0, @currentDate, @currentDate)
 
     SELECT @newWatermark
 

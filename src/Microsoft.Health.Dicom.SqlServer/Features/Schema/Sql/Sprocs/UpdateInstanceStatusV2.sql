@@ -29,7 +29,7 @@
 --     None
 --
 CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV2
-    @partitionName      VARCHAR(64),
+    @partitionKey       INT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64),
     @sopInstanceUid     VARCHAR(64),
@@ -45,7 +45,7 @@ AS
 
     UPDATE dbo.Instance
     SET Status = @status, LastStatusUpdatedDate = @currentDate
-    WHERE PartitionName = @partitionName
+    WHERE PartitionKey = @partitionKey
         AND StudyInstanceUid = @studyInstanceUid
         AND SeriesInstanceUid = @seriesInstanceUid
         AND SopInstanceUid = @sopInstanceUid
@@ -59,14 +59,14 @@ AS
     -- Currently this procedure is used only updating the status to created
     -- If that changes an if condition is needed.
     INSERT INTO dbo.ChangeFeed
-        (Timestamp, Action, PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+        (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
     VALUES
-        (@currentDate, 0, @partitionName, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)
+        (@currentDate, 0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)
 
     -- Update existing instance currentWatermark to latest
     UPDATE dbo.ChangeFeed
     SET CurrentWatermark      = @watermark
-    WHERE PartitionName = @partitionName
+    WHERE PartitionKey = @partitionKey
         AND StudyInstanceUid    = @studyInstanceUid
         AND SeriesInstanceUid = @seriesInstanceUid
         AND SopInstanceUid    = @sopInstanceUid

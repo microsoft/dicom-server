@@ -9,8 +9,8 @@
 --     Removes the specified instance(s) and places them in the DeletedInstance table for later removal
 --
 -- PARAMETERS
---     @partitionName
---         * The client-provided data partition name.
+--     @partitionKey
+--         * The Partition key
 --     @cleanupAfter
 --         * The date time offset that the instance can be cleaned up.
 --     @createdStatus
@@ -25,7 +25,7 @@
 CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV2
     @cleanupAfter       DATETIMEOFFSET(0),
     @createdStatus      TINYINT,
-    @partitionName      VARCHAR(64),
+    @partitionKey       INT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64) = null,
     @sopInstanceUid     VARCHAR(64) = null
@@ -36,35 +36,33 @@ AS
     BEGIN TRANSACTION
 
     DECLARE @deletedInstances AS TABLE
-        (PartitionName VARCHAR(64),
+           (PartitionKey INT,
             StudyInstanceUid VARCHAR(64),
             SeriesInstanceUid VARCHAR(64),
             SopInstanceUid VARCHAR(64),
             Status TINYINT,
             Watermark BIGINT)
 
-    DECLARE @partitionKey INT
     DECLARE @studyKey BIGINT
     DECLARE @seriesKey BIGINT
     DECLARE @instanceKey BIGINT
     DECLARE @deletedDate DATETIME2 = SYSUTCDATETIME()
 
-    -- Get the partition, study, series and instance PK
-    SELECT  @partitionKey = PartitionKey,
-    @studyKey = StudyKey,
+    -- Get the study, series and instance PK
+    SELECT  @studyKey = StudyKey,
     @seriesKey = CASE @seriesInstanceUid WHEN NULL THEN NULL ELSE SeriesKey END,
     @instanceKey = CASE @sopInstanceUid WHEN NULL THEN NULL ELSE InstanceKey END
     FROM    dbo.Instance
-    WHERE   PartitionName = @partitionName
+    WHERE   PartitionKey = @partitionKey
         AND     StudyInstanceUid = @studyInstanceUid
         AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
         AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
 
     -- Delete the instance and insert the details into DeletedInstance and ChangeFeed
     DELETE  dbo.Instance
-        OUTPUT deleted.PartitionName, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark
+        OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark
         INTO @deletedInstances
-    WHERE   PartitionName = @partitionName
+    WHERE   PartitionKey = @partitionKey
         AND     StudyInstanceUid = @studyInstanceUid
         AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
         AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
@@ -139,13 +137,13 @@ AS
     AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
 
     INSERT INTO dbo.DeletedInstance
-    (PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
-    SELECT PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter
+    (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
+    SELECT PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter
     FROM @deletedInstances
 
     INSERT INTO dbo.ChangeFeed
-    (TimeStamp, Action, PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-    SELECT @deletedDate, 1, PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
+    (TimeStamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    SELECT @deletedDate, 1, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
     FROM @deletedInstances
     WHERE Status = @createdStatus
 
@@ -153,7 +151,7 @@ AS
     SET cf.CurrentWatermark = NULL
     FROM dbo.ChangeFeed cf WITH(FORCESEEK)
     JOIN @deletedInstances d
-    ON cf.PartitionName = d.PartitionName
+    ON cf.PartitionKey = d.PartitionKey
         AND cf.StudyInstanceUid = d.StudyInstanceUid
         AND cf.SeriesInstanceUid = d.SeriesInstanceUid
         AND cf.SopInstanceUid = d.SopInstanceUid

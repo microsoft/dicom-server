@@ -11,12 +11,12 @@ CREATE TABLE dbo.DeletedInstance
     DeletedDateTime     DATETIMEOFFSET(0) NOT NULL,
     RetryCount          INT               NOT NULL,
     CleanupAfter        DATETIMEOFFSET(0) NOT NULL,
-    PartitionName       VARCHAR(64)       NOT NULL DEFAULT 'Microsoft.Default'
+    PartitionKey        INT               NOT NULL DEFAULT 1    --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_DeletedInstance ON dbo.DeletedInstance
 (
-    PartitionName,
+    PartitionKey,
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid,

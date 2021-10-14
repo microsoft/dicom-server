@@ -69,15 +69,15 @@ CREATE TABLE dbo.ChangeFeed (
     SopInstanceUid    VARCHAR (64)       NOT NULL,
     OriginalWatermark BIGINT             NOT NULL,
     CurrentWatermark  BIGINT             NULL,
-    PartitionName     VARCHAR (64)       DEFAULT 'Microsoft.Default' NOT NULL
+    PartitionKey      INT                DEFAULT 1 NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed
     ON dbo.ChangeFeed(Sequence);
 
-CREATE NONCLUSTERED INDEX IX_ChangeFeed_PartitionName_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid
-    ON dbo.ChangeFeed(PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid) WITH (DATA_COMPRESSION = PAGE);
+CREATE NONCLUSTERED INDEX IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid
+    ON dbo.ChangeFeed(PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.DeletedInstance (
     StudyInstanceUid  VARCHAR (64)       NOT NULL,
@@ -87,12 +87,12 @@ CREATE TABLE dbo.DeletedInstance (
     DeletedDateTime   DATETIMEOFFSET (0) NOT NULL,
     RetryCount        INT                NOT NULL,
     CleanupAfter      DATETIMEOFFSET (0) NOT NULL,
-    PartitionName     VARCHAR (64)       DEFAULT 'Microsoft.Default' NOT NULL
+    PartitionKey      INT                DEFAULT 1 NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_DeletedInstance
-    ON dbo.DeletedInstance(PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark);
+    ON dbo.DeletedInstance(PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark);
 
 CREATE NONCLUSTERED INDEX IX_DeletedInstance_RetryCount_CleanupAfter
     ON dbo.DeletedInstance(RetryCount, CleanupAfter) WITH (DATA_COMPRESSION = PAGE);
@@ -227,28 +227,27 @@ CREATE TABLE dbo.Instance (
     Status                TINYINT       NOT NULL,
     LastStatusUpdatedDate DATETIME2 (7) NOT NULL,
     CreatedDate           DATETIME2 (7) NOT NULL,
-    PartitionKey          INT           DEFAULT 1 NOT NULL,
-    PartitionName         VARCHAR (64)  DEFAULT 'Microsoft.Default' NOT NULL
+    PartitionKey          INT           DEFAULT 1 NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Instance
     ON dbo.Instance(SeriesKey, InstanceKey);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionName_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid
-    ON dbo.Instance(PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid)
+CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid
+    ON dbo.Instance(PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid)
     INCLUDE(Status, Watermark) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_Instance_PartitionName_StudyInstanceUid_Status
-    ON dbo.Instance(PartitionName, StudyInstanceUid, Status)
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_Status
+    ON dbo.Instance(PartitionKey, StudyInstanceUid, Status)
     INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_Instance_PartitionName_StudyInstanceUid_SeriesInstanceUid_Status
-    ON dbo.Instance(PartitionName, StudyInstanceUid, SeriesInstanceUid, Status)
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_Status
+    ON dbo.Instance(PartitionKey, StudyInstanceUid, SeriesInstanceUid, Status)
     INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_Instance_PartitionName_SopInstanceUid_Status
-    ON dbo.Instance(PartitionName, SopInstanceUid, Status)
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SopInstanceUid_Status
+    ON dbo.Instance(PartitionKey, SopInstanceUid, Status)
     INCLUDE(StudyInstanceUid, SeriesInstanceUid, Watermark) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE NONCLUSTERED INDEX IX_Instance_Watermark
@@ -256,24 +255,23 @@ CREATE NONCLUSTERED INDEX IX_Instance_Watermark
 
 CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SeriesKey_Status
     ON dbo.Instance(PartitionKey, SeriesKey, Status)
-    INCLUDE(PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark) WITH (DATA_COMPRESSION = PAGE);
+    INCLUDE(StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyKey_Status
     ON dbo.Instance(PartitionKey, StudyKey, Status)
-    INCLUDE(PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark) WITH (DATA_COMPRESSION = PAGE);
+    INCLUDE(StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.Partition (
     PartitionKey  INT           NOT NULL,
     PartitionName VARCHAR (64)  NOT NULL,
     CreatedDate   DATETIME2 (7) NOT NULL
-)
-WITH (DATA_COMPRESSION = PAGE);
+);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Partition
     ON dbo.Partition(PartitionKey);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Partition_PartitionName
-    ON dbo.Partition(PartitionName) WITH (DATA_COMPRESSION = PAGE);
+CREATE UNIQUE NONCLUSTERED INDEX IX_Partition_PartitionKey_PartitionName
+    ON dbo.Partition(PartitionKey, PartitionName);
 
 INSERT  INTO dbo.Partition (PartitionKey, PartitionName, CreatedDate)
 VALUES                    (1, 'Microsoft.Default', SYSUTCDATETIME());
@@ -878,16 +876,6 @@ DECLARE @partitionKey AS INT;
 DECLARE @studyKey AS BIGINT;
 DECLARE @seriesKey AS BIGINT;
 DECLARE @instanceKey AS BIGINT;
-SELECT @existingStatus = Status
-FROM   dbo.Instance
-WHERE  PartitionName = @partitionName
-       AND StudyInstanceUid = @studyInstanceUid
-       AND SeriesInstanceUid = @seriesInstanceUid
-       AND SopInstanceUid = @sopInstanceUid;
-IF @@ROWCOUNT <> 0
-    THROW 50409, 'Instance already exists', @existingStatus;
-SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
-SET @instanceKey =  NEXT VALUE FOR dbo.InstanceKeySequence;
 SELECT @partitionKey = PartitionKey
 FROM   dbo.Partition
 WHERE  PartitionName = @partitionName;
@@ -897,6 +885,16 @@ IF @@ROWCOUNT = 0
         INSERT  INTO dbo.Partition (PartitionKey, PartitionName, CreatedDate)
         VALUES                    (@partitionKey, @partitionName, @currentDate);
     END
+SELECT @existingStatus = Status
+FROM   dbo.Instance
+WHERE  PartitionKey = @partitionKey
+       AND StudyInstanceUid = @studyInstanceUid
+       AND SeriesInstanceUid = @seriesInstanceUid
+       AND SopInstanceUid = @sopInstanceUid;
+IF @@ROWCOUNT <> 0
+    THROW 50409, 'Instance already exists', @existingStatus;
+SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
+SET @instanceKey =  NEXT VALUE FOR dbo.InstanceKeySequence;
 SELECT @studyKey = StudyKey
 FROM   dbo.Study WITH (UPDLOCK)
 WHERE  PartitionKey = @partitionKey
@@ -922,7 +920,8 @@ ELSE
 SELECT @seriesKey = SeriesKey
 FROM   dbo.Series WITH (UPDLOCK)
 WHERE  StudyKey = @studyKey
-       AND SeriesInstanceUid = @seriesInstanceUid;
+       AND SeriesInstanceUid = @seriesInstanceUid
+       AND PartitionKey = @partitionKey;
 IF @@ROWCOUNT = 0
     BEGIN
         SET @seriesKey =  NEXT VALUE FOR dbo.SeriesKeySequence;
@@ -939,8 +938,8 @@ ELSE
                AND StudyKey = @studyKey
                AND PartitionKey = @partitionKey;
     END
-INSERT  INTO dbo.Instance (PartitionKey, StudyKey, SeriesKey, InstanceKey, PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
-VALUES                   (@partitionKey, @studyKey, @seriesKey, @instanceKey, @partitionName, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate);
+INSERT  INTO dbo.Instance (PartitionKey, StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
+VALUES                   (@partitionKey, @studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate);
 IF EXISTS (SELECT 1
            FROM   @stringExtendedQueryTags)
     BEGIN
@@ -1175,14 +1174,6 @@ DECLARE @partitionKey AS INT;
 DECLARE @studyKey AS BIGINT;
 DECLARE @seriesKey AS BIGINT;
 DECLARE @instanceKey AS BIGINT;
-SELECT @existingStatus = Status
-FROM   dbo.Instance WITH (HOLDLOCK)
-WHERE  PartitionName = @partitionName
-       AND StudyInstanceUid = @studyInstanceUid
-       AND SeriesInstanceUid = @seriesInstanceUid
-       AND SopInstanceUid = @sopInstanceUid;
-IF @@ROWCOUNT <> 0
-    THROW 50409, 'Instance already exists', @existingStatus;
 SELECT @partitionKey = PartitionKey
 FROM   dbo.Partition
 WHERE  PartitionName = @partitionName;
@@ -1192,6 +1183,14 @@ IF @@ROWCOUNT = 0
         INSERT  INTO dbo.Partition (PartitionKey, PartitionName, CreatedDate)
         VALUES                    (@partitionKey, @partitionName, @currentDate);
     END
+SELECT @existingStatus = Status
+FROM   dbo.Instance WITH (HOLDLOCK)
+WHERE  PartitionKey = @partitionKey
+       AND StudyInstanceUid = @studyInstanceUid
+       AND SeriesInstanceUid = @seriesInstanceUid
+       AND SopInstanceUid = @sopInstanceUid;
+IF @@ROWCOUNT <> 0
+    THROW 50409, 'Instance already exists', @existingStatus;
 SELECT @studyKey = StudyKey
 FROM   dbo.Study WITH (HOLDLOCK)
 WHERE  PartitionKey = @partitionKey
@@ -1234,8 +1233,8 @@ ELSE
                AND StudyKey = @studyKey
                AND PartitionKey = @partitionKey;
     END
-INSERT  INTO dbo.Instance (PartitionKey, StudyKey, SeriesKey, InstanceKey, PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
-VALUES                   (@partitionKey, @studyKey, @seriesKey, @instanceKey, @partitionName, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, 0, @currentDate, @currentDate);
+INSERT  INTO dbo.Instance (PartitionKey, StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
+VALUES                   (@partitionKey, @studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, 0, @currentDate, @currentDate);
 SELECT @newWatermark;
 COMMIT TRANSACTION;
 
@@ -1280,11 +1279,11 @@ WHERE  StudyInstanceUid = @studyInstanceUid
 
 GO
 CREATE OR ALTER PROCEDURE dbo.DeleteDeletedInstanceV2
-@partitionName VARCHAR (64), @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT
+@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT
 AS
 SET NOCOUNT ON;
 DELETE dbo.DeletedInstance
-WHERE  PartitionName = @partitionName
+WHERE  PartitionKey = @partitionKey
        AND StudyInstanceUid = @studyInstanceUid
        AND SeriesInstanceUid = @seriesInstanceUid
        AND SopInstanceUid = @sopInstanceUid
@@ -1486,35 +1485,33 @@ COMMIT TRANSACTION;
 
 GO
 CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV2
-@cleanupAfter DATETIMEOFFSET (0), @createdStatus TINYINT, @partitionName VARCHAR (64), @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64)=NULL, @sopInstanceUid VARCHAR (64)=NULL
+@cleanupAfter DATETIMEOFFSET (0), @createdStatus TINYINT, @partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64)=NULL, @sopInstanceUid VARCHAR (64)=NULL
 AS
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 BEGIN TRANSACTION;
 DECLARE @deletedInstances AS TABLE (
-    PartitionName     VARCHAR (64),
+    PartitionKey      INT         ,
     StudyInstanceUid  VARCHAR (64),
     SeriesInstanceUid VARCHAR (64),
     SopInstanceUid    VARCHAR (64),
     Status            TINYINT     ,
     Watermark         BIGINT      );
-DECLARE @partitionKey AS INT;
 DECLARE @studyKey AS BIGINT;
 DECLARE @seriesKey AS BIGINT;
 DECLARE @instanceKey AS BIGINT;
 DECLARE @deletedDate AS DATETIME2 = SYSUTCDATETIME();
-SELECT @partitionKey = PartitionKey,
-       @studyKey = StudyKey,
+SELECT @studyKey = StudyKey,
        @seriesKey = CASE @seriesInstanceUid WHEN NULL THEN NULL ELSE SeriesKey END,
        @instanceKey = CASE @sopInstanceUid WHEN NULL THEN NULL ELSE InstanceKey END
 FROM   dbo.Instance
-WHERE  PartitionName = @partitionName
+WHERE  PartitionKey = @partitionKey
        AND StudyInstanceUid = @studyInstanceUid
        AND SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
        AND SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid);
 DELETE dbo.Instance
-OUTPUT deleted.PartitionName, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark INTO @deletedInstances
-WHERE  PartitionName = @partitionName
+OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark INTO @deletedInstances
+WHERE  PartitionKey = @partitionKey
        AND StudyInstanceUid = @studyInstanceUid
        AND SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
        AND SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid);
@@ -1566,8 +1563,8 @@ DELETE dbo.ExtendedQueryTagPersonName
 WHERE  StudyKey = @studyKey
        AND SeriesKey = ISNULL(@seriesKey, SeriesKey)
        AND InstanceKey = ISNULL(@instanceKey, InstanceKey);
-INSERT INTO dbo.DeletedInstance (PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
-SELECT PartitionName,
+INSERT INTO dbo.DeletedInstance (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
+SELECT PartitionKey,
        StudyInstanceUid,
        SeriesInstanceUid,
        SopInstanceUid,
@@ -1576,10 +1573,10 @@ SELECT PartitionName,
        0,
        @cleanupAfter
 FROM   @deletedInstances;
-INSERT INTO dbo.ChangeFeed (TimeStamp, Action, PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+INSERT INTO dbo.ChangeFeed (TimeStamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
 SELECT @deletedDate,
        1,
-       PartitionName,
+       PartitionKey,
        StudyInstanceUid,
        SeriesInstanceUid,
        SopInstanceUid,
@@ -1591,7 +1588,7 @@ SET    cf.CurrentWatermark = NULL
 FROM   dbo.ChangeFeed AS cf WITH (FORCESEEK)
        INNER JOIN
        @deletedInstances AS d
-       ON cf.PartitionName = d.PartitionName
+       ON cf.PartitionKey = d.PartitionKey
           AND cf.StudyInstanceUid = d.StudyInstanceUid
           AND cf.SeriesInstanceUid = d.SeriesInstanceUid
           AND cf.SopInstanceUid = d.SopInstanceUid;
@@ -1670,7 +1667,7 @@ COMMIT TRANSACTION;
 
 GO
 CREATE OR ALTER PROCEDURE dbo.EndAddInstanceV2
-@partitionName VARCHAR (64), @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @maxTagKey INT=NULL, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
+@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @maxTagKey INT=NULL, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
@@ -1682,7 +1679,7 @@ DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
 UPDATE dbo.Instance
 SET    Status                = 1,
        LastStatusUpdatedDate = @currentDate
-WHERE  PartitionName = @partitionName
+WHERE  PartitionKey = @partitionKey
        AND StudyInstanceUid = @studyInstanceUid
        AND SeriesInstanceUid = @seriesInstanceUid
        AND SopInstanceUid = @sopInstanceUid
@@ -1690,11 +1687,11 @@ WHERE  PartitionName = @partitionName
 IF @@ROWCOUNT = 0
     THROW 50404, 'Instance does not exist', 1;
 EXECUTE dbo.IndexInstance @watermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
-INSERT  INTO dbo.ChangeFeed (Timestamp, Action, PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-VALUES                     (@currentDate, 0, @partitionName, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
+INSERT  INTO dbo.ChangeFeed (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+VALUES                     (@currentDate, 0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
 UPDATE dbo.ChangeFeed
 SET    CurrentWatermark = @watermark
-WHERE  PartitionName = @partitionName
+WHERE  PartitionKey = @partitionKey
        AND StudyInstanceUid = @studyInstanceUid
        AND SeriesInstanceUid = @seriesInstanceUid
        AND SopInstanceUid = @sopInstanceUid;
@@ -1753,7 +1750,10 @@ BEGIN
                      SopInstanceUid,
                      OriginalWatermark,
                      CurrentWatermark
-    FROM     dbo.ChangeFeed
+    FROM     dbo.ChangeFeed AS c
+             INNER JOIN
+             dbo.Partition AS p
+             ON p.PartitionKey = c.PartitionKey
     ORDER BY Sequence DESC;
 END
 
@@ -1773,7 +1773,10 @@ BEGIN
              SopInstanceUid,
              OriginalWatermark,
              CurrentWatermark
-    FROM     dbo.ChangeFeed
+    FROM     dbo.ChangeFeed AS c
+             INNER JOIN
+             dbo.Partition AS p
+             ON p.PartitionKey = c.PartitionKey
     WHERE    Sequence BETWEEN @offset + 1 AND @offset + @limit
     ORDER BY Sequence;
 END
@@ -1853,6 +1856,9 @@ BEGIN
              INNER JOIN
              dbo.Instance AS I
              ON XQTE.Watermark = I.Watermark
+             INNER JOIN
+             dbo.Partition AS P
+             ON P.PartitionKey = I.PartitionKey
     WHERE    XQTE.TagKey = @tagKey
     ORDER BY CreatedTime ASC, XQTE.Watermark ASC, TagKey ASC
     OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
@@ -1988,7 +1994,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
-    SELECT PartitionName,
+    SELECT PartitionKey,
            StudyInstanceUid,
            SeriesInstanceUid,
            SopInstanceUid,
@@ -2000,22 +2006,36 @@ END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.GetInstanceV2
-@validStatus TINYINT, @partitionName VARCHAR (64), @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64)=NULL, @sopInstanceUid VARCHAR (64)=NULL
+@validStatus TINYINT, @partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64)=NULL, @sopInstanceUid VARCHAR (64)=NULL
 AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
-    SELECT PartitionName,
+    SELECT PartitionKey,
            StudyInstanceUid,
            SeriesInstanceUid,
            SopInstanceUid,
            Watermark
     FROM   dbo.Instance
-    WHERE  PartitionName = @partitionName
+    WHERE  PartitionKey = @partitionKey
            AND StudyInstanceUid = @studyInstanceUid
            AND SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
            AND SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
            AND Status = @validStatus;
+END
+
+GO
+CREATE OR ALTER PROCEDURE dbo.GetPartition
+@partitionName VARCHAR (64)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    SELECT PartitionKey,
+           PartitionName,
+           CreatedDate
+    FROM   dbo.Partition
+    WHERE  PartitionName = @partitionName;
 END
 
 GO
@@ -2048,14 +2068,14 @@ SELECT @retryCount;
 
 GO
 CREATE OR ALTER PROCEDURE dbo.IncrementDeletedInstanceRetryV2
-@partitionName VARCHAR (64), @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @cleanupAfter DATETIMEOFFSET (0)
+@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @cleanupAfter DATETIMEOFFSET (0)
 AS
 SET NOCOUNT ON;
 DECLARE @retryCount AS INT;
 UPDATE dbo.DeletedInstance
 SET    @retryCount = RetryCount = RetryCount + 1,
        CleanupAfter             = @cleanupAfter
-WHERE  PartitionName = @partitionName
+WHERE  PartitionKey = @partitionKey
        AND StudyInstanceUid = @studyInstanceUid
        AND SeriesInstanceUid = @seriesInstanceUid
        AND SopInstanceUid = @sopInstanceUid
@@ -2482,7 +2502,7 @@ CREATE OR ALTER PROCEDURE dbo.RetrieveDeletedInstanceV2
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT TOP (@count) PartitionName,
+    SELECT TOP (@count) PartitionKey,
                         StudyInstanceUid,
                         SeriesInstanceUid,
                         SopInstanceUid,
@@ -2536,7 +2556,7 @@ COMMIT TRANSACTION;
 
 GO
 CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV2
-@partitionName VARCHAR (64), @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT
+@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT
 AS
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
@@ -2545,18 +2565,18 @@ DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
 UPDATE dbo.Instance
 SET    Status                = @status,
        LastStatusUpdatedDate = @currentDate
-WHERE  PartitionName = @partitionName
+WHERE  PartitionKey = @partitionKey
        AND StudyInstanceUid = @studyInstanceUid
        AND SeriesInstanceUid = @seriesInstanceUid
        AND SopInstanceUid = @sopInstanceUid
        AND Watermark = @watermark;
 IF @@ROWCOUNT = 0
     THROW 50404, 'Instance does not exist', 1;
-INSERT  INTO dbo.ChangeFeed (Timestamp, Action, PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-VALUES                     (@currentDate, 0, @partitionName, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
+INSERT  INTO dbo.ChangeFeed (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+VALUES                     (@currentDate, 0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
 UPDATE dbo.ChangeFeed
 SET    CurrentWatermark = @watermark
-WHERE  PartitionName = @partitionName
+WHERE  PartitionKey = @partitionKey
        AND StudyInstanceUid = @studyInstanceUid
        AND SeriesInstanceUid = @seriesInstanceUid
        AND SopInstanceUid = @sopInstanceUid;

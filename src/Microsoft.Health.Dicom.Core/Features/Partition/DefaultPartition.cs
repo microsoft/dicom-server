@@ -8,5 +8,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Partition
     public static class DefaultPartition
     {
         public const string Name = "Microsoft.Default";
+        public const int Key = 1;
     }
 }

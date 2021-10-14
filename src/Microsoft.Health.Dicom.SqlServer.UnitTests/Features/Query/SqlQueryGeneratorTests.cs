@@ -39,13 +39,11 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
             new SqlQueryGenerator(stringBuilder, query, parm);
 
             string expectedDistinctSelect = @"SELECT 
-p.PartitionName
+st.PartitionKey
 ,st.StudyKey
 FROM dbo.Study st
-JOIN dbo.Partition p
-ON p.PartitionKey = st.PartitionKey
 WHERE 1 = 1
-AND p.PartitionName = 'Microsoft.Default'";
+AND st.PartitionKey = 1";
 
             string expectedCrossApply = @"
 FROM dbo.Instance a
@@ -80,12 +78,10 @@ FETCH NEXT 100 ROWS ONLY";
             new SqlQueryGenerator(stringBuilder, query, parm);
 
             string expectedDistinctSelect = @"SELECT 
-p.PartitionName
+st.PartitionKey
 ,st.StudyKey
 ,se.SeriesKey
 FROM dbo.Study st
-JOIN dbo.Partition p
-ON p.PartitionKey = st.PartitionKey
 INNER JOIN dbo.Series se
 ON se.StudyKey = st.StudyKey";
 
@@ -125,14 +121,12 @@ ORDER BY a.Watermark DESC";
             new SqlQueryGenerator(stringBuilder, query, parm);
 
             string expectedDistinctSelect = @"SELECT 
-p.PartitionName
+i.PartitionKey
 ,i.StudyInstanceUid
 ,i.SeriesInstanceUid
 ,i.SopInstanceUid
 ,i.Watermark
 FROM dbo.Study st
-JOIN dbo.Partition p
-ON p.PartitionKey = st.PartitionKey
 INNER JOIN dbo.Series se
 ON se.StudyKey = st.StudyKey
 INNER JOIN dbo.Instance i

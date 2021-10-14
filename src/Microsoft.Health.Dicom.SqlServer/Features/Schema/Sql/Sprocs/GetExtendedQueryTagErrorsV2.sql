@@ -48,6 +48,8 @@ BEGIN
     FROM dbo.ExtendedQueryTagError AS XQTE
     INNER JOIN dbo.Instance AS I
     ON XQTE.Watermark = I.Watermark
+    INNER JOIN dbo.Partition P
+    ON P.PartitionKey = I.PartitionKey
     WHERE XQTE.TagKey = @tagKey
     ORDER BY CreatedTime ASC, XQTE.Watermark ASC, TagKey ASC
     OFFSET @offset ROWS

@@ -52,8 +52,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
             {
-                (string partitionName, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
-                   VLatest.Instance.PartitionName,
+                (int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
+                   VLatest.Instance.PartitionKey,
                    VLatest.Instance.StudyInstanceUid,
                    VLatest.Instance.SeriesInstanceUid,
                    VLatest.Instance.SopInstanceUid,
@@ -64,7 +64,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                         seriesInstanceUid,
                         sopInstanceUid,
                         watermark,
-                        partitionName));
+                        partitionKey));
             }
 
             return new QueryResult(results);

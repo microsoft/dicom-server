@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
-            string partitionName = default)
+            int partitionKey = default)
         {
             EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
             SopInstanceUid = sopInstanceUid;
-            PartitionName = partitionName;
+            PartitionKey = partitionKey;
         }
 
         public string StudyInstanceUid { get; }
@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
 
         public string SopInstanceUid { get; }
 
-        public string PartitionName { get; }
+        public int PartitionKey { get; }
 
         public override bool Equals(object obj)
         {
