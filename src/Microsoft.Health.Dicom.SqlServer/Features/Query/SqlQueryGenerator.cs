@@ -99,7 +99,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             }
 
             _stringBuilder.AppendLine($"FROM {VLatest.Study.TableName} {StudyTableAlias}");
-
             if (_queryExpression.IsSeriesIELevel() || _queryExpression.IsInstanceIELevel())
             {
                 _stringBuilder.AppendLine($"INNER JOIN {VLatest.Series.TableName} {SeriesTableAlias}");
@@ -127,7 +126,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
             if ((int)_schemaVersion >= SchemaVersionConstants.SupportDataPartitionSchemaVersion)
             {
-                // TODO: Actual PartitionName should be passed as a filter condition
+                // TODO: Actual PartitionKey should be passed as a filter condition
                 _stringBuilder.AppendLine($"AND {StudyTableAlias}.{VLatest.Study.PartitionKey} = {DefaultPartition.Key}");
             }
 

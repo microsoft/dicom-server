@@ -1975,6 +1975,14 @@ BEGIN
         RetryCount,
         CleanupAfter
     )
+    INCLUDE
+    (
+        PartitionKey,
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid,
+        Watermark
+    )
     WITH
     (
         DATA_COMPRESSION = PAGE,

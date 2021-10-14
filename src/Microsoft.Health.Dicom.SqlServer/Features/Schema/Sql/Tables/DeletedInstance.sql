@@ -28,5 +28,14 @@ CREATE NONCLUSTERED INDEX IX_DeletedInstance_RetryCount_CleanupAfter ON dbo.Dele
 (
     RetryCount,
     CleanupAfter
-) WITH (DATA_COMPRESSION = PAGE)
+)
+INCLUDE
+(
+    PartitionKey,
+    StudyInstanceUid,
+    SeriesInstanceUid,
+    SopInstanceUid,
+    Watermark
+)
+WITH (DATA_COMPRESSION = PAGE)
 
