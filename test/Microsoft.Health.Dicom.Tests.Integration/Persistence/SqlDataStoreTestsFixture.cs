@@ -13,10 +13,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error;
+using Microsoft.Health.Dicom.SqlServer.Features.Partition;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Store;
@@ -115,6 +117,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     new SqlInstanceStoreV6(SqlConnectionWrapperFactory),
                 }));
 
+            PartitionStore = new SqlPartitionStore(new VersionedCache<ISqlPartitionStore>(
+               schemaResolver,
+               new[]
+               {
+                    new SqlPartitionStoreV6(SqlConnectionWrapperFactory),
+               }));
+
             ExtendedQueryTagStore = new SqlExtendedQueryTagStore(new VersionedCache<ISqlExtendedQueryTagStore>(
                 schemaResolver,
                 new[]
@@ -156,6 +165,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public IIndexDataStore IndexDataStore { get; }
 
         public IInstanceStore InstanceStore { get; }
+
+        public IPartitionStore PartitionStore { get; }
 
         public IExtendedQueryTagStore ExtendedQueryTagStore { get; }
 
