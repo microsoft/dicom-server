@@ -125,7 +125,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
             _stringBuilder.AppendLine("WHERE 1 = 1");
 
-            if (_schemaVersion >= SchemaVersion.V6)
+            if ((int)_schemaVersion >= SchemaVersionConstants.SupportDataPartitionSchemaVersion)
             {
                 // TODO: Actual PartitionName should be passed as a filter condition
                 _stringBuilder.AppendLine($"AND {StudyTableAlias}.{VLatest.Study.PartitionKey} = {DefaultPartition.Key}");
