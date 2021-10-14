@@ -87,7 +87,6 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_Watermark_Status on dbo.Instance
 )
 INCLUDE
 (
-    PartitionKey,
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid

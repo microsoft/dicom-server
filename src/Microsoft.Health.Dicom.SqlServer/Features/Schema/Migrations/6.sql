@@ -272,7 +272,7 @@ CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SopInstanceUid_Status
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_Watermark_Status
     ON dbo.Instance(Watermark, Status)
-    INCLUDE(PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid) WITH (DATA_COMPRESSION = PAGE);
+    INCLUDE(StudyInstanceUid, SeriesInstanceUid, SopInstanceUid) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SeriesKey_Status
     ON dbo.Instance(PartitionKey, SeriesKey, Status)
@@ -2272,34 +2272,31 @@ END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatus
-@studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT, @maxTagKey INT=NULL
+@studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT
 AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    BEGIN TRANSACTION;
-    IF @maxTagKey < (SELECT ISNULL(MAX(TagKey), 0)
-                     FROM   dbo.ExtendedQueryTag WITH (HOLDLOCK))
-        THROW 50409, 'Max extended query tag key does not match', 10;
-    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
-    UPDATE dbo.Instance
-    SET    Status                = @status,
-           LastStatusUpdatedDate = @currentDate
-    WHERE  StudyInstanceUid = @studyInstanceUid
-           AND SeriesInstanceUid = @seriesInstanceUid
-           AND SopInstanceUid = @sopInstanceUid
-           AND Watermark = @watermark;
-    IF @@ROWCOUNT = 0
+SET NOCOUNT ON;
+SET XACT_ABORT ON;
+BEGIN TRANSACTION;
+DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+UPDATE dbo.Instance
+SET    Status                = @status,
+       LastStatusUpdatedDate = @currentDate
+WHERE  StudyInstanceUid = @studyInstanceUid
+       AND SeriesInstanceUid = @seriesInstanceUid
+       AND SopInstanceUid = @sopInstanceUid
+       AND Watermark = @watermark;
+IF @@ROWCOUNT = 0
+    BEGIN
         THROW 50404, 'Instance does not exist', 1;
-    INSERT  INTO dbo.ChangeFeed (Timestamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-    VALUES                     (@currentDate, 0, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
-    UPDATE dbo.ChangeFeed
-    SET    CurrentWatermark = @watermark
-    WHERE  StudyInstanceUid = @studyInstanceUid
-           AND SeriesInstanceUid = @seriesInstanceUid
-           AND SopInstanceUid = @sopInstanceUid;
-    COMMIT TRANSACTION;
-END
+    END
+INSERT  INTO dbo.ChangeFeed (Timestamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+VALUES                     (@currentDate, 0, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
+UPDATE dbo.ChangeFeed
+SET    CurrentWatermark = @watermark
+WHERE  StudyInstanceUid = @studyInstanceUid
+       AND SeriesInstanceUid = @seriesInstanceUid
+       AND SopInstanceUid = @sopInstanceUid;
+COMMIT TRANSACTION;
 
 GO
 CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV2
