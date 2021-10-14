@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 projectionTableAlias = crossApplyAlias;
             }
 
-            AppendSelect(projectionTableAlias, filterAlias);
+            AppendSelect(projectionTableAlias);
 
             // get distinct UIDs based on IE Level
             AppendFilterTable(filterAlias);
@@ -80,16 +80,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             _stringBuilder.AppendLine("( SELECT ");
             if (_queryExpression.IsInstanceIELevel())
             {
-                _stringBuilder.AppendLine(VLatest.Instance.PartitionKey, InstanceTableAlias);
-                _stringBuilder.Append(",").AppendLine(VLatest.Study.StudyInstanceUid, InstanceTableAlias);
+                _stringBuilder.AppendLine(VLatest.Study.StudyInstanceUid, InstanceTableAlias);
                 _stringBuilder.Append(",").AppendLine(VLatest.Series.SeriesInstanceUid, InstanceTableAlias);
                 _stringBuilder.Append(",").AppendLine(VLatest.Instance.SopInstanceUid, InstanceTableAlias);
                 _stringBuilder.Append(",").AppendLine(VLatest.Instance.Watermark, InstanceTableAlias);
             }
             else
             {
-                _stringBuilder.AppendLine(VLatest.Study.PartitionKey, StudyTableAlias);
-                _stringBuilder.Append(",").AppendLine(VLatest.Study.StudyKey, StudyTableAlias);
+                _stringBuilder.AppendLine(VLatest.Study.StudyKey, StudyTableAlias);
                 if (_queryExpression.IsSeriesIELevel())
                 {
                     _stringBuilder.Append(",").AppendLine(VLatest.Series.SeriesKey, SeriesTableAlias);
@@ -97,9 +95,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             }
 
             _stringBuilder.AppendLine($"FROM {VLatest.Study.TableName} {StudyTableAlias}");
-
-            //_stringBuilder.AppendLine($"JOIN {VLatest.Partition.TableName} {PartitionTableAlias}");
-            //_stringBuilder.AppendLine($"ON {PartitionTableAlias}.{VLatest.Partition.PartitionKey} = {StudyTableAlias}.{VLatest.Instance.PartitionKey}");
 
             if (_queryExpression.IsSeriesIELevel() || _queryExpression.IsInstanceIELevel())
             {
@@ -247,11 +242,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             _stringBuilder.AppendLine($") {crossApplyAlias}");
         }
 
-        private void AppendSelect(string tableAlias, string filterAlias)
+        private void AppendSelect(string tableAlias)
         {
             _stringBuilder
                 .AppendLine("SELECT ")
-                .Append(VLatest.Instance.PartitionKey, filterAlias).AppendLine(",")
                 .Append(VLatest.Instance.StudyInstanceUid, tableAlias).AppendLine(",")
                 .Append(VLatest.Instance.SeriesInstanceUid, tableAlias).AppendLine(",")
                 .Append(VLatest.Instance.SopInstanceUid, tableAlias).AppendLine(",")

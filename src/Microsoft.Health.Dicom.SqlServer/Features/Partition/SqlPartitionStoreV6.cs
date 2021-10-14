@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Partition
 
         public override SchemaVersion Version => SchemaVersion.V6;
 
-        public override async Task<IEnumerable<PartitionEntry>> GetPartitions(CancellationToken cancellationToken = default)
+        public override async Task<IEnumerable<PartitionEntry>> GetPartitions(CancellationToken cancellationToken)
         {
             var results = new List<PartitionEntry>();
 
@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Partition
             }
         }
 
-        public override async Task<PartitionEntry> GetPartition(string partitionName, CancellationToken cancellationToken = default)
+        public override async Task<PartitionEntry> GetPartition(string partitionName, CancellationToken cancellationToken)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())

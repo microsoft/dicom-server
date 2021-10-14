@@ -41,8 +41,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
             new SqlQueryGenerator(stringBuilder, query, parm);
 
             string expectedDistinctSelect = @"SELECT 
-st.PartitionKey
-,st.StudyKey
+st.StudyKey
 FROM dbo.Study st
 WHERE 1 = 1
 AND st.PartitionKey = 1";
@@ -80,8 +79,7 @@ FETCH NEXT 100 ROWS ONLY";
             new SqlQueryGenerator(stringBuilder, query, parm);
 
             string expectedDistinctSelect = @"SELECT 
-st.PartitionKey
-,st.StudyKey
+st.StudyKey
 ,se.SeriesKey
 FROM dbo.Study st
 INNER JOIN dbo.Series se
@@ -123,8 +121,7 @@ ORDER BY a.Watermark DESC";
             new SqlQueryGenerator(stringBuilder, query, parm);
 
             string expectedDistinctSelect = @"SELECT 
-i.PartitionKey
-,i.StudyInstanceUid
+i.StudyInstanceUid
 ,i.SeriesInstanceUid
 ,i.SopInstanceUid
 ,i.Watermark
