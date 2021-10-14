@@ -31,7 +31,9 @@ BEGIN
             SopInstanceUid,
             OriginalWatermark,
             CurrentWatermark
-    FROM    dbo.ChangeFeed
+    FROM    dbo.ChangeFeed c
+    INNER JOIN dbo.Partition p
+    ON p.PartitionKey = c.PartitionKey
     WHERE   Sequence BETWEEN @offset+1 AND @offset+@limit
     ORDER BY Sequence
 END

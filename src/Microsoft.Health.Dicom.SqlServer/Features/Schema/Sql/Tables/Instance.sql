@@ -18,7 +18,6 @@ CREATE TABLE dbo.Instance (
     --audit columns
     CreatedDate             DATETIME2(7)               NOT NULL,
     PartitionKey            INT                        NOT NULL DEFAULT 1,  --FK
-    PartitionName           VARCHAR(64)                NOT NULL DEFAULT 'Microsoft.Default'
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance
@@ -28,9 +27,9 @@ CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance
 )
 
 --Filter indexes
-CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionName_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
+CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
 (
-    PartitionName,
+    PartitionKey,
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid
@@ -42,9 +41,9 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
-CREATE NONCLUSTERED INDEX IX_Instance_PartitionName_StudyInstanceUid_Status on dbo.Instance
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_Status on dbo.Instance
 (
-    PartitionName,
+    PartitionKey,
     StudyInstanceUid,
     Status
 )
@@ -54,9 +53,9 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
-CREATE NONCLUSTERED INDEX IX_Instance_PartitionName_StudyInstanceUid_SeriesInstanceUid_Status on dbo.Instance
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_Status on dbo.Instance
 (
-    PartitionName,
+    PartitionKey,
     StudyInstanceUid,
     SeriesInstanceUid,
     Status
@@ -67,9 +66,9 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
-CREATE NONCLUSTERED INDEX IX_Instance_PartitionName_SopInstanceUid_Status on dbo.Instance
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SopInstanceUid_Status on dbo.Instance
 (
-    PartitionName,
+    PartitionKey,
     SopInstanceUid,
     Status
 )
@@ -88,7 +87,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_Watermark_Status on dbo.Instance
 )
 INCLUDE
 (
-    PartitionName,
+    PartitionKey,
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid
@@ -104,7 +103,6 @@ CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SeriesKey_Status on dbo.Insta
 )
 INCLUDE
 (
-    PartitionName,
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid,
@@ -120,7 +118,6 @@ CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyKey_Status on dbo.Instan
 )
 INCLUDE
 (
-    PartitionName,
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid,

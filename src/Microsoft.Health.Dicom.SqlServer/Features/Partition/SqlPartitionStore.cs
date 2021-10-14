@@ -24,5 +24,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Partition
             ISqlPartitionStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
             return await store.GetPartitions(cancellationToken);
         }
+
+        public async Task<PartitionEntry> GetPartition(string partitionName, CancellationToken cancellationToken = default)
+        {
+            ISqlPartitionStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+            return await store.GetPartition(partitionName, cancellationToken);
+        }
     }
 }

@@ -54,6 +54,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetInstanceV2Procedure GetInstanceV2 = new GetInstanceV2Procedure();
         internal readonly static GetInstancesByWatermarkRangeProcedure GetInstancesByWatermarkRange = new GetInstancesByWatermarkRangeProcedure();
         internal readonly static GetInstancesByWatermarkRangeV2Procedure GetInstancesByWatermarkRangeV2 = new GetInstancesByWatermarkRangeV2Procedure();
+        internal readonly static GetPartitionProcedure GetPartition = new GetPartitionProcedure();
         internal readonly static GetPartitionsProcedure GetPartitions = new GetPartitionsProcedure();
         internal readonly static IIndexInstanceCoreProcedure IIndexInstanceCore = new IIndexInstanceCoreProcedure();
         internal readonly static IncrementDeletedInstanceRetryProcedure IncrementDeletedInstanceRetry = new IncrementDeletedInstanceRetryProcedure();
@@ -81,9 +82,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly VarCharColumn SopInstanceUid = new VarCharColumn("SopInstanceUid", 64);
             internal readonly BigIntColumn OriginalWatermark = new BigIntColumn("OriginalWatermark");
             internal readonly NullableBigIntColumn CurrentWatermark = new NullableBigIntColumn("CurrentWatermark");
-            internal readonly VarCharColumn PartitionName = new VarCharColumn("PartitionName", 64);
+            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_ChangeFeed = new Index("IXC_ChangeFeed");
-            internal readonly Index IX_ChangeFeed_PartitionName_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_ChangeFeed_PartitionName_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
+            internal readonly Index IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
         }
 
         internal class DeletedInstanceTable : Table
@@ -99,7 +100,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly DateTimeOffsetColumn DeletedDateTime = new DateTimeOffsetColumn("DeletedDateTime", 0);
             internal readonly IntColumn RetryCount = new IntColumn("RetryCount");
             internal readonly DateTimeOffsetColumn CleanupAfter = new DateTimeOffsetColumn("CleanupAfter", 0);
-            internal readonly VarCharColumn PartitionName = new VarCharColumn("PartitionName", 64);
+            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_DeletedInstance = new Index("IXC_DeletedInstance");
             internal readonly Index IX_DeletedInstance_RetryCount_CleanupAfter = new Index("IX_DeletedInstance_RetryCount_CleanupAfter");
         }
@@ -254,12 +255,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly DateTime2Column LastStatusUpdatedDate = new DateTime2Column("LastStatusUpdatedDate", 7);
             internal readonly DateTime2Column CreatedDate = new DateTime2Column("CreatedDate", 7);
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
-            internal readonly VarCharColumn PartitionName = new VarCharColumn("PartitionName", 64);
             internal readonly Index IXC_Instance = new Index("IXC_Instance");
-            internal readonly Index IX_Instance_PartitionName_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_Instance_PartitionName_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
-            internal readonly Index IX_Instance_PartitionName_StudyInstanceUid_Status = new Index("IX_Instance_PartitionName_StudyInstanceUid_Status");
-            internal readonly Index IX_Instance_PartitionName_StudyInstanceUid_SeriesInstanceUid_Status = new Index("IX_Instance_PartitionName_StudyInstanceUid_SeriesInstanceUid_Status");
-            internal readonly Index IX_Instance_PartitionName_SopInstanceUid_Status = new Index("IX_Instance_PartitionName_SopInstanceUid_Status");
+            internal readonly Index IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
+            internal readonly Index IX_Instance_PartitionKey_StudyInstanceUid_Status = new Index("IX_Instance_PartitionKey_StudyInstanceUid_Status");
+            internal readonly Index IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_Status = new Index("IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_Status");
+            internal readonly Index IX_Instance_PartitionKey_SopInstanceUid_Status = new Index("IX_Instance_PartitionKey_SopInstanceUid_Status");
             internal readonly Index IX_Instance_Watermark_Status = new Index("IX_Instance_Watermark_Status");
             internal readonly Index IX_Instance_PartitionKey_SeriesKey_Status = new Index("IX_Instance_PartitionKey_SeriesKey_Status");
             internal readonly Index IX_Instance_PartitionKey_StudyKey_Status = new Index("IX_Instance_PartitionKey_StudyKey_Status");
@@ -275,7 +275,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly VarCharColumn PartitionName = new VarCharColumn("PartitionName", 64);
             internal readonly DateTime2Column CreatedDate = new DateTime2Column("CreatedDate", 7);
             internal readonly Index IXC_Partition = new Index("IXC_Partition");
-            internal readonly Index IX_Partition_PartitionName = new Index("IX_Partition_PartitionName");
+            internal readonly Index IX_Partition_PartitionKey_PartitionName = new Index("IX_Partition_PartitionKey_PartitionName");
         }
 
         internal class SeriesTable : Table
@@ -819,17 +819,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
-            private readonly ParameterDefinition<System.String> _partitionName = new ParameterDefinition<System.String>("@partitionName", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
             private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.Int64> _watermark = new ParameterDefinition<System.Int64>("@watermark", global::System.Data.SqlDbType.BigInt, false);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.String partitionName, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int64 watermark)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int64 watermark)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.DeleteDeletedInstanceV2";
-                _partitionName.AddParameter(command.Parameters, partitionName);
+                _partitionKey.AddParameter(command.Parameters, partitionKey);
                 _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
                 _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
                 _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
@@ -887,18 +887,18 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
             private readonly ParameterDefinition<System.DateTimeOffset> _cleanupAfter = new ParameterDefinition<System.DateTimeOffset>("@cleanupAfter", global::System.Data.SqlDbType.DateTimeOffset, false, 0);
             private readonly ParameterDefinition<System.Byte> _createdStatus = new ParameterDefinition<System.Byte>("@createdStatus", global::System.Data.SqlDbType.TinyInt, false);
-            private readonly ParameterDefinition<System.String> _partitionName = new ParameterDefinition<System.String>("@partitionName", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
             private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
             private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.DateTimeOffset cleanupAfter, System.Byte createdStatus, System.String partitionName, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
+            public void PopulateCommand(SqlCommandWrapper command, System.DateTimeOffset cleanupAfter, System.Byte createdStatus, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.DeleteInstanceV2";
                 _cleanupAfter.AddParameter(command.Parameters, cleanupAfter);
                 _createdStatus.AddParameter(command.Parameters, createdStatus);
-                _partitionName.AddParameter(command.Parameters, partitionName);
+                _partitionKey.AddParameter(command.Parameters, partitionKey);
                 _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
                 _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
                 _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
@@ -1154,17 +1154,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             private readonly ParameterDefinition<System.Byte> _validStatus = new ParameterDefinition<System.Byte>("@validStatus", global::System.Data.SqlDbType.TinyInt, false);
-            private readonly ParameterDefinition<System.String> _partitionName = new ParameterDefinition<System.String>("@partitionName", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
             private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
             private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Byte validStatus, System.String partitionName, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
+            public void PopulateCommand(SqlCommandWrapper command, System.Byte validStatus, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetInstanceV2";
                 _validStatus.AddParameter(command.Parameters, validStatus);
-                _partitionName.AddParameter(command.Parameters, partitionName);
+                _partitionKey.AddParameter(command.Parameters, partitionKey);
                 _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
                 _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
                 _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
@@ -1208,6 +1208,22 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _startWatermark.AddParameter(command.Parameters, startWatermark);
                 _endWatermark.AddParameter(command.Parameters, endWatermark);
                 _status.AddParameter(command.Parameters, status);
+            }
+        }
+
+        internal class GetPartitionProcedure : StoredProcedure
+        {
+            internal GetPartitionProcedure() : base("dbo.GetPartition")
+            {
+            }
+
+            private readonly ParameterDefinition<System.String> _partitionName = new ParameterDefinition<System.String>("@partitionName", global::System.Data.SqlDbType.VarChar, false, 64);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.String partitionName)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetPartition";
+                _partitionName.AddParameter(command.Parameters, partitionName);
             }
         }
 
@@ -1334,18 +1350,18 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
-            private readonly ParameterDefinition<System.String> _partitionName = new ParameterDefinition<System.String>("@partitionName", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
             private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.Int64> _watermark = new ParameterDefinition<System.Int64>("@watermark", global::System.Data.SqlDbType.BigInt, false);
             private readonly ParameterDefinition<System.DateTimeOffset> _cleanupAfter = new ParameterDefinition<System.DateTimeOffset>("@cleanupAfter", global::System.Data.SqlDbType.DateTimeOffset, false, 0);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.String partitionName, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int64 watermark, System.DateTimeOffset cleanupAfter)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int64 watermark, System.DateTimeOffset cleanupAfter)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.IncrementDeletedInstanceRetryV2";
-                _partitionName.AddParameter(command.Parameters, partitionName);
+                _partitionKey.AddParameter(command.Parameters, partitionKey);
                 _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
                 _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
                 _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
@@ -1656,7 +1672,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
-            private readonly ParameterDefinition<System.String> _partitionName = new ParameterDefinition<System.String>("@partitionName", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
             private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
@@ -1664,11 +1680,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.Byte> _status = new ParameterDefinition<System.Byte>("@status", global::System.Data.SqlDbType.TinyInt, false);
             private readonly ParameterDefinition<System.Nullable<System.Int32>> _maxTagKey = new ParameterDefinition<System.Nullable<System.Int32>>("@maxTagKey", global::System.Data.SqlDbType.Int, true);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.String partitionName, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int64 watermark, System.Byte status, System.Nullable<System.Int32> maxTagKey)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int64 watermark, System.Byte status, System.Nullable<System.Int32> maxTagKey)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.UpdateInstanceStatusV2";
-                _partitionName.AddParameter(command.Parameters, partitionName);
+                _partitionKey.AddParameter(command.Parameters, partitionKey);
                 _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
                 _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
                 _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);

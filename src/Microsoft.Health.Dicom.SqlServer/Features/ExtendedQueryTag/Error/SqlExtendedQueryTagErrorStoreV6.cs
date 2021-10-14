@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
                         VLatest.ExtendedQueryTagError.TagKey,
                         VLatest.ExtendedQueryTagError.ErrorCode,
                         VLatest.ExtendedQueryTagError.CreatedTime,
-                        VLatest.Instance.PartitionName,
+                        VLatest.Partition.PartitionName,
                         VLatest.Instance.StudyInstanceUid,
                         VLatest.Instance.SeriesInstanceUid,
                         VLatest.Instance.SopInstanceUid);

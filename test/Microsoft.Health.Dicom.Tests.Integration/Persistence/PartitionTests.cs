@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var latestVersion = instanceVersions.OrderBy(x => x.Version).Last();
 
-            Assert.Equal(DefaultPartition.Name, latestVersion.PartitionName);
+            Assert.Equal(DefaultPartition.Key, latestVersion.PartitionKey);
         }
 
         private async Task<VersionedInstanceIdentifier> CreateInstance(

@@ -33,7 +33,7 @@ END
     Partition Table
     Create table containing data partitions for light-weight multitenancy.
 **************************************************************/
-IF NOT EXISTS
+IF NOT EXISTS 
 (
     SELECT *
     FROM    sys.tables
@@ -42,20 +42,21 @@ IF NOT EXISTS
 BEGIN
     CREATE TABLE dbo.Partition (
         PartitionKey                INT             NOT NULL, --PK  System-generated sequence
-        PartitionName               VARCHAR(64)     NOT NULL, --    Client-generated unique name. Length allows GUID or UID.
+        PartitionName               VARCHAR(64)     NOT NULL, --Client-generated unique name. Length allows GUID or UID.
         -- audit columns
         CreatedDate                 DATETIME2(7)    NOT NULL
-    ) WITH (DATA_COMPRESSION = PAGE)
+    )
 
     CREATE UNIQUE CLUSTERED INDEX IXC_Partition ON dbo.Partition
     (
         PartitionKey
     )
 
-    CREATE UNIQUE NONCLUSTERED INDEX IX_Partition_PartitionName ON dbo.Partition
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Partition_PartitionKey_PartitionName ON dbo.Partition
     (
+        PartitionKey,
         PartitionName
-    ) WITH (DATA_COMPRESSION = PAGE)
+    )
 
     -- Add default partition values
     INSERT INTO dbo.Partition
@@ -68,7 +69,7 @@ END
     Study Table
     Add PartitionKey column and update indexes.
 **************************************************************/
-IF NOT EXISTS
+IF NOT EXISTS 
 (
     SELECT *
     FROM    sys.columns
@@ -84,7 +85,7 @@ END
     Series Table
     Add PartitionKey column and update indexes.
 **************************************************************/
-IF NOT EXISTS
+IF NOT EXISTS 
 (
     SELECT *
     FROM    sys.columns
@@ -98,9 +99,9 @@ END
 
 /*************************************************************
     Instance Table
-    Add PartitionKey and PartitionName columns and update indexes.
+    Add PartitionKey column and update indexes.
 **************************************************************/
-IF NOT EXISTS
+IF NOT EXISTS 
 (
     SELECT *
     FROM    sys.columns
@@ -109,8 +110,7 @@ IF NOT EXISTS
 )
 BEGIN
     ALTER TABLE dbo.Instance
-        ADD PartitionKey    INT             NOT NULL DEFAULT 1,
-            PartitionName   VARCHAR(64)     NOT NULL DEFAULT 'Microsoft.Default'
+        ADD PartitionKey    INT             NOT NULL DEFAULT 1
 END
 
 IF NOT EXISTS
@@ -128,7 +128,7 @@ BEGIN
     )
     INCLUDE
     (
-        PartitionName,
+        PartitionKey,
         StudyInstanceUid,
         SeriesInstanceUid,
         SopInstanceUid
@@ -138,41 +138,41 @@ END
 
 /*************************************************************
     ChangeFeed Table
-    Add PartitionName column and update indexes.
+    Add PartitionKey column and update indexes.
 **************************************************************/
-IF NOT EXISTS
+IF NOT EXISTS 
 (
     SELECT *
     FROM    sys.columns
-    WHERE   NAME = 'PartitionName'
+    WHERE   NAME = 'PartitionKey'
         AND Object_id = OBJECT_ID('dbo.ChangeFeed')
 )
 BEGIN
     ALTER TABLE dbo.ChangeFeed
-        ADD PartitionName VARCHAR(64) NOT NULL DEFAULT 'Microsoft.Default'
+        ADD PartitionKey    INT             NOT NULL DEFAULT 1
 END
 
 /*************************************************************
     DeletedInstance Table
-    Add PartitionName column and update indexes.
+    Add PartitionKey column and update indexes.
 **************************************************************/
-IF NOT EXISTS
+IF NOT EXISTS 
 (
     SELECT *
     FROM    sys.columns
-    WHERE   NAME = 'PartitionName'
+    WHERE   NAME = 'PartitionKey'
         AND Object_id = OBJECT_ID('dbo.DeletedInstance')
 )
 BEGIN
     ALTER TABLE dbo.DeletedInstance
-        ADD PartitionName VARCHAR(64) NOT NULL DEFAULT 'Microsoft.Default'
+        ADD PartitionKey    INT             NOT NULL DEFAULT 1
 END
 
 /*************************************************************
     ExtendedQueryTagDateTime Table
     Add PartitionKey column and update indexes.
 **************************************************************/
-IF NOT EXISTS
+IF NOT EXISTS 
 (
     SELECT *
     FROM    sys.columns
@@ -180,7 +180,7 @@ IF NOT EXISTS
         AND Object_id = OBJECT_ID('dbo.ExtendedQueryTagDateTime ')
 )
 BEGIN
-    ALTER TABLE dbo.ExtendedQueryTagDateTime
+    ALTER TABLE dbo.ExtendedQueryTagDateTime 
         ADD PartitionKey INT NOT NULL DEFAULT 1
 END
 
@@ -210,7 +210,7 @@ END
     ExtendedQueryTagDouble Table
     Add PartitionKey column and update indexes.
 **************************************************************/
-IF NOT EXISTS
+IF NOT EXISTS 
 (
     SELECT *
     FROM    sys.columns
@@ -218,7 +218,7 @@ IF NOT EXISTS
         AND Object_id = OBJECT_ID('dbo.ExtendedQueryTagDouble')
 )
 BEGIN
-    ALTER TABLE dbo.ExtendedQueryTagDouble
+    ALTER TABLE dbo.ExtendedQueryTagDouble 
         ADD PartitionKey INT NOT NULL DEFAULT 1
 END
 
@@ -248,7 +248,7 @@ END
     ExtendedQueryTagLong Table
     Add PartitionKey column and update indexes.
 **************************************************************/
-IF NOT EXISTS
+IF NOT EXISTS 
 (
     SELECT *
     FROM    sys.columns
@@ -256,7 +256,7 @@ IF NOT EXISTS
         AND Object_id = OBJECT_ID('dbo.ExtendedQueryTagLong')
 )
 BEGIN
-    ALTER TABLE dbo.ExtendedQueryTagLong
+    ALTER TABLE dbo.ExtendedQueryTagLong 
         ADD PartitionKey INT NOT NULL DEFAULT 1
 END
 
@@ -286,7 +286,7 @@ END
     ExtendedQueryTagPersonName Table
     Add PartitionKey column and update indexes.
 **************************************************************/
-IF NOT EXISTS
+IF NOT EXISTS 
 (
     SELECT *
     FROM    sys.columns
@@ -294,7 +294,7 @@ IF NOT EXISTS
         AND Object_id = OBJECT_ID('dbo.ExtendedQueryTagPersonName')
 )
 BEGIN
-    ALTER TABLE dbo.ExtendedQueryTagPersonName
+    ALTER TABLE dbo.ExtendedQueryTagPersonName 
         ADD PartitionKey INT NOT NULL DEFAULT 1
 END
 
@@ -336,7 +336,7 @@ END
     ExtendedQueryTagString Table
     Add PartitionKey column and update indexes.
 **************************************************************/
-IF NOT EXISTS
+IF NOT EXISTS 
 (
     SELECT *
     FROM    sys.columns
@@ -344,7 +344,7 @@ IF NOT EXISTS
         AND Object_id = OBJECT_ID('dbo.ExtendedQueryTagString')
 )
 BEGIN
-    ALTER TABLE dbo.ExtendedQueryTagString
+    ALTER TABLE dbo.ExtendedQueryTagString 
         ADD PartitionKey INT NOT NULL DEFAULT 1
 END
 
@@ -372,7 +372,7 @@ END
 GO
 
 /*************************************************************
-    Stored Procedures
+    Unnecessary Stored Procedures
 **************************************************************/
 DROP PROCEDURE IF EXISTS dbo.BeginAddInstance, dbo.EndAddInstance
 GO
@@ -863,9 +863,24 @@ BEGIN
     DECLARE @seriesKey BIGINT
     DECLARE @instanceKey BIGINT
 
+    SELECT @partitionKey = PartitionKey
+    FROM dbo.Partition
+    WHERE PartitionName = @partitionName
+
+     -- Insert Partition
+    IF @@ROWCOUNT = 0
+    BEGIN
+        SET @partitionKey = NEXT VALUE FOR dbo.PartitionKeySequence
+
+        INSERT INTO dbo.Partition
+            (PartitionKey, PartitionName, CreatedDate)
+        VALUES
+            (@partitionKey, @partitionName, @currentDate)
+    END
+
     SELECT @existingStatus = Status
     FROM dbo.Instance
-    WHERE PartitionName = @partitionName
+    WHERE PartitionKey = @partitionKey
         AND StudyInstanceUid = @studyInstanceUid
         AND SeriesInstanceUid = @seriesInstanceUid
         AND SopInstanceUid = @sopInstanceUid
@@ -877,21 +892,6 @@ BEGIN
     -- The instance does not exist, insert it.
     SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence
     SET @instanceKey = NEXT VALUE FOR dbo.InstanceKeySequence
-
-    -- Insert Partition
-    SELECT @partitionKey = PartitionKey
-    FROM dbo.Partition
-    WHERE PartitionName = @partitionName
-
-    IF @@ROWCOUNT = 0
-    BEGIN
-        SET @partitionKey = NEXT VALUE FOR dbo.PartitionKeySequence
-
-        INSERT INTO dbo.Partition
-            (PartitionKey, PartitionName, CreatedDate)
-        VALUES
-            (@partitionKey, @partitionName, @currentDate)
-    END
 
     -- Insert Study
     SELECT @studyKey = StudyKey
@@ -921,6 +921,7 @@ BEGIN
     FROM dbo.Series WITH(UPDLOCK)
     WHERE StudyKey = @studyKey
     AND SeriesInstanceUid = @seriesInstanceUid
+    AND PartitionKey = @partitionKey
 
     IF @@ROWCOUNT = 0
     BEGIN
@@ -943,9 +944,9 @@ BEGIN
 
     -- Insert Instance
     INSERT INTO dbo.Instance
-        (PartitionKey, StudyKey, SeriesKey, InstanceKey, PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
+        (PartitionKey, StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
     VALUES
-        (@partitionKey, @studyKey, @seriesKey, @instanceKey, @partitionName, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
+        (@partitionKey, @studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
 
     -- Insert Extended Query Tags
 
@@ -987,8 +988,8 @@ GO
 --     Removes a deleted instance from the DeletedInstance table
 --
 -- PARAMETERS
---     @partitionName
---         * The client-provided data partition name.
+--     @partitionKey
+--         * The Partition key
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -999,7 +1000,7 @@ GO
 --         * The watermark of the entry
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.DeleteDeletedInstanceV2(
-    @partitionName      VARCHAR(64),
+    @partitionKey       INT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64),
     @sopInstanceUid     VARCHAR(64),
@@ -1011,7 +1012,7 @@ BEGIN
 
     DELETE
     FROM    dbo.DeletedInstance
-    WHERE   PartitionName = @partitionName
+    WHERE   PartitionKey = @partitionKey
         AND     StudyInstanceUid = @studyInstanceUid
         AND     SeriesInstanceUid = @seriesInstanceUid
         AND     SopInstanceUid = @sopInstanceUid
@@ -1030,8 +1031,8 @@ GO
 --     Removes the specified instance(s) and places them in the DeletedInstance table for later removal
 --
 -- PARAMETERS
---     @partitionName
---         * The client-provided data partition name.
+--     @partitionKey
+--         * The Partition key
 --     @cleanupAfter
 --         * The date time offset that the instance can be cleaned up.
 --     @createdStatus
@@ -1046,7 +1047,7 @@ GO
 CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV2
     @cleanupAfter       DATETIMEOFFSET(0),
     @createdStatus      TINYINT,
-    @partitionName      VARCHAR(64),
+    @partitionKey       INT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64) = null,
     @sopInstanceUid     VARCHAR(64) = null
@@ -1058,35 +1059,33 @@ BEGIN
     BEGIN TRANSACTION
 
     DECLARE @deletedInstances AS TABLE
-        (PartitionName VARCHAR(64),
+           (PartitionKey INT,
             StudyInstanceUid VARCHAR(64),
             SeriesInstanceUid VARCHAR(64),
             SopInstanceUid VARCHAR(64),
             Status TINYINT,
             Watermark BIGINT)
 
-    DECLARE @partitionKey INT
     DECLARE @studyKey BIGINT
     DECLARE @seriesKey BIGINT
     DECLARE @instanceKey BIGINT
     DECLARE @deletedDate DATETIME2 = SYSUTCDATETIME()
 
-    -- Get the partition, study, series and instance PK
-    SELECT  @partitionKey = PartitionKey,
-    @studyKey = StudyKey,
+    -- Get the study, series and instance PK
+    SELECT  @studyKey = StudyKey,
     @seriesKey = CASE @seriesInstanceUid WHEN NULL THEN NULL ELSE SeriesKey END,
     @instanceKey = CASE @sopInstanceUid WHEN NULL THEN NULL ELSE InstanceKey END
     FROM    dbo.Instance
-    WHERE   PartitionName = @partitionName
+    WHERE   PartitionKey = @partitionKey
         AND     StudyInstanceUid = @studyInstanceUid
         AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
         AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
 
     -- Delete the instance and insert the details into DeletedInstance and ChangeFeed
     DELETE  dbo.Instance
-        OUTPUT deleted.PartitionName, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark
+        OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark
         INTO @deletedInstances
-    WHERE   PartitionName = @partitionName
+    WHERE   PartitionKey = @partitionKey
         AND     StudyInstanceUid = @studyInstanceUid
         AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
         AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
@@ -1161,13 +1160,13 @@ BEGIN
     AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
 
     INSERT INTO dbo.DeletedInstance
-    (PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
-    SELECT PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter
+    (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
+    SELECT PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter
     FROM @deletedInstances
 
     INSERT INTO dbo.ChangeFeed
-    (TimeStamp, Action, PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-    SELECT @deletedDate, 1, PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
+    (TimeStamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    SELECT @deletedDate, 1, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
     FROM @deletedInstances
     WHERE Status = @createdStatus
 
@@ -1175,7 +1174,7 @@ BEGIN
     SET cf.CurrentWatermark = NULL
     FROM dbo.ChangeFeed cf WITH(FORCESEEK)
     JOIN @deletedInstances d
-    ON cf.PartitionName = d.PartitionName
+    ON cf.PartitionKey = d.PartitionKey
         AND cf.StudyInstanceUid = d.StudyInstanceUid
         AND cf.SeriesInstanceUid = d.SeriesInstanceUid
         AND cf.SopInstanceUid = d.SopInstanceUid
@@ -1279,7 +1278,9 @@ BEGIN
             SopInstanceUid,
             OriginalWatermark,
             CurrentWatermark
-    FROM    dbo.ChangeFeed
+    FROM    dbo.ChangeFeed c
+    INNER JOIN dbo.Partition p
+    ON p.PartitionKey = c.PartitionKey
     ORDER BY Sequence DESC
 END
 GO
@@ -1317,7 +1318,9 @@ BEGIN
             SopInstanceUid,
             OriginalWatermark,
             CurrentWatermark
-    FROM    dbo.ChangeFeed
+    FROM    dbo.ChangeFeed c
+    INNER JOIN dbo.Partition p
+    ON p.PartitionKey = c.PartitionKey
     WHERE   Sequence BETWEEN @offset+1 AND @offset+@limit
     ORDER BY Sequence
 END
@@ -1366,7 +1369,7 @@ BEGIN
         TagKey,
         ErrorCode,
         CreatedTime,
-        PartitionName,
+        PartitionKey,
         StudyInstanceUid,
         SeriesInstanceUid,
         SopInstanceUid
@@ -1393,8 +1396,8 @@ GO
 -- PARAMETERS
 --     @invalidStatus
 --         * Filter criteria to search only valid instances
---     @partitionName
---         * The client-provided data partition name.
+--     @partitionKey
+--         * The Partition key
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -1404,7 +1407,7 @@ GO
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.GetInstanceV2 (
     @validStatus        TINYINT,
-    @partitionName      VARCHAR(64),
+    @partitionKey       INT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64) = NULL,
     @sopInstanceUid     VARCHAR(64) = NULL
@@ -1415,13 +1418,13 @@ BEGIN
     SET XACT_ABORT  ON
 
 
-    SELECT  PartitionName,
+    SELECT  PartitionKey,
             StudyInstanceUid,
             SeriesInstanceUid,
             SopInstanceUid,
             Watermark
     FROM    dbo.Instance
-    WHERE   PartitionName           = @partitionName
+    WHERE   PartitionKey            = @partitionKey
             AND StudyInstanceUid    = @studyInstanceUid
             AND SeriesInstanceUid   = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
             AND SopInstanceUid      = ISNULL(@sopInstanceUid, SopInstanceUid)
@@ -1504,7 +1507,7 @@ AS
 BEGIN
     SET NOCOUNT ON
     SET XACT_ABORT ON
-    SELECT PartitionName,
+    SELECT PartitionKey,
            StudyInstanceUid,
            SeriesInstanceUid,
            SopInstanceUid,
@@ -1544,6 +1547,35 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
+--     GetPartition
+--
+-- FIRST SCHEMA VERSION
+--     6
+--
+-- DESCRIPTION
+--     Gets the partition for the specified name
+--
+-- PARAMETERS
+--     @partitionName
+--         * Client provided partition name
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.GetPartition (
+    @partitionName   VARCHAR(64)
+) AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    SELECT  PartitionKey,
+            PartitionName,
+            CreatedDate
+    FROM    dbo.Partition
+    WHERE PartitionName = @partitionName
+END
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
 --     IncrementDeletedInstanceRetryV2
 --
 -- FIRST SCHEMA VERSION
@@ -1553,8 +1585,8 @@ GO
 --     Increments the retryCount of and retryAfter of a deleted instance
 --
 -- PARAMETERS
---     @partitionName
---         * The client-provided data partition name.
+--     @partitionKey
+--         * The Partition key
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -1571,7 +1603,7 @@ GO
 --
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.IncrementDeletedInstanceRetryV2(
-    @partitionName      VARCHAR(64),
+    @partitionKey       INT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64),
     @sopInstanceUid     VARCHAR(64),
@@ -1587,7 +1619,7 @@ BEGIN
     UPDATE  dbo.DeletedInstance
     SET     @retryCount = RetryCount = RetryCount + 1,
             CleanupAfter = @cleanupAfter
-    WHERE   PartitionName = @partitionName
+    WHERE   PartitionKey = @partitionKey
         AND     StudyInstanceUid = @studyInstanceUid
         AND     SeriesInstanceUid = @seriesInstanceUid
         AND     SopInstanceUid = @sopInstanceUid
@@ -1788,7 +1820,7 @@ AS
 BEGIN
     SET NOCOUNT ON
 
-    SELECT  TOP (@count) PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
+    SELECT  TOP (@count) PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
     FROM    dbo.DeletedInstance WITH (UPDLOCK, READPAST)
     WHERE   RetryCount <= @maxRetries
     AND     CleanupAfter < SYSUTCDATETIME()
@@ -1905,7 +1937,7 @@ GO
 --     None
 --
 CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV2
-    @partitionName      VARCHAR(64),
+    @partitionKey       INT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64),
     @sopInstanceUid     VARCHAR(64),
@@ -1927,7 +1959,7 @@ BEGIN
 
     UPDATE dbo.Instance
     SET Status = @status, LastStatusUpdatedDate = @currentDate
-    WHERE PartitionName = @partitionName
+    WHERE PartitionKey = @partitionKey
         AND StudyInstanceUid = @studyInstanceUid
         AND SeriesInstanceUid = @seriesInstanceUid
         AND SopInstanceUid = @sopInstanceUid
@@ -1941,14 +1973,14 @@ BEGIN
     -- Currently this procedure is used only updating the status to created
     -- If that changes an if condition is needed.
     INSERT INTO dbo.ChangeFeed
-        (Timestamp, Action, PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+        (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
     VALUES
-        (@currentDate, 0, @partitionName, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)
+        (@currentDate, 0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)
 
     -- Update existing instance currentWatermark to latest
     UPDATE dbo.ChangeFeed
     SET CurrentWatermark      = @watermark
-    WHERE PartitionName = @partitionName
+    WHERE PartitionKey = @partitionKey
         AND StudyInstanceUid    = @studyInstanceUid
         AND SeriesInstanceUid = @seriesInstanceUid
         AND SopInstanceUid    = @sopInstanceUid
@@ -1969,7 +2001,7 @@ IF EXISTS (SELECT *
 BEGIN
     -- This index uses IXC_Study as it's unique index, so must be dropped first.
     -- We'll restore the fulltext index with a new unique index after this transaction.
-    DROP FULLTEXT INDEX ON dbo.Study
+    DROP FULLTEXT INDEX ON dbo.Study    
 END
 GO
 
@@ -1984,12 +2016,12 @@ BEGIN TRY           -- wrapping the contents of this transaction in try/catch be
 /*******************        Study       **********************/
 
 -- This pattern is followed for several tables below. We are recreating the clustered index, adding
--- PartitionKey or PartitionName, and then recreating all non-clustered indexes, dropping and creating
+-- PartitionKey and then recreating all non-clustered indexes, dropping and creating
 -- with a new name if we are adding new keys, or recreating to properly include the new clustered
 -- index keys.
 -- We first check if one of the old non-clustered indexes that should be dropped is present. If so,
 -- we assume that this portion of the transaction has not successfully completed so far, and proceed.
-IF EXISTS
+IF EXISTS 
 (
     SELECT *
     FROM    sys.indexes
@@ -2105,7 +2137,7 @@ BEGIN
 END
 
 /*******************        Series       **********************/
-IF EXISTS
+IF EXISTS 
 (
     SELECT *
     FROM    sys.indexes
@@ -2181,7 +2213,7 @@ END
 
 /*******************        Instance       **********************/
 
-IF EXISTS
+IF EXISTS 
 (
     SELECT *
     FROM    sys.indexes
@@ -2191,9 +2223,9 @@ IF EXISTS
 BEGIN
     DROP INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.Instance
 
-    CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionName_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.Instance
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.Instance
     (
-        PartitionName,
+        PartitionKey,
         StudyInstanceUid,
         SeriesInstanceUid,
         SopInstanceUid
@@ -2207,9 +2239,9 @@ BEGIN
 
     DROP INDEX IX_Instance_StudyInstanceUid_Status ON dbo.Instance
 
-    CREATE NONCLUSTERED INDEX IX_Instance_PartitionName_StudyInstanceUid_Status on dbo.Instance
+    CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_Status on dbo.Instance
     (
-        PartitionName,
+        PartitionKey,
         StudyInstanceUid,
         Status
     )
@@ -2221,9 +2253,9 @@ BEGIN
 
     DROP INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status ON dbo.Instance
 
-    CREATE NONCLUSTERED INDEX IX_Instance_PartitionName_StudyInstanceUid_SeriesInstanceUid_Status ON dbo.Instance
+    CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_Status ON dbo.Instance
     (
-        PartitionName,
+        PartitionKey,
         StudyInstanceUid,
         SeriesInstanceUid,
         Status
@@ -2236,9 +2268,9 @@ BEGIN
 
     DROP INDEX IX_Instance_SopInstanceUid_Status ON dbo.Instance
 
-    CREATE NONCLUSTERED INDEX IX_Instance_PartitionName_SopInstanceUid_Status on dbo.Instance
+    CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SopInstanceUid_Status on dbo.Instance
     (
-        PartitionName,
+        PartitionKey,
         SopInstanceUid,
         Status
     )
@@ -2260,7 +2292,6 @@ BEGIN
     )
     INCLUDE
     (
-        PartitionName,
         StudyInstanceUid,
         SeriesInstanceUid,
         SopInstanceUid,
@@ -2278,7 +2309,6 @@ BEGIN
     )
     INCLUDE
     (
-        PartitionName,
         StudyInstanceUid,
         SeriesInstanceUid,
         SopInstanceUid,
@@ -2289,7 +2319,7 @@ BEGIN
 END
 
 /*******************       ChangeFeed      **********************/
-IF EXISTS
+IF EXISTS 
 (
     SELECT *
     FROM    sys.indexes
@@ -2299,9 +2329,9 @@ IF EXISTS
 BEGIN
     DROP INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.ChangeFeed
 
-    CREATE NONCLUSTERED INDEX IX_ChangeFeed_PartitionName_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.ChangeFeed
+    CREATE NONCLUSTERED INDEX IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.ChangeFeed
     (
-        PartitionName,
+        PartitionKey,
         StudyInstanceUid,
         SeriesInstanceUid,
         SopInstanceUid
@@ -2320,16 +2350,16 @@ IF NOT EXISTS  (SELECT  *
     WHERE   i.name = 'IXC_DeletedInstance'
             AND ic.object_id = OBJECT_ID('dbo.DeletedInstance')
             AND ic.is_included_column = 0
-            AND c.name = 'PartitionName')
+            AND c.name = 'PartitionKey')
 BEGIN
    CREATE UNIQUE CLUSTERED INDEX IXC_DeletedInstance ON dbo.DeletedInstance
     (
-        PartitionName,
+        PartitionKey,
         StudyInstanceUid,
         SeriesInstanceUid,
         SopInstanceUid,
         Watermark
-    )
+    ) 
     WITH
     (
         DROP_EXISTING = ON,
@@ -2373,7 +2403,7 @@ BEGIN
         StudyKey,
         SeriesKey,
         InstanceKey
-    )
+    ) 
     WITH
     (
         DROP_EXISTING = ON,
@@ -2404,7 +2434,7 @@ BEGIN
         StudyKey,
         SeriesKey,
         InstanceKey
-    )
+    ) 
     WITH
     (
         DROP_EXISTING = ON,
@@ -2427,7 +2457,7 @@ IF NOT EXISTS  (SELECT  *
             AND ic.is_included_column = 0
             AND c.name = 'PartitionKey')
 BEGIN
-
+    
     CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong ON dbo.ExtendedQueryTagLong
     (
         TagKey,
@@ -2436,7 +2466,7 @@ BEGIN
         StudyKey,
         SeriesKey,
         InstanceKey
-    )
+    ) 
     WITH
     (
         DROP_EXISTING = ON,
@@ -2467,7 +2497,7 @@ BEGIN
         StudyKey,
         SeriesKey,
         InstanceKey
-    )
+    ) 
     WITH
     (
         DROP_EXISTING = ON,
@@ -2490,7 +2520,7 @@ IF NOT EXISTS  (SELECT  *
             AND ic.is_included_column = 0
             AND c.name = 'PartitionKey')
 BEGIN
-
+    
     CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString ON dbo.ExtendedQueryTagString
     (
         TagKey,
@@ -2499,7 +2529,7 @@ BEGIN
         StudyKey,
         SeriesKey,
         InstanceKey
-    )
+    ) 
     WITH
     (
         DROP_EXISTING = ON,

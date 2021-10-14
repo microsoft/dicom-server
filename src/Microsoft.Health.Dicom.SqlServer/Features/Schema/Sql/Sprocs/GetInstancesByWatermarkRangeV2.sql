@@ -27,7 +27,7 @@ AS
 BEGIN
     SET NOCOUNT ON
     SET XACT_ABORT ON
-    SELECT PartitionName,
+    SELECT PartitionKey,
            StudyInstanceUid,
            SeriesInstanceUid,
            SopInstanceUid,

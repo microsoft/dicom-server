@@ -10,13 +10,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Partition
 {
     public class PartitionEntry
     {
+        public int PartitionKey { get; set; }
+
         public string PartitionName { get; set; }
 
         public DateTimeOffset CreatedDate { get; set; }
 
-        public PartitionEntry(string partitionId, DateTimeOffset createdDate)
+        public PartitionEntry(int partitionKey, string partitionName, DateTimeOffset createdDate)
         {
-            PartitionName = EnsureArg.IsNotNull(partitionId, nameof(partitionId));
+            PartitionKey = partitionKey;
+            PartitionName = EnsureArg.IsNotNull(partitionName, nameof(partitionName));
             CreatedDate = createdDate;
         }
     }

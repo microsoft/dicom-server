@@ -20,5 +20,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Partition
         {
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
+
+        public virtual Task<PartitionEntry> GetPartition(string partitionName, CancellationToken cancellationToken = default)
+        {
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+        }
     }
 }

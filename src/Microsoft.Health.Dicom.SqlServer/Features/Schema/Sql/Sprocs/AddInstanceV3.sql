@@ -87,9 +87,24 @@ BEGIN
     DECLARE @seriesKey BIGINT
     DECLARE @instanceKey BIGINT
 
+    SELECT @partitionKey = PartitionKey
+    FROM dbo.Partition
+    WHERE PartitionName = @partitionName
+
+     -- Insert Partition
+    IF @@ROWCOUNT = 0
+    BEGIN
+        SET @partitionKey = NEXT VALUE FOR dbo.PartitionKeySequence
+
+        INSERT INTO dbo.Partition
+            (PartitionKey, PartitionName, CreatedDate)
+        VALUES
+            (@partitionKey, @partitionName, @currentDate)
+    END
+
     SELECT @existingStatus = Status
     FROM dbo.Instance
-    WHERE PartitionName = @partitionName
+    WHERE PartitionKey = @partitionKey
         AND StudyInstanceUid = @studyInstanceUid
         AND SeriesInstanceUid = @seriesInstanceUid
         AND SopInstanceUid = @sopInstanceUid
@@ -101,21 +116,6 @@ BEGIN
     -- The instance does not exist, insert it.
     SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence
     SET @instanceKey = NEXT VALUE FOR dbo.InstanceKeySequence
-
-    -- Insert Partition
-    SELECT @partitionKey = PartitionKey
-    FROM dbo.Partition
-    WHERE PartitionName = @partitionName
-
-    IF @@ROWCOUNT = 0
-    BEGIN
-        SET @partitionKey = NEXT VALUE FOR dbo.PartitionKeySequence
-
-        INSERT INTO dbo.Partition
-            (PartitionKey, PartitionName, CreatedDate)
-        VALUES
-            (@partitionKey, @partitionName, @currentDate)
-    END
 
     -- Insert Study
     SELECT @studyKey = StudyKey
@@ -145,6 +145,7 @@ BEGIN
     FROM dbo.Series WITH(UPDLOCK)
     WHERE StudyKey = @studyKey
     AND SeriesInstanceUid = @seriesInstanceUid
+    AND PartitionKey = @partitionKey
 
     IF @@ROWCOUNT = 0
     BEGIN
@@ -167,9 +168,9 @@ BEGIN
 
     -- Insert Instance
     INSERT INTO dbo.Instance
-        (PartitionKey, StudyKey, SeriesKey, InstanceKey, PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
+        (PartitionKey, StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
     VALUES
-        (@partitionKey, @studyKey, @seriesKey, @instanceKey, @partitionName, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
+        (@partitionKey, @studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
 
     -- Insert Extended Query Tags
 

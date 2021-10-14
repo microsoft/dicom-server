@@ -42,11 +42,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Partition
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        (string rPartitionName, DateTimeOffset rCreatedDate) = reader.ReadRow(
+                        (int rPartitionKey, string rPartitionName, DateTimeOffset rCreatedDate) = reader.ReadRow(
+                           VLatest.Partition.PartitionKey,
                            VLatest.Partition.PartitionName,
                            VLatest.Partition.CreatedDate);
 
                         results.Add(new PartitionEntry(
+                            rPartitionKey,
                             rPartitionName,
                             rCreatedDate));
                     }
@@ -54,6 +56,34 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Partition
 
                 return results;
             }
+        }
+
+        public override async Task<PartitionEntry> GetPartition(string partitionName, CancellationToken cancellationToken = default)
+        {
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.GetPartition.PopulateCommand(sqlCommandWrapper, partitionName);
+
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                {
+                    if (await reader.ReadAsync(cancellationToken))
+                    {
+                        (int rPartitionKey, string rPartitionName, DateTimeOffset rCreatedDate) = reader.ReadRow(
+                           VLatest.Partition.PartitionKey,
+                           VLatest.Partition.PartitionName,
+                           VLatest.Partition.CreatedDate);
+
+                        return new PartitionEntry(
+                            rPartitionKey,
+                            rPartitionName,
+                            rCreatedDate);
+                    }
+                }
+
+            }
+
+            return null;
         }
     }
 }

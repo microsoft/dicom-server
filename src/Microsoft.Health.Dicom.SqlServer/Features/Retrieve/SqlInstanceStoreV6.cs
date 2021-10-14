@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             string sopInstanceUid,
             CancellationToken cancellationToken)
         {
-            return GetInstanceIdentifierImp(DefaultPartition.Name, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
+            return GetInstanceIdentifierImp(DefaultPartition.Key, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
         }
 
         public override Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
@@ -41,14 +41,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             string seriesInstanceUid,
             CancellationToken cancellationToken)
         {
-            return GetInstanceIdentifierImp(DefaultPartition.Name, studyInstanceUid, cancellationToken, seriesInstanceUid);
+            return GetInstanceIdentifierImp(DefaultPartition.Key, studyInstanceUid, cancellationToken, seriesInstanceUid);
         }
 
         public override Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
             string studyInstanceUid,
             CancellationToken cancellationToken)
         {
-            return GetInstanceIdentifierImp(DefaultPartition.Name, studyInstanceUid, cancellationToken);
+            return GetInstanceIdentifierImp(DefaultPartition.Key, studyInstanceUid, cancellationToken);
         }
 
         public override async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersByWatermarkRangeAsync(
@@ -71,8 +71,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        (string rPartitionName, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark) = reader.ReadRow(
-                           VLatest.Instance.PartitionName,
+                        (int rPartitionKey, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark) = reader.ReadRow(
+                           VLatest.Instance.PartitionKey,
                            VLatest.Instance.StudyInstanceUid,
                            VLatest.Instance.SeriesInstanceUid,
                            VLatest.Instance.SopInstanceUid,
@@ -83,7 +83,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
                             rSeriesInstanceUid,
                             rSopInstanceUid,
                             watermark,
-                            rPartitionName));
+                            rPartitionKey));
                     }
                 }
             }
@@ -92,7 +92,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
         }
 
         private async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierImp(
-            string partitionName,
+            int partitionKey,
             string studyInstanceUid,
             CancellationToken cancellationToken,
             string seriesInstanceUid = null,
@@ -106,7 +106,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
                 VLatest.GetInstanceV2.PopulateCommand(
                     sqlCommandWrapper,
                     validStatus: (byte)IndexStatus.Created,
-                    partitionName,
+                    partitionKey,
                     studyInstanceUid,
                     seriesInstanceUid,
                     sopInstanceUid);
@@ -115,8 +115,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        (string rPartitionName, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark) = reader.ReadRow(
-                           VLatest.Instance.PartitionName,
+                        (int rPartitionKey, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark) = reader.ReadRow(
+                           VLatest.Instance.PartitionKey,
                            VLatest.Instance.StudyInstanceUid,
                            VLatest.Instance.SeriesInstanceUid,
                            VLatest.Instance.SopInstanceUid,
@@ -127,7 +127,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
                                 rSeriesInstanceUid,
                                 rSopInstanceUid,
                                 watermark,
-                                rPartitionName));
+                                rPartitionKey));
                     }
                 }
             }

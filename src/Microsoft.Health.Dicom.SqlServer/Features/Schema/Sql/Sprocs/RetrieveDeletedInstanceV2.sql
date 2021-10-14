@@ -21,7 +21,7 @@ AS
 BEGIN
     SET NOCOUNT ON
 
-    SELECT  TOP (@count) PartitionName, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
+    SELECT  TOP (@count) PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
     FROM    dbo.DeletedInstance WITH (UPDLOCK, READPAST)
     WHERE   RetryCount <= @maxRetries
     AND     CleanupAfter < SYSUTCDATETIME()

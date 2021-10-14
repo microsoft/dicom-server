@@ -11,8 +11,8 @@
 -- PARAMETERS
 --     @invalidStatus
 --         * Filter criteria to search only valid instances
---     @partitionName
---         * The client-provided data partition name.
+--     @partitionKey
+--         * The Partition key
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -22,7 +22,7 @@
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.GetInstanceV2 (
     @validStatus        TINYINT,
-    @partitionName      VARCHAR(64),
+    @partitionKey       INT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64) = NULL,
     @sopInstanceUid     VARCHAR(64) = NULL
@@ -33,13 +33,13 @@ BEGIN
     SET XACT_ABORT  ON
 
 
-    SELECT  PartitionName,
+    SELECT  PartitionKey,
             StudyInstanceUid,
             SeriesInstanceUid,
             SopInstanceUid,
             Watermark
     FROM    dbo.Instance
-    WHERE   PartitionName           = @partitionName
+    WHERE   PartitionKey            = @partitionKey
             AND StudyInstanceUid    = @studyInstanceUid
             AND SeriesInstanceUid   = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
             AND SopInstanceUid      = ISNULL(@sopInstanceUid, SopInstanceUid)

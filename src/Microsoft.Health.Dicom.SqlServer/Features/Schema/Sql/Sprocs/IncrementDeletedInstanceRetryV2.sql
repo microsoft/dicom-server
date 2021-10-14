@@ -9,8 +9,8 @@
 --     Increments the retryCount of and retryAfter of a deleted instance
 --
 -- PARAMETERS
---     @partitionName
---         * The client-provided data partition name.
+--     @partitionKey
+--         * The Partition key
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -27,7 +27,7 @@
 --
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.IncrementDeletedInstanceRetryV2(
-    @partitionName      VARCHAR(64),
+    @partitionKey       INT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64),
     @sopInstanceUid     VARCHAR(64),
@@ -42,7 +42,7 @@ AS
     UPDATE  dbo.DeletedInstance
     SET     @retryCount = RetryCount = RetryCount + 1,
             CleanupAfter = @cleanupAfter
-    WHERE   PartitionName = @partitionName
+    WHERE   PartitionKey = @partitionKey
         AND     StudyInstanceUid = @studyInstanceUid
         AND     SeriesInstanceUid = @seriesInstanceUid
         AND     SopInstanceUid = @sopInstanceUid

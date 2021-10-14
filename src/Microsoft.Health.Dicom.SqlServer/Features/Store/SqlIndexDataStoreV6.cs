@@ -101,7 +101,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
             EnsureArg.IsNotNullOrEmpty(sopInstanceUid, nameof(sopInstanceUid));
 
-            await DeleteInstanceAsync(DefaultPartition.Name, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
+            await DeleteInstanceAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
         }
 
         public override async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
@@ -109,14 +109,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
 
-            await DeleteInstanceAsync(DefaultPartition.Name, studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cleanupAfter, cancellationToken);
+            await DeleteInstanceAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cleanupAfter, cancellationToken);
         }
 
         public override async Task DeleteStudyIndexAsync(string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
 
-            await DeleteInstanceAsync(DefaultPartition.Name, studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cleanupAfter, cancellationToken);
+            await DeleteInstanceAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cleanupAfter, cancellationToken);
         }
 
         public override async Task EndCreateInstanceIndexAsync(
@@ -134,7 +134,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             {
                 VLatest.UpdateInstanceStatusV2.PopulateCommand(
                     sqlCommandWrapper,
-                    DefaultPartition.Name,
+                    DefaultPartition.Key,
                     dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
                     dicomDataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
                     dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
@@ -176,8 +176,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     {
                         while (await reader.ReadAsync(cancellationToken))
                         {
-                            (string partitionName, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
-                                VLatest.DeletedInstance.PartitionName,
+                            (int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
+                                VLatest.DeletedInstance.PartitionKey,
                                 VLatest.DeletedInstance.StudyInstanceUid,
                                 VLatest.DeletedInstance.SeriesInstanceUid,
                                 VLatest.DeletedInstance.SopInstanceUid,
@@ -187,7 +187,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                                 studyInstanceUid,
                                 seriesInstanceUid,
                                 sopInstanceUid,
-                                watermark));
+                                watermark,
+                                partitionKey));
                         }
                     }
                     catch (SqlException ex)
@@ -207,7 +208,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             {
                 VLatest.DeleteDeletedInstanceV2.PopulateCommand(
                     sqlCommandWrapper,
-                    DefaultPartition.Name,
+                    DefaultPartition.Key,
                     versionedInstanceIdentifier.StudyInstanceUid,
                     versionedInstanceIdentifier.SeriesInstanceUid,
                     versionedInstanceIdentifier.SopInstanceUid,
@@ -231,7 +232,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             {
                 VLatest.IncrementDeletedInstanceRetryV2.PopulateCommand(
                     sqlCommandWrapper,
-                    DefaultPartition.Name,
+                    DefaultPartition.Key,
                     versionedInstanceIdentifier.StudyInstanceUid,
                     versionedInstanceIdentifier.SeriesInstanceUid,
                     versionedInstanceIdentifier.SopInstanceUid,
@@ -249,7 +250,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             }
         }
 
-        private async Task DeleteInstanceAsync(string partitionName, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        private async Task DeleteInstanceAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
@@ -258,7 +259,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     sqlCommandWrapper,
                     cleanupAfter,
                     (byte)IndexStatus.Created,
-                    partitionName,
+                    partitionKey,
                     studyInstanceUid,
                     seriesInstanceUid,
                     sopInstanceUid);
