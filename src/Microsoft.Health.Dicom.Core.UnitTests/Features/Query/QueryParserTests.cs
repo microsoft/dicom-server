@@ -169,7 +169,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [InlineData("19510910010203", "20200220020304")]
         public void GivenDateTime_WithValidRangeMatch_CheckCondition(string minValue, string maxValue)
         {
-            EnsureArg.IsNotNull(minValue, nameof(maxValue));
+            EnsureArg.IsNotNull(minValue, nameof(minValue));
+            EnsureArg.IsNotNull(maxValue, nameof(maxValue));
             QueryTag queryTag = new QueryTag(DicomTag.DateTime.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
 
             QueryExpression queryExpression = _queryParser.Parse(CreateParameters(GetSingleton("DateTime", string.Concat(minValue, "-", maxValue)), QueryResource.AllStudies), new[] { queryTag });
@@ -178,6 +179,34 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             Assert.True(cond.QueryTag.Tag == DicomTag.DateTime);
             Assert.True(cond.Minimum == DateTime.ParseExact(minValue, QueryParser.DateTimeTagValueFormats, null));
             Assert.True(cond.Maximum == DateTime.ParseExact(maxValue, QueryParser.DateTimeTagValueFormats, null));
+        }
+
+        [Theory]
+        [InlineData("", "20200220020304")]
+        [InlineData("19510910010203", "")]
+        public void GivenDateTime_WithEmptyMinOrMaxValueInRangeMatch_CheckCondition(string minValue, string maxValue)
+        {
+            EnsureArg.IsNotNull(minValue, nameof(minValue));
+            EnsureArg.IsNotNull(maxValue, nameof(maxValue));
+            QueryTag queryTag = new QueryTag(DicomTag.DateTime.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
+
+            QueryExpression queryExpression = _queryParser.Parse(CreateParameters(GetSingleton("DateTime", string.Concat(minValue, "-", maxValue)), QueryResource.AllStudies), new[] { queryTag });
+            var cond = queryExpression.FilterConditions.First() as DateRangeValueMatchCondition;
+            Assert.NotNull(cond);
+            Assert.Equal(DicomTag.DateTime, cond.QueryTag.Tag);
+
+            DateTime expectedMin = string.IsNullOrEmpty(minValue) ? DateTime.MinValue : DateTime.ParseExact(minValue, QueryParser.DateTimeTagValueFormats, null);
+            DateTime expectedMax = string.IsNullOrEmpty(maxValue) ? DateTime.MaxValue : DateTime.ParseExact(maxValue, QueryParser.DateTimeTagValueFormats, null);
+            Assert.Equal(expectedMin, cond.Minimum);
+            Assert.Equal(expectedMax, cond.Maximum);
+        }
+
+        [Fact]
+        public void GivenDateTime_WithEmptyMinAndMaxInRangeMatch_Throw()
+        {
+            QueryTag queryTag = new QueryTag(DicomTag.DateTime.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
+            Assert.Throws<QueryParseException>(() => _queryParser
+                .Parse(CreateParameters(GetSingleton("DateTime", "-"), QueryResource.AllStudies), new[] { queryTag }));
         }
 
         [Fact]
@@ -193,7 +222,29 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [InlineData("010203", "020304")]
         public void GivenStudyTime_WithValidRangeMatch_CheckCondition(string minValue, string maxValue)
         {
-            EnsureArg.IsNotNull(minValue, nameof(maxValue));
+            EnsureArg.IsNotNull(minValue, nameof(minValue));
+            EnsureArg.IsNotNull(maxValue, nameof(maxValue));
+            QueryTag queryTag = new QueryTag(DicomTag.Time.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
+
+            QueryExpression queryExpression = _queryParser.Parse(CreateParameters(GetSingleton("Time", string.Concat(minValue, "-", maxValue)), QueryResource.AllStudies), new[] { queryTag });
+            var cond = queryExpression.FilterConditions.First() as LongRangeValueMatchCondition;
+            Assert.NotNull(cond);
+            Assert.Equal(DicomTag.Time, cond.QueryTag.Tag);
+
+            long minTicks = new DicomTime(cond.QueryTag.Tag, new string[] { minValue }).Get<DateTime>().Ticks;
+            long maxTicks = new DicomTime(cond.QueryTag.Tag, new string[] { maxValue }).Get<DateTime>().Ticks;
+
+            Assert.Equal(minTicks, cond.Minimum);
+            Assert.Equal(maxTicks, cond.Maximum);
+        }
+
+        [Theory]
+        [InlineData("", "020304")]
+        [InlineData("010203", "")]
+        public void GivenStudyTime_WithEmptyMinOrMaxValueInRangeMatch_CheckCondition(string minValue, string maxValue)
+        {
+            EnsureArg.IsNotNull(minValue, nameof(minValue));
+            EnsureArg.IsNotNull(maxValue, nameof(maxValue));
             QueryTag queryTag = new QueryTag(DicomTag.Time.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
 
             QueryExpression queryExpression = _queryParser.Parse(CreateParameters(GetSingleton("Time", string.Concat(minValue, "-", maxValue)), QueryResource.AllStudies), new[] { queryTag });
@@ -201,11 +252,18 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             Assert.NotNull(cond);
             Assert.True(cond.QueryTag.Tag == DicomTag.Time);
 
-            long minTicks = new DicomTime(cond.QueryTag.Tag, new string[] { minValue }).Get<DateTime>().Ticks;
-            long maxTicks = new DicomTime(cond.QueryTag.Tag, new string[] { maxValue }).Get<DateTime>().Ticks;
+            long minTicks = string.IsNullOrEmpty(minValue) ? 0 : new DicomTime(cond.QueryTag.Tag, new string[] { minValue }).Get<DateTime>().Ticks;
+            long maxTicks = string.IsNullOrEmpty(maxValue) ? TimeSpan.TicksPerDay : new DicomTime(cond.QueryTag.Tag, new string[] { maxValue }).Get<DateTime>().Ticks;
 
-            Assert.True(cond.Minimum == minTicks);
-            Assert.True(cond.Maximum == maxTicks);
+            Assert.Equal(minTicks, cond.Minimum);
+            Assert.Equal(maxTicks, cond.Maximum);
+        }
+
+        [Fact]
+        public void GivenStudyTime_WithEmptyMinAndMaxInRangeMatch_Throw()
+        {
+            Assert.Throws<QueryParseException>(() => _queryParser
+                .Parse(CreateParameters(GetSingleton("StudyTime", "-"), QueryResource.AllSeries), QueryTagService.CoreQueryTags));
         }
 
         [Fact]
@@ -332,9 +390,37 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
                 .Parse(CreateParameters(GetSingleton(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags);
             var cond = queryExpression.FilterConditions.First() as DateRangeValueMatchCondition;
             Assert.NotNull(cond);
-            Assert.True(cond.QueryTag.Tag == DicomTag.StudyDate);
-            Assert.True(cond.Minimum == DateTime.ParseExact(value.Split('-')[0], QueryParser.DateTagValueFormat, null));
-            Assert.True(cond.Maximum == DateTime.ParseExact(value.Split('-')[1], QueryParser.DateTagValueFormat, null));
+            Assert.Equal(DicomTag.StudyDate, cond.QueryTag.Tag);
+            Assert.Equal(DateTime.ParseExact(value.Split('-')[0], QueryParser.DateTagValueFormat, null), cond.Minimum);
+            Assert.Equal(DateTime.ParseExact(value.Split('-')[1], QueryParser.DateTagValueFormat, null), cond.Maximum);
+        }
+
+        [Theory]
+        [InlineData("StudyDate", "-20200220")]
+        public void GivenStudyDate_WithEmptyMinValueInRangeMatch_CheckCondition(string key, string value)
+        {
+            EnsureArg.IsNotNull(value, nameof(value));
+            QueryExpression queryExpression = _queryParser
+                .Parse(CreateParameters(GetSingleton(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags);
+            var cond = queryExpression.FilterConditions.First() as DateRangeValueMatchCondition;
+            Assert.NotNull(cond);
+            Assert.Equal(DicomTag.StudyDate, cond.QueryTag.Tag);
+            Assert.Equal(DateTime.MinValue, cond.Minimum);
+            Assert.Equal(DateTime.ParseExact(value.Split('-')[1], QueryParser.DateTagValueFormat, null), cond.Maximum);
+        }
+
+        [Theory]
+        [InlineData("StudyDate", "19510910-")]
+        public void GivenStudyDate_WithEmptyMaxValueInRangeMatch_CheckCondition(string key, string value)
+        {
+            EnsureArg.IsNotNull(value, nameof(value));
+            QueryExpression queryExpression = _queryParser
+                .Parse(CreateParameters(GetSingleton(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags);
+            var cond = queryExpression.FilterConditions.First() as DateRangeValueMatchCondition;
+            Assert.NotNull(cond);
+            Assert.Equal(DicomTag.StudyDate, cond.QueryTag.Tag);
+            Assert.Equal(DateTime.ParseExact(value.Split('-')[0], QueryParser.DateTagValueFormat, null), cond.Minimum);
+            Assert.Equal(DateTime.MaxValue, cond.Maximum);
         }
 
         [Theory]
@@ -342,6 +428,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [InlineData("StudyDate", "20200230")]
         [InlineData("StudyDate", "20200228-20200230")]
         [InlineData("StudyDate", "20200110-20200109")]
+        [InlineData("StudyDate", "-")]
         [InlineData("PerformedProcedureStepStartDate", "baddate")]
         public void GivenDateTag_WithInvalidDate_Throw(string key, string value)
         {

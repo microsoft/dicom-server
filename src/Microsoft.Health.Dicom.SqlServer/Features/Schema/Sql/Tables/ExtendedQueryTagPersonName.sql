@@ -29,7 +29,22 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName ON dbo.ExtendedQuer
     InstanceKey
 )
 
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagPersonName
+(
+    TagKey,
+    PartitionKey,
+    StudyKey,
+    SeriesKey,
+    InstanceKey
+)
+INCLUDE
+(
+    Watermark
+)
+WITH (DATA_COMPRESSION = PAGE)
+
 CREATE UNIQUE NONCLUSTERED INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey ON dbo.ExtendedQueryTagPersonName
 (
     WatermarkAndTagKey
 )
+WITH (DATA_COMPRESSION = PAGE)

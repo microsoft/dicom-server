@@ -5,15 +5,12 @@
 -- STORED PROCEDURE
 --     UpdateInstanceStatusV2
 --
--- FIRST SCHEMA VERSION
---     6
---
 -- DESCRIPTION
 --     Updates a DICOM instance status.
 --
 -- PARAMETERS
---     @partitionName
---         * The client-provided data partition name.
+--     @partitionKey
+--         * The partition key.
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -24,6 +21,8 @@
 --         * The watermark.
 --     @status
 --         * The new status to update to.
+--     @maxTagKey
+--         * Optional max ExtendedQueryTag key
 --
 -- RETURN VALUE
 --     None
@@ -34,12 +33,19 @@ CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV2
     @seriesInstanceUid  VARCHAR(64),
     @sopInstanceUid     VARCHAR(64),
     @watermark          BIGINT,
-    @status             TINYINT
+    @status             TINYINT,
+    @maxTagKey          INT = NULL
 AS
+BEGIN
     SET NOCOUNT ON
 
     SET XACT_ABORT ON
     BEGIN TRANSACTION
+
+    -- This check ensures the client is not potentially missing 1 or more query tags that may need to be indexed.
+    -- Note that if @maxTagKey is NULL, < will always return UNKNOWN.
+    IF @maxTagKey < (SELECT ISNULL(MAX(TagKey), 0) FROM dbo.ExtendedQueryTag WITH (HOLDLOCK))
+        THROW 50409, 'Max extended query tag key does not match', 10
 
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
 
@@ -51,9 +57,9 @@ AS
         AND SopInstanceUid = @sopInstanceUid
         AND Watermark = @watermark
 
+    -- The instance does not exist. Perhaps it was deleted?
     IF @@ROWCOUNT = 0
-        -- The instance does not exist. Perhaps it was deleted?
-        THROW 50404, 'Instance does not exist', 1;
+        THROW 50404, 'Instance does not exist', 1
 
     -- Insert to change feed.
     -- Currently this procedure is used only updating the status to created
@@ -72,3 +78,4 @@ AS
         AND SopInstanceUid    = @sopInstanceUid
 
     COMMIT TRANSACTION
+END

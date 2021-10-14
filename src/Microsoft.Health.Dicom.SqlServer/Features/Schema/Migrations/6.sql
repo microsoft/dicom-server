@@ -129,6 +129,10 @@ WITH (DATA_COMPRESSION = PAGE);
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime
     ON dbo.ExtendedQueryTagDateTime(TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey);
 
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey
+    ON dbo.ExtendedQueryTagDateTime(TagKey, PartitionKey, StudyKey, SeriesKey, InstanceKey)
+    INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
+
 CREATE TABLE dbo.ExtendedQueryTagDouble (
     TagKey       INT        NOT NULL,
     TagValue     FLOAT (53) NOT NULL,
@@ -142,6 +146,10 @@ WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble
     ON dbo.ExtendedQueryTagDouble(TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey);
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey
+    ON dbo.ExtendedQueryTagDouble(TagKey, PartitionKey, StudyKey, SeriesKey, InstanceKey)
+    INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.ExtendedQueryTagError (
     TagKey      INT           NOT NULL,
@@ -171,6 +179,10 @@ WITH (DATA_COMPRESSION = PAGE);
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong
     ON dbo.ExtendedQueryTagLong(TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey);
 
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey
+    ON dbo.ExtendedQueryTagLong(TagKey, PartitionKey, StudyKey, SeriesKey, InstanceKey)
+    INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
+
 CREATE TABLE dbo.ExtendedQueryTagOperation (
     TagKey      INT              NOT NULL,
     OperationId UNIQUEIDENTIFIER NOT NULL
@@ -199,8 +211,12 @@ WITH (DATA_COMPRESSION = PAGE);
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName
     ON dbo.ExtendedQueryTagPersonName(TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey);
 
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey
+    ON dbo.ExtendedQueryTagPersonName(TagKey, PartitionKey, StudyKey, SeriesKey, InstanceKey)
+    INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
+
 CREATE UNIQUE NONCLUSTERED INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey
-    ON dbo.ExtendedQueryTagPersonName(WatermarkAndTagKey);
+    ON dbo.ExtendedQueryTagPersonName(WatermarkAndTagKey) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.ExtendedQueryTagString (
     TagKey       INT           NOT NULL,
@@ -215,6 +231,10 @@ WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString
     ON dbo.ExtendedQueryTagString(TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey);
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagString_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey
+    ON dbo.ExtendedQueryTagString(TagKey, PartitionKey, StudyKey, SeriesKey, InstanceKey)
+    INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.Instance (
     InstanceKey           BIGINT        NOT NULL,
@@ -250,8 +270,9 @@ CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SopInstanceUid_Status
     ON dbo.Instance(PartitionKey, SopInstanceUid, Status)
     INCLUDE(StudyInstanceUid, SeriesInstanceUid, Watermark) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_Instance_Watermark
-    ON dbo.Instance(Watermark) WITH (DATA_COMPRESSION = PAGE);
+CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_Watermark_Status
+    ON dbo.Instance(Watermark, Status)
+    INCLUDE(StudyInstanceUid, SeriesInstanceUid, SopInstanceUid) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SeriesKey_Status
     ON dbo.Instance(PartitionKey, SeriesKey, Status)
@@ -693,366 +714,165 @@ GO
 CREATE OR ALTER PROCEDURE dbo.AddInstanceV2
 @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @patientId NVARCHAR (64), @patientName NVARCHAR (325)=NULL, @referringPhysicianName NVARCHAR (325)=NULL, @studyDate DATE=NULL, @studyDescription NVARCHAR (64)=NULL, @accessionNumber NVARCHAR (64)=NULL, @modality NVARCHAR (16)=NULL, @performedProcedureStepStartDate DATE=NULL, @patientBirthDate DATE=NULL, @manufacturerModelName NVARCHAR (64)=NULL, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY, @initialStatus TINYINT
 AS
-SET NOCOUNT ON;
-SET XACT_ABORT ON;
-BEGIN TRANSACTION;
-DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
-DECLARE @existingStatus AS TINYINT;
-DECLARE @newWatermark AS BIGINT;
-DECLARE @studyKey AS BIGINT;
-DECLARE @seriesKey AS BIGINT;
-DECLARE @instanceKey AS BIGINT;
-SELECT @existingStatus = Status
-FROM   dbo.Instance
-WHERE  StudyInstanceUid = @studyInstanceUid
-       AND SeriesInstanceUid = @seriesInstanceUid
-       AND SopInstanceUid = @sopInstanceUid;
-IF @@ROWCOUNT <> 0
-    THROW 50409, 'Instance already exists', @existingStatus;
-SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
-SET @instanceKey =  NEXT VALUE FOR dbo.InstanceKeySequence;
-SELECT @studyKey = StudyKey
-FROM   dbo.Study WITH (UPDLOCK)
-WHERE  StudyInstanceUid = @studyInstanceUid;
-IF @@ROWCOUNT = 0
-    BEGIN
-        SET @studyKey =  NEXT VALUE FOR dbo.StudyKeySequence;
-        INSERT  INTO dbo.Study (StudyKey, StudyInstanceUid, PatientId, PatientName, PatientBirthDate, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
-        VALUES                (@studyKey, @studyInstanceUid, @patientId, @patientName, @patientBirthDate, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber);
-    END
-ELSE
-    BEGIN
-        UPDATE dbo.Study
-        SET    PatientId              = @patientId,
-               PatientName            = @patientName,
-               PatientBirthDate       = @patientBirthDate,
-               ReferringPhysicianName = @referringPhysicianName,
-               StudyDate              = @studyDate,
-               StudyDescription       = @studyDescription,
-               AccessionNumber        = @accessionNumber
-        WHERE  StudyKey = @studyKey;
-    END
-SELECT @seriesKey = SeriesKey
-FROM   dbo.Series WITH (UPDLOCK)
-WHERE  StudyKey = @studyKey
-       AND SeriesInstanceUid = @seriesInstanceUid;
-IF @@ROWCOUNT = 0
-    BEGIN
-        SET @seriesKey =  NEXT VALUE FOR dbo.SeriesKeySequence;
-        INSERT  INTO dbo.Series (StudyKey, SeriesKey, SeriesInstanceUid, Modality, PerformedProcedureStepStartDate, ManufacturerModelName)
-        VALUES                 (@studyKey, @seriesKey, @seriesInstanceUid, @modality, @performedProcedureStepStartDate, @manufacturerModelName);
-    END
-ELSE
-    BEGIN
-        UPDATE dbo.Series
-        SET    Modality                        = @modality,
-               PerformedProcedureStepStartDate = @performedProcedureStepStartDate,
-               ManufacturerModelName           = @manufacturerModelName
-        WHERE  SeriesKey = @seriesKey
-               AND StudyKey = @studyKey;
-    END
-INSERT  INTO dbo.Instance (StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
-VALUES                   (@studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate);
-IF EXISTS (SELECT 1
-           FROM   @stringExtendedQueryTags)
-    BEGIN
-        MERGE INTO dbo.ExtendedQueryTagString
-         AS T
-        USING (SELECT input.TagKey,
-                      input.TagValue,
-                      input.TagLevel
-               FROM   @stringExtendedQueryTags AS input
-                      INNER JOIN
-                      dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-                      ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                         AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                          AND T.StudyKey = @studyKey
-                                                                          AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                          AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-        WHEN MATCHED THEN UPDATE 
-        SET T.Watermark = @newWatermark,
-            T.TagValue  = S.TagValue
-        WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @newWatermark);
-    END
-IF EXISTS (SELECT 1
-           FROM   @longExtendedQueryTags)
-    BEGIN
-        MERGE INTO dbo.ExtendedQueryTagLong
-         AS T
-        USING (SELECT input.TagKey,
-                      input.TagValue,
-                      input.TagLevel
-               FROM   @longExtendedQueryTags AS input
-                      INNER JOIN
-                      dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-                      ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                         AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                          AND T.StudyKey = @studyKey
-                                                                          AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                          AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-        WHEN MATCHED THEN UPDATE 
-        SET T.Watermark = @newWatermark,
-            T.TagValue  = S.TagValue
-        WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @newWatermark);
-    END
-IF EXISTS (SELECT 1
-           FROM   @doubleExtendedQueryTags)
-    BEGIN
-        MERGE INTO dbo.ExtendedQueryTagDouble
-         AS T
-        USING (SELECT input.TagKey,
-                      input.TagValue,
-                      input.TagLevel
-               FROM   @doubleExtendedQueryTags AS input
-                      INNER JOIN
-                      dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-                      ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                         AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                          AND T.StudyKey = @studyKey
-                                                                          AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                          AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-        WHEN MATCHED THEN UPDATE 
-        SET T.Watermark = @newWatermark,
-            T.TagValue  = S.TagValue
-        WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @newWatermark);
-    END
-IF EXISTS (SELECT 1
-           FROM   @dateTimeExtendedQueryTags)
-    BEGIN
-        MERGE INTO dbo.ExtendedQueryTagDateTime
-         AS T
-        USING (SELECT input.TagKey,
-                      input.TagValue,
-                      input.TagValueUtc,
-                      input.TagLevel
-               FROM   @dateTimeExtendedQueryTags AS input
-                      INNER JOIN
-                      dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-                      ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                         AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                          AND T.StudyKey = @studyKey
-                                                                          AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                          AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-        WHEN MATCHED THEN UPDATE 
-        SET T.Watermark = @newWatermark,
-            T.TagValue  = S.TagValue
-        WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark, TagValueUtc) VALUES (S.TagKey, S.TagValue, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @newWatermark, S.TagValueUtc);
-    END
-IF EXISTS (SELECT 1
-           FROM   @personNameExtendedQueryTags)
-    BEGIN
-        MERGE INTO dbo.ExtendedQueryTagPersonName
-         AS T
-        USING (SELECT input.TagKey,
-                      input.TagValue,
-                      input.TagLevel
-               FROM   @personNameExtendedQueryTags AS input
-                      INNER JOIN
-                      dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-                      ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                         AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                          AND T.StudyKey = @studyKey
-                                                                          AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                          AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-        WHEN MATCHED THEN UPDATE 
-        SET T.Watermark = @newWatermark,
-            T.TagValue  = S.TagValue
-        WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @newWatermark);
-    END
-SELECT @newWatermark;
-COMMIT TRANSACTION;
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+    DECLARE @existingStatus AS TINYINT;
+    DECLARE @newWatermark AS BIGINT;
+    DECLARE @studyKey AS BIGINT;
+    DECLARE @seriesKey AS BIGINT;
+    DECLARE @instanceKey AS BIGINT;
+    SELECT @existingStatus = Status
+    FROM   dbo.Instance
+    WHERE  StudyInstanceUid = @studyInstanceUid
+           AND SeriesInstanceUid = @seriesInstanceUid
+           AND SopInstanceUid = @sopInstanceUid;
+    IF @@ROWCOUNT <> 0
+        THROW 50409, 'Instance already exists', @existingStatus;
+    SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
+    SET @instanceKey =  NEXT VALUE FOR dbo.InstanceKeySequence;
+    SELECT @studyKey = StudyKey
+    FROM   dbo.Study WITH (UPDLOCK)
+    WHERE  StudyInstanceUid = @studyInstanceUid;
+    IF @@ROWCOUNT = 0
+        BEGIN
+            SET @studyKey =  NEXT VALUE FOR dbo.StudyKeySequence;
+            INSERT  INTO dbo.Study (StudyKey, StudyInstanceUid, PatientId, PatientName, PatientBirthDate, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
+            VALUES                (@studyKey, @studyInstanceUid, @patientId, @patientName, @patientBirthDate, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber);
+        END
+    ELSE
+        BEGIN
+            UPDATE dbo.Study
+            SET    PatientId              = @patientId,
+                   PatientName            = @patientName,
+                   PatientBirthDate       = @patientBirthDate,
+                   ReferringPhysicianName = @referringPhysicianName,
+                   StudyDate              = @studyDate,
+                   StudyDescription       = @studyDescription,
+                   AccessionNumber        = @accessionNumber
+            WHERE  StudyKey = @studyKey;
+        END
+    SELECT @seriesKey = SeriesKey
+    FROM   dbo.Series WITH (UPDLOCK)
+    WHERE  StudyKey = @studyKey
+           AND SeriesInstanceUid = @seriesInstanceUid;
+    IF @@ROWCOUNT = 0
+        BEGIN
+            SET @seriesKey =  NEXT VALUE FOR dbo.SeriesKeySequence;
+            INSERT  INTO dbo.Series (StudyKey, SeriesKey, SeriesInstanceUid, Modality, PerformedProcedureStepStartDate, ManufacturerModelName)
+            VALUES                 (@studyKey, @seriesKey, @seriesInstanceUid, @modality, @performedProcedureStepStartDate, @manufacturerModelName);
+        END
+    ELSE
+        BEGIN
+            UPDATE dbo.Series
+            SET    Modality                        = @modality,
+                   PerformedProcedureStepStartDate = @performedProcedureStepStartDate,
+                   ManufacturerModelName           = @manufacturerModelName
+            WHERE  SeriesKey = @seriesKey
+                   AND StudyKey = @studyKey;
+        END
+    INSERT  INTO dbo.Instance (StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
+    VALUES                   (@studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate);
+    BEGIN TRY
+        EXECUTE dbo.IIndexInstanceCore @studyKey, @seriesKey, @instanceKey, @newWatermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
+    SELECT @newWatermark;
+    COMMIT TRANSACTION;
+END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.AddInstanceV3
 @partitionName VARCHAR (64), @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @patientId NVARCHAR (64), @patientName NVARCHAR (325)=NULL, @referringPhysicianName NVARCHAR (325)=NULL, @studyDate DATE=NULL, @studyDescription NVARCHAR (64)=NULL, @accessionNumber NVARCHAR (64)=NULL, @modality NVARCHAR (16)=NULL, @performedProcedureStepStartDate DATE=NULL, @patientBirthDate DATE=NULL, @manufacturerModelName NVARCHAR (64)=NULL, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY, @initialStatus TINYINT
 AS
-SET NOCOUNT ON;
-SET XACT_ABORT ON;
-BEGIN TRANSACTION;
-DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
-DECLARE @existingStatus AS TINYINT;
-DECLARE @newWatermark AS BIGINT;
-DECLARE @partitionKey AS INT;
-DECLARE @studyKey AS BIGINT;
-DECLARE @seriesKey AS BIGINT;
-DECLARE @instanceKey AS BIGINT;
-SELECT @partitionKey = PartitionKey
-FROM   dbo.Partition
-WHERE  PartitionName = @partitionName;
-IF @@ROWCOUNT = 0
-    BEGIN
-        SET @partitionKey =  NEXT VALUE FOR dbo.PartitionKeySequence;
-        INSERT  INTO dbo.Partition (PartitionKey, PartitionName, CreatedDate)
-        VALUES                    (@partitionKey, @partitionName, @currentDate);
-    END
-SELECT @existingStatus = Status
-FROM   dbo.Instance
-WHERE  PartitionKey = @partitionKey
-       AND StudyInstanceUid = @studyInstanceUid
-       AND SeriesInstanceUid = @seriesInstanceUid
-       AND SopInstanceUid = @sopInstanceUid;
-IF @@ROWCOUNT <> 0
-    THROW 50409, 'Instance already exists', @existingStatus;
-SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
-SET @instanceKey =  NEXT VALUE FOR dbo.InstanceKeySequence;
-SELECT @studyKey = StudyKey
-FROM   dbo.Study WITH (UPDLOCK)
-WHERE  PartitionKey = @partitionKey
-       AND StudyInstanceUid = @studyInstanceUid;
-IF @@ROWCOUNT = 0
-    BEGIN
-        SET @studyKey =  NEXT VALUE FOR dbo.StudyKeySequence;
-        INSERT  INTO dbo.Study (PartitionKey, StudyKey, StudyInstanceUid, PatientId, PatientName, PatientBirthDate, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
-        VALUES                (@partitionKey, @studyKey, @studyInstanceUid, @patientId, @patientName, @patientBirthDate, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber);
-    END
-ELSE
-    BEGIN
-        UPDATE dbo.Study
-        SET    PatientId              = @patientId,
-               PatientName            = @patientName,
-               PatientBirthDate       = @patientBirthDate,
-               ReferringPhysicianName = @referringPhysicianName,
-               StudyDate              = @studyDate,
-               StudyDescription       = @studyDescription,
-               AccessionNumber        = @accessionNumber
-        WHERE  StudyKey = @studyKey;
-    END
-SELECT @seriesKey = SeriesKey
-FROM   dbo.Series WITH (UPDLOCK)
-WHERE  StudyKey = @studyKey
-       AND SeriesInstanceUid = @seriesInstanceUid
-       AND PartitionKey = @partitionKey;
-IF @@ROWCOUNT = 0
-    BEGIN
-        SET @seriesKey =  NEXT VALUE FOR dbo.SeriesKeySequence;
-        INSERT  INTO dbo.Series (PartitionKey, StudyKey, SeriesKey, SeriesInstanceUid, Modality, PerformedProcedureStepStartDate, ManufacturerModelName)
-        VALUES                 (@partitionKey, @studyKey, @seriesKey, @seriesInstanceUid, @modality, @performedProcedureStepStartDate, @manufacturerModelName);
-    END
-ELSE
-    BEGIN
-        UPDATE dbo.Series
-        SET    Modality                        = @modality,
-               PerformedProcedureStepStartDate = @performedProcedureStepStartDate,
-               ManufacturerModelName           = @manufacturerModelName
-        WHERE  SeriesKey = @seriesKey
-               AND StudyKey = @studyKey
-               AND PartitionKey = @partitionKey;
-    END
-INSERT  INTO dbo.Instance (PartitionKey, StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
-VALUES                   (@partitionKey, @studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate);
-IF EXISTS (SELECT 1
-           FROM   @stringExtendedQueryTags)
-    BEGIN
-        MERGE INTO dbo.ExtendedQueryTagString
-         AS T
-        USING (SELECT input.TagKey,
-                      input.TagValue,
-                      input.TagLevel
-               FROM   @stringExtendedQueryTags AS input
-                      INNER JOIN
-                      dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-                      ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                         AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                          AND T.PartitionKey = @partitionKey
-                                                                          AND T.StudyKey = @studyKey
-                                                                          AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                          AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-        WHEN MATCHED THEN UPDATE 
-        SET T.Watermark = @newWatermark,
-            T.TagValue  = S.TagValue
-        WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @newWatermark);
-    END
-IF EXISTS (SELECT 1
-           FROM   @longExtendedQueryTags)
-    BEGIN
-        MERGE INTO dbo.ExtendedQueryTagLong
-         AS T
-        USING (SELECT input.TagKey,
-                      input.TagValue,
-                      input.TagLevel
-               FROM   @longExtendedQueryTags AS input
-                      INNER JOIN
-                      dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-                      ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                         AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                          AND T.PartitionKey = @partitionKey
-                                                                          AND T.StudyKey = @studyKey
-                                                                          AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                          AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-        WHEN MATCHED THEN UPDATE 
-        SET T.Watermark = @newWatermark,
-            T.TagValue  = S.TagValue
-        WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @newWatermark);
-    END
-IF EXISTS (SELECT 1
-           FROM   @doubleExtendedQueryTags)
-    BEGIN
-        MERGE INTO dbo.ExtendedQueryTagDouble
-         AS T
-        USING (SELECT input.TagKey,
-                      input.TagValue,
-                      input.TagLevel
-               FROM   @doubleExtendedQueryTags AS input
-                      INNER JOIN
-                      dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-                      ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                         AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                          AND T.PartitionKey = @partitionKey
-                                                                          AND T.StudyKey = @studyKey
-                                                                          AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                          AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-        WHEN MATCHED THEN UPDATE 
-        SET T.Watermark = @newWatermark,
-            T.TagValue  = S.TagValue
-        WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @newWatermark);
-    END
-IF EXISTS (SELECT 1
-           FROM   @dateTimeExtendedQueryTags)
-    BEGIN
-        MERGE INTO dbo.ExtendedQueryTagDateTime
-         AS T
-        USING (SELECT input.TagKey,
-                      input.TagValue,
-                      input.TagValueUtc,
-                      input.TagLevel
-               FROM   @dateTimeExtendedQueryTags AS input
-                      INNER JOIN
-                      dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-                      ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                         AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                          AND T.PartitionKey = @partitionKey
-                                                                          AND T.StudyKey = @studyKey
-                                                                          AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                          AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-        WHEN MATCHED THEN UPDATE 
-        SET T.Watermark = @newWatermark,
-            T.TagValue  = S.TagValue
-        WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark, TagValueUtc) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @newWatermark, S.TagValueUtc);
-    END
-IF EXISTS (SELECT 1
-           FROM   @personNameExtendedQueryTags)
-    BEGIN
-        MERGE INTO dbo.ExtendedQueryTagPersonName
-         AS T
-        USING (SELECT input.TagKey,
-                      input.TagValue,
-                      input.TagLevel
-               FROM   @personNameExtendedQueryTags AS input
-                      INNER JOIN
-                      dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-                      ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                         AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                          AND T.PartitionKey = @partitionKey
-                                                                          AND T.StudyKey = @studyKey
-                                                                          AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                          AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-        WHEN MATCHED THEN UPDATE 
-        SET T.Watermark = @newWatermark,
-            T.TagValue  = S.TagValue
-        WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @newWatermark);
-    END
-SELECT @newWatermark;
-COMMIT TRANSACTION;
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+    DECLARE @existingStatus AS TINYINT;
+    DECLARE @newWatermark AS BIGINT;
+    DECLARE @partitionKey AS INT;
+    DECLARE @studyKey AS BIGINT;
+    DECLARE @seriesKey AS BIGINT;
+    DECLARE @instanceKey AS BIGINT;
+    SELECT @partitionKey = PartitionKey
+    FROM   dbo.Partition
+    WHERE  PartitionName = @partitionName;
+    IF @@ROWCOUNT = 0
+        BEGIN
+            SET @partitionKey =  NEXT VALUE FOR dbo.PartitionKeySequence;
+            INSERT  INTO dbo.Partition (PartitionKey, PartitionName, CreatedDate)
+            VALUES                    (@partitionKey, @partitionName, @currentDate);
+        END
+    SELECT @existingStatus = Status
+    FROM   dbo.Instance
+    WHERE  PartitionKey = @partitionKey
+           AND StudyInstanceUid = @studyInstanceUid
+           AND SeriesInstanceUid = @seriesInstanceUid
+           AND SopInstanceUid = @sopInstanceUid;
+    IF @@ROWCOUNT <> 0
+        THROW 50409, 'Instance already exists', @existingStatus;
+    SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
+    SET @instanceKey =  NEXT VALUE FOR dbo.InstanceKeySequence;
+    SELECT @studyKey = StudyKey
+    FROM   dbo.Study WITH (UPDLOCK)
+    WHERE  PartitionKey = @partitionKey
+           AND StudyInstanceUid = @studyInstanceUid;
+    IF @@ROWCOUNT = 0
+        BEGIN
+            SET @studyKey =  NEXT VALUE FOR dbo.StudyKeySequence;
+            INSERT  INTO dbo.Study (PartitionKey, StudyKey, StudyInstanceUid, PatientId, PatientName, PatientBirthDate, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
+            VALUES                (@partitionKey, @studyKey, @studyInstanceUid, @patientId, @patientName, @patientBirthDate, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber);
+        END
+    ELSE
+        BEGIN
+            UPDATE dbo.Study
+            SET    PatientId              = @patientId,
+                   PatientName            = @patientName,
+                   PatientBirthDate       = @patientBirthDate,
+                   ReferringPhysicianName = @referringPhysicianName,
+                   StudyDate              = @studyDate,
+                   StudyDescription       = @studyDescription,
+                   AccessionNumber        = @accessionNumber
+            WHERE  StudyKey = @studyKey;
+        END
+    SELECT @seriesKey = SeriesKey
+    FROM   dbo.Series WITH (UPDLOCK)
+    WHERE  StudyKey = @studyKey
+           AND SeriesInstanceUid = @seriesInstanceUid
+           AND PartitionKey = @partitionKey;
+    IF @@ROWCOUNT = 0
+        BEGIN
+            SET @seriesKey =  NEXT VALUE FOR dbo.SeriesKeySequence;
+            INSERT  INTO dbo.Series (PartitionKey, StudyKey, SeriesKey, SeriesInstanceUid, Modality, PerformedProcedureStepStartDate, ManufacturerModelName)
+            VALUES                 (@partitionKey, @studyKey, @seriesKey, @seriesInstanceUid, @modality, @performedProcedureStepStartDate, @manufacturerModelName);
+        END
+    ELSE
+        BEGIN
+            UPDATE dbo.Series
+            SET    Modality                        = @modality,
+                   PerformedProcedureStepStartDate = @performedProcedureStepStartDate,
+                   ManufacturerModelName           = @manufacturerModelName
+            WHERE  SeriesKey = @seriesKey
+                   AND StudyKey = @studyKey
+                   AND PartitionKey = @partitionKey;
+        END
+    INSERT  INTO dbo.Instance (PartitionKey, StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
+    VALUES                   (@partitionKey, @studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate);
+    BEGIN TRY
+        EXECUTE dbo.IIndexInstanceCore @partitionKey, @studyKey, @seriesKey, @instanceKey, @newWatermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
+    SELECT @newWatermark;
+    COMMIT TRANSACTION;
+END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.AssignReindexingOperation
@@ -1092,151 +912,6 @@ BEGIN
                AND TagStatus = 0);
     COMMIT TRANSACTION;
 END
-
-GO
-CREATE OR ALTER PROCEDURE dbo.BeginAddInstance
-@studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @patientId NVARCHAR (64), @patientName NVARCHAR (325)=NULL, @referringPhysicianName NVARCHAR (325)=NULL, @studyDate DATE=NULL, @studyDescription NVARCHAR (64)=NULL, @accessionNumber NVARCHAR (64)=NULL, @modality NVARCHAR (16)=NULL, @performedProcedureStepStartDate DATE=NULL, @patientBirthDate DATE=NULL, @manufacturerModelName NVARCHAR (64)=NULL
-AS
-SET NOCOUNT ON;
-SET XACT_ABORT ON;
-BEGIN TRANSACTION;
-DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
-DECLARE @existingStatus AS TINYINT;
-DECLARE @newWatermark AS BIGINT;
-DECLARE @studyKey AS BIGINT;
-DECLARE @seriesKey AS BIGINT;
-DECLARE @instanceKey AS BIGINT;
-SELECT @existingStatus = Status
-FROM   dbo.Instance WITH (HOLDLOCK)
-WHERE  StudyInstanceUid = @studyInstanceUid
-       AND SeriesInstanceUid = @seriesInstanceUid
-       AND SopInstanceUid = @sopInstanceUid;
-IF @@ROWCOUNT <> 0
-    THROW 50409, 'Instance already exists', @existingStatus;
-SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
-SET @instanceKey =  NEXT VALUE FOR dbo.InstanceKeySequence;
-SELECT @studyKey = StudyKey
-FROM   dbo.Study WITH (HOLDLOCK)
-WHERE  StudyInstanceUid = @studyInstanceUid;
-IF @@ROWCOUNT = 0
-    BEGIN
-        SET @studyKey =  NEXT VALUE FOR dbo.StudyKeySequence;
-        INSERT  INTO dbo.Study (StudyKey, StudyInstanceUid, PatientId, PatientName, PatientBirthDate, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
-        VALUES                (@studyKey, @studyInstanceUid, @patientId, @patientName, @patientBirthDate, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber);
-    END
-ELSE
-    BEGIN
-        UPDATE dbo.Study
-        SET    PatientId              = @patientId,
-               PatientName            = @patientName,
-               PatientBirthDate       = @patientBirthDate,
-               ReferringPhysicianName = @referringPhysicianName,
-               StudyDate              = @studyDate,
-               StudyDescription       = @studyDescription,
-               AccessionNumber        = @accessionNumber
-        WHERE  StudyKey = @studyKey;
-    END
-SELECT @seriesKey = SeriesKey
-FROM   dbo.Series WITH (HOLDLOCK)
-WHERE  StudyKey = @studyKey
-       AND SeriesInstanceUid = @seriesInstanceUid;
-IF @@ROWCOUNT = 0
-    BEGIN
-        SET @seriesKey =  NEXT VALUE FOR dbo.SeriesKeySequence;
-        INSERT  INTO dbo.Series (StudyKey, SeriesKey, SeriesInstanceUid, Modality, PerformedProcedureStepStartDate, ManufacturerModelName)
-        VALUES                 (@studyKey, @seriesKey, @seriesInstanceUid, @modality, @performedProcedureStepStartDate, @manufacturerModelName);
-    END
-ELSE
-    BEGIN
-        UPDATE dbo.Series
-        SET    Modality                        = @modality,
-               PerformedProcedureStepStartDate = @performedProcedureStepStartDate,
-               ManufacturerModelName           = @manufacturerModelName
-        WHERE  SeriesKey = @seriesKey
-               AND StudyKey = @studyKey;
-    END
-INSERT  INTO dbo.Instance (StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
-VALUES                   (@studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, 0, @currentDate, @currentDate);
-SELECT @newWatermark;
-COMMIT TRANSACTION;
-
-GO
-CREATE OR ALTER PROCEDURE dbo.BeginAddInstanceV2
-@partitionName VARCHAR (64), @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @patientId NVARCHAR (64), @patientName NVARCHAR (325)=NULL, @referringPhysicianName NVARCHAR (325)=NULL, @studyDate DATE=NULL, @studyDescription NVARCHAR (64)=NULL, @accessionNumber NVARCHAR (64)=NULL, @modality NVARCHAR (16)=NULL, @performedProcedureStepStartDate DATE=NULL, @patientBirthDate DATE=NULL, @manufacturerModelName NVARCHAR (64)=NULL
-AS
-SET NOCOUNT ON;
-SET XACT_ABORT ON;
-BEGIN TRANSACTION;
-DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
-DECLARE @existingStatus AS TINYINT;
-DECLARE @newWatermark AS BIGINT;
-DECLARE @partitionKey AS INT;
-DECLARE @studyKey AS BIGINT;
-DECLARE @seriesKey AS BIGINT;
-DECLARE @instanceKey AS BIGINT;
-SELECT @partitionKey = PartitionKey
-FROM   dbo.Partition
-WHERE  PartitionName = @partitionName;
-IF @@ROWCOUNT = 0
-    BEGIN
-        SET @partitionKey =  NEXT VALUE FOR dbo.PartitionKeySequence;
-        INSERT  INTO dbo.Partition (PartitionKey, PartitionName, CreatedDate)
-        VALUES                    (@partitionKey, @partitionName, @currentDate);
-    END
-SELECT @existingStatus = Status
-FROM   dbo.Instance WITH (HOLDLOCK)
-WHERE  PartitionKey = @partitionKey
-       AND StudyInstanceUid = @studyInstanceUid
-       AND SeriesInstanceUid = @seriesInstanceUid
-       AND SopInstanceUid = @sopInstanceUid;
-IF @@ROWCOUNT <> 0
-    THROW 50409, 'Instance already exists', @existingStatus;
-SELECT @studyKey = StudyKey
-FROM   dbo.Study WITH (HOLDLOCK)
-WHERE  PartitionKey = @partitionKey
-       AND StudyInstanceUid = @studyInstanceUid;
-IF @@ROWCOUNT = 0
-    BEGIN
-        SET @studyKey =  NEXT VALUE FOR dbo.StudyKeySequence;
-        INSERT  INTO dbo.Study (PartitionKey, StudyKey, StudyInstanceUid, PatientId, PatientName, PatientBirthDate, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
-        VALUES                (@partitionKey, @studyKey, @studyInstanceUid, @patientId, @patientName, @patientBirthDate, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber);
-    END
-ELSE
-    BEGIN
-        UPDATE dbo.Study
-        SET    PatientId              = @patientId,
-               PatientName            = @patientName,
-               PatientBirthDate       = @patientBirthDate,
-               ReferringPhysicianName = @referringPhysicianName,
-               StudyDate              = @studyDate,
-               StudyDescription       = @studyDescription,
-               AccessionNumber        = @accessionNumber
-        WHERE  StudyKey = @studyKey;
-    END
-SELECT @seriesKey = SeriesKey
-FROM   dbo.Series WITH (HOLDLOCK)
-WHERE  StudyKey = @studyKey
-       AND SeriesInstanceUid = @seriesInstanceUid;
-IF @@ROWCOUNT = 0
-    BEGIN
-        SET @seriesKey =  NEXT VALUE FOR dbo.SeriesKeySequence;
-        INSERT  INTO dbo.Series (PartitionKey, StudyKey, SeriesKey, SeriesInstanceUid, Modality, PerformedProcedureStepStartDate, ManufacturerModelName)
-        VALUES                 (@partitionKey, @studyKey, @seriesKey, @seriesInstanceUid, @modality, @performedProcedureStepStartDate, @manufacturerModelName);
-    END
-ELSE
-    BEGIN
-        UPDATE dbo.Series
-        SET    Modality                        = @modality,
-               PerformedProcedureStepStartDate = @performedProcedureStepStartDate,
-               ManufacturerModelName           = @manufacturerModelName
-        WHERE  SeriesKey = @seriesKey
-               AND StudyKey = @studyKey
-               AND PartitionKey = @partitionKey;
-    END
-INSERT  INTO dbo.Instance (PartitionKey, StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
-VALUES                   (@partitionKey, @studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, 0, @currentDate, @currentDate);
-SELECT @newWatermark;
-COMMIT TRANSACTION;
 
 GO
 CREATE OR ALTER PROCEDURE dbo.CompleteReindexing
@@ -1546,23 +1221,28 @@ IF EXISTS (SELECT *
 DELETE dbo.ExtendedQueryTagString
 WHERE  StudyKey = @studyKey
        AND SeriesKey = ISNULL(@seriesKey, SeriesKey)
-       AND InstanceKey = ISNULL(@instanceKey, InstanceKey);
+       AND InstanceKey = ISNULL(@instanceKey, InstanceKey)
+       AND PartitionKey = @partitionKey;
 DELETE dbo.ExtendedQueryTagLong
 WHERE  StudyKey = @studyKey
        AND SeriesKey = ISNULL(@seriesKey, SeriesKey)
-       AND InstanceKey = ISNULL(@instanceKey, InstanceKey);
+       AND InstanceKey = ISNULL(@instanceKey, InstanceKey)
+       AND PartitionKey = @partitionKey;
 DELETE dbo.ExtendedQueryTagDouble
 WHERE  StudyKey = @studyKey
        AND SeriesKey = ISNULL(@seriesKey, SeriesKey)
-       AND InstanceKey = ISNULL(@instanceKey, InstanceKey);
+       AND InstanceKey = ISNULL(@instanceKey, InstanceKey)
+       AND PartitionKey = @partitionKey;
 DELETE dbo.ExtendedQueryTagDateTime
 WHERE  StudyKey = @studyKey
        AND SeriesKey = ISNULL(@seriesKey, SeriesKey)
-       AND InstanceKey = ISNULL(@instanceKey, InstanceKey);
+       AND InstanceKey = ISNULL(@instanceKey, InstanceKey)
+       AND PartitionKey = @partitionKey;
 DELETE dbo.ExtendedQueryTagPersonName
 WHERE  StudyKey = @studyKey
        AND SeriesKey = ISNULL(@seriesKey, SeriesKey)
-       AND InstanceKey = ISNULL(@instanceKey, InstanceKey);
+       AND InstanceKey = ISNULL(@instanceKey, InstanceKey)
+       AND PartitionKey = @partitionKey;
 INSERT INTO dbo.DeletedInstance (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
 SELECT PartitionKey,
        StudyInstanceUid,
@@ -1599,102 +1279,53 @@ IF NOT EXISTS (SELECT *
     BEGIN
         DELETE dbo.Series
         WHERE  StudyKey = @studyKey
-               AND SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid);
+               AND SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
+               AND PartitionKey = @partitionKey;
         DELETE dbo.ExtendedQueryTagString
         WHERE  StudyKey = @studyKey
-               AND SeriesKey = ISNULL(@seriesKey, SeriesKey);
+               AND SeriesKey = ISNULL(@seriesKey, SeriesKey)
+               AND PartitionKey = @partitionKey;
         DELETE dbo.ExtendedQueryTagLong
         WHERE  StudyKey = @studyKey
-               AND SeriesKey = ISNULL(@seriesKey, SeriesKey);
+               AND SeriesKey = ISNULL(@seriesKey, SeriesKey)
+               AND PartitionKey = @partitionKey;
         DELETE dbo.ExtendedQueryTagDouble
         WHERE  StudyKey = @studyKey
-               AND SeriesKey = ISNULL(@seriesKey, SeriesKey);
+               AND SeriesKey = ISNULL(@seriesKey, SeriesKey)
+               AND PartitionKey = @partitionKey;
         DELETE dbo.ExtendedQueryTagDateTime
         WHERE  StudyKey = @studyKey
-               AND SeriesKey = ISNULL(@seriesKey, SeriesKey);
+               AND SeriesKey = ISNULL(@seriesKey, SeriesKey)
+               AND PartitionKey = @partitionKey;
         DELETE dbo.ExtendedQueryTagPersonName
         WHERE  StudyKey = @studyKey
-               AND SeriesKey = ISNULL(@seriesKey, SeriesKey);
+               AND SeriesKey = ISNULL(@seriesKey, SeriesKey)
+               AND PartitionKey = @partitionKey;
     END
 IF NOT EXISTS (SELECT *
                FROM   dbo.Series WITH (HOLDLOCK, UPDLOCK)
-               WHERE  Studykey = @studyKey)
+               WHERE  Studykey = @studyKey
+                      AND PartitionKey = @partitionKey)
     BEGIN
         DELETE dbo.Study
-        WHERE  StudyKey = @studyKey;
+        WHERE  StudyKey = @studyKey
+               AND PartitionKey = @partitionKey;
         DELETE dbo.ExtendedQueryTagString
-        WHERE  StudyKey = @studyKey;
+        WHERE  StudyKey = @studyKey
+               AND PartitionKey = @partitionKey;
         DELETE dbo.ExtendedQueryTagLong
-        WHERE  StudyKey = @studyKey;
+        WHERE  StudyKey = @studyKey
+               AND PartitionKey = @partitionKey;
         DELETE dbo.ExtendedQueryTagDouble
-        WHERE  StudyKey = @studyKey;
+        WHERE  StudyKey = @studyKey
+               AND PartitionKey = @partitionKey;
         DELETE dbo.ExtendedQueryTagDateTime
-        WHERE  StudyKey = @studyKey;
+        WHERE  StudyKey = @studyKey
+               AND PartitionKey = @partitionKey;
         DELETE dbo.ExtendedQueryTagPersonName
-        WHERE  StudyKey = @studyKey;
+        WHERE  StudyKey = @studyKey
+               AND PartitionKey = @partitionKey;
     END
-COMMIT TRANSACTION;
-
-GO
-CREATE OR ALTER PROCEDURE dbo.EndAddInstance
-@studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @maxTagKey INT=NULL, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
-AS
-SET NOCOUNT ON;
-SET XACT_ABORT ON;
-BEGIN TRANSACTION;
-IF @maxTagKey < (SELECT ISNULL(MAX(TagKey), 0)
-                 FROM   dbo.ExtendedQueryTag WITH (HOLDLOCK))
-    THROW 50409, 'Max extended query tag key does not match', 10;
-DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
-UPDATE dbo.Instance
-SET    Status                = 1,
-       LastStatusUpdatedDate = @currentDate
-WHERE  StudyInstanceUid = @studyInstanceUid
-       AND SeriesInstanceUid = @seriesInstanceUid
-       AND SopInstanceUid = @sopInstanceUid
-       AND Watermark = @watermark;
-IF @@ROWCOUNT = 0
-    THROW 50404, 'Instance does not exist', 1;
-EXECUTE dbo.IndexInstance @watermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
-INSERT  INTO dbo.ChangeFeed (Timestamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-VALUES                     (@currentDate, 0, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
-UPDATE dbo.ChangeFeed
-SET    CurrentWatermark = @watermark
-WHERE  StudyInstanceUid = @studyInstanceUid
-       AND SeriesInstanceUid = @seriesInstanceUid
-       AND SopInstanceUid = @sopInstanceUid;
-COMMIT TRANSACTION;
-
-GO
-CREATE OR ALTER PROCEDURE dbo.EndAddInstanceV2
-@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @maxTagKey INT=NULL, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
-AS
-SET NOCOUNT ON;
-SET XACT_ABORT ON;
-BEGIN TRANSACTION;
-IF @maxTagKey < (SELECT ISNULL(MAX(TagKey), 0)
-                 FROM   dbo.ExtendedQueryTag WITH (HOLDLOCK))
-    THROW 50409, 'Max extended query tag key does not match', 10;
-DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
-UPDATE dbo.Instance
-SET    Status                = 1,
-       LastStatusUpdatedDate = @currentDate
-WHERE  PartitionKey = @partitionKey
-       AND StudyInstanceUid = @studyInstanceUid
-       AND SeriesInstanceUid = @seriesInstanceUid
-       AND SopInstanceUid = @sopInstanceUid
-       AND Watermark = @watermark;
-IF @@ROWCOUNT = 0
-    THROW 50404, 'Instance does not exist', 1;
-EXECUTE dbo.IndexInstance @watermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
-INSERT  INTO dbo.ChangeFeed (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-VALUES                     (@currentDate, 0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
-UPDATE dbo.ChangeFeed
-SET    CurrentWatermark = @watermark
-WHERE  PartitionKey = @partitionKey
-       AND StudyInstanceUid = @studyInstanceUid
-       AND SeriesInstanceUid = @seriesInstanceUid
-       AND SopInstanceUid = @sopInstanceUid;
 COMMIT TRANSACTION;
 
 GO
@@ -1959,7 +1590,6 @@ CREATE OR ALTER PROCEDURE dbo.GetInstanceBatches
 AS
 BEGIN
     SET NOCOUNT ON;
-    SET XACT_ABORT ON;
     SELECT   MIN(Watermark) AS MinWatermark,
              MAX(Watermark) AS MaxWatermark
     FROM     (SELECT TOP (@batchSize * @batchCount) Watermark,
@@ -2049,6 +1679,125 @@ BEGIN
            CreatedDate
     FROM   dbo.Partition
     WHERE  PartitionKey > 1;
+END
+
+GO
+CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCore
+@partitionKey INT, @studyKey BIGINT, @seriesKey BIGINT, @instanceKey BIGINT, @watermark BIGINT, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
+AS
+BEGIN
+    IF EXISTS (SELECT 1
+               FROM   @stringExtendedQueryTags)
+        BEGIN
+            MERGE INTO dbo.ExtendedQueryTagString WITH (HOLDLOCK)
+             AS T
+            USING (SELECT input.TagKey,
+                          input.TagValue,
+                          input.TagLevel
+                   FROM   @stringExtendedQueryTags AS input
+                          INNER JOIN
+                          dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
+                          ON dbo.ExtendedQueryTag.TagKey = input.TagKey
+                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
+                                                                              AND T.PartitionKey = @partitionKey
+                                                                              AND T.StudyKey = @studyKey
+                                                                              AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
+                                                                              AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+            WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
+            SET T.Watermark = @watermark,
+                T.TagValue  = S.TagValue
+            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
+        END
+    IF EXISTS (SELECT 1
+               FROM   @longExtendedQueryTags)
+        BEGIN
+            MERGE INTO dbo.ExtendedQueryTagLong WITH (HOLDLOCK)
+             AS T
+            USING (SELECT input.TagKey,
+                          input.TagValue,
+                          input.TagLevel
+                   FROM   @longExtendedQueryTags AS input
+                          INNER JOIN
+                          dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
+                          ON dbo.ExtendedQueryTag.TagKey = input.TagKey
+                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
+                                                                              AND T.PartitionKey = @partitionKey
+                                                                              AND T.StudyKey = @studyKey
+                                                                              AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
+                                                                              AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+            WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
+            SET T.Watermark = @watermark,
+                T.TagValue  = S.TagValue
+            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
+        END
+    IF EXISTS (SELECT 1
+               FROM   @doubleExtendedQueryTags)
+        BEGIN
+            MERGE INTO dbo.ExtendedQueryTagDouble WITH (HOLDLOCK)
+             AS T
+            USING (SELECT input.TagKey,
+                          input.TagValue,
+                          input.TagLevel
+                   FROM   @doubleExtendedQueryTags AS input
+                          INNER JOIN
+                          dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
+                          ON dbo.ExtendedQueryTag.TagKey = input.TagKey
+                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
+                                                                              AND T.PartitionKey = @partitionKey
+                                                                              AND T.StudyKey = @studyKey
+                                                                              AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
+                                                                              AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+            WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
+            SET T.Watermark = @watermark,
+                T.TagValue  = S.TagValue
+            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
+        END
+    IF EXISTS (SELECT 1
+               FROM   @dateTimeExtendedQueryTags)
+        BEGIN
+            MERGE INTO dbo.ExtendedQueryTagDateTime WITH (HOLDLOCK)
+             AS T
+            USING (SELECT input.TagKey,
+                          input.TagValue,
+                          input.TagValueUtc,
+                          input.TagLevel
+                   FROM   @dateTimeExtendedQueryTags AS input
+                          INNER JOIN
+                          dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
+                          ON dbo.ExtendedQueryTag.TagKey = input.TagKey
+                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
+                                                                              AND T.PartitionKey = @partitionKey
+                                                                              AND T.StudyKey = @studyKey
+                                                                              AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
+                                                                              AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+            WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
+            SET T.Watermark   = @watermark,
+                T.TagValue    = S.TagValue,
+                T.TagValueUtc = S.TagValueUtc
+            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark, TagValueUtc) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark, S.TagValueUtc);
+        END
+    IF EXISTS (SELECT 1
+               FROM   @personNameExtendedQueryTags)
+        BEGIN
+            MERGE INTO dbo.ExtendedQueryTagPersonName WITH (HOLDLOCK)
+             AS T
+            USING (SELECT input.TagKey,
+                          input.TagValue,
+                          input.TagLevel
+                   FROM   @personNameExtendedQueryTags AS input
+                          INNER JOIN
+                          dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
+                          ON dbo.ExtendedQueryTag.TagKey = input.TagKey
+                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
+                                                                              AND T.PartitionKey = @partitionKey
+                                                                              AND T.StudyKey = @studyKey
+                                                                              AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
+                                                                              AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+            WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
+            SET T.Watermark = @watermark,
+                T.TagValue  = S.TagValue
+            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
+        END
 END
 
 GO
@@ -2234,112 +1983,12 @@ BEGIN
         THROW 50404, 'Instance does not exists', 1;
     IF @status <> 1
         THROW 50409, 'Instance has not yet been stored succssfully', 1;
-    IF EXISTS (SELECT 1
-               FROM   @stringExtendedQueryTags)
-        BEGIN
-            MERGE INTO dbo.ExtendedQueryTagString WITH (HOLDLOCK)
-             AS T
-            USING (SELECT input.TagKey,
-                          input.TagValue,
-                          input.TagLevel
-                   FROM   @stringExtendedQueryTags AS input
-                          INNER JOIN
-                          dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-                          ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                              AND T.StudyKey = @studyKey
-                                                                              AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                              AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-            WHEN MATCHED THEN UPDATE 
-            SET T.Watermark = IIF (@watermark > T.Watermark, @watermark, T.Watermark),
-                T.TagValue  = IIF (@watermark > T.Watermark, S.TagValue, T.TagValue)
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
-        END
-    IF EXISTS (SELECT 1
-               FROM   @longExtendedQueryTags)
-        BEGIN
-            MERGE INTO dbo.ExtendedQueryTagLong WITH (HOLDLOCK)
-             AS T
-            USING (SELECT input.TagKey,
-                          input.TagValue,
-                          input.TagLevel
-                   FROM   @longExtendedQueryTags AS input
-                          INNER JOIN
-                          dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-                          ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                              AND T.StudyKey = @studyKey
-                                                                              AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                              AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-            WHEN MATCHED THEN UPDATE 
-            SET T.Watermark = IIF (@watermark > T.Watermark, @watermark, T.Watermark),
-                T.TagValue  = IIF (@watermark > T.Watermark, S.TagValue, T.TagValue)
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
-        END
-    IF EXISTS (SELECT 1
-               FROM   @doubleExtendedQueryTags)
-        BEGIN
-            MERGE INTO dbo.ExtendedQueryTagDouble WITH (HOLDLOCK)
-             AS T
-            USING (SELECT input.TagKey,
-                          input.TagValue,
-                          input.TagLevel
-                   FROM   @doubleExtendedQueryTags AS input
-                          INNER JOIN
-                          dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-                          ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                              AND T.StudyKey = @studyKey
-                                                                              AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                              AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-            WHEN MATCHED THEN UPDATE 
-            SET T.Watermark = IIF (@watermark > T.Watermark, @watermark, T.Watermark),
-                T.TagValue  = IIF (@watermark > T.Watermark, S.TagValue, T.TagValue)
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
-        END
-    IF EXISTS (SELECT 1
-               FROM   @dateTimeExtendedQueryTags)
-        BEGIN
-            MERGE INTO dbo.ExtendedQueryTagDateTime WITH (HOLDLOCK)
-             AS T
-            USING (SELECT input.TagKey,
-                          input.TagValue,
-                          input.TagValueUtc,
-                          input.TagLevel
-                   FROM   @dateTimeExtendedQueryTags AS input
-                          INNER JOIN
-                          dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-                          ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                              AND T.StudyKey = @studyKey
-                                                                              AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                              AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-            WHEN MATCHED THEN UPDATE 
-            SET T.Watermark = IIF (@watermark > T.Watermark, @watermark, T.Watermark),
-                T.TagValue  = IIF (@watermark > T.Watermark, S.TagValue, T.TagValue)
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark, TagValueUtc) VALUES (S.TagKey, S.TagValue, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark, S.TagValueUtc);
-        END
-    IF EXISTS (SELECT 1
-               FROM   @personNameExtendedQueryTags)
-        BEGIN
-            MERGE INTO dbo.ExtendedQueryTagPersonName WITH (HOLDLOCK)
-             AS T
-            USING (SELECT input.TagKey,
-                          input.TagValue,
-                          input.TagLevel
-                   FROM   @personNameExtendedQueryTags AS input
-                          INNER JOIN
-                          dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-                          ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                              AND T.StudyKey = @studyKey
-                                                                              AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                              AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-            WHEN MATCHED THEN UPDATE 
-            SET T.Watermark = IIF (@watermark > T.Watermark, @watermark, T.Watermark),
-                T.TagValue  = IIF (@watermark > T.Watermark, S.TagValue, T.TagValue)
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
-        END
+    BEGIN TRY
+        EXECUTE dbo.IIndexInstanceCore @studyKey, @seriesKey, @instanceKey, @watermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
     COMMIT TRANSACTION;
 END
 
@@ -2367,117 +2016,12 @@ BEGIN
         THROW 50404, 'Instance does not exists', 1;
     IF @status <> 1
         THROW 50409, 'Instance has not yet been stored succssfully', 1;
-    IF EXISTS (SELECT 1
-               FROM   @stringExtendedQueryTags)
-        BEGIN
-            MERGE INTO dbo.ExtendedQueryTagString WITH (HOLDLOCK)
-             AS T
-            USING (SELECT input.TagKey,
-                          input.TagValue,
-                          input.TagLevel
-                   FROM   @stringExtendedQueryTags AS input
-                          INNER JOIN
-                          dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-                          ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                              AND T.PartitionKey = @partitionKey
-                                                                              AND T.StudyKey = @studyKey
-                                                                              AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                              AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-            WHEN MATCHED THEN UPDATE 
-            SET T.Watermark = IIF (@watermark > T.Watermark, @watermark, T.Watermark),
-                T.TagValue  = IIF (@watermark > T.Watermark, S.TagValue, T.TagValue)
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
-        END
-    IF EXISTS (SELECT 1
-               FROM   @longExtendedQueryTags)
-        BEGIN
-            MERGE INTO dbo.ExtendedQueryTagLong WITH (HOLDLOCK)
-             AS T
-            USING (SELECT input.TagKey,
-                          input.TagValue,
-                          input.TagLevel
-                   FROM   @longExtendedQueryTags AS input
-                          INNER JOIN
-                          dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-                          ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                              AND T.PartitionKey = @partitionKey
-                                                                              AND T.StudyKey = @studyKey
-                                                                              AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                              AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-            WHEN MATCHED THEN UPDATE 
-            SET T.Watermark = IIF (@watermark > T.Watermark, @watermark, T.Watermark),
-                T.TagValue  = IIF (@watermark > T.Watermark, S.TagValue, T.TagValue)
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
-        END
-    IF EXISTS (SELECT 1
-               FROM   @doubleExtendedQueryTags)
-        BEGIN
-            MERGE INTO dbo.ExtendedQueryTagDouble WITH (HOLDLOCK)
-             AS T
-            USING (SELECT input.TagKey,
-                          input.TagValue,
-                          input.TagLevel
-                   FROM   @doubleExtendedQueryTags AS input
-                          INNER JOIN
-                          dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-                          ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                              AND T.PartitionKey = @partitionKey
-                                                                              AND T.StudyKey = @studyKey
-                                                                              AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                              AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-            WHEN MATCHED THEN UPDATE 
-            SET T.Watermark = IIF (@watermark > T.Watermark, @watermark, T.Watermark),
-                T.TagValue  = IIF (@watermark > T.Watermark, S.TagValue, T.TagValue)
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
-        END
-    IF EXISTS (SELECT 1
-               FROM   @dateTimeExtendedQueryTags)
-        BEGIN
-            MERGE INTO dbo.ExtendedQueryTagDateTime WITH (HOLDLOCK)
-             AS T
-            USING (SELECT input.TagKey,
-                          input.TagValue,
-                          input.TagValueUtc,
-                          input.TagLevel
-                   FROM   @dateTimeExtendedQueryTags AS input
-                          INNER JOIN
-                          dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-                          ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                              AND T.PartitionKey = @partitionKey
-                                                                              AND T.StudyKey = @studyKey
-                                                                              AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                              AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-            WHEN MATCHED THEN UPDATE 
-            SET T.Watermark = IIF (@watermark > T.Watermark, @watermark, T.Watermark),
-                T.TagValue  = IIF (@watermark > T.Watermark, S.TagValue, T.TagValue)
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark, TagValueUtc) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark, S.TagValueUtc);
-        END
-    IF EXISTS (SELECT 1
-               FROM   @personNameExtendedQueryTags)
-        BEGIN
-            MERGE INTO dbo.ExtendedQueryTagPersonName WITH (HOLDLOCK)
-             AS T
-            USING (SELECT input.TagKey,
-                          input.TagValue,
-                          input.TagLevel
-                   FROM   @personNameExtendedQueryTags AS input
-                          INNER JOIN
-                          dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-                          ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                              AND T.PartitionKey = @partitionKey
-                                                                              AND T.StudyKey = @studyKey
-                                                                              AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                              AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-            WHEN MATCHED THEN UPDATE 
-            SET T.Watermark = IIF (@watermark > T.Watermark, @watermark, T.Watermark),
-                T.TagValue  = IIF (@watermark > T.Watermark, S.TagValue, T.TagValue)
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
-        END
+    BEGIN TRY
+        EXECUTE dbo.IIndexInstanceCore @partitionKey, @studyKey, @seriesKey, @instanceKey, @watermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
     COMMIT TRANSACTION;
 END
 
@@ -2530,56 +2074,66 @@ END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatus
-@studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT
+@studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT, @maxTagKey INT=NULL
 AS
-SET NOCOUNT ON;
-SET XACT_ABORT ON;
-BEGIN TRANSACTION;
-DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
-UPDATE dbo.Instance
-SET    Status                = @status,
-       LastStatusUpdatedDate = @currentDate
-WHERE  StudyInstanceUid = @studyInstanceUid
-       AND SeriesInstanceUid = @seriesInstanceUid
-       AND SopInstanceUid = @sopInstanceUid
-       AND Watermark = @watermark;
-IF @@ROWCOUNT = 0
-    THROW 50404, 'Instance does not exist', 1;
-INSERT  INTO dbo.ChangeFeed (Timestamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-VALUES                     (@currentDate, 0, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
-UPDATE dbo.ChangeFeed
-SET    CurrentWatermark = @watermark
-WHERE  StudyInstanceUid = @studyInstanceUid
-       AND SeriesInstanceUid = @seriesInstanceUid
-       AND SopInstanceUid = @sopInstanceUid;
-COMMIT TRANSACTION;
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+    IF @maxTagKey < (SELECT ISNULL(MAX(TagKey), 0)
+                     FROM   dbo.ExtendedQueryTag WITH (HOLDLOCK))
+        THROW 50409, 'Max extended query tag key does not match', 10;
+    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+    UPDATE dbo.Instance
+    SET    Status                = @status,
+           LastStatusUpdatedDate = @currentDate
+    WHERE  StudyInstanceUid = @studyInstanceUid
+           AND SeriesInstanceUid = @seriesInstanceUid
+           AND SopInstanceUid = @sopInstanceUid
+           AND Watermark = @watermark;
+    IF @@ROWCOUNT = 0
+        THROW 50404, 'Instance does not exist', 1;
+    INSERT  INTO dbo.ChangeFeed (Timestamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    VALUES                     (@currentDate, 0, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
+    UPDATE dbo.ChangeFeed
+    SET    CurrentWatermark = @watermark
+    WHERE  StudyInstanceUid = @studyInstanceUid
+           AND SeriesInstanceUid = @seriesInstanceUid
+           AND SopInstanceUid = @sopInstanceUid;
+    COMMIT TRANSACTION;
+END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV2
-@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT
+@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT, @maxTagKey INT=NULL
 AS
-SET NOCOUNT ON;
-SET XACT_ABORT ON;
-BEGIN TRANSACTION;
-DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
-UPDATE dbo.Instance
-SET    Status                = @status,
-       LastStatusUpdatedDate = @currentDate
-WHERE  PartitionKey = @partitionKey
-       AND StudyInstanceUid = @studyInstanceUid
-       AND SeriesInstanceUid = @seriesInstanceUid
-       AND SopInstanceUid = @sopInstanceUid
-       AND Watermark = @watermark;
-IF @@ROWCOUNT = 0
-    THROW 50404, 'Instance does not exist', 1;
-INSERT  INTO dbo.ChangeFeed (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-VALUES                     (@currentDate, 0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
-UPDATE dbo.ChangeFeed
-SET    CurrentWatermark = @watermark
-WHERE  PartitionKey = @partitionKey
-       AND StudyInstanceUid = @studyInstanceUid
-       AND SeriesInstanceUid = @seriesInstanceUid
-       AND SopInstanceUid = @sopInstanceUid;
-COMMIT TRANSACTION;
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+    IF @maxTagKey < (SELECT ISNULL(MAX(TagKey), 0)
+                     FROM   dbo.ExtendedQueryTag WITH (HOLDLOCK))
+        THROW 50409, 'Max extended query tag key does not match', 10;
+    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+    UPDATE dbo.Instance
+    SET    Status                = @status,
+           LastStatusUpdatedDate = @currentDate
+    WHERE  PartitionKey = @partitionKey
+           AND StudyInstanceUid = @studyInstanceUid
+           AND SeriesInstanceUid = @seriesInstanceUid
+           AND SopInstanceUid = @sopInstanceUid
+           AND Watermark = @watermark;
+    IF @@ROWCOUNT = 0
+        THROW 50404, 'Instance does not exist', 1;
+    INSERT  INTO dbo.ChangeFeed (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    VALUES                     (@currentDate, 0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
+    UPDATE dbo.ChangeFeed
+    SET    CurrentWatermark = @watermark
+    WHERE  PartitionKey = @partitionKey
+           AND StudyInstanceUid = @studyInstanceUid
+           AND SeriesInstanceUid = @seriesInstanceUid
+           AND SopInstanceUid = @sopInstanceUid;
+    COMMIT TRANSACTION;
+END
 
 GO
