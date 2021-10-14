@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -66,18 +65,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
                 }
             }
-        }
-
-        private static byte[] UlongToRowVersion(ulong? value)
-        {
-            if (!value.HasValue)
-            {
-                return null;
-            }
-
-            byte[] result = new byte[8];
-            BinaryPrimitives.WriteUInt64BigEndian(result, value.Value);
-            return result;
         }
     }
 }

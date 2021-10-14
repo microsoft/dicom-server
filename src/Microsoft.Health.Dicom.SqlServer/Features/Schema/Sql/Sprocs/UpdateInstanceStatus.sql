@@ -19,30 +19,38 @@
 --         * The watermark.
 --     @status
 --         * The new status to update to.
+--     @maxTagKey
+--         * Optional max ExtendedQueryTag key
 --
 -- RETURN VALUE
 --     None
 --
 CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatus
-    @studyInstanceUid   VARCHAR(64),
-    @seriesInstanceUid  VARCHAR(64),
-    @sopInstanceUid     VARCHAR(64),
-    @watermark          BIGINT,
-    @status             TINYINT
+    @studyInstanceUid  VARCHAR(64),
+    @seriesInstanceUid VARCHAR(64),
+    @sopInstanceUid    VARCHAR(64),
+    @watermark         BIGINT,
+    @status            TINYINT,
+    @maxTagKey         INT = NULL
 AS
-    SET NOCOUNT ON
-
+BEGIN
+    SET NOCOUNT    ON
     SET XACT_ABORT ON
     BEGIN TRANSACTION
+
+    -- This check ensures the client is not potentially missing 1 or more query tags that may need to be indexed.
+    -- Note that if @maxTagKey is NULL, < will always return UNKNOWN.
+    IF @maxTagKey < (SELECT ISNULL(MAX(TagKey), 0) FROM dbo.ExtendedQueryTag WITH (HOLDLOCK))
+        THROW 50409, 'Max extended query tag key does not match', 10
 
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
 
     UPDATE dbo.Instance
     SET Status = @status, LastStatusUpdatedDate = @currentDate
     WHERE StudyInstanceUid = @studyInstanceUid
-    AND SeriesInstanceUid = @seriesInstanceUid
-    AND SopInstanceUid = @sopInstanceUid
-    AND Watermark = @watermark
+        AND SeriesInstanceUid = @seriesInstanceUid
+        AND SopInstanceUid = @sopInstanceUid
+        AND Watermark = @watermark
 
     IF @@ROWCOUNT = 0
         -- The instance does not exist. Perhaps it was deleted?
@@ -64,3 +72,4 @@ AS
         AND SopInstanceUid    = @sopInstanceUid
 
     COMMIT TRANSACTION
+END

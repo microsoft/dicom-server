@@ -5,7 +5,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.SqlServer.Management.Smo;
 using Xunit;
 
@@ -19,11 +21,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         /// <summary>
         /// Validate if newProcedures are compatible with old ones.
         /// </summary>
+        /// <param name="version">The current version number.</param>
         /// <param name="newProcedures">The new procedures.</param>
         /// <param name="oldProcedures">The old procedures.</param>
-        public static void Validate(IReadOnlyCollection<StoredProcedure> newProcedures, IReadOnlyCollection<StoredProcedure> oldProcedures)
+        public static void Validate(int version, IReadOnlyCollection<StoredProcedure> newProcedures, IReadOnlyCollection<StoredProcedure> oldProcedures)
         {
-            var pairs = GetComparisonProcedures(newProcedures, oldProcedures);
+            var pairs = GetComparisonProcedures(version, newProcedures, oldProcedures);
 
             foreach (var pair in pairs)
             {
@@ -52,17 +55,32 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
         }
 
-        private static List<Tuple<StoredProcedure, StoredProcedure>> GetComparisonProcedures(IReadOnlyCollection<StoredProcedure> newProcedures, IReadOnlyCollection<StoredProcedure> oldProcedures)
+        private static List<Tuple<StoredProcedure, StoredProcedure>> GetComparisonProcedures(int version, IReadOnlyCollection<StoredProcedure> newProcedures, IReadOnlyCollection<StoredProcedure> oldProcedures)
         {
             List<Tuple<StoredProcedure, StoredProcedure>> pairs = new List<Tuple<StoredProcedure, StoredProcedure>>();
             foreach (var oldProcedure in oldProcedures)
             {
-                // every procedure in old database must have a match in new
                 var newOne = newProcedures.FirstOrDefault(x => x.Name == oldProcedure.Name);
-                Assert.NotNull(newOne);
-                pairs.Add(new Tuple<StoredProcedure, StoredProcedure>(oldProcedure, newOne));
+
+                // Check to see if the removal of the procedure was expected
+                if (RemovedProcedures.TryGetValue(oldProcedure.Name, out int removedVersion) && version == removedVersion)
+                {
+                    Assert.Null(newOne);
+                }
+                else
+                {
+                    Assert.NotNull(newOne);
+                    pairs.Add(new Tuple<StoredProcedure, StoredProcedure>(oldProcedure, newOne));
+                }
             }
             return pairs;
         }
+
+        private static readonly ImmutableDictionary<string, int> RemovedProcedures =
+            new KeyValuePair<string, int>[]
+            {
+                KeyValuePair.Create(nameof(V5.BeginAddInstance), 6),
+                KeyValuePair.Create(nameof(V5.EndAddInstance), 6),
+            }.ToImmutableDictionary();
     }
 }

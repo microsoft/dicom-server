@@ -446,4 +446,9 @@ The first part time {1} should be lesser than or equal to the second part time {
     <value>Invalid QIDO-RS query. Specified DateTime value '{0}' for attribute {1} contains offset which is not supported.</value>
     <comment>{0} DateTime value. {1} attribute name.</comment>
   </data>
+  <data name="InvalidRangeValues" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified range is invalid.
+Both parts in the range cannot be empty.
+For details on valid range queries, please refer to Search Matching section in Conformance Statement (https://github.com/microsoft/dicom-server/blob/main/docs/resources/conformance-statement.md#search-matching).</value>
+  </data>
 </root>

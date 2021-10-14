@@ -81,9 +81,17 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
-CREATE NONCLUSTERED INDEX IX_Instance_Watermark on dbo.Instance
+CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_Watermark_Status on dbo.Instance
 (
-    Watermark
+    Watermark,
+    Status
+)
+INCLUDE
+(
+    PartitionName,
+    StudyInstanceUid,
+    SeriesInstanceUid,
+    SopInstanceUid
 )
 WITH (DATA_COMPRESSION = PAGE)
 

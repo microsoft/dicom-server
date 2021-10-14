@@ -14,7 +14,7 @@ ADD docker/functions/host_secrets.json /etc/secrets/host.json
 
 # Copy the DICOM Server repository and build the Azure Functions project
 # Note: While the latest .NET SDK is used for building, Azure Functions build target requires .NET Core 3.1 to be installed
-FROM mcr.microsoft.com/dotnet/sdk:5.0.401-alpine3.13@sha256:1d233364f9dbb52b89ae752061a889a703193c8480a1d7b098f56a3dc0886d7c AS build
+FROM mcr.microsoft.com/dotnet/sdk:5.0.402-alpine3.13@sha256:f08db3184fc8fbb12dd4a9d12eb2e3c0a36ca60a4dd13759edde22605fbd00bd AS build
 ARG BUILD_CONFIGURATION=Release
 RUN set -x && \
     apk add --no-cache bash && \

@@ -127,6 +127,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
@@ -138,7 +139,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     dicomDataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
                     dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
                     watermark,
-                    (byte)IndexStatus.Created);
+                    (byte)IndexStatus.Created,
+                    allowExpiredTags ? null : ExtendedQueryTagDataRowsBuilder.GetMaxTagKey(queryTags));
 
                 try
                 {
@@ -146,14 +148,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                 }
                 catch (SqlException ex)
                 {
-                    switch (ex.Number)
+                    throw ex.Number switch
                     {
-                        case SqlErrorCodes.NotFound:
-                            throw new InstanceNotFoundException();
-
-                        default:
-                            throw new DataStoreException(ex);
-                    }
+                        SqlErrorCodes.NotFound => new InstanceNotFoundException(),
+                        SqlErrorCodes.Conflict when ex.State == 10 => new ExtendedQueryTagsOutOfDateException(),
+                        _ => new DataStoreException(ex),
+                    };
                 }
             }
         }

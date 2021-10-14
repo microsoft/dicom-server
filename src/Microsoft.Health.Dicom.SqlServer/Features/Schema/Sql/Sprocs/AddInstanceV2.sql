@@ -65,8 +65,8 @@ CREATE OR ALTER PROCEDURE dbo.AddInstanceV2
     @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY,
     @initialStatus                      TINYINT
 AS
-    SET NOCOUNT ON
-
+BEGIN
+    SET NOCOUNT    ON
     SET XACT_ABORT ON
     BEGIN TRANSACTION
 
@@ -143,159 +143,28 @@ AS
     VALUES
         (@studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
 
-    -- Insert Extended Query Tags
+    BEGIN TRY
 
-    -- String Key tags
-    IF EXISTS (SELECT 1 FROM @stringExtendedQueryTags)
-    BEGIN
-        MERGE INTO dbo.ExtendedQueryTagString AS T
-        USING
-        (
-            SELECT input.TagKey, input.TagValue, input.TagLevel
-            FROM @stringExtendedQueryTags input
-            INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-            ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-            -- Not merge on extended query tag which is being deleted.
-            AND dbo.ExtendedQueryTag.TagStatus <> 2
-        ) AS S
-        ON T.TagKey = S.TagKey
-            AND T.StudyKey = @studyKey
-            -- Null SeriesKey indicates a Study level tag, no need to compare SeriesKey
-            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-            -- Null InstanceKey indicates a Study/Series level tag, no to compare InstanceKey
-            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-        WHEN MATCHED THEN
-            UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
-        WHEN NOT MATCHED THEN
-            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
-            VALUES(
-            S.TagKey,
-            S.TagValue,
+        EXEC dbo.IIndexInstanceCore
+            0,
             @studyKey,
-            -- When TagLevel is not Study, we should fill SeriesKey
-            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
-            -- When TagLevel is Instance, we should fill InstanceKey
-            (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
-            @newWatermark);
-    END
-
-    -- Long Key tags
-    IF EXISTS (SELECT 1 FROM @longExtendedQueryTags)
-    BEGIN
-        MERGE INTO dbo.ExtendedQueryTagLong AS T
-        USING
-        (
-            SELECT input.TagKey, input.TagValue, input.TagLevel
-            FROM @longExtendedQueryTags input
-            INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-            ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-            AND dbo.ExtendedQueryTag.TagStatus <> 2
-        ) AS S
-        ON T.TagKey = S.TagKey
-            AND T.StudyKey = @studyKey
-            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-        WHEN MATCHED THEN
-            UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
-        WHEN NOT MATCHED THEN
-            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
-            VALUES(
-            S.TagKey,
-            S.TagValue,
-            @studyKey,
-            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
-            (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
-            @newWatermark);
-    END
-
-    -- Double Key tags
-    IF EXISTS (SELECT 1 FROM @doubleExtendedQueryTags)
-    BEGIN
-        MERGE INTO dbo.ExtendedQueryTagDouble AS T
-        USING
-        (
-            SELECT input.TagKey, input.TagValue, input.TagLevel
-            FROM @doubleExtendedQueryTags input
-            INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-            ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-            AND dbo.ExtendedQueryTag.TagStatus <> 2
-        ) AS S
-        ON T.TagKey = S.TagKey
-            AND T.StudyKey = @studyKey
-            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-        WHEN MATCHED THEN
-            UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
-        WHEN NOT MATCHED THEN
-            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
-            VALUES(
-            S.TagKey,
-            S.TagValue,
-            @studyKey,
-            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
-            (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
-            @newWatermark);
-    END
-
-    -- DateTime Key tags
-    IF EXISTS (SELECT 1 FROM @dateTimeExtendedQueryTags)
-    BEGIN
-        MERGE INTO dbo.ExtendedQueryTagDateTime AS T
-        USING
-        (
-            SELECT input.TagKey, input.TagValue, input.TagValueUtc, input.TagLevel
-            FROM @dateTimeExtendedQueryTags input
-            INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-            ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-            AND dbo.ExtendedQueryTag.TagStatus <> 2
-        ) AS S
-        ON T.TagKey = S.TagKey
-            AND T.StudyKey = @studyKey
-            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-        WHEN MATCHED THEN
-            UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
-        WHEN NOT MATCHED THEN
-            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark, TagValueUtc)
-            VALUES(
-            S.TagKey,
-            S.TagValue,
-            @studyKey,
-            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
-            (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
+            @seriesKey,
+            @instanceKey,
             @newWatermark,
-            S.TagValueUtc);
-    END
+            @stringExtendedQueryTags,
+            @longExtendedQueryTags,
+            @doubleExtendedQueryTags,
+            @dateTimeExtendedQueryTags,
+            @personNameExtendedQueryTags
 
-    -- PersonName Key tags
-    IF EXISTS (SELECT 1 FROM @personNameExtendedQueryTags)
-    BEGIN
-        MERGE INTO dbo.ExtendedQueryTagPersonName AS T
-        USING
-        (
-            SELECT input.TagKey, input.TagValue, input.TagLevel
-            FROM @personNameExtendedQueryTags input
-            INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
-            ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-            AND dbo.ExtendedQueryTag.TagStatus <> 2
-        ) AS S
-        ON T.TagKey = S.TagKey
-            AND T.StudyKey = @studyKey
-            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
-        WHEN MATCHED THEN
-            UPDATE SET T.Watermark = @newWatermark, T.TagValue = S.TagValue
-        WHEN NOT MATCHED THEN
-            INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark)
-            VALUES(
-            S.TagKey,
-            S.TagValue,
-            @studyKey,
-            (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
-            (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
-            @newWatermark);
-    END
+    END TRY
+    BEGIN CATCH
+
+        THROW
+
+    END CATCH
 
     SELECT @newWatermark
 
     COMMIT TRANSACTION
+END
