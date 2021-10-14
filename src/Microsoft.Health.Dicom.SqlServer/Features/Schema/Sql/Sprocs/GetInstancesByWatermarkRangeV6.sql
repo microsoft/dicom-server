@@ -1,7 +1,7 @@
 /**************************************************************/
 --
 -- STORED PROCEDURE
---     GetInstancesByWatermarkRangeV2
+--     GetInstancesByWatermarkRangeV6
 --
 -- FIRST SCHEMA VERSION
 --     6
@@ -19,7 +19,7 @@
 -- RETURN VALUE
 --     The instance identifiers.
 ------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.GetInstancesByWatermarkRangeV2
+CREATE OR ALTER PROCEDURE dbo.GetInstancesByWatermarkRangeV6
     @startWatermark BIGINT,
     @endWatermark BIGINT,
     @status TINYINT

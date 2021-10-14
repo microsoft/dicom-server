@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.GetInstancesByWatermarkRangeV2.PopulateCommand(
+                VLatest.GetInstancesByWatermarkRangeV6.PopulateCommand(
                     sqlCommandWrapper,
                     watermarkRange.Start,
                     watermarkRange.End,

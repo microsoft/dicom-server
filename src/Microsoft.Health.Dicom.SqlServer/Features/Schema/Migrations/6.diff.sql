@@ -52,10 +52,14 @@ BEGIN
         PartitionKey
     )
 
-    CREATE UNIQUE NONCLUSTERED INDEX IX_Partition_PartitionKey_PartitionName ON dbo.Partition
+    -- Used in partition lookup in AddInstance or GetPartition
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Partition_PartitionName ON dbo.Partition
     (
-        PartitionKey,
         PartitionName
+    )
+    INCLUDE
+    (
+        PartitionKey
     )
 
     -- Add default partition values
@@ -1589,149 +1593,9 @@ BEGIN
 END
 GO
 
-/*************************************************************
-    Indexes
-**************************************************************/
+
 SET XACT_ABORT ON
 BEGIN TRANSACTION
-IF NOT EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IX_Instance_Watermark_Status' AND object_id = OBJECT_ID('dbo.Instance'))
-BEGIN
-    DROP INDEX IF EXISTS IX_Instance_Watermark on dbo.Instance
-    CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_Watermark_Status on dbo.Instance
-    (
-        Watermark,
-        Status
-    )
-    INCLUDE
-    (
-        StudyInstanceUid,
-        SeriesInstanceUid,
-        SopInstanceUid
-    )
-    WITH (DATA_COMPRESSION = PAGE)
-END
-GO
-
-IF NOT EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagDateTime'))
-BEGIN
-    CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagDateTime
-    (
-        TagKey,
-        PartitionKey,
-        StudyKey,
-        SeriesKey,
-        InstanceKey
-    )
-    INCLUDE
-    (
-        Watermark
-    )
-    WITH (DATA_COMPRESSION = PAGE)
-END
-GO
-
-IF NOT EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IX_ExtendedQueryTagDouble_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagDouble'))
-BEGIN
-    CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagDouble
-    (
-        TagKey,
-        PartitionKey,
-        StudyKey,
-        SeriesKey,
-        InstanceKey
-    )
-    INCLUDE
-    (
-        Watermark
-    )
-    WITH (DATA_COMPRESSION = PAGE)
-END
-GO
-
-IF NOT EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IX_ExtendedQueryTagLong_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagLong'))
-BEGIN
-    CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagLong
-    (
-        TagKey,
-        PartitionKey,
-        StudyKey,
-        SeriesKey,
-        InstanceKey
-    )
-    INCLUDE
-    (
-        Watermark
-    )
-    WITH (DATA_COMPRESSION = PAGE)
-END
-GO
-
-IF NOT EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IX_ExtendedQueryTagPersonName_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagPersonName'))
-BEGIN
-    CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagPersonName
-    (
-        TagKey,
-        PartitionKey,
-        StudyKey,
-        SeriesKey,
-        InstanceKey
-    )
-    INCLUDE
-    (
-        Watermark
-    )
-    WITH (DATA_COMPRESSION = PAGE)
-END
-GO
-
-IF 'PAGE' != (
-    SELECT data_compression_desc
-    FROM sys.partitions p
-    INNER JOIN sys.indexes i
-    ON p.object_id = i.object_id AND p.index_id = i.index_id
-    WHERE i.name='IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey' AND i.object_id = OBJECT_ID('dbo.ExtendedQueryTagPersonName'))
-BEGIN
-    ALTER INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey ON dbo.ExtendedQueryTagPersonName
-    REBUILD
-    WITH (DATA_COMPRESSION = PAGE)
-END
-GO
-
-IF NOT EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IX_ExtendedQueryTagString_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagString'))
-BEGIN
-    CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagString_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagString
-    (
-        TagKey,
-        PartitionKey,
-        StudyKey,
-        SeriesKey,
-        InstanceKey
-    )
-    INCLUDE
-    (
-        Watermark
-    )
-    WITH (DATA_COMPRESSION = PAGE)
-END
-GO
 
 BEGIN TRY           -- wrapping the contents of this transaction in try/catch because errors on index
                     -- operations won't rollback unless caught and re-thrown
@@ -1764,7 +1628,7 @@ BEGIN
         ONLINE = ON
     )
 
-    -- Add a new index
+    -- Used as the unique index for full-text index - must be a unique, non-nullable, single-column index
     CREATE UNIQUE NONCLUSTERED INDEX IX_Study_StudyKey ON dbo.Study
     (
         StudyKey
@@ -1772,90 +1636,108 @@ BEGIN
 
     -- Drop an existing index and create with a new name to reflect new keys
     DROP INDEX IX_Study_StudyInstanceUid ON dbo.Study
+    -- Used in AddInstance; we include PartitionKey second because we assume conflicting StudyInstanceUid will be rare
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Study_StudyInstanceUid_PartitionKey ON dbo.Study
+    (
+        StudyInstanceUid,
+        PartitionKey
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
 
-    CREATE UNIQUE NONCLUSTERED INDEX IX_Study_PartitionKey_StudyInstanceUid ON dbo.Study
+    DROP INDEX IX_Study_PatientId ON dbo.Study
+    -- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
+    CREATE NONCLUSTERED INDEX IX_Study_PatientId_PartitionKey ON dbo.Study
     (
-        PartitionKey,
-        StudyInstanceUid
-    ) WITH (DATA_COMPRESSION = PAGE)
+        PatientId,
+        PartitionKey
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
 
-    -- Recreate index in order to reflect new clustered index keys, so below
-    CREATE NONCLUSTERED INDEX IX_Study_PatientId ON dbo.Study
+    DROP INDEX IX_Study_PatientName ON dbo.Study
+    -- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
+    CREATE NONCLUSTERED INDEX IX_Study_PatientName_PartitionKey ON dbo.Study
     (
-        PatientId
+        PatientName,
+        PartitionKey
     )
-    WITH
+    INCLUDE
     (
-        DATA_COMPRESSION = PAGE,
-        DROP_EXISTING = ON,
-        ONLINE = ON
+        StudyKey
     )
+    WITH (DATA_COMPRESSION = PAGE)
 
-    CREATE NONCLUSTERED INDEX IX_Study_PatientName ON dbo.Study
+    DROP INDEX IX_Study_ReferringPhysicianName ON dbo.Study
+    -- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
+    CREATE NONCLUSTERED INDEX IX_Study_ReferringPhysicianName_PartitionKey ON dbo.Study
     (
-        PatientName
+        ReferringPhysicianName,
+        PartitionKey
     )
-    WITH
+    INCLUDE
     (
-        DATA_COMPRESSION = PAGE,
-        DROP_EXISTING = ON,
-        ONLINE = ON
+        StudyKey
     )
+    WITH (DATA_COMPRESSION = PAGE)
 
-    CREATE NONCLUSTERED INDEX IX_Study_ReferringPhysicianName ON dbo.Study
+    DROP INDEX IX_Study_StudyDate ON dbo.Study
+    -- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
+    CREATE NONCLUSTERED INDEX IX_Study_StudyDate_PartitionKey ON dbo.Study
     (
-        ReferringPhysicianName
+        StudyDate,
+        PartitionKey
     )
-    WITH
+    INCLUDE
     (
-        DATA_COMPRESSION = PAGE,
-        DROP_EXISTING = ON,
-        ONLINE = ON
+        StudyKey
     )
+    WITH (DATA_COMPRESSION = PAGE)
 
-    CREATE NONCLUSTERED INDEX IX_Study_StudyDate ON dbo.Study
+    DROP INDEX IX_Study_StudyDescription ON dbo.Study
+    -- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
+    CREATE NONCLUSTERED INDEX IX_Study_StudyDescription_PartitionKey ON dbo.Study
     (
-        StudyDate
+        StudyDescription,
+        PartitionKey
     )
-    WITH
+    INCLUDE
     (
-        DATA_COMPRESSION = PAGE,
-        DROP_EXISTING = ON,
-        ONLINE = ON
+        StudyKey
     )
+    WITH (DATA_COMPRESSION = PAGE)
 
-    CREATE NONCLUSTERED INDEX IX_Study_StudyDescription ON dbo.Study
+    DROP INDEX IX_Study_AccessionNumber ON dbo.Study
+    -- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
+    CREATE NONCLUSTERED INDEX IX_Study_AccessionNumber_PartitionKey ON dbo.Study
     (
-        StudyDescription
+        AccessionNumber,
+        PartitionKey
     )
-    WITH
+    INCLUDE
     (
-        DATA_COMPRESSION = PAGE,
-        DROP_EXISTING = ON,
-        ONLINE = ON
+        StudyKey
     )
+    WITH (DATA_COMPRESSION = PAGE)
 
-    CREATE NONCLUSTERED INDEX IX_Study_AccessionNumber ON dbo.Study
+    DROP INDEX IX_Study_PatientBirthDate ON dbo.Study
+    -- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
+    CREATE NONCLUSTERED INDEX IX_Study_PatientBirthDate_PartitionKey ON dbo.Study
     (
-        AccessionNumber
+        PatientBirthDate,
+        PartitionKey
     )
-    WITH
+    INCLUDE
     (
-        DATA_COMPRESSION = PAGE,
-        DROP_EXISTING = ON,
-        ONLINE = ON
+        StudyKey
     )
-
-    CREATE NONCLUSTERED INDEX IX_Study_PatientBirthDate ON dbo.Study
-    (
-        PatientBirthDate
-    )
-    WITH
-    (
-        DATA_COMPRESSION = PAGE,
-        DROP_EXISTING = ON,
-        ONLINE = ON
-    )
+    WITH (DATA_COMPRESSION = PAGE)
 
 END
 
@@ -1868,6 +1750,7 @@ IF EXISTS
         AND Object_id = OBJECT_ID('dbo.Series')
 )
 BEGIN
+    -- Ordering studies by partition, study, and series key for partition-specific retrieval
     CREATE UNIQUE CLUSTERED INDEX IXC_Series ON dbo.Series
     (
         PartitionKey,
@@ -1892,45 +1775,59 @@ BEGIN
     )
 
     DROP INDEX IX_Series_SeriesInstanceUid ON dbo.Series
+    -- Used in QIDO when querying at the study level; we place PartitionKey second because we assume conflicting SeriesInstanceUid will be rare
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Series_SeriesInstanceUid_PartitionKey ON dbo.Series
+    (
+        SeriesInstanceUid,
+        PartitionKey
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
 
-    CREATE UNIQUE NONCLUSTERED INDEX IX_Series_StudyKey_SeriesInstanceUid ON dbo.Series
+    DROP INDEX IX_Series_Modality ON dbo.Series
+    -- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
+    CREATE NONCLUSTERED INDEX IX_Series_Modality_PartitionKey ON dbo.Series
+    (
+        Modality,
+        PartitionKey
+    )
+    INCLUDE
     (
         StudyKey,
-        SeriesInstanceUid
-    ) WITH (DATA_COMPRESSION = PAGE)
+        SeriesKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
 
-    CREATE NONCLUSTERED INDEX IX_Series_Modality ON dbo.Series
+    DROP INDEX IX_Series_PerformedProcedureStepStartDate ON dbo.Series
+    -- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
+    CREATE NONCLUSTERED INDEX IX_Series_PerformedProcedureStepStartDate_PartitionKey ON dbo.Series
     (
-        Modality
+        PerformedProcedureStepStartDate,
+        PartitionKey
     )
-    WITH
+    INCLUDE
     (
-        DATA_COMPRESSION = PAGE,
-        DROP_EXISTING = ON,
-        ONLINE = ON
+        StudyKey,
+        SeriesKey
     )
+    WITH (DATA_COMPRESSION = PAGE)
 
-    CREATE NONCLUSTERED INDEX IX_Series_PerformedProcedureStepStartDate ON dbo.Series
+    DROP INDEX IX_Series_ManufacturerModelName ON dbo.Series
+    -- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
+    CREATE NONCLUSTERED INDEX IX_Series_ManufacturerModelName_PartitionKey ON dbo.Series
     (
-        PerformedProcedureStepStartDate
+        ManufacturerModelName,
+        PartitionKey
     )
-    WITH
+    INCLUDE
     (
-        DATA_COMPRESSION = PAGE,
-        DROP_EXISTING = ON,
-        ONLINE = ON
+        StudyKey,
+        SeriesKey
     )
-
-    CREATE NONCLUSTERED INDEX IX_Series_ManufacturerModelName ON dbo.Series
-    (
-        ManufacturerModelName
-    )
-    WITH
-    (
-        DATA_COMPRESSION = PAGE,
-        DROP_EXISTING = ON,
-        ONLINE = ON
-    )
+    WITH (DATA_COMPRESSION = PAGE)
 
 END
 
@@ -1944,14 +1841,16 @@ IF EXISTS
         AND Object_id = OBJECT_ID('dbo.Instance')
 )
 BEGIN
-    DROP INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.Instance
 
-    CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.Instance
+    --Filter indexes
+    DROP INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.Instance
+    -- Used in AddInstance, DeleteInstance, DeleteDeletedInstance, QIDO, putting PartitionKey last allows us to query across partitions in the future.
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid_PartitionKey on dbo.Instance
     (
-        PartitionKey,
         StudyInstanceUid,
         SeriesInstanceUid,
-        SopInstanceUid
+        SopInstanceUid,
+        PartitionKey
     )
     INCLUDE
     (
@@ -1961,12 +1860,12 @@ BEGIN
     WITH (DATA_COMPRESSION = PAGE)
 
     DROP INDEX IX_Instance_StudyInstanceUid_Status ON dbo.Instance
-
-    CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_Status on dbo.Instance
+    -- Used in WADO and QIDO, putting PartitionKey last allows us to query across partitions in the future.
+    CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_Status_PartitionKey on dbo.Instance
     (
-        PartitionKey,
         StudyInstanceUid,
-        Status
+        Status,
+        PartitionKey    
     )
     INCLUDE
     (
@@ -1975,13 +1874,13 @@ BEGIN
     WITH (DATA_COMPRESSION = PAGE)
 
     DROP INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status ON dbo.Instance
-
-    CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_Status ON dbo.Instance
+    -- Used in WADO and QIDO, putting PartitionKey last allows us to query across partitions in the future.
+    CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_PartitionKey on dbo.Instance
     (
-        PartitionKey,
         StudyInstanceUid,
         SeriesInstanceUid,
-        Status
+        Status,
+        PartitionKey    
     )
     INCLUDE
     (
@@ -1990,12 +1889,12 @@ BEGIN
     WITH (DATA_COMPRESSION = PAGE)
 
     DROP INDEX IX_Instance_SopInstanceUid_Status ON dbo.Instance
-
-    CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SopInstanceUid_Status on dbo.Instance
+    -- Used in WADO and QIDO, putting PartitionKey last allows us to query across partitions in the future.
+    CREATE NONCLUSTERED INDEX IX_Instance_SopInstanceUid_Status_PartitionKey on dbo.Instance
     (
-        PartitionKey,
         SopInstanceUid,
-        Status
+        Status,
+        PartitionKey    
     )
     INCLUDE
     (
@@ -2005,37 +1904,19 @@ BEGIN
     )
     WITH (DATA_COMPRESSION = PAGE)
 
-    DROP INDEX IX_Instance_SeriesKey_Status ON dbo.Instance
-
-    CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SeriesKey_Status on dbo.Instance
+    DROP INDEX IX_Instance_Watermark ON dbo.Instance
+    -- Used in GetInstancesByWatermarkRange
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_Watermark_Status on dbo.Instance
     (
-        PartitionKey,
-        SeriesKey,
+        Watermark,
         Status
     )
     INCLUDE
     (
-        StudyInstanceUid,
-        SeriesInstanceUid,
-        SopInstanceUid,
-        Watermark
-    )
-    WITH (DATA_COMPRESSION = PAGE)
-
-    DROP INDEX IX_Instance_StudyKey_Status ON dbo.Instance
-
-    CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyKey_Status on dbo.Instance
-    (
         PartitionKey,
-        StudyKey,
-        Status
-    )
-    INCLUDE
-    (
         StudyInstanceUid,
         SeriesInstanceUid,
-        SopInstanceUid,
-        Watermark
+        SopInstanceUid
     )
     WITH (DATA_COMPRESSION = PAGE)
 
@@ -2122,10 +2003,10 @@ BEGIN
     (
         TagKey,
         TagValue,
-        PartitionKey,
         StudyKey,
         SeriesKey,
-        InstanceKey
+        InstanceKey,
+        PartitionKey
     ) 
     WITH
     (
@@ -2153,10 +2034,10 @@ BEGIN
     (
         TagKey,
         TagValue,
-        PartitionKey,
         StudyKey,
         SeriesKey,
-        InstanceKey
+        InstanceKey,
+        PartitionKey
     ) 
     WITH
     (
@@ -2185,10 +2066,10 @@ BEGIN
     (
         TagKey,
         TagValue,
-        PartitionKey,
         StudyKey,
         SeriesKey,
-        InstanceKey
+        InstanceKey,
+        PartitionKey
     ) 
     WITH
     (
@@ -2216,10 +2097,10 @@ BEGIN
     (
         TagKey,
         TagValue,
-        PartitionKey,
         StudyKey,
         SeriesKey,
-        InstanceKey
+        InstanceKey,
+        PartitionKey
     ) 
     WITH
     (
@@ -2248,10 +2129,10 @@ BEGIN
     (
         TagKey,
         TagValue,
-        PartitionKey,
         StudyKey,
         SeriesKey,
-        InstanceKey
+        InstanceKey,
+        PartitionKey
     ) 
     WITH
     (
@@ -2268,6 +2149,131 @@ BEGIN CATCH
     THROW;
 END CATCH
 
+/*************************************************************
+    Indexes
+**************************************************************/
+SET XACT_ABORT ON
+BEGIN TRANSACTION
+
+IF NOT EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_ExtendedQueryTagDateTime_TagKey_StudyKey_SeriesKey_InstanceKey_PartitionKey' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagDateTime'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_TagKey_StudyKey_SeriesKey_InstanceKey_PartitionKey on dbo.ExtendedQueryTagDateTime
+    (
+        TagKey,
+        StudyKey,
+        SeriesKey,
+        InstanceKey,
+        PartitionKey
+    )
+    INCLUDE
+    (
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
+GO
+
+IF NOT EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_ExtendedQueryTagDouble_TagKey_StudyKey_SeriesKey_InstanceKey_PartitionKey' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagDouble'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_TagKey_StudyKey_SeriesKey_InstanceKey_PartitionKey on dbo.ExtendedQueryTagDouble
+    (
+        TagKey,
+        StudyKey,
+        SeriesKey,
+        InstanceKey,
+        PartitionKey
+    )
+    INCLUDE
+    (
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
+GO
+
+IF NOT EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_ExtendedQueryTagLong_TagKey_StudyKey_SeriesKey_InstanceKey_PartitionKey' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagLong'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_TagKey_StudyKey_SeriesKey_InstanceKey_PartitionKey on dbo.ExtendedQueryTagLong
+    (
+        TagKey,
+        StudyKey,
+        SeriesKey,
+        InstanceKey,
+        PartitionKey
+    )
+    INCLUDE
+    (
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
+GO
+
+IF NOT EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_ExtendedQueryTagPersonName_TagKey_StudyKey_SeriesKey_InstanceKey_PartitionKey' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagPersonName'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_TagKey_StudyKey_SeriesKey_InstanceKey_PartitionKey on dbo.ExtendedQueryTagPersonName
+    (
+        TagKey,
+        StudyKey,
+        SeriesKey,
+        InstanceKey,
+        PartitionKey
+    )
+    INCLUDE
+    (
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
+GO
+
+IF 'PAGE' != (
+    SELECT data_compression_desc
+    FROM sys.partitions p
+    INNER JOIN sys.indexes i
+    ON p.object_id = i.object_id AND p.index_id = i.index_id
+    WHERE i.name='IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey' AND i.object_id = OBJECT_ID('dbo.ExtendedQueryTagPersonName'))
+BEGIN
+    ALTER INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey ON dbo.ExtendedQueryTagPersonName
+    REBUILD
+    WITH (DATA_COMPRESSION = PAGE)
+END
+GO
+
+IF NOT EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_ExtendedQueryTagString_TagKey_StudyKey_SeriesKey_InstanceKey_PartitionKey' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagString'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagString_TagKey_StudyKey_SeriesKey_InstanceKey_PartitionKey on dbo.ExtendedQueryTagString
+    (
+        TagKey,
+        StudyKey,
+        SeriesKey,
+        InstanceKey,
+        PartitionKey
+    )
+    INCLUDE
+    (
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
+GO
+
+COMMIT TRANSACTION
 
 /*************************************************************
 Full text catalog and index creation outside transaction

@@ -14,10 +14,14 @@ CREATE UNIQUE CLUSTERED INDEX IXC_Partition ON dbo.Partition
     PartitionKey
 )
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Partition_PartitionKey_PartitionName ON dbo.Partition
+-- Used in partition lookup in AddInstance or GetPartition
+CREATE UNIQUE NONCLUSTERED INDEX IX_Partition_PartitionName ON dbo.Partition
 (
-    PartitionKey,
     PartitionName
+)
+INCLUDE
+(
+    PartitionKey
 )
 
 -- Add default partition values

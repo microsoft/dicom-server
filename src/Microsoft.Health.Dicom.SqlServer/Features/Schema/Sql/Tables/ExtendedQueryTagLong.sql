@@ -19,19 +19,19 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong ON dbo.ExtendedQueryTagLo
 (
     TagKey,
     TagValue,
-    PartitionKey,
     StudyKey,
     SeriesKey,
-    InstanceKey
+    InstanceKey,
+    PartitionKey
 )
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagLong
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_TagKey_StudyKey_SeriesKey_InstanceKey_PartitionKey on dbo.ExtendedQueryTagLong
 (
     TagKey,
-    PartitionKey,
     StudyKey,
     SeriesKey,
-    InstanceKey
+    InstanceKey,
+    PartitionKey
 )
 INCLUDE
 (

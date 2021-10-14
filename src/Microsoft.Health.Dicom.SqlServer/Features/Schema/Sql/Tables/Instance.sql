@@ -27,12 +27,13 @@ CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance
 )
 
 --Filter indexes
-CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
+-- Used in AddInstance, DeleteInstance, DeleteDeletedInstance, QIDO
+CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid_PartitionKey on dbo.Instance
 (
-    PartitionKey,
     StudyInstanceUid,
     SeriesInstanceUid,
-    SopInstanceUid
+    SopInstanceUid,
+    PartitionKey
 )
 INCLUDE
 (
@@ -41,11 +42,12 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
-CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_Status on dbo.Instance
+-- Used in WADO and QIDO, putting PartitionKey last allows us to query across partitions in the future.
+CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_Status_PartitionKey on dbo.Instance
 (
-    PartitionKey,
     StudyInstanceUid,
-    Status
+    Status,
+    PartitionKey    
 )
 INCLUDE
 (
@@ -53,12 +55,13 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
-CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_Status on dbo.Instance
+-- Used in WADO and QIDO, putting PartitionKey last allows us to query across partitions in the future.
+CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_PartitionKey on dbo.Instance
 (
-    PartitionKey,
     StudyInstanceUid,
     SeriesInstanceUid,
-    Status
+    Status,
+    PartitionKey    
 )
 INCLUDE
 (
@@ -66,11 +69,12 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
-CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SopInstanceUid_Status on dbo.Instance
+-- Used in WADO and QIDO, putting PartitionKey last allows us to query across partitions in the future.
+CREATE NONCLUSTERED INDEX IX_Instance_SopInstanceUid_Status_PartitionKey on dbo.Instance
 (
-    PartitionKey,
     SopInstanceUid,
-    Status
+    Status,
+    PartitionKey    
 )
 INCLUDE
 (
@@ -80,6 +84,7 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
+-- Used in GetInstancesByWatermarkRange
 CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_Watermark_Status on dbo.Instance
 (
     Watermark,
@@ -87,16 +92,16 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_Watermark_Status on dbo.Instance
 )
 INCLUDE
 (
+    PartitionKey,
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid
 )
 WITH (DATA_COMPRESSION = PAGE)
 
---Cross apply indexes
-CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SeriesKey_Status on dbo.Instance
+-- Cross apply indexes - partition identifiers are not needed
+CREATE NONCLUSTERED INDEX IX_Instance_SeriesKey_Status on dbo.Instance
 (
-    PartitionKey,
     SeriesKey,
     Status
 )
@@ -109,9 +114,8 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
-CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyKey_Status on dbo.Instance
+CREATE NONCLUSTERED INDEX IX_Instance_StudyKey_Status on dbo.Instance
 (
-    PartitionKey,
     StudyKey,
     Status
 )
