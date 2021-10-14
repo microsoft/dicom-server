@@ -1,6 +1,6 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---     RetrieveDeletedInstanceV2
+--     RetrieveDeletedInstanceV6
 --
 -- FIRST SCHEMA VERSION
 --     6
@@ -14,7 +14,7 @@
 --     @maxRetries
 --         * The maximum number of times to retry a cleanup
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.RetrieveDeletedInstanceV2
+CREATE OR ALTER PROCEDURE dbo.RetrieveDeletedInstanceV6
     @count          INT,
     @maxRetries     INT
 AS

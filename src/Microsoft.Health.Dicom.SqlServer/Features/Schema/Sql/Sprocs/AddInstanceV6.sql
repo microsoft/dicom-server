@@ -3,7 +3,7 @@
 **************************************************************/
 --
 -- STORED PROCEDURE
---     AddInstanceV3
+--     AddInstanceV6
 --
 -- FIRST SCHEMA VERSION
 --     6
@@ -49,7 +49,7 @@
 -- RETURN VALUE
 --     The watermark (version).
 ------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.AddInstanceV3
+CREATE OR ALTER PROCEDURE dbo.AddInstanceV6
     @partitionName                      VARCHAR(64),
     @studyInstanceUid                   VARCHAR(64),
     @seriesInstanceUid                  VARCHAR(64),

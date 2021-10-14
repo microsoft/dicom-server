@@ -1,6 +1,6 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---    Index instance V3
+--    Index instance V6
 --
 -- DESCRIPTION
 --    Adds or updates the various extended query tag indices for a given DICOM instance.
@@ -21,7 +21,7 @@
 -- RETURN VALUE
 --     None
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.IndexInstanceV3
+CREATE OR ALTER PROCEDURE dbo.IndexInstanceV6
     @watermark                                                                   BIGINT,
     @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1         READONLY,
     @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1             READONLY,

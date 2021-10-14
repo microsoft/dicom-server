@@ -1,6 +1,6 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetInstanceV2
+--     GetInstanceV6
 --
 -- FIRST SCHEMA VERSION
 --     6
@@ -20,7 +20,7 @@
 --     @sopInstanceUid
 --         * The SOP instance UID.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetInstanceV2 (
+CREATE OR ALTER PROCEDURE dbo.GetInstanceV6 (
     @validStatus        TINYINT,
     @partitionKey       INT,
     @studyInstanceUid   VARCHAR(64),

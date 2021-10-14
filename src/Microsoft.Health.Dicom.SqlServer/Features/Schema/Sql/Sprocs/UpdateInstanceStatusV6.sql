@@ -3,7 +3,7 @@
 **************************************************************/
 --
 -- STORED PROCEDURE
---     UpdateInstanceStatusV2
+--     UpdateInstanceStatusV6
 --
 -- DESCRIPTION
 --     Updates a DICOM instance status.
@@ -27,7 +27,7 @@
 -- RETURN VALUE
 --     None
 --
-CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV2
+CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV6
     @partitionKey       INT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64),

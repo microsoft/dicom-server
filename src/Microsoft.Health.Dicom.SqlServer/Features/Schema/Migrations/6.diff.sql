@@ -463,7 +463,7 @@ GO
 **************************************************************/
 --
 -- STORED PROCEDURE
---     AddInstanceV3
+--     AddInstanceV6
 --
 -- FIRST SCHEMA VERSION
 --     6
@@ -511,7 +511,7 @@ GO
 -- RETURN VALUE
 --     The watermark (version).
 ------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.AddInstanceV3
+CREATE OR ALTER PROCEDURE dbo.AddInstanceV6
     @partitionName                      VARCHAR(64),
     @studyInstanceUid                   VARCHAR(64),
     @seriesInstanceUid                  VARCHAR(64),
@@ -663,7 +663,7 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---    Index instance V3
+--    Index instance V6
 --
 -- DESCRIPTION
 --    Adds or updates the various extended query tag indices for a given DICOM instance.
@@ -684,7 +684,7 @@ GO
 -- RETURN VALUE
 --     None
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.IndexInstanceV3
+CREATE OR ALTER PROCEDURE dbo.IndexInstanceV6
     @watermark                                                                   BIGINT,
     @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1         READONLY,
     @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1             READONLY,
@@ -748,7 +748,7 @@ GO
 **************************************************************/
 --
 -- STORED PROCEDURE
---     UpdateInstanceStatusV2
+--     UpdateInstanceStatusV6
 --
 -- DESCRIPTION
 --     Updates a DICOM instance status.
@@ -772,7 +772,7 @@ GO
 -- RETURN VALUE
 --     None
 --
-CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV2
+CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV6
     @partitionKey       INT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64),
@@ -873,7 +873,7 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     DeleteDeletedInstanceV2
+--     DeleteDeletedInstanceV6
 --
 -- FIRST SCHEMA VERSION
 --     6
@@ -893,7 +893,7 @@ GO
 --     @watermark
 --         * The watermark of the entry
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.DeleteDeletedInstanceV2(
+CREATE OR ALTER PROCEDURE dbo.DeleteDeletedInstanceV6(
     @partitionKey       INT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64),
@@ -916,7 +916,7 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     DeleteInstanceV2
+--     DeleteInstanceV6
 --
 -- FIRST SCHEMA VERSION
 --     6
@@ -938,7 +938,7 @@ GO
 --     @sopInstanceUid
 --         * The SOP instance UID.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV2
+CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV6
     @cleanupAfter       DATETIMEOFFSET(0),
     @createdStatus      TINYINT,
     @partitionKey       INT,
@@ -1166,7 +1166,7 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetChangeFeedLatestV2
+--     GetChangeFeedLatestV6
 --
 -- FIRST SCHEMA VERSION
 --     6
@@ -1174,7 +1174,7 @@ GO
 -- DESCRIPTION
 --     Gets the latest dicom change
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetChangeFeedLatestV2
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedLatestV6
 AS
 BEGIN
     SET NOCOUNT     ON
@@ -1199,7 +1199,7 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetChangeFeedV2
+--     GetChangeFeedV6
 --
 -- FIRST SCHEMA VERSION
 --     6
@@ -1213,7 +1213,7 @@ GO
 --     @offet
 --         * Rows to skip
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetChangeFeedV2 (
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedV6 (
     @limit      INT,
     @offset     BIGINT)
 AS
@@ -1240,7 +1240,7 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetExtendedQueryTagErrorsV2
+--     GetExtendedQueryTagErrorsV6
 --
 -- FIRST SCHEMA VERSION
 --     6
@@ -1259,7 +1259,7 @@ GO
 -- RETURN VALUE
 --     The tag error fields and the corresponding instance UIDs.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrorsV2
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrorsV6
     @tagPath VARCHAR(64),
     @limit   INT,
     @offset  INT
@@ -1299,7 +1299,7 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetInstanceV2
+--     GetInstanceV6
 --
 -- FIRST SCHEMA VERSION
 --     6
@@ -1319,7 +1319,7 @@ GO
 --     @sopInstanceUid
 --         * The SOP instance UID.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetInstanceV2 (
+CREATE OR ALTER PROCEDURE dbo.GetInstanceV6 (
     @validStatus        TINYINT,
     @partitionKey       INT,
     @studyInstanceUid   VARCHAR(64),
@@ -1395,7 +1395,7 @@ GO
 /**************************************************************/
 --
 -- STORED PROCEDURE
---     GetInstancesByWatermarkRangeV2
+--     GetInstancesByWatermarkRangeV6
 --
 -- FIRST SCHEMA VERSION
 --     6
@@ -1413,7 +1413,7 @@ GO
 -- RETURN VALUE
 --     The instance identifiers.
 ------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.GetInstancesByWatermarkRangeV2
+CREATE OR ALTER PROCEDURE dbo.GetInstancesByWatermarkRangeV6
     @startWatermark BIGINT,
     @endWatermark BIGINT,
     @status TINYINT
@@ -1490,7 +1490,7 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     IncrementDeletedInstanceRetryV2
+--     IncrementDeletedInstanceRetryV6
 --
 -- FIRST SCHEMA VERSION
 --     6
@@ -1516,7 +1516,7 @@ GO
 --     The retry count.
 --
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.IncrementDeletedInstanceRetryV2(
+CREATE OR ALTER PROCEDURE dbo.IncrementDeletedInstanceRetryV6(
     @partitionKey       INT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64),
@@ -1545,7 +1545,7 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     RetrieveDeletedInstanceV2
+--     RetrieveDeletedInstanceV6
 --
 -- FIRST SCHEMA VERSION
 --     6
@@ -1559,7 +1559,7 @@ GO
 --     @maxRetries
 --         * The maximum number of times to retry a cleanup
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.RetrieveDeletedInstanceV2
+CREATE OR ALTER PROCEDURE dbo.RetrieveDeletedInstanceV6
     @count          INT,
     @maxRetries     INT
 AS

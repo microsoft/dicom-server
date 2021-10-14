@@ -1,6 +1,6 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetExtendedQueryTagErrorsV2
+--     GetExtendedQueryTagErrorsV6
 --
 -- FIRST SCHEMA VERSION
 --     6
@@ -19,7 +19,7 @@
 -- RETURN VALUE
 --     The tag error fields and the corresponding instance UIDs.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrorsV2
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrorsV6
     @tagPath VARCHAR(64),
     @limit   INT,
     @offset  INT

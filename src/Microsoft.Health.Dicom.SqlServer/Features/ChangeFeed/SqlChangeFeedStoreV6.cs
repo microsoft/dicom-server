@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
             using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
             using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
 
-            VLatest.GetChangeFeedLatestV2.PopulateCommand(sqlCommandWrapper);
+            VLatest.GetChangeFeedLatestV6.PopulateCommand(sqlCommandWrapper);
 
             using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
             if (await reader.ReadAsync(cancellationToken))
@@ -70,7 +70,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
             using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
             using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
 
-            VLatest.GetChangeFeedV2.PopulateCommand(sqlCommandWrapper, limit, offset);
+            VLatest.GetChangeFeedV6.PopulateCommand(sqlCommandWrapper, limit, offset);
 
             using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
             while (await reader.ReadAsync(cancellationToken))

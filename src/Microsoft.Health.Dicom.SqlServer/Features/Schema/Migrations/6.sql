@@ -884,7 +884,7 @@ SELECT @newWatermark;
 COMMIT TRANSACTION;
 
 GO
-CREATE OR ALTER PROCEDURE dbo.AddInstanceV3
+CREATE OR ALTER PROCEDURE dbo.AddInstanceV6
 @partitionName VARCHAR (64), @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @patientId NVARCHAR (64), @patientName NVARCHAR (325)=NULL, @referringPhysicianName NVARCHAR (325)=NULL, @studyDate DATE=NULL, @studyDescription NVARCHAR (64)=NULL, @accessionNumber NVARCHAR (64)=NULL, @modality NVARCHAR (16)=NULL, @performedProcedureStepStartDate DATE=NULL, @patientBirthDate DATE=NULL, @manufacturerModelName NVARCHAR (64)=NULL, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY, @initialStatus TINYINT
 AS
 BEGIN
@@ -1051,7 +1051,7 @@ WHERE  StudyInstanceUid = @studyInstanceUid
        AND Watermark = @watermark;
 
 GO
-CREATE OR ALTER PROCEDURE dbo.DeleteDeletedInstanceV2
+CREATE OR ALTER PROCEDURE dbo.DeleteDeletedInstanceV6
 @partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT
 AS
 SET NOCOUNT ON;
@@ -1257,7 +1257,7 @@ IF NOT EXISTS (SELECT *
 COMMIT TRANSACTION;
 
 GO
-CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV2
+CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV6
 @cleanupAfter DATETIMEOFFSET (0), @createdStatus TINYINT, @partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64)=NULL, @sopInstanceUid VARCHAR (64)=NULL
 AS
 SET NOCOUNT ON;
@@ -1465,7 +1465,7 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.GetChangeFeedLatestV2
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedLatestV6
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -1487,7 +1487,7 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.GetChangeFeedV2
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedV6
 @limit INT, @offset BIGINT
 AS
 BEGIN
@@ -1562,7 +1562,7 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrorsV2
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrorsV6
 @tagPath VARCHAR (64), @limit INT, @offset INT
 AS
 BEGIN
@@ -1733,7 +1733,7 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.GetInstanceV2
+CREATE OR ALTER PROCEDURE dbo.GetInstanceV6
 @validStatus TINYINT, @partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64)=NULL, @sopInstanceUid VARCHAR (64)=NULL
 AS
 BEGIN
@@ -1914,7 +1914,7 @@ WHERE  StudyInstanceUid = @studyInstanceUid
 SELECT @retryCount;
 
 GO
-CREATE OR ALTER PROCEDURE dbo.IncrementDeletedInstanceRetryV2
+CREATE OR ALTER PROCEDURE dbo.IncrementDeletedInstanceRetryV6
 @partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @cleanupAfter DATETIMEOFFSET (0)
 AS
 SET NOCOUNT ON;
@@ -2191,7 +2191,7 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.IndexInstanceV3
+CREATE OR ALTER PROCEDURE dbo.IndexInstanceV6
 @watermark BIGINT, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
 BEGIN
@@ -2239,7 +2239,7 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.RetrieveDeletedInstanceV2
+CREATE OR ALTER PROCEDURE dbo.RetrieveDeletedInstanceV6
 @count INT, @maxRetries INT
 AS
 BEGIN
@@ -2299,7 +2299,7 @@ WHERE  StudyInstanceUid = @studyInstanceUid
 COMMIT TRANSACTION;
 
 GO
-CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV2
+CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV6
 @partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT, @maxTagKey INT=NULL
 AS
 BEGIN

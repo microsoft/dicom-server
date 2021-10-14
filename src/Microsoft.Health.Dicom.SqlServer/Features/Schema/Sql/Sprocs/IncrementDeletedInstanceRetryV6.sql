@@ -1,6 +1,6 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---     IncrementDeletedInstanceRetryV2
+--     IncrementDeletedInstanceRetryV6
 --
 -- FIRST SCHEMA VERSION
 --     6
@@ -26,7 +26,7 @@
 --     The retry count.
 --
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.IncrementDeletedInstanceRetryV2(
+CREATE OR ALTER PROCEDURE dbo.IncrementDeletedInstanceRetryV6(
     @partitionKey       INT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64),

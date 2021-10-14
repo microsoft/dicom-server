@@ -47,7 +47,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags.Where(tag => tag.IsExtendedQueryTag), Version);
-                VLatest.AddInstanceV3TableValuedParameters parameters = new VLatest.AddInstanceV3TableValuedParameters(
+                VLatest.AddInstanceV6TableValuedParameters parameters = new VLatest.AddInstanceV6TableValuedParameters(
                     rows.StringRows,
                     rows.LongRows,
                     rows.DoubleRows,
@@ -55,7 +55,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     rows.PersonNameRows
                 );
 
-                VLatest.AddInstanceV3.PopulateCommand(
+                VLatest.AddInstanceV6.PopulateCommand(
                     sqlCommandWrapper,
                     DefaultPartition.Name,
                     instance.GetString(DicomTag.StudyInstanceUID),
@@ -132,7 +132,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.UpdateInstanceStatusV2.PopulateCommand(
+                VLatest.UpdateInstanceStatusV6.PopulateCommand(
                     sqlCommandWrapper,
                     DefaultPartition.Key,
                     dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
@@ -165,7 +165,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.RetrieveDeletedInstanceV2.PopulateCommand(
+                VLatest.RetrieveDeletedInstanceV6.PopulateCommand(
                     sqlCommandWrapper,
                     batchSize,
                     maxRetries);
@@ -206,7 +206,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.DeleteDeletedInstanceV2.PopulateCommand(
+                VLatest.DeleteDeletedInstanceV6.PopulateCommand(
                     sqlCommandWrapper,
                     DefaultPartition.Key,
                     versionedInstanceIdentifier.StudyInstanceUid,
@@ -230,7 +230,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.IncrementDeletedInstanceRetryV2.PopulateCommand(
+                VLatest.IncrementDeletedInstanceRetryV6.PopulateCommand(
                     sqlCommandWrapper,
                     DefaultPartition.Key,
                     versionedInstanceIdentifier.StudyInstanceUid,
@@ -255,7 +255,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.DeleteInstanceV2.PopulateCommand(
+                VLatest.DeleteInstanceV6.PopulateCommand(
                     sqlCommandWrapper,
                     cleanupAfter,
                     (byte)IndexStatus.Created,
@@ -301,14 +301,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags, Version);
-                VLatest.IndexInstanceV3TableValuedParameters parameters = new VLatest.IndexInstanceV3TableValuedParameters(
+                VLatest.IndexInstanceV6TableValuedParameters parameters = new VLatest.IndexInstanceV6TableValuedParameters(
                     rows.StringRows,
                     rows.LongRows,
                     rows.DoubleRows,
                     rows.DateTimeWithUtcRows,
                     rows.PersonNameRows);
 
-                VLatest.IndexInstanceV3.PopulateCommand(sqlCommandWrapper, watermark, parameters);
+                VLatest.IndexInstanceV6.PopulateCommand(sqlCommandWrapper, watermark, parameters);
 
                 try
                 {

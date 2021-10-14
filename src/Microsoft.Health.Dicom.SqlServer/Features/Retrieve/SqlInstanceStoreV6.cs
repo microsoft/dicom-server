@@ -103,7 +103,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.GetInstanceV2.PopulateCommand(
+                VLatest.GetInstanceV6.PopulateCommand(
                     sqlCommandWrapper,
                     validStatus: (byte)IndexStatus.Created,
                     partitionKey,

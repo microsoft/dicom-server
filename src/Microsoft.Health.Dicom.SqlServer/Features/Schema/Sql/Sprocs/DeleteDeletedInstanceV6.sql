@@ -1,6 +1,6 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---     DeleteDeletedInstanceV2
+--     DeleteDeletedInstanceV6
 --
 -- FIRST SCHEMA VERSION
 --     6
@@ -20,7 +20,7 @@
 --     @watermark
 --         * The watermark of the entry
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.DeleteDeletedInstanceV2(
+CREATE OR ALTER PROCEDURE dbo.DeleteDeletedInstanceV6(
     @partitionKey       INT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64),
