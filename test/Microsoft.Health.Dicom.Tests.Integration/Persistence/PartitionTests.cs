@@ -39,6 +39,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Equal(DefaultPartition.Key, latestVersion.PartitionKey);
         }
 
+        [Fact]
+        public async Task WhenGetPartitionIsCalledWithDefaultPartitionName_Then_DefaultPartitionRecordIsReturned()
+        {
+            var partitionEntry = await _fixture.PartitionStore.GetPartition(DefaultPartition.Name);
+
+            Assert.Equal(DefaultPartition.Key, partitionEntry.PartitionKey);
+        }
+
         private async Task<VersionedInstanceIdentifier> CreateInstance(
             bool instanceFullyCreated = true,
             string studyInstanceUid = null,
