@@ -20,5 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Context
         long BytesTranscoded { get; set; }
 
         long ResponseSize { get; set; }
+
+        string PartitionId { get; set; }
     }
 }

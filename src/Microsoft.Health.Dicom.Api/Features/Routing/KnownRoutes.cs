@@ -7,6 +7,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
 {
     public static class KnownRoutes
     {
+        private const string PartitionsRouteSegment = "partitions";
         private const string StudiesRouteSegment = "studies";
         private const string SeriesRouteSegment = "series";
         private const string InstancesRouteSegment = "instances";
@@ -15,6 +16,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         private const string ExtendedQueryTagsRouteSegment = "extendedquerytags";
         private const string OperationsSegment = "operations";
 
+        private const string PartitionIdRouteSegment = "{" + KnownActionParameterNames.PartitionId + "}";
         private const string StudiesInstanceUidRouteSegment = "{" + KnownActionParameterNames.StudyInstanceUid + "}";
         private const string SeriesInstanceUidRouteSegment = "{" + KnownActionParameterNames.SeriesInstanceUid + "}";
         private const string SopInstanceUidRouteSegment = "{" + KnownActionParameterNames.SopInstanceUid + "}";
@@ -25,6 +27,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         public const string StoreInstancesRoute = StudiesRouteSegment;
         public const string StoreInstancesInStudyRoute = StudiesRouteSegment + "/{" + KnownActionParameterNames.StudyInstanceUid + "}";
 
+        public const string PartitionRoute = PartitionsRouteSegment + "/" + PartitionIdRouteSegment;
         public const string StudyRoute = StudiesRouteSegment + "/" + StudiesInstanceUidRouteSegment;
         public const string SeriesRoute = StudyRoute + "/" + SeriesRouteSegment + "/" + SeriesInstanceUidRouteSegment;
         public const string InstanceRoute = SeriesRoute + "/" + InstancesRouteSegment + "/" + SopInstanceUidRouteSegment;

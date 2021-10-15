@@ -6,16 +6,22 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
+using Polly;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
@@ -24,6 +30,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     /// </summary>
     public class StoreOrchestrator : IStoreOrchestrator
     {
+        private readonly IDicomRequestContextAccessor _contextAccessor;
         private readonly IFileStore _fileStore;
         private readonly IMetadataStore _metadataStore;
         private readonly IIndexDataStore _indexDataStore;
@@ -31,12 +38,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         private readonly IQueryTagService _queryTagService;
 
         public StoreOrchestrator(
+            IDicomRequestContextAccessor contextAccessor,
             IFileStore fileStore,
             IMetadataStore metadataStore,
             IIndexDataStore indexDataStore,
             IDeleteService deleteService,
             IQueryTagService queryTagService)
         {
+            _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
             _fileStore = EnsureArg.IsNotNull(fileStore, nameof(fileStore));
             _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
             _indexDataStore = EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
@@ -50,12 +59,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
-
+            var partitionId = _contextAccessor.RequestContext?.PartitionId;
             DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
             IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
-            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dicomDataset, queryTags, cancellationToken);
-            var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(watermark);
+            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionId, dicomDataset, queryTags, cancellationToken);
+            var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(watermark, partitionId);
 
             try
             {

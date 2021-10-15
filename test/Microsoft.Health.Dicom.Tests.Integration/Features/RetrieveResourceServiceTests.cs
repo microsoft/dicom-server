@@ -130,7 +130,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             ValidateDicomRequestIsPopulated();
         }
 
-        private async Task<List<DicomDataset>> GenerateDicomDatasets(string seriesInstanceUid, int instancesinSeries, bool storeInstanceFile)
+        private async Task<List<DicomDataset>> GenerateDicomDatasets(string seriesInstanceUid, int instancesinSeries, bool storeInstanceFile, string partitionId = default)
         {
             var dicomDatasets = new List<DicomDataset>();
             for (int i = 0; i < instancesinSeries; i++)
@@ -146,16 +146,16 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                     { DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value },
                 };
 
-                await StoreDatasetsAndInstances(ds, storeInstanceFile);
+                await StoreDatasetsAndInstances(partitionId, ds, storeInstanceFile);
                 dicomDatasets.Add(ds);
             }
 
             return dicomDatasets;
         }
 
-        private async Task StoreDatasetsAndInstances(DicomDataset dataset, bool flagToStoreInstance)
+        private async Task StoreDatasetsAndInstances(string partitionId, DicomDataset dataset, bool flagToStoreInstance)
         {
-            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
+            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionId, dataset);
 
             var versionedInstanceIdentifier = dataset.ToVersionedInstanceIdentifier(version);
 
@@ -174,7 +174,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                     stream);
             }
 
-            await _indexDataStore.EndCreateInstanceIndexAsync(dataset, version);
+            await _indexDataStore.EndCreateInstanceIndexAsync(partitionId, dataset, version);
         }
 
         private void ValidateResponseDicomFiles(

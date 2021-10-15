@@ -13,6 +13,7 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages;
@@ -33,6 +34,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         private readonly IInstanceStore _instanceStore;
         private readonly IMetadataStore _metadataStore;
         private readonly IETagGenerator _eTagGenerator;
+        private readonly IDicomRequestContextAccessor _contextAccessor;
 
         private readonly string _studyInstanceUid = TestUidGenerator.Generate();
         private readonly string _seriesInstanceUid = TestUidGenerator.Generate();
@@ -40,10 +42,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         public RetrieveMetadataServiceTests(DataStoreTestsFixture storagefixture)
         {
             EnsureArg.IsNotNull(storagefixture, nameof(storagefixture));
+            _contextAccessor = Substitute.For<IDicomRequestContextAccessor>();
             _instanceStore = Substitute.For<IInstanceStore>();
             _metadataStore = storagefixture.MetadataStore;
             _eTagGenerator = Substitute.For<IETagGenerator>();
-            _retrieveMetadataService = new RetrieveMetadataService(_instanceStore, _metadataStore, _eTagGenerator);
+            _retrieveMetadataService = new RetrieveMetadataService(_contextAccessor, _instanceStore, _metadataStore, _eTagGenerator);
         }
 
         [Fact]
@@ -131,7 +134,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                     dicomDataset1 = CreateValidMetadataDataset(_studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate());
                     dicomDataset2 = CreateValidMetadataDataset(_studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate());
 
-                    _instanceStore.GetInstanceIdentifiersInStudyAsync(_studyInstanceUid, DefaultCancellationToken).Returns(new List<VersionedInstanceIdentifier>()
+                    _instanceStore.GetInstanceIdentifiersInStudyAsync(Arg.Any<string>(), _studyInstanceUid, DefaultCancellationToken).Returns(new List<VersionedInstanceIdentifier>()
                     {
                         dicomDataset1.ToVersionedInstanceIdentifier(version: 0),
                         dicomDataset2.ToVersionedInstanceIdentifier(version: 1),
@@ -142,7 +145,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                     dicomDataset1 = CreateValidMetadataDataset(_studyInstanceUid, _seriesInstanceUid, TestUidGenerator.Generate());
                     dicomDataset2 = CreateValidMetadataDataset(_studyInstanceUid, _seriesInstanceUid, TestUidGenerator.Generate());
 
-                    _instanceStore.GetInstanceIdentifiersInSeriesAsync(_studyInstanceUid, _seriesInstanceUid, DefaultCancellationToken).Returns(new List<VersionedInstanceIdentifier>()
+                    _instanceStore.GetInstanceIdentifiersInSeriesAsync(Arg.Any<string>(), _studyInstanceUid, _seriesInstanceUid, DefaultCancellationToken).Returns(new List<VersionedInstanceIdentifier>()
                     {
                         dicomDataset1.ToVersionedInstanceIdentifier(version: 0),
                         dicomDataset2.ToVersionedInstanceIdentifier(version: 1),

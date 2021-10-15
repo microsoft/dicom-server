@@ -82,30 +82,50 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         public Uri ResolveRetrieveStudyUri(string studyInstanceUid)
         {
             EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
-            var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey("version");
+            var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey(KnownActionParameterNames.Version);
+            var hasPartition = _httpContextAccessor.HttpContext.Request.RouteValues.TryGetValue(KnownActionParameterNames.PartitionId, out var partitionId);
 
-            return RouteUri(
-                hasVersion ? KnownRouteNames.VersionedRetrieveStudy : KnownRouteNames.RetrieveStudy,
-                new RouteValueDictionary
-                {
-                    { KnownActionParameterNames.StudyInstanceUid, studyInstanceUid },
-                });
+            var routeName = hasPartition
+                ? (hasVersion ? KnownRouteNames.PartitionVersionedRetrieveStudy : KnownRouteNames.PartitionRetrieveStudy)
+                : hasVersion ? KnownRouteNames.VersionedRetrieveStudy : KnownRouteNames.RetrieveStudy;
+
+            var routeValues = new RouteValueDictionary
+            {
+                { KnownActionParameterNames.StudyInstanceUid, studyInstanceUid },
+            };
+
+            if (hasPartition)
+            {
+                routeValues.Add(KnownActionParameterNames.PartitionId, partitionId.ToString());
+            };
+
+            return RouteUri(routeName, routeValues);
         }
 
         /// <inheritdoc />
         public Uri ResolveRetrieveInstanceUri(InstanceIdentifier instanceIdentifier)
         {
             EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
-            var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey("version");
+            var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey(KnownActionParameterNames.Version);
+            var hasPartition = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey(KnownActionParameterNames.PartitionId);
 
-            return RouteUri(
-                hasVersion ? KnownRouteNames.VersionedRetrieveInstance : KnownRouteNames.RetrieveInstance,
-                new RouteValueDictionary
-                {
-                    { KnownActionParameterNames.StudyInstanceUid, instanceIdentifier.StudyInstanceUid },
-                    { KnownActionParameterNames.SeriesInstanceUid, instanceIdentifier.SeriesInstanceUid },
-                    { KnownActionParameterNames.SopInstanceUid, instanceIdentifier.SopInstanceUid },
-                });
+            var routeName = hasPartition
+                ? (hasVersion ? KnownRouteNames.PartitionVersionedRetrieveInstance : KnownRouteNames.PartitionRetrieveInstance)
+                : hasVersion ? KnownRouteNames.VersionedRetrieveInstance : KnownRouteNames.RetrieveInstance;
+
+            var routeValues = new RouteValueDictionary
+            {
+                { KnownActionParameterNames.StudyInstanceUid, instanceIdentifier.StudyInstanceUid },
+                { KnownActionParameterNames.SeriesInstanceUid, instanceIdentifier.SeriesInstanceUid },
+                { KnownActionParameterNames.SopInstanceUid, instanceIdentifier.SopInstanceUid },
+            };
+
+            if (hasPartition)
+            {
+                routeValues.Add(KnownActionParameterNames.PartitionId, instanceIdentifier.PartitionId);
+            };
+
+            return RouteUri(routeName, routeValues);
         }
 
         private Uri RouteUri(string routeName, RouteValueDictionary routeValues)

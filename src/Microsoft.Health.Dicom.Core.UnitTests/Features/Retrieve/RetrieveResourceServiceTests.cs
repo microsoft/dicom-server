@@ -66,7 +66,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [Fact]
         public async Task GivenNoStoredInstances_WhenRetrieveRequestForStudy_ThenNotFoundIsThrown()
         {
-            _instanceStore.GetInstanceIdentifiersInStudyAsync(_studyInstanceUid).Returns(new List<VersionedInstanceIdentifier>());
+            _instanceStore.GetInstanceIdentifiersInStudyAsync(Arg.Any<string>(), _studyInstanceUid).Returns(new List<VersionedInstanceIdentifier>());
 
             await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
                 new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
@@ -148,7 +148,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [Fact]
         public async Task GivenNoStoredInstances_WhenRetrieveRequestForSeries_ThenNotFoundIsThrown()
         {
-            _instanceStore.GetInstanceIdentifiersInSeriesAsync(_studyInstanceUid, _firstSeriesInstanceUid).Returns(new List<VersionedInstanceIdentifier>());
+            _instanceStore.GetInstanceIdentifiersInSeriesAsync(Arg.Any<string>(), _studyInstanceUid, _firstSeriesInstanceUid).Returns(new List<VersionedInstanceIdentifier>());
 
             await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
                 new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
@@ -205,7 +205,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [Fact]
         public async Task GivenNoStoredInstances_WhenRetrieveRequestForInstance_ThenNotFoundIsThrown()
         {
-            _instanceStore.GetInstanceIdentifierAsync(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid).Returns(new List<VersionedInstanceIdentifier>());
+            _instanceStore.GetInstanceIdentifierAsync(Arg.Any<string>(), _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid).Returns(new List<VersionedInstanceIdentifier>());
 
             await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
                 new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance() }),
@@ -344,18 +344,18 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                     dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
                     dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
                     dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _secondSeriesInstanceUid, TestUidGenerator.Generate(), 0));
-                    _instanceStore.GetInstanceIdentifiersInStudyAsync(_studyInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
+                    _instanceStore.GetInstanceIdentifiersInStudyAsync(Arg.Any<string>(), _studyInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
                     break;
                 case ResourceType.Series:
                     dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
                     dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
-                    _instanceStore.GetInstanceIdentifiersInSeriesAsync(_studyInstanceUid, _firstSeriesInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
+                    _instanceStore.GetInstanceIdentifiersInSeriesAsync(Arg.Any<string>(), _studyInstanceUid, _firstSeriesInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
                     break;
                 case ResourceType.Instance:
                 case ResourceType.Frames:
                     dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, 0));
                     dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
-                    _instanceStore.GetInstanceIdentifierAsync(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList.SkipLast(1));
+                    _instanceStore.GetInstanceIdentifierAsync(Arg.Any<string>(), _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList.SkipLast(1));
                     break;
             }
 

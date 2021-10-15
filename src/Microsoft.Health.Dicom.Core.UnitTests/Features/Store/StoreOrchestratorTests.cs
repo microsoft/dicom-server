@@ -6,16 +6,23 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using NSubstitute;
+using NSubstitute.Core;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
 
@@ -40,6 +47,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         private readonly IIndexDataStore _indexDataStore = Substitute.For<IIndexDataStore>();
         private readonly IDeleteService _deleteService = Substitute.For<IDeleteService>();
         private readonly IQueryTagService _queryTagService = Substitute.For<IQueryTagService>();
+        private readonly IDicomRequestContextAccessor _contextAccessor = Substitute.For<IDicomRequestContextAccessor>();
         private readonly StoreOrchestrator _storeOrchestrator;
 
         private readonly DicomDataset _dicomDataset;
@@ -64,7 +72,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             _dicomInstanceEntry.GetStreamAsync(DefaultCancellationToken).Returns(_stream);
 
             _indexDataStore
-                .BeginCreateInstanceIndexAsync(_dicomDataset, Arg.Any<IEnumerable<QueryTag>>(), DefaultCancellationToken)
+                .BeginCreateInstanceIndexAsync(Arg.Any<string>(), _dicomDataset, Arg.Any<IEnumerable<QueryTag>>(), DefaultCancellationToken)
                 .Returns(DefaultVersion);
 
             _queryTagService
@@ -72,6 +80,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                 .Returns(_queryTags);
 
             _storeOrchestrator = new StoreOrchestrator(
+                _contextAccessor,
                 _fileStore,
                 _metadataStore,
                 _indexDataStore,
@@ -144,6 +153,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             => _indexDataStore
                 .Received(1)
                 .EndCreateInstanceIndexAsync(
+                    string.Empty,
                     _dicomDataset,
                     DefaultVersionedInstanceIdentifier.Version,
                     expectedTags,

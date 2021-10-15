@@ -13,6 +13,8 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Context
 {
     public class DefaultDicomRequestContext : IDicomRequestContext
     {
+        public string PartitionId { get; set; }
+
         public string StudyInstanceUid { get; set; }
 
         public string SeriesInstanceUid { get; set; }

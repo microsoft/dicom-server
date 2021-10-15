@@ -65,6 +65,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Context
 
         public string SopInstanceUid { get; set; }
 
+        public string PartitionId { get; set; }
+
         public bool IsTranscodeRequested { get; set; }
 
         public long BytesTranscoded { get; set; }

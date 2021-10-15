@@ -451,4 +451,13 @@ The first part time {1} should be lesser than or equal to the second part time {
 Both parts in the range cannot be empty.
 For details on valid range queries, please refer to Search Matching section in Conformance Statement (https://github.com/microsoft/dicom-server/blob/main/docs/resources/conformance-statement.md#search-matching).</value>
   </data>
+  <data name="InvalidPartitionId" xml:space="preserve">
+    <value>The specified PartitionId value '{0}' is invalid. </value>
+  </data>
+  <data name="DataPartitionsFeatureDisabled" xml:space="preserve">
+    <value>Data partitions feature is disabled.</value>
+  </data>
+  <data name="DataPartitionsMissingPartitions" xml:space="preserve">
+    <value>PartitionId value is missing in the route segment.</value>
+  </data>
 </root>

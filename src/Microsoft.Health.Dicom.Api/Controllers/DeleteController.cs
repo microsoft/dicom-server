@@ -22,6 +22,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
     [ApiVersion("1.0-prerelease")]
     [QueryModelStateValidator]
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
+    [DataPartitionFeatureValidator]
     public class DeleteController : Controller
     {
         private readonly IMediator _mediator;
@@ -40,6 +41,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [PartitionVersionedRoute(KnownRoutes.StudyRoute)]
+        [PartitionRoute(KnownRoutes.StudyRoute)]
         [VersionedRoute(KnownRoutes.StudyRoute)]
         [Route(KnownRoutes.StudyRoute)]
         [AuditEventType(AuditEventSubType.Delete)]
@@ -57,6 +60,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [PartitionVersionedRoute(KnownRoutes.SeriesRoute)]
+        [PartitionRoute(KnownRoutes.SeriesRoute)]
         [VersionedRoute(KnownRoutes.SeriesRoute)]
         [Route(KnownRoutes.SeriesRoute)]
         [AuditEventType(AuditEventSubType.Delete)]
@@ -74,6 +79,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [PartitionVersionedRoute(KnownRoutes.InstanceRoute)]
+        [PartitionRoute(KnownRoutes.InstanceRoute)]
         [VersionedRoute(KnownRoutes.InstanceRoute)]
         [Route(KnownRoutes.InstanceRoute)]
         [AuditEventType(AuditEventSubType.Delete)]

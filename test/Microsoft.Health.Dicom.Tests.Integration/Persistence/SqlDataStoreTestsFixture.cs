@@ -85,6 +85,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             SchemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, baseScriptProvider, NullLogger<SchemaUpgradeRunner>.Instance, sqlConnectionFactory, schemaManagerDataStore);
 
+            SchemaInformation = new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max);
+
             _schemaInitializer = new SchemaInitializer(configOptions, schemaManagerDataStore, SchemaUpgradeRunner, SchemaInformation, sqlConnectionFactory, sqlConnectionStringProvider, mediator, NullLogger<SchemaInitializer>.Instance);
 
             SqlTransactionHandler = new SqlTransactionHandler();

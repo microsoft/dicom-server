@@ -14,6 +14,7 @@ using Microsoft.Health.Abstractions.Features.Transactions;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
 
@@ -21,6 +22,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
 {
     public class DeleteService : IDeleteService
     {
+        private readonly IDicomRequestContextAccessor _contextAccessor;
         private readonly IIndexDataStore _indexDataStore;
         private readonly IMetadataStore _metadataStore;
         private readonly IFileStore _fileStore;
@@ -29,6 +31,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
         private readonly ILogger<DeleteService> _logger;
 
         public DeleteService(
+            IDicomRequestContextAccessor contextAccessor,
             IIndexDataStore indexDataStore,
             IMetadataStore metadataStore,
             IFileStore fileStore,
@@ -36,6 +39,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
             ITransactionHandler transactionHandler,
             ILogger<DeleteService> logger)
         {
+            EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
             EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
             EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
             EnsureArg.IsNotNull(fileStore, nameof(fileStore));
@@ -43,6 +47,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
             EnsureArg.IsNotNull(transactionHandler, nameof(transactionHandler));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
+            _contextAccessor = contextAccessor;
             _indexDataStore = indexDataStore;
             _metadataStore = metadataStore;
             _fileStore = fileStore;
@@ -54,24 +59,28 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
         public Task DeleteStudyAsync(string studyInstanceUid, CancellationToken cancellationToken)
         {
             DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.DeleteDelay);
-            return _indexDataStore.DeleteStudyIndexAsync(studyInstanceUid, cleanupAfter, cancellationToken);
+            var partitionId = GetPartitionId();
+            return _indexDataStore.DeleteStudyIndexAsync(partitionId, studyInstanceUid, cleanupAfter, cancellationToken);
         }
 
         public Task DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken)
         {
             DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.DeleteDelay);
-            return _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
+            var partitionId = GetPartitionId();
+            return _indexDataStore.DeleteSeriesIndexAsync(partitionId, studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
         }
 
         public Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
         {
             DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.DeleteDelay);
-            return _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
+            var partitionId = GetPartitionId();
+            return _indexDataStore.DeleteInstanceIndexAsync(partitionId, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
         }
 
         public Task DeleteInstanceNowAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
         {
-            return _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow, cancellationToken);
+            var partitionId = GetPartitionId();
+            return _indexDataStore.DeleteInstanceIndexAsync(partitionId, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow, cancellationToken);
         }
 
         public async Task<(bool success, int retrievedInstanceCount)> CleanupDeletedInstancesAsync(CancellationToken cancellationToken)
@@ -138,6 +147,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Delete
             }
 
             return (success, retrievedInstanceCount);
+        }
+
+        private string GetPartitionId()
+        {
+            return _contextAccessor.RequestContext?.PartitionId;
         }
 
         private static DateTimeOffset GenerateCleanupAfter(TimeSpan delay)

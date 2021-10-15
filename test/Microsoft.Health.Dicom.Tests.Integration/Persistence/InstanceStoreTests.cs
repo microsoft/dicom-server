@@ -56,7 +56,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 new WatermarkRange(instance1.Version, instance4.Version),
                 IndexStatus.Creating);
 
-            Assert.Equal(instances, new[] { instance1, instance2, instance3, instance4 });
+            Assert.Equal(instances.OrderBy(x => x.Version), new[] { instance1, instance2, instance3, instance4 });
         }
 
         [Fact]
@@ -180,7 +180,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomDataset dataset = Samples.CreateRandomInstanceDataset();
 
-            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
+            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(null, dataset);
             await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.ReindexInstanceAsync(dataset, watermark, new[] { new QueryTag(tagStoreEntry) }));
         }
 
@@ -231,8 +231,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             string studyUid = dataset.GetString(DicomTag.StudyInstanceUID);
             string seriesUid = dataset.GetString(DicomTag.SeriesInstanceUID);
             string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
-            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
-            await _indexDataStore.EndCreateInstanceIndexAsync(dataset, watermark);
+            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(null, dataset);
+            await _indexDataStore.EndCreateInstanceIndexAsync(null, dataset, watermark);
 
             return await _indexDataStoreTestHelper.GetInstanceAsync(studyUid, seriesUid, sopInstanceUid, watermark);
         }
@@ -245,7 +245,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             string seriesInstanceUid = dataset.GetString(DicomTag.SeriesInstanceUID);
             string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
 
-            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
+            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(null, dataset);
             return new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version);
         }
     }
