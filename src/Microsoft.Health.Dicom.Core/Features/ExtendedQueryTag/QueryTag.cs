@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// Initializes a new instance of the <see cref="QueryTag"/> class.
         /// </summary>
         /// <remarks>Used for constuctoring from core dicom tag.PatientName e.g. </remarks>
-        /// <param name="tag">The core dicom Tag.</param>        
+        /// <param name="tag">The core dicom Tag.</param>
         public QueryTag(DicomTag tag)
         {
             EnsureArg.IsNotNull(tag, nameof(tag));

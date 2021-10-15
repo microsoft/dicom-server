@@ -50,12 +50,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
         public async Task<OperationStatus> AddTagsAsync(IEnumerable<AddExtendedQueryTagEntry> entries, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(entries, nameof(entries));
-            var response = await _dicomWebClient.AddExtendedQueryTagAsync(entries, cancellationToken);
-
             foreach (var entry in entries)
             {
                 _tags.Add(entry.Path);
             }
+            var response = await _dicomWebClient.AddExtendedQueryTagAsync(entries, cancellationToken);
 
             var operation = await response.GetValueAsync();
             return await GetOperationStatusRetryPolicy.ExecuteAsync(async () =>
@@ -90,6 +89,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
 
             var response = await _dicomWebClient.GetExtendedQueryTagErrorsAsync(tagPath, limit, offset, cancellationToken);
             return (await response.GetValueAsync()).ToList();
+        }
+
+        public async Task<GetExtendedQueryTagEntry> UpdateExtendedQueryTagAsync(string tagPath, UpdateExtendedQueryTagEntry newValue, CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(tagPath, nameof(tagPath));
+
+            var response = await _dicomWebClient.UpdateExtendedQueryTagAsync(tagPath, newValue, cancellationToken);
+            return await response.GetValueAsync();
         }
     }
 }

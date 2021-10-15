@@ -44,8 +44,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
         public async Task StoreAsync(DicomFile dicomFile, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
-            await _dicomWebClient.StoreAsync(dicomFile, cancellationToken: cancellationToken);
             _instanceIds.Add(dicomFile.Dataset.ToInstanceIdentifier());
+            await _dicomWebClient.StoreAsync(dicomFile, cancellationToken: cancellationToken);
         }
 
     }

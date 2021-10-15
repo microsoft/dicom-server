@@ -209,7 +209,7 @@ The matching types stated below are valid for extended query tags.
 
 | Search Type | Supported VR    | Example                                                      |
 | :---------- | :-------------- | :----------------------------------------------------------- |
-| Range Query | Date (DA)       | {attributeID}={value1}-{value2}. For date/ time values, we supported an inclusive range on the tag. This will be mapped to `attributeID >= {value1} AND attributeID <= {value2}`. |
+| Range Query | Date (DA), Date Time (DT), Time (TM)       | {attributeID}={value1}-{value2}. For date/ time values, we support an inclusive range on the tag. This will be mapped to `attributeID >= {value1} AND attributeID <= {value2}`. Additional details on range query can be found here: [Search Matching](../resources/conformance-statement.md#search-matching). |
 | Exact Match | All             | {attributeID}={value1}                                       |
 | Fuzzy Match | PersonName (PN) | Matches any component of the patient name which starts with the value. |
 
@@ -221,6 +221,7 @@ Currently, only the following VR types are supported:
 - Age String (AS)
 - Code String (CS)
 - Date (DA)
+- Date Time (DT)
 - Decimal String (DS)
 - Floating Point Double (FD)
 - Floating Point Single (FL)
@@ -230,11 +231,12 @@ Currently, only the following VR types are supported:
 - Short String (SH)
 - Signed Long (SL)
 - Signed Short (SS)
+- Time (TM)
 - Unique Identifier [UID] (UI)
 - Unsigned Long (UL)
 - Unsigned Short (US)
 
-Sequential tags i.e. tags under a tag of type Sequence of Items (SQ) are currently not supported.
+Sequential tags i.e. tags under a tag of type Sequence of Items (SQ) are currently not supported. Passing in offsets when querying on DT type is also not supported.
 
 All management APIs are currently synchronous. This means that a [delete](#remove-an-extended-query-tag) request may run long as it attempts to remove any infrastructure that was put in place to support querying against the extended query tag. 
 
