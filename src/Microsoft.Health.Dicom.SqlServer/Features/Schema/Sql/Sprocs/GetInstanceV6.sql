@@ -33,8 +33,7 @@ BEGIN
     SET XACT_ABORT  ON
 
 
-    SELECT  PartitionKey,
-            StudyInstanceUid,
+    SELECT  StudyInstanceUid,
             SeriesInstanceUid,
             SopInstanceUid,
             Watermark

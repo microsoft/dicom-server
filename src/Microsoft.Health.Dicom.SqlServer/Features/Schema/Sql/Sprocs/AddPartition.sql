@@ -27,7 +27,7 @@ BEGIN
     SET XACT_ABORT ON
     BEGIN TRANSACTION
 
-    DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
+    DECLARE @createdDate DATETIME2(7) = SYSUTCDATETIME()
     DECLARE @partitionKey INT
 
     -- Insert Partition
@@ -36,9 +36,9 @@ BEGIN
     INSERT INTO dbo.Partition
         (PartitionKey, PartitionName, CreatedDate)
     VALUES
-        (@partitionKey, @partitionName, @currentDate)
+        (@partitionKey, @partitionName, @createdDate)
 
-    SELECT @partitionKey, @partitionName, @currentDate
+    SELECT @partitionKey, @partitionName, @createdDate
 
     COMMIT TRANSACTION
 END

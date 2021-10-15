@@ -491,7 +491,7 @@ BEGIN
     SET XACT_ABORT ON
     BEGIN TRANSACTION
 
-    DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
+    DECLARE @createdDate DATETIME2(7) = SYSUTCDATETIME()
     DECLARE @partitionKey INT
 
     -- Insert Partition
@@ -500,9 +500,9 @@ BEGIN
     INSERT INTO dbo.Partition
         (PartitionKey, PartitionName, CreatedDate)
     VALUES
-        (@partitionKey, @partitionName, @currentDate)
+        (@partitionKey, @partitionName, @createdDate)
 
-    SELECT @partitionKey
+    SELECT @partitionKey, @partitionName, @createdDate
 
     COMMIT TRANSACTION
 END
@@ -1362,8 +1362,7 @@ BEGIN
     SET XACT_ABORT  ON
 
 
-    SELECT  PartitionKey,
-            StudyInstanceUid,
+    SELECT  StudyInstanceUid,
             SeriesInstanceUid,
             SopInstanceUid,
             Watermark
@@ -1451,8 +1450,7 @@ AS
 BEGIN
     SET NOCOUNT ON
     SET XACT_ABORT ON
-    SELECT PartitionKey,
-           StudyInstanceUid,
+    SELECT StudyInstanceUid,
            SeriesInstanceUid,
            SopInstanceUid,
            Watermark

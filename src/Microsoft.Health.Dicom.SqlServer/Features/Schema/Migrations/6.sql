@@ -984,12 +984,14 @@ BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
-    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+    DECLARE @createdDate AS DATETIME2 (7) = SYSUTCDATETIME();
     DECLARE @partitionKey AS INT;
     SET @partitionKey =  NEXT VALUE FOR dbo.PartitionKeySequence;
     INSERT  INTO dbo.Partition (PartitionKey, PartitionName, CreatedDate)
-    VALUES                    (@partitionKey, @partitionName, @currentDate);
-    SELECT @partitionKey;
+    VALUES                    (@partitionKey, @partitionName, @createdDate);
+    SELECT @partitionKey,
+           @partitionName,
+           @createdDate;
     COMMIT TRANSACTION;
 END
 

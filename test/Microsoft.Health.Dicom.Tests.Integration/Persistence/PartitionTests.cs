@@ -40,6 +40,17 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Fact]
+        public async Task WhenNewPartitionIsCreated_Then_ItIsRetrievable()
+        {
+            var partitionName = "test";
+
+            var partitionEntry = await _fixture.PartitionStore.AddPartition(partitionName);
+            var partition = await _fixture.PartitionStore.GetPartition(partitionName);
+
+            Assert.NotNull(partition);
+        }
+
+        [Fact]
         public async Task WhenGetPartitionIsCalledWithDefaultPartitionName_Then_DefaultPartitionRecordIsReturned()
         {
             var partitionEntry = await _fixture.PartitionStore.GetPartition(DefaultPartition.Name);
