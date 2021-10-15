@@ -463,6 +463,52 @@ END
 GO
 
 /*************************************************************
+    Stored procedure for adding a partition.
+**************************************************************/
+--
+-- STORED PROCEDURE
+--     AddPartition
+--
+-- FIRST SCHEMA VERSION
+--     6
+--
+-- DESCRIPTION
+--     Adds a partition.
+--
+-- PARAMETERS
+--     @partitionName
+--         * The client-provided data partition name.
+--
+-- RETURN VALUE
+--     The partition.
+------------------------------------------------------------------------
+CREATE OR ALTER PROCEDURE dbo.AddPartition
+    @partitionName  VARCHAR(64)
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    SET XACT_ABORT ON
+    BEGIN TRANSACTION
+
+    DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
+    DECLARE @partitionKey INT
+
+    -- Insert Partition
+    SET @partitionKey = NEXT VALUE FOR dbo.PartitionKeySequence
+
+    INSERT INTO dbo.Partition
+        (PartitionKey, PartitionName, CreatedDate)
+    VALUES
+        (@partitionKey, @partitionName, @currentDate)
+
+    SELECT @partitionKey
+
+    COMMIT TRANSACTION
+END
+GO
+
+/*************************************************************
     Stored procedure for adding an instance.
 **************************************************************/
 --
@@ -476,8 +522,8 @@ GO
 --     Adds a DICOM instance, now with partition.
 --
 -- PARAMETERS
---     @partitionName
---         * The client-provided data partition name.
+--     @partitionKey
+--         * The system identified of the data partition.
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -510,13 +556,11 @@ GO
 --         * DateTime extended query tag data
 --     @personNameExtendedQueryTags
 --         * PersonName extended query tag data
---     @initialStatus
---         * The initial status of the instance (0 | 1 | 2)
 -- RETURN VALUE
 --     The watermark (version).
 ------------------------------------------------------------------------
 CREATE OR ALTER PROCEDURE dbo.AddInstanceV6
-    @partitionName                      VARCHAR(64),
+    @partitionKey                       INT,
     @studyInstanceUid                   VARCHAR(64),
     @seriesInstanceUid                  VARCHAR(64),
     @sopInstanceUid                     VARCHAR(64),
@@ -546,25 +590,9 @@ BEGIN
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
     DECLARE @existingStatus TINYINT
     DECLARE @newWatermark BIGINT
-    DECLARE @partitionKey INT
     DECLARE @studyKey BIGINT
     DECLARE @seriesKey BIGINT
     DECLARE @instanceKey BIGINT
-
-    SELECT @partitionKey = PartitionKey
-    FROM dbo.Partition
-    WHERE PartitionName = @partitionName
-
-     -- Insert Partition
-    IF @@ROWCOUNT = 0
-    BEGIN
-        SET @partitionKey = NEXT VALUE FOR dbo.PartitionKeySequence
-
-        INSERT INTO dbo.Partition
-            (PartitionKey, PartitionName, CreatedDate)
-        VALUES
-            (@partitionKey, @partitionName, @currentDate)
-    END
 
     SELECT @existingStatus = Status
     FROM dbo.Instance
@@ -635,8 +663,6 @@ BEGIN
         (PartitionKey, StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
     VALUES
         (@partitionKey, @studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
-
-    -- Insert Extended Query Tags
 
     BEGIN TRY
 

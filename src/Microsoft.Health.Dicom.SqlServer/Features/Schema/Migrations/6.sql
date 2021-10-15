@@ -898,7 +898,7 @@ COMMIT TRANSACTION;
 
 GO
 CREATE OR ALTER PROCEDURE dbo.AddInstanceV6
-@partitionName VARCHAR (64), @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @patientId NVARCHAR (64), @patientName NVARCHAR (325)=NULL, @referringPhysicianName NVARCHAR (325)=NULL, @studyDate DATE=NULL, @studyDescription NVARCHAR (64)=NULL, @accessionNumber NVARCHAR (64)=NULL, @modality NVARCHAR (16)=NULL, @performedProcedureStepStartDate DATE=NULL, @patientBirthDate DATE=NULL, @manufacturerModelName NVARCHAR (64)=NULL, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY, @initialStatus TINYINT
+@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @patientId NVARCHAR (64), @patientName NVARCHAR (325)=NULL, @referringPhysicianName NVARCHAR (325)=NULL, @studyDate DATE=NULL, @studyDescription NVARCHAR (64)=NULL, @accessionNumber NVARCHAR (64)=NULL, @modality NVARCHAR (16)=NULL, @performedProcedureStepStartDate DATE=NULL, @patientBirthDate DATE=NULL, @manufacturerModelName NVARCHAR (64)=NULL, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY, @initialStatus TINYINT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -907,19 +907,9 @@ BEGIN
     DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
     DECLARE @existingStatus AS TINYINT;
     DECLARE @newWatermark AS BIGINT;
-    DECLARE @partitionKey AS INT;
     DECLARE @studyKey AS BIGINT;
     DECLARE @seriesKey AS BIGINT;
     DECLARE @instanceKey AS BIGINT;
-    SELECT @partitionKey = PartitionKey
-    FROM   dbo.Partition
-    WHERE  PartitionName = @partitionName;
-    IF @@ROWCOUNT = 0
-        BEGIN
-            SET @partitionKey =  NEXT VALUE FOR dbo.PartitionKeySequence;
-            INSERT  INTO dbo.Partition (PartitionKey, PartitionName, CreatedDate)
-            VALUES                    (@partitionKey, @partitionName, @currentDate);
-        END
     SELECT @existingStatus = Status
     FROM   dbo.Instance
     WHERE  PartitionKey = @partitionKey
@@ -982,6 +972,23 @@ BEGIN
         THROW;
     END CATCH
     SELECT @newWatermark;
+    COMMIT TRANSACTION;
+END
+
+GO
+CREATE OR ALTER PROCEDURE dbo.AddPartition
+@partitionName VARCHAR (64)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+    DECLARE @partitionKey AS INT;
+    SET @partitionKey =  NEXT VALUE FOR dbo.PartitionKeySequence;
+    INSERT  INTO dbo.Partition (PartitionKey, PartitionName, CreatedDate)
+    VALUES                    (@partitionKey, @partitionName, @currentDate);
+    SELECT @partitionKey;
     COMMIT TRANSACTION;
 END
 

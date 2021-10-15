@@ -57,7 +57,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
                 VLatest.AddInstanceV6.PopulateCommand(
                     sqlCommandWrapper,
-                    DefaultPartition.Name,
+                    DefaultPartition.Key,
                     instance.GetString(DicomTag.StudyInstanceUID),
                     instance.GetString(DicomTag.SeriesInstanceUID),
                     instance.GetString(DicomTag.SOPInstanceUID),

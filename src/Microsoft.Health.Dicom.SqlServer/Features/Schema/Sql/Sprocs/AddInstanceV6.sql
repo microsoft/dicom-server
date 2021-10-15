@@ -12,8 +12,8 @@
 --     Adds a DICOM instance, now with partition.
 --
 -- PARAMETERS
---     @partitionName
---         * The client-provided data partition name.
+--     @partitionKey
+--         * The system identified of the data partition.
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -50,7 +50,7 @@
 --     The watermark (version).
 ------------------------------------------------------------------------
 CREATE OR ALTER PROCEDURE dbo.AddInstanceV6
-    @partitionName                      VARCHAR(64),
+    @partitionKey                       INT,
     @studyInstanceUid                   VARCHAR(64),
     @seriesInstanceUid                  VARCHAR(64),
     @sopInstanceUid                     VARCHAR(64),
@@ -80,25 +80,9 @@ BEGIN
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
     DECLARE @existingStatus TINYINT
     DECLARE @newWatermark BIGINT
-    DECLARE @partitionKey INT
     DECLARE @studyKey BIGINT
     DECLARE @seriesKey BIGINT
     DECLARE @instanceKey BIGINT
-
-    SELECT @partitionKey = PartitionKey
-    FROM dbo.Partition
-    WHERE PartitionName = @partitionName
-
-     -- Insert Partition
-    IF @@ROWCOUNT = 0
-    BEGIN
-        SET @partitionKey = NEXT VALUE FOR dbo.PartitionKeySequence
-
-        INSERT INTO dbo.Partition
-            (PartitionKey, PartitionName, CreatedDate)
-        VALUES
-            (@partitionKey, @partitionName, @currentDate)
-    END
 
     SELECT @existingStatus = Status
     FROM dbo.Instance
