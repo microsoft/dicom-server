@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 {
     public class RetrieveResourceResponse
     {
-        public RetrieveResourceResponse(IEnumerable<Stream> responseStreams, string contentType, string transferSyntax = "")
+        public RetrieveResourceResponse(IEnumerable<Stream> responseStreams, string contentType, string transferSyntax = default)
         {
             EnsureArg.IsNotNull(responseStreams, nameof(responseStreams));
             EnsureArg.IsNotEmptyOrWhiteSpace(contentType, nameof(contentType));

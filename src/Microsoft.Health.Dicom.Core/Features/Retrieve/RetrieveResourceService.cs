@@ -84,7 +84,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                     return new RetrieveResourceResponse(
                         await _frameHandler.GetFramesResourceAsync(
                         resultStreams.Single(), message.Frames, isOriginalTransferSyntaxRequested, transferSyntax),
-                        acceptHeaderDescriptor.MediaType, transferSyntax);
+                        acceptHeaderDescriptor.MediaType,
+                        transferSyntax);
                 }
                 else
                 {

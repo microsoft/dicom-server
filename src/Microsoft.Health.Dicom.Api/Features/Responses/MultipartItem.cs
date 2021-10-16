@@ -13,6 +13,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
 {
     public class MultipartItem : IDisposable
     {
+        private const string MultipartTransferSyntax = "transfer-syntax";
         private bool _disposed;
         private readonly StreamContent _streamContent;
 
@@ -25,7 +26,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
             var mediaType = new MediaTypeHeaderValue(contentType);
 
             if (!string.IsNullOrWhiteSpace(transferSyntax))
-                mediaType.Parameters.Add(new NameValueHeaderValue("transfer-syntax", transferSyntax));
+                mediaType.Parameters.Add(new NameValueHeaderValue(MultipartTransferSyntax, transferSyntax));
 
             _streamContent.Headers.ContentType = mediaType;
         }
