@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Linq;
 using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -22,21 +21,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public PartitionTests(SqlDataStoreTestsFixture fixture)
         {
             _fixture = fixture;
-        }
-
-        [Fact]
-        public async Task WhenInstanceIsCreatedWithNoPartition_Then_DefaultPartitionIsPresent()
-        {
-            var dicomInstanceIdentifier = await CreateInstance();
-
-            var instanceVersions = await _fixture.InstanceStore.GetInstanceIdentifierAsync(
-                dicomInstanceIdentifier.StudyInstanceUid,
-                dicomInstanceIdentifier.SeriesInstanceUid,
-                dicomInstanceIdentifier.SopInstanceUid);
-
-            var latestVersion = instanceVersions.OrderBy(x => x.Version).Last();
-
-            Assert.Equal(DefaultPartition.Key, latestVersion.PartitionKey);
         }
 
         [Fact]

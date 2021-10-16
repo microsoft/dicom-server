@@ -71,8 +71,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        (int rPartitionKey, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark) = reader.ReadRow(
-                           VLatest.Instance.PartitionKey,
+                        (string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark) = reader.ReadRow(
                            VLatest.Instance.StudyInstanceUid,
                            VLatest.Instance.SeriesInstanceUid,
                            VLatest.Instance.SopInstanceUid,
@@ -82,8 +81,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
                             rStudyInstanceUid,
                             rSeriesInstanceUid,
                             rSopInstanceUid,
-                            watermark,
-                            rPartitionKey));
+                            watermark));
                     }
                 }
             }
@@ -115,8 +113,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        (int rPartitionKey, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark) = reader.ReadRow(
-                           VLatest.Instance.PartitionKey,
+                        (string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark) = reader.ReadRow(
                            VLatest.Instance.StudyInstanceUid,
                            VLatest.Instance.SeriesInstanceUid,
                            VLatest.Instance.SopInstanceUid,
@@ -126,8 +123,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
                                 rStudyInstanceUid,
                                 rSeriesInstanceUid,
                                 rSopInstanceUid,
-                                watermark,
-                                rPartitionKey));
+                                watermark));
                     }
                 }
             }
