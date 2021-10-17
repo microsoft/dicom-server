@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -91,49 +92,46 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var schemaResolver = new PassthroughSchemaVersionResolver(SchemaInformation);
 
+            var indexStores = Enumerable.Range(
+                    SchemaInformation.MinimumSupportedVersion,
+                    SchemaInformation.MaximumSupportedVersion - SchemaInformation.MinimumSupportedVersion + 1)
+                .Select(x => Type.GetType($"Microsoft.Health.Dicom.SqlServer.Features.Store.SqlIndexDataStoreV{x}, Microsoft.Health.Dicom.SqlServer"))
+                .Select(x => (ISqlIndexDataStore)Activator.CreateInstance(x, new object[] { SqlConnectionWrapperFactory }));
+
             IndexDataStore = new SqlIndexDataStore(new VersionedCache<ISqlIndexDataStore>(
                 schemaResolver,
-                new[]
-                {
-                    new SqlIndexDataStoreV1(SqlConnectionWrapperFactory),
-                    new SqlIndexDataStoreV2(SqlConnectionWrapperFactory),
-                    new SqlIndexDataStoreV3(SqlConnectionWrapperFactory),
-                    new SqlIndexDataStoreV4(SqlConnectionWrapperFactory),
-                    new SqlIndexDataStoreV5(SqlConnectionWrapperFactory),
-                }));
+                indexStores));
+
+            var instanceStores = Enumerable.Range(
+                    SchemaInformation.MinimumSupportedVersion,
+                    SchemaInformation.MaximumSupportedVersion - SchemaInformation.MinimumSupportedVersion + 1)
+                .Select(x => Type.GetType($"Microsoft.Health.Dicom.SqlServer.Features.Retrieve.SqlInstanceStoreV{x}, Microsoft.Health.Dicom.SqlServer"))
+                .Select(x => (ISqlInstanceStore)Activator.CreateInstance(x, new object[] { SqlConnectionWrapperFactory }));
 
             InstanceStore = new SqlInstanceStore(new VersionedCache<ISqlInstanceStore>(
                 schemaResolver,
-                new[]
-                {
-                    new SqlInstanceStoreV1(SqlConnectionWrapperFactory),
-                    new SqlInstanceStoreV2(SqlConnectionWrapperFactory),
-                    new SqlInstanceStoreV3(SqlConnectionWrapperFactory),
-                    new SqlInstanceStoreV4(SqlConnectionWrapperFactory),
-                    new SqlInstanceStoreV5(SqlConnectionWrapperFactory),
-                }));
+                instanceStores));
+
+            var queryTagStores = Enumerable.Range(
+                    SchemaInformation.MinimumSupportedVersion,
+                    SchemaInformation.MaximumSupportedVersion - SchemaInformation.MinimumSupportedVersion + 1)
+                .Select(x => Type.GetType($"Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.SqlExtendedQueryTagStoreV{x}, Microsoft.Health.Dicom.SqlServer"))
+                .Select(x => (ISqlExtendedQueryTagStore)Activator.CreateInstance(x, new object[] { SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV4>.Instance }));
 
             ExtendedQueryTagStore = new SqlExtendedQueryTagStore(new VersionedCache<ISqlExtendedQueryTagStore>(
                 schemaResolver,
-                new[]
-                {
-                    new SqlExtendedQueryTagStoreV1(),
-                    new SqlExtendedQueryTagStoreV2(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV2>.Instance),
-                    new SqlExtendedQueryTagStoreV3(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV3>.Instance),
-                    new SqlExtendedQueryTagStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV4>.Instance),
-                    new SqlExtendedQueryTagStoreV5(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV5>.Instance),
-                }));
+                queryTagStores));
+
+            var queryTagErrorStores = Enumerable.Range(
+                    SchemaInformation.MinimumSupportedVersion,
+                    SchemaInformation.MaximumSupportedVersion - SchemaInformation.MinimumSupportedVersion + 1)
+                .Select(x => Type.GetType($"Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error.SqlExtendedQueryTagErrorStoreV{x}, Microsoft.Health.Dicom.SqlServer"))
+                .Select(x => (ISqlExtendedQueryTagErrorStore)Activator.CreateInstance(x, new object[] { SqlConnectionWrapperFactory, NullLogger<ISqlExtendedQueryTagErrorStore>.Instance }));
 
             ExtendedQueryTagErrorStore = new SqlExtendedQueryTagErrorStore(new VersionedCache<ISqlExtendedQueryTagErrorStore>(
                schemaResolver,
-               new[]
-               {
-                    new SqlExtendedQueryTagErrorStoreV1(),
-                    new SqlExtendedQueryTagErrorStoreV2(),
-                    new SqlExtendedQueryTagErrorStoreV3(),
-                    new SqlExtendedQueryTagErrorStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV4>.Instance),
-                    new SqlExtendedQueryTagErrorStoreV5(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV5>.Instance),
-               }));
+               queryTagErrorStores));
+
             IndexDataStoreTestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
             ExtendedQueryTagStoreTestHelper = new ExtendedQueryTagStoreTestHelper(TestConnectionString);
             ExtendedQueryTagErrorStoreTestHelper = new ExtendedQueryTagErrorStoreTestHelper(TestConnectionString);

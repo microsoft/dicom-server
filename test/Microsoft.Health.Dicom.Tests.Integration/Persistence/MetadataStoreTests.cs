@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenAValidInstanceMetadata_WhenStored_ThenItCanBeRetrievedAndDeleted()
         {
-            DicomDataset dicomDataset = CreateValidMetadataDataset();
+            DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset();
             var instanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version: 0);
 
             // Store the metadata.
@@ -49,8 +49,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenMetadataAlreadyExists_WhenStored_ThenExistingMetadataWillBeOverwritten()
         {
-            DicomDataset dicomDataset = CreateValidMetadataDataset();
-            dicomDataset.Add(DicomTag.SOPClassUID, "1");
+            DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset();
+
+            dicomDataset.AddOrUpdate(DicomTag.SOPClassUID, "1");
 
             await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, 0);
 
@@ -84,7 +85,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task GivenANonExistenMetadata_WhenDeleting_ThenItShouldNotThrowException()
         {
-            DicomDataset dicomDataset = CreateValidMetadataDataset();
+            DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset();
             var instanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version: 0);
 
             await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version: 0);
@@ -92,16 +93,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _metadataStore.DeleteInstanceMetadataIfExistsAsync(instanceIdentifier);
 
             await _metadataStore.DeleteInstanceMetadataIfExistsAsync(instanceIdentifier);
-        }
-
-        private static DicomDataset CreateValidMetadataDataset()
-        {
-            return new DicomDataset()
-            {
-                { DicomTag.StudyInstanceUID, TestUidGenerator.Generate() },
-                { DicomTag.SeriesInstanceUID, TestUidGenerator.Generate() },
-                { DicomTag.SOPInstanceUID, TestUidGenerator.Generate() },
-            };
         }
 
         private static void ValidateDicomDataset(DicomDataset expectedDicomDataset, DicomDataset actualDicomDataset)
