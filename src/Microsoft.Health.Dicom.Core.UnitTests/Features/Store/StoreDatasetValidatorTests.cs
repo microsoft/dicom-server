@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             var minValidator = new ElementMinimumValidator();
             _queryTagService = Substitute.For<IQueryTagService>();
             _queryTags = new List<QueryTag>(QueryTagService.CoreQueryTags);
-            _queryTagService.GetQueryTagsAsync(false, Arg.Any<CancellationToken>()).Returns(_queryTags);
+            _queryTagService.GetQueryTagsAsync(Arg.Any<CancellationToken>()).Returns(_queryTags);
             _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, minValidator, _queryTagService);
         }
 

@@ -138,9 +138,9 @@
     <value>The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique.</value>
     <comment>StudyInstanceUID, SeriesInstanceUID, and SOPInstanceUID are defined by the spec and does not need to be translated. {NumberedPlaceholder="StudyInstanceUID", "SeriesInstanceUID", "SOPInstanceUID"}</comment>
   </data>
-  <data name="DuplicateQueryParam" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Duplicate AttributeId '{0}', Each attribute is allowed to be specified once.</value>
-    <comment>{0} specified attributeid</comment>
+  <data name="DuplicateAttribute" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Attribute '{0}' has been specified more than once using different ID formats. Each attribute is only allowed to be specified once.</value>
+    <comment>{0} attribute-id</comment>
   </data>
   <data name="FrameNotFound" xml:space="preserve">
     <value>The specified frame cannot be found.</value>
@@ -167,8 +167,8 @@ The first part date {1} should be lesser than or equal to the second part date {
     <comment>{0} date range with &lt;date1&gt;-&lt;date2&gt; format. {1} is date1. {2} is date2.</comment>
   </data>
   <data name="InvalidDateValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified Date value '{0}' is invalid for parameter '{1}'. Date should be valid and formatted as yyyyMMdd.</value>
-    <comment>{0} Date value. {1} parameter name.</comment>
+    <value>Invalid QIDO-RS query. Specified Date value '{0}' is invalid for attribute '{1}'. Date should be valid and formatted as yyyyMMdd.</value>
+    <comment>{0} Date value. {1} attribute name.</comment>
   </data>
   <data name="ErrorMessageUidIsInvalid" xml:space="preserve">
     <value>DICOM Identifier is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.</value>
@@ -192,8 +192,8 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The query string included invalid characters.</value>
   </data>
   <data name="InvalidQueryStringValue" xml:space="preserve">
-    <value>The following query parameter is invalid: {0}.</value>
-    <comment>{0} is a parameter name.</comment>
+    <value>The query parameter '{0}' is invalid. {1}</value>
+    <comment>{0} is a parameter name. {1} is the error.</comment>
   </data>
   <data name="InvalidTransferSyntaxValue" xml:space="preserve">
     <value>The specified Transfer Syntax value is not valid.</value>
@@ -404,5 +404,51 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="PaginationNegativeOffset" xml:space="preserve">
     <value>Specified offset value {0} cannot be negative.</value>
     <comment>{0} Specified page offset.</comment>
+  </data>
+  <data name="DisallowedSeriesInstanceUIDAttribute" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Cannot specify attribute 'SeriesInstanceUID' for the given resource.</value>
+  </data>
+  <data name="DisallowedStudyInstanceUIDAttribute" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Cannot specify attribute 'StudyInstanceUID' for the given resource. </value>
+  </data>
+  <data name="InvalidIncludeAllFields" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Cannot specify included fields in addition to 'all'.</value>
+  </data>
+  <data name="QueryIsDisabledOnAttribute" xml:space="preserve">
+    <value>Query is disabled on specified attribute '{0}'.</value>
+    <comment>'{0}' attribute in QIDO query. </comment>
+  </data>
+  <data name="InvalidDateTimeRangeValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified date range '{0}' is invalid.
+The first part DateTime {1} should be lesser than or equal to the second part DateTime {2}.</value>
+    <comment>{0} DateTime range with &lt;DateTime1&gt;-&lt;DateTime2&gt; format. {1} is DateTime1. {2} is DateTime2.</comment>
+  </data>
+  <data name="InvalidDateTimeValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified DateTime value '{0}' is invalid for attribute '{1}'. DateTime should be valid and formatted as yyyyMMddHHmmss.FFFFFF where yyyy is mandatory.</value>
+    <comment>{0} DateTime value. {1} attribute name.</comment>
+  </data>
+  <data name="InvalidTimeRangeValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified date range '{0}' is invalid.
+The first part time {1} should be lesser than or equal to the second part time {2}.</value>
+    <comment>{0} Time range with &lt;Time1&gt;-&lt;Time2&gt; format. {1} is Time1. {2} is Time2.</comment>
+  </data>
+  <data name="InvalidTimeValue" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified Time value '{0}' is invalid for parameter '{1}'. Time should be valid and formatted as HHmmss.FFFFFF where HH is mandatory.</value>
+    <comment>{0} Time value. {1} parameter name.</comment>
+  </data>
+  <data name="ErrorMessageDateTimeIsInvalid" xml:space="preserve">
+    <value>Value cannot be parsed as a valid DateTime.</value>
+  </data>
+  <data name="ErrorMessageTimeIsInvalid" xml:space="preserve">
+    <value>Value cannot be parsed as a valid Time.</value>
+  </data>
+  <data name="DateTimeWithOffsetNotSupported" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified DateTime value '{0}' for attribute {1} contains offset which is not supported.</value>
+    <comment>{0} DateTime value. {1} attribute name.</comment>
+  </data>
+  <data name="InvalidRangeValues" xml:space="preserve">
+    <value>Invalid QIDO-RS query. Specified range is invalid.
+Both parts in the range cannot be empty.
+For details on valid range queries, please refer to Search Matching section in Conformance Statement (https://github.com/microsoft/dicom-server/blob/main/docs/resources/conformance-statement.md#search-matching).</value>
   </data>
 </root>

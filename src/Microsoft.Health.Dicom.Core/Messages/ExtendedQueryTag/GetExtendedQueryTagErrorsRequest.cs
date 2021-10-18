@@ -5,7 +5,6 @@
 
 using EnsureThat;
 using MediatR;
-using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
 {
@@ -13,20 +12,9 @@ namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
     {
         public GetExtendedQueryTagErrorsRequest(string path, int limit, int offset)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(path, nameof(path));
-            if (limit < 1 || limit > 200)
-            {
-                throw new BadRequestException(string.Format(DicomCoreResource.PaginationLimitOutOfRange, limit, 1, 200));
-            }
-
-            if (offset < 0)
-            {
-                throw new BadRequestException(string.Format(DicomCoreResource.PaginationNegativeOffset, offset));
-            }
-
-            Path = path;
-            Limit = limit;
-            Offset = offset;
+            Path = EnsureArg.IsNotNullOrWhiteSpace(path, nameof(path));
+            Limit = EnsureArg.IsInRange(limit, 1, 200, nameof(limit));
+            Offset = EnsureArg.IsGte(offset, 0, nameof(offset));
         }
 
         public string Path { get; }

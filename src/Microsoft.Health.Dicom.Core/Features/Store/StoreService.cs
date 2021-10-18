@@ -11,8 +11,6 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.Store;
@@ -70,8 +68,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             _storeOrchestrator = EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
             _minimumValidator = EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-
-            _storeOrchestrator.QueryTagsExpired += (e, args) => ValidateNewQueryTags(args.DicomDataset, args.NewQueryTags);
         }
 
         /// <inheritdoc />
@@ -172,14 +168,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 LogFailedToStoreDelegate(_logger, index, failureCode, ex);
 
                 _storeResponseBuilder.AddFailure(dicomDataset, failureCode);
-            }
-        }
-
-        private void ValidateNewQueryTags(DicomDataset dicomDataset, IReadOnlyCollection<QueryTag> queryTags)
-        {
-            foreach (QueryTag queryTag in queryTags)
-            {
-                dicomDataset.ValidateQueryTag(queryTag, _minimumValidator);
             }
         }
 

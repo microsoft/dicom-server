@@ -11,9 +11,7 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
@@ -35,96 +33,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
 
         public override SchemaVersion Version => SchemaVersion.V4;
 
-        public override async Task<long> BeginCreateInstanceIndexAsync(DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
-        {
-            EnsureArg.IsNotNull(instance, nameof(instance));
-            EnsureArg.IsNotNull(queryTags, nameof(queryTags));
-
-            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
-            {
-                VLatest.BeginAddInstance.PopulateCommand(
-                    sqlCommandWrapper,
-                    instance.GetString(DicomTag.StudyInstanceUID),
-                    instance.GetString(DicomTag.SeriesInstanceUID),
-                    instance.GetString(DicomTag.SOPInstanceUID),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.PatientID),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.PatientName),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.ReferringPhysicianName),
-                    instance.GetStringDateAsDate(DicomTag.StudyDate),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.StudyDescription),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
-                    instance.GetStringDateAsDate(DicomTag.PerformedProcedureStepStartDate),
-                    instance.GetStringDateAsDate(DicomTag.PatientBirthDate),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.ManufacturerModelName));
-
-                try
-                {
-                    return (long)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken));
-                }
-                catch (SqlException ex)
-                {
-                    throw ex.Number switch
-                    {
-                        SqlErrorCodes.Conflict => ex.State switch
-                        {
-                            (byte)IndexStatus.Creating => new PendingInstanceException(),
-                            (byte)IndexStatus.Created => new InstanceAlreadyExistsException(),
-                            _ => new ExtendedQueryTagsOutOfDateException(),
-                        },
-                        _ => new DataStoreException(ex),
-                    };
-                }
-            }
-        }
-
-        public override async Task EndCreateInstanceIndexAsync(
-            DicomDataset instance,
-            long watermark,
-            IEnumerable<QueryTag> queryTags,
-            bool allowExpiredTags = false,
-            CancellationToken cancellationToken = default)
-        {
-            EnsureArg.IsNotNull(instance, nameof(instance));
-            EnsureArg.IsNotNull(queryTags, nameof(queryTags));
-
-            var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags);
-            VLatest.EndAddInstanceTableValuedParameters parameters = new VLatest.EndAddInstanceTableValuedParameters(
-                rows.StringRows,
-                rows.LongRows,
-                rows.DoubleRows,
-                rows.DateTimeRows,
-                rows.PersonNameRows);
-
-            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
-            {
-                VLatest.EndAddInstance.PopulateCommand(
-                    sqlCommandWrapper,
-                    instance.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
-                    instance.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
-                    instance.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
-                    watermark,
-                    allowExpiredTags ? null : rows.MaxTagKey, // MaxTagKey helps track if any new tags have been added mid-operation
-                    parameters);
-
-                try
-                {
-                    await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
-                }
-                catch (SqlException ex)
-                {
-                    throw ex.Number switch
-                    {
-                        SqlErrorCodes.Conflict => new ExtendedQueryTagsOutOfDateException(),
-                        SqlErrorCodes.NotFound => new InstanceNotFoundException(),
-                        _ => new DataStoreException(ex),
-                    };
-                }
-            }
-        }
-
         public override async Task ReindexInstanceAsync(DicomDataset instance, long watermark, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
@@ -133,15 +41,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags);
-                VLatest.IndexInstanceTableValuedParameters parameters = new VLatest.IndexInstanceTableValuedParameters(
+                var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags, Version);
+                V4.IndexInstanceTableValuedParameters parameters = new V4.IndexInstanceTableValuedParameters(
                     rows.StringRows,
                     rows.LongRows,
                     rows.DoubleRows,
                     rows.DateTimeRows,
                     rows.PersonNameRows);
 
-                VLatest.IndexInstance.PopulateCommand(sqlCommandWrapper, watermark, parameters);
+                V4.IndexInstance.PopulateCommand(sqlCommandWrapper, watermark, parameters);
 
                 try
                 {

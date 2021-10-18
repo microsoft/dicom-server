@@ -17,6 +17,7 @@ using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Extensions;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
+using Microsoft.Health.Dicom.Api.Models;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -89,8 +90,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// <summary>
         /// Handles requests to get all extended query tags.
         /// </summary>
-        /// <param name="limit">The maximum number of results to retrieve.</param>
-        /// <param name="offset">The offset from which to retrieve paginated results.</param>
+        /// <param name="options">Options for configuring which tags are returned.</param>
         /// <returns>
         /// Returns Bad Request if given path can't be parsed. Returns Not Found if given path doesn't map to a stored
         /// extended query tag or if no extended query tags are stored. Returns OK with a JSON body of all tags in other cases.
@@ -103,18 +103,18 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [VersionedRoute(KnownRoutes.ExtendedQueryTagRoute)]
         [Route(KnownRoutes.ExtendedQueryTagRoute)]
         [AuditEventType(AuditEventSubType.GetAllExtendedQueryTags)]
-        public async Task<IActionResult> GetTagsAsync(
-            [FromQuery, Range(1, 200)] int limit = 100,
-            [FromQuery, Range(0, int.MaxValue)] int offset = 0)
+        [QueryModelStateValidator]
+        public async Task<IActionResult> GetTagsAsync([FromQuery] PaginationOptions options)
         {
             // TODO: Enforce the above data annotations with ModelState.IsValid or use the [ApiController] attribute
             // for automatic error generation. However, we should change all errors across the API surface.
             _logger.LogInformation("DICOM Web Get Extended Query Tag request received for all extended query tags");
 
+            EnsureArg.IsNotNull(options, nameof(options));
             EnsureFeatureIsEnabled();
             GetExtendedQueryTagsResponse response = await _mediator.GetExtendedQueryTagsAsync(
-                limit,
-                offset,
+                options.Limit,
+                options.Offset,
                 HttpContext.RequestAborted);
 
             return StatusCode(
@@ -152,8 +152,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// Handles requests to get extended query tag errors.
         /// </summary>
         /// <param name="tagPath">Path for requested extended query tag.</param>
-        /// <param name="limit">The maximum number of results to retrieve.</param>
-        /// <param name="offset">The offset from which to retrieve paginated results.</param>
+        /// <param name="options">Options for configuring which errors are returned.</param>
         /// <returns>
         /// Returns Bad Request if given path can't be parsed. Returns Not Found if given path doesn't map to a stored
         /// error. Returns OK with a JSON body of requested tag error in other cases.
@@ -166,17 +165,42 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [VersionedRoute(KnownRoutes.GetExtendedQueryTagErrorsRoute, Name = KnownRouteNames.VersionedGetExtendedQueryTagErrors)]
         [Route(KnownRoutes.GetExtendedQueryTagErrorsRoute, Name = KnownRouteNames.GetExtendedQueryTagErrors)]
         [AuditEventType(AuditEventSubType.GetExtendedQueryTagErrors)]
+        [QueryModelStateValidator]
         public async Task<IActionResult> GetTagErrorsAsync(
             [FromRoute] string tagPath,
-            [FromQuery, Range(1, 200)] int limit = 100,
-            [FromQuery, Range(0, int.MaxValue)] int offset = 0)
+            [FromQuery] PaginationOptions options)
         {
             _logger.LogInformation("DICOM Web Get Extended Query Tag Errors request received for extended query tag: {tagPath}", tagPath);
 
+            EnsureArg.IsNotNull(options, nameof(options));
             EnsureFeatureIsEnabled();
-            GetExtendedQueryTagErrorsResponse response = await _mediator.GetExtendedQueryTagErrorsAsync(tagPath, limit, offset, HttpContext.RequestAborted);
+            GetExtendedQueryTagErrorsResponse response = await _mediator.GetExtendedQueryTagErrorsAsync(
+                tagPath,
+                options.Limit,
+                options.Offset,
+                HttpContext.RequestAborted);
 
             return StatusCode((int)HttpStatusCode.OK, response.ExtendedQueryTagErrors);
+        }
+
+        [HttpPatch]
+        [Produces(KnownContentTypes.ApplicationJson)]
+        [BodyModelStateValidator]
+        [ProducesResponseType(typeof(GetExtendedQueryTagEntry), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [VersionedRoute(KnownRoutes.UpdateExtendedQueryTagQueryStatusRoute)]
+        [Route(KnownRoutes.UpdateExtendedQueryTagQueryStatusRoute)]
+        [AuditEventType(AuditEventSubType.UpdateExtendedQueryTag)]
+        public async Task<IActionResult> UpdateTagAsync([FromRoute] string tagPath, [FromBody] UpdateExtendedQueryTagOptions newValue)
+        {
+            EnsureArg.IsNotNull(newValue, nameof(newValue));
+            _logger.LogInformation("DICOM Web Update Extended Query Tag Query Status request received for extended query tag {tagPath} and new value {newValue}", tagPath, $"{nameof(newValue.QueryStatus)}: '{newValue.QueryStatus}'");
+
+            EnsureFeatureIsEnabled();
+            var response = await _mediator.UpdateExtendedQueryTagAsync(tagPath, newValue.ToEntry(), HttpContext.RequestAborted);
+
+            return StatusCode((int)HttpStatusCode.OK, response.TagEntry);
         }
 
         private void EnsureFeatureIsEnabled()

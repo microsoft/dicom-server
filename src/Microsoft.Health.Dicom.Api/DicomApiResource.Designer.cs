@@ -70,11 +70,38 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Duplicate AttributeId &apos;{0}&apos;. Each attribute is only allowed to be specified once..
+        /// </summary>
+        internal static string DuplicateAttributeId {
+            get {
+                return ResourceManager.GetString("DuplicateAttributeId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot specify parameter more than once..
+        /// </summary>
+        internal static string DuplicateParameter {
+            get {
+                return ResourceManager.GetString("DuplicateParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The server encountered an internal error. Please retry the request. If the issue persists, please contact support..
         /// </summary>
         internal static string InternalServerError {
             get {
                 return ResourceManager.GetString("InternalServerError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The value is not valid. It need to be one of &quot;{0}&quot;..
+        /// </summary>
+        internal static string InvalidEnumValue {
+            get {
+                return ResourceManager.GetString("InvalidEnumValue", resourceCulture);
             }
         }
         
@@ -97,7 +124,16 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The request body is not valid. Details: {0}.
+        ///   Looks up a localized string similar to Unable to parse value &apos;{0}&apos; as {1}..
+        /// </summary>
+        internal static string InvalidParse {
+            get {
+                return ResourceManager.GetString("InvalidParse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in request body is invalid: {1}.
         /// </summary>
         internal static string InvalidRequestBody {
             get {
@@ -138,6 +174,15 @@ namespace Microsoft.Health.Dicom.Api {
         internal static string UnsupportedContentType {
             get {
                 return ResourceManager.GetString("UnsupportedContentType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field is not supported: &quot;{0}&quot;..
+        /// </summary>
+        internal static string UnsupportedField {
+            get {
+                return ResourceManager.GetString("UnsupportedField", resourceCulture);
             }
         }
     }

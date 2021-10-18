@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.Health.Api.Extensions;
+using Microsoft.Health.Core.Features.MonitorStream;
 using Microsoft.Health.Dicom.Core.Features.Context;
 
 namespace Microsoft.Health.Dicom.Api.Features.Context
@@ -18,9 +20,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Context
 
         public DicomRequestContextMiddleware(RequestDelegate next)
         {
-            EnsureArg.IsNotNull(next, nameof(next));
-
-            _next = next;
+            _next = EnsureArg.IsNotNull(next, nameof(next));
         }
 
         public async Task Invoke(HttpContext context, IDicomRequestContextAccessor dicomRequestContextAccessor)
@@ -51,8 +51,24 @@ namespace Microsoft.Health.Dicom.Api.Features.Context
 
             dicomRequestContextAccessor.RequestContext = dicomRequestContext;
 
-            // Call the next delegate/middleware in the pipeline
-            await _next(context);
+            using (MonitoredStream byteCountingStream = new MonitoredStream(context.Response.Body))
+            {
+                context.Response.Body = byteCountingStream;
+
+                try
+                {
+                    // Call the next delegate/middleware in the pipeline
+                    await _next(context);
+                }
+                finally
+                {
+                    long responseBodySize = byteCountingStream.WriteCount;
+                    long responseHeaderSize = context.Response.Headers.GetTotalHeaderLength();
+                    long totalResponseSize = responseBodySize + responseHeaderSize;
+
+                    dicomRequestContextAccessor.RequestContext.ResponseSize = totalResponseSize;
+                }
+            }
         }
     }
 }

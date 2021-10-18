@@ -106,6 +106,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified DateTime value &apos;{0}&apos; for attribute {1} contains offset which is not supported..
+        /// </summary>
+        internal static string DateTimeWithOffsetNotSupported {
+            get {
+                return ResourceManager.GetString("DateTimeWithOffsetNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; failed validation for VR &apos;{1}&apos;: {2}.
         /// </summary>
         internal static string DicomElementValidationFailed {
@@ -133,6 +142,33 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Cannot specify attribute &apos;SeriesInstanceUID&apos; for the given resource..
+        /// </summary>
+        internal static string DisallowedSeriesInstanceUIDAttribute {
+            get {
+                return ResourceManager.GetString("DisallowedSeriesInstanceUIDAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Cannot specify attribute &apos;StudyInstanceUID&apos; for the given resource. .
+        /// </summary>
+        internal static string DisallowedStudyInstanceUIDAttribute {
+            get {
+                return ResourceManager.GetString("DisallowedStudyInstanceUIDAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Attribute &apos;{0}&apos; has been specified more than once using different ID formats. Each attribute is only allowed to be specified once..
+        /// </summary>
+        internal static string DuplicateAttribute {
+            get {
+                return ResourceManager.GetString("DuplicateAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique..
         /// </summary>
         internal static string DuplicatedUidsNotAllowed {
@@ -151,15 +187,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Duplicate AttributeId &apos;{0}&apos;, Each attribute is allowed to be specified once..
-        /// </summary>
-        internal static string DuplicateQueryParam {
-            get {
-                return ResourceManager.GetString("DuplicateQueryParam", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to There are {0} roles with the name &apos;{1}&apos;.
         /// </summary>
         internal static string DuplicateRoleNames {
@@ -174,6 +201,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string ErrorMessageDateIsInvalid {
             get {
                 return ResourceManager.GetString("ErrorMessageDateIsInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value cannot be parsed as a valid DateTime..
+        /// </summary>
+        internal static string ErrorMessageDateTimeIsInvalid {
+            get {
+                return ResourceManager.GetString("ErrorMessageDateTimeIsInvalid", resourceCulture);
             }
         }
         
@@ -228,6 +264,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string ErrorMessagePersonNameGroupExceedMaxLength {
             get {
                 return ResourceManager.GetString("ErrorMessagePersonNameGroupExceedMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value cannot be parsed as a valid Time..
+        /// </summary>
+        internal static string ErrorMessageTimeIsInvalid {
+            get {
+                return ResourceManager.GetString("ErrorMessageTimeIsInvalid", resourceCulture);
             }
         }
         
@@ -369,7 +414,26 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified Date value &apos;{0}&apos; is invalid for parameter &apos;{1}&apos;. Date should be valid and formatted as yyyyMMdd..
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified date range &apos;{0}&apos; is invalid.
+        ///The first part DateTime {1} should be lesser than or equal to the second part DateTime {2}..
+        /// </summary>
+        internal static string InvalidDateTimeRangeValue {
+            get {
+                return ResourceManager.GetString("InvalidDateTimeRangeValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified DateTime value &apos;{0}&apos; is invalid for attribute &apos;{1}&apos;. DateTime should be valid and formatted as yyyyMMddHHmmss.FFFFFF where yyyy is mandatory..
+        /// </summary>
+        internal static string InvalidDateTimeValue {
+            get {
+                return ResourceManager.GetString("InvalidDateTimeValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified Date value &apos;{0}&apos; is invalid for attribute &apos;{1}&apos;. Date should be valid and formatted as yyyyMMdd..
         /// </summary>
         internal static string InvalidDateValue {
             get {
@@ -432,6 +496,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Cannot specify included fields in addition to &apos;all&apos;..
+        /// </summary>
+        internal static string InvalidIncludeAllFields {
+            get {
+                return ResourceManager.GetString("InvalidIncludeAllFields", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified limit value &apos;{0}&apos; is not a valid integer..
         /// </summary>
         internal static string InvalidLimitValue {
@@ -468,11 +541,41 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The following query parameter is invalid: {0}..
+        ///   Looks up a localized string similar to The query parameter &apos;{0}&apos; is invalid. {1}.
         /// </summary>
         internal static string InvalidQueryStringValue {
             get {
                 return ResourceManager.GetString("InvalidQueryStringValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified range is invalid.
+        ///Both parts in the range cannot be empty.
+        ///For details on valid range queries, please refer to Search Matching section in Conformance Statement (https://github.com/microsoft/dicom-server/blob/main/docs/resources/conformance-statement.md#search-matching)..
+        /// </summary>
+        internal static string InvalidRangeValues {
+            get {
+                return ResourceManager.GetString("InvalidRangeValues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified date range &apos;{0}&apos; is invalid.
+        ///The first part time {1} should be lesser than or equal to the second part time {2}..
+        /// </summary>
+        internal static string InvalidTimeRangeValue {
+            get {
+                return ResourceManager.GetString("InvalidTimeRangeValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified Time value &apos;{0}&apos; is invalid for parameter &apos;{1}&apos;. Time should be valid and formatted as HHmmss.FFFFFF where HH is mandatory..
+        /// </summary>
+        internal static string InvalidTimeValue {
+            get {
+                return ResourceManager.GetString("InvalidTimeValue", resourceCulture);
             }
         }
         
@@ -644,6 +747,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string QueryInvalidResourceLevel {
             get {
                 return ResourceManager.GetString("QueryInvalidResourceLevel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Query is disabled on specified attribute &apos;{0}&apos;..
+        /// </summary>
+        internal static string QueryIsDisabledOnAttribute {
+            get {
+                return ResourceManager.GetString("QueryIsDisabledOnAttribute", resourceCulture);
             }
         }
         

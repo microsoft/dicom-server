@@ -4,6 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Net;
+using Dicom;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
@@ -13,33 +15,88 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     /// </summary>
     public partial class QueryParser
     {
-        private static QueryFilterCondition ParseDateTagValue(QueryTag queryTag, string value)
+        private static QueryFilterCondition ParseDateOrTimeTagValue(QueryTag queryTag, string value)
+        {
+            QueryFilterCondition queryFilterCondition = null;
+
+            if (queryTag.VR == DicomVR.DT)
+            {
+                queryFilterCondition = ParseDateOrTimeTagValue(queryTag, value, DicomCoreResource.InvalidDateTimeRangeValue, ParseDateTime);
+            }
+            else
+            {
+                queryFilterCondition = ParseDateOrTimeTagValue(queryTag, value, DicomCoreResource.InvalidDateRangeValue, ParseDate);
+            }
+
+            return queryFilterCondition;
+        }
+
+        private static QueryFilterCondition ParseDateOrTimeTagValue(QueryTag queryTag, string value, string exceptionBaseMessage, Func<string, string, DateTime> parseValue)
         {
             if (QueryLimit.IsValidRangeQueryTag(queryTag))
             {
                 var splitString = value.Split('-');
                 if (splitString.Length == 2)
                 {
-                    string minDate = splitString[0].Trim();
-                    string maxDate = splitString[1].Trim();
-                    DateTime parsedMinDate = ParseDate(minDate, queryTag.GetName());
-                    DateTime parsedMaxDate = ParseDate(maxDate, queryTag.GetName());
+                    string minDateTime = splitString[0].Trim();
+                    string maxDateTime = splitString[1].Trim();
 
-                    if (parsedMinDate > parsedMaxDate)
+                    // Make sure both parts of the range values are not empty.
+                    // If so, throw an exception.
+                    ValidateEmptyValuesForRangeQuery(minDateTime, maxDateTime);
+
+                    DateTime parsedMinDateTime = string.IsNullOrEmpty(minDateTime) ? DateTime.MinValue : parseValue(minDateTime, queryTag.GetName());
+                    DateTime parsedMaxDateTime = string.IsNullOrEmpty(maxDateTime) ? DateTime.MaxValue : parseValue(maxDateTime, queryTag.GetName());
+
+                    if (parsedMinDateTime > parsedMaxDateTime)
                     {
                         throw new QueryParseException(string.Format(
-                            DicomCoreResource.InvalidDateRangeValue,
+                            exceptionBaseMessage,
                             value,
-                            minDate,
-                            maxDate));
+                            minDateTime,
+                            maxDateTime));
                     }
 
-                    return new DateRangeValueMatchCondition(queryTag, parsedMinDate, parsedMaxDate);
+                    return new DateRangeValueMatchCondition(queryTag, parsedMinDateTime, parsedMaxDateTime);
                 }
             }
 
-            DateTime parsedDate = ParseDate(value, queryTag.GetName());
-            return new DateSingleValueMatchCondition(queryTag, parsedDate);
+            DateTime parsedDateTime = parseValue(value, queryTag.GetName());
+            return new DateSingleValueMatchCondition(queryTag, parsedDateTime);
+        }
+
+        private static QueryFilterCondition ParseTimeTagValue(QueryTag queryTag, string value)
+        {
+            if (QueryLimit.IsValidRangeQueryTag(queryTag))
+            {
+                var splitString = value.Split('-');
+                if (splitString.Length == 2)
+                {
+                    string minTime = splitString[0].Trim();
+                    string maxTime = splitString[1].Trim();
+
+                    // Make sure both parts of the range values are not empty.
+                    // If so, throw an exception.
+                    ValidateEmptyValuesForRangeQuery(minTime, maxTime);
+
+                    long parsedMinTime = string.IsNullOrEmpty(minTime) ? 0 : ParseTime(minTime, queryTag);
+                    long parsedMaxTime = string.IsNullOrEmpty(maxTime) ? TimeSpan.TicksPerDay : ParseTime(maxTime, queryTag);
+
+                    if (parsedMinTime > parsedMaxTime)
+                    {
+                        throw new QueryParseException(string.Format(
+                            DicomCoreResource.InvalidTimeRangeValue,
+                            value,
+                            minTime,
+                            maxTime));
+                    }
+
+                    return new LongRangeValueMatchCondition(queryTag, parsedMinTime, parsedMaxTime);
+                }
+            }
+
+            long parsedTime = ParseTime(value, queryTag);
+            return new LongSingleValueMatchCondition(queryTag, parsedTime);
         }
 
         private static QueryFilterCondition ParseStringTagValue(QueryTag queryTag, string value)
@@ -75,6 +132,58 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             }
 
             return parsedDate;
+        }
+
+        private static DateTime ParseDateTime(string dateTime, string tagName)
+        {
+            // If the attribute has + in the value (for offset), it is converted to space by default.
+            // Encoding it to get the + back such that it can be parsed as an offset properly.
+            string encodedDateTime = WebUtility.UrlEncode(dateTime);
+
+            if (!DateTime.TryParseExact(dateTime, DateTimeTagValueFormats, null, System.Globalization.DateTimeStyles.None, out DateTime parsedDateTime))
+            {
+                if (DateTime.TryParseExact(encodedDateTime, DateTimeTagValueWithOffsetFormats, null, System.Globalization.DateTimeStyles.None, out DateTime parsedDateTimeOffsetNotSupported))
+                {
+                    throw new QueryParseException(string.Format(DicomCoreResource.DateTimeWithOffsetNotSupported, encodedDateTime, tagName));
+                }
+                else
+                {
+                    throw new QueryParseException(string.Format(DicomCoreResource.InvalidDateTimeValue, encodedDateTime, tagName));
+                }
+            }
+
+            return parsedDateTime;
+        }
+
+        private static long ParseTime(string time, QueryTag queryTag)
+        {
+            DateTime timeValue;
+
+            try
+            {
+                DicomTime dicomTime = new DicomTime(queryTag.Tag, new string[] { time });
+                timeValue = dicomTime.Get<DateTime>();
+            }
+            catch (Exception)
+            {
+                throw new QueryParseException(string.Format(DicomCoreResource.InvalidTimeValue, time, queryTag.GetName()));
+            }
+
+            return timeValue.Ticks;
+        }
+
+        /// <summary>
+        /// Validate if both values for range query are not empty.
+        /// If so, throws an exception.
+        /// </summary>
+        /// <param name="value1">Value 1 of range query.</param>
+        /// <param name="value2">Value 2 of range query.</param>
+        private static void ValidateEmptyValuesForRangeQuery(string value1, string value2)
+        {
+            if (string.IsNullOrEmpty(value1) && string.IsNullOrEmpty(value2))
+            {
+                throw new QueryParseException(DicomCoreResource.InvalidRangeValues);
+            }
         }
     }
 }

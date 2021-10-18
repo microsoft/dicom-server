@@ -50,12 +50,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             _logger = logger;
         }
 
-        public event EventHandler<QueryTagsExpiredEventArgs> QueryTagsExpired
-        {
-            add => _storeOrchestrator.QueryTagsExpired += value;
-            remove => _storeOrchestrator.QueryTagsExpired -= value;
-        }
-
         /// <inheritdoc />
         public async Task StoreDicomInstanceEntryAsync(IDicomInstanceEntry dicomInstanceEntry, CancellationToken cancellationToken)
         {

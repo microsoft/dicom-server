@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Api.Controllers;
+using Microsoft.Health.Dicom.Api.Models;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -64,10 +65,11 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
                 NullLogger<ExtendedQueryTagController>.Instance);
 
             await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.GetTagAsync(DicomTag.PageNumberVector.GetPath()));
-            await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.GetTagErrorsAsync(DicomTag.PageNumberVector.GetPath()));
-            await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.GetTagsAsync());
+            await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.GetTagErrorsAsync(DicomTag.PageNumberVector.GetPath(), new PaginationOptions()));
+            await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.GetTagsAsync(new PaginationOptions()));
             await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.PostAsync(Array.Empty<AddExtendedQueryTagEntry>()));
             await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.DeleteAsync(DicomTag.PageNumberVector.GetPath()));
+            await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.UpdateTagAsync(DicomTag.PageNumberVector.GetPath(), new UpdateExtendedQueryTagOptions()));
         }
 
         [Fact]
@@ -96,7 +98,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
                     Arg.Is(controller.HttpContext.RequestAborted))
                 .Returns(expected);
 
-            IActionResult response = await controller.GetTagErrorsAsync(path);
+            IActionResult response = await controller.GetTagErrorsAsync(path, new PaginationOptions());
             Assert.IsType<ObjectResult>(response);
 
             var actual = response as ObjectResult;
