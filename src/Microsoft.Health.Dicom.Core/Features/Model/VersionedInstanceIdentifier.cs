@@ -34,6 +34,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
             => base.GetHashCode() ^ Version.GetHashCode();
 
         public override string ToString()
-            => $"StudyInstanceUID: {StudyInstanceUid}, SeriesInstanceUID: {SeriesInstanceUid}, SOPInstanceUID: {SopInstanceUid}, Version: {Version}";
+            => base.ToString() + $"Version: {Version}";
     }
 }

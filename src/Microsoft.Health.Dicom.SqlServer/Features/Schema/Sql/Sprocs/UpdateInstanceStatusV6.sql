@@ -6,7 +6,7 @@
 --     UpdateInstanceStatusV6
 --
 -- DESCRIPTION
---     Updates a DICOM instance status.
+--     Updates a DICOM instance status, which allows for consistency during indexing.
 --
 -- PARAMETERS
 --     @partitionKey

@@ -13,29 +13,26 @@ CREATE TABLE dbo.ExtendedQueryTagDateTime (
     SeriesKey               BIGINT               NULL,                  --FK
     InstanceKey             BIGINT               NULL,                  --FK
     Watermark               BIGINT               NOT NULL,
-    TagValueUtc             DATETIME2(7)         NULL,
-    PartitionKey            INT                  NOT NULL DEFAULT 1     --FK
+    TagValueUtc             DATETIME2(7)         NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 
--- Used in QIDO, Adding PartitionKey to the end to enable cross-partition queries
+-- Used in QIDO
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryTagDateTime
 (
     TagKey,
     TagValue,
     StudyKey,
     SeriesKey,
-    InstanceKey,
-    PartitionKey
+    InstanceKey
 )
 
--- Used in IIndexInstanceCore, Adding PartitionKey to the end to enable cross-partition queries
-CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_TagKey_StudyKey_SeriesKey_InstanceKey_PartitionKey on dbo.ExtendedQueryTagDateTime
+-- Used in IIndexInstanceCore
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_TagKey_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagDateTime
 (
     TagKey,
     StudyKey,
     SeriesKey,
-    InstanceKey,
-    PartitionKey
+    InstanceKey
 )
 INCLUDE
 (

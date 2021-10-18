@@ -137,9 +137,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly NullableDateTime2Column TagValueUtc = new NullableDateTime2Column("TagValueUtc", 7);
-            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_ExtendedQueryTagDateTime = new Index("IXC_ExtendedQueryTagDateTime");
-            internal readonly Index IX_ExtendedQueryTagDateTime_TagKey_StudyKey_SeriesKey_InstanceKey_PartitionKey = new Index("IX_ExtendedQueryTagDateTime_TagKey_StudyKey_SeriesKey_InstanceKey_PartitionKey");
+            internal readonly Index IX_ExtendedQueryTagDateTime_TagKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagDateTime_TagKey_StudyKey_SeriesKey_InstanceKey");
         }
 
         internal class ExtendedQueryTagDoubleTable : Table
@@ -154,9 +153,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
             internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
-            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_ExtendedQueryTagDouble = new Index("IXC_ExtendedQueryTagDouble");
-            internal readonly Index IX_ExtendedQueryTagDouble_TagKey_StudyKey_SeriesKey_InstanceKey_PartitionKey = new Index("IX_ExtendedQueryTagDouble_TagKey_StudyKey_SeriesKey_InstanceKey_PartitionKey");
+            internal readonly Index IX_ExtendedQueryTagDouble_TagKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagDouble_TagKey_StudyKey_SeriesKey_InstanceKey");
         }
 
         internal class ExtendedQueryTagErrorTable : Table
@@ -185,9 +183,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
             internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
-            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_ExtendedQueryTagLong = new Index("IXC_ExtendedQueryTagLong");
-            internal readonly Index IX_ExtendedQueryTagLong_TagKey_StudyKey_SeriesKey_InstanceKey_PartitionKey = new Index("IX_ExtendedQueryTagLong_TagKey_StudyKey_SeriesKey_InstanceKey_PartitionKey");
+            internal readonly Index IX_ExtendedQueryTagLong_TagKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagLong_TagKey_StudyKey_SeriesKey_InstanceKey");
         }
 
         internal class ExtendedQueryTagOperationTable : Table
@@ -216,9 +213,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal const string WatermarkAndTagKey = "WatermarkAndTagKey";
             internal const string TagValueWords = "TagValueWords";
-            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_ExtendedQueryTagPersonName = new Index("IXC_ExtendedQueryTagPersonName");
-            internal readonly Index IX_ExtendedQueryTagPersonName_TagKey_StudyKey_SeriesKey_InstanceKey_PartitionKey = new Index("IX_ExtendedQueryTagPersonName_TagKey_StudyKey_SeriesKey_InstanceKey_PartitionKey");
+            internal readonly Index IX_ExtendedQueryTagPersonName_TagKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagPersonName_TagKey_StudyKey_SeriesKey_InstanceKey");
             internal readonly Index IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey = new Index("IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey");
         }
 
@@ -234,9 +230,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
             internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
-            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_ExtendedQueryTagString = new Index("IXC_ExtendedQueryTagString");
-            internal readonly Index IX_ExtendedQueryTagString_TagKey_StudyKey_SeriesKey_InstanceKey_PartitionKey = new Index("IX_ExtendedQueryTagString_TagKey_StudyKey_SeriesKey_InstanceKey_PartitionKey");
+            internal readonly Index IX_ExtendedQueryTagString_TagKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagString_TagKey_StudyKey_SeriesKey_InstanceKey");
         }
 
         internal class InstanceTable : Table
@@ -1263,7 +1258,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
-            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
             private readonly ParameterDefinition<System.Int64> _studyKey = new ParameterDefinition<System.Int64>("@studyKey", global::System.Data.SqlDbType.BigInt, false);
             private readonly ParameterDefinition<System.Int64> _seriesKey = new ParameterDefinition<System.Int64>("@seriesKey", global::System.Data.SqlDbType.BigInt, false);
             private readonly ParameterDefinition<System.Int64> _instanceKey = new ParameterDefinition<System.Int64>("@instanceKey", global::System.Data.SqlDbType.BigInt, false);
@@ -1274,11 +1268,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly InsertDateTimeExtendedQueryTagTableTypeV2TableValuedParameterDefinition _dateTimeExtendedQueryTags = new InsertDateTimeExtendedQueryTagTableTypeV2TableValuedParameterDefinition("@dateTimeExtendedQueryTags");
             private readonly InsertPersonNameExtendedQueryTagTableTypeV1TableValuedParameterDefinition _personNameExtendedQueryTags = new InsertPersonNameExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@personNameExtendedQueryTags");
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.Int64 studyKey, System.Int64 seriesKey, System.Int64 instanceKey, System.Int64 watermark, global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> stringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> longExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> dateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNameExtendedQueryTags)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int64 studyKey, System.Int64 seriesKey, System.Int64 instanceKey, System.Int64 watermark, global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> stringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> longExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> dateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNameExtendedQueryTags)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.IIndexInstanceCore";
-                _partitionKey.AddParameter(command.Parameters, partitionKey);
                 _studyKey.AddParameter(command.Parameters, studyKey);
                 _seriesKey.AddParameter(command.Parameters, seriesKey);
                 _instanceKey.AddParameter(command.Parameters, instanceKey);
@@ -1290,9 +1283,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _personNameExtendedQueryTags.AddParameter(command.Parameters, personNameExtendedQueryTags);
             }
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.Int64 studyKey, System.Int64 seriesKey, System.Int64 instanceKey, System.Int64 watermark, IIndexInstanceCoreTableValuedParameters tableValuedParameters)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int64 studyKey, System.Int64 seriesKey, System.Int64 instanceKey, System.Int64 watermark, IIndexInstanceCoreTableValuedParameters tableValuedParameters)
             {
-                PopulateCommand(command, partitionKey: partitionKey, studyKey: studyKey, seriesKey: seriesKey, instanceKey: instanceKey, watermark: watermark, stringExtendedQueryTags: tableValuedParameters.StringExtendedQueryTags, longExtendedQueryTags: tableValuedParameters.LongExtendedQueryTags, doubleExtendedQueryTags: tableValuedParameters.DoubleExtendedQueryTags, dateTimeExtendedQueryTags: tableValuedParameters.DateTimeExtendedQueryTags, personNameExtendedQueryTags: tableValuedParameters.PersonNameExtendedQueryTags);
+                PopulateCommand(command, studyKey: studyKey, seriesKey: seriesKey, instanceKey: instanceKey, watermark: watermark, stringExtendedQueryTags: tableValuedParameters.StringExtendedQueryTags, longExtendedQueryTags: tableValuedParameters.LongExtendedQueryTags, doubleExtendedQueryTags: tableValuedParameters.DoubleExtendedQueryTags, dateTimeExtendedQueryTags: tableValuedParameters.DateTimeExtendedQueryTags, personNameExtendedQueryTags: tableValuedParameters.PersonNameExtendedQueryTags);
             }
         }
 
