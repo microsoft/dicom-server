@@ -1,6 +1,7 @@
 {
   "IsEncrypted": false,
   "Values": {
+    "AzureFunctionsJobHost__Logging__LogLevel__Default": "Information",
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet"
   }
