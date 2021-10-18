@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Xunit;
@@ -21,10 +22,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task WhenNewPartitionIsCreated_Then_ItIsRetrievable()
         {
-            var partitionName = "test";
+            string partitionName = "test";
 
             await _fixture.PartitionStore.AddPartition(partitionName);
-            var partition = await _fixture.PartitionStore.GetPartition(partitionName);
+            PartitionEntry partition = await _fixture.PartitionStore.GetPartition(partitionName);
 
             Assert.NotNull(partition);
         }
@@ -32,7 +33,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task WhenGetPartitionsIsCalled_Then_DefaultPartitionRecordIsReturned()
         {
-            var partitionEntries = await _fixture.PartitionStore.GetPartitions();
+            IEnumerable<PartitionEntry> partitionEntries = await _fixture.PartitionStore.GetPartitions();
 
             Assert.Contains(partitionEntries, p => p.PartitionKey == DefaultPartition.Key);
         }
@@ -40,7 +41,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task WhenGetPartitionIsCalledWithDefaultPartitionName_Then_DefaultPartitionRecordIsReturned()
         {
-            var partitionEntry = await _fixture.PartitionStore.GetPartition(DefaultPartition.Name);
+            PartitionEntry partitionEntry = await _fixture.PartitionStore.GetPartition(DefaultPartition.Name);
 
             Assert.Equal(DefaultPartition.Key, partitionEntry.PartitionKey);
         }
