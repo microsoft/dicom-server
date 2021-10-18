@@ -65,7 +65,7 @@ function New-DicomServerApiApplicationRegistration {
     }
 
     # Create the App Registration
-    $apiAppReg = New-AzureADApplication -DisplayName $DicomServiceAudience -IdentifierUris $DicomServiceAudience -AppRoles $desiredAppRoles
+    $apiAppReg = New-AzureADApplication -DisplayName $DicomServiceAudience -IdentifierUris $DicomServiceAudience
     New-AzAdServicePrincipal -ApplicationId $apiAppReg.AppId | Out-Null
 
     $aadEndpoint = (Get-AzureADCurrentSessionInfo).Environment.Endpoints["ActiveDirectory"]
