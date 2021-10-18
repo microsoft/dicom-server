@@ -6,7 +6,7 @@
 --     6
 --
 -- DESCRIPTION
---     Gets all data partitions (except the default partition)
+--     Gets all data partitions
 --
 -- PARAMETERS
 --
@@ -20,6 +20,4 @@ BEGIN
             PartitionName,
             CreatedDate
     FROM    dbo.Partition
-    WHERE PartitionKey > 1
-
 END

@@ -1794,8 +1794,7 @@ BEGIN
     SELECT PartitionKey,
            PartitionName,
            CreatedDate
-    FROM   dbo.Partition
-    WHERE  PartitionKey > 1;
+    FROM   dbo.Partition;
 END
 
 GO
