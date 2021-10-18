@@ -79,8 +79,8 @@ AS
         OUTPUT deleted.TagKey
         INTO @deletedTags
     FROM dbo.ExtendedQueryTagError as XQTE
-    INNER JOIN @deletedInstances as d
-    ON XQTE.Watermark = d.Watermark
+    INNER JOIN @deletedInstances AS DI
+    ON XQTE.Watermark = DI.Watermark
 
     -- Update error count
     IF EXISTS (SELECT * FROM @deletedTags)
@@ -147,14 +147,14 @@ AS
     FROM @deletedInstances
     WHERE Status = @createdStatus
 
-    UPDATE cf
-    SET cf.CurrentWatermark = NULL
-    FROM dbo.ChangeFeed cf WITH(FORCESEEK)
-    JOIN @deletedInstances d
-    ON cf.PartitionKey = d.PartitionKey
-        AND cf.StudyInstanceUid = d.StudyInstanceUid
-        AND cf.SeriesInstanceUid = d.SeriesInstanceUid
-        AND cf.SopInstanceUid = d.SopInstanceUid
+    UPDATE CF
+    SET CF.CurrentWatermark = NULL
+    FROM dbo.ChangeFeed AS CF WITH(FORCESEEK)
+    JOIN @deletedInstances AS DI
+    ON CF.PartitionKey = DI.PartitionKey
+        AND CF.StudyInstanceUid = DI.StudyInstanceUid
+        AND CF.SeriesInstanceUid = DI.SeriesInstanceUid
+        AND CF.SopInstanceUid = DI.SopInstanceUid
 
     -- If this is the last instance for a series, remove the series
     IF NOT EXISTS ( SELECT  *

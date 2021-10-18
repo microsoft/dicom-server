@@ -150,6 +150,143 @@ BEGIN
 END
 
 /*************************************************************
+    ExtendedQueryTagDateTime Table
+    Add new index for DeleteInstance.
+**************************************************************/
+IF NOT EXISTS
+(
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_ExtendedQueryTagDateTime_StudyKey_SeriesKey_InstanceKey' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagDateTime')
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagDateTime
+    (
+        StudyKey,
+        SeriesKey,
+        InstanceKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
+
+/*************************************************************
+    ExtendedQueryTagDouble Table
+    Add new index for DeleteInstance.
+**************************************************************/
+IF NOT EXISTS
+(
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_ExtendedQueryTagDouble_StudyKey_SeriesKey_InstanceKey' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagDouble')
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagDouble
+    (
+        StudyKey,
+        SeriesKey,
+        InstanceKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
+
+/*************************************************************
+    ExtendedQueryTagError Table
+    Add new index for DeleteInstance and make IX_ExtendedQueryTagError_CreatedTime_Watermark_TagKey unique.
+**************************************************************/
+IF 1 != ISNULL(
+(
+    SELECT is_unique
+    FROM sys.indexes
+    WHERE name='IX_ExtendedQueryTagError_CreatedTime_Watermark_TagKey' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagError')
+), 0)
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagError_CreatedTime_Watermark_TagKey ON dbo.ExtendedQueryTagError
+    (
+        CreatedTime,
+        Watermark,
+        TagKey
+    )
+    INCLUDE
+    (
+        ErrorCode
+    ) WITH (DROP_EXISTING = ON, ONLINE = ON)
+END
+
+IF NOT EXISTS
+(
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_ExtendedQueryTagError_Watermark' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagError')
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagError_Watermark ON dbo.ExtendedQueryTagError
+    (
+        Watermark
+    )
+END
+
+/*************************************************************
+    ExtendedQueryTagLong Table
+    Add new index for DeleteInstance.
+**************************************************************/
+IF NOT EXISTS
+(
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_ExtendedQueryTagLong_StudyKey_SeriesKey_InstanceKey' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagLong')
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagLong
+    (
+        StudyKey,
+        SeriesKey,
+        InstanceKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
+
+/*************************************************************
+    ExtendedQueryTagPersonName Table
+    Add new index for DeleteInstance.
+**************************************************************/
+IF NOT EXISTS
+(
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_ExtendedQueryTagPersonName_StudyKey_SeriesKey_InstanceKey' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagPersonName')
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagPersonName
+    (
+        StudyKey,
+        SeriesKey,
+        InstanceKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
+
+/*************************************************************
+    ExtendedQueryTagString Table
+    Add new index for DeleteInstance.
+**************************************************************/
+IF NOT EXISTS
+(
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_ExtendedQueryTagString_StudyKey_SeriesKey_InstanceKey' AND object_id = OBJECT_ID('dbo.ExtendedQueryTagString')
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagString_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagString
+    (
+        StudyKey,
+        SeriesKey,
+        InstanceKey
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
+GO
+
+/*************************************************************
     Stored procedures that are no longer necessary
 *************************************************************/
 DROP PROCEDURE IF EXISTS dbo.BeginAddInstance, dbo.EndAddInstance
@@ -926,8 +1063,8 @@ AS
         OUTPUT deleted.TagKey
         INTO @deletedTags
     FROM dbo.ExtendedQueryTagError as XQTE
-    INNER JOIN @deletedInstances as d
-    ON XQTE.Watermark = d.Watermark
+    INNER JOIN @deletedInstances AS DI
+    ON XQTE.Watermark = DI.Watermark
 
     -- Update error count
     IF EXISTS (SELECT * FROM @deletedTags)
@@ -994,14 +1131,14 @@ AS
     FROM @deletedInstances
     WHERE Status = @createdStatus
 
-    UPDATE cf
-    SET cf.CurrentWatermark = NULL
-    FROM dbo.ChangeFeed cf WITH(FORCESEEK)
-    JOIN @deletedInstances d
-    ON cf.PartitionKey = d.PartitionKey
-        AND cf.StudyInstanceUid = d.StudyInstanceUid
-        AND cf.SeriesInstanceUid = d.SeriesInstanceUid
-        AND cf.SopInstanceUid = d.SopInstanceUid
+    UPDATE CF
+    SET CF.CurrentWatermark = NULL
+    FROM dbo.ChangeFeed AS CF WITH(FORCESEEK)
+    JOIN @deletedInstances AS DI
+    ON CF.PartitionKey = DI.PartitionKey
+        AND CF.StudyInstanceUid = DI.StudyInstanceUid
+        AND CF.SeriesInstanceUid = DI.SeriesInstanceUid
+        AND CF.SopInstanceUid = DI.SopInstanceUid
 
     -- If this is the last instance for a series, remove the series
     IF NOT EXISTS ( SELECT  *

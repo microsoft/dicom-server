@@ -133,6 +133,9 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_TagKey_StudyKey_Ser
     ON dbo.ExtendedQueryTagDateTime(TagKey, StudyKey, SeriesKey, InstanceKey)
     INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_StudyKey_SeriesKey_InstanceKey
+    ON dbo.ExtendedQueryTagDateTime(StudyKey, SeriesKey, InstanceKey) WITH (DATA_COMPRESSION = PAGE);
+
 CREATE TABLE dbo.ExtendedQueryTagDouble (
     TagKey      INT        NOT NULL,
     TagValue    FLOAT (53) NOT NULL,
@@ -150,6 +153,9 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_TagKey_StudyKey_Serie
     ON dbo.ExtendedQueryTagDouble(TagKey, StudyKey, SeriesKey, InstanceKey)
     INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_StudyKey_SeriesKey_InstanceKey
+    ON dbo.ExtendedQueryTagDouble(StudyKey, SeriesKey, InstanceKey) WITH (DATA_COMPRESSION = PAGE);
+
 CREATE TABLE dbo.ExtendedQueryTagError (
     TagKey      INT           NOT NULL,
     ErrorCode   SMALLINT      NOT NULL,
@@ -160,9 +166,12 @@ CREATE TABLE dbo.ExtendedQueryTagError (
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagError
     ON dbo.ExtendedQueryTagError(TagKey, Watermark);
 
-CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagError_CreatedTime_Watermark_TagKey
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagError_CreatedTime_Watermark_TagKey
     ON dbo.ExtendedQueryTagError(CreatedTime, Watermark, TagKey)
     INCLUDE(ErrorCode);
+
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagError_Watermark
+    ON dbo.ExtendedQueryTagError(Watermark);
 
 CREATE TABLE dbo.ExtendedQueryTagLong (
     TagKey      INT    NOT NULL,
@@ -180,6 +189,9 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong
 CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_TagKey_StudyKey_SeriesKey_InstanceKey
     ON dbo.ExtendedQueryTagLong(TagKey, StudyKey, SeriesKey, InstanceKey)
     INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
+
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_StudyKey_SeriesKey_InstanceKey
+    ON dbo.ExtendedQueryTagLong(StudyKey, SeriesKey, InstanceKey) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.ExtendedQueryTagOperation (
     TagKey      INT              NOT NULL,
@@ -212,6 +224,9 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_TagKey_StudyKey_S
     ON dbo.ExtendedQueryTagPersonName(TagKey, StudyKey, SeriesKey, InstanceKey)
     INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_StudyKey_SeriesKey_InstanceKey
+    ON dbo.ExtendedQueryTagPersonName(StudyKey, SeriesKey, InstanceKey) WITH (DATA_COMPRESSION = PAGE);
+
 CREATE UNIQUE NONCLUSTERED INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey
     ON dbo.ExtendedQueryTagPersonName(WatermarkAndTagKey) WITH (DATA_COMPRESSION = PAGE);
 
@@ -231,6 +246,9 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString
 CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagString_TagKey_StudyKey_SeriesKey_InstanceKey
     ON dbo.ExtendedQueryTagString(TagKey, StudyKey, SeriesKey, InstanceKey)
     INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
+
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagString_StudyKey_SeriesKey_InstanceKey
+    ON dbo.ExtendedQueryTagString(StudyKey, SeriesKey, InstanceKey) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.Instance (
     InstanceKey           BIGINT        NOT NULL,
@@ -1314,8 +1332,8 @@ DELETE XQTE
 OUTPUT deleted.TagKey INTO @deletedTags
 FROM   dbo.ExtendedQueryTagError AS XQTE
        INNER JOIN
-       @deletedInstances AS d
-       ON XQTE.Watermark = d.Watermark;
+       @deletedInstances AS DI
+       ON XQTE.Watermark = DI.Watermark;
 IF EXISTS (SELECT *
            FROM   @deletedTags)
     BEGIN
@@ -1374,15 +1392,15 @@ SELECT @deletedDate,
        Watermark
 FROM   @deletedInstances
 WHERE  Status = @createdStatus;
-UPDATE cf
-SET    cf.CurrentWatermark = NULL
-FROM   dbo.ChangeFeed AS cf WITH (FORCESEEK)
+UPDATE CF
+SET    CF.CurrentWatermark = NULL
+FROM   dbo.ChangeFeed AS CF WITH (FORCESEEK)
        INNER JOIN
-       @deletedInstances AS d
-       ON cf.PartitionKey = d.PartitionKey
-          AND cf.StudyInstanceUid = d.StudyInstanceUid
-          AND cf.SeriesInstanceUid = d.SeriesInstanceUid
-          AND cf.SopInstanceUid = d.SopInstanceUid;
+       @deletedInstances AS DI
+       ON CF.PartitionKey = DI.PartitionKey
+          AND CF.StudyInstanceUid = DI.StudyInstanceUid
+          AND CF.SeriesInstanceUid = DI.SeriesInstanceUid
+          AND CF.SopInstanceUid = DI.SopInstanceUid;
 IF NOT EXISTS (SELECT *
                FROM   dbo.Instance WITH (HOLDLOCK, UPDLOCK)
                WHERE  StudyKey = @studyKey

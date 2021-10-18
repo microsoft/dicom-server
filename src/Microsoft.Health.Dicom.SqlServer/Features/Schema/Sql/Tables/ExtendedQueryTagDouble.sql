@@ -38,3 +38,12 @@ INCLUDE
     Watermark
 )
 WITH (DATA_COMPRESSION = PAGE)
+
+-- Used in DeleteInstance
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagDouble
+(
+    StudyKey,
+    SeriesKey,
+    InstanceKey
+)
+WITH (DATA_COMPRESSION = PAGE)

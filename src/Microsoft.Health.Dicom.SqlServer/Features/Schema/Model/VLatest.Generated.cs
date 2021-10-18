@@ -139,6 +139,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableDateTime2Column TagValueUtc = new NullableDateTime2Column("TagValueUtc", 7);
             internal readonly Index IXC_ExtendedQueryTagDateTime = new Index("IXC_ExtendedQueryTagDateTime");
             internal readonly Index IX_ExtendedQueryTagDateTime_TagKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagDateTime_TagKey_StudyKey_SeriesKey_InstanceKey");
+            internal readonly Index IX_ExtendedQueryTagDateTime_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagDateTime_StudyKey_SeriesKey_InstanceKey");
         }
 
         internal class ExtendedQueryTagDoubleTable : Table
@@ -155,6 +156,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly Index IXC_ExtendedQueryTagDouble = new Index("IXC_ExtendedQueryTagDouble");
             internal readonly Index IX_ExtendedQueryTagDouble_TagKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagDouble_TagKey_StudyKey_SeriesKey_InstanceKey");
+            internal readonly Index IX_ExtendedQueryTagDouble_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagDouble_StudyKey_SeriesKey_InstanceKey");
         }
 
         internal class ExtendedQueryTagErrorTable : Table
@@ -169,6 +171,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly DateTime2Column CreatedTime = new DateTime2Column("CreatedTime", 7);
             internal readonly Index IXC_ExtendedQueryTagError = new Index("IXC_ExtendedQueryTagError");
             internal readonly Index IX_ExtendedQueryTagError_CreatedTime_Watermark_TagKey = new Index("IX_ExtendedQueryTagError_CreatedTime_Watermark_TagKey");
+            internal readonly Index IX_ExtendedQueryTagError_Watermark = new Index("IX_ExtendedQueryTagError_Watermark");
         }
 
         internal class ExtendedQueryTagLongTable : Table
@@ -185,6 +188,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly Index IXC_ExtendedQueryTagLong = new Index("IXC_ExtendedQueryTagLong");
             internal readonly Index IX_ExtendedQueryTagLong_TagKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagLong_TagKey_StudyKey_SeriesKey_InstanceKey");
+            internal readonly Index IX_ExtendedQueryTagLong_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagLong_StudyKey_SeriesKey_InstanceKey");
         }
 
         internal class ExtendedQueryTagOperationTable : Table
@@ -215,6 +219,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal const string TagValueWords = "TagValueWords";
             internal readonly Index IXC_ExtendedQueryTagPersonName = new Index("IXC_ExtendedQueryTagPersonName");
             internal readonly Index IX_ExtendedQueryTagPersonName_TagKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagPersonName_TagKey_StudyKey_SeriesKey_InstanceKey");
+            internal readonly Index IX_ExtendedQueryTagPersonName_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagPersonName_StudyKey_SeriesKey_InstanceKey");
             internal readonly Index IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey = new Index("IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey");
         }
 
@@ -232,6 +237,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly Index IXC_ExtendedQueryTagString = new Index("IXC_ExtendedQueryTagString");
             internal readonly Index IX_ExtendedQueryTagString_TagKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagString_TagKey_StudyKey_SeriesKey_InstanceKey");
+            internal readonly Index IX_ExtendedQueryTagString_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagString_StudyKey_SeriesKey_InstanceKey");
         }
 
         internal class InstanceTable : Table

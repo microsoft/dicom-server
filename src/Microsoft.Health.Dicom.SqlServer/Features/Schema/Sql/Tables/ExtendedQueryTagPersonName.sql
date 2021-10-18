@@ -42,6 +42,15 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
+-- Used in DeleteInstance
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagPersonName
+(
+    StudyKey,
+    SeriesKey,
+    InstanceKey
+)
+WITH (DATA_COMPRESSION = PAGE)
+
 CREATE UNIQUE NONCLUSTERED INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey ON dbo.ExtendedQueryTagPersonName
 (
     WatermarkAndTagKey
