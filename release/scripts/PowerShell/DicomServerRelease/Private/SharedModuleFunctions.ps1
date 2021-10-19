@@ -54,12 +54,12 @@ function Get-ServiceAudience {
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string]$TenantId
+        [string]$TenantIdDomain
     )
     # AppId Uri in single tenant applications will require use of default scheme or verified domains
     # It needs to be in one of the many formats mentioned in https://docs.microsoft.com/en-us/azure/active-directory/develop/reference-breaking-changes
-    # We use the format api://<tenantId>/<string>
-    return "api://$TenantId/$ServiceName"
+    # We use the format https://<string>.<tenantIdDomain>
+    return "https://$ServiceName.$TenantIdDomain"
 }
 
 function Get-UserId { 

@@ -8,14 +8,13 @@ function New-DicomServerApiApplicationRegistration {
     .EXAMPLE
     New-DicomServerApiApplicationRegistration -DicomServiceName "mydicomservice" -AppRoles admin,nurse
     .EXAMPLE
-    New-DicomServerApiApplicationRegistration -DicomServiceAudience "api://4a246071-07c3-44d4-a0e6-06570247ac0a/mydicomservice" -AppRoles admin,nurse
-    New-DicomServerApiApplicationRegistration -DicomServiceAudience "api://resoluteopensource.onmicrosoft.com/mydicomservice" -AppRoles admin,nurse
+    New-DicomServerApiApplicationRegistration -DicomServiceAudience "https://mydicomservice.resoluteopensource.onmicrosoft.com" -AppRoles admin,nurse
     .PARAMETER DicomServiceName
     Name of the Dicom service instance. 
     .PARAMETER DicomServiceAudience
     Full URL of the Dicom service.
-    .PARAMETER TenantId
-    Will be used to form identifier uri.
+    .PARAMETER TenantIdDomain
+    TenantId domain ("*.onmicrosoft.com") used for creating service audience while creating AAD application.
     .PARAMETER AppRoles
     Names of AppRoles to be defined in the AAD Application registration
     #>
@@ -31,7 +30,7 @@ function New-DicomServerApiApplicationRegistration {
 
         [Parameter(Mandatory = $true, ParameterSetName = 'ByDicomServiceName' )]
         [ValidateNotNullOrEmpty()]
-        [String]$TenantId,
+        [String]$TenantIdDomain,
 
         [Parameter(Mandatory = $false)]
         [String[]]$AppRoles = "admin"
@@ -48,7 +47,7 @@ function New-DicomServerApiApplicationRegistration {
     }
 
     if ([string]::IsNullOrEmpty($DicomServiceAudience)) {
-        $DicomServiceAudience = Get-ServiceAudience -ServiceName $DicomServiceName -TenantId $TenantId
+        $DicomServiceAudience = Get-ServiceAudience -ServiceName $DicomServiceName -TenantIdDomain $TenantIdDomain
     }
 
     $desiredAppRoles = @()
