@@ -28,7 +28,7 @@ jobs:
         Write-Host "##vso[task.setvariable variable=Resource]$(testEnvironmentUrl)"
         Write-Host "##vso[task.setvariable variable=security_scope]$(testApplicationScope)"
         Write-Host "##vso[task.setvariable variable=security_resource]$(testApplicationResource)"
-        Write-Host "##vso[task.setvariable variable=security_enabled]$false"
+        Write-Host "##vso[task.setvariable variable=security_enabled]$true"
 
         dotnet dev-certs https
 
