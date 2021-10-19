@@ -9,6 +9,8 @@ function Add-AadTestAuthEnvironment {
     Environment name used for the test environment. This is used throughout for making names unique.
     .PARAMETER TenantAdminCredential
     Credentials for a tenant admin user. Needed to grant admin consent to client apps.
+    .PARAMETER TenantId
+    TenantId used for creating service audience while creating AAD application
     #>
     param
     (
@@ -27,8 +29,9 @@ function Add-AadTestAuthEnvironment {
         [ValidateNotNull()]
         [pscredential]$TenantAdminCredential,
 
-        [Parameter(Mandatory = $false )]
-        [String]$WebAppSuffix = "azurewebsites.net",
+        [Parameter(Mandatory = $true )]
+        [ValidateNotNullOrEmpty()]
+        [String]$TenantId,
 
         [Parameter(Mandatory = $false)]
         [string]$ResourceGroupName = $EnvironmentName,
@@ -98,7 +101,7 @@ function Add-AadTestAuthEnvironment {
 
     Write-Host "Ensuring API application exists"
 
-    $dicomServiceAudience = Get-ServiceAudience -EnvironmentName $EnvironmentName -WebAppSuffix $WebAppSuffix
+    $dicomServiceAudience = Get-ServiceAudience -ServiceName $EnvironmentName -TenantId $TenantId
 
     $application = Get-AzureAdApplicationByIdentifierUri $dicomServiceAudience
 
