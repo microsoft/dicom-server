@@ -11,8 +11,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
-            long version)
-            : base(studyInstanceUid, seriesInstanceUid, sopInstanceUid)
+            long version,
+            int partitionKey = default)
+            : base(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partitionKey)
         {
             Version = version;
         }
@@ -33,6 +34,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
             => base.GetHashCode() ^ Version.GetHashCode();
 
         public override string ToString()
-            => $"StudyInstanceUID: {StudyInstanceUid}, SeriesInstanceUID: {SeriesInstanceUid}, SOPInstanceUID: {SopInstanceUid}, Version: {Version}";
+            => base.ToString() + $"Version: {Version}";
     }
 }

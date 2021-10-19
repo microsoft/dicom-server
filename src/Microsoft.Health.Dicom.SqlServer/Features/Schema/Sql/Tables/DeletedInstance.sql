@@ -10,17 +10,20 @@ CREATE TABLE dbo.DeletedInstance
     Watermark           BIGINT            NOT NULL,
     DeletedDateTime     DATETIMEOFFSET(0) NOT NULL,
     RetryCount          INT               NOT NULL,
-    CleanupAfter        DATETIMEOFFSET(0) NOT NULL
+    CleanupAfter        DATETIMEOFFSET(0) NOT NULL,
+    PartitionKey        INT               NOT NULL DEFAULT 1    --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_DeletedInstance ON dbo.DeletedInstance
 (
+    PartitionKey,
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid,
-    WaterMark
+    Watermark
 )
 
+-- Used in RetrieveDeletedInstance
 CREATE NONCLUSTERED INDEX IX_DeletedInstance_RetryCount_CleanupAfter ON dbo.DeletedInstance
 (
     RetryCount,
@@ -28,6 +31,7 @@ CREATE NONCLUSTERED INDEX IX_DeletedInstance_RetryCount_CleanupAfter ON dbo.Dele
 )
 INCLUDE
 (
+    PartitionKey,
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid,

@@ -11,5 +11,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
         public const int Max = (int)SchemaVersion.V6;
         public const int SupportExtendedQueryTagSchemaVersion = (int)SchemaVersion.V4;
         public const int SupportDTAndTMInExtendedQueryTagSchemaVersion = (int)SchemaVersion.V5;
+        public const int SupportDataPartitionSchemaVersion = (int)SchemaVersion.V6;
     }
 }

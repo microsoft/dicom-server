@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
 
         public virtual SchemaVersion Version => SchemaVersion.V1;
 
-        public Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
+        public virtual Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
 
-        public Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
+        public virtual Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
             string studyInstanceUid,
             string seriesInstanceUid,
             CancellationToken cancellationToken)
@@ -56,11 +56,21 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             return GetInstanceIdentifierImp(studyInstanceUid, cancellationToken, seriesInstanceUid);
         }
 
-        public Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
+        public virtual Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
             string studyInstanceUid,
             CancellationToken cancellationToken)
         {
             return GetInstanceIdentifierImp(studyInstanceUid, cancellationToken);
+        }
+
+        public virtual Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesAsync(
+            int batchSize,
+            int batchCount,
+            IndexStatus indexStatus,
+            long? maxWatermark = null,
+            CancellationToken cancellationToken = default)
+        {
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
 
         private async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierImp(
@@ -101,16 +111,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             }
 
             return results;
-        }
-
-        public virtual Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesAsync(
-            int batchSize,
-            int batchCount,
-            IndexStatus indexStatus,
-            long? maxWatermark = null,
-            CancellationToken cancellationToken = default)
-        {
-            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
     }
 }

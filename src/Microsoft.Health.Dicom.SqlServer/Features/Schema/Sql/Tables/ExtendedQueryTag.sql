@@ -23,6 +23,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
     TagKey
 )
 
+-- Used in GetExtendedQueryTag
 CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath ON dbo.ExtendedQueryTag
 (
     TagPath

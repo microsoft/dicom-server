@@ -10,13 +10,15 @@ CREATE TABLE dbo.ExtendedQueryTagError (
     CreatedTime             DATETIME2(7)    NOT NULL,
 )
 
+-- Used in DeleteExtendedQueryTag
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagError ON dbo.ExtendedQueryTagError
 (
     TagKey,
     Watermark
 )
 
-CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagError_CreatedTime_Watermark_TagKey ON dbo.ExtendedQueryTagError
+-- Used in GetExtendedQueryTagErrors
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagError_CreatedTime_Watermark_TagKey ON dbo.ExtendedQueryTagError
 (
     CreatedTime,
     Watermark,
@@ -25,4 +27,10 @@ CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagError_CreatedTime_Watermark_TagKey 
 INCLUDE
 (
     ErrorCode
+)
+
+-- Used in DeleteInstance
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagError_Watermark ON dbo.ExtendedQueryTagError
+(
+    Watermark
 )
