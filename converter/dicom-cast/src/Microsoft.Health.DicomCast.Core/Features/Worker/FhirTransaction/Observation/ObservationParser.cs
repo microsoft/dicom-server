@@ -58,7 +58,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
             try
             {
-
                 if (_irradiationEvents.Contains(structuredReport.Code))
                 {
                     observations.Add(CreateIrradiationEvent(dataset, patientReference));

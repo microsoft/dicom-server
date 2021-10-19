@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -29,30 +30,58 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
             static FhirTransactionRequestResponsePropertyAccessor Create(PropertyInfo interfacePropertyInfo)
             {
-                string propertyName = interfacePropertyInfo.Name;
+                Func<FhirTransactionRequest, IEnumerable<FhirTransactionRequestEntry>> requestPropertyGetterDelegate = CreateGetter(interfacePropertyInfo);
 
-                // Property getter from the request. This will generate equivalent of:
-                // request => request.PropertyX;
-                ParameterExpression requestParameterExpression = Expression.Parameter(typeof(FhirTransactionRequest));
-                MemberExpression propertyExpression = Expression.Property(requestParameterExpression, propertyName);
+                Action<FhirTransactionResponse, IEnumerable<FhirTransactionResponseEntry>> responsePropertySetterDelegate = CreateSetter(interfacePropertyInfo);
 
-                Func<FhirTransactionRequest, FhirTransactionRequestEntry> requestPropertyGetterDelegate = Expression.Lambda<Func<FhirTransactionRequest, FhirTransactionRequestEntry>>(
-                    propertyExpression,
-                    requestParameterExpression).Compile();
-
-                // Property setter for the response. This will generate equivalent of:
-                // (response, responseEntry) => response.PropertyX = responseEntry;
-                ParameterExpression responseParameterExpression = Expression.Parameter(typeof(FhirTransactionResponse));
-                propertyExpression = Expression.Property(responseParameterExpression, propertyName);
-                ParameterExpression responseEntryParameterExpression = Expression.Parameter(typeof(FhirTransactionResponseEntry), "responseEntry");
-
-                Action<FhirTransactionResponse, FhirTransactionResponseEntry> responsePropertySetterDelegate = Expression.Lambda<Action<FhirTransactionResponse, FhirTransactionResponseEntry>>(
-                    Expression.Assign(propertyExpression, responseEntryParameterExpression),
-                    responseParameterExpression,
-                    responseEntryParameterExpression).Compile();
-
-                return new FhirTransactionRequestResponsePropertyAccessor(propertyName, requestPropertyGetterDelegate, responsePropertySetterDelegate);
+                return new FhirTransactionRequestResponsePropertyAccessor(interfacePropertyInfo.Name, requestPropertyGetterDelegate, responsePropertySetterDelegate);
             }
+        }
+
+        private static Func<FhirTransactionRequest, IEnumerable<FhirTransactionRequestEntry>> CreateGetter(PropertyInfo propertyInfo)
+        {
+            ParameterExpression paramExpr = Expression.Parameter(typeof(FhirTransactionRequest));
+            MemberExpression getPropertyExpr = Expression.Property(paramExpr, propertyInfo.Name);
+
+            Expression bodyExpr;
+            if (typeof(IEnumerable).IsAssignableFrom(propertyInfo.PropertyType))
+            {
+                bodyExpr = getPropertyExpr;
+            }
+            else
+            {
+                // TODO: Do these need to be cast to IEnumerable<FhirTransactionRequestEntry> or can expr tree handle it?
+                bodyExpr = Expression.NewArrayInit(typeof(FhirTransactionRequestEntry), getPropertyExpr);
+            }
+
+            return Expression.Lambda<Func<FhirTransactionRequest, IEnumerable<FhirTransactionRequestEntry>>>(bodyExpr, paramExpr).Compile();
+        }
+
+        private static Action<FhirTransactionResponse, IEnumerable<FhirTransactionResponseEntry>> CreateSetter(PropertyInfo propertyInfo)
+        {
+            ParameterExpression responseParamExpr = Expression.Parameter(typeof(FhirTransactionResponse));
+            ParameterExpression entryParamExpr = Expression.Parameter(typeof(IEnumerable<FhirTransactionResponseEntry>));
+            MemberExpression propertyExpr = Expression.Property(responseParamExpr, propertyInfo.Name);
+
+            Expression bodyExpr;
+            if (typeof(IEnumerable).IsAssignableFrom(propertyInfo.PropertyType))
+            {
+                bodyExpr = Expression.Assign(propertyExpr, entryParamExpr);
+            }
+            else
+            {
+                var singleMethod = typeof(Enumerable)
+                    .GetMethods()
+                    .FirstOrDefault(
+                        x => x.Name.Equals("Single", StringComparison.OrdinalIgnoreCase) &&
+                             x.IsGenericMethod &&
+                             x.GetParameters().Length == 1)?
+                    .MakeGenericMethod(typeof(FhirTransactionResponseEntry));
+
+                bodyExpr = Expression.Assign(propertyExpr, Expression.Call(null, singleMethod, entryParamExpr));
+            }
+
+            return Expression.Lambda<Action<FhirTransactionResponse, IEnumerable<FhirTransactionResponseEntry>>>(bodyExpr, responseParamExpr, entryParamExpr).Compile();
         }
 
         /// <inheritdoc/>
