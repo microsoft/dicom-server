@@ -9,7 +9,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
     public sealed class PartitionVersionedRouteAttribute : RouteAttribute
     {
         public PartitionVersionedRouteAttribute(string template)
-            : base(KnownRoutes.PartitionRoute + "/v{version:apiVersion}/" + template)
+            : base("/v{version:apiVersion}/" + KnownRoutes.PartitionRoute + "/" + template)
         {
         }
     }
