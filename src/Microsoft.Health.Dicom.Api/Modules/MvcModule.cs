@@ -23,6 +23,7 @@ namespace Microsoft.Health.Dicom.Api.Modules
             {
                 // This filter should run first because it populates data for DicomRequestContext.
                 options.Filters.Add(typeof(DicomRequestContextRouteDataPopulatingFilterAttribute), 0);
+                options.Filters.Add(typeof(PopulateDataPartitionFilterAttribute), 1);
             });
 
             services.AddHttpContextAccessor();
