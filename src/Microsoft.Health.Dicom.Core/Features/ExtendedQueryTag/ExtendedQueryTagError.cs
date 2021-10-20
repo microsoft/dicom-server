@@ -18,14 +18,18 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
-            string errorMessage)
+            string errorMessage,
+            string partitionName = default)
         {
             StudyInstanceUid = EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid);
             SeriesInstanceUid = EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid);
             SopInstanceUid = EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid);
             CreatedTime = createdTime;
             ErrorMessage = EnsureArg.IsNotNullOrWhiteSpace(errorMessage);
+            PartitionName = partitionName;
         }
+
+        public string PartitionName { get; }
 
         public string StudyInstanceUid { get; }
 

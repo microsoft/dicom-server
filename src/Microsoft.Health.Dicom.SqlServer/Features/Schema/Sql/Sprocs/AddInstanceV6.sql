@@ -1,11 +1,19 @@
-﻿/***************************************************************************************/
+﻿/*************************************************************
+    Stored procedure for adding an instance.
+**************************************************************/
+--
 -- STORED PROCEDURE
---     BeginAddInstance
+--     AddInstanceV6
+--
+-- FIRST SCHEMA VERSION
+--     6
 --
 -- DESCRIPTION
---     Begins the addition of a DICOM instance.
+--     Adds a DICOM instance, now with partition.
 --
 -- PARAMETERS
+--     @partitionKey
+--         * The system identified of the data partition.
 --     @studyInstanceUid
 --         * The study instance UID.
 --     @seriesInstanceUid
@@ -40,8 +48,9 @@
 --         * PersonName extended query tag data
 -- RETURN VALUE
 --     The watermark (version).
-/***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.BeginAddInstance
+------------------------------------------------------------------------
+CREATE OR ALTER PROCEDURE dbo.AddInstanceV6
+    @partitionKey                       INT,
     @studyInstanceUid                   VARCHAR(64),
     @seriesInstanceUid                  VARCHAR(64),
     @sopInstanceUid                     VARCHAR(64),
@@ -54,9 +63,17 @@ CREATE OR ALTER PROCEDURE dbo.BeginAddInstance
     @modality                           NVARCHAR(16) = NULL,
     @performedProcedureStepStartDate    DATE = NULL,
     @patientBirthDate                   DATE = NULL,
-    @manufacturerModelName              NVARCHAR(64) = NULL
+    @manufacturerModelName              NVARCHAR(64) = NULL,
+    @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY,
+    @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY,
+    @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY,
+    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY,
+    @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY,
+    @initialStatus                      TINYINT
 AS
+BEGIN
     SET NOCOUNT ON
+
     SET XACT_ABORT ON
     BEGIN TRANSACTION
 
@@ -68,8 +85,9 @@ AS
     DECLARE @instanceKey BIGINT
 
     SELECT @existingStatus = Status
-    FROM dbo.Instance WITH(HOLDLOCK)
-    WHERE StudyInstanceUid = @studyInstanceUid
+    FROM dbo.Instance
+    WHERE PartitionKey = @partitionKey
+        AND StudyInstanceUid = @studyInstanceUid
         AND SeriesInstanceUid = @seriesInstanceUid
         AND SopInstanceUid = @sopInstanceUid
 
@@ -83,17 +101,18 @@ AS
 
     -- Insert Study
     SELECT @studyKey = StudyKey
-    FROM dbo.Study WITH(HOLDLOCK)
-    WHERE StudyInstanceUid = @studyInstanceUid
+    FROM dbo.Study WITH(UPDLOCK)
+    WHERE PartitionKey = @partitionKey
+        AND StudyInstanceUid = @studyInstanceUid
 
     IF @@ROWCOUNT = 0
     BEGIN
         SET @studyKey = NEXT VALUE FOR dbo.StudyKeySequence
 
         INSERT INTO dbo.Study
-            (StudyKey, StudyInstanceUid, PatientId, PatientName, PatientBirthDate, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
+            (PartitionKey, StudyKey, StudyInstanceUid, PatientId, PatientName, PatientBirthDate, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
         VALUES
-            (@studyKey, @studyInstanceUid, @patientId, @patientName, @patientBirthDate, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
+            (@partitionKey, @studyKey, @studyInstanceUid, @patientId, @patientName, @patientBirthDate, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
     END
     ELSE
     BEGIN
@@ -105,18 +124,19 @@ AS
 
     -- Insert Series
     SELECT @seriesKey = SeriesKey
-    FROM dbo.Series WITH(HOLDLOCK)
+    FROM dbo.Series WITH(UPDLOCK)
     WHERE StudyKey = @studyKey
     AND SeriesInstanceUid = @seriesInstanceUid
+    AND PartitionKey = @partitionKey
 
     IF @@ROWCOUNT = 0
     BEGIN
         SET @seriesKey = NEXT VALUE FOR dbo.SeriesKeySequence
 
         INSERT INTO dbo.Series
-            (StudyKey, SeriesKey, SeriesInstanceUid, Modality, PerformedProcedureStepStartDate, ManufacturerModelName)
+            (PartitionKey, StudyKey, SeriesKey, SeriesInstanceUid, Modality, PerformedProcedureStepStartDate, ManufacturerModelName)
         VALUES
-            (@studyKey, @seriesKey, @seriesInstanceUid, @modality, @performedProcedureStepStartDate, @manufacturerModelName)
+            (@partitionKey, @studyKey, @seriesKey, @seriesInstanceUid, @modality, @performedProcedureStepStartDate, @manufacturerModelName)
     END
     ELSE
     BEGIN
@@ -125,14 +145,36 @@ AS
         SET Modality = @modality, PerformedProcedureStepStartDate = @performedProcedureStepStartDate, ManufacturerModelName = @manufacturerModelName
         WHERE SeriesKey = @seriesKey
         AND StudyKey = @studyKey
+        AND PartitionKey = @partitionKey
     END
 
     -- Insert Instance
     INSERT INTO dbo.Instance
-        (StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
+        (PartitionKey, StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
     VALUES
-        (@studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, 0, @currentDate, @currentDate)
+        (@partitionKey, @studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
+
+    BEGIN TRY
+
+        EXEC dbo.IIndexInstanceCore
+            @studyKey,
+            @seriesKey,
+            @instanceKey,
+            @newWatermark,
+            @stringExtendedQueryTags,
+            @longExtendedQueryTags,
+            @doubleExtendedQueryTags,
+            @dateTimeExtendedQueryTags,
+            @personNameExtendedQueryTags
+
+    END TRY
+    BEGIN CATCH
+
+        THROW
+
+    END CATCH
 
     SELECT @newWatermark
 
     COMMIT TRANSACTION
+END

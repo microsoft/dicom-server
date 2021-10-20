@@ -13,10 +13,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error;
+using Microsoft.Health.Dicom.SqlServer.Features.Partition;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Store;
@@ -100,6 +102,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     new SqlIndexDataStoreV3(SqlConnectionWrapperFactory),
                     new SqlIndexDataStoreV4(SqlConnectionWrapperFactory),
                     new SqlIndexDataStoreV5(SqlConnectionWrapperFactory),
+                    new SqlIndexDataStoreV6(SqlConnectionWrapperFactory),
                 }));
 
             InstanceStore = new SqlInstanceStore(new VersionedCache<ISqlInstanceStore>(
@@ -111,7 +114,15 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     new SqlInstanceStoreV3(SqlConnectionWrapperFactory),
                     new SqlInstanceStoreV4(SqlConnectionWrapperFactory),
                     new SqlInstanceStoreV5(SqlConnectionWrapperFactory),
+                    new SqlInstanceStoreV6(SqlConnectionWrapperFactory),
                 }));
+
+            PartitionStore = new SqlPartitionStore(new VersionedCache<ISqlPartitionStore>(
+               schemaResolver,
+               new[]
+               {
+                    new SqlPartitionStoreV6(SqlConnectionWrapperFactory),
+               }));
 
             ExtendedQueryTagStore = new SqlExtendedQueryTagStore(new VersionedCache<ISqlExtendedQueryTagStore>(
                 schemaResolver,
@@ -122,6 +133,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     new SqlExtendedQueryTagStoreV3(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV3>.Instance),
                     new SqlExtendedQueryTagStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV4>.Instance),
                     new SqlExtendedQueryTagStoreV5(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV5>.Instance),
+                    new SqlExtendedQueryTagStoreV6(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV6>.Instance),
                 }));
 
             ExtendedQueryTagErrorStore = new SqlExtendedQueryTagErrorStore(new VersionedCache<ISqlExtendedQueryTagErrorStore>(
@@ -133,6 +145,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     new SqlExtendedQueryTagErrorStoreV3(),
                     new SqlExtendedQueryTagErrorStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV4>.Instance),
                     new SqlExtendedQueryTagErrorStoreV5(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV5>.Instance),
+                    new SqlExtendedQueryTagErrorStoreV6(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV6>.Instance),
                }));
             IndexDataStoreTestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
             ExtendedQueryTagStoreTestHelper = new ExtendedQueryTagStoreTestHelper(TestConnectionString);
@@ -152,6 +165,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public IIndexDataStore IndexDataStore { get; }
 
         public IInstanceStore InstanceStore { get; }
+
+        public IPartitionStore PartitionStore { get; }
 
         public IExtendedQueryTagStore ExtendedQueryTagStore { get; }
 

@@ -15,7 +15,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
         public InstanceIdentifier(
             string studyInstanceUid,
             string seriesInstanceUid,
-            string sopInstanceUid)
+            string sopInstanceUid,
+            int partitionKey = default)
         {
             EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
@@ -24,6 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
             StudyInstanceUid = studyInstanceUid;
             SeriesInstanceUid = seriesInstanceUid;
             SopInstanceUid = sopInstanceUid;
+            PartitionKey = partitionKey;
         }
 
         public string StudyInstanceUid { get; }
@@ -31,6 +33,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
         public string SeriesInstanceUid { get; }
 
         public string SopInstanceUid { get; }
+
+        public int PartitionKey { get; }
 
         public override bool Equals(object obj)
         {
@@ -45,9 +49,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
         }
 
         public override int GetHashCode()
-            => (StudyInstanceUid + SeriesInstanceUid + SopInstanceUid).GetHashCode(EqualsStringComparison);
+            => (PartitionKey + StudyInstanceUid + SeriesInstanceUid + SopInstanceUid).GetHashCode(EqualsStringComparison);
 
         public override string ToString()
-            => $"StudyInstanceUID: {StudyInstanceUid}, SeriesInstanceUID: {SeriesInstanceUid}, SOPInstanceUID: {SopInstanceUid}";
+            => $"PartitionKey: {PartitionKey}, StudyInstanceUID: {StudyInstanceUid}, SeriesInstanceUID: {SeriesInstanceUid}, SOPInstanceUID: {SopInstanceUid}";
     }
 }

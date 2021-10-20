@@ -5,6 +5,12 @@
     <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
   </PropertyGroup>
 
+  <!-- Properties used by sql task to generate full script-->
+  <PropertyGroup>
+    <LatestSchemaVersion>6</LatestSchemaVersion>
+    <GeneratedFullScriptPath>Features\Schema\Migrations\$(LatestSchemaVersion).sql</GeneratedFullScriptPath>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="fo-dicom" Version="$(FoDicomVersion)" />
@@ -42,105 +48,39 @@
       <LastGenOutput>DicomSqlServerResource.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Features\Schema\Model\" />
-    <Folder Include="Features\Schema\Sql\Scripts" />
-    <Folder Include="Features\Schema\Sql\Sprocs" />
-    <Folder Include="Features\Schema\Sql\Tables" />
-    <Folder Include="Features\Schema\Sql\Types" />
-  </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Features\Schema\Migrations\1.sql">
+    <EmbeddedResource Include="Features\Schema\Migrations\*.diff.sql" />
+    <EmbeddedResource Include="Features\Schema\Migrations\*.sql" Exclude="Features\Schema\Migrations\*.diff.sql">
       <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
       <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
-      <MutableClassVersion>1</MutableClassVersion>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Features\Schema\Migrations\2.diff.sql" />
-    <EmbeddedResource Include="Features\Schema\Migrations\2.sql">
-      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
-      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
-      <MutableClassVersion>2</MutableClassVersion>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Features\Schema\Migrations\3.diff.sql" />
-    <EmbeddedResource Include="Features\Schema\Migrations\3.sql">
-      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
-      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
-      <MutableClassVersion>3</MutableClassVersion>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Features\Schema\Migrations\4.diff.sql" />
-    <EmbeddedResource Include="Features\Schema\Migrations\4.sql">
-      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
-      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
-      <MutableClassVersion>4</MutableClassVersion>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Features\Schema\Migrations\5.diff.sql" />
-    <EmbeddedResource Include="Features\Schema\Migrations\5.sql">
-      <InputToImmutableSqlGenerator>true</InputToImmutableSqlGenerator>
-      <InputToMutableSqlGenerator>true</InputToMutableSqlGenerator>
-      <MutableClassVersion>Latest</MutableClassVersion>
+      <MutableClassVersion Condition="'%(Filename)' != '$(LatestSchemaVersion)'">%(Filename)</MutableClassVersion>
+      <MutableClassVersion Condition="'%(Filename)' == '$(LatestSchemaVersion)'">Latest</MutableClassVersion>
     </EmbeddedResource>
   </ItemGroup>
 
-  <!-- Add new sql changes here-->
   <!-- If this sql needs to be in a transaction, tag it TSqlScript otherwise use SqlScript -->
   <ItemGroup>
-    <TInitSqlScript Include="Features\Schema\Sql\Scripts\TransactionCheck.sql" />
-
-    <TSqlScript Include="Features\Schema\Sql\Tables\Instance.sql" />
-    <TSqlScript Include="Features\Schema\Sql\Tables\Study.sql" />
-    <TSqlScript Include="Features\Schema\Sql\Tables\Series.sql" />
-    <TSqlScript Include="Features\Schema\Sql\Tables\DeletedInstance.sql" />
-    <TSqlScript Include="Features\Schema\Sql\Tables\ChangeFeed.sql" />
-    <TSqlScript Include="Features\Schema\Sql\Tables\ExtendedQueryTag.sql" />
-    <TSqlScript Include="Features\Schema\Sql\Tables\ExtendedQueryTagError.sql" />
-    <TSqlScript Include="Features\Schema\Sql\Tables\ExtendedQueryTagOperation.sql" />
-    <TSqlScript Include="Features\Schema\Sql\Tables\ExtendedQueryTagString.sql" />
-    <TSqlScript Include="Features\Schema\Sql\Tables\ExtendedQueryTagLong.sql" />
-    <TSqlScript Include="Features\Schema\Sql\Tables\ExtendedQueryTagDouble.sql" />
-    <TSqlScript Include="Features\Schema\Sql\Tables\ExtendedQueryTagDateTime.sql" />
-    <TSqlScript Include="Features\Schema\Sql\Tables\ExtendedQueryTagPersonName.sql" />
-    <TSqlScript Include="Features\Schema\Sql\Types\Types.sql" />
-    <TSqlScript Include="Features\Schema\Sql\Scripts\Sequences.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\AddInstance.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\AddInstanceV2.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\UpdateInstanceStatus.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\BeginAddInstance.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\EndAddInstance.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\GetInstance.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\GetInstancesByWatermarkRange.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\GetInstanceBatches.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\DeleteInstance.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\RetrieveDeletedInstance.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\DeleteDeletedInstance.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\IncrementDeletedInstanceRetry.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\GetChangeFeed.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\GetChangeFeedLatest.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\GetExtendedQueryTag.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\GetExtendedQueryTags.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\GetExtendedQueryTagsByKey.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\GetExtendedQueryTagErrors.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\GetExtendedQueryTagsByOperation.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\AddExtendedQueryTags.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\UpdateExtendedQueryTagQueryStatus.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\AddExtendedQueryTagError.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\DeleteExtendedQueryTag.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\IndexInstance.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\IndexInstanceV2.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\AssignReindexingOperation.sql" />
-    <SqlScript Include="Features\Schema\Sql\Sprocs\CompleteReindexing.sql" />
-
     <SqlScript Include="Features\Schema\Sql\Scripts\FullText.sql" />
+    <SqlScript Include="Features\Schema\Sql\Sprocs\*.sql" />
   </ItemGroup>
-  
-  <!-- Properties used by sql task to generate full script-->
-  <PropertyGroup>
-    <LatestSchemaVersion>5</LatestSchemaVersion>
-    <IntermediateOutputPath>$(MSBuildThisFileDirectory)obj\$(Configuration)</IntermediateOutputPath>
-    <GeneratedFullScriptPath>Features\Schema\Migrations\$(LatestSchemaVersion).sql</GeneratedFullScriptPath>
-  </PropertyGroup>
+
+  <ItemGroup>
+    <TSqlScript Include="Features\Schema\Sql\Scripts\Sequences.sql" />
+    <TSqlScript Include="Features\Schema\Sql\Tables\*.sql" />
+    <TSqlScript Include="Features\Schema\Sql\Types\*.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Features\Schema\Sql\Sprocs\AddPartition.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <TInitSqlScript Include="Features\Schema\Sql\Scripts\TransactionCheck.sql" />
+  </ItemGroup>
+
   <!-- Target contains sql build tasks -->
-  <Import Project="$(NuGetPackageRoot)microsoft.health.tools.sql.tasks\$(HealthcareSharedPackageVersion)\build\Sql.targets" />  
+  <Import Project="$(NuGetPackageRoot)microsoft.health.tools.sql.tasks\$(HealthcareSharedPackageVersion)\build\Sql.targets" />
 
   <Target Name="ComputeGeneratorInputs" BeforeTargets="GenerateFiles">
     <ItemGroup>
