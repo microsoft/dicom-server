@@ -8,9 +8,9 @@ Extended query tags allows querying over DICOM tags that are not supported by th
 
 ## Apis
 
-API Version: v1.0-prerelease
+API Version: `v1.0-prerelease`
 
-To help manage the supported tags in a given DICOM server instance, a few APIs are available.
+To help manage the supported tags in a given DICOM server instance, the following API endpoints have been added.
 
 | Api                                                          | Description                                  |
 | ------------------------------------------------------------ | -------------------------------------------- |
@@ -24,7 +24,7 @@ To help manage the supported tags in a given DICOM server instance, a few APIs a
 
 ### Add Extended Query Tags 
 
-Add extended query tags, and starts long-running operation which reindexes DICOM instances stored in the past.
+Add extended query tags, and starts long-running operation which reindexes current DICOM instances.
 
 ```http
 POST https://{host}/extendedquerytags
