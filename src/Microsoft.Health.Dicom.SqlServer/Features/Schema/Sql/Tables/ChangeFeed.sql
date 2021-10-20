@@ -15,7 +15,8 @@ CREATE TABLE dbo.ChangeFeed (
     SeriesInstanceUid       VARCHAR(64)          NOT NULL,
     SopInstanceUid          VARCHAR(64)          NOT NULL,
     OriginalWatermark       BIGINT               NOT NULL,
-    CurrentWatermark        BIGINT               NULL
+    CurrentWatermark        BIGINT               NULL,
+    PartitionKey            INT                  NOT NULL DEFAULT 1    --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
@@ -23,9 +24,11 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
     Sequence
 )
 
-CREATE NONCLUSTERED INDEX IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.ChangeFeed
+-- Used to update all change feed entries for a particular instance (e.g. DeleteInstance)
+CREATE NONCLUSTERED INDEX IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid ON dbo.ChangeFeed
 (
+    PartitionKey,
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid
-)
+) WITH (DATA_COMPRESSION = PAGE)

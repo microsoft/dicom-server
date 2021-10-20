@@ -8,14 +8,13 @@ function New-DicomServerApiApplicationRegistration {
     .EXAMPLE
     New-DicomServerApiApplicationRegistration -DicomServiceName "mydicomservice" -AppRoles admin,nurse
     .EXAMPLE
-    New-DicomServerApiApplicationRegistration -DicomServiceAudience "https://mydicomservice.azurewebsites.net" -AppRoles admin,nurse
+    New-DicomServerApiApplicationRegistration -DicomServiceAudience "https://mydicomservice.resoluteopensource.onmicrosoft.com" -AppRoles admin,nurse
     .PARAMETER DicomServiceName
     Name of the Dicom service instance. 
     .PARAMETER DicomServiceAudience
     Full URL of the Dicom service.
-    .PARAMETER WebAppSuffix
-    Will be appended to Dicom service name to form the DicomServiceAudience if one is not supplied,
-    e.g., azurewebsites.net or azurewebsites.us (for US Government cloud)
+    .PARAMETER TenantIdDomain
+    TenantId domain ("*.onmicrosoft.com") used for creating service audience while creating AAD application.
     .PARAMETER AppRoles
     Names of AppRoles to be defined in the AAD Application registration
     #>
@@ -29,8 +28,9 @@ function New-DicomServerApiApplicationRegistration {
         [ValidateNotNullOrEmpty()]
         [string]$DicomServiceAudience,
 
-        [Parameter(Mandatory = $false, ParameterSetName = 'ByDicomServiceName' )]
-        [String]$WebAppSuffix = "azurewebsites.net",
+        [Parameter(Mandatory = $true, ParameterSetName = 'ByDicomServiceName' )]
+        [ValidateNotNullOrEmpty()]
+        [String]$TenantIdDomain,
 
         [Parameter(Mandatory = $false)]
         [String[]]$AppRoles = "admin"
@@ -47,7 +47,7 @@ function New-DicomServerApiApplicationRegistration {
     }
 
     if ([string]::IsNullOrEmpty($DicomServiceAudience)) {
-        $DicomServiceAudience = "https://$DicomServiceName.$WebAppSuffix"
+        $DicomServiceAudience = Get-ServiceAudience -ServiceName $DicomServiceName -TenantIdDomain $TenantIdDomain
     }
 
     $desiredAppRoles = @()

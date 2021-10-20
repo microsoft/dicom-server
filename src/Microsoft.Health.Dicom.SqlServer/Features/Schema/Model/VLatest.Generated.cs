@@ -24,35 +24,50 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static ExtendedQueryTagPersonNameTable ExtendedQueryTagPersonName = new ExtendedQueryTagPersonNameTable();
         internal readonly static ExtendedQueryTagStringTable ExtendedQueryTagString = new ExtendedQueryTagStringTable();
         internal readonly static InstanceTable Instance = new InstanceTable();
+        internal readonly static PartitionTable Partition = new PartitionTable();
         internal readonly static SeriesTable Series = new SeriesTable();
         internal readonly static StudyTable Study = new StudyTable();
         internal readonly static AddExtendedQueryTagErrorProcedure AddExtendedQueryTagError = new AddExtendedQueryTagErrorProcedure();
         internal readonly static AddExtendedQueryTagsProcedure AddExtendedQueryTags = new AddExtendedQueryTagsProcedure();
         internal readonly static AddInstanceProcedure AddInstance = new AddInstanceProcedure();
         internal readonly static AddInstanceV2Procedure AddInstanceV2 = new AddInstanceV2Procedure();
+        internal readonly static AddInstanceV6Procedure AddInstanceV6 = new AddInstanceV6Procedure();
+        internal readonly static AddPartitionProcedure AddPartition = new AddPartitionProcedure();
         internal readonly static AssignReindexingOperationProcedure AssignReindexingOperation = new AssignReindexingOperationProcedure();
-        internal readonly static BeginAddInstanceProcedure BeginAddInstance = new BeginAddInstanceProcedure();
         internal readonly static CompleteReindexingProcedure CompleteReindexing = new CompleteReindexingProcedure();
         internal readonly static DeleteDeletedInstanceProcedure DeleteDeletedInstance = new DeleteDeletedInstanceProcedure();
+        internal readonly static DeleteDeletedInstanceV6Procedure DeleteDeletedInstanceV6 = new DeleteDeletedInstanceV6Procedure();
         internal readonly static DeleteExtendedQueryTagProcedure DeleteExtendedQueryTag = new DeleteExtendedQueryTagProcedure();
         internal readonly static DeleteInstanceProcedure DeleteInstance = new DeleteInstanceProcedure();
-        internal readonly static EndAddInstanceProcedure EndAddInstance = new EndAddInstanceProcedure();
+        internal readonly static DeleteInstanceV6Procedure DeleteInstanceV6 = new DeleteInstanceV6Procedure();
         internal readonly static GetChangeFeedProcedure GetChangeFeed = new GetChangeFeedProcedure();
         internal readonly static GetChangeFeedLatestProcedure GetChangeFeedLatest = new GetChangeFeedLatestProcedure();
+        internal readonly static GetChangeFeedLatestV6Procedure GetChangeFeedLatestV6 = new GetChangeFeedLatestV6Procedure();
+        internal readonly static GetChangeFeedV6Procedure GetChangeFeedV6 = new GetChangeFeedV6Procedure();
         internal readonly static GetExtendedQueryTagProcedure GetExtendedQueryTag = new GetExtendedQueryTagProcedure();
         internal readonly static GetExtendedQueryTagErrorsProcedure GetExtendedQueryTagErrors = new GetExtendedQueryTagErrorsProcedure();
+        internal readonly static GetExtendedQueryTagErrorsV6Procedure GetExtendedQueryTagErrorsV6 = new GetExtendedQueryTagErrorsV6Procedure();
         internal readonly static GetExtendedQueryTagsProcedure GetExtendedQueryTags = new GetExtendedQueryTagsProcedure();
         internal readonly static GetExtendedQueryTagsByKeyProcedure GetExtendedQueryTagsByKey = new GetExtendedQueryTagsByKeyProcedure();
         internal readonly static GetExtendedQueryTagsByOperationProcedure GetExtendedQueryTagsByOperation = new GetExtendedQueryTagsByOperationProcedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
         internal readonly static GetInstanceBatchesProcedure GetInstanceBatches = new GetInstanceBatchesProcedure();
+        internal readonly static GetInstanceV6Procedure GetInstanceV6 = new GetInstanceV6Procedure();
         internal readonly static GetInstancesByWatermarkRangeProcedure GetInstancesByWatermarkRange = new GetInstancesByWatermarkRangeProcedure();
+        internal readonly static GetInstancesByWatermarkRangeV6Procedure GetInstancesByWatermarkRangeV6 = new GetInstancesByWatermarkRangeV6Procedure();
+        internal readonly static GetPartitionProcedure GetPartition = new GetPartitionProcedure();
+        internal readonly static GetPartitionsProcedure GetPartitions = new GetPartitionsProcedure();
+        internal readonly static IIndexInstanceCoreProcedure IIndexInstanceCore = new IIndexInstanceCoreProcedure();
         internal readonly static IncrementDeletedInstanceRetryProcedure IncrementDeletedInstanceRetry = new IncrementDeletedInstanceRetryProcedure();
+        internal readonly static IncrementDeletedInstanceRetryV6Procedure IncrementDeletedInstanceRetryV6 = new IncrementDeletedInstanceRetryV6Procedure();
         internal readonly static IndexInstanceProcedure IndexInstance = new IndexInstanceProcedure();
         internal readonly static IndexInstanceV2Procedure IndexInstanceV2 = new IndexInstanceV2Procedure();
+        internal readonly static IndexInstanceV6Procedure IndexInstanceV6 = new IndexInstanceV6Procedure();
         internal readonly static RetrieveDeletedInstanceProcedure RetrieveDeletedInstance = new RetrieveDeletedInstanceProcedure();
+        internal readonly static RetrieveDeletedInstanceV6Procedure RetrieveDeletedInstanceV6 = new RetrieveDeletedInstanceV6Procedure();
         internal readonly static UpdateExtendedQueryTagQueryStatusProcedure UpdateExtendedQueryTagQueryStatus = new UpdateExtendedQueryTagQueryStatusProcedure();
         internal readonly static UpdateInstanceStatusProcedure UpdateInstanceStatus = new UpdateInstanceStatusProcedure();
+        internal readonly static UpdateInstanceStatusV6Procedure UpdateInstanceStatusV6 = new UpdateInstanceStatusV6Procedure();
 
         internal class ChangeFeedTable : Table
         {
@@ -68,8 +83,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly VarCharColumn SopInstanceUid = new VarCharColumn("SopInstanceUid", 64);
             internal readonly BigIntColumn OriginalWatermark = new BigIntColumn("OriginalWatermark");
             internal readonly NullableBigIntColumn CurrentWatermark = new NullableBigIntColumn("CurrentWatermark");
+            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_ChangeFeed = new Index("IXC_ChangeFeed");
-            internal readonly Index IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_ChangeFeed_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
+            internal readonly Index IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
         }
 
         internal class DeletedInstanceTable : Table
@@ -85,6 +101,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly DateTimeOffsetColumn DeletedDateTime = new DateTimeOffsetColumn("DeletedDateTime", 0);
             internal readonly IntColumn RetryCount = new IntColumn("RetryCount");
             internal readonly DateTimeOffsetColumn CleanupAfter = new DateTimeOffsetColumn("CleanupAfter", 0);
+            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_DeletedInstance = new Index("IXC_DeletedInstance");
             internal readonly Index IX_DeletedInstance_RetryCount_CleanupAfter = new Index("IX_DeletedInstance_RetryCount_CleanupAfter");
         }
@@ -121,6 +138,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly NullableDateTime2Column TagValueUtc = new NullableDateTime2Column("TagValueUtc", 7);
             internal readonly Index IXC_ExtendedQueryTagDateTime = new Index("IXC_ExtendedQueryTagDateTime");
+            internal readonly Index IX_ExtendedQueryTagDateTime_TagKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagDateTime_TagKey_StudyKey_SeriesKey_InstanceKey");
+            internal readonly Index IX_ExtendedQueryTagDateTime_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagDateTime_StudyKey_SeriesKey_InstanceKey");
         }
 
         internal class ExtendedQueryTagDoubleTable : Table
@@ -136,6 +155,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly Index IXC_ExtendedQueryTagDouble = new Index("IXC_ExtendedQueryTagDouble");
+            internal readonly Index IX_ExtendedQueryTagDouble_TagKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagDouble_TagKey_StudyKey_SeriesKey_InstanceKey");
+            internal readonly Index IX_ExtendedQueryTagDouble_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagDouble_StudyKey_SeriesKey_InstanceKey");
         }
 
         internal class ExtendedQueryTagErrorTable : Table
@@ -150,6 +171,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly DateTime2Column CreatedTime = new DateTime2Column("CreatedTime", 7);
             internal readonly Index IXC_ExtendedQueryTagError = new Index("IXC_ExtendedQueryTagError");
             internal readonly Index IX_ExtendedQueryTagError_CreatedTime_Watermark_TagKey = new Index("IX_ExtendedQueryTagError_CreatedTime_Watermark_TagKey");
+            internal readonly Index IX_ExtendedQueryTagError_Watermark = new Index("IX_ExtendedQueryTagError_Watermark");
         }
 
         internal class ExtendedQueryTagLongTable : Table
@@ -165,6 +187,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly Index IXC_ExtendedQueryTagLong = new Index("IXC_ExtendedQueryTagLong");
+            internal readonly Index IX_ExtendedQueryTagLong_TagKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagLong_TagKey_StudyKey_SeriesKey_InstanceKey");
+            internal readonly Index IX_ExtendedQueryTagLong_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagLong_StudyKey_SeriesKey_InstanceKey");
         }
 
         internal class ExtendedQueryTagOperationTable : Table
@@ -194,6 +218,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal const string WatermarkAndTagKey = "WatermarkAndTagKey";
             internal const string TagValueWords = "TagValueWords";
             internal readonly Index IXC_ExtendedQueryTagPersonName = new Index("IXC_ExtendedQueryTagPersonName");
+            internal readonly Index IX_ExtendedQueryTagPersonName_TagKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagPersonName_TagKey_StudyKey_SeriesKey_InstanceKey");
+            internal readonly Index IX_ExtendedQueryTagPersonName_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagPersonName_StudyKey_SeriesKey_InstanceKey");
             internal readonly Index IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey = new Index("IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey");
         }
 
@@ -210,6 +236,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly Index IXC_ExtendedQueryTagString = new Index("IXC_ExtendedQueryTagString");
+            internal readonly Index IX_ExtendedQueryTagString_TagKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagString_TagKey_StudyKey_SeriesKey_InstanceKey");
+            internal readonly Index IX_ExtendedQueryTagString_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagString_StudyKey_SeriesKey_InstanceKey");
         }
 
         internal class InstanceTable : Table
@@ -228,14 +256,28 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly TinyIntColumn Status = new TinyIntColumn("Status");
             internal readonly DateTime2Column LastStatusUpdatedDate = new DateTime2Column("LastStatusUpdatedDate", 7);
             internal readonly DateTime2Column CreatedDate = new DateTime2Column("CreatedDate", 7);
+            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_Instance = new Index("IXC_Instance");
-            internal readonly Index IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
-            internal readonly Index IX_Instance_StudyInstanceUid_Status = new Index("IX_Instance_StudyInstanceUid_Status");
-            internal readonly Index IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status = new Index("IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status");
-            internal readonly Index IX_Instance_SopInstanceUid_Status = new Index("IX_Instance_SopInstanceUid_Status");
-            internal readonly Index IX_Instance_Watermark = new Index("IX_Instance_Watermark");
+            internal readonly Index IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid_PartitionKey = new Index("IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid_PartitionKey");
+            internal readonly Index IX_Instance_StudyInstanceUid_Status_PartitionKey = new Index("IX_Instance_StudyInstanceUid_Status_PartitionKey");
+            internal readonly Index IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_PartitionKey = new Index("IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_PartitionKey");
+            internal readonly Index IX_Instance_SopInstanceUid_Status_PartitionKey = new Index("IX_Instance_SopInstanceUid_Status_PartitionKey");
+            internal readonly Index IX_Instance_Watermark_Status = new Index("IX_Instance_Watermark_Status");
             internal readonly Index IX_Instance_SeriesKey_Status = new Index("IX_Instance_SeriesKey_Status");
             internal readonly Index IX_Instance_StudyKey_Status = new Index("IX_Instance_StudyKey_Status");
+        }
+
+        internal class PartitionTable : Table
+        {
+            internal PartitionTable() : base("dbo.Partition")
+            {
+            }
+
+            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
+            internal readonly VarCharColumn PartitionName = new VarCharColumn("PartitionName", 64);
+            internal readonly DateTime2Column CreatedDate = new DateTime2Column("CreatedDate", 7);
+            internal readonly Index IXC_Partition = new Index("IXC_Partition");
+            internal readonly Index IX_Partition_PartitionName = new Index("IX_Partition_PartitionName");
         }
 
         internal class SeriesTable : Table
@@ -250,12 +292,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableNVarCharColumn Modality = new NullableNVarCharColumn("Modality", 16);
             internal readonly NullableDateColumn PerformedProcedureStepStartDate = new NullableDateColumn("PerformedProcedureStepStartDate");
             internal readonly NullableNVarCharColumn ManufacturerModelName = new NullableNVarCharColumn("ManufacturerModelName", 64);
+            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_Series = new Index("IXC_Series");
             internal readonly Index IX_Series_SeriesKey = new Index("IX_Series_SeriesKey");
-            internal readonly Index IX_Series_SeriesInstanceUid = new Index("IX_Series_SeriesInstanceUid");
-            internal readonly Index IX_Series_Modality = new Index("IX_Series_Modality");
-            internal readonly Index IX_Series_PerformedProcedureStepStartDate = new Index("IX_Series_PerformedProcedureStepStartDate");
-            internal readonly Index IX_Series_ManufacturerModelName = new Index("IX_Series_ManufacturerModelName");
+            internal readonly Index IX_Series_SeriesInstanceUid_PartitionKey = new Index("IX_Series_SeriesInstanceUid_PartitionKey");
+            internal readonly Index IX_Series_Modality_PartitionKey = new Index("IX_Series_Modality_PartitionKey");
+            internal readonly Index IX_Series_PerformedProcedureStepStartDate_PartitionKey = new Index("IX_Series_PerformedProcedureStepStartDate_PartitionKey");
+            internal readonly Index IX_Series_ManufacturerModelName_PartitionKey = new Index("IX_Series_ManufacturerModelName_PartitionKey");
         }
 
         internal class StudyTable : Table
@@ -275,15 +318,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal const string PatientNameWords = "PatientNameWords";
             internal const string ReferringPhysicianNameWords = "ReferringPhysicianNameWords";
             internal readonly NullableDateColumn PatientBirthDate = new NullableDateColumn("PatientBirthDate");
+            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_Study = new Index("IXC_Study");
-            internal readonly Index IX_Study_StudyInstanceUid = new Index("IX_Study_StudyInstanceUid");
-            internal readonly Index IX_Study_PatientId = new Index("IX_Study_PatientId");
-            internal readonly Index IX_Study_PatientName = new Index("IX_Study_PatientName");
-            internal readonly Index IX_Study_ReferringPhysicianName = new Index("IX_Study_ReferringPhysicianName");
-            internal readonly Index IX_Study_StudyDate = new Index("IX_Study_StudyDate");
-            internal readonly Index IX_Study_StudyDescription = new Index("IX_Study_StudyDescription");
-            internal readonly Index IX_Study_AccessionNumber = new Index("IX_Study_AccessionNumber");
-            internal readonly Index IX_Study_PatientBirthDate = new Index("IX_Study_PatientBirthDate");
+            internal readonly Index IX_Study_StudyKey = new Index("IX_Study_StudyKey");
+            internal readonly Index IX_Study_StudyInstanceUid_PartitionKey = new Index("IX_Study_StudyInstanceUid_PartitionKey");
+            internal readonly Index IX_Study_PatientId_PartitionKey = new Index("IX_Study_PatientId_PartitionKey");
+            internal readonly Index IX_Study_PatientName_PartitionKey = new Index("IX_Study_PatientName_PartitionKey");
+            internal readonly Index IX_Study_ReferringPhysicianName_PartitionKey = new Index("IX_Study_ReferringPhysicianName_PartitionKey");
+            internal readonly Index IX_Study_StudyDate_PartitionKey = new Index("IX_Study_StudyDate_PartitionKey");
+            internal readonly Index IX_Study_StudyDescription_PartitionKey = new Index("IX_Study_StudyDescription_PartitionKey");
+            internal readonly Index IX_Study_AccessionNumber_PartitionKey = new Index("IX_Study_AccessionNumber_PartitionKey");
+            internal readonly Index IX_Study_PatientBirthDate_PartitionKey = new Index("IX_Study_PatientBirthDate_PartitionKey");
         }
 
         internal class AddExtendedQueryTagErrorProcedure : StoredProcedure
@@ -552,6 +597,122 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameExtendedQueryTags { get; }
         }
 
+        internal class AddInstanceV6Procedure : StoredProcedure
+        {
+            internal AddInstanceV6Procedure() : base("dbo.AddInstanceV6")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _patientId = new ParameterDefinition<System.String>("@patientId", global::System.Data.SqlDbType.NVarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _patientName = new ParameterDefinition<System.String>("@patientName", global::System.Data.SqlDbType.NVarChar, true, 325);
+            private readonly ParameterDefinition<System.String> _referringPhysicianName = new ParameterDefinition<System.String>("@referringPhysicianName", global::System.Data.SqlDbType.NVarChar, true, 325);
+            private readonly ParameterDefinition<System.Nullable<System.DateTime>> _studyDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@studyDate", global::System.Data.SqlDbType.Date, true);
+            private readonly ParameterDefinition<System.String> _studyDescription = new ParameterDefinition<System.String>("@studyDescription", global::System.Data.SqlDbType.NVarChar, true, 64);
+            private readonly ParameterDefinition<System.String> _accessionNumber = new ParameterDefinition<System.String>("@accessionNumber", global::System.Data.SqlDbType.NVarChar, true, 64);
+            private readonly ParameterDefinition<System.String> _modality = new ParameterDefinition<System.String>("@modality", global::System.Data.SqlDbType.NVarChar, true, 16);
+            private readonly ParameterDefinition<System.Nullable<System.DateTime>> _performedProcedureStepStartDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@performedProcedureStepStartDate", global::System.Data.SqlDbType.Date, true);
+            private readonly ParameterDefinition<System.Nullable<System.DateTime>> _patientBirthDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@patientBirthDate", global::System.Data.SqlDbType.Date, true);
+            private readonly ParameterDefinition<System.String> _manufacturerModelName = new ParameterDefinition<System.String>("@manufacturerModelName", global::System.Data.SqlDbType.NVarChar, true, 64);
+            private readonly InsertStringExtendedQueryTagTableTypeV1TableValuedParameterDefinition _stringExtendedQueryTags = new InsertStringExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@stringExtendedQueryTags");
+            private readonly InsertLongExtendedQueryTagTableTypeV1TableValuedParameterDefinition _longExtendedQueryTags = new InsertLongExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@longExtendedQueryTags");
+            private readonly InsertDoubleExtendedQueryTagTableTypeV1TableValuedParameterDefinition _doubleExtendedQueryTags = new InsertDoubleExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@doubleExtendedQueryTags");
+            private readonly InsertDateTimeExtendedQueryTagTableTypeV2TableValuedParameterDefinition _dateTimeExtendedQueryTags = new InsertDateTimeExtendedQueryTagTableTypeV2TableValuedParameterDefinition("@dateTimeExtendedQueryTags");
+            private readonly InsertPersonNameExtendedQueryTagTableTypeV1TableValuedParameterDefinition _personNameExtendedQueryTags = new InsertPersonNameExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@personNameExtendedQueryTags");
+            private readonly ParameterDefinition<System.Byte> _initialStatus = new ParameterDefinition<System.Byte>("@initialStatus", global::System.Data.SqlDbType.TinyInt, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Nullable<System.DateTime> patientBirthDate, System.String manufacturerModelName, global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> stringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> longExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> dateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNameExtendedQueryTags, System.Byte initialStatus)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.AddInstanceV6";
+                _partitionKey.AddParameter(command.Parameters, partitionKey);
+                _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
+                _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
+                _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
+                _patientId.AddParameter(command.Parameters, patientId);
+                _patientName.AddParameter(command.Parameters, patientName);
+                _referringPhysicianName.AddParameter(command.Parameters, referringPhysicianName);
+                _studyDate.AddParameter(command.Parameters, studyDate);
+                _studyDescription.AddParameter(command.Parameters, studyDescription);
+                _accessionNumber.AddParameter(command.Parameters, accessionNumber);
+                _modality.AddParameter(command.Parameters, modality);
+                _performedProcedureStepStartDate.AddParameter(command.Parameters, performedProcedureStepStartDate);
+                _patientBirthDate.AddParameter(command.Parameters, patientBirthDate);
+                _manufacturerModelName.AddParameter(command.Parameters, manufacturerModelName);
+                _stringExtendedQueryTags.AddParameter(command.Parameters, stringExtendedQueryTags);
+                _longExtendedQueryTags.AddParameter(command.Parameters, longExtendedQueryTags);
+                _doubleExtendedQueryTags.AddParameter(command.Parameters, doubleExtendedQueryTags);
+                _dateTimeExtendedQueryTags.AddParameter(command.Parameters, dateTimeExtendedQueryTags);
+                _personNameExtendedQueryTags.AddParameter(command.Parameters, personNameExtendedQueryTags);
+                _initialStatus.AddParameter(command.Parameters, initialStatus);
+            }
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Nullable<System.DateTime> patientBirthDate, System.String manufacturerModelName, System.Byte initialStatus, AddInstanceV6TableValuedParameters tableValuedParameters)
+            {
+                PopulateCommand(command, partitionKey: partitionKey, studyInstanceUid: studyInstanceUid, seriesInstanceUid: seriesInstanceUid, sopInstanceUid: sopInstanceUid, patientId: patientId, patientName: patientName, referringPhysicianName: referringPhysicianName, studyDate: studyDate, studyDescription: studyDescription, accessionNumber: accessionNumber, modality: modality, performedProcedureStepStartDate: performedProcedureStepStartDate, patientBirthDate: patientBirthDate, manufacturerModelName: manufacturerModelName, initialStatus: initialStatus, stringExtendedQueryTags: tableValuedParameters.StringExtendedQueryTags, longExtendedQueryTags: tableValuedParameters.LongExtendedQueryTags, doubleExtendedQueryTags: tableValuedParameters.DoubleExtendedQueryTags, dateTimeExtendedQueryTags: tableValuedParameters.DateTimeExtendedQueryTags, personNameExtendedQueryTags: tableValuedParameters.PersonNameExtendedQueryTags);
+            }
+        }
+
+        internal class AddInstanceV6TvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, AddInstanceV6TableValuedParameters>
+        {
+            public AddInstanceV6TvpGenerator(ITableValuedParameterRowGenerator<TInput, InsertStringExtendedQueryTagTableTypeV1Row> InsertStringExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertLongExtendedQueryTagTableTypeV1Row> InsertLongExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertDoubleExtendedQueryTagTableTypeV1Row> InsertDoubleExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertDateTimeExtendedQueryTagTableTypeV2Row> InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertPersonNameExtendedQueryTagTableTypeV1Row> InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator)
+            {
+                this.InsertStringExtendedQueryTagTableTypeV1RowGenerator = InsertStringExtendedQueryTagTableTypeV1RowGenerator;
+                this.InsertLongExtendedQueryTagTableTypeV1RowGenerator = InsertLongExtendedQueryTagTableTypeV1RowGenerator;
+                this.InsertDoubleExtendedQueryTagTableTypeV1RowGenerator = InsertDoubleExtendedQueryTagTableTypeV1RowGenerator;
+                this.InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator = InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator;
+                this.InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator = InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator;
+            }
+
+            private readonly ITableValuedParameterRowGenerator<TInput, InsertStringExtendedQueryTagTableTypeV1Row> InsertStringExtendedQueryTagTableTypeV1RowGenerator;
+            private readonly ITableValuedParameterRowGenerator<TInput, InsertLongExtendedQueryTagTableTypeV1Row> InsertLongExtendedQueryTagTableTypeV1RowGenerator;
+            private readonly ITableValuedParameterRowGenerator<TInput, InsertDoubleExtendedQueryTagTableTypeV1Row> InsertDoubleExtendedQueryTagTableTypeV1RowGenerator;
+            private readonly ITableValuedParameterRowGenerator<TInput, InsertDateTimeExtendedQueryTagTableTypeV2Row> InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator;
+            private readonly ITableValuedParameterRowGenerator<TInput, InsertPersonNameExtendedQueryTagTableTypeV1Row> InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator;
+
+            public AddInstanceV6TableValuedParameters Generate(TInput input)
+            {
+                return new AddInstanceV6TableValuedParameters(InsertStringExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertLongExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertDoubleExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator.GenerateRows(input), InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input));
+            }
+        }
+
+        internal struct AddInstanceV6TableValuedParameters
+        {
+            internal AddInstanceV6TableValuedParameters(global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> StringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> LongExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> DoubleExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> DateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameExtendedQueryTags)
+            {
+                this.StringExtendedQueryTags = StringExtendedQueryTags;
+                this.LongExtendedQueryTags = LongExtendedQueryTags;
+                this.DoubleExtendedQueryTags = DoubleExtendedQueryTags;
+                this.DateTimeExtendedQueryTags = DateTimeExtendedQueryTags;
+                this.PersonNameExtendedQueryTags = PersonNameExtendedQueryTags;
+            }
+
+            internal global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> StringExtendedQueryTags { get; }
+            internal global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> LongExtendedQueryTags { get; }
+            internal global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> DoubleExtendedQueryTags { get; }
+            internal global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> DateTimeExtendedQueryTags { get; }
+            internal global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameExtendedQueryTags { get; }
+        }
+
+        internal class AddPartitionProcedure : StoredProcedure
+        {
+            internal AddPartitionProcedure() : base("dbo.AddPartition")
+            {
+            }
+
+            private readonly ParameterDefinition<System.String> _partitionName = new ParameterDefinition<System.String>("@partitionName", global::System.Data.SqlDbType.VarChar, false, 64);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.String partitionName)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.AddPartition";
+                _partitionName.AddParameter(command.Parameters, partitionName);
+            }
+        }
+
         internal class AssignReindexingOperationProcedure : StoredProcedure
         {
             internal AssignReindexingOperationProcedure() : base("dbo.AssignReindexingOperation")
@@ -600,46 +761,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             internal global::System.Collections.Generic.IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> ExtendedQueryTagKeys { get; }
-        }
-
-        internal class BeginAddInstanceProcedure : StoredProcedure
-        {
-            internal BeginAddInstanceProcedure() : base("dbo.BeginAddInstance")
-            {
-            }
-
-            private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.String> _patientId = new ParameterDefinition<System.String>("@patientId", global::System.Data.SqlDbType.NVarChar, false, 64);
-            private readonly ParameterDefinition<System.String> _patientName = new ParameterDefinition<System.String>("@patientName", global::System.Data.SqlDbType.NVarChar, true, 325);
-            private readonly ParameterDefinition<System.String> _referringPhysicianName = new ParameterDefinition<System.String>("@referringPhysicianName", global::System.Data.SqlDbType.NVarChar, true, 325);
-            private readonly ParameterDefinition<System.Nullable<System.DateTime>> _studyDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@studyDate", global::System.Data.SqlDbType.Date, true);
-            private readonly ParameterDefinition<System.String> _studyDescription = new ParameterDefinition<System.String>("@studyDescription", global::System.Data.SqlDbType.NVarChar, true, 64);
-            private readonly ParameterDefinition<System.String> _accessionNumber = new ParameterDefinition<System.String>("@accessionNumber", global::System.Data.SqlDbType.NVarChar, true, 64);
-            private readonly ParameterDefinition<System.String> _modality = new ParameterDefinition<System.String>("@modality", global::System.Data.SqlDbType.NVarChar, true, 16);
-            private readonly ParameterDefinition<System.Nullable<System.DateTime>> _performedProcedureStepStartDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@performedProcedureStepStartDate", global::System.Data.SqlDbType.Date, true);
-            private readonly ParameterDefinition<System.Nullable<System.DateTime>> _patientBirthDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@patientBirthDate", global::System.Data.SqlDbType.Date, true);
-            private readonly ParameterDefinition<System.String> _manufacturerModelName = new ParameterDefinition<System.String>("@manufacturerModelName", global::System.Data.SqlDbType.NVarChar, true, 64);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.String modality, System.Nullable<System.DateTime> performedProcedureStepStartDate, System.Nullable<System.DateTime> patientBirthDate, System.String manufacturerModelName)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.BeginAddInstance";
-                _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
-                _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
-                _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
-                _patientId.AddParameter(command.Parameters, patientId);
-                _patientName.AddParameter(command.Parameters, patientName);
-                _referringPhysicianName.AddParameter(command.Parameters, referringPhysicianName);
-                _studyDate.AddParameter(command.Parameters, studyDate);
-                _studyDescription.AddParameter(command.Parameters, studyDescription);
-                _accessionNumber.AddParameter(command.Parameters, accessionNumber);
-                _modality.AddParameter(command.Parameters, modality);
-                _performedProcedureStepStartDate.AddParameter(command.Parameters, performedProcedureStepStartDate);
-                _patientBirthDate.AddParameter(command.Parameters, patientBirthDate);
-                _manufacturerModelName.AddParameter(command.Parameters, manufacturerModelName);
-            }
         }
 
         internal class CompleteReindexingProcedure : StoredProcedure
@@ -710,6 +831,30 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
+        internal class DeleteDeletedInstanceV6Procedure : StoredProcedure
+        {
+            internal DeleteDeletedInstanceV6Procedure() : base("dbo.DeleteDeletedInstanceV6")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.Int64> _watermark = new ParameterDefinition<System.Int64>("@watermark", global::System.Data.SqlDbType.BigInt, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int64 watermark)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.DeleteDeletedInstanceV6";
+                _partitionKey.AddParameter(command.Parameters, partitionKey);
+                _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
+                _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
+                _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
+                _watermark.AddParameter(command.Parameters, watermark);
+            }
+        }
+
         internal class DeleteExtendedQueryTagProcedure : StoredProcedure
         {
             internal DeleteExtendedQueryTagProcedure() : base("dbo.DeleteExtendedQueryTag")
@@ -752,84 +897,30 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class EndAddInstanceProcedure : StoredProcedure
+        internal class DeleteInstanceV6Procedure : StoredProcedure
         {
-            internal EndAddInstanceProcedure() : base("dbo.EndAddInstance")
+            internal DeleteInstanceV6Procedure() : base("dbo.DeleteInstanceV6")
             {
             }
 
+            private readonly ParameterDefinition<System.DateTimeOffset> _cleanupAfter = new ParameterDefinition<System.DateTimeOffset>("@cleanupAfter", global::System.Data.SqlDbType.DateTimeOffset, false, 0);
+            private readonly ParameterDefinition<System.Byte> _createdStatus = new ParameterDefinition<System.Byte>("@createdStatus", global::System.Data.SqlDbType.TinyInt, false);
+            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
             private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.Int64> _watermark = new ParameterDefinition<System.Int64>("@watermark", global::System.Data.SqlDbType.BigInt, false);
-            private readonly ParameterDefinition<System.Nullable<System.Int32>> _maxTagKey = new ParameterDefinition<System.Nullable<System.Int32>>("@maxTagKey", global::System.Data.SqlDbType.Int, true);
-            private readonly InsertStringExtendedQueryTagTableTypeV1TableValuedParameterDefinition _stringExtendedQueryTags = new InsertStringExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@stringExtendedQueryTags");
-            private readonly InsertLongExtendedQueryTagTableTypeV1TableValuedParameterDefinition _longExtendedQueryTags = new InsertLongExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@longExtendedQueryTags");
-            private readonly InsertDoubleExtendedQueryTagTableTypeV1TableValuedParameterDefinition _doubleExtendedQueryTags = new InsertDoubleExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@doubleExtendedQueryTags");
-            private readonly InsertDateTimeExtendedQueryTagTableTypeV1TableValuedParameterDefinition _dateTimeExtendedQueryTags = new InsertDateTimeExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@dateTimeExtendedQueryTags");
-            private readonly InsertPersonNameExtendedQueryTagTableTypeV1TableValuedParameterDefinition _personNameExtendedQueryTags = new InsertPersonNameExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@personNameExtendedQueryTags");
+            private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
+            private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int64 watermark, System.Nullable<System.Int32> maxTagKey, global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> stringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> longExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV1Row> dateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNameExtendedQueryTags)
+            public void PopulateCommand(SqlCommandWrapper command, System.DateTimeOffset cleanupAfter, System.Byte createdStatus, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.EndAddInstance";
+                command.CommandText = "dbo.DeleteInstanceV6";
+                _cleanupAfter.AddParameter(command.Parameters, cleanupAfter);
+                _createdStatus.AddParameter(command.Parameters, createdStatus);
+                _partitionKey.AddParameter(command.Parameters, partitionKey);
                 _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
                 _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
                 _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
-                _watermark.AddParameter(command.Parameters, watermark);
-                _maxTagKey.AddParameter(command.Parameters, maxTagKey);
-                _stringExtendedQueryTags.AddParameter(command.Parameters, stringExtendedQueryTags);
-                _longExtendedQueryTags.AddParameter(command.Parameters, longExtendedQueryTags);
-                _doubleExtendedQueryTags.AddParameter(command.Parameters, doubleExtendedQueryTags);
-                _dateTimeExtendedQueryTags.AddParameter(command.Parameters, dateTimeExtendedQueryTags);
-                _personNameExtendedQueryTags.AddParameter(command.Parameters, personNameExtendedQueryTags);
             }
-
-            public void PopulateCommand(SqlCommandWrapper command, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int64 watermark, System.Nullable<System.Int32> maxTagKey, EndAddInstanceTableValuedParameters tableValuedParameters)
-            {
-                PopulateCommand(command, studyInstanceUid: studyInstanceUid, seriesInstanceUid: seriesInstanceUid, sopInstanceUid: sopInstanceUid, watermark: watermark, maxTagKey: maxTagKey, stringExtendedQueryTags: tableValuedParameters.StringExtendedQueryTags, longExtendedQueryTags: tableValuedParameters.LongExtendedQueryTags, doubleExtendedQueryTags: tableValuedParameters.DoubleExtendedQueryTags, dateTimeExtendedQueryTags: tableValuedParameters.DateTimeExtendedQueryTags, personNameExtendedQueryTags: tableValuedParameters.PersonNameExtendedQueryTags);
-            }
-        }
-
-        internal class EndAddInstanceTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, EndAddInstanceTableValuedParameters>
-        {
-            public EndAddInstanceTvpGenerator(ITableValuedParameterRowGenerator<TInput, InsertStringExtendedQueryTagTableTypeV1Row> InsertStringExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertLongExtendedQueryTagTableTypeV1Row> InsertLongExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertDoubleExtendedQueryTagTableTypeV1Row> InsertDoubleExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertDateTimeExtendedQueryTagTableTypeV1Row> InsertDateTimeExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertPersonNameExtendedQueryTagTableTypeV1Row> InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator)
-            {
-                this.InsertStringExtendedQueryTagTableTypeV1RowGenerator = InsertStringExtendedQueryTagTableTypeV1RowGenerator;
-                this.InsertLongExtendedQueryTagTableTypeV1RowGenerator = InsertLongExtendedQueryTagTableTypeV1RowGenerator;
-                this.InsertDoubleExtendedQueryTagTableTypeV1RowGenerator = InsertDoubleExtendedQueryTagTableTypeV1RowGenerator;
-                this.InsertDateTimeExtendedQueryTagTableTypeV1RowGenerator = InsertDateTimeExtendedQueryTagTableTypeV1RowGenerator;
-                this.InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator = InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator;
-            }
-
-            private readonly ITableValuedParameterRowGenerator<TInput, InsertStringExtendedQueryTagTableTypeV1Row> InsertStringExtendedQueryTagTableTypeV1RowGenerator;
-            private readonly ITableValuedParameterRowGenerator<TInput, InsertLongExtendedQueryTagTableTypeV1Row> InsertLongExtendedQueryTagTableTypeV1RowGenerator;
-            private readonly ITableValuedParameterRowGenerator<TInput, InsertDoubleExtendedQueryTagTableTypeV1Row> InsertDoubleExtendedQueryTagTableTypeV1RowGenerator;
-            private readonly ITableValuedParameterRowGenerator<TInput, InsertDateTimeExtendedQueryTagTableTypeV1Row> InsertDateTimeExtendedQueryTagTableTypeV1RowGenerator;
-            private readonly ITableValuedParameterRowGenerator<TInput, InsertPersonNameExtendedQueryTagTableTypeV1Row> InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator;
-
-            public EndAddInstanceTableValuedParameters Generate(TInput input)
-            {
-                return new EndAddInstanceTableValuedParameters(InsertStringExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertLongExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertDoubleExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertDateTimeExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input));
-            }
-        }
-
-        internal struct EndAddInstanceTableValuedParameters
-        {
-            internal EndAddInstanceTableValuedParameters(global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> StringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> LongExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> DoubleExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV1Row> DateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameExtendedQueryTags)
-            {
-                this.StringExtendedQueryTags = StringExtendedQueryTags;
-                this.LongExtendedQueryTags = LongExtendedQueryTags;
-                this.DoubleExtendedQueryTags = DoubleExtendedQueryTags;
-                this.DateTimeExtendedQueryTags = DateTimeExtendedQueryTags;
-                this.PersonNameExtendedQueryTags = PersonNameExtendedQueryTags;
-            }
-
-            internal global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> StringExtendedQueryTags { get; }
-            internal global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> LongExtendedQueryTags { get; }
-            internal global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> DoubleExtendedQueryTags { get; }
-            internal global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV1Row> DateTimeExtendedQueryTags { get; }
-            internal global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameExtendedQueryTags { get; }
         }
 
         internal class GetChangeFeedProcedure : StoredProcedure
@@ -863,6 +954,37 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
+        internal class GetChangeFeedLatestV6Procedure : StoredProcedure
+        {
+            internal GetChangeFeedLatestV6Procedure() : base("dbo.GetChangeFeedLatestV6")
+            {
+            }
+
+            public void PopulateCommand(SqlCommandWrapper command)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetChangeFeedLatestV6";
+            }
+        }
+
+        internal class GetChangeFeedV6Procedure : StoredProcedure
+        {
+            internal GetChangeFeedV6Procedure() : base("dbo.GetChangeFeedV6")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _limit = new ParameterDefinition<System.Int32>("@limit", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Int64> _offset = new ParameterDefinition<System.Int64>("@offset", global::System.Data.SqlDbType.BigInt, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 limit, System.Int64 offset)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetChangeFeedV6";
+                _limit.AddParameter(command.Parameters, limit);
+                _offset.AddParameter(command.Parameters, offset);
+            }
+        }
+
         internal class GetExtendedQueryTagProcedure : StoredProcedure
         {
             internal GetExtendedQueryTagProcedure() : base("dbo.GetExtendedQueryTag")
@@ -893,6 +1015,26 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetExtendedQueryTagErrors";
+                _tagPath.AddParameter(command.Parameters, tagPath);
+                _limit.AddParameter(command.Parameters, limit);
+                _offset.AddParameter(command.Parameters, offset);
+            }
+        }
+
+        internal class GetExtendedQueryTagErrorsV6Procedure : StoredProcedure
+        {
+            internal GetExtendedQueryTagErrorsV6Procedure() : base("dbo.GetExtendedQueryTagErrorsV6")
+            {
+            }
+
+            private readonly ParameterDefinition<System.String> _tagPath = new ParameterDefinition<System.String>("@tagPath", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.Int32> _limit = new ParameterDefinition<System.Int32>("@limit", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Int32> _offset = new ParameterDefinition<System.Int32>("@offset", global::System.Data.SqlDbType.Int, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath, System.Int32 limit, System.Int32 offset)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetExtendedQueryTagErrorsV6";
                 _tagPath.AddParameter(command.Parameters, tagPath);
                 _limit.AddParameter(command.Parameters, limit);
                 _offset.AddParameter(command.Parameters, offset);
@@ -1023,6 +1165,30 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
+        internal class GetInstanceV6Procedure : StoredProcedure
+        {
+            internal GetInstanceV6Procedure() : base("dbo.GetInstanceV6")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Byte> _validStatus = new ParameterDefinition<System.Byte>("@validStatus", global::System.Data.SqlDbType.TinyInt, false);
+            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
+            private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Byte validStatus, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetInstanceV6";
+                _validStatus.AddParameter(command.Parameters, validStatus);
+                _partitionKey.AddParameter(command.Parameters, partitionKey);
+                _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
+                _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
+                _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
+            }
+        }
+
         internal class GetInstancesByWatermarkRangeProcedure : StoredProcedure
         {
             internal GetInstancesByWatermarkRangeProcedure() : base("dbo.GetInstancesByWatermarkRange")
@@ -1043,6 +1209,133 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
+        internal class GetInstancesByWatermarkRangeV6Procedure : StoredProcedure
+        {
+            internal GetInstancesByWatermarkRangeV6Procedure() : base("dbo.GetInstancesByWatermarkRangeV6")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int64> _startWatermark = new ParameterDefinition<System.Int64>("@startWatermark", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.Int64> _endWatermark = new ParameterDefinition<System.Int64>("@endWatermark", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.Byte> _status = new ParameterDefinition<System.Byte>("@status", global::System.Data.SqlDbType.TinyInt, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int64 startWatermark, System.Int64 endWatermark, System.Byte status)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetInstancesByWatermarkRangeV6";
+                _startWatermark.AddParameter(command.Parameters, startWatermark);
+                _endWatermark.AddParameter(command.Parameters, endWatermark);
+                _status.AddParameter(command.Parameters, status);
+            }
+        }
+
+        internal class GetPartitionProcedure : StoredProcedure
+        {
+            internal GetPartitionProcedure() : base("dbo.GetPartition")
+            {
+            }
+
+            private readonly ParameterDefinition<System.String> _partitionName = new ParameterDefinition<System.String>("@partitionName", global::System.Data.SqlDbType.VarChar, false, 64);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.String partitionName)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetPartition";
+                _partitionName.AddParameter(command.Parameters, partitionName);
+            }
+        }
+
+        internal class GetPartitionsProcedure : StoredProcedure
+        {
+            internal GetPartitionsProcedure() : base("dbo.GetPartitions")
+            {
+            }
+
+            public void PopulateCommand(SqlCommandWrapper command)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetPartitions";
+            }
+        }
+
+        internal class IIndexInstanceCoreProcedure : StoredProcedure
+        {
+            internal IIndexInstanceCoreProcedure() : base("dbo.IIndexInstanceCore")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int64> _studyKey = new ParameterDefinition<System.Int64>("@studyKey", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.Int64> _seriesKey = new ParameterDefinition<System.Int64>("@seriesKey", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.Int64> _instanceKey = new ParameterDefinition<System.Int64>("@instanceKey", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.Int64> _watermark = new ParameterDefinition<System.Int64>("@watermark", global::System.Data.SqlDbType.BigInt, false);
+            private readonly InsertStringExtendedQueryTagTableTypeV1TableValuedParameterDefinition _stringExtendedQueryTags = new InsertStringExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@stringExtendedQueryTags");
+            private readonly InsertLongExtendedQueryTagTableTypeV1TableValuedParameterDefinition _longExtendedQueryTags = new InsertLongExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@longExtendedQueryTags");
+            private readonly InsertDoubleExtendedQueryTagTableTypeV1TableValuedParameterDefinition _doubleExtendedQueryTags = new InsertDoubleExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@doubleExtendedQueryTags");
+            private readonly InsertDateTimeExtendedQueryTagTableTypeV2TableValuedParameterDefinition _dateTimeExtendedQueryTags = new InsertDateTimeExtendedQueryTagTableTypeV2TableValuedParameterDefinition("@dateTimeExtendedQueryTags");
+            private readonly InsertPersonNameExtendedQueryTagTableTypeV1TableValuedParameterDefinition _personNameExtendedQueryTags = new InsertPersonNameExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@personNameExtendedQueryTags");
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int64 studyKey, System.Int64 seriesKey, System.Int64 instanceKey, System.Int64 watermark, global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> stringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> longExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> dateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNameExtendedQueryTags)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.IIndexInstanceCore";
+                _studyKey.AddParameter(command.Parameters, studyKey);
+                _seriesKey.AddParameter(command.Parameters, seriesKey);
+                _instanceKey.AddParameter(command.Parameters, instanceKey);
+                _watermark.AddParameter(command.Parameters, watermark);
+                _stringExtendedQueryTags.AddParameter(command.Parameters, stringExtendedQueryTags);
+                _longExtendedQueryTags.AddParameter(command.Parameters, longExtendedQueryTags);
+                _doubleExtendedQueryTags.AddParameter(command.Parameters, doubleExtendedQueryTags);
+                _dateTimeExtendedQueryTags.AddParameter(command.Parameters, dateTimeExtendedQueryTags);
+                _personNameExtendedQueryTags.AddParameter(command.Parameters, personNameExtendedQueryTags);
+            }
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int64 studyKey, System.Int64 seriesKey, System.Int64 instanceKey, System.Int64 watermark, IIndexInstanceCoreTableValuedParameters tableValuedParameters)
+            {
+                PopulateCommand(command, studyKey: studyKey, seriesKey: seriesKey, instanceKey: instanceKey, watermark: watermark, stringExtendedQueryTags: tableValuedParameters.StringExtendedQueryTags, longExtendedQueryTags: tableValuedParameters.LongExtendedQueryTags, doubleExtendedQueryTags: tableValuedParameters.DoubleExtendedQueryTags, dateTimeExtendedQueryTags: tableValuedParameters.DateTimeExtendedQueryTags, personNameExtendedQueryTags: tableValuedParameters.PersonNameExtendedQueryTags);
+            }
+        }
+
+        internal class IIndexInstanceCoreTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, IIndexInstanceCoreTableValuedParameters>
+        {
+            public IIndexInstanceCoreTvpGenerator(ITableValuedParameterRowGenerator<TInput, InsertStringExtendedQueryTagTableTypeV1Row> InsertStringExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertLongExtendedQueryTagTableTypeV1Row> InsertLongExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertDoubleExtendedQueryTagTableTypeV1Row> InsertDoubleExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertDateTimeExtendedQueryTagTableTypeV2Row> InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertPersonNameExtendedQueryTagTableTypeV1Row> InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator)
+            {
+                this.InsertStringExtendedQueryTagTableTypeV1RowGenerator = InsertStringExtendedQueryTagTableTypeV1RowGenerator;
+                this.InsertLongExtendedQueryTagTableTypeV1RowGenerator = InsertLongExtendedQueryTagTableTypeV1RowGenerator;
+                this.InsertDoubleExtendedQueryTagTableTypeV1RowGenerator = InsertDoubleExtendedQueryTagTableTypeV1RowGenerator;
+                this.InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator = InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator;
+                this.InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator = InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator;
+            }
+
+            private readonly ITableValuedParameterRowGenerator<TInput, InsertStringExtendedQueryTagTableTypeV1Row> InsertStringExtendedQueryTagTableTypeV1RowGenerator;
+            private readonly ITableValuedParameterRowGenerator<TInput, InsertLongExtendedQueryTagTableTypeV1Row> InsertLongExtendedQueryTagTableTypeV1RowGenerator;
+            private readonly ITableValuedParameterRowGenerator<TInput, InsertDoubleExtendedQueryTagTableTypeV1Row> InsertDoubleExtendedQueryTagTableTypeV1RowGenerator;
+            private readonly ITableValuedParameterRowGenerator<TInput, InsertDateTimeExtendedQueryTagTableTypeV2Row> InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator;
+            private readonly ITableValuedParameterRowGenerator<TInput, InsertPersonNameExtendedQueryTagTableTypeV1Row> InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator;
+
+            public IIndexInstanceCoreTableValuedParameters Generate(TInput input)
+            {
+                return new IIndexInstanceCoreTableValuedParameters(InsertStringExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertLongExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertDoubleExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator.GenerateRows(input), InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input));
+            }
+        }
+
+        internal struct IIndexInstanceCoreTableValuedParameters
+        {
+            internal IIndexInstanceCoreTableValuedParameters(global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> StringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> LongExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> DoubleExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> DateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameExtendedQueryTags)
+            {
+                this.StringExtendedQueryTags = StringExtendedQueryTags;
+                this.LongExtendedQueryTags = LongExtendedQueryTags;
+                this.DoubleExtendedQueryTags = DoubleExtendedQueryTags;
+                this.DateTimeExtendedQueryTags = DateTimeExtendedQueryTags;
+                this.PersonNameExtendedQueryTags = PersonNameExtendedQueryTags;
+            }
+
+            internal global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> StringExtendedQueryTags { get; }
+            internal global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> LongExtendedQueryTags { get; }
+            internal global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> DoubleExtendedQueryTags { get; }
+            internal global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> DateTimeExtendedQueryTags { get; }
+            internal global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameExtendedQueryTags { get; }
+        }
+
         internal class IncrementDeletedInstanceRetryProcedure : StoredProcedure
         {
             internal IncrementDeletedInstanceRetryProcedure() : base("dbo.IncrementDeletedInstanceRetry")
@@ -1059,6 +1352,32 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.IncrementDeletedInstanceRetry";
+                _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
+                _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
+                _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
+                _watermark.AddParameter(command.Parameters, watermark);
+                _cleanupAfter.AddParameter(command.Parameters, cleanupAfter);
+            }
+        }
+
+        internal class IncrementDeletedInstanceRetryV6Procedure : StoredProcedure
+        {
+            internal IncrementDeletedInstanceRetryV6Procedure() : base("dbo.IncrementDeletedInstanceRetryV6")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.Int64> _watermark = new ParameterDefinition<System.Int64>("@watermark", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.DateTimeOffset> _cleanupAfter = new ParameterDefinition<System.DateTimeOffset>("@cleanupAfter", global::System.Data.SqlDbType.DateTimeOffset, false, 0);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int64 watermark, System.DateTimeOffset cleanupAfter)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.IncrementDeletedInstanceRetryV6";
+                _partitionKey.AddParameter(command.Parameters, partitionKey);
                 _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
                 _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
                 _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
@@ -1211,6 +1530,78 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameExtendedQueryTags { get; }
         }
 
+        internal class IndexInstanceV6Procedure : StoredProcedure
+        {
+            internal IndexInstanceV6Procedure() : base("dbo.IndexInstanceV6")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int64> _watermark = new ParameterDefinition<System.Int64>("@watermark", global::System.Data.SqlDbType.BigInt, false);
+            private readonly InsertStringExtendedQueryTagTableTypeV1TableValuedParameterDefinition _stringExtendedQueryTags = new InsertStringExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@stringExtendedQueryTags");
+            private readonly InsertLongExtendedQueryTagTableTypeV1TableValuedParameterDefinition _longExtendedQueryTags = new InsertLongExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@longExtendedQueryTags");
+            private readonly InsertDoubleExtendedQueryTagTableTypeV1TableValuedParameterDefinition _doubleExtendedQueryTags = new InsertDoubleExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@doubleExtendedQueryTags");
+            private readonly InsertDateTimeExtendedQueryTagTableTypeV2TableValuedParameterDefinition _dateTimeExtendedQueryTags = new InsertDateTimeExtendedQueryTagTableTypeV2TableValuedParameterDefinition("@dateTimeExtendedQueryTags");
+            private readonly InsertPersonNameExtendedQueryTagTableTypeV1TableValuedParameterDefinition _personNameExtendedQueryTags = new InsertPersonNameExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@personNameExtendedQueryTags");
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int64 watermark, global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> stringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> longExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> dateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNameExtendedQueryTags)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.IndexInstanceV6";
+                _watermark.AddParameter(command.Parameters, watermark);
+                _stringExtendedQueryTags.AddParameter(command.Parameters, stringExtendedQueryTags);
+                _longExtendedQueryTags.AddParameter(command.Parameters, longExtendedQueryTags);
+                _doubleExtendedQueryTags.AddParameter(command.Parameters, doubleExtendedQueryTags);
+                _dateTimeExtendedQueryTags.AddParameter(command.Parameters, dateTimeExtendedQueryTags);
+                _personNameExtendedQueryTags.AddParameter(command.Parameters, personNameExtendedQueryTags);
+            }
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int64 watermark, IndexInstanceV6TableValuedParameters tableValuedParameters)
+            {
+                PopulateCommand(command, watermark: watermark, stringExtendedQueryTags: tableValuedParameters.StringExtendedQueryTags, longExtendedQueryTags: tableValuedParameters.LongExtendedQueryTags, doubleExtendedQueryTags: tableValuedParameters.DoubleExtendedQueryTags, dateTimeExtendedQueryTags: tableValuedParameters.DateTimeExtendedQueryTags, personNameExtendedQueryTags: tableValuedParameters.PersonNameExtendedQueryTags);
+            }
+        }
+
+        internal class IndexInstanceV6TvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, IndexInstanceV6TableValuedParameters>
+        {
+            public IndexInstanceV6TvpGenerator(ITableValuedParameterRowGenerator<TInput, InsertStringExtendedQueryTagTableTypeV1Row> InsertStringExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertLongExtendedQueryTagTableTypeV1Row> InsertLongExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertDoubleExtendedQueryTagTableTypeV1Row> InsertDoubleExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertDateTimeExtendedQueryTagTableTypeV2Row> InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertPersonNameExtendedQueryTagTableTypeV1Row> InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator)
+            {
+                this.InsertStringExtendedQueryTagTableTypeV1RowGenerator = InsertStringExtendedQueryTagTableTypeV1RowGenerator;
+                this.InsertLongExtendedQueryTagTableTypeV1RowGenerator = InsertLongExtendedQueryTagTableTypeV1RowGenerator;
+                this.InsertDoubleExtendedQueryTagTableTypeV1RowGenerator = InsertDoubleExtendedQueryTagTableTypeV1RowGenerator;
+                this.InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator = InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator;
+                this.InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator = InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator;
+            }
+
+            private readonly ITableValuedParameterRowGenerator<TInput, InsertStringExtendedQueryTagTableTypeV1Row> InsertStringExtendedQueryTagTableTypeV1RowGenerator;
+            private readonly ITableValuedParameterRowGenerator<TInput, InsertLongExtendedQueryTagTableTypeV1Row> InsertLongExtendedQueryTagTableTypeV1RowGenerator;
+            private readonly ITableValuedParameterRowGenerator<TInput, InsertDoubleExtendedQueryTagTableTypeV1Row> InsertDoubleExtendedQueryTagTableTypeV1RowGenerator;
+            private readonly ITableValuedParameterRowGenerator<TInput, InsertDateTimeExtendedQueryTagTableTypeV2Row> InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator;
+            private readonly ITableValuedParameterRowGenerator<TInput, InsertPersonNameExtendedQueryTagTableTypeV1Row> InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator;
+
+            public IndexInstanceV6TableValuedParameters Generate(TInput input)
+            {
+                return new IndexInstanceV6TableValuedParameters(InsertStringExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertLongExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertDoubleExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator.GenerateRows(input), InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input));
+            }
+        }
+
+        internal struct IndexInstanceV6TableValuedParameters
+        {
+            internal IndexInstanceV6TableValuedParameters(global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> StringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> LongExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> DoubleExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> DateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameExtendedQueryTags)
+            {
+                this.StringExtendedQueryTags = StringExtendedQueryTags;
+                this.LongExtendedQueryTags = LongExtendedQueryTags;
+                this.DoubleExtendedQueryTags = DoubleExtendedQueryTags;
+                this.DateTimeExtendedQueryTags = DateTimeExtendedQueryTags;
+                this.PersonNameExtendedQueryTags = PersonNameExtendedQueryTags;
+            }
+
+            internal global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> StringExtendedQueryTags { get; }
+            internal global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> LongExtendedQueryTags { get; }
+            internal global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> DoubleExtendedQueryTags { get; }
+            internal global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> DateTimeExtendedQueryTags { get; }
+            internal global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameExtendedQueryTags { get; }
+        }
+
         internal class RetrieveDeletedInstanceProcedure : StoredProcedure
         {
             internal RetrieveDeletedInstanceProcedure() : base("dbo.RetrieveDeletedInstance")
@@ -1224,6 +1615,24 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.RetrieveDeletedInstance";
+                _count.AddParameter(command.Parameters, count);
+                _maxRetries.AddParameter(command.Parameters, maxRetries);
+            }
+        }
+
+        internal class RetrieveDeletedInstanceV6Procedure : StoredProcedure
+        {
+            internal RetrieveDeletedInstanceV6Procedure() : base("dbo.RetrieveDeletedInstanceV6")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _count = new ParameterDefinition<System.Int32>("@count", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Int32> _maxRetries = new ParameterDefinition<System.Int32>("@maxRetries", global::System.Data.SqlDbType.Int, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 count, System.Int32 maxRetries)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.RetrieveDeletedInstanceV6";
                 _count.AddParameter(command.Parameters, count);
                 _maxRetries.AddParameter(command.Parameters, maxRetries);
             }
@@ -1268,6 +1677,34 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
                 _watermark.AddParameter(command.Parameters, watermark);
                 _status.AddParameter(command.Parameters, status);
+            }
+        }
+
+        internal class UpdateInstanceStatusV6Procedure : StoredProcedure
+        {
+            internal UpdateInstanceStatusV6Procedure() : base("dbo.UpdateInstanceStatusV6")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.Int64> _watermark = new ParameterDefinition<System.Int64>("@watermark", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.Byte> _status = new ParameterDefinition<System.Byte>("@status", global::System.Data.SqlDbType.TinyInt, false);
+            private readonly ParameterDefinition<System.Nullable<System.Int32>> _maxTagKey = new ParameterDefinition<System.Nullable<System.Int32>>("@maxTagKey", global::System.Data.SqlDbType.Int, true);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int64 watermark, System.Byte status, System.Nullable<System.Int32> maxTagKey)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.UpdateInstanceStatusV6";
+                _partitionKey.AddParameter(command.Parameters, partitionKey);
+                _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
+                _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
+                _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
+                _watermark.AddParameter(command.Parameters, watermark);
+                _status.AddParameter(command.Parameters, status);
+                _maxTagKey.AddParameter(command.Parameters, maxTagKey);
             }
         }
     }

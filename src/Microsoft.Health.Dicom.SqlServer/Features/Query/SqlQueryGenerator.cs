@@ -6,10 +6,12 @@
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer;
 using Microsoft.Health.SqlServer.Features.Schema.Model;
@@ -22,6 +24,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         private readonly IndentedStringBuilder _stringBuilder;
         private readonly QueryExpression _queryExpression;
         private readonly SqlQueryParameterManager _parameters;
+        private readonly SchemaVersion _schemaVersion;
         private const string SqlDateFormat = "yyyy-MM-dd HH:mm:ss.ffffff";
         private const string InstanceTableAlias = "i";
         private const string StudyTableAlias = "st";
@@ -35,11 +38,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         public SqlQueryGenerator(
             IndentedStringBuilder stringBuilder,
             QueryExpression queryExpression,
-            SqlQueryParameterManager sqlQueryParameterManager)
+            SqlQueryParameterManager sqlQueryParameterManager,
+            SchemaVersion schemaVersion)
         {
             _stringBuilder = stringBuilder;
             _queryExpression = queryExpression;
             _parameters = sqlQueryParameterManager;
+            _schemaVersion = schemaVersion;
 
             Build();
         }
@@ -118,6 +123,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             AppendExtendedQueryTagTables();
 
             _stringBuilder.AppendLine("WHERE 1 = 1");
+
+            if ((int)_schemaVersion >= SchemaVersionConstants.SupportDataPartitionSchemaVersion)
+            {
+                // TODO: Actual PartitionKey should be passed as a filter condition
+                _stringBuilder.AppendLine($"AND {StudyTableAlias}.{VLatest.Study.PartitionKey} = {DefaultPartition.Key}");
+            }
+
             using (IndentedStringBuilder.DelimitedScope delimited = _stringBuilder.BeginDelimitedWhereClause())
             {
                 AppendFilterClause();

@@ -12,10 +12,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
     /// Represent rows for extended query tag index data.
     /// </summary>
     internal class ExtendedQueryTagDataRows
-
     {
-        public int MaxTagKey { get; set; }
-
         public IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> StringRows { get; set; }
 
         public IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> LongRows { get; set; }

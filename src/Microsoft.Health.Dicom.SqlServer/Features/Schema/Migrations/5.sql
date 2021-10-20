@@ -1,6 +1,6 @@
 
 /*************************************************************************************************
-    Auto-Generated from Sql build task. Do not manuallly edit it. 
+    Auto-Generated from Sql build task. Do not manually edit it. 
 **************************************************************************************************/
 SET XACT_ABORT ON
 BEGIN TRAN

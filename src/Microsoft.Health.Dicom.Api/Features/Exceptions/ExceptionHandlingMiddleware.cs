@@ -97,22 +97,30 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                     // One of the required resources is missing.
                     statusCode = HttpStatusCode.InternalServerError;
                     break;
-                case UnauthorizedDicomActionException unauthorizedDicomActionException:
-                    _logger.LogInformation("Expected dataActions not available: {dataActions}", unauthorizedDicomActionException.ExpectedDataActions);
+                case UnauthorizedDicomActionException udae:
+                    _logger.LogInformation("Expected data actions not available: {dataActions}", udae.ExpectedDataActions);
                     statusCode = HttpStatusCode.Forbidden;
                     break;
                 case DicomServerException _:
-                    _logger.LogWarning(exception, "Service exception.");
                     statusCode = HttpStatusCode.ServiceUnavailable;
                     break;
             }
 
-            if (statusCode == HttpStatusCode.InternalServerError)
+            // Log the exception and possibly modify the user message
+            switch (statusCode)
             {
-                // In the case of InternalServerError, make sure to overwrite the message to
-                // avoid internal message.
-                _logger.LogCritical(exception, "Unhandled exception.");
-                message = DicomApiResource.InternalServerError;
+                case HttpStatusCode.ServiceUnavailable:
+                    _logger.LogWarning(exception, "Service exception.");
+                    break;
+                case HttpStatusCode.InternalServerError:
+                    // In the case of InternalServerError, make sure to overwrite the message to
+                    // avoid internal message.
+                    _logger.LogCritical(exception, "Unexpected service exception.");
+                    message = DicomApiResource.InternalServerError;
+                    break;
+                default:
+                    _logger.LogWarning(exception, "Unhandled exception");
+                    break;
             }
 
             return GetContentResult(statusCode, message);
