@@ -157,6 +157,58 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         }
 
         [Fact]
+        public void GivenExtendedQueryDateTimeTag_WithUrl_ParseSucceeds()
+        {
+            QueryTag queryTag = new QueryTag(DicomTag.DateTime.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
+
+            QueryExpression queryExpression = _queryParser.Parse(CreateParameters(GetSingleton("DateTime", "20200301195109.10-20200501195110.20"), QueryResource.AllStudies), new[] { queryTag });
+            Assert.Equal(queryTag, queryExpression.FilterConditions.First().QueryTag);
+        }
+
+        [Theory]
+        [InlineData("19510910010203", "20200220020304")]
+        public void GivenDateTime_WithValidRangeMatch_CheckCondition(string minValue, string maxValue)
+        {
+            EnsureArg.IsNotNull(minValue, nameof(maxValue));
+            QueryTag queryTag = new QueryTag(DicomTag.DateTime.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
+
+            QueryExpression queryExpression = _queryParser.Parse(CreateParameters(GetSingleton("DateTime", string.Concat(minValue, "-", maxValue)), QueryResource.AllStudies), new[] { queryTag });
+            var cond = queryExpression.FilterConditions.First() as DateRangeValueMatchCondition;
+            Assert.NotNull(cond);
+            Assert.True(cond.QueryTag.Tag == DicomTag.DateTime);
+            Assert.True(cond.Minimum == DateTime.ParseExact(minValue, QueryParser.DateTimeTagValueFormats, null));
+            Assert.True(cond.Maximum == DateTime.ParseExact(maxValue, QueryParser.DateTimeTagValueFormats, null));
+        }
+
+        [Fact]
+        public void GivenExtendedQueryTimeTag_WithUrl_ParseSucceeds()
+        {
+            QueryTag queryTag = new QueryTag(DicomTag.Time.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
+
+            QueryExpression queryExpression = _queryParser.Parse(CreateParameters(GetSingleton("Time", "195109.10-195110.20"), QueryResource.AllStudies), new[] { queryTag });
+            Assert.Equal(queryTag, queryExpression.FilterConditions.First().QueryTag);
+        }
+
+        [Theory]
+        [InlineData("010203", "020304")]
+        public void GivenStudyTime_WithValidRangeMatch_CheckCondition(string minValue, string maxValue)
+        {
+            EnsureArg.IsNotNull(minValue, nameof(maxValue));
+            QueryTag queryTag = new QueryTag(DicomTag.Time.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
+
+            QueryExpression queryExpression = _queryParser.Parse(CreateParameters(GetSingleton("Time", string.Concat(minValue, "-", maxValue)), QueryResource.AllStudies), new[] { queryTag });
+            var cond = queryExpression.FilterConditions.First() as LongRangeValueMatchCondition;
+            Assert.NotNull(cond);
+            Assert.True(cond.QueryTag.Tag == DicomTag.Time);
+
+            long minTicks = new DicomTime(cond.QueryTag.Tag, new string[] { minValue }).Get<DateTime>().Ticks;
+            long maxTicks = new DicomTime(cond.QueryTag.Tag, new string[] { maxValue }).Get<DateTime>().Ticks;
+
+            Assert.True(cond.Minimum == minTicks);
+            Assert.True(cond.Maximum == maxTicks);
+        }
+
+        [Fact]
         public void GivenExtendedQueryPersonNameTag_WithUrl_ParseSucceeds()
         {
             QueryTag queryTag = new QueryTag(DicomTag.PatientBirthName.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Series));
@@ -373,9 +425,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
                     {
                         { tag1.GetFriendlyName(), "CoronaPatient" },
                     },
-                    QueryResource.AllStudies);
+                    QueryResource.AllInstances);
 
-            Assert.Throws<QueryParseException>(() => _queryParser.Parse(parameters, tags));
+            var exp = Assert.Throws<QueryParseException>(() => _queryParser.Parse(parameters, tags));
+            Assert.Equal($"Query is disabled on specified attribute '{tag1.GetFriendlyName()}'.", exp.Message);
         }
 
         private void VerifyIncludeFieldsForValidAttributeIds(params string[] values)
