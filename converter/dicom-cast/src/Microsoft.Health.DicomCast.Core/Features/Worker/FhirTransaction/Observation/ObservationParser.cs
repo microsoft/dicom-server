@@ -97,7 +97,8 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 // Set the code.coding
                 Code = new CodeableConcept("http://loinc.org", "73569-6", "Radiation exposure and protection information"),
                 // Add Patient reference
-                Subject = patientReference
+                Subject = patientReference,
+                Status = ObservationStatus.Preliminary,
             };
             // Add ImagingStudy reference
             observation.PartOf.Add(imagingStudyReference);
@@ -166,7 +167,8 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             var observation = new Observation
             {
                 Code = new CodeableConcept("http://dicom.nema.org/resources/ontology/DCM", "113852", "Irradiation Event"),
-                Subject = patientRef
+                Subject = patientRef,
+                Status = ObservationStatus.Preliminary,
             };
 
             // try to extract the event UID

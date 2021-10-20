@@ -63,9 +63,9 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
             foreach (FhirTransactionRequestResponsePropertyAccessor propertyAccessor in _requestResponsePropertyAccessors)
             {
-                List<FhirTransactionRequestEntry> requestEntries = propertyAccessor.RequestEntryGetter(context.Request).ToList();
+                List<FhirTransactionRequestEntry> requestEntries = propertyAccessor.RequestEntryGetter(context.Request)?.ToList();
 
-                if (!requestEntries.Any())
+                if (requestEntries == null || !requestEntries.Any())
                 {
                     continue;
                 }
@@ -101,6 +101,11 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             for (int i = 0; i < usedPropertyAccessors.Count; i++)
             {
                 int bundleCount = usedPropertyAccessors[i].Item2;
+
+                if (bundleCount == 0)
+                {
+                    continue;
+                }
                 var responseEntries = new List<FhirTransactionResponseEntry>();
                 for (int j = 0; j < bundleCount; j++)
                 {

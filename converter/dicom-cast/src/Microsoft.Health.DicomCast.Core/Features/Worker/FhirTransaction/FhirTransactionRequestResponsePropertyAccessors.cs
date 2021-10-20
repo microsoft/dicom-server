@@ -30,58 +30,58 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
             static FhirTransactionRequestResponsePropertyAccessor Create(PropertyInfo interfacePropertyInfo)
             {
-                Func<FhirTransactionRequest, IEnumerable<FhirTransactionRequestEntry>> requestPropertyGetterDelegate = CreateGetter(interfacePropertyInfo);
+                Func<FhirTransactionRequest, IEnumerable<FhirTransactionRequestEntry>> requestPropertyGetterDelegate = CreateGetterDelegate(interfacePropertyInfo);
 
-                Action<FhirTransactionResponse, IEnumerable<FhirTransactionResponseEntry>> responsePropertySetterDelegate = CreateSetter(interfacePropertyInfo);
+                Action<FhirTransactionResponse, IEnumerable<FhirTransactionResponseEntry>> responsePropertySetterDelegate = CreateSetterDelegate(interfacePropertyInfo);
 
                 return new FhirTransactionRequestResponsePropertyAccessor(interfacePropertyInfo.Name, requestPropertyGetterDelegate, responsePropertySetterDelegate);
             }
         }
 
-        private static Func<FhirTransactionRequest, IEnumerable<FhirTransactionRequestEntry>> CreateGetter(PropertyInfo propertyInfo)
+        private static Func<FhirTransactionRequest, IEnumerable<FhirTransactionRequestEntry>> CreateGetterDelegate(PropertyInfo propertyInfo)
         {
-            ParameterExpression paramExpr = Expression.Parameter(typeof(FhirTransactionRequest));
-            MemberExpression getPropertyExpr = Expression.Property(paramExpr, propertyInfo.Name);
+            ParameterExpression parameterExpression = Expression.Parameter(typeof(FhirTransactionRequest));
+            MemberExpression propertyExpression = Expression.Property(parameterExpression, propertyInfo.Name);
 
-            Expression bodyExpr;
+            Expression bodyExpression;
             if (typeof(IEnumerable).IsAssignableFrom(propertyInfo.PropertyType))
             {
-                bodyExpr = getPropertyExpr;
+                bodyExpression = propertyExpression;
             }
             else
             {
                 // TODO: Do these need to be cast to IEnumerable<FhirTransactionRequestEntry> or can expr tree handle it?
-                bodyExpr = Expression.NewArrayInit(typeof(FhirTransactionRequestEntry), getPropertyExpr);
+                bodyExpression = Expression.NewArrayInit(typeof(FhirTransactionRequestEntry), propertyExpression);
             }
 
-            return Expression.Lambda<Func<FhirTransactionRequest, IEnumerable<FhirTransactionRequestEntry>>>(bodyExpr, paramExpr).Compile();
+            return Expression.Lambda<Func<FhirTransactionRequest, IEnumerable<FhirTransactionRequestEntry>>>(bodyExpression, parameterExpression).Compile();
         }
 
-        private static Action<FhirTransactionResponse, IEnumerable<FhirTransactionResponseEntry>> CreateSetter(PropertyInfo propertyInfo)
+        private static Action<FhirTransactionResponse, IEnumerable<FhirTransactionResponseEntry>> CreateSetterDelegate(PropertyInfo propertyInfo)
         {
-            ParameterExpression responseParamExpr = Expression.Parameter(typeof(FhirTransactionResponse));
-            ParameterExpression entryParamExpr = Expression.Parameter(typeof(IEnumerable<FhirTransactionResponseEntry>));
-            MemberExpression propertyExpr = Expression.Property(responseParamExpr, propertyInfo.Name);
+            ParameterExpression parameterExpression = Expression.Parameter(typeof(FhirTransactionResponse));
+            ParameterExpression enumerableParameterExpression = Expression.Parameter(typeof(IEnumerable<FhirTransactionResponseEntry>));
+            MemberExpression propertyExpression = Expression.Property(parameterExpression, propertyInfo.Name);
 
-            Expression bodyExpr;
+            Expression bodyExpression;
             if (typeof(IEnumerable).IsAssignableFrom(propertyInfo.PropertyType))
             {
-                bodyExpr = Expression.Assign(propertyExpr, entryParamExpr);
+                bodyExpression = Expression.Assign(propertyExpression, enumerableParameterExpression);
             }
             else
             {
-                var singleMethod = typeof(Enumerable)
+                MethodInfo singleMethod = typeof(Enumerable)
                     .GetMethods()
-                    .FirstOrDefault(
-                        x => x.Name.Equals("Single", StringComparison.OrdinalIgnoreCase) &&
+                    .Single(
+                        x => x.Name == nameof(Enumerable.Single) &&
                              x.IsGenericMethod &&
-                             x.GetParameters().Length == 1)?
+                             x.GetParameters().Length == 1)
                     .MakeGenericMethod(typeof(FhirTransactionResponseEntry));
 
-                bodyExpr = Expression.Assign(propertyExpr, Expression.Call(null, singleMethod, entryParamExpr));
+                bodyExpression = Expression.Assign(propertyExpression, Expression.Call(null, singleMethod, enumerableParameterExpression));
             }
 
-            return Expression.Lambda<Action<FhirTransactionResponse, IEnumerable<FhirTransactionResponseEntry>>>(bodyExpr, responseParamExpr, entryParamExpr).Compile();
+            return Expression.Lambda<Action<FhirTransactionResponse, IEnumerable<FhirTransactionResponseEntry>>>(bodyExpression, parameterExpression, enumerableParameterExpression).Compile();
         }
 
         /// <inheritdoc/>
