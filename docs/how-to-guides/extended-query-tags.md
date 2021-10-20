@@ -433,7 +433,7 @@ The query status of extended query tag.
 | Disabled | string | The extended query tag is not allowed to be queried |
 | Enabled  | string | The extended query tag is allowed to be queried     |
 
-> Note:  Errors during reindex operation disables QIDO on the extended query tag. You can call [Update Extended Query Tag](#Update Extended Query Tag) API to enable it.
+> Note:  Errors during reindex operation disables QIDO on the extended query tag. You can call [Update Extended Query Tag](#update-extended-query-tag) API to enable it.
 
 ### Extended Query Tag for Updating
 
