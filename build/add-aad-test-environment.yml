@@ -50,4 +50,4 @@ steps:
       Import-Module $(System.DefaultWorkingDirectory)/samples/scripts/PowerShell/DicomServer.psd1
       Import-Module $(System.DefaultWorkingDirectory)/release/scripts/PowerShell/DicomServerRelease/DicomServerRelease.psd1
 
-      $output = Add-AadTestAuthEnvironment -TestAuthEnvironmentPath $(System.DefaultWorkingDirectory)/testauthenvironment.json -EnvironmentName $(deploymentName) -TenantAdminCredential $adminCredential -EnvironmentLocation $(resourceGroupRegion)
+      $output = Add-AadTestAuthEnvironment -TestAuthEnvironmentPath $(System.DefaultWorkingDirectory)/testauthenvironment.json -EnvironmentName $(deploymentName) -TenantAdminCredential $adminCredential -EnvironmentLocation $(resourceGroupRegion) -TenantIdDomain $tenantId
