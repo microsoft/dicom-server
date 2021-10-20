@@ -154,6 +154,11 @@ namespace Microsoft.Health.Dicom.Core.Modules
 
             services.AddHealthChecks().AddCheck<BackgroundServiceHealthCheck>(name: "BackgroundServiceHealthCheck");
 
+            services.Add<PartitionService>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
             if (_featureConfiguration.EnableExtendedQueryTags)
             {
                 services.Add<ExtendedQueryTagEntryValidator>()
