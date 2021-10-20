@@ -199,6 +199,7 @@
         // See the following for Azure Function App settings: https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings
         "staticDicomFunctionAppConfigProperties": {
             "AzureWebJobsDisableHomepage": "true",
+            "CONTAINER_NAME": "azure-webjobs-secrets",
             "FUNCTIONS_EXTENSION_VERSION": "~3",
             "FUNCTIONS_WORKER_RUNTIME": "dotnet",
             "WEBSITE_ENABLE_SYNC_UPDATE_SITE": "1"
@@ -326,6 +327,10 @@
                         {
                             "name": "AzureWebJobsStorage",
                             "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ';')]"
+                        },
+                        {
+                            "name": "CONTAINER_NAME",
+                            "value": "azure-webjobs-secrets"
                         },
                         {
                             "name": "FUNCTIONS_EXTENSION_VERSION",

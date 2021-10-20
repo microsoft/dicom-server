@@ -4,14 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 
 namespace Microsoft.Health.Dicom.Core.Features.Security
 {
     [Flags]
-#pragma warning disable CA1028 // Enum Storage should be Int32
+    [SuppressMessage("Design", "CA1028:Enum Storage should be Int32", Justification = "Reserve additional bits for actions.")]
     public enum DataActions : ulong
-#pragma warning restore CA1028 // Enum Storage should be Int32
     {
         [EnumMember(Value = "none")]
         None = 0,
