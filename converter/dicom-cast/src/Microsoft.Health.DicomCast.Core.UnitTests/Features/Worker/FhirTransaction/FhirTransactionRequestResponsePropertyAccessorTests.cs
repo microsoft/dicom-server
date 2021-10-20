@@ -4,6 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Hl7.Fhir.Model;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using Xunit;
@@ -19,7 +21,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
         public FhirTransactionRequestResponsePropertyAccessorTests()
         {
-            _patientPropertyAccessor = CreatePropertyAccesor();
+            _patientPropertyAccessor = CreatePropertyAccessor();
         }
 
         [Fact]
@@ -31,17 +33,16 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
             Assert.Same(
                 requestEntry,
-                _patientPropertyAccessor.RequestEntryGetter(_fhirTransactionRequest));
+                _patientPropertyAccessor.RequestEntryGetter(_fhirTransactionRequest).Single());
         }
 
         [Fact]
         public void GiveTheResponseEntryGetter_WhenInvoked_ThenCorrectValueShouldBeSet()
         {
-            var responseEntry = new FhirTransactionResponseEntry(
-                new Bundle.ResponseComponent(),
-                new Patient());
+            FhirTransactionResponseEntry responseEntry = new(new Bundle.ResponseComponent(), new Patient());
+            var responseEntryList = new List<FhirTransactionResponseEntry> { responseEntry };
 
-            _patientPropertyAccessor.ResponseEntrySetter(_fhirTransactionResponse, responseEntry);
+            _patientPropertyAccessor.ResponseEntrySetter(_fhirTransactionResponse, responseEntryList);
 
             Assert.Same(
                 responseEntry,
@@ -51,7 +52,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [Fact]
         public void GivenSamePropertyAccessor_WhenHashCodeIsComputed_ThenHashCodeShouldBeTheSame()
         {
-            FhirTransactionRequestResponsePropertyAccessor anotherPatientPropertyAccessor = CreatePropertyAccesor();
+            FhirTransactionRequestResponsePropertyAccessor anotherPatientPropertyAccessor = CreatePropertyAccessor();
 
             Assert.Equal(_patientPropertyAccessor.GetHashCode(), anotherPatientPropertyAccessor.GetHashCode());
         }
@@ -59,7 +60,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [Fact]
         public void GivenPropertyAccessorWithDifferentPropertyName_WhenHashCodeIsComputed_ThenHashCodeShouldBeDifferent()
         {
-            FhirTransactionRequestResponsePropertyAccessor anotherPatientPropertyAccessor = CreatePropertyAccesor(
+            FhirTransactionRequestResponsePropertyAccessor anotherPatientPropertyAccessor = CreatePropertyAccessor(
                 propertyName: "ImagingStudy");
 
             Assert.NotEqual(_patientPropertyAccessor.GetHashCode(), anotherPatientPropertyAccessor.GetHashCode());
@@ -68,8 +69,8 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [Fact]
         public void GivenPropertyAccessorWithDifferentRequestEntryGetter_WhenHashCodeIsComputed_ThenHashCodeShouldBeDifferent()
         {
-            FhirTransactionRequestResponsePropertyAccessor anotherPatientPropertyAccessor = CreatePropertyAccesor(
-                requestEntryGetter: request => request.ImagingStudy);
+            FhirTransactionRequestResponsePropertyAccessor anotherPatientPropertyAccessor = CreatePropertyAccessor(
+                requestEntryGetter: request => new[] { request.ImagingStudy });
 
             Assert.NotEqual(_patientPropertyAccessor.GetHashCode(), anotherPatientPropertyAccessor.GetHashCode());
         }
@@ -77,8 +78,8 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [Fact]
         public void GivenPropertyAccessorWithDifferentResponseEntrySetter_WhenHashCodeIsComputed_ThenHashCodeShouldBeDifferent()
         {
-            FhirTransactionRequestResponsePropertyAccessor anotherPatientPropertyAccessor = CreatePropertyAccesor(
-                responseEntrySetter: (response, responseEntry) => response.ImagingStudy = responseEntry);
+            FhirTransactionRequestResponsePropertyAccessor anotherPatientPropertyAccessor = CreatePropertyAccessor(
+                responseEntrySetter: (response, responseEntry) => response.ImagingStudy = responseEntry.Single());
 
             Assert.NotEqual(_patientPropertyAccessor.GetHashCode(), anotherPatientPropertyAccessor.GetHashCode());
         }
@@ -99,21 +100,21 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         public void GivenAPropertyAccessor_WhenCheckingEqualToDifferentPropertyAccessorWhenPropertyNameIsDifferentUsingObjectEquals_ThenFalseShouldBeReturned()
         {
             Assert.False(_patientPropertyAccessor.Equals(
-                (object)CreatePropertyAccesor(propertyName: "ImagingStudy")));
+                (object)CreatePropertyAccessor(propertyName: "ImagingStudy")));
         }
 
         [Fact]
         public void GivenAPropertyAccessor_WhenCheckingEqualToDifferentPropertyAccessorWhenRequestEntryGetterIsDifferentUsingObjectEquals_ThenFalseShouldBeReturned()
         {
             Assert.False(_patientPropertyAccessor.Equals(
-                (object)CreatePropertyAccesor(requestEntryGetter: request => request.ImagingStudy)));
+                (object)CreatePropertyAccessor(requestEntryGetter: request => new[] { request.ImagingStudy })));
         }
 
         [Fact]
         public void GivenAPropertyAccessor_WhenCheckingEqualToDifferentPropertyAccessorWhenResponseEntrySetterIsDifferentUsingObjectEquals_ThenFalseShouldBeReturned()
         {
             Assert.False(_patientPropertyAccessor.Equals(
-                (object)CreatePropertyAccesor(responseEntrySetter: (response, responseEntry) => response.ImagingStudy = responseEntry)));
+                (object)CreatePropertyAccessor(responseEntrySetter: (response, responseEntry) => response.ImagingStudy = responseEntry.Single())));
         }
 
         [Fact]
@@ -132,21 +133,21 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         public void GivenAPropertyAccessor_WhenCheckingEqualToDifferentPropertyAccessorWhenPropertyNameIsDifferentUsingEquatableEquals_ThenFalseShouldBeReturned()
         {
             Assert.False(_patientPropertyAccessor.Equals(
-                CreatePropertyAccesor(propertyName: "ImagingStudy")));
+                CreatePropertyAccessor(propertyName: "ImagingStudy")));
         }
 
         [Fact]
         public void GivenAPropertyAccessor_WhenCheckingEqualToDifferentPropertyAccessorWhenRequestEntryGetterIsDifferentUsingEquatableEquals_ThenFalseShouldBeReturned()
         {
             Assert.False(_patientPropertyAccessor.Equals(
-                CreatePropertyAccesor(requestEntryGetter: request => request.ImagingStudy)));
+                CreatePropertyAccessor(requestEntryGetter: request => new[] { request.ImagingStudy })));
         }
 
         [Fact]
         public void GivenAPropertyAccessor_WhenCheckingEqualToDifferentPropertyAccessorWhenResponseEntrySetterIsDifferentUsingEquatableEquals_ThenFalseShouldBeReturned()
         {
             Assert.False(_patientPropertyAccessor.Equals(
-                CreatePropertyAccesor(responseEntrySetter: (response, responseEntry) => response.ImagingStudy = responseEntry)));
+                CreatePropertyAccessor(responseEntrySetter: (response, responseEntry) => response.ImagingStudy = responseEntry.Single())));
         }
 
         [Fact]
@@ -167,21 +168,21 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         public void GivenAPropertyAccessor_WhenCheckingEqualToDifferentPropertyAccessorWhenPropertyNameIsDifferentUsingEqualityOperator_ThenFalseShouldBeReturned()
         {
             Assert.False(_patientPropertyAccessor ==
-                CreatePropertyAccesor(propertyName: "ImagingStudy"));
+                CreatePropertyAccessor(propertyName: "ImagingStudy"));
         }
 
         [Fact]
         public void GivenAPropertyAccessor_WhenCheckingEqualToDifferentPropertyAccessorWhenRequestEntryGetterIsDifferentUsingEqualityOperator_ThenFalseShouldBeReturned()
         {
             Assert.False(_patientPropertyAccessor ==
-                CreatePropertyAccesor(requestEntryGetter: request => request.ImagingStudy));
+                CreatePropertyAccessor(requestEntryGetter: request => new[] { request.ImagingStudy }));
         }
 
         [Fact]
         public void GivenAPropertyAccessor_WhenCheckingEqualToDifferentPropertyAccessorWhenResponseEntrySetterIsDifferentUsingEqualityOperator_ThenFalseShouldBeReturned()
         {
             Assert.False(_patientPropertyAccessor ==
-                CreatePropertyAccesor(responseEntrySetter: (response, responseEntry) => response.ImagingStudy = responseEntry));
+                CreatePropertyAccessor(responseEntrySetter: (response, responseEntry) => response.ImagingStudy = responseEntry.Single()));
         }
 
         [Fact]
@@ -202,30 +203,30 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         public void GivenAPropertyAccessor_WhenCheckingEqualToDifferentPropertyAccessorWhenPropertyNameIsDifferentUsingInequalityOperator_ThenFalseShouldBeReturned()
         {
             Assert.True(_patientPropertyAccessor !=
-                CreatePropertyAccesor(propertyName: "ImagingStudy"));
+                CreatePropertyAccessor(propertyName: "ImagingStudy"));
         }
 
         [Fact]
         public void GivenAPropertyAccessor_WhenCheckingEqualToDifferentPropertyAccessorWhenRequestEntryGetterIsDifferentUsingInequalityOperator_ThenFalseShouldBeReturned()
         {
             Assert.True(_patientPropertyAccessor !=
-                CreatePropertyAccesor(requestEntryGetter: request => request.ImagingStudy));
+                CreatePropertyAccessor(requestEntryGetter: request => new[] { request.ImagingStudy }));
         }
 
         [Fact]
         public void GivenAPropertyAccessor_WhenCheckingEqualToDifferentPropertyAccessorWhenResponseEntrySetterIsDifferentUsingInequalityOperator_ThenFalseShouldBeReturned()
         {
             Assert.True(_patientPropertyAccessor !=
-                CreatePropertyAccesor(responseEntrySetter: (response, responseEntry) => response.ImagingStudy = responseEntry));
+                CreatePropertyAccessor(responseEntrySetter: (response, responseEntry) => response.ImagingStudy = responseEntry.Single()));
         }
 
-        private FhirTransactionRequestResponsePropertyAccessor CreatePropertyAccesor(
+        private FhirTransactionRequestResponsePropertyAccessor CreatePropertyAccessor(
             string propertyName = "Patient",
-            Func<FhirTransactionRequest, FhirTransactionRequestEntry> requestEntryGetter = null,
-            Action<FhirTransactionResponse, FhirTransactionResponseEntry> responseEntrySetter = null)
+            Func<FhirTransactionRequest, IEnumerable<FhirTransactionRequestEntry>> requestEntryGetter = null,
+            Action<FhirTransactionResponse, IEnumerable<FhirTransactionResponseEntry>> responseEntrySetter = null)
         {
-            requestEntryGetter ??= request => request.Patient;
-            responseEntrySetter ??= (response, responseEntry) => response.Patient = responseEntry;
+            requestEntryGetter ??= request => new List<FhirTransactionRequestEntry> { request.Patient };
+            responseEntrySetter ??= (response, responseEntry) => response.Patient = responseEntry.Single();
 
             return new FhirTransactionRequestResponsePropertyAccessor(propertyName, requestEntryGetter, responseEntrySetter);
         }

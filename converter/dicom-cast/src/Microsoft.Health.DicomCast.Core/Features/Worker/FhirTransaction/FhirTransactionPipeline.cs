@@ -59,7 +59,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 Type = Bundle.BundleType.Transaction,
             };
 
-            var usedPropertyAccessors = new List<(FhirTransactionRequestResponsePropertyAccessor, int)>(_requestResponsePropertyAccessors.Count);
+            var usedPropertyAccessors = new List<(FhirTransactionRequestResponsePropertyAccessor accessor, int count)>(_requestResponsePropertyAccessors.Count);
 
             foreach (FhirTransactionRequestResponsePropertyAccessor propertyAccessor in _requestResponsePropertyAccessors)
             {
@@ -97,24 +97,23 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             Bundle responseBundle = await _fhirTransactionExecutor.ExecuteTransactionAsync(bundle, cancellationToken);
 
             // Process the response.
-            int responseCount = 0;
+            int processesResponseItems = 0;
             for (int i = 0; i < usedPropertyAccessors.Count; i++)
             {
-                int bundleCount = usedPropertyAccessors[i].Item2;
-
-                if (bundleCount == 0)
+                int expectedResponseCount = usedPropertyAccessors[i].count;
+                if (expectedResponseCount == 0)
                 {
                     continue;
                 }
                 var responseEntries = new List<FhirTransactionResponseEntry>();
-                for (int j = 0; j < bundleCount; j++)
+                for (int j = 0; j < expectedResponseCount; j++)
                 {
-                    FhirTransactionResponseEntry responseEntry = CreateResponseEntry(responseBundle.Entry[responseCount + j]);
+                    FhirTransactionResponseEntry responseEntry = CreateResponseEntry(responseBundle.Entry[processesResponseItems + j]);
                     responseEntries.Add(responseEntry);
                 }
 
-                responseCount += bundleCount;
-                usedPropertyAccessors[i].Item1.ResponseEntrySetter(context.Response, responseEntries);
+                processesResponseItems += expectedResponseCount;
+                usedPropertyAccessors[i].accessor.ResponseEntrySetter(context.Response, responseEntries);
             }
 
             // Execute any additional checks of the response.
