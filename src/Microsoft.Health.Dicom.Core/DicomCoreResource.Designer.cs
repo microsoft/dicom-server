@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class DicomCoreResource {
@@ -97,20 +97,29 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to PartitionName value is missing in the route segment..
+        /// </summary>
+        internal static string DataPartitionMissingPartition {
+            get {
+                return ResourceManager.GetString("DataPartitionMissingPartition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Specified PartitionName &apos;{0}&apos; does not exist..
+        /// </summary>
+        internal static string DataPartitionNotFound {
+            get {
+                return ResourceManager.GetString("DataPartitionNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Data partitions feature is disabled..
         /// </summary>
         internal static string DataPartitionsFeatureDisabled {
             get {
                 return ResourceManager.GetString("DataPartitionsFeatureDisabled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to PartitionName value is missing in the route segment..
-        /// </summary>
-        internal static string DataPartitionsMissingPartitions {
-            get {
-                return ResourceManager.GetString("DataPartitionsMissingPartitions", resourceCulture);
             }
         }
         

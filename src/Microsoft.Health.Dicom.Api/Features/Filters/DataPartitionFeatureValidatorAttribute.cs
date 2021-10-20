@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
 
             if (routeData?.Values != null)
             {
-                var routeContainsPartition = routeData.Values.TryGetValue(KnownActionParameterNames.PartitionName, out var partitionName);
+                var routeContainsPartition = routeData.Values.TryGetValue(KnownActionParameterNames.PartitionName, out _);
 
                 if (isPartitionEnabled)
                 {
@@ -37,8 +37,6 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
                     {
                         throw new DataPartitionsMissingPartitionException();
                     }
-
-                    PartitionNameValidator.Validate(partitionName?.ToString());
                 }
                 else
                 {

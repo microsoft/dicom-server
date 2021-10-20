@@ -3,14 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.AspNetCore.Mvc;
-namespace Microsoft.Health.Dicom.Api.Features.Routing
+using Microsoft.Health.Dicom.Core.Features.Partition;
+
+namespace Microsoft.Health.Dicom.Core.Messages.Partition
 {
-    public sealed class PartitionVersionedRouteAttribute : RouteAttribute
+    public class GetOrAddPartitionResponse
     {
-        public PartitionVersionedRouteAttribute(string template)
-            : base("/v{version:apiVersion}/" + KnownRoutes.PartitionRoute + "/" + template)
+        public GetOrAddPartitionResponse(PartitionEntry partitionEntry)
         {
+            PartitionEntry = partitionEntry;
         }
+
+        public PartitionEntry PartitionEntry { get; }
     }
 }

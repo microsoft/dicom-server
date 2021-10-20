@@ -6,14 +6,17 @@
 using System;
 using System.Threading.Tasks;
 using EnsureThat;
+using MediatR;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Api.Features.Filters
 {
@@ -21,14 +24,14 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
     public sealed class PopulateDataPartitionFilterAttribute : ActionFilterAttribute
     {
         private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
-        private readonly IPartitionService _partitionService;
+        private readonly IMediator _mediator;
 
         public PopulateDataPartitionFilterAttribute(
             IDicomRequestContextAccessor dicomRequestContextAccessor,
-            IPartitionService partitionService)
+            IMediator mediator)
         {
             _dicomRequestContextAccessor = EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
-            _partitionService = EnsureArg.IsNotNull(partitionService, nameof(partitionService));
+            _mediator = EnsureArg.IsNotNull(mediator, nameof(mediator));
         }
 
         public async override Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
@@ -37,16 +40,36 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
             var svc = context.HttpContext.RequestServices;
             IOptions<FeatureConfiguration> featureConfiguration = svc.GetService<IOptions<FeatureConfiguration>>();
             var isPartitionEnabled = featureConfiguration.Value.EnableDataPartitions;
-            RouteData routeData = context.RouteData;
             IDicomRequestContext dicomRequestContext = _dicomRequestContextAccessor.RequestContext;
+            RouteData routeData = context.RouteData;
+            var routeName = context.ActionDescriptor?.AttributeRouteInfo?.Name;
 
             if (routeData?.Values != null)
             {
                 // Try get Partition Name
-                if (isPartitionEnabled && routeData.Values.TryGetValue(KnownActionParameterNames.PartitionName, out object partitionName))
+                if (isPartitionEnabled && routeData.Values.TryGetValue(KnownActionParameterNames.PartitionName, out var partitionName))
                 {
-                    var partitionEntry = await _partitionService.GetPartition(partitionName.ToString());
-                    dicomRequestContext.DataPartitionEntry = partitionEntry;
+                    PartitionNameValidator.Validate(partitionName?.ToString());
+
+                    var partitionResponse = await _mediator.GetPartitionAsync(partitionName.ToString());
+
+                    if (partitionResponse?.PartitionEntry != null)
+                    {
+                        dicomRequestContext.DataPartitionEntry = partitionResponse.PartitionEntry;
+                    }
+                    else if (routeName == KnownRouteNames.PartitionStoreInstance ||
+                        routeName == KnownRouteNames.VersionedPartitionStoreInstance ||
+                        routeName == KnownRouteNames.PartitionStoreInstancesInStudy ||
+                        routeName == KnownRouteNames.VersionedPartitionStoreInstancesInStudy
+                        )
+                    {
+                        partitionResponse = await _mediator.AddPartitionAsync(partitionName.ToString());
+                        dicomRequestContext.DataPartitionEntry = partitionResponse.PartitionEntry;
+                    }
+                    else
+                    {
+                        throw new DataPartitionsNotFoundPartitionException(partitionName.ToString());
+                    }
                 }
             }
 

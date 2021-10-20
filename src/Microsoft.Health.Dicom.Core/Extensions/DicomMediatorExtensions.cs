@@ -16,6 +16,7 @@ using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
+using Microsoft.Health.Dicom.Core.Messages.Partition;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Store;
@@ -188,6 +189,32 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
             return mediator.Send(new OperationStatusRequest(operationId), cancellationToken);
+        }
+
+        public static Task<GetOrAddPartitionResponse> GetPartitionAsync(
+           this IMediator mediator,
+           string partitionName,
+           CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
+            return mediator.Send(new GetOrAddPartitionRequest(partitionName), cancellationToken);
+        }
+
+        public static Task<GetOrAddPartitionResponse> AddPartitionAsync(
+           this IMediator mediator,
+           string partitionName,
+           CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
+            return mediator.Send(new GetOrAddPartitionRequest(partitionName), cancellationToken);
+        }
+
+        public static Task<GetPartitionsResponse> GetPartitionsAsync(
+           this IMediator mediator,
+           CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
+            return mediator.Send(new GetPartitionsRequest(), cancellationToken);
         }
     }
 }

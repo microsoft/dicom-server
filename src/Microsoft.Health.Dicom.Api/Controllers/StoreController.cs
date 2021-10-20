@@ -51,10 +51,10 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Conflict)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.UnsupportedMediaType)]
         [HttpPost]
-        [PartitionVersionedRoute(KnownRoutes.StoreInstancesRoute)]
-        [PartitionRoute(KnownRoutes.StoreInstancesRoute)]
-        [VersionedRoute(KnownRoutes.StoreInstancesRoute)]
-        [Route(KnownRoutes.StoreInstancesRoute)]
+        [VersionedPartitionRoute(KnownRoutes.StoreInstancesRoute, Name = KnownRouteNames.VersionedPartitionStoreInstance)]
+        [PartitionRoute(KnownRoutes.StoreInstancesRoute, Name = KnownRouteNames.PartitionStoreInstance)]
+        [VersionedRoute(KnownRoutes.StoreInstancesRoute, Name = KnownRouteNames.VersionedStoreInstance)]
+        [Route(KnownRoutes.StoreInstancesRoute, Name = KnownRouteNames.StoreInstance)]
         [AuditEventType(AuditEventSubType.Store)]
         public async Task<IActionResult> PostInstanceAsync()
         {
@@ -72,11 +72,10 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Conflict)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.UnsupportedMediaType)]
         [HttpPost]
-        [PartitionVersionedRoute(KnownRoutes.StoreInstancesInStudyRoute)]
-        [PartitionRoute(KnownRoutes.StoreInstancesInStudyRoute)]
-        [VersionedRoute(KnownRoutes.StoreInstancesInStudyRoute)]
-        [Route(KnownRoutes.StoreInstancesInStudyRoute)]
-        [Route(KnownRoutes.StoreInstancesInStudyRoute)]
+        [VersionedPartitionRoute(KnownRoutes.StoreInstancesInStudyRoute, Name = KnownRouteNames.VersionedPartitionStoreInstancesInStudy)]
+        [PartitionRoute(KnownRoutes.StoreInstancesInStudyRoute, Name = KnownRouteNames.PartitionStoreInstancesInStudy)]
+        [VersionedRoute(KnownRoutes.StoreInstancesInStudyRoute, Name = KnownRouteNames.VersionedPartitionStoreInstancesInStudy)]
+        [Route(KnownRoutes.StoreInstancesInStudyRoute, Name = KnownRouteNames.StoreInstancesInStudy)]
         [AuditEventType(AuditEventSubType.Store)]
         public async Task<IActionResult> PostInstanceInStudyAsync(string studyInstanceUid)
         {

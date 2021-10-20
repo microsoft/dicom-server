@@ -22,19 +22,23 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
             _partitionStore = partitionStore;
         }
 
-        public Task<PartitionEntry> AddPartition(string partitionName, CancellationToken cancellationToken = default)
+        public async Task<PartitionEntry> AddPartition(string partitionName, CancellationToken cancellationToken = default)
         {
-            throw new System.NotImplementedException();
+            EnsureArg.IsNotNull(partitionName, nameof(partitionName));
+
+            return await _partitionStore.AddPartition(partitionName, cancellationToken);
         }
 
-        public Task<PartitionEntry> GetPartition(string partitionName, CancellationToken cancellationToken = default)
+        public async Task<PartitionEntry> GetPartition(string partitionName, CancellationToken cancellationToken = default)
         {
-            throw new System.NotImplementedException();
+            EnsureArg.IsNotNull(partitionName, nameof(partitionName));
+
+            return await _partitionStore.GetPartition(partitionName, cancellationToken);
         }
 
-        public Task<IEnumerable<PartitionEntry>> GetPartitions(CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<PartitionEntry>> GetPartitions(CancellationToken cancellationToken = default)
         {
-            throw new System.NotImplementedException();
+            return await _partitionStore.GetPartitions(cancellationToken);
         }
     }
 }
