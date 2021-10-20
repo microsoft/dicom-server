@@ -59,6 +59,7 @@ The following VR types are supported:
 | CS   | Code String           | X                     |                |                |
 | DA   | Date                  | X                     | X              |                |
 | DS   | Decimal String        | X                     |                |                |
+| DT   | Date Time             | X                     | X              |                |
 | FD   | Floating Point Double | X                     |                |                |
 | FL   | Floating Point Single | X                     |                |                |
 | IS   | Integer String        | X                     |                |                |
@@ -67,6 +68,7 @@ The following VR types are supported:
 | SH   | Short String          | X                     |                |                |
 | SL   | Signed Long           | X                     |                |                |
 | SS   | Signed Short          | X                     |                |                |
+| TM   | Time                  | X                     | X              |                |
 | UI   | Unique Identifier     | X                     |                |                |
 | UL   | Unsigned Long         | X                     |                |                |
 | US   | Unsigned Short        | X                     |                |                |
