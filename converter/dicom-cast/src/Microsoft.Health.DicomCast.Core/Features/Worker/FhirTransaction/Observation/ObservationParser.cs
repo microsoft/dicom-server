@@ -10,62 +10,38 @@ using Dicom;
 using Dicom.StructuredReport;
 using EnsureThat;
 using Hl7.Fhir.Model;
-using Microsoft.Health.DicomCast.Core.Features.Fhir;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 {
     public class ObservationParser
     {
-        public const string SctSystem = "http://snomed.info/sct";
-        public const string DcmSystem = "http://dicom.nema.org/resources/ontology/DCM";
-
-        public const string Dcm = "DCM";
-        public const string Sct = "Sct";
-        public const string Ln = "LN";
-
-        private static readonly DicomCodeItem StudyInstanceUid = new("110180", Dcm, "Study Instance UID");
-        private static readonly DicomCodeItem AccessionNumber = new("121022", Dcm, "Accession Number");
-        private static readonly DicomCodeItem TargetRegion = new("123014", Dcm, "Target Region");
-
-        private readonly HashSet<DicomCodeItem> _irradiationEvents = new HashSet<DicomCodeItem>
-        {
-            ObservationConstants.IrradiationEventXRayData,
-            ObservationConstants.CtAcquisition,
-            ObservationConstants.RadiopharmaceuticalAdministration,
-        };
-
-        private readonly HashSet<DicomCodeItem> _doseSummaryReportCodes = new HashSet<DicomCodeItem>
-        {
-            ObservationConstants.RadiopharmaceuticalRadiationDoseReport,
-            ObservationConstants.XRayRadiationDoseReport,
-        };
-
-        public IEnumerable<Observation> Parse(DicomDataset dataset, ResourceReference patientReference, ResourceReference imagingStudyReference)
+        public IEnumerable<Observation> Parse(DicomDataset dataset, ResourceReference patientReference, ResourceReference imagingStudyReference, Identifier identifier)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
             EnsureArg.IsNotNull(patientReference, nameof(patientReference));
             EnsureArg.IsNotNull(imagingStudyReference, nameof(imagingStudyReference));
+            EnsureArg.IsNotNull(identifier, nameof(identifier));
 
             var observations = new List<Observation>();
-            ParseDicomDataset(dataset, patientReference, imagingStudyReference, observations);
+            ParseDicomDataset(dataset, patientReference, imagingStudyReference, observations, identifier);
 
             return observations;
         }
 
-        private void ParseDicomDataset(DicomDataset dataset, ResourceReference patientReference, ResourceReference imagingStudyReference, List<Observation> observations)
+        private void ParseDicomDataset(DicomDataset dataset, ResourceReference patientReference, ResourceReference imagingStudyReference, List<Observation> observations, Identifier identifier)
         {
             var structuredReport = new DicomStructuredReport(dataset);
 
             try
             {
-                if (_irradiationEvents.Contains(structuredReport.Code))
+                if (ObservationConstants.IrradiationEvents.Contains(structuredReport.Code))
                 {
-                    observations.Add(CreateIrradiationEvent(dataset, patientReference));
+                    observations.Add(CreateIrradiationEvent(dataset, patientReference, identifier));
                 }
 
-                if (_doseSummaryReportCodes.Contains(structuredReport.Code))
+                if (ObservationConstants.DoseSummaryReportCodes.Contains(structuredReport.Code))
                 {
-                    observations.Add(CreateDoseSummary(dataset, imagingStudyReference, patientReference));
+                    observations.Add(CreateDoseSummary(dataset, imagingStudyReference, patientReference, identifier));
                 }
             }
             catch (DicomDataException)
@@ -82,20 +58,21 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             // Return the final aggregated list of observations.
             foreach (DicomContentItem childItem in structuredReport.Children())
             {
-                ParseDicomDataset(childItem.Dataset, patientReference, imagingStudyReference, observations);
+                ParseDicomDataset(childItem.Dataset, patientReference, imagingStudyReference, observations, identifier);
             }
         }
 
         private static Observation CreateDoseSummary(
             DicomDataset dataset,
             ResourceReference imagingStudyReference,
-            ResourceReference patientReference)
+            ResourceReference patientReference,
+            Identifier identifier)
         {
             // Create the observation
             var observation = new Observation
             {
                 // Set the code.coding
-                Code = new CodeableConcept("http://loinc.org", "73569-6", "Radiation exposure and protection information"),
+                Code = ObservationConstants.RadiationExposureCodeableConcept,
                 // Add Patient reference
                 Subject = patientReference,
                 Status = ObservationStatus.Preliminary,
@@ -103,25 +80,12 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             // Add ImagingStudy reference
             observation.PartOf.Add(imagingStudyReference);
 
-            // Set identifiers
-            // Attempt to get the StudyInstanceUid from the report; if it is not there fallback to the Tag value in the dataset
             var report = new DicomStructuredReport(dataset);
-            var studyInstanceUid = report.Get<string>(
-                StudyInstanceUid,
-                string.Empty);
-            if (string.IsNullOrEmpty(studyInstanceUid))
-            {
-                if (!dataset.TryGetSingleValue(DicomTag.StudyInstanceUID, out studyInstanceUid))
-                {
-                    throw new MissingMemberException($"Unable to {nameof(DicomTag.StudyInstanceUID)} from dose summary observation dataset");
-                }
-            }
 
-            Identifier studyInstanceIdentifier = ImagingStudyIdentifierUtility.CreateIdentifier(studyInstanceUid);
-            observation.Identifier.Add(studyInstanceIdentifier);
+            observation.Identifier.Add(identifier);
 
             // Try to get accession number from report first then tag; ignore if it is not present it is not a required identifier.
-            var accessionNumber = report.Get<string>(AccessionNumber, "");
+            string accessionNumber = report.Get(ObservationConstants.AccessionNumber, string.Empty);
             if (string.IsNullOrEmpty(accessionNumber))
             {
                 dataset.TryGetSingleValue(DicomTag.AccessionNumber, out accessionNumber);
@@ -129,12 +93,12 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
             if (!string.IsNullOrEmpty(accessionNumber))
             {
-                var identifier = new Identifier
+                var accessionIdentifier = new Identifier
                 {
                     Value = accessionNumber,
-                    Type = new CodeableConcept("http://terminology.hl7.org/CodeSystem/v2-0203", "ACSN")
+                    Type = ObservationConstants.AccessionCodeableConcept
                 };
-                observation.Identifier.Add(identifier);
+                observation.Identifier.Add(accessionIdentifier);
             }
 
             // Add all structured report information
@@ -160,13 +124,13 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             return observation;
         }
 
-        private static Observation CreateIrradiationEvent(DicomDataset dataset, ResourceReference patientRef)
+        private static Observation CreateIrradiationEvent(DicomDataset dataset, ResourceReference patientRef, Identifier identifier)
         {
             var report = new DicomStructuredReport(dataset);
             // create the observation
             var observation = new Observation
             {
-                Code = new CodeableConcept("http://dicom.nema.org/resources/ontology/DCM", "113852", "Irradiation Event"),
+                Code = ObservationConstants.IrradiationEventCodeableConcept,
                 Subject = patientRef,
                 Status = ObservationStatus.Preliminary,
             };
@@ -178,10 +142,9 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 throw new MissingMemberException($"unable to extract {nameof(ObservationConstants.IrradiationEventUid)} from dataset");
             }
 
-            var identifier = new Identifier(irradiationEventUidValue.Name, irradiationEventUidValue.UID);
             observation.Identifier.Add(identifier);
 
-            DicomCodeItem bodySite = report.Get<DicomCodeItem>(TargetRegion, null);
+            DicomCodeItem bodySite = report.Get<DicomCodeItem>(ObservationConstants.TargetRegion, null);
             if (bodySite != null)
             {
                 observation.BodySite = new CodeableConcept(
@@ -267,12 +230,12 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             DicomStructuredReport report,
             DicomCodeItem codeItem)
         {
-            var system = GetSystem(codeItem.Scheme);
+            string system = GetSystem(codeItem.Scheme);
             var component = new Observation.ComponentComponent
             {
                 Code = new CodeableConcept(system, codeItem.Value, codeItem.Meaning),
             };
-            var value = report.Get<string>(codeItem, "");
+            string value = report.Get(codeItem, string.Empty);
             if (!string.IsNullOrEmpty(value))
             {
                 component.Value = new FhirString(value);
@@ -285,7 +248,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             DicomStructuredReport report,
             DicomCodeItem codeItem)
         {
-            var system = GetSystem(codeItem.Scheme);
+            string system = GetSystem(codeItem.Scheme);
             var component = new Observation.ComponentComponent
             {
                 Code = new CodeableConcept(system, codeItem.Value, codeItem.Meaning),
@@ -302,12 +265,12 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             DicomStructuredReport report,
             DicomCodeItem codeItem)
         {
-            var system = GetSystem(codeItem.Scheme);
+            string system = GetSystem(codeItem.Scheme);
             var component = new Observation.ComponentComponent
             {
                 Code = new CodeableConcept(system, codeItem.Value, codeItem.Meaning),
             };
-            var value = report.Get<int>(codeItem, 0);
+            int value = report.Get(codeItem, 0);
             if (value != 0)
             {
                 component.Value = new Integer(value);
@@ -319,8 +282,8 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         {
             return scheme switch
             {
-                Dcm => DcmSystem,
-                Sct => SctSystem,
+                ObservationConstants.Dcm => ObservationConstants.DcmSystem,
+                ObservationConstants.Sct => ObservationConstants.SctSystem,
                 _ => scheme
             };
         }

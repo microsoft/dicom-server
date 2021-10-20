@@ -51,7 +51,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
             ChangeFeedEntry changeFeedEntry = context.ChangeFeedEntry;
 
-            Identifier imagingStudyIdentifier = ImagingStudyIdentifierUtility.CreateIdentifier(changeFeedEntry.StudyInstanceUid);
+            Identifier imagingStudyIdentifier = IdentifierUtility.CreateIdentifier(changeFeedEntry.StudyInstanceUid);
 
             ImagingStudy existingImagingStudy = await _fhirService.RetrieveImagingStudyAsync(imagingStudyIdentifier, cancellationToken);
             ImagingStudy imagingStudy = (ImagingStudy)existingImagingStudy?.DeepCopy();

@@ -13,7 +13,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Fhir
         [Fact]
         public void GivenStudyInstanceUid_WhenCreated_ThenCorrectIdentifierShouldBeCreated()
         {
-            var identifier = ImagingStudyIdentifierUtility.CreateIdentifier("123");
+            var identifier = IdentifierUtility.CreateIdentifier("123");
 
             Assert.NotNull(identifier);
             Assert.Equal("urn:dicom:uid", identifier.System);

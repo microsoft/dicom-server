@@ -11,7 +11,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
     /// <summary>
     /// Utility for creating an identifier for <see cref="ImagingStudy"/>.
     /// </summary>
-    public static class ImagingStudyIdentifierUtility
+    public static class IdentifierUtility
     {
         private const string DicomIdentifierSystem = "urn:dicom:uid";
 

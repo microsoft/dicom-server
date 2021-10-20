@@ -29,11 +29,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(context.ChangeFeedEntry, nameof(context.ChangeFeedEntry));
 
-            // operate on the pre-condition that their _should_ only be one DoseSummary per ImagingStudy.
-            // If multiple observations are found; just use the first one.
-            // TODO current codebase only supports single resource per FhirTransactionRequest. Will need to refactor to support multiple.
-            // TODO currently only supports deleting a single matched resource.
-            Identifier identifier = ImagingStudyIdentifierUtility.CreateIdentifier(context.ChangeFeedEntry.StudyInstanceUid);
+            Identifier identifier = IdentifierUtility.CreateIdentifier(context.ChangeFeedEntry.StudyInstanceUid);
             IEnumerable<Observation> matchingObservationsAsync = await _fhirService.RetrieveObservationsAsync(identifier, cancellationToken);
             var matchingObservations = matchingObservationsAsync.ToList();
 

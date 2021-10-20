@@ -3,8 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using Dicom.StructuredReport;
+using Hl7.Fhir.Model;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 {
@@ -28,7 +29,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         public static readonly DicomCodeItem RadiopharmaceuticalRadiationDoseReport = new("113500", Dcm, "Radiopharmaceutical Radiation Dose Report");
         public static readonly DicomCodeItem XRayRadiationDoseReport = new("113701", Dcm, "X-Ray Radiation Dose Report");
 
-
         //------------------------------------------------------------
         // Irradiation Event Codes
         // - When you encounter these code in a structured report, it means to create a new "Irradiation Event" Observation
@@ -36,7 +36,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         public static readonly DicomCodeItem IrradiationEventXRayData = new("113706", Dcm, "Irradiation Event X-Ray Data");
         public static readonly DicomCodeItem CtAcquisition = new("113819", Dcm, "CT Acquisition");
         public static readonly DicomCodeItem RadiopharmaceuticalAdministration = new("113502", Dcm, "Radiopharmaceutical Administration");
-
 
         //------------------------------------------------------------
         // Dicom Codes (attribute)
@@ -80,23 +79,22 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         public static readonly DicomCodeItem TargetRegion = new("123014", Dcm, "Target Region");
         public static readonly DicomCodeItem CtdIwPhantomType = new("113835", Dcm, "CTDIw Phantom Type");
 
-        /// <summary>
-        /// DicomStructuredReport codes which mean the start of a Dose Summary
-        /// </summary>
-        public static readonly Collection<DicomCodeItem> DoseSummaryReportCodes = new()
-        {
-            RadiopharmaceuticalRadiationDoseReport,
-            XRayRadiationDoseReport,
-        };
+        // FHIR CodeableConcepts
+        public static readonly CodeableConcept RadiationExposureCodeableConcept = new CodeableConcept("http://loinc.org", "73569-6", "Radiation exposure and protection information");
+        public static readonly CodeableConcept AccessionCodeableConcept = new CodeableConcept("http://terminology.hl7.org/CodeSystem/v2-0203", "ACSN");
+        public static readonly CodeableConcept IrradiationEventCodeableConcept = new CodeableConcept("http://dicom.nema.org/resources/ontology/DCM", "113852", "Irradiation Event");
 
-        /// <summary>
-        /// DicomStructuredReport codes which mean the start of an Irradiation Event
-        /// </summary>
-        public static readonly Collection<DicomCodeItem> IrradiationEventCodes = new()
+        public static readonly HashSet<DicomCodeItem> IrradiationEvents = new()
         {
             IrradiationEventXRayData,
             CtAcquisition,
-            RadiopharmaceuticalAdministration
+            RadiopharmaceuticalAdministration,
+        };
+
+        public static readonly HashSet<DicomCodeItem> DoseSummaryReportCodes = new()
+        {
+            RadiopharmaceuticalRadiationDoseReport,
+            XRayRadiationDoseReport,
         };
     }
 }

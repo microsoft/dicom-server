@@ -35,7 +35,9 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             IResourceId imagingStudyId = context.Request.ImagingStudy.ResourceId;
             ChangeFeedEntry changeFeedEntry = context.ChangeFeedEntry;
 
-            IEnumerable<Observation> observations = _observationParser.Parse(changeFeedEntry.Metadata, patientId.ToResourceReference(), imagingStudyId.ToResourceReference());
+            Identifier identifier = IdentifierUtility.CreateIdentifier(changeFeedEntry.StudyInstanceUid);
+
+            IEnumerable<Observation> observations = _observationParser.Parse(changeFeedEntry.Metadata, patientId.ToResourceReference(), imagingStudyId.ToResourceReference(), identifier);
 
             if (!observations.Any())
             {

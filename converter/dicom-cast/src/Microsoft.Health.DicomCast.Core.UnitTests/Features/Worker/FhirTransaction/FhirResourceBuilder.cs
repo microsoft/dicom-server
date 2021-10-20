@@ -47,7 +47,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
                 study.Series.Add(series);
             }
 
-            study.Identifier.Add(ImagingStudyIdentifierUtility.CreateIdentifier(studyInstanceUid));
+            study.Identifier.Add(IdentifierUtility.CreateIdentifier(studyInstanceUid));
 
             return study;
         }
