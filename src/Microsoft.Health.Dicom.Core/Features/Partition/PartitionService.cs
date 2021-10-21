@@ -3,11 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Messages.Partition;
 
 namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
 {
@@ -22,23 +23,26 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
             _partitionStore = partitionStore;
         }
 
-        public async Task<PartitionEntry> AddPartition(string partitionName, CancellationToken cancellationToken = default)
+        public async Task<GetOrAddPartitionResponse> AddPartitionAsync(string partitionName, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(partitionName, nameof(partitionName));
 
-            return await _partitionStore.AddPartition(partitionName, cancellationToken);
+            var partitionEntry = await _partitionStore.AddPartitionAsync(partitionName, cancellationToken);
+            return new GetOrAddPartitionResponse(partitionEntry);
         }
 
-        public async Task<PartitionEntry> GetPartition(string partitionName, CancellationToken cancellationToken = default)
+        public async Task<GetOrAddPartitionResponse> GetPartitionAsync(string partitionName, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(partitionName, nameof(partitionName));
 
-            return await _partitionStore.GetPartition(partitionName, cancellationToken);
+            var partitionEntry = await _partitionStore.GetPartitionAsync(partitionName, cancellationToken);
+            return new GetOrAddPartitionResponse(partitionEntry);
         }
 
-        public async Task<IEnumerable<PartitionEntry>> GetPartitions(CancellationToken cancellationToken = default)
+        public async Task<GetPartitionsResponse> GetPartitionsAsync(CancellationToken cancellationToken = default)
         {
-            return await _partitionStore.GetPartitions(cancellationToken);
+            var partitions = await _partitionStore.GetPartitionsAsync(cancellationToken);
+            return new GetPartitionsResponse(partitions.ToList());
         }
     }
 }

@@ -3,18 +3,18 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Messages.Partition;
 
 namespace Microsoft.Health.Dicom.Core.Features.Partition
 {
     public interface IPartitionService
     {
-        Task<PartitionEntry> AddPartition(string partitionName, CancellationToken cancellationToken = default);
+        Task<GetOrAddPartitionResponse> AddPartitionAsync(string partitionName, CancellationToken cancellationToken = default);
 
-        Task<IEnumerable<PartitionEntry>> GetPartitions(CancellationToken cancellationToken = default);
+        Task<GetPartitionsResponse> GetPartitionsAsync(CancellationToken cancellationToken = default);
 
-        Task<PartitionEntry> GetPartition(string partitionName, CancellationToken cancellationToken = default);
+        Task<GetOrAddPartitionResponse> GetPartitionAsync(string partitionName, CancellationToken cancellationToken = default);
     }
 }

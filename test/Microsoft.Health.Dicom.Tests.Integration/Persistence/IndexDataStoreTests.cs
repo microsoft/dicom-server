@@ -13,6 +13,7 @@ using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -28,6 +29,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixture>, IAsyncLifetime
     {
         private readonly IIndexDataStore _indexDataStore;
+        private readonly IPartitionStore _partitionStore;
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly IIndexDataStoreTestHelper _testHelper;
         private readonly IExtendedQueryTagStoreTestHelper _extendedQueryTagStoreTestHelper;
@@ -41,6 +43,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             EnsureArg.IsNotNull(fixture.IndexDataStoreTestHelper, nameof(fixture.IndexDataStoreTestHelper));
             EnsureArg.IsNotNull(fixture.ExtendedQueryTagStoreTestHelper, nameof(fixture.ExtendedQueryTagStoreTestHelper));
             _indexDataStore = fixture.IndexDataStore;
+            _partitionStore = fixture.PartitionStore;
             _extendedQueryTagStore = fixture.ExtendedQueryTagStore;
             _testHelper = fixture.IndexDataStoreTestHelper;
             _extendedQueryTagStoreTestHelper = fixture.ExtendedQueryTagStoreTestHelper;
@@ -103,6 +106,37 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Equal((byte)IndexStatus.Creating, instance.Status);
             Assert.InRange(instance.LastStatusUpdatedDate, _startDateTime.AddSeconds(-1), Clock.UtcNow.AddSeconds(1));
             Assert.InRange(instance.CreatedDate, _startDateTime.AddSeconds(-1), Clock.UtcNow.AddSeconds(1));
+        }
+
+        [Fact]
+        public async Task WhenAddedWithInstancesInDifferentPartitions_ThenTheyShouldBeAdded()
+        {
+            DicomDataset dataset = CreateTestDicomDataset();
+            string studyInstanceUid = dataset.GetString(DicomTag.StudyInstanceUID);
+            string seriesInstanceUid = dataset.GetString(DicomTag.SeriesInstanceUID);
+            string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
+            string partitionName1 = TestUidGenerator.Generate();
+            string partitionName2 = TestUidGenerator.Generate();
+
+            var partitionEntry1 = await _partitionStore.AddPartitionAsync(partitionName1);
+            var partitionEntry2 = await _partitionStore.AddPartitionAsync(partitionName2);
+
+            await _indexDataStore.BeginCreateInstanceIndexAsync(partitionEntry1.PartitionKey, dataset);
+            await _indexDataStore.BeginCreateInstanceIndexAsync(partitionEntry2.PartitionKey, dataset);
+
+            IReadOnlyList<Instance> instances1 = await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partitionEntry1.PartitionKey);
+            IReadOnlyList<Instance> instances2 = await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partitionEntry2.PartitionKey);
+
+            Assert.NotNull(instances1);
+            Assert.Single(instances1);
+            Assert.NotNull(instances2);
+            Assert.Single(instances2);
+
+            Instance instance1 = instances1[0];
+            Instance instance2 = instances2[0];
+
+            Assert.Equal(partitionEntry1.PartitionKey, instance1.PartitionKey);
+            Assert.Equal(partitionEntry2.PartitionKey, instance2.PartitionKey);
         }
 
         [Fact]

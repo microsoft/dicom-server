@@ -34,9 +34,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Partition
                 throw new UnauthorizedDicomActionException(DataActions.Read);
             }
 
-            PartitionEntry partitionEntry = await _partitionService.GetPartition(request.PartitionName, cancellationToken);
-
-            return new GetOrAddPartitionResponse(partitionEntry);
+            return await _partitionService.GetPartitionAsync(request.PartitionName, cancellationToken);
         }
     }
 }
