@@ -22,44 +22,41 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     /// </summary>
     public class PerformanceTests
     {
+        private readonly int _currentSchemaVersion = SchemaVersionConstants.Max;
+        private readonly int _previousSchemaVersion = SchemaVersionConstants.Max - 1;
+
+        private readonly Dictionary<int, SqlDataStoreTestsFixture> _fixtures = new Dictionary<int, SqlDataStoreTestsFixture>();
+
         [Fact]
         public async Task CurrentAndLastSchemaVersions_HaveSimilarStorePerformance()
         {
-            var current = SchemaVersionConstants.Max;
-            var previous = SchemaVersionConstants.Max - 1;
-
-            var currentSchemaInformation = new SchemaInformation(SchemaVersionConstants.Min, current);
-            currentSchemaInformation.Current = current;
-
-            var previousSchemaInformation = new SchemaInformation(SchemaVersionConstants.Min, previous);
-            previousSchemaInformation.Current = previous;
-
-            var fixtures = new Dictionary<int, SqlDataStoreTestsFixture>
-            {
-                { current, new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("PERFCURRENT"), currentSchemaInformation) },
-                { previous, new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("PERFPREVIOUS"), previousSchemaInformation) }
-            };
+            await InitializeFixtures();
 
             var schemaVersionPerformance = new Dictionary<int, TimeSpan>();
 
-            foreach ((var version, var fixture) in fixtures)
+            foreach ((var version, var fixture) in _fixtures)
             {
                 var stopwatch = Stopwatch.StartNew();
 
-                for (var i = 0; i < 10000; i++)
+                for (var i = 0; i < 5000; i++)
                 {
                     var dataset = Samples.CreateRandomInstanceDataset();
-                    await fixture.IndexDataStore.BeginCreateInstanceIndexAsync(dataset, null);
+                    await fixture.IndexDataStore.BeginCreateInstanceIndexAsync(dataset, new List<QueryTag>());
                 }
 
                 stopwatch.Stop();
                 schemaVersionPerformance.Add(version, stopwatch.Elapsed);
             }
 
-            var diff = schemaVersionPerformance[current] - schemaVersionPerformance[previous];
-            var marginOfError = schemaVersionPerformance[previous] * 0.02;
+            var diff = schemaVersionPerformance[_currentSchemaVersion] - schemaVersionPerformance[_previousSchemaVersion];
 
-            Assert.True(diff < marginOfError);
+            var diffPercentage = diff / schemaVersionPerformance[_currentSchemaVersion];
+            var marginOfError = 0.02;
+
+            Console.WriteLine("asdf");
+            Debug.WriteLine($"current: {schemaVersionPerformance[_currentSchemaVersion]}, previous: {schemaVersionPerformance[_previousSchemaVersion]}, diff: {diffPercentage}");
+
+            Assert.True(diffPercentage < marginOfError, $"current: {schemaVersionPerformance[_currentSchemaVersion]}, previous: {schemaVersionPerformance[_previousSchemaVersion]}, diff: {diffPercentage}");
         }
 
         private async Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(
@@ -76,6 +73,21 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 cancellationToken: cancellationToken);
 
             return tags.Select(x => x.Key).ToList();
+        }
+
+        private async Task InitializeFixtures()
+        {
+            var currentSchemaInformation = new SchemaInformation(SchemaVersionConstants.Min, _currentSchemaVersion);
+            var previousSchemaInformation = new SchemaInformation(SchemaVersionConstants.Min, _previousSchemaVersion);
+
+            var currentFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("PERFCURRENT"), currentSchemaInformation);
+            var previousFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("PERFPREVIOUS"), previousSchemaInformation);
+
+            await currentFixture.InitializeAsync(false);
+            await previousFixture.InitializeAsync(false);
+
+            _fixtures.Add(_currentSchemaVersion, currentFixture);
+            _fixtures.Add(_previousSchemaVersion, previousFixture);
         }
     }
 }

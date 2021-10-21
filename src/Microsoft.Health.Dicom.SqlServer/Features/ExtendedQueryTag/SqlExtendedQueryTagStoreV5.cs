@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
     {
         public SqlExtendedQueryTagStoreV5(
            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
-           ILogger<SqlExtendedQueryTagStoreV5> logger)
+           ILogger<ISqlExtendedQueryTagStore> logger)
             : base(sqlConnectionWrapperFactory, logger)
         {
         }

@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
     {
         public SqlExtendedQueryTagErrorStoreV4(
            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
-           ILogger<SqlExtendedQueryTagErrorStoreV4> logger)
+           ILogger<ISqlExtendedQueryTagErrorStore> logger)
         {
             ConnectionWrapperFactory = EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
             Logger = EnsureArg.IsNotNull(logger, nameof(logger));
