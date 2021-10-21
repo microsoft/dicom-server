@@ -180,7 +180,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomDataset dataset = Samples.CreateRandomInstanceDataset();
 
-            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
+            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
             await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.ReindexInstanceAsync(dataset, watermark, new[] { new QueryTag(tagStoreEntry) }));
         }
 
@@ -231,8 +231,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             string studyUid = dataset.GetString(DicomTag.StudyInstanceUID);
             string seriesUid = dataset.GetString(DicomTag.SeriesInstanceUID);
             string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
-            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
-            await _indexDataStore.EndCreateInstanceIndexAsync(dataset, watermark);
+            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+            await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, watermark);
 
             return await _indexDataStoreTestHelper.GetInstanceAsync(studyUid, seriesUid, sopInstanceUid, watermark);
         }
@@ -245,7 +245,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             string seriesInstanceUid = dataset.GetString(DicomTag.SeriesInstanceUID);
             string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
 
-            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
+            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
             return new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version);
         }
     }

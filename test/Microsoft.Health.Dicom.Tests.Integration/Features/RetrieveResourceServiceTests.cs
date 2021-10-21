@@ -155,7 +155,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 
         private async Task StoreDatasetsAndInstances(DicomDataset dataset, bool flagToStoreInstance)
         {
-            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
+            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
 
             var versionedInstanceIdentifier = dataset.ToVersionedInstanceIdentifier(version);
 
@@ -174,7 +174,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                     stream);
             }
 
-            await _indexDataStore.EndCreateInstanceIndexAsync(dataset, version);
+            await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, version);
         }
 
         private void ValidateResponseDicomFiles(

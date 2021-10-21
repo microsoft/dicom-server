@@ -12,6 +12,7 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -24,6 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
     /// </summary>
     public class StoreOrchestrator : IStoreOrchestrator
     {
+        private readonly IDicomRequestContextAccessor _contextAccessor;
         private readonly IFileStore _fileStore;
         private readonly IMetadataStore _metadataStore;
         private readonly IIndexDataStore _indexDataStore;
@@ -31,12 +33,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         private readonly IQueryTagService _queryTagService;
 
         public StoreOrchestrator(
+            IDicomRequestContextAccessor contextAccessor,
             IFileStore fileStore,
             IMetadataStore metadataStore,
             IIndexDataStore indexDataStore,
             IDeleteService deleteService,
             IQueryTagService queryTagService)
         {
+            _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
             _fileStore = EnsureArg.IsNotNull(fileStore, nameof(fileStore));
             _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
             _indexDataStore = EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
@@ -50,11 +54,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
+            var partitionKey = _contextAccessor.RequestContext?.DataPartitionEntry.PartitionKey;
+
+            EnsureArg.IsTrue(partitionKey.HasValue, nameof(partitionKey));
 
             DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
             IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
-            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dicomDataset, queryTags, cancellationToken);
+            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey.Value, dicomDataset, queryTags, cancellationToken);
             var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(watermark);
 
             try
@@ -64,7 +71,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                     StoreFileAsync(versionedInstanceIdentifier, dicomInstanceEntry, cancellationToken),
                     StoreInstanceMetadataAsync(dicomDataset, watermark, cancellationToken));
 
-                await _indexDataStore.EndCreateInstanceIndexAsync(dicomDataset, watermark, queryTags, cancellationToken: cancellationToken);
+                await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey.Value, dicomDataset, watermark, queryTags, cancellationToken: cancellationToken);
             }
             catch (Exception)
             {
