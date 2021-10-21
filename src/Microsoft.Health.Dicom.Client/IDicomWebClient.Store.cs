@@ -14,10 +14,10 @@ namespace Microsoft.Health.Dicom.Client
 {
     public partial interface IDicomWebClient
     {
-        Task<DicomWebResponse<DicomDataset>> StoreAsync(DicomFile dicomFile, string studyInstanceUid = null, CancellationToken cancellationToken = default);
-        Task<DicomWebResponse<DicomDataset>> StoreAsync(HttpContent content, CancellationToken cancellationToken = default);
-        Task<DicomWebResponse<DicomDataset>> StoreAsync(IEnumerable<DicomFile> dicomFiles, string studyInstanceUid = null, CancellationToken cancellationToken = default);
-        Task<DicomWebResponse<DicomDataset>> StoreAsync(IEnumerable<Stream> streams, string studyInstanceUid = null, CancellationToken cancellationToken = default);
-        Task<DicomWebResponse<DicomDataset>> StoreAsync(Stream stream, string studyInstanceUid = null, CancellationToken cancellationToken = default);
+        Task<DicomWebResponse<DicomDataset>> StoreAsync(DicomFile dicomFile, string partitionName = null, string studyInstanceUid = null, CancellationToken cancellationToken = default);
+        Task<DicomWebResponse<DicomDataset>> StoreAsync(HttpContent content, string partitionName = null, CancellationToken cancellationToken = default);
+        Task<DicomWebResponse<DicomDataset>> StoreAsync(IEnumerable<DicomFile> dicomFiles, string partitionName = null, string studyInstanceUid = null, CancellationToken cancellationToken = default);
+        Task<DicomWebResponse<DicomDataset>> StoreAsync(IEnumerable<Stream> streams, string partitionName = null, string studyInstanceUid = null, CancellationToken cancellationToken = default);
+        Task<DicomWebResponse<DicomDataset>> StoreAsync(Stream stream, string partitionName = null, string studyInstanceUid = null, CancellationToken cancellationToken = default);
     }
 }

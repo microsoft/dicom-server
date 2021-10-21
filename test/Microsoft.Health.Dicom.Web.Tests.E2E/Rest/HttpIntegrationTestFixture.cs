@@ -25,9 +25,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
         }
 
-        protected HttpIntegrationTestFixture(string targetProjectParentDirectory)
+        protected HttpIntegrationTestFixture(string targetProjectParentDirectory, bool enableDataPartitions = false)
         {
-            TestDicomWebServer = TestDicomWebServerFactory.GetTestDicomWebServer(typeof(TStartup));
+            TestDicomWebServer = TestDicomWebServerFactory.GetTestDicomWebServer(typeof(TStartup), enableDataPartitions);
 
             RecyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
 

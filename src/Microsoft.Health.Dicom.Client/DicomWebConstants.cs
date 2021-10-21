@@ -9,6 +9,7 @@ namespace Microsoft.Health.Dicom.Client
 {
     public static class DicomWebConstants
     {
+        public const string BasePartitionUriFormat = "/partitions/{0}";
         public const string BaseStudyUriFormat = "/studies/{0}";
         public const string BaseRetrieveStudyMetadataUriFormat = BaseStudyUriFormat + "/metadata";
         public const string BaseSeriesUriFormat = BaseStudyUriFormat + "/series/{1}";
@@ -20,6 +21,7 @@ namespace Microsoft.Health.Dicom.Client
         public const string BaseRetrieveFramesUriFormat = BaseInstanceUriFormat + "/frames/{3}";
         public const string BaseRetrieveFramesRenderedUriFormat = BaseRetrieveFramesUriFormat + "/rendered";
         public const string BaseRetrieveFramesThumbnailUriFormat = BaseRetrieveFramesUriFormat + "/thumbnail";
+        public const string PartitionsUriString = "/partitions";
         public const string StudiesUriString = "/studies";
         public const string SeriesUriString = "/series";
         public const string InstancesUriString = "/instances";
