@@ -7,6 +7,7 @@ using System.Linq;
 using Dicom;
 using Dicom.StructuredReport;
 using Hl7.Fhir.Model;
+using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using Xunit;
 
@@ -48,12 +49,16 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
                     DicomRelationship.Contains,
                     new DicomCodeItem("113691", "DCM", "IEC Body Dosimetry Phantom")));
 
-            var observations = _observationParser.Parse(report.Dataset, new ResourceReference(), new ResourceReference());
+            var observations = _observationParser.Parse(
+                report.Dataset,
+                new ResourceReference(),
+                new ResourceReference(),
+                IdentifierUtility.CreateIdentifier(randomIrradiationEventUid));
             Assert.Single(observations);
 
             Observation radiationEvent = observations.First();
             Assert.Single(radiationEvent.Identifier);
-            Assert.Equal(randomIrradiationEventUid, radiationEvent.Identifier[0].Value);
+            Assert.Equal("urn:oid:" + randomIrradiationEventUid, radiationEvent.Identifier[0].Value);
             Assert.Equal(2,
                 radiationEvent.Component
                     .Count(component => component.Value is Quantity));
@@ -163,7 +168,9 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             var observations = _observationParser.Parse(
                 report.Dataset,
                 new ResourceReference(),
-                new ResourceReference());
+                new ResourceReference(),
+                IdentifierUtility.CreateIdentifier(studyInstanceUid));
+
             Assert.Single(observations);
 
             Observation doseSummary = observations.First();
@@ -198,7 +205,8 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             var observations = _observationParser.Parse(
                 report.Dataset,
                 new ResourceReference(),
-                new ResourceReference());
+                new ResourceReference(),
+                new Identifier());
             Assert.Single(observations);
         }
 
@@ -216,7 +224,8 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             var observations = _observationParser.Parse(
                 report.Dataset,
                 new ResourceReference(),
-                new ResourceReference());
+                new ResourceReference(),
+                new Identifier());
             Assert.Single(observations);
         }
 
@@ -234,7 +243,8 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             var observations = _observationParser.Parse(
                 report.Dataset,
                 new ResourceReference(),
-                new ResourceReference());
+                new ResourceReference(),
+                new Identifier());
             Assert.Single(observations);
         }
 
@@ -247,7 +257,8 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             var observations = _observationParser.Parse(
                 report.Dataset,
                 new ResourceReference(),
-                new ResourceReference());
+                new ResourceReference(),
+                new Identifier());
             Assert.Empty(observations);
         }
     }
