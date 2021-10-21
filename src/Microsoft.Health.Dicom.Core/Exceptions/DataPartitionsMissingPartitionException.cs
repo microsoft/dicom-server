@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
     public class DataPartitionsMissingPartitionException : BadRequestException
     {
         public DataPartitionsMissingPartitionException()
-            : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.DataPartitionsMissingPartitions))
+            : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.DataPartitionMissingPartition))
         {
         }
     }
