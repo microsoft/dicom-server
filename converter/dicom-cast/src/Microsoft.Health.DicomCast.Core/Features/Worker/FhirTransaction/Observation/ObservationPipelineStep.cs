@@ -5,10 +5,13 @@
 
 using System;
 using System.Globalization;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Hl7.Fhir.Utility;
 using Microsoft.Health.Dicom.Client.Models;
+using Microsoft.Health.DicomCast.Core.Features.Fhir;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 {
@@ -43,16 +46,22 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         public void ProcessResponse(FhirTransactionContext context)
         {
             EnsureArg.IsNotNull(context, nameof(context));
-            // if (context.Request?.Observation?.RequestMode != FhirTransactionRequestMode.Create)
-            // {
-            //     return;
-            // }
-            //
-            // HttpStatusCode statusCode = context.Response.Observation.Response.Annotation<HttpStatusCode>();
-            // if (statusCode == HttpStatusCode.OK)
-            // {
-            //     throw new ResourceConflictException();
-            // }
+
+            if (context.Response?.Observation == null)
+            {
+                return;
+            }
+
+            foreach (FhirTransactionResponseEntry observation in context.Response.Observation)
+            {
+                HttpStatusCode statusCode = observation.Response.Annotation<HttpStatusCode>();
+
+                // We are only currently doing POSTs which should result in a 201
+                if (statusCode != HttpStatusCode.Created)
+                {
+                    throw new ResourceConflictException();
+                }
+            }
         }
     }
 }

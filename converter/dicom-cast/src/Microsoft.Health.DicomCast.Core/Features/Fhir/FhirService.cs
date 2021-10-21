@@ -50,6 +50,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
         public async Task<Endpoint> RetrieveEndpointAsync(string queryParameter, CancellationToken cancellationToken)
             => (await SearchByQueryParameterAsync<Endpoint>(queryParameter, 1, cancellationToken)).FirstOrDefault();
 
+        /// <inheritdoc/>
         public async Task<IEnumerable<Observation>> RetrieveObservationsAsync(Identifier identifier, CancellationToken cancellationToken = default)
             => await SearchByIdentifierMultipleAsync<Observation>(identifier, cancellationToken);
 
@@ -123,8 +124,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
                     throw new MultipleMatchingResourcesException(typeof(TResource).Name);
                 }
 
-                // There was only one match but because the server could return empty continuation token
-                // with more results, we need to follow the links to make sure there are no additional matching resources.
                 results.AddRange(bundle.Entry.Select(x => (TResource)x.Resource));
 
                 if (bundle.NextLink != null)
