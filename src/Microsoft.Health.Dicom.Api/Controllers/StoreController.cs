@@ -74,7 +74,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [HttpPost]
         [VersionedPartitionRoute(KnownRoutes.StoreInstancesInStudyRoute, Name = KnownRouteNames.VersionedPartitionStoreInstancesInStudy)]
         [PartitionRoute(KnownRoutes.StoreInstancesInStudyRoute, Name = KnownRouteNames.PartitionStoreInstancesInStudy)]
-        [VersionedRoute(KnownRoutes.StoreInstancesInStudyRoute, Name = KnownRouteNames.VersionedPartitionStoreInstancesInStudy)]
+        [VersionedRoute(KnownRoutes.StoreInstancesInStudyRoute, Name = KnownRouteNames.VersionedStoreInstancesInStudy)]
         [Route(KnownRoutes.StoreInstancesInStudyRoute, Name = KnownRouteNames.StoreInstancesInStudy)]
         [AuditEventType(AuditEventSubType.Store)]
         public async Task<IActionResult> PostInstanceInStudyAsync(string studyInstanceUid)
