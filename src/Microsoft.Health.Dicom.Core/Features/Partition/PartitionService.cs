@@ -23,20 +23,20 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
             _partitionStore = partitionStore;
         }
 
-        public async Task<GetOrAddPartitionResponse> AddPartitionAsync(string partitionName, CancellationToken cancellationToken = default)
+        public async Task<AddPartitionResponse> AddPartitionAsync(string partitionName, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(partitionName, nameof(partitionName));
 
             var partitionEntry = await _partitionStore.AddPartitionAsync(partitionName, cancellationToken);
-            return new GetOrAddPartitionResponse(partitionEntry);
+            return new AddPartitionResponse(partitionEntry);
         }
 
-        public async Task<GetOrAddPartitionResponse> GetPartitionAsync(string partitionName, CancellationToken cancellationToken = default)
+        public async Task<GetPartitionResponse> GetPartitionAsync(string partitionName, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(partitionName, nameof(partitionName));
 
             var partitionEntry = await _partitionStore.GetPartitionAsync(partitionName, cancellationToken);
-            return new GetOrAddPartitionResponse(partitionEntry);
+            return new GetPartitionResponse(partitionEntry);
         }
 
         public async Task<GetPartitionsResponse> GetPartitionsAsync(CancellationToken cancellationToken = default)

@@ -191,22 +191,22 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             return mediator.Send(new OperationStatusRequest(operationId), cancellationToken);
         }
 
-        public static Task<GetOrAddPartitionResponse> GetPartitionAsync(
+        public static Task<GetPartitionResponse> GetPartitionAsync(
            this IMediator mediator,
            string partitionName,
            CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
-            return mediator.Send(new GetOrAddPartitionRequest(partitionName), cancellationToken);
+            return mediator.Send(new GetPartitionRequest(partitionName), cancellationToken);
         }
 
-        public static Task<GetOrAddPartitionResponse> AddPartitionAsync(
+        public static Task<AddPartitionResponse> AddPartitionAsync(
            this IMediator mediator,
            string partitionName,
            CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
-            return mediator.Send(new GetOrAddPartitionRequest(partitionName), cancellationToken);
+            return mediator.Send(new AddPartitionRequest(partitionName), cancellationToken);
         }
 
         public static Task<GetPartitionsResponse> GetPartitionsAsync(

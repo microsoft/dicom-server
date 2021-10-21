@@ -15,7 +15,7 @@ using Microsoft.Health.Dicom.Core.Messages.Partition;
 
 namespace Microsoft.Health.Dicom.Core.Features.Partition
 {
-    public class AddPartitionHandler : BaseHandler, IRequestHandler<GetOrAddPartitionRequest, GetOrAddPartitionResponse>
+    public class AddPartitionHandler : BaseHandler, IRequestHandler<AddPartitionRequest, AddPartitionResponse>
     {
         private readonly IPartitionService _partitionService;
 
@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Partition
             _partitionService = EnsureArg.IsNotNull(partitionService, nameof(partitionService));
         }
 
-        public async Task<GetOrAddPartitionResponse> Handle(GetOrAddPartitionRequest request, CancellationToken cancellationToken)
+        public async Task<AddPartitionResponse> Handle(AddPartitionRequest request, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(request, nameof(request));
 

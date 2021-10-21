@@ -82,8 +82,8 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
             _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
 
             _mediator = Substitute.For<IMediator>();
-            _mediator.Send(Arg.Any<GetOrAddPartitionRequest>())
-                .Returns(new GetOrAddPartitionResponse(new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name)));
+            _mediator.Send(Arg.Any<GetPartitionRequest>())
+                .Returns(new GetPartitionResponse(new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name)));
 
             _filterAttribute = new PopulateDataPartitionFilterAttribute(_dicomRequestContextAccessor, _mediator);
         }
@@ -97,10 +97,10 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
         }
 
         [Fact]
-        public void GivenNonExistingPartitionNamePassed_ThenThows()
+        public void GivenNonExistingPartitionNamePassed_ThenThrows()
         {
-            _mediator.Send(Arg.Any<GetOrAddPartitionRequest>())
-                .Returns(new GetOrAddPartitionResponse(null));
+            _mediator.Send(Arg.Any<GetPartitionRequest>())
+                .Returns(new GetPartitionResponse(null));
 
             Assert.ThrowsAsync<DataPartitionsNotFoundPartitionException>(async () => await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, Substitute.For<ActionExecutionDelegate>()));
         }
@@ -113,10 +113,10 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
 
             _controllerActionDescriptor.AttributeRouteInfo.Name = KnownRouteNames.PartitionStoreInstance;
 
-            _mediator.Send(Arg.Any<GetOrAddPartitionRequest>())
-                .Returns(
-                    new GetOrAddPartitionResponse(null),
-                    new GetOrAddPartitionResponse(new PartitionEntry(newPartitionKey, newPartitionName)));
+            _mediator.Send(Arg.Any<GetPartitionRequest>())
+                .Returns(new GetPartitionResponse(null));
+            _mediator.Send(Arg.Any<AddPartitionRequest>())
+                .Returns(new AddPartitionResponse(new PartitionEntry(newPartitionKey, newPartitionName)));
 
             await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, Substitute.For<ActionExecutionDelegate>());
 

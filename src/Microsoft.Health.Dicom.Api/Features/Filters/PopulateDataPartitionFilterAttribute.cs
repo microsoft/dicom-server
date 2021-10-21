@@ -63,8 +63,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
                         routeName == KnownRouteNames.VersionedPartitionStoreInstancesInStudy
                         )
                     {
-                        partitionResponse = await _mediator.AddPartitionAsync(partitionName.ToString());
-                        dicomRequestContext.DataPartitionEntry = partitionResponse.PartitionEntry;
+                        var response = await _mediator.AddPartitionAsync(partitionName.ToString());
+                        dicomRequestContext.DataPartitionEntry = response.PartitionEntry;
                     }
                     else
                     {
