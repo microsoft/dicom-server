@@ -20,7 +20,7 @@
     <PackageReference Include="Microsoft.Health.Blob" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.SqlServer" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.13" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.0.0" PrivateAssets="All" />
     <PackageReference Include="System.Text.Encodings.Web" Version="4.7.2" PrivateAssets="All" />
   </ItemGroup>
 
