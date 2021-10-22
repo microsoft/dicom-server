@@ -82,8 +82,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         public Uri ResolveRetrieveStudyUri(string studyInstanceUid)
         {
             EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
-            var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey(KnownActionParameterNames.Version);
-            var hasPartition = _httpContextAccessor.HttpContext.Request.RouteValues.TryGetValue(KnownActionParameterNames.PartitionName, out var partitionName);
+            (bool hasVersion, bool hasPartition, string partitionName) = CheckAndGetRouteParams();
 
             var routeName = hasPartition
                 ? (hasVersion ? KnownRouteNames.VersionedPartitionRetrieveStudy : KnownRouteNames.PartitionRetrieveStudy)
@@ -96,7 +95,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
 
             if (hasPartition)
             {
-                routeValues.Add(KnownActionParameterNames.PartitionName, partitionName.ToString());
+                routeValues.Add(KnownActionParameterNames.PartitionName, partitionName);
             };
 
             return RouteUri(routeName, routeValues);
@@ -106,8 +105,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         public Uri ResolveRetrieveInstanceUri(InstanceIdentifier instanceIdentifier)
         {
             EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
-            var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey(KnownActionParameterNames.Version);
-            var hasPartition = _httpContextAccessor.HttpContext.Request.RouteValues.TryGetValue(KnownActionParameterNames.PartitionName, out var partitionName);
+
+            (bool hasVersion, bool hasPartition, string partitionName) = CheckAndGetRouteParams();
 
             var routeName = hasPartition
                 ? (hasVersion ? KnownRouteNames.VersionedPartitionRetrieveInstance : KnownRouteNames.PartitionRetrieveInstance)
@@ -122,10 +121,18 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
 
             if (hasPartition)
             {
-                routeValues.Add(KnownActionParameterNames.PartitionName, partitionName.ToString());
+                routeValues.Add(KnownActionParameterNames.PartitionName, partitionName);
             };
 
             return RouteUri(routeName, routeValues);
+        }
+
+        private (bool hasVersion, bool hasPartition, string partitionName) CheckAndGetRouteParams()
+        {
+            var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey(KnownActionParameterNames.Version);
+            var hasPartition = _httpContextAccessor.HttpContext.Request.RouteValues.TryGetValue(KnownActionParameterNames.PartitionName, out var partitionName);
+
+            return (hasVersion, hasPartition, partitionName?.ToString());
         }
 
         private Uri RouteUri(string routeName, RouteValueDictionary routeValues)

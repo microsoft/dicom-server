@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
     [ApiVersion("1.0-prerelease")]
     [QueryModelStateValidator]
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
-    [DataPartitionFeatureValidator]
+    [ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
     public class StoreController : Controller
     {
         private readonly IMediator _mediator;

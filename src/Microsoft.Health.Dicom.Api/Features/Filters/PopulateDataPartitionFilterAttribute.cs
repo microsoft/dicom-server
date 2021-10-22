@@ -4,12 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -25,51 +25,63 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
     {
         private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
         private readonly IMediator _mediator;
+        private readonly bool _isPartitionEnabled;
+
+        private readonly HashSet<string> _storeRouteNames = new HashSet<string>
+        {
+            KnownRouteNames.PartitionStoreInstance,
+            KnownRouteNames.VersionedPartitionStoreInstance,
+            KnownRouteNames.PartitionStoreInstancesInStudy,
+            KnownRouteNames.VersionedPartitionStoreInstancesInStudy
+        };
 
         public PopulateDataPartitionFilterAttribute(
             IDicomRequestContextAccessor dicomRequestContextAccessor,
-            IMediator mediator)
+            IMediator mediator,
+            IOptions<FeatureConfiguration> featureConfiguration)
         {
             _dicomRequestContextAccessor = EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
             _mediator = EnsureArg.IsNotNull(mediator, nameof(mediator));
+
+            EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
+            _isPartitionEnabled = featureConfiguration.Value.EnableDataPartitions;
         }
 
         public async override Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
             EnsureArg.IsNotNull(context, nameof(context));
-            var svc = context.HttpContext.RequestServices;
-            IOptions<FeatureConfiguration> featureConfiguration = svc.GetService<IOptions<FeatureConfiguration>>();
-            var isPartitionEnabled = featureConfiguration.Value.EnableDataPartitions;
             IDicomRequestContext dicomRequestContext = _dicomRequestContextAccessor.RequestContext;
             RouteData routeData = context.RouteData;
             var routeName = context.ActionDescriptor?.AttributeRouteInfo?.Name;
 
-            if (routeData?.Values != null)
+            var routeContainsPartition = routeData.Values.TryGetValue(KnownActionParameterNames.PartitionName, out object value);
+
+            if (!_isPartitionEnabled && routeContainsPartition) throw new DataPartitionsFeatureDisabledException();
+
+            if (_isPartitionEnabled && !routeContainsPartition) throw new DataPartitionsMissingPartitionException();
+
+            if (_isPartitionEnabled)
             {
-                // Try get Partition Name
-                if (isPartitionEnabled && routeData.Values.TryGetValue(KnownActionParameterNames.PartitionName, out var partitionName))
+                var partitionName = value?.ToString();
+
+                PartitionNameValidator.Validate(partitionName?.ToString());
+
+                var partitionResponse = await _mediator.GetPartitionAsync(partitionName);
+
+                if (partitionResponse?.PartitionEntry != null)
                 {
-                    PartitionNameValidator.Validate(partitionName?.ToString());
-
-                    var partitionResponse = await _mediator.GetPartitionAsync(partitionName.ToString());
-
-                    if (partitionResponse?.PartitionEntry != null)
-                    {
-                        dicomRequestContext.DataPartitionEntry = partitionResponse.PartitionEntry;
-                    }
-                    else if (routeName == KnownRouteNames.PartitionStoreInstance ||
-                        routeName == KnownRouteNames.VersionedPartitionStoreInstance ||
-                        routeName == KnownRouteNames.PartitionStoreInstancesInStudy ||
-                        routeName == KnownRouteNames.VersionedPartitionStoreInstancesInStudy
-                        )
-                    {
-                        var response = await _mediator.AddPartitionAsync(partitionName.ToString());
-                        dicomRequestContext.DataPartitionEntry = response.PartitionEntry;
-                    }
-                    else
-                    {
-                        throw new DataPartitionsNotFoundException(partitionName.ToString());
-                    }
+                    dicomRequestContext.DataPartitionEntry = partitionResponse.PartitionEntry;
+                }
+                // Only for STOW, we create partition based on the request.
+                // For all other requests, we validate whether it exists and process based on the result
+                else if (_storeRouteNames.Contains(routeName))
+                {
+                    var response = await _mediator.AddPartitionAsync(partitionName);
+                    dicomRequestContext.DataPartitionEntry = response.PartitionEntry;
+                }
+                else
+                {
+                    throw new DataPartitionsNotFoundException(partitionName);
                 }
             }
 

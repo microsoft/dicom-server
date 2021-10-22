@@ -23,7 +23,6 @@ namespace Microsoft.Health.Dicom.Api.Modules
             {
                 // This filter should run first because it populates data for DicomRequestContext.
                 options.Filters.Add(typeof(DicomRequestContextRouteDataPopulatingFilterAttribute), 0);
-                options.Filters.Add(typeof(PopulateDataPartitionFilterAttribute), 1);
             });
 
             services.AddHttpContextAccessor();
@@ -32,6 +31,10 @@ namespace Microsoft.Health.Dicom.Api.Modules
             // we should remove the registration since enabling these accessors has performance implications.
             // https://github.com/aspnet/Hosting/issues/793
             services.TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
+
+            services.Add<PopulateDataPartitionFilterAttribute>()
+                .Singleton()
+                .AsService<PopulateDataPartitionFilterAttribute>();
         }
     }
 }

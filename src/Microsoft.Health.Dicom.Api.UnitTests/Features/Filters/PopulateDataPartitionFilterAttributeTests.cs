@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MediatR;
@@ -13,7 +12,6 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
@@ -34,13 +32,14 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
         private readonly ActionExecutingContext _actionExecutingContext;
         private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
         private readonly IMediator _mediator;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IOptions<FeatureConfiguration> _featureConfiguration;
+        private readonly ActionExecutionDelegate _nextActionDelegate;
 
         private const string ControllerName = "controller";
         private const string ActionName = "actionName";
         private const string RouteName = "routeName";
 
-        private readonly PopulateDataPartitionFilterAttribute _filterAttribute;
+        private PopulateDataPartitionFilterAttribute _filterAttribute;
 
         public PopulateDataPartitionFilterAttributeTests()
         {
@@ -57,14 +56,6 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
 
             _httpContext = Substitute.For<HttpContext>();
 
-            var featureConfig = Options.Create(new FeatureConfiguration { EnableDataPartitions = true });
-
-            _serviceProvider = Substitute.For<IServiceProvider>();
-            _serviceProvider.GetService<IOptions<FeatureConfiguration>>()
-                .Returns(featureConfig);
-
-            _httpContext.RequestServices.Returns(_serviceProvider);
-
             _actionExecutingContext = new ActionExecutingContext(
                 new ActionContext(_httpContext, new RouteData(), _controllerActionDescriptor),
                 new List<IFilterMetadata>(),
@@ -78,6 +69,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
             };
             _actionExecutingContext.RouteData = new RouteData(routeValueDictionary);
 
+            _nextActionDelegate = Substitute.For<ActionExecutionDelegate>();
 
             _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
 
@@ -85,7 +77,52 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
             _mediator.Send(Arg.Any<GetPartitionRequest>())
                 .Returns(new GetPartitionResponse(new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name)));
 
-            _filterAttribute = new PopulateDataPartitionFilterAttribute(_dicomRequestContextAccessor, _mediator);
+            _featureConfiguration = Options.Create(new FeatureConfiguration { EnableDataPartitions = true });
+
+            _filterAttribute = new PopulateDataPartitionFilterAttribute(_dicomRequestContextAccessor, _mediator, _featureConfiguration);
+        }
+
+        [Fact]
+        public void GivenRetrieveRequestWithDataPartitionsEnabled_WhenNoPartitionId_ThenItShouldThrowError()
+        {
+            var routeValueDictionary = new RouteValueDictionary
+            {
+                { KnownActionParameterNames.StudyInstanceUid, "123" },
+            };
+            _actionExecutingContext.RouteData = new RouteData(routeValueDictionary);
+
+            Assert.ThrowsAsync<DataPartitionsMissingPartitionException>(async () => await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate));
+        }
+
+        [Fact]
+        public void GivenRetrieveRequestWithDataPartitionsDisabled_WhenPartitionIdIsPassed_ThenItShouldThrowError()
+        {
+            var routeValueDictionary = new RouteValueDictionary
+            {
+                { KnownActionParameterNames.StudyInstanceUid, "123" },
+                { KnownActionParameterNames.PartitionName, "partition1" },
+            };
+            _actionExecutingContext.RouteData = new RouteData(routeValueDictionary);
+
+            _featureConfiguration.Value.EnableDataPartitions = false;
+            _filterAttribute = new PopulateDataPartitionFilterAttribute(_dicomRequestContextAccessor, _mediator, _featureConfiguration);
+
+            Assert.ThrowsAsync<DataPartitionsFeatureDisabledException>(async () => await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate));
+        }
+
+        [Fact]
+        public async Task GivenRetrieveRequestWithDataPartitionsDisabled_WhenNoPartitionId_ThenItExecutesSuccessfully()
+        {
+            var routeValueDictionary = new RouteValueDictionary
+            {
+                { KnownActionParameterNames.StudyInstanceUid, "123" },
+            };
+            _actionExecutingContext.RouteData = new RouteData(routeValueDictionary);
+
+            _featureConfiguration.Value.EnableDataPartitions = false;
+            _filterAttribute = new PopulateDataPartitionFilterAttribute(_dicomRequestContextAccessor, _mediator, _featureConfiguration);
+
+            await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate);
         }
 
         [Fact]
@@ -102,7 +139,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
             _mediator.Send(Arg.Any<GetPartitionRequest>())
                 .Returns(new GetPartitionResponse(null));
 
-            Assert.ThrowsAsync<DataPartitionsNotFoundException>(async () => await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, Substitute.For<ActionExecutionDelegate>()));
+            Assert.ThrowsAsync<DataPartitionsNotFoundException>(async () => await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate));
         }
 
         [Fact]
@@ -118,7 +155,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
             _mediator.Send(Arg.Any<AddPartitionRequest>())
                 .Returns(new AddPartitionResponse(new PartitionEntry(newPartitionKey, newPartitionName)));
 
-            await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, Substitute.For<ActionExecutionDelegate>());
+            await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate);
 
             _dicomRequestContextAccessor.Received().RequestContext.DataPartitionEntry.PartitionKey = newPartitionKey;
         }

@@ -85,7 +85,5 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 new Uri(_client.HttpClient.BaseAddress, relativeUri).ToString(),
                 dicomDataset.GetSingleValue<string>(DicomTag.SOPClassUID));
         }
-
-
     }
 }
