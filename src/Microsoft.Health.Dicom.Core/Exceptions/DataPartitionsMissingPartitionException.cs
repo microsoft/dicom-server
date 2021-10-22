@@ -8,12 +8,12 @@ using System.Globalization;
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
     /// <summary>
-    /// Exception that is thrown when partition Id is missing in the route values.
+    /// Exception that is thrown when partition name is missing in the route values.
     /// </summary>
     public class DataPartitionsMissingPartitionException : BadRequestException
     {
         public DataPartitionsMissingPartitionException()
-            : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.DataPartitionMissingPartition))
+            : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.DataPartitionsMissingPartition))
         {
         }
     }

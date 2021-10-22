@@ -457,7 +457,7 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="DataPartitionsFeatureDisabled" xml:space="preserve">
     <value>Data partitions feature is disabled.</value>
   </data>
-  <data name="DataPartitionMissingPartition" xml:space="preserve">
+  <data name="DataPartitionsMissingPartition" xml:space="preserve">
     <value>PartitionName value is missing in the route segment.</value>
   </data>
   <data name="DataPartitionNotFound" xml:space="preserve">

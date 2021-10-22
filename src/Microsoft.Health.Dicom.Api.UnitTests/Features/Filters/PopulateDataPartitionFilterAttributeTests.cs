@@ -102,7 +102,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
             _mediator.Send(Arg.Any<GetPartitionRequest>())
                 .Returns(new GetPartitionResponse(null));
 
-            Assert.ThrowsAsync<DataPartitionsNotFoundPartitionException>(async () => await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, Substitute.For<ActionExecutionDelegate>()));
+            Assert.ThrowsAsync<DataPartitionsNotFoundException>(async () => await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, Substitute.For<ActionExecutionDelegate>()));
         }
 
         [Fact]

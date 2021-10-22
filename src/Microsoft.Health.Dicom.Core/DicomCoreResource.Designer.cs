@@ -97,15 +97,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to PartitionName value is missing in the route segment..
-        /// </summary>
-        internal static string DataPartitionMissingPartition {
-            get {
-                return ResourceManager.GetString("DataPartitionMissingPartition", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Specified PartitionName &apos;{0}&apos; does not exist..
         /// </summary>
         internal static string DataPartitionNotFound {
@@ -120,6 +111,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string DataPartitionsFeatureDisabled {
             get {
                 return ResourceManager.GetString("DataPartitionsFeatureDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PartitionName value is missing in the route segment..
+        /// </summary>
+        internal static string DataPartitionsMissingPartition {
+            get {
+                return ResourceManager.GetString("DataPartitionsMissingPartition", resourceCulture);
             }
         }
         

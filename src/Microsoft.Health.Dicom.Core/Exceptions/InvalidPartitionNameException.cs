@@ -6,7 +6,7 @@
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
     /// <summary>
-    /// Exception thrown when the DICOM instance is invalid.
+    /// Exception thrown when the partition name is invalid.
     /// </summary>
     public class InvalidPartitionNameException : ValidationException
     {

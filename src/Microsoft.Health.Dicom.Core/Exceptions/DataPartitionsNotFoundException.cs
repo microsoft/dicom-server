@@ -10,9 +10,9 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
     /// <summary>
     /// Exception that is thrown when partition name is not found
     /// </summary>
-    public class DataPartitionsNotFoundPartitionException : BadRequestException
+    public class DataPartitionsNotFoundException : BadRequestException
     {
-        public DataPartitionsNotFoundPartitionException(string partitionName)
+        public DataPartitionsNotFoundException(string partitionName)
             : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.DataPartitionNotFound, partitionName))
         {
         }
