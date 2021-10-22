@@ -20,8 +20,8 @@ namespace Microsoft.Health.Dicom.Client
     {
         public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
             IEnumerable<DicomFile> dicomFiles,
-            string partitionName,
             string studyInstanceUid,
+            string partitionName,
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomFiles, nameof(dicomFiles));
@@ -55,8 +55,8 @@ namespace Microsoft.Health.Dicom.Client
 
         public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
             IEnumerable<Stream> streams,
-            string partitionName,
             string studyInstanceUid,
+            string partitionName,
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(streams, nameof(streams));
@@ -70,8 +70,8 @@ namespace Microsoft.Health.Dicom.Client
 
         public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
             Stream stream,
-            string partitionName,
             string studyInstanceUid,
+            string partitionName,
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(stream, nameof(stream));
@@ -87,8 +87,8 @@ namespace Microsoft.Health.Dicom.Client
 
         public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
             DicomFile dicomFile,
-            string partitionName,
             string studyInstanceUid,
+            string partitionName,
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));

@@ -26,13 +26,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenDatasetWithNewPartitionName_WhenStoring_TheServerShouldReturnWithNewPartition()
         {
-            var newPartition = "newPartition";
+            var newPartition = "partition1";
 
             string studyInstanceUID = TestUidGenerator.Generate();
 
             DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID);
 
-            var response = await _client.StoreAsync(new[] { dicomFile }, newPartition);
+            var response = await _client.StoreAsync(new[] { dicomFile }, partitionName: newPartition);
 
             Assert.True(response.IsSuccessStatusCode);
 
@@ -40,6 +40,24 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 await response.GetValueAsync(),
                 ConvertToReferencedSopSequenceEntry(dicomFile.Dataset, newPartition));
         }
+
+        [Fact]
+        public async Task GivenDatasetWithNewPartitionName_WhenStoringWithStudyUid_TheServerShouldReturnWithNewPartition()
+        {
+            var newPartition = "partition2";
+
+            var studyInstanceUID = TestUidGenerator.Generate();
+            DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID);
+
+            using DicomWebResponse<DicomDataset> response = await _client.StoreAsync(dicomFile, studyInstanceUID, newPartition);
+
+            Assert.True(response.IsSuccessStatusCode);
+
+            ValidationHelpers.ValidateReferencedSopSequence(
+                await response.GetValueAsync(),
+                ConvertToReferencedSopSequenceEntry(dicomFile.Dataset, newPartition));
+        }
+
 
         private (string SopInstanceUid, string RetrieveUri, string SopClassUid) ConvertToReferencedSopSequenceEntry(DicomDataset dicomDataset, string partitionName)
         {
