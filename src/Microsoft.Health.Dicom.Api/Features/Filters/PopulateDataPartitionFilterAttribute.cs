@@ -68,7 +68,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
                     }
                     else
                     {
-                        throw new DataPartitionsNotFoundPartitionException(partitionName.ToString());
+                        throw new DataPartitionsNotFoundException(partitionName.ToString());
                     }
                 }
             }
