@@ -52,6 +52,8 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                         cancellationToken)
                 : new List<Observation>();
 
+            // TODO: Figure out a way to match existing observations with newly created ones.
+
             List<FhirTransactionRequestEntry> fhirRequests = new List<FhirTransactionRequestEntry>();
             foreach (var observation in observations)
             {
