@@ -16,16 +16,24 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
     public class DataPartitionEnabledStoreTransactionTests : IClassFixture<DataPartitionEnabledHttpIntegrationTestFixture<Startup>>
     {
         private readonly IDicomWebClient _client;
+        private readonly bool _isUsingInProcTestServer;
 
         public DataPartitionEnabledStoreTransactionTests(DataPartitionEnabledHttpIntegrationTestFixture<Startup> fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
             _client = fixture.Client;
+            _isUsingInProcTestServer = !fixture.IsUsingInProcTestServer;
         }
 
         [Fact]
         public async Task GivenDatasetWithNewPartitionName_WhenStoring_TheServerShouldReturnWithNewPartition()
         {
+            if (!_isUsingInProcTestServer)
+            {
+                // Data partition feature flag only enabled locally. For Remote servers, feature flag is by default disabled
+                return;
+            }
+
             var newPartition = "partition1";
 
             string studyInstanceUID = TestUidGenerator.Generate();
@@ -44,6 +52,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenDatasetWithNewPartitionName_WhenStoringWithStudyUid_TheServerShouldReturnWithNewPartition()
         {
+            if (!_isUsingInProcTestServer)
+            {
+                // Data partition feature flag only enabled locally. For Remote servers, feature flag is by default disabled
+                return;
+            }
+
             var newPartition = "partition2";
 
             var studyInstanceUID = TestUidGenerator.Generate();

@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         [Theory]
         [InlineData("")] // empty string
         [InlineData("123 ")] // has a space
-        [InlineData("abc@123")] // @ is invalid character
+        [InlineData("abc123@!")] // @ & ! are invalid characters
         [InlineData("62f5c7eb-124a-49b1-9e5c-17c81a1a7137/")] // / is invalid character
         [InlineData("0123456789012345678901234567890123456789012345678901234567890123456789")] // value is too long
         public void GivenInValidPartitionId_WhenValidating_ThenShoulFail(string value)
