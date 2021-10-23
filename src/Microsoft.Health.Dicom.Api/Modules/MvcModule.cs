@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Api.Modules
             services.TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
             services.Add<PopulateDataPartitionFilterAttribute>()
-                .Singleton()
+                .Scoped()
                 .AsService<PopulateDataPartitionFilterAttribute>();
         }
     }

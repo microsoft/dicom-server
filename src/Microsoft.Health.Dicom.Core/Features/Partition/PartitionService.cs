@@ -15,12 +15,12 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
     public class PartitionService : IPartitionService
     {
         private readonly IPartitionStore _partitionStore;
+        private readonly PartitionCache _partitionCache;
 
-        public PartitionService(IPartitionStore partitionStore)
+        public PartitionService(PartitionCache partitionCache, IPartitionStore partitionStore)
         {
-            EnsureArg.IsNotNull(partitionStore, nameof(partitionStore));
-
-            _partitionStore = partitionStore;
+            _partitionStore = EnsureArg.IsNotNull(partitionStore, nameof(partitionStore));
+            _partitionCache = EnsureArg.IsNotNull(partitionCache, nameof(partitionCache));
         }
 
         public async Task<AddPartitionResponse> AddPartitionAsync(string partitionName, CancellationToken cancellationToken = default)
@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
         {
             EnsureArg.IsNotNull(partitionName, nameof(partitionName));
 
-            var partitionEntry = await _partitionStore.GetPartitionAsync(partitionName, cancellationToken);
+            var partitionEntry = await _partitionCache.GetOrAddPartitionAsync(_partitionStore.GetPartitionAsync, partitionName, cancellationToken);
             return new GetPartitionResponse(partitionEntry);
         }
 

@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID);
 
-            var response = await _client.StoreAsync(new[] { dicomFile }, partitionName: newPartition);
+            using DicomWebResponse<DicomDataset> response = await _client.StoreAsync(new[] { dicomFile }, partitionName: newPartition);
 
             Assert.True(response.IsSuccessStatusCode);
 

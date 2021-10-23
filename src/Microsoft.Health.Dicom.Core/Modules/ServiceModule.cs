@@ -154,6 +154,8 @@ namespace Microsoft.Health.Dicom.Core.Modules
 
             services.AddHealthChecks().AddCheck<BackgroundServiceHealthCheck>(name: "BackgroundServiceHealthCheck");
 
+            services.AddSingleton<PartitionCache>();
+
             services.Add<PartitionService>()
                 .Scoped()
                 .AsSelf()
