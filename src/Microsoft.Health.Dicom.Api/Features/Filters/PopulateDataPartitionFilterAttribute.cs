@@ -64,7 +64,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
             {
                 var partitionName = value?.ToString();
 
-                PartitionNameValidator.Validate(partitionName?.ToString());
+                PartitionNameValidator.Validate(partitionName);
 
                 var partitionResponse = await _mediator.GetPartitionAsync(partitionName);
 
