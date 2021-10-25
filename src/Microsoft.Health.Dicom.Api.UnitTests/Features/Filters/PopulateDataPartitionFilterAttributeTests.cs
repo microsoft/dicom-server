@@ -134,15 +134,6 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
         }
 
         [Fact]
-        public void GivenNonExistingPartitionNamePassed_ThenThrows()
-        {
-            _mediator.Send(Arg.Any<GetPartitionRequest>())
-                .Returns(new GetPartitionResponse(null));
-
-            Assert.ThrowsAsync<DataPartitionsNotFoundException>(async () => await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate));
-        }
-
-        [Fact]
         public async Task GivenNonExistingPartitionNamePassed_AndStowRequest_ThenPartitionIsCreated()
         {
             var newPartitionKey = 3;
