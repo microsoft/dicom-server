@@ -25,6 +25,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
     [ApiVersion("1.0-prerelease")]
     [QueryModelStateValidator]
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
+    [Route(KnownRoutes.StudiesRouteSegment)]
+    [VersionedRoute(KnownRoutes.StudiesRouteSegment)]
     public class StoreController : Controller
     {
         private readonly IMediator _mediator;
@@ -49,12 +51,10 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Conflict)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.UnsupportedMediaType)]
-        [HttpPost]
-        [VersionedRoute(KnownRoutes.StoreInstancesRoute)]
-        [Route(KnownRoutes.StoreInstancesRoute)]
         [AuditEventType(AuditEventSubType.Store)]
         public async Task<IActionResult> PostInstanceAsync()
         {
+            var version = HttpContext.GetRequestedApiVersion();
             return await PostAsync(null);
         }
 
@@ -68,9 +68,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Conflict)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.UnsupportedMediaType)]
-        [HttpPost]
-        [VersionedRoute(KnownRoutes.StoreInstancesInStudyRoute)]
-        [Route(KnownRoutes.StoreInstancesInStudyRoute)]
+        [HttpPost(KnownRoutes.StudiesInstanceUidRouteSegment)]
         [AuditEventType(AuditEventSubType.Store)]
         public async Task<IActionResult> PostInstanceInStudyAsync(string studyInstanceUid)
         {

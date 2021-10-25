@@ -7,15 +7,15 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
 {
     public static class KnownRoutes
     {
-        private const string StudiesRouteSegment = "studies";
+        public const string StudiesRouteSegment = "studies";
         private const string SeriesRouteSegment = "series";
         private const string InstancesRouteSegment = "instances";
         private const string MetadataSegment = "metadata";
         private const string ErrorsSegment = "errors";
-        private const string ExtendedQueryTagsRouteSegment = "extendedquerytags";
+        public const string ExtendedQueryTagsRouteSegment = "extendedquerytags";
         private const string OperationsSegment = "operations";
 
-        private const string StudiesInstanceUidRouteSegment = "{" + KnownActionParameterNames.StudyInstanceUid + "}";
+        public const string StudiesInstanceUidRouteSegment = "{" + KnownActionParameterNames.StudyInstanceUid + "}";
         private const string SeriesInstanceUidRouteSegment = "{" + KnownActionParameterNames.SeriesInstanceUid + "}";
         private const string SopInstanceUidRouteSegment = "{" + KnownActionParameterNames.SopInstanceUid + "}";
         private const string FrameIdsRouteSegment = "{" + KnownActionParameterNames.Frames + "}";
@@ -42,7 +42,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         public const string QueryInstancesInSeriesRoute = SeriesRoute + "/" + InstancesRouteSegment;
 
         public const string ChangeFeed = "changefeed";
-        public const string ChangeFeedLatest = ChangeFeed + "/" + "latest";
+        public const string ChangeFeedLatest = "latest";
 
         public const string ExtendedQueryTagRoute = ExtendedQueryTagsRouteSegment;
         public const string DeleteExtendedQueryTagRoute = ExtendedQueryTagsRouteSegment + "/" + ExtendedQueryTagPathRouteSegment;
