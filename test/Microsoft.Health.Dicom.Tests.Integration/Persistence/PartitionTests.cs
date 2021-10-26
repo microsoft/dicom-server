@@ -24,8 +24,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             string partitionName = "test";
 
-            await _fixture.PartitionStore.AddPartition(partitionName);
-            PartitionEntry partition = await _fixture.PartitionStore.GetPartition(partitionName);
+            await _fixture.PartitionStore.AddPartitionAsync(partitionName);
+            PartitionEntry partition = await _fixture.PartitionStore.GetPartitionAsync(partitionName);
 
             Assert.NotNull(partition);
         }
@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task WhenGetPartitionsIsCalled_Then_DefaultPartitionRecordIsReturned()
         {
-            IEnumerable<PartitionEntry> partitionEntries = await _fixture.PartitionStore.GetPartitions();
+            IEnumerable<PartitionEntry> partitionEntries = await _fixture.PartitionStore.GetPartitionsAsync();
 
             Assert.Contains(partitionEntries, p => p.PartitionKey == DefaultPartition.Key);
         }
@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task WhenGetPartitionIsCalledWithDefaultPartitionName_Then_DefaultPartitionRecordIsReturned()
         {
-            PartitionEntry partitionEntry = await _fixture.PartitionStore.GetPartition(DefaultPartition.Name);
+            PartitionEntry partitionEntry = await _fixture.PartitionStore.GetPartitionAsync(DefaultPartition.Name);
 
             Assert.Equal(DefaultPartition.Key, partitionEntry.PartitionKey);
         }

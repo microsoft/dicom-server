@@ -13,5 +13,6 @@ namespace Microsoft.Health.Dicom.Core.Configs
 
         public ExtendedQueryTagConfiguration ExtendedQueryTag { get; } = new ExtendedQueryTagConfiguration();
 
+        public DataPartitionConfiguration DataPartition { get; } = new DataPartitionConfiguration();
     }
 }

@@ -119,13 +119,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 { DicomTag.PatientID, TestUidGenerator.Generate() },
             };
 
-            var version = await _fixture.DicomIndexDataStore.BeginCreateInstanceIndexAsync(newDataSet);
+            var version = await _fixture.DicomIndexDataStore.BeginCreateInstanceIndexAsync(1, newDataSet);
 
             var versionedIdentifier = newDataSet.ToVersionedInstanceIdentifier(version);
 
             if (instanceFullyCreated)
             {
-                await _fixture.DicomIndexDataStore.EndCreateInstanceIndexAsync(newDataSet, version);
+                await _fixture.DicomIndexDataStore.EndCreateInstanceIndexAsync(1, newDataSet, version);
             }
 
             return versionedIdentifier;

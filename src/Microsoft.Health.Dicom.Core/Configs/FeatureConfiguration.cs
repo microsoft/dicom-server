@@ -21,5 +21,10 @@ namespace Microsoft.Health.Dicom.Core.Configs
         /// Enables ExtendedQueryTags feature.
         /// </summary>
         public bool EnableExtendedQueryTags { get; set; }
+
+        /// <summary>
+        /// Enables Data Partition feature.
+        /// </summary>
+        public bool EnableDataPartitions { get; set; }
     }
 }

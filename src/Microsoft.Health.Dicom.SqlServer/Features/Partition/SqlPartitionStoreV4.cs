@@ -16,17 +16,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Partition
     {
         public virtual SchemaVersion Version => SchemaVersion.V4;
 
-        public virtual Task<PartitionEntry> AddPartition(string partitionName, CancellationToken cancellationToken = default)
+        public virtual Task<PartitionEntry> AddPartitionAsync(string partitionName, CancellationToken cancellationToken = default)
         {
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
 
-        public virtual Task<IEnumerable<PartitionEntry>> GetPartitions(CancellationToken cancellationToken = default)
+        public virtual Task<IEnumerable<PartitionEntry>> GetPartitionsAsync(CancellationToken cancellationToken = default)
         {
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
 
-        public virtual Task<PartitionEntry> GetPartition(string partitionName, CancellationToken cancellationToken = default)
+        public virtual Task<PartitionEntry> GetPartitionAsync(string partitionName, CancellationToken cancellationToken = default)
         {
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }

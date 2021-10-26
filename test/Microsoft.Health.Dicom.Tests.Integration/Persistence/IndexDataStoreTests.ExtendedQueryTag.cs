@@ -393,8 +393,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             dataset.Add(new DicomFloatingPointDouble(DicomTag.DopplerCorrectionAngle, 1.0 + index));
             dataset.Add(new DicomSignedLong(DicomTag.ReferencePixelX0, 1 + index));
             dataset.Add(new DicomPersonName(DicomTag.DistributionNameRETIRED, "abc^abc" + index));
-            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset, queryTags);
-            await _indexDataStore.EndCreateInstanceIndexAsync(dataset, watermark, queryTags);
+            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset, queryTags);
+            await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, watermark, queryTags);
             return await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, watermark);
         }
 
@@ -409,8 +409,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         private async Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IReadOnlyList<QueryTag> queryTags)
         {
-            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dicomDataset, queryTags);
-            await _indexDataStore.EndCreateInstanceIndexAsync(dicomDataset, watermark, queryTags);
+            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dicomDataset, queryTags);
+            await _indexDataStore.EndCreateInstanceIndexAsync(1, dicomDataset, watermark, queryTags);
             return watermark;
         }
     }

@@ -21,11 +21,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <summary>
         /// Asynchronously begins the addition of a DICOM instance.
         /// </summary>
+        /// <param name="partitionKey">The partition key.</param>
         /// <param name="dicomDataset">The DICOM dataset to index.</param>
         /// <param name="queryTags">Queryable dicom tags</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous add operation.</returns>
-        Task<long> BeginCreateInstanceIndexAsync(DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
+        Task<long> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously reindex a DICOM instance.
@@ -70,13 +71,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <summary>
         /// Asynchronously completes the addition of a DICOM instance.
         /// </summary>
+        /// <param name="partitionKey">The partition key.</param>
         /// <param name="dicomDataset">The DICOM dataset whose status should be updated.</param>
         /// <param name="watermark">The DICOM instance watermark.</param>
         /// <param name="queryTags">Queryable dicom tags</param>
         /// <param name="allowExpiredTags">Optionally allow an out-of-date snapshot of <paramref name="queryTags"/>.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous update operation.</returns>
-        Task EndCreateInstanceIndexAsync(DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, bool allowExpiredTags = false, CancellationToken cancellationToken = default);
+        Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, bool allowExpiredTags = false, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Return a collection of deleted instances.
@@ -113,7 +115,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         Task<int> RetrieveNumExhaustedDeletedInstanceAttemptsAsync(int maxNumberOfRetries, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Retrieves the <see cref="DateTimeOffset"/> of oldest instance waiting to be delated
+        /// Retrieves the <see cref="DateTimeOffset"/> of oldest instance waiting to be deleted
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that gets the date of the oldest deleted instance</returns>

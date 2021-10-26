@@ -25,6 +25,8 @@ namespace Microsoft.Health.Dicom.Client
 
         public HttpStatusCode StatusCode => _response.StatusCode;
 
+        public bool IsSuccessStatusCode => _response.IsSuccessStatusCode;
+
         public HttpResponseHeaders ResponseHeaders => _response.Headers;
 
         public HttpContentHeaders ContentHeaders => _response.Content?.Headers;

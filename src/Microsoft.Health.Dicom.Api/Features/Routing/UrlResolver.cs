@@ -82,30 +82,50 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         public Uri ResolveRetrieveStudyUri(string studyInstanceUid)
         {
             EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
-            var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey("version");
+            var routeValues = new RouteValueDictionary
+            {
+                { KnownActionParameterNames.StudyInstanceUid, studyInstanceUid },
+            };
 
-            return RouteUri(
-                hasVersion ? KnownRouteNames.VersionedRetrieveStudy : KnownRouteNames.RetrieveStudy,
-                new RouteValueDictionary
-                {
-                    { KnownActionParameterNames.StudyInstanceUid, studyInstanceUid },
-                });
+            AddRouteValues(routeValues, out bool hasVersion, out bool hasPartition);
+
+            var routeName = hasPartition
+                ? (hasVersion ? KnownRouteNames.VersionedPartitionRetrieveStudy : KnownRouteNames.PartitionRetrieveStudy)
+                : hasVersion ? KnownRouteNames.VersionedRetrieveStudy : KnownRouteNames.RetrieveStudy;
+
+            return RouteUri(routeName, routeValues);
         }
 
         /// <inheritdoc />
         public Uri ResolveRetrieveInstanceUri(InstanceIdentifier instanceIdentifier)
         {
             EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
-            var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey("version");
 
-            return RouteUri(
-                hasVersion ? KnownRouteNames.VersionedRetrieveInstance : KnownRouteNames.RetrieveInstance,
-                new RouteValueDictionary
-                {
-                    { KnownActionParameterNames.StudyInstanceUid, instanceIdentifier.StudyInstanceUid },
-                    { KnownActionParameterNames.SeriesInstanceUid, instanceIdentifier.SeriesInstanceUid },
-                    { KnownActionParameterNames.SopInstanceUid, instanceIdentifier.SopInstanceUid },
-                });
+            var routeValues = new RouteValueDictionary
+            {
+                { KnownActionParameterNames.StudyInstanceUid, instanceIdentifier.StudyInstanceUid },
+                { KnownActionParameterNames.SeriesInstanceUid, instanceIdentifier.SeriesInstanceUid },
+                { KnownActionParameterNames.SopInstanceUid, instanceIdentifier.SopInstanceUid },
+            };
+
+            AddRouteValues(routeValues, out bool hasVersion, out bool hasPartition);
+
+            var routeName = hasPartition
+                ? (hasVersion ? KnownRouteNames.VersionedPartitionRetrieveInstance : KnownRouteNames.PartitionRetrieveInstance)
+                : hasVersion ? KnownRouteNames.VersionedRetrieveInstance : KnownRouteNames.RetrieveInstance;
+
+            return RouteUri(routeName, routeValues);
+        }
+
+        private void AddRouteValues(RouteValueDictionary routeValues, out bool hasVersion, out bool hasPartition)
+        {
+            hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey(KnownActionParameterNames.Version);
+            hasPartition = _httpContextAccessor.HttpContext.Request.RouteValues.TryGetValue(KnownActionParameterNames.PartitionName, out var partitionName);
+
+            if (hasPartition)
+            {
+                routeValues.Add(KnownActionParameterNames.PartitionName, partitionName);
+            }
         }
 
         private Uri RouteUri(string routeName, RouteValueDictionary routeValues)

@@ -97,6 +97,33 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Specified PartitionName &apos;{0}&apos; does not exist..
+        /// </summary>
+        internal static string DataPartitionNotFound {
+            get {
+                return ResourceManager.GetString("DataPartitionNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Data partitions feature is disabled..
+        /// </summary>
+        internal static string DataPartitionsFeatureDisabled {
+            get {
+                return ResourceManager.GetString("DataPartitionsFeatureDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PartitionName value is missing in the route segment..
+        /// </summary>
+        internal static string DataPartitionsMissingPartition {
+            get {
+                return ResourceManager.GetString("DataPartitionsMissingPartition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The data store operation failed..
         /// </summary>
         internal static string DataStoreOperationFailed {
@@ -528,6 +555,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string InvalidOffsetValue {
             get {
                 return ResourceManager.GetString("InvalidOffsetValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified PartitionName value &apos;{0}&apos; is invalid. .
+        /// </summary>
+        internal static string InvalidPartitionName {
+            get {
+                return ResourceManager.GetString("InvalidPartitionName", resourceCulture);
             }
         }
         
