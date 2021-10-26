@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 
 namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
@@ -19,26 +21,19 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
         private readonly ILogger<PartitionCache> _logger;
         private readonly SemaphoreSlim _semaphore;
         private bool _disposed;
-        private volatile object _initializing;
 
-        private const int MaxCachedPartitionEntries = 10000;
-
-        public PartitionCache(ILogger<PartitionCache> logger)
-            : this(new MemoryCache(new MemoryCacheOptions
-            {
-                SizeLimit = MaxCachedPartitionEntries
-            }))
+        public PartitionCache(IOptions<DataPartitionConfiguration> configuration, ILogger<PartitionCache> logger)
         {
+            EnsureArg.IsNotNull(configuration?.Value);
+
+            _partitionCache = new MemoryCache(
+                new MemoryCacheOptions
+                {
+                    SizeLimit = configuration.Value.MaxCacheSize
+                });
+
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
             _semaphore = new SemaphoreSlim(1, 1);
-            _initializing = _semaphore;
-        }
-
-        internal PartitionCache(MemoryCache memoryCache)
-        {
-            EnsureArg.IsNotNull(memoryCache, nameof(memoryCache));
-
-            _partitionCache = memoryCache;
         }
 
         public void Dispose()
@@ -54,6 +49,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
                 if (disposing)
                 {
                     _semaphore.Dispose();
+                    _partitionCache.Dispose();
                 }
 
                 _disposed = true;
@@ -69,41 +65,23 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
                 throw new ObjectDisposedException(nameof(PartitionCache));
             }
 
-            if (_partitionCache.TryGetValue<PartitionEntry>(partitionName, out var partitionEntry))
+            await _semaphore.WaitAsync(cancellationToken);
+            try
             {
+                _logger.LogInformation("Partition with name '{partitionName}' not found in cache", partitionName);
+
+                var partitionEntry = await _partitionCache.GetOrCreateAsync(partitionName, entry =>
+                {
+                    entry.Size = 1;
+                    return action(partitionName, cancellationToken);
+                });
+
                 return partitionEntry;
             }
-
-            if (_initializing is not null)
+            finally
             {
-                await _semaphore.WaitAsync(cancellationToken);
-                try
-                {
-#pragma warning disable CA1508
-                    // Another thread may have already gone through this block
-                    if (_initializing is not null)
-#pragma warning restore CA1508
-                    {
-                        _logger.LogInformation("Partition with name '{partitionName}' not found in cache", partitionName);
-
-                        partitionEntry = await action(partitionName, cancellationToken);
-
-                        if (partitionEntry != null)
-                        {
-                            _partitionCache.Set(partitionName, partitionEntry);
-                        }
-
-                        _initializing = null; // Volatile write must occur after _value
-                        return partitionEntry;
-                    }
-                }
-                finally
-                {
-                    _semaphore.Release();
-                }
+                _semaphore.Release();
             }
-
-            return partitionEntry;
         }
     }
 }
