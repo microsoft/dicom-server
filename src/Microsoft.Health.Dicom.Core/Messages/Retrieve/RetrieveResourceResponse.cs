@@ -11,16 +11,19 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 {
     public class RetrieveResourceResponse
     {
-        public RetrieveResourceResponse(IEnumerable<Stream> responseStreams, string contentType)
+        public RetrieveResourceResponse(IEnumerable<Stream> responseStreams, string contentType, string transferSyntax = default)
         {
             EnsureArg.IsNotNull(responseStreams, nameof(responseStreams));
             EnsureArg.IsNotEmptyOrWhiteSpace(contentType, nameof(contentType));
             ResponseStreams = responseStreams;
             ContentType = contentType;
+            TransferSyntax = transferSyntax;
         }
 
         public IEnumerable<Stream> ResponseStreams { get; }
 
         public string ContentType { get; }
+
+        public string TransferSyntax { get; }
     }
 }

@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using Microsoft.Health.Core.Features.Context;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 
 namespace Microsoft.Health.Dicom.Core.Features.Context
 {
@@ -20,5 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Context
         long BytesTranscoded { get; set; }
 
         long ResponseSize { get; set; }
+
+        PartitionEntry DataPartitionEntry { get; set; }
     }
 }

@@ -13,6 +13,7 @@ using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -28,6 +29,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
     public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixture>, IAsyncLifetime
     {
         private readonly IIndexDataStore _indexDataStore;
+        private readonly IPartitionStore _partitionStore;
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly IIndexDataStoreTestHelper _testHelper;
         private readonly IExtendedQueryTagStoreTestHelper _extendedQueryTagStoreTestHelper;
@@ -41,6 +43,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             EnsureArg.IsNotNull(fixture.IndexDataStoreTestHelper, nameof(fixture.IndexDataStoreTestHelper));
             EnsureArg.IsNotNull(fixture.ExtendedQueryTagStoreTestHelper, nameof(fixture.ExtendedQueryTagStoreTestHelper));
             _indexDataStore = fixture.IndexDataStore;
+            _partitionStore = fixture.PartitionStore;
             _extendedQueryTagStore = fixture.ExtendedQueryTagStore;
             _testHelper = fixture.IndexDataStoreTestHelper;
             _extendedQueryTagStoreTestHelper = fixture.ExtendedQueryTagStoreTestHelper;
@@ -60,7 +63,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             string accessionNumber = dataset.GetString(DicomTag.AccessionNumber);
             string modality = dataset.GetString(DicomTag.Modality);
 
-            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
+            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
 
             IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
 
@@ -106,6 +109,37 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Fact]
+        public async Task WhenAddedWithInstancesInDifferentPartitions_ThenTheyShouldBeAdded()
+        {
+            DicomDataset dataset = CreateTestDicomDataset();
+            string studyInstanceUid = dataset.GetString(DicomTag.StudyInstanceUID);
+            string seriesInstanceUid = dataset.GetString(DicomTag.SeriesInstanceUID);
+            string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
+            string partitionName1 = TestUidGenerator.Generate();
+            string partitionName2 = TestUidGenerator.Generate();
+
+            var partitionEntry1 = await _partitionStore.AddPartitionAsync(partitionName1);
+            var partitionEntry2 = await _partitionStore.AddPartitionAsync(partitionName2);
+
+            await _indexDataStore.BeginCreateInstanceIndexAsync(partitionEntry1.PartitionKey, dataset);
+            await _indexDataStore.BeginCreateInstanceIndexAsync(partitionEntry2.PartitionKey, dataset);
+
+            IReadOnlyList<Instance> instances1 = await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partitionEntry1.PartitionKey);
+            IReadOnlyList<Instance> instances2 = await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partitionEntry2.PartitionKey);
+
+            Assert.NotNull(instances1);
+            Assert.Single(instances1);
+            Assert.NotNull(instances2);
+            Assert.Single(instances2);
+
+            Instance instance1 = instances1[0];
+            Instance instance2 = instances2[0];
+
+            Assert.Equal(partitionEntry1.PartitionKey, instance1.PartitionKey);
+            Assert.Equal(partitionEntry2.PartitionKey, instance2.PartitionKey);
+        }
+
+        [Fact]
         public async Task GivenANewDicomInstance_WhenConflictingStudyAndSeriesTags_ThenLatestWins()
         {
             // create a new instance
@@ -121,7 +155,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             dataset.AddOrUpdate(DicomTag.Modality, conflictModality);
             dataset.AddOrUpdate(DicomTag.SOPInstanceUID, newInstance);
 
-            await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
+            await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
 
             IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
             IReadOnlyList<SeriesMetadata> seriesMetadataEntries = await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid);
@@ -338,9 +372,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
-            await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
+            await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
 
-            await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.BeginCreateInstanceIndexAsync(dataset));
+            await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset));
         }
 
         [Fact]
@@ -352,10 +386,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
-            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
-            await _indexDataStore.EndCreateInstanceIndexAsync(dataset, version);
+            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+            await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, version);
 
-            await Assert.ThrowsAsync<InstanceAlreadyExistsException>(() => _indexDataStore.BeginCreateInstanceIndexAsync(dataset));
+            await Assert.ThrowsAsync<InstanceAlreadyExistsException>(() => _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset));
         }
 
         [Fact]
@@ -367,7 +401,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
-            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
+            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
 
             Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version);
 
@@ -378,7 +412,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             // Make sure there is delay between.
             await Task.Delay(50);
 
-            await _indexDataStore.EndCreateInstanceIndexAsync(dataset, version);
+            await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, version);
 
             IReadOnlyList<Instance> instances = await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
@@ -400,7 +434,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
-            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
+            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
 
             VersionedInstanceIdentifier versionedInstanceIdentifier = new VersionedInstanceIdentifier(
                     studyInstanceUid,
@@ -411,7 +445,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _indexDataStore.DeleteInstanceIndexAsync(versionedInstanceIdentifier);
 
             await Assert.ThrowsAsync<InstanceNotFoundException>(
-                () => _indexDataStore.EndCreateInstanceIndexAsync(dataset, version));
+                () => _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, version));
 
             Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
         }
@@ -503,7 +537,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Empty(extendedTags);
 
             DicomDataset dataset = Samples.CreateRandomInstanceDataset();
-            await _indexDataStore.BeginCreateInstanceIndexAsync(dataset, QueryTagService.CoreQueryTags);
+            await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset, QueryTagService.CoreQueryTags);
         }
 
         [Fact]
@@ -517,9 +551,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new[] { DicomTag.PatientName.BuildAddExtendedQueryTagEntry() }, maxAllowedCount: 128, ready: true);
 
             var queryTags = new[] { new QueryTag(tagEntry) };
-            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset, queryTags);
+            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset, queryTags);
             await Assert.ThrowsAsync<ExtendedQueryTagsOutOfDateException>(
-                () => _indexDataStore.EndCreateInstanceIndexAsync(dataset, watermark, queryTags));
+                () => _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, watermark, queryTags));
         }
 
         private static void ValidateStudyMetadata(
@@ -600,10 +634,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             return dataset;
         }
 
-        private async Task<Instance> CreateIndexAndVerifyInstance(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+        private async Task<Instance> CreateIndexAndVerifyInstance(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int partitionKey = 1)
         {
             DicomDataset dataset = CreateTestDicomDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
+            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
             Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version);
             Assert.Equal(sopInstanceUid, instance.SopInstanceUid);
             return instance;

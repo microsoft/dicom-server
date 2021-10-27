@@ -84,7 +84,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                     return new RetrieveResourceResponse(
                         await _frameHandler.GetFramesResourceAsync(
                         resultStreams.Single(), message.Frames, isOriginalTransferSyntaxRequested, transferSyntax),
-                        acceptHeaderDescriptor.MediaType);
+                        acceptHeaderDescriptor.MediaType,
+                        transferSyntax);
                 }
                 else
                 {
@@ -99,7 +100,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                             s => ResetDicomFileStream(s))).ToArray();
                 }
 
-                return new RetrieveResourceResponse(resultStreams, acceptHeaderDescriptor.MediaType);
+                return new RetrieveResourceResponse(resultStreams, acceptHeaderDescriptor.MediaType, transferSyntax);
             }
             catch (DataStoreException e)
             {

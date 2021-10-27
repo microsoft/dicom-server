@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
     /// </summary>
     public class InProcTestDicomWebServer : TestDicomWebServer
     {
-        public InProcTestDicomWebServer(Type startupType)
+        public InProcTestDicomWebServer(Type startupType, bool enableDataPartitions)
             : base(new Uri("http://localhost/"))
         {
             var contentRoot = GetProjectPath("src", startupType);
@@ -39,9 +39,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
                 { "DicomServer:Security:Authorization:Enabled", "true" },
                 { "DicomServer:Security:Enabled", "true" },
             };
+
             var featureSettings = new Dictionary<string, string>
             {
                 { "DicomServer:Features:EnableExtendedQueryTags", "true" },
+                { "DicomServer:Features:EnableDataPartitions", enableDataPartitions.ToString() },
             };
 
             IWebHostBuilder builder = WebHost.CreateDefaultBuilder()

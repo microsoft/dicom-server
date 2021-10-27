@@ -31,6 +31,10 @@ namespace Microsoft.Health.Dicom.Api.Modules
             // we should remove the registration since enabling these accessors has performance implications.
             // https://github.com/aspnet/Hosting/issues/793
             services.TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
+
+            services.Add<PopulateDataPartitionFilterAttribute>()
+                .Scoped()
+                .AsService<PopulateDataPartitionFilterAttribute>();
         }
     }
 }

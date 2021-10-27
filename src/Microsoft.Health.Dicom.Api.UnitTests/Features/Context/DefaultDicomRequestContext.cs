@@ -8,11 +8,14 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Features.Context;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 
 namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Context
 {
     public class DefaultDicomRequestContext : IDicomRequestContext
     {
+        public PartitionEntry DataPartitionEntry { get; set; }
+
         public string StudyInstanceUid { get; set; }
 
         public string SeriesInstanceUid { get; set; }

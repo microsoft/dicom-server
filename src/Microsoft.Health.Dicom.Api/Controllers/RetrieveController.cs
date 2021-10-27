@@ -52,6 +52,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
+        [VersionedPartitionRoute(KnownRoutes.StudyRoute, Name = KnownRouteNames.VersionedPartitionRetrieveStudy)]
+        [PartitionRoute(KnownRoutes.StudyRoute, Name = KnownRouteNames.PartitionRetrieveStudy)]
         [VersionedRoute(KnownRoutes.StudyRoute, Name = KnownRouteNames.VersionedRetrieveStudy)]
         [Route(KnownRoutes.StudyRoute, Name = KnownRouteNames.RetrieveStudy)]
         [AuditEventType(AuditEventSubType.Retrieve)]
@@ -132,6 +134,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
         [HttpGet]
+        [VersionedPartitionRoute(KnownRoutes.InstanceRoute, Name = KnownRouteNames.VersionedPartitionRetrieveInstance)]
+        [PartitionRoute(KnownRoutes.InstanceRoute, Name = KnownRouteNames.PartitionRetrieveInstance)]
         [VersionedRoute(KnownRoutes.InstanceRoute, Name = KnownRouteNames.VersionedRetrieveInstance)]
         [Route(KnownRoutes.InstanceRoute, Name = KnownRouteNames.RetrieveInstance)]
         [AuditEventType(AuditEventSubType.Retrieve)]
@@ -205,7 +209,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         private static IActionResult CreateResult(RetrieveResourceResponse response)
         {
-            return new MultipartResult((int)HttpStatusCode.OK, response.ResponseStreams.Select(x => new MultipartItem(response.ContentType, x)).ToList());
+            return new MultipartResult((int)HttpStatusCode.OK, response.ResponseStreams.Select(x => new MultipartItem(response.ContentType, x, response.TransferSyntax)).ToList());
         }
     }
 }

@@ -7,6 +7,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
 {
     internal class KnownActionParameterNames
     {
+        internal const string Version = "version";
+        internal const string PartitionName = "partitionName";
         internal const string StudyInstanceUid = "studyInstanceUid";
         internal const string SeriesInstanceUid = "seriesInstanceUid";
         internal const string SopInstanceUid = "sopInstanceUid";

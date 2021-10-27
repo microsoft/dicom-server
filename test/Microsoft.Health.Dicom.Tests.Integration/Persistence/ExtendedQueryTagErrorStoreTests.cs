@@ -485,8 +485,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private async Task<long> AddInstanceAsync(string studyId, string seriesId, string sopInstanceId)
         {
             DicomDataset dataset = Samples.CreateRandomInstanceDataset(studyId, seriesId, sopInstanceId);
-            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
-            await _indexDataStore.EndCreateInstanceIndexAsync(dataset, watermark);
+            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+            await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, watermark);
             return watermark;
         }
 
