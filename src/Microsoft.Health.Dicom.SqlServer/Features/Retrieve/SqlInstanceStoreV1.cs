@@ -32,6 +32,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
         public virtual SchemaVersion Version => SchemaVersion.V1;
 
         public virtual Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
+            int partitionKey,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
@@ -49,6 +50,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
         }
 
         public virtual Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
+            int partitionKey,
             string studyInstanceUid,
             string seriesInstanceUid,
             CancellationToken cancellationToken)
@@ -57,6 +59,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
         }
 
         public virtual Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
+            int partitionKey,
             string studyInstanceUid,
             CancellationToken cancellationToken)
         {

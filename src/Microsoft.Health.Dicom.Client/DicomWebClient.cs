@@ -113,7 +113,7 @@ namespace Microsoft.Health.Dicom.Client
             return multipartHeader;
         }
 
-        private Uri GenerateStoreRequestUri(string partitionName = default, string studyInstanceUid = default)
+        private Uri GenerateRequestUri(string relativePath, string partitionName = default)
         {
             var uriString = "/" + _apiVersion;
 
@@ -122,16 +122,19 @@ namespace Microsoft.Health.Dicom.Client
                 uriString += string.Format(DicomWebConstants.BasePartitionUriFormat, partitionName);
             }
 
-            if (!string.IsNullOrEmpty(studyInstanceUid))
-            {
-                uriString += string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid);
-            }
-            else
-            {
-                uriString += DicomWebConstants.StudiesUriString;
-            }
+            uriString += relativePath;
 
             return new Uri(uriString, UriKind.Relative);
+        }
+
+        private Uri GenerateStoreRequestUri(string partitionName = default, string studyInstanceUid = default)
+        {
+            if (string.IsNullOrEmpty(studyInstanceUid))
+            {
+                return GenerateRequestUri(DicomWebConstants.StudiesUriString, partitionName);
+            }
+
+            return GenerateRequestUri(string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid), partitionName);
         }
 
         private async IAsyncEnumerable<Stream> ReadMultipartResponseAsStreamsAsync(HttpContent httpContent, [EnumeratorCancellation] CancellationToken cancellationToken = default)

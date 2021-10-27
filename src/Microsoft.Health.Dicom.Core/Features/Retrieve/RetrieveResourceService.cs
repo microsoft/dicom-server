@@ -58,6 +58,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         public async Task<RetrieveResourceResponse> GetInstanceResourceAsync(RetrieveResourceRequest message, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(message, nameof(message));
+            var partitionKey = _dicomRequestContextAccessor.RequestContext?.DataPartitionEntry.PartitionKey;
+            EnsureArg.IsTrue(partitionKey.HasValue, nameof(partitionKey));
 
             try
             {
@@ -65,7 +67,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 bool isOriginalTransferSyntaxRequested = DicomTransferSyntaxUids.IsOriginalTransferSyntaxRequested(transferSyntax);
 
                 IEnumerable<VersionedInstanceIdentifier> retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
-                    message.ResourceType, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
+                    message.ResourceType, partitionKey.Value, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
 
                 if (!retrieveInstances.Any())
                 {

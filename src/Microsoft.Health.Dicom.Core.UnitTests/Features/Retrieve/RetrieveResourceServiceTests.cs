@@ -19,6 +19,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -59,6 +60,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             _logger = NullLogger<RetrieveResourceService>.Instance;
             _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
             _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+            _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
             _retrieveResourceService = new RetrieveResourceService(
                 _instanceStore, _fileStore, _retrieveTranscoder, _dicomFrameHandler, _retrieveTransferSyntaxHandler, _dicomRequestContextAccessor, _logger);
         }
@@ -66,7 +68,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [Fact]
         public async Task GivenNoStoredInstances_WhenRetrieveRequestForStudy_ThenNotFoundIsThrown()
         {
-            _instanceStore.GetInstanceIdentifiersInStudyAsync(_studyInstanceUid).Returns(new List<VersionedInstanceIdentifier>());
+            _instanceStore.GetInstanceIdentifiersInStudyAsync(DefaultPartition.Key, _studyInstanceUid).Returns(new List<VersionedInstanceIdentifier>());
 
             await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
                 new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
@@ -148,7 +150,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [Fact]
         public async Task GivenNoStoredInstances_WhenRetrieveRequestForSeries_ThenNotFoundIsThrown()
         {
-            _instanceStore.GetInstanceIdentifiersInSeriesAsync(_studyInstanceUid, _firstSeriesInstanceUid).Returns(new List<VersionedInstanceIdentifier>());
+            _instanceStore.GetInstanceIdentifiersInSeriesAsync(DefaultPartition.Key, _studyInstanceUid, _firstSeriesInstanceUid).Returns(new List<VersionedInstanceIdentifier>());
 
             await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
                 new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
@@ -205,7 +207,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [Fact]
         public async Task GivenNoStoredInstances_WhenRetrieveRequestForInstance_ThenNotFoundIsThrown()
         {
-            _instanceStore.GetInstanceIdentifierAsync(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid).Returns(new List<VersionedInstanceIdentifier>());
+            _instanceStore.GetInstanceIdentifierAsync(DefaultPartition.Key, _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid).Returns(new List<VersionedInstanceIdentifier>());
 
             await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
                 new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance() }),
@@ -334,7 +336,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             streamAndStoredFile.Value.Dispose();
         }
 
-        private List<VersionedInstanceIdentifier> SetupInstanceIdentifiersList(ResourceType resourceType)
+        private List<VersionedInstanceIdentifier> SetupInstanceIdentifiersList(ResourceType resourceType, int partitionKey = DefaultPartition.Key)
         {
             var dicomInstanceIdentifiersList = new List<VersionedInstanceIdentifier>();
 
@@ -344,18 +346,18 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                     dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
                     dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
                     dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _secondSeriesInstanceUid, TestUidGenerator.Generate(), 0));
-                    _instanceStore.GetInstanceIdentifiersInStudyAsync(_studyInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
+                    _instanceStore.GetInstanceIdentifiersInStudyAsync(partitionKey, _studyInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
                     break;
                 case ResourceType.Series:
                     dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
                     dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
-                    _instanceStore.GetInstanceIdentifiersInSeriesAsync(_studyInstanceUid, _firstSeriesInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
+                    _instanceStore.GetInstanceIdentifiersInSeriesAsync(partitionKey, _studyInstanceUid, _firstSeriesInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
                     break;
                 case ResourceType.Instance:
                 case ResourceType.Frames:
                     dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, 0));
                     dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
-                    _instanceStore.GetInstanceIdentifierAsync(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList.SkipLast(1));
+                    _instanceStore.GetInstanceIdentifierAsync(partitionKey, _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList.SkipLast(1));
                     break;
             }
 

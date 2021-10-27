@@ -12,9 +12,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
     public interface IIndexDataStoreTestHelper
     {
-        Task<IReadOnlyList<StudyMetadata>> GetStudyMetadataAsync(string studyInstanceUid);
+        Task<IReadOnlyList<StudyMetadata>> GetStudyMetadataAsync(string studyInstanceUid, int partitionKey = DefaultPartition.Key);
 
-        Task<IReadOnlyList<SeriesMetadata>> GetSeriesMetadataAsync(string seriesInstanceUid);
+        Task<IReadOnlyList<SeriesMetadata>> GetSeriesMetadataAsync(string seriesInstanceUid, int partitionKey = DefaultPartition.Key);
 
         Task<IReadOnlyList<Instance>> GetInstancesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int partitionKey = DefaultPartition.Key);
 
