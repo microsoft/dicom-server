@@ -35,22 +35,22 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             await store.DeleteDeletedInstanceAsync(versionedInstanceIdentifier, cancellationToken);
         }
 
-        public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
+        public async Task DeleteInstanceIndexAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
         {
             ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-            await store.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
+            await store.DeleteInstanceIndexAsync(partitionKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
         }
 
-        public async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
+        public async Task DeleteSeriesIndexAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
         {
             ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-            await store.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
+            await store.DeleteSeriesIndexAsync(partitionKey, studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
         }
 
-        public async Task DeleteStudyIndexAsync(string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
+        public async Task DeleteStudyIndexAsync(int partitionKey, string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
         {
             ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-            await store.DeleteStudyIndexAsync(studyInstanceUid, cleanupAfter, cancellationToken);
+            await store.DeleteStudyIndexAsync(partitionKey, studyInstanceUid, cleanupAfter, cancellationToken);
         }
 
         public async Task<DateTimeOffset> GetOldestDeletedAsync(CancellationToken cancellationToken = default)

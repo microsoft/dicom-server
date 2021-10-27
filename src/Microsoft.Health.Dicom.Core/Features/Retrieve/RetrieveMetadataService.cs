@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -125,9 +126,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
         private int GetPartitionKey()
         {
-            var partitionKey = _contextAccessor.RequestContext?.DataPartitionEntry.PartitionKey;
-            EnsureArg.IsTrue(partitionKey.HasValue, nameof(partitionKey));
-            return partitionKey.Value;
+            return _contextAccessor.RequestContext.GetPartitionKey();
         }
     }
 }

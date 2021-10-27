@@ -40,23 +40,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 default,
                 "The DICOM instance has been successfully created with version '{Version}'.");
 
-        private static readonly Action<ILogger, string, string, string, DateTimeOffset, Exception> LogDeleteInstanceIndexDelegate =
-            LoggerMessage.Define<string, string, string, DateTimeOffset>(
+        private static readonly Action<ILogger, int, string, string, string, DateTimeOffset, Exception> LogDeleteInstanceIndexDelegate =
+            LoggerMessage.Define<int, string, string, string, DateTimeOffset>(
                 LogLevel.Debug,
                 default,
-                "Deleting DICOM instance index with Study '{StudyInstanceUid}', Series '{SeriesInstanceUid}, and SopInstance '{SopInstanceUid}' to be cleaned up after '{CleanupAfter}'.");
+                "Deleting DICOM instance index with Partition '{PartitionKey}', Study '{StudyInstanceUid}', Series '{SeriesInstanceUid}, and SopInstance '{SopInstanceUid}' to be cleaned up after '{CleanupAfter}'.");
 
-        private static readonly Action<ILogger, string, string, DateTimeOffset, Exception> LogDeleteSeriesIndexDelegate =
-            LoggerMessage.Define<string, string, DateTimeOffset>(
+        private static readonly Action<ILogger, int, string, string, DateTimeOffset, Exception> LogDeleteSeriesIndexDelegate =
+            LoggerMessage.Define<int, string, string, DateTimeOffset>(
                 LogLevel.Debug,
                 default,
-                "Deleting DICOM instance index within Study's Series with Study '{StudyInstanceUid}' and Series '{SeriesInstanceUid}' to be cleaned up after '{CleanupAfter}'.");
+                "Deleting DICOM instance index within Study's Series with Partition '{PartitionKey}', Study '{StudyInstanceUid}' and Series '{SeriesInstanceUid}' to be cleaned up after '{CleanupAfter}'.");
 
-        private static readonly Action<ILogger, string, DateTimeOffset, Exception> LogDeleteStudyInstanceIndexDelegate =
-            LoggerMessage.Define<string, DateTimeOffset>(
+        private static readonly Action<ILogger, int, string, DateTimeOffset, Exception> LogDeleteStudyInstanceIndexDelegate =
+            LoggerMessage.Define<int, string, DateTimeOffset>(
                 LogLevel.Debug,
                 default,
-                "Deleting DICOM instance index within Study with Study '{StudyInstanceUid}' to be cleaned up after '{CleanupAfter}'.");
+                "Deleting DICOM instance index within Study with Partition '{PartitionKey}', Study '{StudyInstanceUid}' to be cleaned up after '{CleanupAfter}'.");
 
         private static readonly Action<ILogger, VersionedInstanceIdentifier, Exception> LogEndAddInstanceDelegate =
             LoggerMessage.Define<VersionedInstanceIdentifier>(
@@ -164,13 +164,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task DeleteInstanceIndexAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public async Task DeleteInstanceIndexAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
-            LogDeleteInstanceIndexDelegate(_logger, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, null);
+            LogDeleteInstanceIndexDelegate(_logger, partitionKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, null);
 
             try
             {
-                await IndexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
+                await IndexDataStore.DeleteInstanceIndexAsync(partitionKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }
@@ -183,13 +183,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task DeleteSeriesIndexAsync(string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public async Task DeleteSeriesIndexAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
-            LogDeleteSeriesIndexDelegate(_logger, studyInstanceUid, seriesInstanceUid, cleanupAfter, null);
+            LogDeleteSeriesIndexDelegate(_logger, partitionKey, studyInstanceUid, seriesInstanceUid, cleanupAfter, null);
 
             try
             {
-                await IndexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
+                await IndexDataStore.DeleteSeriesIndexAsync(partitionKey, studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }
@@ -202,13 +202,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task DeleteStudyIndexAsync(string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+        public async Task DeleteStudyIndexAsync(int partitionKey, string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
-            LogDeleteStudyInstanceIndexDelegate(_logger, studyInstanceUid, cleanupAfter, null);
+            LogDeleteStudyInstanceIndexDelegate(_logger, partitionKey, studyInstanceUid, cleanupAfter, null);
 
             try
             {
-                await IndexDataStore.DeleteStudyIndexAsync(studyInstanceUid, cleanupAfter, cancellationToken);
+                await IndexDataStore.DeleteStudyIndexAsync(partitionKey, studyInstanceUid, cleanupAfter, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }

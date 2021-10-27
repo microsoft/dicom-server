@@ -207,7 +207,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 new InstanceIdentifier(
                     instances[^3].StudyInstanceUid,
                     instances[^3].SeriesInstanceUid,
-                    instances[^3].SopInstanceUid));
+                    instances[^3].SopInstanceUid,
+                    DefaultPartition.Key));
 
             IReadOnlyList<WatermarkRange> batches;
 
@@ -282,7 +283,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
 
             long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
-            return new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version);
+            return new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version, partitionKey);
         }
     }
 }
