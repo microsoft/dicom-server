@@ -40,6 +40,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         private readonly IFrameHandler _dicomFrameHandler;
         private readonly IRetrieveTransferSyntaxHandler _retrieveTransferSyntaxHandler;
         private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
+        private readonly IFramesRangeCache _framesRangeCache;
+        private readonly IMetadataStore _metadataStore;
         private readonly ILogger<RetrieveResourceService> _logger;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
@@ -59,8 +61,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             _logger = NullLogger<RetrieveResourceService>.Instance;
             _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
             _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+            _framesRangeCache = Substitute.For<IFramesRangeCache>();
+            _metadataStore = Substitute.For<IMetadataStore>();
+
             _retrieveResourceService = new RetrieveResourceService(
-                _instanceStore, _fileStore, _retrieveTranscoder, _dicomFrameHandler, _retrieveTransferSyntaxHandler, _dicomRequestContextAccessor, _logger);
+                _instanceStore, _fileStore, _retrieveTranscoder, _dicomFrameHandler, _retrieveTransferSyntaxHandler, _dicomRequestContextAccessor, _framesRangeCache, _metadataStore, _logger);
         }
 
         [Fact]

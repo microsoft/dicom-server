@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -27,6 +28,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         private readonly IFrameHandler _frameHandler;
         private readonly IRetrieveTransferSyntaxHandler _retrieveTransferSyntaxHandler;
         private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
+        private readonly IFramesRangeCache _framesRangeCache;
+        private readonly IMetadataStore _metadataStore;
         private readonly ILogger<RetrieveResourceService> _logger;
 
         public RetrieveResourceService(
@@ -36,6 +39,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             IFrameHandler frameHandler,
             IRetrieveTransferSyntaxHandler retrieveTransferSyntaxHandler,
             IDicomRequestContextAccessor dicomRequestContextAccessor,
+            IFramesRangeCache framesRangeCache,
+            IMetadataStore metadataStore,
             ILogger<RetrieveResourceService> logger)
         {
             EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
@@ -44,6 +49,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             EnsureArg.IsNotNull(frameHandler, nameof(frameHandler));
             EnsureArg.IsNotNull(retrieveTransferSyntaxHandler, nameof(retrieveTransferSyntaxHandler));
             EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
+            EnsureArg.IsNotNull(framesRangeCache, nameof(framesRangeCache));
+            EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _instanceStore = instanceStore;
@@ -52,12 +59,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             _frameHandler = frameHandler;
             _retrieveTransferSyntaxHandler = retrieveTransferSyntaxHandler;
             _dicomRequestContextAccessor = dicomRequestContextAccessor;
+            _framesRangeCache = framesRangeCache;
+            _metadataStore = metadataStore;
             _logger = logger;
         }
 
         public async Task<RetrieveResourceResponse> GetInstanceResourceAsync(RetrieveResourceRequest message, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(message, nameof(message));
+            var stopWatch = Stopwatch.StartNew();
 
             try
             {
@@ -67,13 +77,32 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 IEnumerable<VersionedInstanceIdentifier> retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
                     message.ResourceType, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
 
+                _logger.LogInformation("RetrieveResourceService:GetInstanceResourceAsync:GetInstancesToRetrieve: {0} ", stopWatch.ElapsedMilliseconds);
+
                 if (!retrieveInstances.Any())
                 {
                     throw new InstanceNotFoundException();
                 }
 
+                // TODO merge better with existing syntax. For now special case frame retrieval
+                if (message.ResourceType == ResourceType.Frames && retrieveInstances.Count() == 1 && isOriginalTransferSyntaxRequested)
+                {
+                    var identifier = retrieveInstances.First();
+                    var frame = message.Frames.First();
+                    FrameRange range = await _framesRangeCache.GetFrameRangeAsync(identifier, frame, _metadataStore.GetInstanceFramesRangeAsync, cancellationToken);
+
+                    if (range != null)
+                    {
+                        _logger.LogInformation("RetrieveResourceService using the fast path to get frame range: {0}, frame:{1}", identifier, frame);
+                        return new RetrieveResourceResponse(
+                            new List<Stream> { await _blobDataStore.GetFileFrameAsync(identifier, range, cancellationToken) },
+                            acceptHeaderDescriptor.MediaType,
+                            transferSyntax);
+                    }
+                }
+
                 Stream[] resultStreams = await Task.WhenAll(
-                    retrieveInstances.Select(x => _blobDataStore.GetFileAsync(x, cancellationToken)));
+                retrieveInstances.Select(x => _blobDataStore.GetFileAsync(x, cancellationToken)));
 
                 long lengthOfResultStreams = resultStreams.Sum(stream => stream.Length);
                 _dicomRequestContextAccessor.RequestContext.IsTranscodeRequested = !isOriginalTransferSyntaxRequested;
@@ -108,6 +137,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 _logger.LogError(e, "Error retrieving dicom resource. StudyInstanceUid: {StudyInstanceUid} SeriesInstanceUid: {SeriesInstanceUid} SopInstanceUid: {SopInstanceUid}", message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid);
 
                 throw;
+            }
+            finally
+            {
+                stopWatch.Stop();
+                _logger.LogInformation("RetrieveResourceService:GetInstanceResourceAsync:GetFileFrameAsync: {0} ", stopWatch.ElapsedMilliseconds);
             }
         }
 

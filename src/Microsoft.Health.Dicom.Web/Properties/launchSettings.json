@@ -7,7 +7,7 @@
         "DicomServer:Security:Enabled": "false"
       },
       "applicationUrl": "https://localhost:63838/",
-      "launchBrowser": true
+      "launchBrowser": false
     },
     "DicomWebSecurityEnabled": {
       "commandName": "Project",

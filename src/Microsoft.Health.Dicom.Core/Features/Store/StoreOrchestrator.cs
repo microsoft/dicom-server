@@ -62,7 +62,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 // We have successfully created the index, store the files.
                 await Task.WhenAll(
                     StoreFileAsync(versionedInstanceIdentifier, dicomInstanceEntry, cancellationToken),
-                    StoreInstanceMetadataAsync(dicomDataset, watermark, cancellationToken));
+                    StoreInstanceMetadataAsync(dicomDataset, watermark, cancellationToken),
+                    StoreFileFramesRangeAsync(dicomDataset, watermark, cancellationToken));
 
                 await _indexDataStore.EndCreateInstanceIndexAsync(dicomDataset, watermark, queryTags, cancellationToken: cancellationToken);
             }
@@ -92,6 +93,39 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             long version,
             CancellationToken cancellationToken)
             => _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version, cancellationToken);
+
+        private async Task StoreFileFramesRangeAsync(
+            DicomDataset dicomDataset,
+            long version,
+            CancellationToken cancellationToken)
+        {
+            int numberOfFrames = dicomDataset.GetSingleValueOrDefault(DicomTag.NumberOfFrames, 1);
+
+            if (numberOfFrames <= 1)
+            {
+                return;
+            }
+
+            var pixelData = dicomDataset.GetDicomItem<DicomItem>(DicomTag.PixelData);
+
+            if (pixelData is DicomFragmentSequence pixelDataFragment && pixelDataFragment.OffsetTable != null && numberOfFrames == pixelDataFragment.OffsetTable.Count)
+            {
+
+                var framesRange = new Dictionary<int, FrameRange>();
+                for (int i = 0; i < pixelDataFragment.OffsetTable.Count; i++)
+                {
+                    var offset = pixelDataFragment.OffsetTable[i];
+                    var length = pixelDataFragment.OffsetTable.Count == i + 1
+                                    ? uint.MaxValue
+                                    : pixelDataFragment.OffsetTable[i + 1] - offset;
+
+                    framesRange.Add(i, new FrameRange(offset, length));
+                }
+                var identifier = dicomDataset.ToVersionedInstanceIdentifier(version);
+
+                await _metadataStore.StoreInstanceFramesRangeAsync(identifier, framesRange, cancellationToken);
+            }
+        }
 
         private async Task TryCleanupInstanceIndexAsync(VersionedInstanceIdentifier versionedInstanceIdentifier)
         {

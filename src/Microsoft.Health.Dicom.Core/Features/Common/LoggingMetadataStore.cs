@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -133,6 +134,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
 
                 throw;
             }
+        }
+
+        public async Task<Dictionary<int, FrameRange>> GetInstanceFramesRangeAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
+        {
+            return await _metadataStore.GetInstanceFramesRangeAsync(versionedInstanceIdentifier, cancellationToken);
+        }
+
+        public async Task StoreInstanceFramesRangeAsync(VersionedInstanceIdentifier identifier, Dictionary<int, FrameRange> framesRange, CancellationToken cancellationToken = default)
+        {
+            await _metadataStore.StoreInstanceFramesRangeAsync(identifier, framesRange, cancellationToken);
         }
     }
 }

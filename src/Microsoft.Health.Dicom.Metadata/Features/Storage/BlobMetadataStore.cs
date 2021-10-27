@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -33,6 +34,8 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
     {
         private const string GetInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(GetInstanceMetadataAsync);
         private const string StoreInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceMetadataAsync);
+        private const string StoreInstanceFramesRangeTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceFramesRangeAsync);
+        private const string GetInstanceFramesRangeStreamTagName = nameof(BlobMetadataStore) + "." + nameof(GetInstanceFramesRangeAsync);
         private static readonly Encoding MetadataEncoding = Encoding.UTF8;
 
         private readonly BlobContainerClient _container;
@@ -98,6 +101,45 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             }
         }
 
+        public async Task StoreInstanceFramesRangeAsync(
+            VersionedInstanceIdentifier identifier,
+            Dictionary<int, FrameRange> framesRange,
+            CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(identifier, nameof(identifier));
+            EnsureArg.IsNotNull(framesRange, nameof(framesRange));
+
+            BlockBlobClient blob = GetInstanceFramesRange(identifier);
+
+            try
+            {
+                await using (Stream stream = _recyclableMemoryStreamManager.GetStream(StoreInstanceFramesRangeTagName))
+                await using (var streamWriter = new StreamWriter(stream, MetadataEncoding))
+                using (var jsonTextWriter = new JsonTextWriter(streamWriter))
+                {
+                    _jsonSerializer.Serialize(jsonTextWriter, framesRange);
+                    jsonTextWriter.Flush();
+                    stream.Seek(0, SeekOrigin.Begin);
+                    await blob.UploadAsync(
+                        stream,
+                        new BlobHttpHeaders()
+                        {
+                            ContentType = KnownContentTypes.ApplicationJson,
+                        },
+                        metadata: null,
+                        conditions: null,
+                        accessTier: null,
+                        progressHandler: null,
+                        cancellationToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new DataStoreException(ex);
+            }
+
+        }
+
         /// <inheritdoc />
         public async Task DeleteInstanceMetadataIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
         {
@@ -134,6 +176,32 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             return dicomDataset;
         }
 
+        public async Task<Dictionary<int, FrameRange>> GetInstanceFramesRangeAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+            BlockBlobClient cloudBlockBlob = GetInstanceFramesRange(versionedInstanceIdentifier);
+
+            Dictionary<int, FrameRange> range = null;
+
+            await ExecuteAsync(async () =>
+            {
+                await using (Stream stream = _recyclableMemoryStreamManager.GetStream(GetInstanceFramesRangeStreamTagName))
+                {
+                    await cloudBlockBlob.DownloadToAsync(stream, cancellationToken);
+
+                    stream.Seek(0, SeekOrigin.Begin);
+
+                    using (var streamReader = new StreamReader(stream, MetadataEncoding))
+                    using (var jsonTextReader = new JsonTextReader(streamReader))
+                    {
+                        range = _jsonSerializer.Deserialize<Dictionary<int, FrameRange>>(jsonTextReader);
+                    }
+                }
+            }, throwOnNotFound: false);
+
+            return range;
+        }
+
         private BlockBlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
         {
             var blobName = $"{versionedInstanceIdentifier.StudyInstanceUid}/{versionedInstanceIdentifier.SeriesInstanceUid}/{versionedInstanceIdentifier.SopInstanceUid}_{versionedInstanceIdentifier.Version}_metadata.json";
@@ -141,15 +209,27 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             return _container.GetBlockBlobClient(blobName);
         }
 
-        private static async Task ExecuteAsync(Func<Task> action)
+
+        private BlockBlobClient GetInstanceFramesRange(VersionedInstanceIdentifier versionedInstanceIdentifier)
+        {
+            var blobName = $"{versionedInstanceIdentifier.StudyInstanceUid}/{versionedInstanceIdentifier.SeriesInstanceUid}/{versionedInstanceIdentifier.SopInstanceUid}_{versionedInstanceIdentifier.Version}_frames_range.json";
+
+            return _container.GetBlockBlobClient(blobName);
+        }
+
+        private static async Task ExecuteAsync(Func<Task> action, bool throwOnNotFound = true)
         {
             try
             {
                 await action();
             }
-            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
+            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound && throwOnNotFound)
             {
                 throw new ItemNotFoundException(ex);
+            }
+            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound && !throwOnNotFound)
+            {
+                return;
             }
             catch (Exception ex)
             {

@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -45,6 +46,28 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         /// <returns>A task that represents the asynchronous delete operation.</returns>
         Task DeleteInstanceMetadataIfExistsAsync(
             VersionedInstanceIdentifier versionedInstanceIdentifier,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Asynchronously get the Frames byte-range inside the instance
+        /// </summary>
+        /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        Task<Dictionary<int, FrameRange>> GetInstanceFramesRangeAsync(
+            VersionedInstanceIdentifier versionedInstanceIdentifier,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        ///  Asynchronously store the Frames byte-range inside the instance
+        /// </summary>
+        /// <param name="identifier">The DICOM instance identifier.</param>
+        /// <param name="framesRange">Frames byte-range</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        Task StoreInstanceFramesRangeAsync(
+            VersionedInstanceIdentifier identifier,
+            Dictionary<int, FrameRange> framesRange,
             CancellationToken cancellationToken = default);
     }
 }

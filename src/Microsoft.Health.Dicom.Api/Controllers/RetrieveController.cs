@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -191,10 +192,13 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             string sopInstanceUid,
             [FromRoute][ModelBinder(typeof(IntArrayModelBinder))] int[] frames)
         {
+            var stopWatch = Stopwatch.StartNew();
+
             _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: {studyInstanceUid}, series: {seriesInstanceUid}, instance: {sopInstanceUid}, frames: {frames}.", studyInstanceUid, seriesInstanceUid, sopInstanceUid, string.Join(", ", frames ?? Array.Empty<int>()));
             RetrieveResourceResponse response = await _mediator.RetrieveDicomFramesAsync(
                 studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
-
+            stopWatch.Stop();
+            _logger.LogInformation("Controller: GetFramesAsync: {0}", stopWatch.ElapsedMilliseconds);
             return CreateResult(response);
         }
 

@@ -152,6 +152,8 @@ namespace Microsoft.Health.Dicom.Core.Modules
 
             services.AddSingleton<BackgroundServiceHealthCheckCache>();
 
+            services.AddSingleton<IFramesRangeCache, FramesRangeCache>();
+
             services.AddHealthChecks().AddCheck<BackgroundServiceHealthCheck>(name: "BackgroundServiceHealthCheck");
 
             if (_featureConfiguration.EnableExtendedQueryTags)

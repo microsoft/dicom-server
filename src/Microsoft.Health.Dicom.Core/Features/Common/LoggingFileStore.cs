@@ -138,5 +138,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
                 throw;
             }
         }
+
+        public async Task<Stream> GetFileFrameAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, FrameRange range, CancellationToken cancellationToken)
+        {
+            return await _fileStore.GetFileFrameAsync(versionedInstanceIdentifier, range, cancellationToken);
+        }
     }
 }
