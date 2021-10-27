@@ -30,6 +30,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
         private readonly IFramesRangeCache _framesRangeCache;
         private readonly IMetadataStore _metadataStore;
+        private readonly IVersionedInstanceEphimeralCache _versionedInstanceCache;
         private readonly ILogger<RetrieveResourceService> _logger;
 
         public RetrieveResourceService(
@@ -41,6 +42,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             IDicomRequestContextAccessor dicomRequestContextAccessor,
             IFramesRangeCache framesRangeCache,
             IMetadataStore metadataStore,
+            IVersionedInstanceEphimeralCache versionedInstanceCache,
             ILogger<RetrieveResourceService> logger)
         {
             EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
@@ -51,6 +53,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
             EnsureArg.IsNotNull(framesRangeCache, nameof(framesRangeCache));
             EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
+            EnsureArg.IsNotNull(versionedInstanceCache, nameof(versionedInstanceCache));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _instanceStore = instanceStore;
@@ -61,6 +64,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             _dicomRequestContextAccessor = dicomRequestContextAccessor;
             _framesRangeCache = framesRangeCache;
             _metadataStore = metadataStore;
+            _versionedInstanceCache = versionedInstanceCache;
             _logger = logger;
         }
 
@@ -74,20 +78,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 string transferSyntax = _retrieveTransferSyntaxHandler.GetTransferSyntax(message.ResourceType, message.AcceptHeaders, out AcceptHeaderDescriptor acceptHeaderDescriptor);
                 bool isOriginalTransferSyntaxRequested = DicomTransferSyntaxUids.IsOriginalTransferSyntaxRequested(transferSyntax);
 
-                IEnumerable<VersionedInstanceIdentifier> retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
-                    message.ResourceType, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
-
-                _logger.LogInformation("RetrieveResourceService:GetInstanceResourceAsync:GetInstancesToRetrieve: {0} ", stopWatch.ElapsedMilliseconds);
-
-                if (!retrieveInstances.Any())
-                {
-                    throw new InstanceNotFoundException();
-                }
-
                 // TODO merge better with existing syntax. For now special case frame retrieval
-                if (message.ResourceType == ResourceType.Frames && retrieveInstances.Count() == 1 && isOriginalTransferSyntaxRequested)
+                if (message.ResourceType == ResourceType.Frames && message.Frames.Count() == 1 && isOriginalTransferSyntaxRequested)
                 {
-                    var identifier = retrieveInstances.First();
+
+                    var identifier = await _versionedInstanceCache.GetInstanceAsync(
+                         message.StudyInstanceUid,
+                         message.SeriesInstanceUid,
+                         message.SopInstanceUid,
+                         _instanceStore.GetInstanceIdentifierAsync,
+                         cancellationToken
+                        );
+
                     var frame = message.Frames.First();
                     FrameRange range = await _framesRangeCache.GetFrameRangeAsync(identifier, frame, _metadataStore.GetInstanceFramesRangeAsync, cancellationToken);
 
@@ -99,6 +101,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                             acceptHeaderDescriptor.MediaType,
                             transferSyntax);
                     }
+                }
+
+                IEnumerable<VersionedInstanceIdentifier> retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
+                    message.ResourceType, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
+
+                _logger.LogInformation("RetrieveResourceService:GetInstanceResourceAsync:GetInstancesToRetrieve: {0} ", stopWatch.ElapsedMilliseconds);
+
+                if (!retrieveInstances.Any())
+                {
+                    throw new InstanceNotFoundException();
                 }
 
                 Stream[] resultStreams = await Task.WhenAll(

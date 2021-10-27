@@ -42,6 +42,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
         private readonly IFramesRangeCache _framesRangeCache;
         private readonly IMetadataStore _metadataStore;
+        private readonly IVersionedInstanceEphimeralCache _versionedIdentifierCache;
         private readonly string _studyInstanceUid = TestUidGenerator.Generate();
         private readonly string _firstSeriesInstanceUid = TestUidGenerator.Generate();
         private readonly string _secondSeriesInstanceUid = TestUidGenerator.Generate();
@@ -60,9 +61,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             _recyclableMemoryStreamManager = blobStorageFixture.RecyclableMemoryStreamManager;
             _framesRangeCache = Substitute.For<IFramesRangeCache>();
             _metadataStore = Substitute.For<IMetadataStore>();
+            _versionedIdentifierCache = Substitute.For<IVersionedInstanceEphimeralCache>();
 
             _retrieveResourceService = new RetrieveResourceService(
-                _instanceStore, _fileStore, _retrieveTranscoder, _frameHandler, _retrieveTransferSyntaxHandler, _dicomRequestContextAccessor, _framesRangeCache, _metadataStore, NullLogger<RetrieveResourceService>.Instance);
+                _instanceStore, _fileStore, _retrieveTranscoder, _frameHandler, _retrieveTransferSyntaxHandler, _dicomRequestContextAccessor, _framesRangeCache, _metadataStore, _versionedIdentifierCache, NullLogger<RetrieveResourceService>.Instance);
         }
 
         [Fact]
