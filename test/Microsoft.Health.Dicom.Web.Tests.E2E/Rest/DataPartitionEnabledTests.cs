@@ -13,12 +13,12 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
-    public class DataPartitionEnabledStoreTransactionTests : IClassFixture<DataPartitionEnabledHttpIntegrationTestFixture<Startup>>
+    public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpIntegrationTestFixture<Startup>>
     {
         private readonly IDicomWebClient _client;
         private readonly bool _isUsingRemoteTestServer;
 
-        public DataPartitionEnabledStoreTransactionTests(DataPartitionEnabledHttpIntegrationTestFixture<Startup> fixture)
+        public DataPartitionEnabledTests(DataPartitionEnabledHttpIntegrationTestFixture<Startup> fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
             _client = fixture.Client;
@@ -70,6 +70,34 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             ValidationHelpers.ValidateReferencedSopSequence(
                 await response.GetValueAsync(),
                 ConvertToReferencedSopSequenceEntry(dicomFile.Dataset, newPartition));
+        }
+
+        [Fact]
+        public async Task WhenRetrievingWithPartitionName_TheServerShouldReturnOnlyTheSpecifiedPartition()
+        {
+            if (_isUsingRemoteTestServer)
+            {
+                // Data partition feature flag only enabled locally. For Remote servers, feature flag is by default disabled
+                return;
+            }
+
+            var newPartition1 = "partition1";
+            var newPartition2 = "partition2";
+
+            string studyInstanceUID = TestUidGenerator.Generate();
+            string seriesInstanceUID = TestUidGenerator.Generate();
+            string sopInstanceUID = TestUidGenerator.Generate();
+
+            DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
+
+            await _client.StoreAsync(new[] { dicomFile }, partitionName: newPartition1);
+            await _client.StoreAsync(new[] { dicomFile }, partitionName: newPartition2);
+
+            using DicomWebResponse<DicomFile> response1 = await _client.RetrieveInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition1);
+            Assert.True(response1.IsSuccessStatusCode);
+
+            using DicomWebResponse<DicomFile> response2 = await _client.RetrieveInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition2);
+            Assert.True(response2.IsSuccessStatusCode);
         }
 
 

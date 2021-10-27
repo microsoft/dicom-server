@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -22,25 +23,30 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         private readonly IInstanceStore _instanceStore;
         private readonly IMetadataStore _metadataStore;
         private readonly IETagGenerator _eTagGenerator;
+        private readonly IDicomRequestContextAccessor _contextAccessor;
 
         public RetrieveMetadataService(
             IInstanceStore instanceStore,
             IMetadataStore metadataStore,
-            IETagGenerator eTagGenerator)
+            IETagGenerator eTagGenerator,
+            IDicomRequestContextAccessor contextAccessor)
         {
             EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
             EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
             EnsureArg.IsNotNull(eTagGenerator, nameof(eTagGenerator));
+            EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
 
             _instanceStore = instanceStore;
             _metadataStore = metadataStore;
             _eTagGenerator = eTagGenerator;
+            _contextAccessor = contextAccessor;
         }
 
         public async Task<RetrieveMetadataResponse> RetrieveStudyInstanceMetadataAsync(string studyInstanceUid, string ifNoneMatch = null, CancellationToken cancellationToken = default)
         {
             IEnumerable<VersionedInstanceIdentifier> retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
                 ResourceType.Study,
+                GetPartitionKey(),
                 studyInstanceUid,
                 seriesInstanceUid: null,
                 sopInstanceUid: null,
@@ -55,6 +61,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         {
             IEnumerable<VersionedInstanceIdentifier> retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
                     ResourceType.Series,
+                    GetPartitionKey(),
                     studyInstanceUid,
                     seriesInstanceUid,
                     sopInstanceUid: null,
@@ -69,6 +76,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         {
             IEnumerable<VersionedInstanceIdentifier> retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
                 ResourceType.Instance,
+                GetPartitionKey(),
                 studyInstanceUid,
                 seriesInstanceUid,
                 sopInstanceUid,
@@ -113,6 +121,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             }
 
             return isCacheValid;
+        }
+
+        private int GetPartitionKey()
+        {
+            var partitionKey = _contextAccessor.RequestContext?.DataPartitionEntry.PartitionKey;
+            EnsureArg.IsTrue(partitionKey.HasValue, nameof(partitionKey));
+            return partitionKey.Value;
         }
     }
 }

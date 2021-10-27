@@ -14,23 +14,50 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
     public interface IInstanceStore
     {
+        /// <summary>
+        /// Gets identifiers of instances in a study.
+        /// </summary>
+        /// <param name="partitionKey">The partition key.</param>
+        /// <param name="studyInstanceUid">The study identifier.</param>
+        /// <param name="cancellationToken">An optional cancellation token.</param>
+        /// <returns>Instance identifiers.</returns>
         Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
+            int partitionKey,
             string studyInstanceUid,
             CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Gets identifiers of instances in a series.
+        /// </summary>
+        /// <param name="partitionKey">The partition key.</param>
+        /// <param name="studyInstanceUid">The study identifier.</param>
+        /// <param name="seriesInstanceUid">The series identifier.</param>
+        /// <param name="cancellationToken">An optional cancellation token.</param>
+        /// <returns>Instance identifiers.</returns>
         Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
+            int partitionKey,
             string studyInstanceUid,
             string seriesInstanceUid,
             CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Gets identifiers of instances in an instance.
+        /// </summary>
+        /// <param name="partitionKey">The partition key.</param>
+        /// <param name="studyInstanceUid">The study identifier.</param>
+        /// <param name="seriesInstanceUid">The series identifier.</param>
+        /// <param name="sopInstanceUid">The instance identifier.</param>
+        /// <param name="cancellationToken">An optional cancellation token.</param>
+        /// <returns>Instance identifiers.</returns>
         Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
+            int partitionKey,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Gets idenfiers of instances within the given range of watermarks.
+        /// Gets identifiers of instances within the given range of watermarks.
         /// </summary>
         /// <param name="watermarkRange">The watermark range</param>
         /// <param name="indexStatus">The index status</param>

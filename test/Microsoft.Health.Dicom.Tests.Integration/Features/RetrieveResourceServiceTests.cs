@@ -17,6 +17,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -54,7 +55,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             _fileStore = blobStorageFixture.FileStore;
             _retrieveTranscoder = Substitute.For<ITranscoder>();
             _frameHandler = Substitute.For<IFrameHandler>();
+
             _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+            _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
+
             _retrieveTransferSyntaxHandler = new RetrieveTransferSyntaxHandler(NullLogger<RetrieveTransferSyntaxHandler>.Instance);
             _recyclableMemoryStreamManager = blobStorageFixture.RecyclableMemoryStreamManager;
             _retrieveResourceService = new RetrieveResourceService(

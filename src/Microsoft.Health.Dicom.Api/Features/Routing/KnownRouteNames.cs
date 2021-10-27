@@ -12,6 +12,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         internal const string RetrieveStudy = nameof(RetrieveStudy);
         internal const string PartitionRetrieveStudy = nameof(PartitionRetrieveStudy);
 
+        internal const string VersionedPartitionRetrieveSeries = nameof(VersionedPartitionRetrieveSeries);
+        internal const string PartitionRetrieveSeries = nameof(PartitionRetrieveSeries);
         internal const string VersionedRetrieveSeries = nameof(VersionedRetrieveSeries);
         internal const string RetrieveSeries = nameof(RetrieveSeries);
 
@@ -20,6 +22,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         internal const string VersionedRetrieveInstance = nameof(VersionedRetrieveInstance);
         internal const string RetrieveInstance = nameof(RetrieveInstance);
 
+        internal const string VersionedPartitionRetrieveFrame = nameof(VersionedPartitionRetrieveFrame);
+        internal const string PartitionRetrieveFrame = nameof(PartitionRetrieveFrame);
         internal const string VersionedRetrieveFrame = nameof(VersionedRetrieveFrame);
         internal const string RetrieveFrame = nameof(RetrieveFrame);
 
