@@ -1,6 +1,8 @@
 variables:
   deploymentName: 'dcm-ci-permanent'
   testEnvironmentUrl: 'https://$(deploymentName).azurewebsites.net/'
+  testApplicationScope: 'https://$(deploymentName).resoluteopensource.onmicrosoft.com/.default'
+  testApplicationResource: 'https://$(deploymentName).resoluteopensource.onmicrosoft.com'
   resourceGroupName: $(deploymentName)
   resourceGroupRegion: 'southcentralus'
   appServicePlanResourceGroup: 'msh-dicom-pr'
