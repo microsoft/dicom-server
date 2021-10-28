@@ -6,7 +6,6 @@
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Models;
@@ -25,6 +24,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         private readonly QueryExpression _queryExpression;
         private readonly SqlQueryParameterManager _parameters;
         private readonly SchemaVersion _schemaVersion;
+        private readonly int _partitionKey;
         private const string SqlDateFormat = "yyyy-MM-dd HH:mm:ss.ffffff";
         private const string InstanceTableAlias = "i";
         private const string StudyTableAlias = "st";
@@ -39,12 +39,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             IndentedStringBuilder stringBuilder,
             QueryExpression queryExpression,
             SqlQueryParameterManager sqlQueryParameterManager,
-            SchemaVersion schemaVersion)
+            SchemaVersion schemaVersion,
+            int partitionKey)
         {
             _stringBuilder = stringBuilder;
             _queryExpression = queryExpression;
             _parameters = sqlQueryParameterManager;
             _schemaVersion = schemaVersion;
+            _partitionKey = partitionKey;
 
             Build();
         }
@@ -126,8 +128,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
             if ((int)_schemaVersion >= SchemaVersionConstants.SupportDataPartitionSchemaVersion)
             {
-                // TODO: Actual PartitionKey should be passed as a filter condition
-                _stringBuilder.AppendLine($"AND {StudyTableAlias}.{VLatest.Study.PartitionKey} = {DefaultPartition.Key}");
+                _stringBuilder.AppendLine($"AND {StudyTableAlias}.{VLatest.Study.PartitionKey} = {_partitionKey}");
             }
 
             using (IndentedStringBuilder.DelimitedScope delimited = _stringBuilder.BeginDelimitedWhereClause())
