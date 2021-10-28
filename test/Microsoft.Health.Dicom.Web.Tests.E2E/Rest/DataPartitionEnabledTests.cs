@@ -135,6 +135,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenMatchingStudiesInDifferentPartitions_WhenSearchForStudySeriesLevel_OnePartitionMatchesResult()
         {
+            if (_isUsingRemoteTestServer)
+            {
+                // Data partition feature flag only enabled locally. For Remote servers, feature flag is by default disabled
+                return;
+            }
+
             var newPartition1 = TestUidGenerator.Generate();
             var newPartition2 = TestUidGenerator.Generate();
 
