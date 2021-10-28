@@ -36,4 +36,5 @@ jobs:
       testAssemblyVer2: '**\*Tests.Integration.dll'
       searchFolder: '$(System.ArtifactsDirectory)'
       runInParallel: true
+      runOnlyImpactedTests: '$(runOnlyImpactedTests)'
 
