@@ -99,10 +99,19 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
             return await response.GetValueAsync();
         }
 
-        public async Task DeleteExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default)
+        public async Task<bool> DeleteExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(tagPath, nameof(tagPath));
-            await _dicomWebClient.DeleteExtendedQueryTagAsync(tagPath, cancellationToken);
+
+            try
+            {
+                var response = await _dicomWebClient.DeleteExtendedQueryTagAsync(tagPath, cancellationToken);
+                return response.StatusCode == System.Net.HttpStatusCode.NoContent;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }

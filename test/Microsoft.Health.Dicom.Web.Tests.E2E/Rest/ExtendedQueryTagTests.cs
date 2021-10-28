@@ -48,28 +48,28 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 return;
             }
 
-            string weightPrivateCreator = "PatientWeight";
-            DicomTag weightTag = RandomDicomTag(isPrivate: true, privateCreator: weightPrivateCreator);
+            string tag1PrivateCreator = "Unit Test 1";
+            DicomTag tag1 = RandomDicomTag(tag1PrivateCreator);
             string weightTagVRCode = DicomVR.DS.Code;
 
             // Try to delete weight private extended query tag if it exists.
-            await DeleteExtendedQueryTagIfExists(weightTag);
+            await DeleteExtendedQueryTagIfExists(tag1);
 
-            string sizePrivateCreator = "PatientSize";
-            DicomTag sizeTag = RandomDicomTag(isPrivate: true, privateCreator: sizePrivateCreator);
+            string tag2PrivateCreator = "Unit Test 2";
+            DicomTag tag2 = RandomDicomTag(tag2PrivateCreator);
             string sizeTagVRCode = DicomVR.DS.Code;
 
             // Try to delete size private extended query tag if it exists.
-            await DeleteExtendedQueryTagIfExists(sizeTag);
+            await DeleteExtendedQueryTagIfExists(tag2);
 
             // Define DICOM files
             DicomDataset instance1 = Samples.CreateRandomInstanceDataset();
-            instance1.Add(weightTag, 68.0M);
-            instance1.Add(sizeTag, 1.78M);
+            instance1.Add(tag1, 68.0M);
+            instance1.Add(tag2, 1.78M);
 
             DicomDataset instance2 = Samples.CreateRandomInstanceDataset();
-            instance2.Add(weightTag, 50.0M);
-            instance2.Add(sizeTag, 1.5M);
+            instance2.Add(tag1, 50.0M);
+            instance2.Add(tag2, 1.5M);
 
             // Upload files
             await _instanceManager.StoreAsync(new DicomFile(instance1));
@@ -79,18 +79,18 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             OperationStatus operation = await _tagManager.AddTagsAsync(
                 new AddExtendedQueryTagEntry[]
                 {
-                    new AddExtendedQueryTagEntry { Path = weightTag.GetPath(), VR = weightTagVRCode, Level = QueryTagLevel.Study },
-                    new AddExtendedQueryTagEntry { Path = sizeTag.GetPath(), VR = sizeTagVRCode, Level = QueryTagLevel.Study },
+                    new AddExtendedQueryTagEntry { Path = tag1.GetPath(), VR = weightTagVRCode, Level = QueryTagLevel.Study, PrivateCreator = tag1PrivateCreator },
+                    new AddExtendedQueryTagEntry { Path = tag2.GetPath(), VR = sizeTagVRCode, Level = QueryTagLevel.Study, PrivateCreator = tag2PrivateCreator },
                 });
             Assert.Equal(OperationRuntimeStatus.Completed, operation.Status);
 
             // Check specific tag
             DicomWebResponse<GetExtendedQueryTagEntry> getResponse;
 
-            getResponse = await _client.GetExtendedQueryTagAsync(weightTag.GetPath());
+            getResponse = await _client.GetExtendedQueryTagAsync(tag1.GetPath());
             Assert.Null((await getResponse.GetValueAsync()).Errors);
 
-            getResponse = await _client.GetExtendedQueryTagAsync(sizeTag.GetPath());
+            getResponse = await _client.GetExtendedQueryTagAsync(tag2.GetPath());
             Assert.Null((await getResponse.GetValueAsync()).Errors);
 
             // Query multiple tags
@@ -102,7 +102,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(multipleTags[1].Path, (await _tagManager.GetTagsAsync(1, 1)).Single().Path);
 
             // QIDO
-            DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryInstancesAsync($"{weightTag.GetPath()}={50}");
+            DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryInstancesAsync($"{tag1.GetPath()}={50}");
             DicomDataset[] instances = await queryResponse.ToArrayAsync();
             Assert.Contains(instances, instance => instance.ToInstanceIdentifier().Equals(instance2.ToInstanceIdentifier()));
         }
@@ -118,7 +118,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             // Use private tag
             string privateCreator = "PrivateCreator1";
-            DicomTag tag = RandomDicomTag(isPrivate: true, privateCreator: privateCreator);
+            DicomTag tag = RandomDicomTag(privateCreator: privateCreator);
             string tagValue = "053Y";
             string tagVRCode = DicomVR.AS.Code;
 
@@ -220,29 +220,21 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         private async Task DeleteExtendedQueryTagIfExists(DicomTag tag)
         {
             // Try to delete this extended query tag if it exists.
-            try
-            {
-                await _tagManager.DeleteExtendedQueryTagAsync(string.Concat(tag.Group.ToString("D4"), tag.Element.ToString("D4")));
-            }
-            catch (Exception ex) when (ex.Message.StartsWith("NotFound"))
-            {
-                // If extended query tag does not exist, it cannot be deleted.
-            }
+            await _tagManager.DeleteExtendedQueryTagAsync(string.Concat(tag.Group.ToString("D4"), tag.Element.ToString("D4")));
         }
 
-        private static DicomTag RandomDicomTag(bool isPrivate = false, string privateCreator = null)
+        private static DicomTag RandomDicomTag(string privateCreator = null)
         {
+            bool isPrivate = string.IsNullOrWhiteSpace(privateCreator);
             var random = new Random();
 
             // Private groups should end with an odd number
-            int randomGroup = random.Next(0, 9999);
-            ushort group = isPrivate ?
-                randomGroup % 2 == 1 ? Convert.ToUInt16(randomGroup) : Convert.ToUInt16(randomGroup + 1) :
-                Convert.ToUInt16(randomGroup);
+            int randomGroup = random.Next(0, 10000);
+            ushort group = (ushort)(isPrivate && randomGroup % 2 == 0 ? randomGroup + 1 : randomGroup);
 
-            ushort element = Convert.ToUInt16(random.Next(0, 9999));
+            ushort element = (ushort)random.Next(0, 10000);
 
-            return string.IsNullOrWhiteSpace(privateCreator) ? new DicomTag(group, element) : new DicomTag(group, element, privateCreator);
+            return isPrivate ? new DicomTag(group, element) : new DicomTag(group, element, privateCreator);
         }
 
         public static IEnumerable<object[]> GetRequestBodyWithMissingProperty
