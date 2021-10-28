@@ -156,7 +156,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
         }
 
-        public async Task<IReadOnlyList<DeletedInstance>> GetDeletedInstanceEntriesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+        public async Task<IReadOnlyList<DeletedInstance>> GetDeletedInstanceEntriesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int partitionKey = DefaultPartition.Key)
         {
             using (var sqlConnection = new SqlConnection(_connectionString))
             {
@@ -172,11 +172,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                         WHERE {VLatest.DeletedInstance.StudyInstanceUid} = @studyInstanceUid
                         AND {VLatest.DeletedInstance.SeriesInstanceUid} = ISNULL(@seriesInstanceUid, {VLatest.DeletedInstance.SeriesInstanceUid})
                         AND {VLatest.DeletedInstance.SopInstanceUid} = ISNULL(@sopInstanceUid, {VLatest.DeletedInstance.SopInstanceUid})
+                        AND {VLatest.Instance.PartitionKey} = @partitionKey
                         ORDER BY {VLatest.DeletedInstance.Watermark}";
 
                     sqlCommand.Parameters.AddWithValue("@studyInstanceUid", studyInstanceUid);
                     sqlCommand.Parameters.AddWithValue("@seriesInstanceUid", string.IsNullOrEmpty(seriesInstanceUid) ? DBNull.Value : seriesInstanceUid);
                     sqlCommand.Parameters.AddWithValue("@sopInstanceUid", string.IsNullOrEmpty(sopInstanceUid) ? DBNull.Value : sopInstanceUid);
+                    sqlCommand.Parameters.AddWithValue("@partitionKey", partitionKey);
 
                     using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync())
                     {

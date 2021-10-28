@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 return;
             }
 
-            var newPartition = "partition1";
+            var newPartition = TestUidGenerator.Generate();
 
             string studyInstanceUID = TestUidGenerator.Generate();
 
@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 return;
             }
 
-            var newPartition = "partition2";
+            var newPartition = TestUidGenerator.Generate();
 
             var studyInstanceUID = TestUidGenerator.Generate();
             DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID);
@@ -90,14 +90,44 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
 
-            await _client.StoreAsync(new[] { dicomFile }, partitionName: newPartition1);
-            await _client.StoreAsync(new[] { dicomFile }, partitionName: newPartition2);
+            using DicomWebResponse<DicomDataset> response1 = await _client.StoreAsync(new[] { dicomFile }, partitionName: newPartition1);
+            using DicomWebResponse<DicomDataset> response2 = await _client.StoreAsync(new[] { dicomFile }, partitionName: newPartition2);
 
-            using DicomWebResponse<DicomFile> response1 = await _client.RetrieveInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition1);
-            Assert.True(response1.IsSuccessStatusCode);
+            using DicomWebResponse<DicomFile> response3 = await _client.RetrieveInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition1);
+            Assert.True(response3.IsSuccessStatusCode);
 
-            using DicomWebResponse<DicomFile> response2 = await _client.RetrieveInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition2);
-            Assert.True(response2.IsSuccessStatusCode);
+            using DicomWebResponse<DicomFile> response4 = await _client.RetrieveInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition2);
+            Assert.True(response4.IsSuccessStatusCode);
+        }
+
+        [Fact]
+        public async Task GivenDatasetInstancesWithDifferentPartitions_WhenDeleted_OneDeletedAndOtherRemains()
+        {
+            if (_isUsingRemoteTestServer)
+            {
+                // Data partition feature flag only enabled locally. For Remote servers, feature flag is by default disabled
+                return;
+            }
+
+            var newPartition1 = TestUidGenerator.Generate();
+            var newPartition2 = TestUidGenerator.Generate();
+
+            string studyInstanceUID = TestUidGenerator.Generate();
+            string seriesInstanceUID = TestUidGenerator.Generate();
+            string sopInstanceUID = TestUidGenerator.Generate();
+
+            DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
+
+            using DicomWebResponse<DicomDataset> response1 = await _client.StoreAsync(new[] { dicomFile }, partitionName: newPartition1);
+            using DicomWebResponse<DicomDataset> response2 = await _client.StoreAsync(new[] { dicomFile }, partitionName: newPartition2);
+
+            using DicomWebResponse response3 = await _client.DeleteInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, newPartition1);
+            Assert.True(response3.IsSuccessStatusCode);
+
+            await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition1));
+
+            using DicomWebResponse<DicomFile> response5 = await _client.RetrieveInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition2);
+            Assert.True(response5.IsSuccessStatusCode);
         }
 
 
