@@ -225,7 +225,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         private static DicomTag RandomDicomTag(string privateCreator = null)
         {
-            bool isPrivate = string.IsNullOrWhiteSpace(privateCreator);
+            bool isPrivate = !string.IsNullOrWhiteSpace(privateCreator);
             var random = new Random();
 
             // Private groups should end with an odd number
