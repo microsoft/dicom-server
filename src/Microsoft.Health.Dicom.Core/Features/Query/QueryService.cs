@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
@@ -55,7 +56,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             QueryExpression queryExpression = _queryParser.Parse(parameters, queryTags);
 
-            var partitionKey = _contextAccessor.RequestContext.DataPartitionEntry.PartitionKey;
+            var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
             QueryResult queryResult = await _queryStore.QueryAsync(partitionKey, queryExpression, cancellationToken);
 

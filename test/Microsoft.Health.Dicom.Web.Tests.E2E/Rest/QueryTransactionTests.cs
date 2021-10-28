@@ -10,13 +10,11 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Dicom;
-using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Tests.Common;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
@@ -70,7 +68,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.NotEmpty(datasets);
             DicomDataset testDataResponse = datasets.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId);
             Assert.NotNull(testDataResponse);
-            ValidateResponseDataset(QueryResource.AllStudies, matchInstance, testDataResponse);
+            ValidationHelpers.ValidateResponseDataset(QueryResource.AllStudies, matchInstance, testDataResponse);
         }
 
         [Fact]
@@ -116,7 +114,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset[] datasets = await response.ToArrayAsync();
 
             Assert.Single(datasets);
-            ValidateResponseDataset(QueryResource.StudySeries, matchInstance, datasets[0]);
+            ValidationHelpers.ValidateResponseDataset(QueryResource.StudySeries, matchInstance, datasets[0]);
         }
 
         [Fact]
@@ -135,7 +133,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.NotNull(datasets);
             DicomDataset testDataResponse = datasets.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.SeriesInstanceUID) == seriesId);
             Assert.NotNull(testDataResponse);
-            ValidateResponseDataset(QueryResource.AllSeries, matchInstance, testDataResponse);
+            ValidationHelpers.ValidateResponseDataset(QueryResource.AllSeries, matchInstance, testDataResponse);
         }
 
         [Fact]
@@ -157,7 +155,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset[] datasets = await response.ToArrayAsync();
 
             Assert.Single(datasets);
-            ValidateResponseDataset(QueryResource.StudyInstances, matchInstance, datasets[0]);
+            ValidationHelpers.ValidateResponseDataset(QueryResource.StudyInstances, matchInstance, datasets[0]);
         }
 
         [Fact]
@@ -178,7 +176,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset[] datasets = await response.ToArrayAsync();
 
             Assert.Single(datasets);
-            ValidateResponseDataset(QueryResource.StudySeriesInstances, matchInstance, datasets[0]);
+            ValidationHelpers.ValidateResponseDataset(QueryResource.StudySeriesInstances, matchInstance, datasets[0]);
         }
 
         [Fact]
@@ -197,7 +195,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.NotNull(datasets);
             DicomDataset testDataResponse = datasets.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId);
             Assert.NotNull(testDataResponse);
-            ValidateResponseDataset(QueryResource.AllInstances, matchInstance, testDataResponse);
+            ValidationHelpers.ValidateResponseDataset(QueryResource.AllInstances, matchInstance, testDataResponse);
         }
 
         [Fact]
@@ -233,11 +231,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             }
 
             Assert.NotNull(testDataResponse1);
-            ValidateResponseDataset(QueryResource.AllStudies, matchInstance1, testDataResponse1);
+            ValidationHelpers.ValidateResponseDataset(QueryResource.AllStudies, matchInstance1, testDataResponse1);
 
             DicomDataset testDataResponse2 = responseDatasets.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId2);
             Assert.NotNull(testDataResponse2);
-            ValidateResponseDataset(QueryResource.AllStudies, matchInstance2, testDataResponse2);
+            ValidationHelpers.ValidateResponseDataset(QueryResource.AllStudies, matchInstance2, testDataResponse2);
         }
 
         [Fact]
@@ -290,7 +288,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         private async Task<DicomDataset> PostDicomFileAsync(DicomDataset metadataItems = null)
         {
-            DicomFile dicomFile1 = CreateDicomFile();
+            DicomFile dicomFile1 = Samples.CreateRandomDicomFile();
 
             if (metadataItems != null)
             {
@@ -302,91 +300,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             _createdDicomStudies.Add(dicomFile1.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID));
 
             return dicomFile1.Dataset;
-        }
-
-        private static DicomFile CreateDicomFile()
-        {
-            return new DicomFile(new DicomDataset(DicomTransferSyntax.ExplicitVRLittleEndian)
-            {
-                { DicomTag.StudyInstanceUID, TestUidGenerator.Generate() },
-                { DicomTag.PatientID, TestUidGenerator.Generate() },
-                { DicomTag.PatientName, "Query^Test^Patient" },
-                { DicomTag.StudyDate, "20080701" },
-                { DicomTag.SeriesInstanceUID, TestUidGenerator.Generate() },
-                { DicomTag.Modality, "CT" },
-                { DicomTag.SOPInstanceUID, TestUidGenerator.Generate() },
-                { DicomTag.SOPClassUID, TestUidGenerator.Generate() },
-                { DicomTag.BitsAllocated, (ushort)8 },
-            });
-        }
-
-        private void ValidateResponseDataset(
-            QueryResource resource,
-            DicomDataset storedInstance,
-            DicomDataset responseInstance)
-        {
-            DicomDataset expectedDataset = storedInstance.Clone();
-            HashSet<DicomTag> levelTags = new HashSet<DicomTag>();
-            switch (resource)
-            {
-                case QueryResource.AllStudies:
-                    levelTags.Add(DicomTag.StudyInstanceUID);
-                    levelTags.Add(DicomTag.PatientID);
-                    levelTags.Add(DicomTag.PatientName);
-                    levelTags.Add(DicomTag.StudyDate);
-                    break;
-                case QueryResource.AllSeries:
-                    levelTags.Add(DicomTag.StudyInstanceUID);
-                    levelTags.Add(DicomTag.PatientID);
-                    levelTags.Add(DicomTag.PatientName);
-                    levelTags.Add(DicomTag.StudyDate);
-                    levelTags.Add(DicomTag.SeriesInstanceUID);
-                    levelTags.Add(DicomTag.Modality);
-                    break;
-                case QueryResource.AllInstances:
-                    levelTags.Add(DicomTag.StudyInstanceUID);
-                    levelTags.Add(DicomTag.PatientID);
-                    levelTags.Add(DicomTag.PatientName);
-                    levelTags.Add(DicomTag.StudyDate);
-                    levelTags.Add(DicomTag.SeriesInstanceUID);
-                    levelTags.Add(DicomTag.Modality);
-                    levelTags.Add(DicomTag.SOPInstanceUID);
-                    levelTags.Add(DicomTag.SOPClassUID);
-                    levelTags.Add(DicomTag.BitsAllocated);
-                    break;
-                case QueryResource.StudySeries:
-                    levelTags.Add(DicomTag.StudyInstanceUID);
-                    levelTags.Add(DicomTag.SeriesInstanceUID);
-                    levelTags.Add(DicomTag.Modality);
-                    break;
-                case QueryResource.StudyInstances:
-                    levelTags.Add(DicomTag.StudyInstanceUID);
-                    levelTags.Add(DicomTag.SeriesInstanceUID);
-                    levelTags.Add(DicomTag.Modality);
-                    levelTags.Add(DicomTag.SOPInstanceUID);
-                    levelTags.Add(DicomTag.SOPClassUID);
-                    levelTags.Add(DicomTag.BitsAllocated);
-                    break;
-                case QueryResource.StudySeriesInstances:
-                    levelTags.Add(DicomTag.StudyInstanceUID);
-                    levelTags.Add(DicomTag.SeriesInstanceUID);
-                    levelTags.Add(DicomTag.SOPInstanceUID);
-                    levelTags.Add(DicomTag.SOPClassUID);
-                    levelTags.Add(DicomTag.BitsAllocated);
-                    break;
-            }
-
-            expectedDataset.Remove((di) =>
-            {
-                return !levelTags.Contains(di.Tag);
-            });
-
-            // Compare result datasets by serializing.
-            var jsonDicomConverter = new JsonDicomConverter();
-            Assert.Equal(
-                JsonConvert.SerializeObject(expectedDataset, jsonDicomConverter),
-                JsonConvert.SerializeObject(responseInstance, jsonDicomConverter));
-            Assert.Equal(expectedDataset.Count(), responseInstance.Count());
         }
 
         void IDisposable.Dispose()
