@@ -222,7 +222,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             // Try to delete this extended query tag if it exists.
             try
             {
-                await _tagManager.DeleteExtendedQueryTagAsync(string.Concat(tag.Group, tag.Element));
+                await _tagManager.DeleteExtendedQueryTagAsync(string.Concat(tag.Group.ToString("D4"), tag.Element.ToString("D4")));
             }
             catch (Exception ex) when (ex.Message.StartsWith("NotFound"))
             {
