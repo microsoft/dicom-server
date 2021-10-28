@@ -14,3 +14,4 @@ variables:
   buildConfiguration: 'Release'
   deleteDataOnStartup: 'true'
   skipNugetSecurityAnalysis: 'true' # NuGet config contains multiple feeds but meets exception criteria
+  runOnlyImpactedTests: 'true'

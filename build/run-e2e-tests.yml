@@ -44,3 +44,4 @@ jobs:
     inputs:
       testAssemblyVer2: '**\*Tests.E2E*.dll'
       searchFolder: '$(System.ArtifactsDirectory)'
+      runOnlyImpactedTests: '$(runOnlyImpactedTests)'

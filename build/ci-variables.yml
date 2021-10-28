@@ -17,3 +17,4 @@ variables:
   dicomCastComposeLocation: 'converter/dicom-cast/build/docker/docker-compose.yaml'
   deleteDataOnStartup: 'false'
   skipNugetSecurityAnalysis: 'true' # NuGet config contains multiple feeds but meets exception criteria
+  runOnlyImpactedTests: 'false'
