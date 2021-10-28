@@ -89,11 +89,6 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
 
                 return partitionEntry;
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                throw;
-            }
             finally
             {
                 _semaphore.Release();
