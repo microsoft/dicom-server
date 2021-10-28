@@ -9,7 +9,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Delete;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.IO;
 using NSubstitute;
@@ -58,13 +60,17 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var optionsConfiguration = Substitute.For<IOptions<DeletedInstanceCleanupConfiguration>>();
             optionsConfiguration.Value.Returns(cleanupConfiguration);
+            var dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+            dicomRequestContextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
+
             DeleteService = new DeleteService(
                 _sqlDataStoreTestsFixture.IndexDataStore,
                 _blobStorageTestsFixture.MetadataStore,
                 _blobStorageTestsFixture.FileStore,
                 optionsConfiguration,
                 _sqlDataStoreTestsFixture.SqlTransactionHandler,
-                NullLogger<DeleteService>.Instance);
+                NullLogger<DeleteService>.Instance,
+                dicomRequestContextAccessor);
         }
 
         public async Task DisposeAsync()

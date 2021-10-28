@@ -21,6 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
         private readonly ILogger<PartitionCache> _logger;
         private readonly SemaphoreSlim _semaphore;
         private bool _disposed;
+        private readonly DataPartitionConfiguration _configuration;
 
         public PartitionCache(IOptions<DataPartitionConfiguration> configuration, ILogger<PartitionCache> logger)
         {
@@ -34,6 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
 
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
             _semaphore = new SemaphoreSlim(1, 1);
+            _configuration = configuration.Value;
         }
 
         public void Dispose()
@@ -68,13 +70,22 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
             await _semaphore.WaitAsync(cancellationToken);
             try
             {
-                _logger.LogInformation("Partition with name '{partitionName}' not found in cache", partitionName);
 
-                var partitionEntry = await _partitionCache.GetOrCreateAsync(partitionName, entry =>
+                if (!_partitionCache.TryGetValue(partitionName, out PartitionEntry partitionEntry))
                 {
-                    entry.Size = 1;
-                    return action(partitionName, cancellationToken);
-                });
+                    _logger.LogInformation("Partition with name '{partitionName}' not found in cache", partitionName);
+
+                    partitionEntry = await action(partitionName, cancellationToken);
+
+                    if (partitionEntry != null)
+                    {
+                        _partitionCache.Set(partitionName, partitionEntry, new MemoryCacheEntryOptions
+                        {
+                            Size = 1,
+                            AbsoluteExpiration = DateTimeOffset.Now.AddMinutes(_configuration.MaxCacheAbsoluteExpirationInMinutes)
+                        });
+                    }
+                }
 
                 return partitionEntry;
             }

@@ -13,6 +13,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -167,7 +168,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             IReadOnlyList<Instance> instanceBeforeDeletion = await _indexDataStoreTestHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
             Assert.Equal(1, instanceBeforeDeletion.Count);
 
-            await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+            await _indexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
             Assert.Empty(await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), 1, 0));
             Assert.False(await _errorStoreTestHelper.DoesExtendedQueryTagErrorExistAsync(tagKey));
@@ -205,7 +206,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, errorCode, watermark3);
 
             // delete instance
-            await _indexDataStore.DeleteStudyIndexAsync(studyUid1, DateTime.UtcNow);
+            await _indexDataStore.DeleteStudyIndexAsync(DefaultPartition.Key, studyUid1, DateTime.UtcNow);
 
             // check errors
             var errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), int.MaxValue, 0);
@@ -241,7 +242,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, errorCode, watermark3);
 
             // delete instance
-            await _indexDataStore.DeleteSeriesIndexAsync(studyUid, seriesUid1, DateTime.UtcNow);
+            await _indexDataStore.DeleteSeriesIndexAsync(DefaultPartition.Key, studyUid, seriesUid1, DateTime.UtcNow);
 
             // check errors
             var errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), int.MaxValue, 0);
@@ -276,7 +277,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, errorCode, watermark2);
 
             // delete instance
-            await _indexDataStore.DeleteInstanceIndexAsync(new InstanceIdentifier(studyUid1, seriesUid1, instanceUid1));
+            await _indexDataStore.DeleteInstanceIndexAsync(new InstanceIdentifier(studyUid1, seriesUid1, instanceUid1, DefaultPartition.Key));
 
             // check errors
             var errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag1.GetPath(), int.MaxValue, 0);
@@ -317,7 +318,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey2, errorCode, watermark2);
 
             // delete instance1
-            await _indexDataStore.DeleteInstanceIndexAsync(new InstanceIdentifier(studyUid1, seriesUid1, instanceUid1));
+            await _indexDataStore.DeleteInstanceIndexAsync(new InstanceIdentifier(studyUid1, seriesUid1, instanceUid1, DefaultPartition.Key));
 
             // check errors
             Assert.Empty(await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag1.GetPath(), 1, 0));
@@ -440,7 +441,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey2, ValidationErrorCode.UidIsInvalid, watermark);
 
             // Delete instance
-            await _indexDataStore.DeleteInstanceIndexAsync(new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
+            await _indexDataStore.DeleteInstanceIndexAsync(new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, DefaultPartition.Key));
 
             var tagEntry1 = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag1.GetPath());
             Assert.Equal(0, tagEntry1.ErrorCount);
@@ -470,7 +471,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Equal(2, tagEntryBefore.ErrorCount);
 
             // Delete study
-            await _indexDataStore.DeleteStudyIndexAsync(studyInstanceUid, DateTimeOffset.UtcNow);
+            await _indexDataStore.DeleteStudyIndexAsync(DefaultPartition.Key, studyInstanceUid, DateTimeOffset.UtcNow);
 
             var tagEntryAfter = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag.GetPath());
             Assert.Equal(0, tagEntryAfter.ErrorCount);
