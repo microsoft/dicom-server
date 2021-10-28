@@ -83,7 +83,7 @@ namespace Microsoft.Health.Dicom.Client
         {
             EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
 
-            var uri = GenerateRequestUri(DicomWebConstants.SeriesUriString + GetQueryParamUriString(queryString), partitionName);
+            var uri = GenerateRequestUri(string.Format(DicomWebConstants.QuerySeriesInstanceUriFormat, seriesInstanceUid) + GetQueryParamUriString(queryString), partitionName);
 
             return await QueryAsync(uri, cancellationToken).ConfigureAwait(false);
         }
