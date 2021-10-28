@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
         private const string SqlDateFormat = "yyyy-MM-dd HH:mm:ss.ffffff";
 
         [Fact]
-        public void GivenStudyDate_WhenIELevelStudy_ValidateDistinctStudyStudies()
+        public void VersionGTE6_GivenStudyDate_WhenIELevelStudy_ValidatePartitionKeySpecified()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
             var includeField = new QueryIncludeField(new List<DicomTag>());
@@ -47,6 +47,31 @@ FROM dbo.Study st
 WHERE 1 = 1
 AND st.PartitionKey = 1";
 
+            Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
+        }
+
+        [Fact]
+        public void GivenStudyDate_WhenIELevelStudy_ValidateDistinctStudyStudies()
+        {
+            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+            var includeField = new QueryIncludeField(new List<DicomTag>());
+            var minDate = new DateTime(2020, 2, 1);
+            var maxDate = new DateTime(2020, 3, 1);
+
+            var filters = new List<QueryFilterCondition>()
+            {
+                new DateRangeValueMatchCondition(new QueryTag(DicomTag.StudyDate), minDate, maxDate),
+            };
+            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
+
+            var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
+            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
+
+            string expectedDistinctSelect = @"SELECT 
+st.StudyKey
+FROM dbo.Study st
+WHERE 1 = 1";
+
             string expectedCrossApply = @"
 FROM dbo.Instance a
 WHERE 1 = 1
@@ -60,9 +85,12 @@ ORDER BY st.StudyKey DESC
 OFFSET 0 ROWS
 FETCH NEXT 100 ROWS ONLY";
 
+            string partitionFilter = "AND st.PartitionKey = 1";
+
             Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
             Assert.Contains(expectedCrossApply, stringBuilder.ToString());
             Assert.Contains(expectedFilterAndPage, stringBuilder.ToString());
+            Assert.DoesNotContain(partitionFilter, stringBuilder.ToString());
         }
 
         [Fact]
