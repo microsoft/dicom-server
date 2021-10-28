@@ -7,10 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
@@ -34,6 +36,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private readonly Random _rng = new Random();
 
         private const int CreateInstances = 5000;
+        private readonly List<DicomDataset> _instances = new List<DicomDataset>();
 
         public PerformanceTests(ITestOutputHelper testOutputHelper)
         {
@@ -46,42 +49,75 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             await InitializeFixtures();
 
-            var schemaVersionPerformance = new Dictionary<int, TimeSpan>();
 
-            var instances = new List<DicomDataset>();
             for (var i = 0; i < CreateInstances; i++)
             {
                 var dataset = Samples.CreateRandomInstanceDataset();
-                instances.Add(dataset);
+                _instances.Add(dataset);
             }
+
+            await RunTest(
+                "IndexDataStore",
+                "BeginCreateInstanceIndexAsync",
+                5000,
+                x => new object[] { _instances[x], new List<QueryTag>(), null });
+
+            await RunTest(
+                "InstanceStore",
+                "GetInstanceIdentifiersInSeriesAsync",
+                10000,
+                x =>
+                {
+                    var instanceIdentifier = _instances[_rng.Next(CreateInstances)].ToInstanceIdentifier();
+                    return new object[] { instanceIdentifier.StudyInstanceUid, instanceIdentifier.SeriesInstanceUid, null };
+                });
+
+            await RunTest(
+                "IndexDataStore",
+                "DeleteStudyIndexAsync",
+                500,
+                x =>
+                {
+                    var instanceIdentifier = _instances[_rng.Next(CreateInstances)].ToInstanceIdentifier();
+                    return new object[] { instanceIdentifier.StudyInstanceUid, DateTimeOffset.UtcNow, null };
+                });
+        }
+
+        private async Task RunTest(string storeStr, string methodStr, int calls, Func<int, object[]> createArgs)
+        {
+
+            var schemaVersionPerformance = new Dictionary<int, decimal>();
 
             foreach ((var version, var fixture) in _fixtures)
             {
+                PropertyInfo storeInfo = fixture.GetType().GetProperty(storeStr);
+                object store = storeInfo.GetValue(fixture);
+                MethodInfo methodInfo = storeInfo.PropertyType.GetMethod(methodStr);
+
                 var stopwatch = Stopwatch.StartNew();
 
-                for (var i = 0; i < CreateInstances; i++)
+                for (var i = 0; i < calls; i++)
                 {
-                    await fixture.IndexDataStore.BeginCreateInstanceIndexAsync(instances[i], new List<QueryTag>());
+                    try
+                    {
+                        await (Task)methodInfo.Invoke(store, createArgs(i));
+                    }
+                    catch (StudyNotFoundException)
+                    {
+                    }
                 }
-
-                for (var i = 0; i < CreateInstances; i++)
-                {
-                    var instanceIdentifier = instances[_rng.Next(CreateInstances)].ToInstanceIdentifier();
-                    await fixture.InstanceStore.GetInstanceIdentifiersInSeriesAsync(instanceIdentifier.StudyInstanceUid, instanceIdentifier.SeriesInstanceUid);
-                }
-
                 stopwatch.Stop();
-                schemaVersionPerformance.Add(version, stopwatch.Elapsed);
+                schemaVersionPerformance.Add(version, stopwatch.ElapsedMilliseconds);
             }
 
             var diff = schemaVersionPerformance[_currentSchemaVersion] - schemaVersionPerformance[_previousSchemaVersion];
 
             var diffPercentage = diff / schemaVersionPerformance[_currentSchemaVersion];
-            var marginOfError = 0.02;
 
-            _testOutputHelper.WriteLine($"current: {schemaVersionPerformance[_currentSchemaVersion]}, previous: {schemaVersionPerformance[_previousSchemaVersion]}, diff: {diffPercentage}");
-
-            Assert.True(diffPercentage < marginOfError, $"current: {schemaVersionPerformance[_currentSchemaVersion]}, previous: {schemaVersionPerformance[_previousSchemaVersion]}, diff: {diffPercentage}");
+            _testOutputHelper.WriteLine("==================================================");
+            _testOutputHelper.WriteLine($"{storeStr}.{methodStr} - Average Duration (ms)");
+            _testOutputHelper.WriteLine($"{ _previousSchemaVersion}: { schemaVersionPerformance[_previousSchemaVersion] / calls}, "
+                + $"{_currentSchemaVersion}: {schemaVersionPerformance[_currentSchemaVersion] / calls}");
         }
 
         private async Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(
@@ -100,36 +136,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             return tags.Select(x => x.Key).ToList();
         }
 
-        private async Task RunTest(Action testMethod, string message)
-        {
-            foreach ((var version, var fixture) in _fixtures)
-            {
-                var stopwatch = Stopwatch.StartNew();
-
-                for (var i = 0; i < CreateInstances; i++)
-                {
-                    await fixture.invoke .IndexDataStore.BeginCreateInstanceIndexAsync(instances[i], new List<QueryTag>());
-                }
-
-                for (var i = 0; i < CreateInstances; i++)
-                {
-                    var instanceIdentifier = instances[_rng.Next(CreateInstances)].ToInstanceIdentifier();
-                    await fixture.InstanceStore.GetInstanceIdentifiersInSeriesAsync(instanceIdentifier.StudyInstanceUid, instanceIdentifier.SeriesInstanceUid);
-                }
-
-                stopwatch.Stop();
-                schemaVersionPerformance.Add(version, stopwatch.Elapsed);
-            }
-
-            var diff = schemaVersionPerformance[_currentSchemaVersion] - schemaVersionPerformance[_previousSchemaVersion];
-
-            var diffPercentage = diff / schemaVersionPerformance[_currentSchemaVersion];
-            var marginOfError = 0.02;
-
-            _testOutputHelper.WriteLine($"current: {schemaVersionPerformance[_currentSchemaVersion]}, previous: {schemaVersionPerformance[_previousSchemaVersion]}, diff: {diffPercentage}");
-
-        }
-
         private async Task InitializeFixtures()
         {
             var currentSchemaInformation = new SchemaInformation(SchemaVersionConstants.Min, _currentSchemaVersion);
@@ -141,8 +147,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await currentFixture.InitializeAsync(false);
             await previousFixture.InitializeAsync(false);
 
-            _fixtures.Add(_currentSchemaVersion, currentFixture);
             _fixtures.Add(_previousSchemaVersion, previousFixture);
+            _fixtures.Add(_currentSchemaVersion, currentFixture);
         }
     }
 }
