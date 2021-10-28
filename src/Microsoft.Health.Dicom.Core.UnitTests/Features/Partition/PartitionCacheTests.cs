@@ -20,24 +20,28 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Partition
     public class PartitionCacheTests
     {
         [Fact]
-        public void GivenMultipleThreadsExecuteGetOrAddPartitionAsync_OnlyOnceActionShouldExecute()
+        public async Task GivenMultipleThreadsExecuteGetOrAddPartitionAsync_OnlyOnceActionShouldExecute()
         {
-            var mockAction = Substitute.For<Func<string, CancellationToken, Task<PartitionEntry>>>();
-
             var config = Substitute.For<IOptions<DataPartitionConfiguration>>();
             config.Value.Returns(new DataPartitionConfiguration());
 
             var logger = Substitute.For<ILogger<PartitionCache>>();
             var partitionCache = new PartitionCache(config, logger);
 
-            mockAction.When(x => x.Invoke(Arg.Any<string>(), Arg.Any<CancellationToken>())).Do(x => Task.Delay(200));
+            int numExecuted = 0;
 
-            var threadList = Enumerable.Range(0, 5).Select(_ => new Thread(async () => await partitionCache.GetOrAddPartitionAsync(mockAction, "", CancellationToken.None))).ToList();
+            Func<string, CancellationToken, Task<PartitionEntry>> mockAction = async (string partitionName, CancellationToken cancellationToken) =>
+            {
+                await Task.Delay(200, cancellationToken);
+                numExecuted++;
+                return new PartitionEntry(1, partitionName);
+            };
 
-            threadList.ForEach(x => x.Start());
-            threadList.ForEach(x => x.Join());
+            var threadList = Enumerable.Range(0, 5).Select(async _ => await partitionCache.GetOrAddPartitionAsync(mockAction, "", CancellationToken.None)).ToList();
 
-            mockAction.Received(1)("", CancellationToken.None);
+            await Task.WhenAll(threadList);
+
+            Assert.Equal(1, numExecuted);
         }
     }
 }

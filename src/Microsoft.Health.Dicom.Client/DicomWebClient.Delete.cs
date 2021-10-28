@@ -15,41 +15,45 @@ namespace Microsoft.Health.Dicom.Client
     {
         public async Task<DicomWebResponse> DeleteStudyAsync(
             string studyInstanceUid,
+            string partitionName = default,
             CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
 
-            var requestUri = new Uri("/" + _apiVersion + string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid), UriKind.Relative);
-
-            return await DeleteAsync(requestUri, cancellationToken).ConfigureAwait(false);
+            return await DeleteAsync(
+                GenerateRequestUri(string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid), partitionName),
+                cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<DicomWebResponse> DeleteSeriesAsync(
             string studyInstanceUid,
             string seriesInstanceUid,
+            string partitionName = default,
             CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
 
-            var requestUri = new Uri("/" + _apiVersion + string.Format(DicomWebConstants.BaseSeriesUriFormat, studyInstanceUid, seriesInstanceUid), UriKind.Relative);
-
-            return await DeleteAsync(requestUri, cancellationToken).ConfigureAwait(false);
+            return await DeleteAsync(
+                GenerateRequestUri(string.Format(DicomWebConstants.BaseSeriesUriFormat, studyInstanceUid, seriesInstanceUid), partitionName),
+                cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<DicomWebResponse> DeleteInstanceAsync(
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
+            string partitionName = default,
             CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
             EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
 
-            var requestUri = new Uri("/" + _apiVersion + string.Format(DicomWebConstants.BaseInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), UriKind.Relative);
 
-            return await DeleteAsync(requestUri, cancellationToken).ConfigureAwait(false);
+            return await DeleteAsync(
+                GenerateRequestUri(string.Format(DicomWebConstants.BaseInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), partitionName),
+                cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<DicomWebResponse> DeleteAsync(Uri requestUri, CancellationToken cancellationToken)
