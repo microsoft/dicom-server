@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using Dicom;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Schema.Model;

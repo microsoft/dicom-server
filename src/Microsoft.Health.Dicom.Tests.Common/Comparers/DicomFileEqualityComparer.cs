@@ -5,7 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-using Dicom;
+using FellowOakDicom;
 using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Tests.Common.Comparers

@@ -9,7 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using Dicom;
+using FellowOakDicom;
 using Dicom.Imaging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;

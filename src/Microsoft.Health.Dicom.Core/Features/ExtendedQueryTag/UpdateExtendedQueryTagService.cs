@@ -6,7 +6,7 @@
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
+using FellowOakDicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;

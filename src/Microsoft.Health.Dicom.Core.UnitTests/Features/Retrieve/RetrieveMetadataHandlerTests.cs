@@ -6,7 +6,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
+using FellowOakDicom;
 using EnsureThat;
 using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Exceptions;

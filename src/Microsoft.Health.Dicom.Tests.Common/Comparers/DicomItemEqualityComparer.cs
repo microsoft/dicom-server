@@ -5,7 +5,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Dicom;
+using FellowOakDicom;
 using Dicom.IO.Buffer;
 using EnsureThat;
 

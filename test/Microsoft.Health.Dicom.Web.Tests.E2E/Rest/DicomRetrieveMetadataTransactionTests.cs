@@ -7,7 +7,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Dicom;
+using FellowOakDicom;
 using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.Health.Dicom.Client;

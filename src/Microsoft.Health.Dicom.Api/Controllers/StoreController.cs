@@ -5,7 +5,7 @@
 
 using System.Net;
 using System.Threading.Tasks;
-using Dicom;
+using FellowOakDicom;
 using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

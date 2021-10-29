@@ -5,7 +5,7 @@
 
 using System;
 using System.Globalization;
-using Dicom;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 

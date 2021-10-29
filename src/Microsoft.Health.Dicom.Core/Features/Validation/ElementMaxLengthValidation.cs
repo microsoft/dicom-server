@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Diagnostics;
-using Dicom;
+using FellowOakDicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;

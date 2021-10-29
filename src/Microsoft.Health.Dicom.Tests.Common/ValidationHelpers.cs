@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Linq;
-using Dicom;
+using FellowOakDicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Xunit;

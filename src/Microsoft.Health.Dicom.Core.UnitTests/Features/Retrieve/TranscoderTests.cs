@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Dicom;
+using FellowOakDicom;
 using Dicom.Imaging;
 using EnsureThat;
 using Microsoft.Extensions.Logging.Abstractions;

@@ -6,15 +6,14 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Dicom;
-using Dicom.Imaging;
-using Dicom.Imaging.Codec;
-using Dicom.IO.Buffer;
+using FellowOakDicom;
 using Efferent.Native.Codec;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.IO;
+using FellowOakDicom.Imaging.Codec;
+using FellowOakDicom.IO.Buffer;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {

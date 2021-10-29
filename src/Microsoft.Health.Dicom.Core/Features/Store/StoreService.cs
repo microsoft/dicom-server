@@ -7,14 +7,13 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
+using FellowOakDicom;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
-using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.Store;
-using DicomValidationException = Dicom.DicomValidationException;
+using DicomValidationException = FellowOakDicom.DicomValidationException;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
@@ -50,7 +49,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         private readonly IStoreResponseBuilder _storeResponseBuilder;
         private readonly IStoreDatasetValidator _dicomDatasetValidator;
         private readonly IStoreOrchestrator _storeOrchestrator;
-        private readonly IElementMinimumValidator _minimumValidator;
         private readonly ILogger _logger;
 
         private IReadOnlyList<IDicomInstanceEntry> _dicomInstanceEntries;
@@ -60,13 +58,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             IStoreResponseBuilder storeResponseBuilder,
             IStoreDatasetValidator dicomDatasetValidator,
             IStoreOrchestrator storeOrchestrator,
-            IElementMinimumValidator minimumValidator,
             ILogger<StoreService> logger)
         {
             _storeResponseBuilder = EnsureArg.IsNotNull(storeResponseBuilder, nameof(storeResponseBuilder));
             _dicomDatasetValidator = EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
             _storeOrchestrator = EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
-            _minimumValidator = EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 

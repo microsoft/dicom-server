@@ -10,7 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Dicom;
+using FellowOakDicom;
 using Dicom.Imaging;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core.Extensions;

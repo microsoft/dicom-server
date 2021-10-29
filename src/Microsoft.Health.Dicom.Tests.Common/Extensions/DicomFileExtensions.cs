@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.IO;
-using Dicom;
+using FellowOakDicom;
 using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Tests.Common.Extensions

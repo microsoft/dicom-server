@@ -7,7 +7,7 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
+using FellowOakDicom;
 using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Client

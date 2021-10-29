@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using Dicom;
+using FellowOakDicom;
 using Dicom.IO;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Xunit;

@@ -3,7 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Dicom;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation

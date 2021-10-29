@@ -6,7 +6,7 @@
 using System;
 using System.Linq;
 using System.Text;
-using Dicom;
+using FellowOakDicom;
 using Dicom.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

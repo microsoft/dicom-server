@@ -5,7 +5,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Dicom;
+using FellowOakDicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Validation;

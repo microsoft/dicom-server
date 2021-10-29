@@ -5,7 +5,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using Dicom;
+using FellowOakDicom;
 using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation

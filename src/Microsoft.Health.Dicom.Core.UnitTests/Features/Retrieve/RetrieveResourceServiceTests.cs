@@ -9,7 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
+using FellowOakDicom;
 using Dicom.Imaging;
 using Dicom.IO.Buffer;
 using Microsoft.Extensions.Logging;

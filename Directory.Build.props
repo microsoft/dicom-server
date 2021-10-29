@@ -9,7 +9,7 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <FhirServerPackageVersion>2.0.55</FhirServerPackageVersion>
-    <FoDicomVersion>4.0.8</FoDicomVersion>
+    <FoDicomVersion>5.0.0</FoDicomVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <HealthcareSharedPackageVersion>3.2.15</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>

@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using Dicom;
+using FellowOakDicom;
 using Dicom.Imaging;
 using Dicom.Imaging.Codec;
 using Dicom.IO.Buffer;

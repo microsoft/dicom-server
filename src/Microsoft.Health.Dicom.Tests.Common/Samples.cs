@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Dicom;
+using FellowOakDicom;
 using Dicom.Imaging;
 using Dicom.IO.Buffer;
 using EnsureThat;

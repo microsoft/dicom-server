@@ -5,7 +5,7 @@
 
 using System;
 using System.Threading.Tasks;
-using Dicom;
+using FellowOakDicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Tests.Common;

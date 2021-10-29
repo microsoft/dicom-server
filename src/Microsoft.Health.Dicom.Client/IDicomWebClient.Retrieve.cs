@@ -6,7 +6,7 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
+using FellowOakDicom;
 
 namespace Microsoft.Health.Dicom.Client
 {

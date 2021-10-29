@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using Dicom;
+using FellowOakDicom;
 using EnsureThat;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;

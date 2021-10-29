@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
+using FellowOakDicom;
 using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
