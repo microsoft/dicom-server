@@ -7,13 +7,13 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using FellowOakDicom;
-using Efferent.Native.Codec;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.IO;
 using FellowOakDicom.Imaging.Codec;
 using FellowOakDicom.IO.Buffer;
+using FellowOakDicom.Imaging;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {
@@ -33,13 +33,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
         public Transcoder(RecyclableMemoryStreamManager recyclableMemoryStreamManager, ILogger<Transcoder> logger)
         {
-            EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
-            EnsureArg.IsNotNull(logger, nameof(logger));
-            _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
-            _logger = logger;
-
-            // Use Efferent transcoder
-            TranscoderManager.SetImplementation(new NativeTranscoderManager());
+            _recyclableMemoryStreamManager = EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
+            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
         public async Task<Stream> TranscodeFileAsync(Stream stream, string requestedTransferSyntax)

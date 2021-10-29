@@ -6,8 +6,7 @@
 using System;
 using FellowOakDicom;
 using EnsureThat;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.Health.Dicom.Client.Models
 {
@@ -46,12 +45,12 @@ namespace Microsoft.Health.Dicom.Client.Models
 
         public string SopInstanceUid { get; }
 
-        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public ChangeFeedAction Action { get; }
 
         public DateTimeOffset Timestamp { get; }
 
-        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public ChangeFeedState State { get; }
 
         public DicomDataset Metadata { get; set; }

@@ -10,7 +10,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using FellowOakDicom;
-using Dicom.Imaging;
+using FellowOakDicom.Imaging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common.Comparers;

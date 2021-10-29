@@ -6,9 +6,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using FellowOakDicom;
-using Dicom.Imaging;
 using EnsureThat;
+using FellowOakDicom;
+using FellowOakDicom.Imaging;
 
 namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {

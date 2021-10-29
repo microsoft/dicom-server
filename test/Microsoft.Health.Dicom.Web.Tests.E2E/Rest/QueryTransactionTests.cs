@@ -7,17 +7,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using FellowOakDicom;
-using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Tests.Common;
-using Newtonsoft.Json;
 using Xunit;
+using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
+using System.Text.Json;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
@@ -80,9 +79,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             string patientName = $"Hall^{randomNamePart}^Tá";
             string patientNameWithNoAccent = $"Hall^{randomNamePart}^Ta";
 
-            DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()
+            await PostDicomFileAsync(new DicomDataset
             {
-                { DicomTag.PatientName, Encoding.UTF8, patientName },
+                { DicomTag.PatientName, patientName },
                 { DicomTag.SpecificCharacterSet, "ISO_IR 192" },
             });
 
@@ -382,10 +381,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             });
 
             // Compare result datasets by serializing.
-            var jsonDicomConverter = new JsonDicomConverter();
             Assert.Equal(
-                JsonConvert.SerializeObject(expectedDataset, jsonDicomConverter),
-                JsonConvert.SerializeObject(responseInstance, jsonDicomConverter));
+                JsonSerializer.Serialize(expectedDataset, ClientSerializerOptions.Json),
+                JsonSerializer.Serialize(responseInstance, ClientSerializerOptions.Json));
             Assert.Equal(expectedDataset.Count(), responseInstance.Count());
         }
 

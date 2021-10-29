@@ -17,16 +17,17 @@ using FellowOakDicom;
 using EnsureThat;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using MediaTypeHeaderValue = Microsoft.Net.Http.Headers.MediaTypeHeaderValue;
 using NameValueHeaderValue = System.Net.Http.Headers.NameValueHeaderValue;
+using System.Text.Json;
+using FellowOakDicom.Serialization;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.Health.Dicom.Client
 {
     public partial class DicomWebClient : IDicomWebClient
     {
-        private readonly JsonSerializerSettings _jsonSerializerSettings;
+        private readonly JsonSerializerOptions _jsonSerializerOptions;
         private readonly string _apiVersion;
 
         /// <summary>
@@ -40,11 +41,9 @@ namespace Microsoft.Health.Dicom.Client
 
             HttpClient = httpClient;
             _apiVersion = apiVersion;
-            _jsonSerializerSettings = new JsonSerializerSettings();
-            _jsonSerializerSettings.Converters.Add(new JsonDicomConverter(writeTagsAsKeywords: true, autoValidate: false));
-
-            // Used by extended query tag apis
-            _jsonSerializerSettings.Converters.Add(new StringEnumConverter());
+            _jsonSerializerOptions = new JsonSerializerOptions();
+            _jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            _jsonSerializerOptions.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: true, autoValidate: false));
 
             GetMemoryStream = () => new MemoryStream();
         }
@@ -62,7 +61,7 @@ namespace Microsoft.Health.Dicom.Client
         private async Task<T> ValueFactory<T>(HttpContent content)
         {
             string contentText = await content.ReadAsStringAsync().ConfigureAwait(false);
-            return JsonConvert.DeserializeObject<T>(contentText, _jsonSerializerSettings);
+            return JsonSerializer.Deserialize<T>(contentText, _jsonSerializerOptions);
         }
 
         [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Callers will dispose of the StreamContent")]
@@ -217,7 +216,7 @@ namespace Microsoft.Health.Dicom.Client
                 yield break;
             }
 
-            foreach (T item in JsonConvert.DeserializeObject<IReadOnlyList<T>>(contentText, _jsonSerializerSettings))
+            foreach (T item in JsonSerializer.Deserialize<IReadOnlyList<T>>(contentText, _jsonSerializerOptions))
             {
                 yield return item;
             }

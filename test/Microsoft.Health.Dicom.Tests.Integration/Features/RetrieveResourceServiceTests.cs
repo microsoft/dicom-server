@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
-using Dicom.Imaging;
 using EnsureThat;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -27,6 +26,7 @@ using Microsoft.Health.Dicom.Tests.Integration.Persistence;
 using Microsoft.IO;
 using NSubstitute;
 using Xunit;
+using FellowOakDicom.Imaging;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Features
 {

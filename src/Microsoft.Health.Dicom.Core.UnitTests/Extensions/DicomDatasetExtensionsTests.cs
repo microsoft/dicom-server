@@ -5,13 +5,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
+using System.Text.Json;
 using FellowOakDicom;
-using Dicom.Serialization;
+using FellowOakDicom.Serialization;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
@@ -356,13 +354,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
             // have a consistent way of getting the value out of it. So we will cheat a little bit
             // by serialize the DicomDataset into JSON string. The serializer ensures the items are
             // ordered properly.
-            var jsonSerializer = new JsonSerializer();
+            var options = new JsonSerializerOptions();
 
-            jsonSerializer.Converters.Add(new JsonDicomConverter());
+            options.Converters.Add(new DicomJsonConverter());
 
             Assert.Equal(
-                ConvertToJson(expectedDicomDataset, jsonSerializer),
-                ConvertToJson(copiedDicomDataset, jsonSerializer));
+                JsonSerializer.Serialize(expectedDicomDataset, options),
+                JsonSerializer.Serialize(copiedDicomDataset, options));
 
             void AddCopy<T>(Func<T> creator)
                 where T : DicomItem
@@ -374,19 +372,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
                 where T : DicomItem
             {
                 dicomItemsNotToCopy.Add(typeof(T), creator());
-            }
-
-            string ConvertToJson(DicomDataset dicomDataset, JsonSerializer jsonSerializer)
-            {
-                var result = new StringBuilder();
-
-                using (StringWriter stringWriter = new StringWriter(result))
-                using (JsonWriter jsonWriter = new JsonTextWriter(stringWriter))
-                {
-                    jsonSerializer.Serialize(jsonWriter, dicomDataset);
-                }
-
-                return result.ToString();
             }
         }
     }

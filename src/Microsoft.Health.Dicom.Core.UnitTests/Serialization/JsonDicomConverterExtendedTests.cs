@@ -5,17 +5,22 @@
 
 using System;
 using System.Linq;
-using System.Text;
+using System.Text.Json;
 using FellowOakDicom;
-using Dicom.Serialization;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using FellowOakDicom.Serialization;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
 {
     public class JsonDicomConverterExtendedTests
     {
+        private static readonly JsonSerializerOptions SerializerOptions = new JsonSerializerOptions();
+
+        static JsonDicomConverterExtendedTests()
+        {
+            SerializerOptions.Converters.Add(new DicomJsonConverter());
+        }
+
         [Fact]
         public static void GivenDatasetWithEscapedCharacters_WhenSerialized_IsDeserializedCorrectly()
         {
@@ -26,9 +31,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
                 { DicomTag.StrainAdditionalInformation, unlimitedTextValue },
             };
 
-            var json = JsonConvert.SerializeObject(dicomDataset, new JsonDicomConverter());
-            JObject.Parse(json);
-            DicomDataset deserializedDataset = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
+            var json = JsonSerializer.Serialize(dicomDataset, SerializerOptions);
+            JsonDocument.Parse(json);
+            DicomDataset deserializedDataset = JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions);
             var recoveredString = deserializedDataset.GetValue<string>(DicomTag.StrainAdditionalInformation, 0);
             Assert.Equal(unlimitedTextValue, recoveredString);
         }
@@ -38,11 +43,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
         {
             var unlimitedTextValue = "⚽";
 
-            var dicomDataset = new DicomDataset { { DicomTag.StrainAdditionalInformation, Encoding.UTF8, unlimitedTextValue }, };
+            var dicomDataset = new DicomDataset { { DicomTag.StrainAdditionalInformation, unlimitedTextValue }, };
 
-            var json = JsonConvert.SerializeObject(dicomDataset, new JsonDicomConverter());
-            JObject.Parse(json);
-            DicomDataset deserializedDataset = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
+            var json = JsonSerializer.Serialize(dicomDataset, SerializerOptions);
+            JsonDocument.Parse(json);
+            DicomDataset deserializedDataset = JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions);
             var recoveredString = deserializedDataset.GetValue<string>(DicomTag.StrainAdditionalInformation, 0);
             Assert.Equal(unlimitedTextValue, recoveredString);
         }
@@ -56,9 +61,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
                 { DicomTag.PixelData, pixelData },
             };
 
-            var json = JsonConvert.SerializeObject(dicomDataset, new JsonDicomConverter());
-            JObject.Parse(json);
-            DicomDataset deserializedDataset = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
+            var json = JsonSerializer.Serialize(dicomDataset, SerializerOptions);
+            JsonDocument.Parse(json);
+            DicomDataset deserializedDataset = JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions);
             var recoveredPixelData = deserializedDataset.GetValues<byte>(DicomTag.PixelData);
             Assert.Equal(pixelData, recoveredPixelData);
         }
@@ -72,9 +77,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
                 new DicomOtherWord(DicomTag.PixelData, pixelData),
             };
 
-            var json = JsonConvert.SerializeObject(dicomDataset, new JsonDicomConverter());
-            JObject.Parse(json);
-            DicomDataset deserializedDataset = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
+            var json = JsonSerializer.Serialize(dicomDataset, SerializerOptions);
+            JsonDocument.Parse(json);
+            DicomDataset deserializedDataset = JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions);
             var recoveredPixelData = deserializedDataset.GetValues<ushort>(DicomTag.PixelData);
             Assert.Equal(pixelData, recoveredPixelData);
         }
@@ -90,7 +95,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
               }
             }
             ";
-            Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter()));
+            Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
         }
 
         [Fact]
@@ -104,7 +109,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
                 }
             }
             ";
-            Assert.Throws<NotSupportedException>(() => JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter()));
+            Assert.Throws<NotSupportedException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
         }
 
         [Fact]
@@ -118,7 +123,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
               }
             }
             ";
-            Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter()));
+            Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
         }
 
         [Fact]
@@ -132,7 +137,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
                  }
             } ";
 
-            DicomDataset tagValue = JsonConvert.DeserializeObject<DicomDataset>(json, new JsonDicomConverter());
+            DicomDataset tagValue = JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions);
             Assert.NotNull(tagValue.GetDicomItem<DicomFloatingPointSingle>(DicomTag.SelectorFLValue));
         }
     }

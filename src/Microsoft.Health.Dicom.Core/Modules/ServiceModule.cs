@@ -4,6 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using FellowOakDicom;
+using FellowOakDicom.Imaging.NativeCodec;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
@@ -18,6 +20,7 @@ using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Validation;
+using Microsoft.Health.Dicom.Core.Logging;
 using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Health.Dicom.Core.Modules
@@ -203,6 +206,16 @@ namespace Microsoft.Health.Dicom.Core.Modules
                     .AsSelf()
                     .AsImplementedInterfaces();
             }
+        }
+
+        private static void AddDicomServices(IServiceCollection services)
+        {
+            new DicomSetupBuilder().SkipValidation();
+
+            services
+                .AddFellowOakDicom()
+                .AddTranscoderManager<NativeTranscoderManager>()
+                .AddLogManager<FellowOakDecoratorLogManager>();
         }
     }
 }

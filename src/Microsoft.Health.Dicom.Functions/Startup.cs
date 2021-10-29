@@ -31,7 +31,6 @@ namespace Microsoft.Health.Dicom.Functions
             // Common DICOM Services
             builder.Services
                 .AddRecyclableMemoryStreamManager()
-                .AddDicomJsonNetSerialization()
                 .AddStorageServices(config);
 
             // Function Services

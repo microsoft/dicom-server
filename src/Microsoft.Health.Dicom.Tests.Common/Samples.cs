@@ -7,10 +7,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using FellowOakDicom;
-using Dicom.Imaging;
-using Dicom.IO.Buffer;
 using EnsureThat;
+using FellowOakDicom;
+using FellowOakDicom.IO.Buffer;
+using FellowOakDicom.Imaging;
 
 namespace Microsoft.Health.Dicom.Tests.Common
 {

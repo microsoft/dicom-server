@@ -5,9 +5,9 @@
 
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using FellowOakDicom;
-using Dicom.IO.Buffer;
 using EnsureThat;
+using FellowOakDicom;
+using FellowOakDicom.IO.Buffer;
 
 namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {

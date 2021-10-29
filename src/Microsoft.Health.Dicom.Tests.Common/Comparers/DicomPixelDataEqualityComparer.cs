@@ -5,7 +5,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Dicom.Imaging;
+using FellowOakDicom.Imaging;
 
 namespace Microsoft.Health.Dicom.Tests.Common.Comparers
 {

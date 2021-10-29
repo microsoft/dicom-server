@@ -5,9 +5,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
-using Dicom.Serialization;
+using FellowOakDicom.Serialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -17,7 +18,6 @@ using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Metadata.Features.Storage;
 using Microsoft.IO;
-using Newtonsoft.Json;
 using NSubstitute;
 using Xunit;
 using BlobConstants = Microsoft.Health.Dicom.Blob.Constants;
@@ -71,11 +71,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await blobClientInitializer.InitializeDataStoreAsync(
                                             new List<IBlobContainerInitializer> { blobContainerInitializer, metadataContainerInitializer });
 
-            var jsonSerializer = new JsonSerializer();
-            jsonSerializer.Converters.Add(new JsonDicomConverter());
+            var jsonSerializerOptions = new JsonSerializerOptions();
+            jsonSerializerOptions.Converters.Add(new DicomJsonConverter());
 
             FileStore = new BlobFileStore(_blobClient, optionsMonitor, Options.Create(Substitute.For<BlobOperationOptions>()));
-            MetadataStore = new BlobMetadataStore(_blobClient, jsonSerializer, optionsMonitor, RecyclableMemoryStreamManager);
+            MetadataStore = new BlobMetadataStore(_blobClient, jsonSerializerOptions, optionsMonitor, RecyclableMemoryStreamManager);
         }
 
         public async Task DisposeAsync()

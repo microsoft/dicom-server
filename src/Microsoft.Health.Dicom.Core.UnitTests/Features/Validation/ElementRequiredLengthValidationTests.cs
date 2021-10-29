@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using FellowOakDicom;
-using Dicom.IO;
+using FellowOakDicom.IO;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Xunit;

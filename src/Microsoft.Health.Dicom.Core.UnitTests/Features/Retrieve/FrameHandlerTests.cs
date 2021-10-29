@@ -8,8 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using FellowOakDicom;
-using Dicom.Imaging;
-using Dicom.IO.Buffer;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
@@ -17,6 +15,8 @@ using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.IO;
 using NSubstitute;
 using Xunit;
+using FellowOakDicom.IO.Buffer;
+using FellowOakDicom.Imaging;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
 {

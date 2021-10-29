@@ -11,7 +11,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using FellowOakDicom;
-using Dicom.Imaging;
+using FellowOakDicom.Imaging;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Model;
