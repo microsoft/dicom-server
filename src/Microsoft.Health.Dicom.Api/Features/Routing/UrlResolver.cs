@@ -43,6 +43,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         public Uri ResolveOperationStatusUri(Guid operationId)
         {
             var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey("version");
+            Console.WriteLine(hasVersion);
 
             return RouteUri(
                 hasVersion ? KnownRouteNames.VersionedOperationStatus : KnownRouteNames.OperationStatus,
