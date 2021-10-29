@@ -48,28 +48,21 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 return;
             }
 
-            string tag1PrivateCreator = "Unit Test 1";
-            DicomTag tag1 = RandomDicomTag(tag1PrivateCreator);
-            string weightTagVRCode = DicomVR.DS.Code;
+            DicomTag weightTag = DicomTag.PatientWeight;
+            DicomTag sizeTag = DicomTag.PatientSize;
 
-            // Try to delete weight private extended query tag if it exists.
-            await DeleteExtendedQueryTagIfExists(tag1);
-
-            string tag2PrivateCreator = "Unit Test 2";
-            DicomTag tag2 = RandomDicomTag(tag2PrivateCreator);
-            string sizeTagVRCode = DicomVR.DS.Code;
-
-            // Try to delete size private extended query tag if it exists.
-            await DeleteExtendedQueryTagIfExists(tag2);
+            // Try to delete these extended query tags.
+            await DeleteExtendedQueryTag(weightTag);
+            await DeleteExtendedQueryTag(sizeTag);
 
             // Define DICOM files
             DicomDataset instance1 = Samples.CreateRandomInstanceDataset();
-            instance1.Add(tag1, 68.0M);
-            instance1.Add(tag2, 1.78M);
+            instance1.Add(weightTag, 68.0M);
+            instance1.Add(sizeTag, 1.78M);
 
             DicomDataset instance2 = Samples.CreateRandomInstanceDataset();
-            instance2.Add(tag1, 50.0M);
-            instance2.Add(tag2, 1.5M);
+            instance2.Add(weightTag, 50.0M);
+            instance2.Add(sizeTag, 1.5M);
 
             // Upload files
             await _instanceManager.StoreAsync(new DicomFile(instance1));
@@ -79,18 +72,18 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             OperationStatus operation = await _tagManager.AddTagsAsync(
                 new AddExtendedQueryTagEntry[]
                 {
-                    new AddExtendedQueryTagEntry { Path = tag1.GetPath(), VR = weightTagVRCode, Level = QueryTagLevel.Study, PrivateCreator = tag1PrivateCreator },
-                    new AddExtendedQueryTagEntry { Path = tag2.GetPath(), VR = sizeTagVRCode, Level = QueryTagLevel.Study, PrivateCreator = tag2PrivateCreator },
+                    new AddExtendedQueryTagEntry { Path = weightTag.GetPath(), VR = weightTag.GetDefaultVR().Code, Level = QueryTagLevel.Study },
+                    new AddExtendedQueryTagEntry { Path = sizeTag.GetPath(), VR = sizeTag.GetDefaultVR().Code, Level = QueryTagLevel.Study },
                 });
             Assert.Equal(OperationRuntimeStatus.Completed, operation.Status);
 
             // Check specific tag
             DicomWebResponse<GetExtendedQueryTagEntry> getResponse;
 
-            getResponse = await _client.GetExtendedQueryTagAsync(tag1.GetPath());
+            getResponse = await _client.GetExtendedQueryTagAsync(weightTag.GetPath());
             Assert.Null((await getResponse.GetValueAsync()).Errors);
 
-            getResponse = await _client.GetExtendedQueryTagAsync(tag2.GetPath());
+            getResponse = await _client.GetExtendedQueryTagAsync(sizeTag.GetPath());
             Assert.Null((await getResponse.GetValueAsync()).Errors);
 
             // Query multiple tags
@@ -102,12 +95,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(multipleTags[1].Path, (await _tagManager.GetTagsAsync(1, 1)).Single().Path);
 
             // QIDO
-            DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryInstancesAsync($"{tag1.GetPath()}={50}");
+            DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryInstancesAsync($"{weightTag.GetPath()}={50}");
             DicomDataset[] instances = await queryResponse.ToArrayAsync();
             Assert.Contains(instances, instance => instance.ToInstanceIdentifier().Equals(instance2.ToInstanceIdentifier()));
         }
 
-        [Fact(Skip = "Ignoring flaky tests due to extended query tag conflict exception.")]
+        [Fact]
         public async Task GivenExtendedQueryTagWithErrors_WhenReindexing_ThenShouldSucceedWithErrors()
         {
             if (_isUsingInProcTestServer)
@@ -116,14 +109,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 return;
             }
 
-            // Use private tag
-            string privateCreator = "PrivateCreator1";
-            DicomTag tag = RandomDicomTag(privateCreator: privateCreator);
+            // Define tags
+            DicomTag tag = DicomTag.PatientAge;
             string tagValue = "053Y";
-            string tagVRCode = DicomVR.AS.Code;
 
             // Try to delete this extended query tag if it exists.
-            await DeleteExtendedQueryTagIfExists(tag);
+            await DeleteExtendedQueryTag(tag);
 
             // Define DICOM files
             DicomDataset instance1 = Samples.CreateRandomInstanceDataset();
@@ -148,7 +139,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var operationStatus = await _tagManager.AddTagsAsync(
                 new AddExtendedQueryTagEntry[]
                 {
-                    new AddExtendedQueryTagEntry { Path = tag.GetPath(), VR = tagVRCode, PrivateCreator = privateCreator, Level = QueryTagLevel.Instance },
+                    new AddExtendedQueryTagEntry { Path = tag.GetPath(), VR = tag.GetDefaultVR().Code, Level = QueryTagLevel.Instance },
                 });
             Assert.Equal(OperationRuntimeStatus.Completed, operationStatus.Status);
 
@@ -217,24 +208,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal("The field '[0].Level' in request body is invalid: Input Dicom Tag Level 'Studys' is invalid. It must have value 'Study', 'Series' or 'Instance'.", response.Content.ReadAsStringAsync().Result);
         }
 
-        private async Task DeleteExtendedQueryTagIfExists(DicomTag tag)
+        private async Task DeleteExtendedQueryTag(DicomTag tag)
         {
-            // Try to delete this extended query tag if it exists.
-            await _tagManager.DeleteExtendedQueryTagAsync(string.Concat(tag.Group.ToString("D4"), tag.Element.ToString("D4")));
-        }
-
-        private static DicomTag RandomDicomTag(string privateCreator = null)
-        {
-            bool isPrivate = !string.IsNullOrWhiteSpace(privateCreator);
-            var random = new Random();
-
-            // Private groups should end with an odd number
-            int randomGroup = random.Next(0, 10000);
-            ushort group = (ushort)(isPrivate && randomGroup % 2 == 0 ? randomGroup + 1 : randomGroup);
-
-            ushort element = (ushort)random.Next(0, 10000);
-
-            return isPrivate ? new DicomTag(group, element) : new DicomTag(group, element, privateCreator);
+            // Try to delete this extended query tag.
+            await _tagManager.DeleteExtendedQueryTagAsync(tag.GetPath());
         }
 
         public static IEnumerable<object[]> GetRequestBodyWithMissingProperty

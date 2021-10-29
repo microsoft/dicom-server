@@ -108,7 +108,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
                 var response = await _dicomWebClient.DeleteExtendedQueryTagAsync(tagPath, cancellationToken);
                 return response.StatusCode == System.Net.HttpStatusCode.NoContent;
             }
-            catch (Exception)
+            catch (DicomWebException)
             {
                 return false;
             }
