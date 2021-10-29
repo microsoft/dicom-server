@@ -38,7 +38,8 @@ namespace Microsoft.Health.Dicom.Web
                 .AddMetadataStorageDataStore(Configuration)
                 .AddSqlServer(Configuration)
                 .AddAzureFunctionsClient(Configuration)
-                .AddBackgroundWorkers();
+                .AddBackgroundWorkers()
+                .AddHostedServices();
 
             AddApplicationInsightsTelemetry(services);
         }
