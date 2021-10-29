@@ -9,13 +9,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
 {
     public class TestDicomWebServerFactory
     {
-        public static TestDicomWebServer GetTestDicomWebServer(Type startupType)
+        public static TestDicomWebServer GetTestDicomWebServer(Type startupType, bool enableDataPartitions = default)
         {
             string environmentUrl = GetEnvironmentUrl();
 
             if (string.IsNullOrEmpty(environmentUrl))
             {
-                return new InProcTestDicomWebServer(startupType);
+                return new InProcTestDicomWebServer(startupType, enableDataPartitions);
             }
 
             if (environmentUrl[^1] != '/')

@@ -13,7 +13,9 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -33,6 +35,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         private readonly IInstanceStore _instanceStore;
         private readonly IMetadataStore _metadataStore;
         private readonly IETagGenerator _eTagGenerator;
+        private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
 
         private readonly string _studyInstanceUid = TestUidGenerator.Generate();
         private readonly string _seriesInstanceUid = TestUidGenerator.Generate();
@@ -43,7 +46,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             _instanceStore = Substitute.For<IInstanceStore>();
             _metadataStore = storagefixture.MetadataStore;
             _eTagGenerator = Substitute.For<IETagGenerator>();
-            _retrieveMetadataService = new RetrieveMetadataService(_instanceStore, _metadataStore, _eTagGenerator);
+            _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+
+            _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
+
+            _retrieveMetadataService = new RetrieveMetadataService(_instanceStore, _metadataStore, _eTagGenerator, _dicomRequestContextAccessor);
         }
 
         [Fact]
@@ -120,7 +127,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             ValidateResponseMetadataDataset(datasetList.Last(), response.ResponseMetadata.Last());
         }
 
-        private List<DicomDataset> SetupDatasetList(ResourceType resourceType)
+        private List<DicomDataset> SetupDatasetList(ResourceType resourceType, int partitionKey = DefaultPartition.Key)
         {
             DicomDataset dicomDataset1 = new DicomDataset();
             DicomDataset dicomDataset2 = new DicomDataset();
@@ -131,7 +138,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                     dicomDataset1 = CreateValidMetadataDataset(_studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate());
                     dicomDataset2 = CreateValidMetadataDataset(_studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate());
 
-                    _instanceStore.GetInstanceIdentifiersInStudyAsync(_studyInstanceUid, DefaultCancellationToken).Returns(new List<VersionedInstanceIdentifier>()
+                    _instanceStore.GetInstanceIdentifiersInStudyAsync(partitionKey, _studyInstanceUid, DefaultCancellationToken).Returns(new List<VersionedInstanceIdentifier>()
                     {
                         dicomDataset1.ToVersionedInstanceIdentifier(version: 0),
                         dicomDataset2.ToVersionedInstanceIdentifier(version: 1),
@@ -142,7 +149,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                     dicomDataset1 = CreateValidMetadataDataset(_studyInstanceUid, _seriesInstanceUid, TestUidGenerator.Generate());
                     dicomDataset2 = CreateValidMetadataDataset(_studyInstanceUid, _seriesInstanceUid, TestUidGenerator.Generate());
 
-                    _instanceStore.GetInstanceIdentifiersInSeriesAsync(_studyInstanceUid, _seriesInstanceUid, DefaultCancellationToken).Returns(new List<VersionedInstanceIdentifier>()
+                    _instanceStore.GetInstanceIdentifiersInSeriesAsync(partitionKey, _studyInstanceUid, _seriesInstanceUid, DefaultCancellationToken).Returns(new List<VersionedInstanceIdentifier>()
                     {
                         dicomDataset1.ToVersionedInstanceIdentifier(version: 0),
                         dicomDataset2.ToVersionedInstanceIdentifier(version: 1),

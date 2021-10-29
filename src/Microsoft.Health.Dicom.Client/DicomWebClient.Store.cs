@@ -21,6 +21,7 @@ namespace Microsoft.Health.Dicom.Client
         public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
             IEnumerable<DicomFile> dicomFiles,
             string studyInstanceUid,
+            string partitionName,
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomFiles, nameof(dicomFiles));
@@ -39,7 +40,7 @@ namespace Microsoft.Health.Dicom.Client
 
                 using MultipartContent content = ConvertStreamsToMultipartContent(postContent);
                 return await StoreAsync(
-                    GenerateStoreRequestUri(studyInstanceUid),
+                    GenerateStoreRequestUri(partitionName, studyInstanceUid),
                     content,
                     cancellationToken).ConfigureAwait(false);
             }
@@ -55,12 +56,13 @@ namespace Microsoft.Health.Dicom.Client
         public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
             IEnumerable<Stream> streams,
             string studyInstanceUid,
+            string partitionName,
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(streams, nameof(streams));
 
             return await StoreAsync(
-                GenerateStoreRequestUri(studyInstanceUid),
+                GenerateStoreRequestUri(partitionName, studyInstanceUid),
                 ConvertStreamsToMultipartContent(streams),
                 cancellationToken)
                 .ConfigureAwait(false);
@@ -69,6 +71,7 @@ namespace Microsoft.Health.Dicom.Client
         public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
             Stream stream,
             string studyInstanceUid,
+            string partitionName,
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(stream, nameof(stream));
@@ -76,7 +79,7 @@ namespace Microsoft.Health.Dicom.Client
             stream.Seek(0, SeekOrigin.Begin);
 
             return await StoreAsync(
-                GenerateStoreRequestUri(studyInstanceUid),
+                GenerateStoreRequestUri(partitionName, studyInstanceUid),
                 ConvertStreamToStreamContent(stream),
                 cancellationToken)
                 .ConfigureAwait(false);
@@ -85,6 +88,7 @@ namespace Microsoft.Health.Dicom.Client
         public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
             DicomFile dicomFile,
             string studyInstanceUid,
+            string partitionName,
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
@@ -95,7 +99,7 @@ namespace Microsoft.Health.Dicom.Client
 
             using StreamContent content = ConvertStreamToStreamContent(stream);
             return await StoreAsync(
-                GenerateStoreRequestUri(studyInstanceUid),
+                GenerateStoreRequestUri(partitionName, studyInstanceUid),
                 content,
                 cancellationToken)
                 .ConfigureAwait(false);
@@ -103,10 +107,11 @@ namespace Microsoft.Health.Dicom.Client
 
         public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
             HttpContent content,
+            string partitionName,
             CancellationToken cancellationToken)
         {
             return await StoreAsync(
-                new Uri("/" + _apiVersion + DicomWebConstants.StudiesUriString, UriKind.Relative),
+                GenerateStoreRequestUri(partitionName),
                 content,
                 cancellationToken)
                 .ConfigureAwait(false);

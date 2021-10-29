@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Partition
 
         public DateTimeOffset CreatedDate { get; set; }
 
-        public PartitionEntry(int partitionKey, string partitionName, DateTimeOffset createdDate)
+        public PartitionEntry(int partitionKey, string partitionName, DateTimeOffset createdDate = default)
         {
             PartitionKey = partitionKey;
             PartitionName = EnsureArg.IsNotNull(partitionName, nameof(partitionName));

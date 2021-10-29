@@ -152,8 +152,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { tag.BuildAddExtendedQueryTagEntry() });
             ExtendedQueryTagStoreEntry storeEntry = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag.GetPath());
             QueryTag queryTag = new QueryTag(storeEntry);
-            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset, new QueryTag[] { queryTag });
-            await _indexDataStore.EndCreateInstanceIndexAsync(dataset, watermark, new QueryTag[] { queryTag });
+            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset, new QueryTag[] { queryTag });
+            await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, watermark, new QueryTag[] { queryTag });
             var extendedQueryTagIndexData = await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataForTagKeyAsync(ExtendedQueryTagDataType.StringData, storeEntry.Key);
             Assert.NotEmpty(extendedQueryTagIndexData);
 

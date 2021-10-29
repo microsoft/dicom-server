@@ -52,7 +52,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models
 
             DateTime unspecifiedCreatedDate = sqlDataReader.GetDateTime(9);
             CreatedDate = DateTime.SpecifyKind(unspecifiedCreatedDate, DateTimeKind.Utc);
+
+            PartitionKey = sqlDataReader.GetInt32(10);
         }
+
+        public int PartitionKey { get; private set; }
 
         public long InstanceKey { get; private set; }
 

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 
@@ -21,7 +22,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             _connectionString = connectionString;
         }
 
-        public async Task<IReadOnlyList<StudyMetadata>> GetStudyMetadataAsync(string studyInstanceUid)
+        public async Task<IReadOnlyList<StudyMetadata>> GetStudyMetadataAsync(string studyInstanceUid, int partitionKey = DefaultPartition.Key)
         {
             using (var sqlConnection = new SqlConnection(_connectionString))
             {
@@ -34,9 +35,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     sqlCommand.CommandText = @$"
                         SELECT *
                         FROM {VLatest.Study.TableName}
-                        WHERE {VLatest.Study.StudyInstanceUid} = @studyInstanceUid";
+                        WHERE {VLatest.Study.StudyInstanceUid} = @studyInstanceUid
+                        AND { VLatest.Instance.PartitionKey} = @partitionKey";
 
                     sqlCommand.Parameters.AddWithValue("@studyInstanceUid", studyInstanceUid);
+                    sqlCommand.Parameters.AddWithValue("@partitionKey", partitionKey);
 
                     using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync())
                     {
@@ -51,7 +54,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
         }
 
-        public async Task<IReadOnlyList<SeriesMetadata>> GetSeriesMetadataAsync(string seriesInstanceUid)
+        public async Task<IReadOnlyList<SeriesMetadata>> GetSeriesMetadataAsync(string seriesInstanceUid, int partitionKey = DefaultPartition.Key)
         {
             using (var sqlConnection = new SqlConnection(_connectionString))
             {
@@ -64,9 +67,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     sqlCommand.CommandText = @$"
                         SELECT *
                         FROM {VLatest.Series.TableName}
-                        WHERE {VLatest.Series.SeriesInstanceUid} = @seriesInstanceUid";
+                        WHERE {VLatest.Series.SeriesInstanceUid} = @seriesInstanceUid
+                        AND { VLatest.Instance.PartitionKey} = @partitionKey";
 
                     sqlCommand.Parameters.AddWithValue("@seriesInstanceUid", seriesInstanceUid);
+                    sqlCommand.Parameters.AddWithValue("@partitionKey", partitionKey);
 
                     using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync())
                     {
@@ -81,7 +86,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
         }
 
-        public async Task<IReadOnlyList<Instance>> GetInstancesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+        public async Task<IReadOnlyList<Instance>> GetInstancesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int partitionKey = DefaultPartition.Key)
         {
             var results = new List<Instance>();
 
@@ -96,11 +101,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                         FROM {VLatest.Instance.TableName}
                         WHERE {VLatest.Instance.StudyInstanceUid} = @studyInstanceUid
                             AND {VLatest.Instance.SeriesInstanceUid} = @seriesInstanceUid
-                            AND {VLatest.Instance.SopInstanceUid} = @sopInstanceUid";
+                            AND {VLatest.Instance.SopInstanceUid} = @sopInstanceUid
+                            AND {VLatest.Instance.PartitionKey} = @partitionKey";
 
                     sqlCommand.Parameters.AddWithValue("@studyInstanceUid", studyInstanceUid);
                     sqlCommand.Parameters.AddWithValue("@seriesInstanceUid", seriesInstanceUid);
                     sqlCommand.Parameters.AddWithValue("@sopInstanceUid", sopInstanceUid);
+                    sqlCommand.Parameters.AddWithValue("@partitionKey", partitionKey);
 
                     using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync())
                     {
@@ -149,7 +156,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
         }
 
-        public async Task<IReadOnlyList<DeletedInstance>> GetDeletedInstanceEntriesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+        public async Task<IReadOnlyList<DeletedInstance>> GetDeletedInstanceEntriesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int partitionKey = DefaultPartition.Key)
         {
             using (var sqlConnection = new SqlConnection(_connectionString))
             {
@@ -165,11 +172,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                         WHERE {VLatest.DeletedInstance.StudyInstanceUid} = @studyInstanceUid
                         AND {VLatest.DeletedInstance.SeriesInstanceUid} = ISNULL(@seriesInstanceUid, {VLatest.DeletedInstance.SeriesInstanceUid})
                         AND {VLatest.DeletedInstance.SopInstanceUid} = ISNULL(@sopInstanceUid, {VLatest.DeletedInstance.SopInstanceUid})
+                        AND {VLatest.Instance.PartitionKey} = @partitionKey
                         ORDER BY {VLatest.DeletedInstance.Watermark}";
 
                     sqlCommand.Parameters.AddWithValue("@studyInstanceUid", studyInstanceUid);
                     sqlCommand.Parameters.AddWithValue("@seriesInstanceUid", string.IsNullOrEmpty(seriesInstanceUid) ? DBNull.Value : seriesInstanceUid);
                     sqlCommand.Parameters.AddWithValue("@sopInstanceUid", string.IsNullOrEmpty(sopInstanceUid) ? DBNull.Value : sopInstanceUid);
+                    sqlCommand.Parameters.AddWithValue("@partitionKey", partitionKey);
 
                     using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync())
                     {

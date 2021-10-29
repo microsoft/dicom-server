@@ -11,6 +11,7 @@ using Dicom;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
@@ -102,7 +103,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 var queryTags = tags.ToArray();
 
                 // Delete by instance uid.
-                await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+                await _indexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
                 // Study and series level tags should not be deleted.
                 Assert.Single(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DateTimeData, queryTags[0].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey));
@@ -146,7 +147,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 var queryTags = tags.ToArray();
 
                 // Delete by first series uid.
-                await _indexDataStore.DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, Clock.UtcNow);
+                await _indexDataStore.DeleteSeriesIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, Clock.UtcNow);
 
                 // Study level tags should not be deleted.
                 Assert.Single(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DateTimeData, queryTags[0].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey));
@@ -202,7 +203,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 var queryTags = tags.ToArray();
 
                 // Delete by first study uid.
-                await _indexDataStore.DeleteStudyIndexAsync(studyInstanceUid, Clock.UtcNow);
+                await _indexDataStore.DeleteStudyIndexAsync(DefaultPartition.Key, studyInstanceUid, Clock.UtcNow);
 
                 // Study level query tags for the first study should be deleted.
                 Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DateTimeData, queryTags[0].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey));
@@ -254,7 +255,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 var queryTags = tags.ToArray();
 
                 // Delete by instance uid
-                await _indexDataStore.DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+                await _indexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
                 // Ensure all tags regardless of level are removed as it is the only instance in series/study.
                 Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DateTimeData, queryTags[0].ExtendedQueryTagStoreEntry.Key, instance.StudyKey));
@@ -393,8 +394,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             dataset.Add(new DicomFloatingPointDouble(DicomTag.DopplerCorrectionAngle, 1.0 + index));
             dataset.Add(new DicomSignedLong(DicomTag.ReferencePixelX0, 1 + index));
             dataset.Add(new DicomPersonName(DicomTag.DistributionNameRETIRED, "abc^abc" + index));
-            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset, queryTags);
-            await _indexDataStore.EndCreateInstanceIndexAsync(dataset, watermark, queryTags);
+            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset, queryTags);
+            await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, watermark, queryTags);
             return await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, watermark);
         }
 
@@ -409,8 +410,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         private async Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IReadOnlyList<QueryTag> queryTags)
         {
-            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dicomDataset, queryTags);
-            await _indexDataStore.EndCreateInstanceIndexAsync(dicomDataset, watermark, queryTags);
+            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dicomDataset, queryTags);
+            await _indexDataStore.EndCreateInstanceIndexAsync(1, dicomDataset, watermark, queryTags);
             return watermark;
         }
     }

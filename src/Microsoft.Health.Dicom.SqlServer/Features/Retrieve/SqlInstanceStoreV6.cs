@@ -8,7 +8,6 @@ using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
@@ -28,27 +27,30 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
         public override SchemaVersion Version => SchemaVersion.V6;
 
         public override Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
+            int partitionKey,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
             CancellationToken cancellationToken)
         {
-            return GetInstanceIdentifierImp(DefaultPartition.Key, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
+            return GetInstanceIdentifierImp(partitionKey, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
         }
 
         public override Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
+            int partitionKey,
             string studyInstanceUid,
             string seriesInstanceUid,
             CancellationToken cancellationToken)
         {
-            return GetInstanceIdentifierImp(DefaultPartition.Key, studyInstanceUid, cancellationToken, seriesInstanceUid);
+            return GetInstanceIdentifierImp(partitionKey, studyInstanceUid, cancellationToken, seriesInstanceUid);
         }
 
         public override Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
+            int partitionKey,
             string studyInstanceUid,
             CancellationToken cancellationToken)
         {
-            return GetInstanceIdentifierImp(DefaultPartition.Key, studyInstanceUid, cancellationToken);
+            return GetInstanceIdentifierImp(partitionKey, studyInstanceUid, cancellationToken);
         }
 
         public override async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersByWatermarkRangeAsync(

@@ -19,6 +19,7 @@ using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 using Xunit;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
@@ -32,6 +33,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private readonly IExtendedQueryTagStore _extendedQueryTagStore;
         private readonly IIndexDataStoreTestHelper _indexDataStoreTestHelper;
         private readonly IExtendedQueryTagStoreTestHelper _extendedQueryTagStoreTestHelper;
+        private readonly IPartitionStore _partitionStore;
 
         public InstanceStoreTests(SqlDataStoreTestsFixture fixture)
         {
@@ -40,6 +42,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             _extendedQueryTagStore = EnsureArg.IsNotNull(fixture?.ExtendedQueryTagStore, nameof(fixture.ExtendedQueryTagStore));
             _indexDataStoreTestHelper = EnsureArg.IsNotNull(fixture?.IndexDataStoreTestHelper, nameof(fixture.IndexDataStoreTestHelper));
             _extendedQueryTagStoreTestHelper = EnsureArg.IsNotNull(fixture?.ExtendedQueryTagStoreTestHelper, nameof(fixture.ExtendedQueryTagStoreTestHelper));
+            _partitionStore = EnsureArg.IsNotNull(fixture?.PartitionStore, nameof(fixture.PartitionStore));
         }
 
         [Fact]
@@ -180,7 +183,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             DicomDataset dataset = Samples.CreateRandomInstanceDataset();
 
-            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
+            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
             await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.ReindexInstanceAsync(dataset, watermark, new[] { new QueryTag(tagStoreEntry) }));
         }
 
@@ -204,7 +207,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 new InstanceIdentifier(
                     instances[^3].StudyInstanceUid,
                     instances[^3].SeriesInstanceUid,
-                    instances[^3].SopInstanceUid));
+                    instances[^3].SopInstanceUid,
+                    DefaultPartition.Key));
 
             IReadOnlyList<WatermarkRange> batches;
 
@@ -223,21 +227,54 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Equal(new WatermarkRange(instances[^8].Version, instances[^6].Version), batches[1]);
         }
 
+        [Fact]
+        public async Task WhenAddingTheSameInstanceToTwoPartitions_ThenTheyAreRetrievedCorrectly()
+        {
+            var partition1 = "partition1";
+            var partition2 = "partition2";
+
+            var partitionEntry1 = await _partitionStore.AddPartitionAsync(partition1);
+            var partitionEntry2 = await _partitionStore.AddPartitionAsync(partition2);
+
+            string studyInstanceUID = TestUidGenerator.Generate();
+
+            DicomDataset dataset1 = Samples.CreateRandomInstanceDataset(studyInstanceUID);
+            DicomDataset dataset2 = Samples.CreateRandomInstanceDataset(studyInstanceUID);
+
+            Instance instance1 = await CreateInstanceIndexAsync(dataset1, partitionEntry1.PartitionKey);
+            Instance instance2 = await CreateInstanceIndexAsync(dataset2, partitionEntry2.PartitionKey);
+
+            Assert.Equal(partitionEntry1.PartitionKey, instance1.PartitionKey);
+            Assert.Equal(partitionEntry2.PartitionKey, instance2.PartitionKey);
+        }
+
+        [Fact]
+        public async Task WhenRetrievingAnInstanceFromTheWrongPartition_ThenResultSetIsEmpty()
+        {
+            var partition = "partition3";
+            var partitionEntry = await _partitionStore.AddPartitionAsync(partition);
+
+            var identifier = await AddRandomInstanceAsync(partitionEntry.PartitionKey);
+
+            var instances = await _indexDataStoreTestHelper.GetInstancesAsync(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, DefaultPartition.Key);
+            Assert.Empty(instances);
+        }
+
         private async Task<ExtendedQueryTagStoreEntry> AddExtendedQueryTagAsync(AddExtendedQueryTagEntry addExtendedQueryTagEntry)
             => (await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new[] { addExtendedQueryTagEntry }, 128))[0];
 
-        private async Task<Instance> CreateInstanceIndexAsync(DicomDataset dataset)
+        private async Task<Instance> CreateInstanceIndexAsync(DicomDataset dataset, int partitionKey = DefaultPartition.Key)
         {
             string studyUid = dataset.GetString(DicomTag.StudyInstanceUID);
             string seriesUid = dataset.GetString(DicomTag.SeriesInstanceUID);
             string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
-            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
-            await _indexDataStore.EndCreateInstanceIndexAsync(dataset, watermark);
+            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
+            await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dataset, watermark);
 
             return await _indexDataStoreTestHelper.GetInstanceAsync(studyUid, seriesUid, sopInstanceUid, watermark);
         }
 
-        private async Task<VersionedInstanceIdentifier> AddRandomInstanceAsync()
+        private async Task<VersionedInstanceIdentifier> AddRandomInstanceAsync(int partitionKey = DefaultPartition.Key)
         {
             DicomDataset dataset = Samples.CreateRandomInstanceDataset();
 
@@ -245,8 +282,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             string seriesInstanceUid = dataset.GetString(DicomTag.SeriesInstanceUID);
             string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
 
-            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(dataset);
-            return new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version);
+            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
+            return new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version, partitionKey);
         }
     }
 }

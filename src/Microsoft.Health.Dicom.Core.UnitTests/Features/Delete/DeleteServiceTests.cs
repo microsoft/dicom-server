@@ -14,8 +14,10 @@ using Microsoft.Health.Abstractions.Features.Transactions;
 using Microsoft.Health.Core.Internal;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
@@ -32,6 +34,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
         private readonly ITransactionScope _transactionScope;
         private readonly DeletedInstanceCleanupConfiguration _deleteConfiguration;
         private readonly IMetadataStore _metadataStore;
+        private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
 
         public DeleteServiceTests()
         {
@@ -52,8 +55,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
             ITransactionHandler transactionHandler = Substitute.For<ITransactionHandler>();
             _transactionScope = Substitute.For<ITransactionScope>();
             transactionHandler.BeginTransaction().Returns(_transactionScope);
+            _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+            _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
 
-            _deleteService = new DeleteService(_indexDataStore, _metadataStore, _fileDataStore, deletedInstanceCleanupConfigurationOptions, transactionHandler, NullLogger<DeleteService>.Instance);
+            _deleteService = new DeleteService(_indexDataStore, _metadataStore, _fileDataStore, deletedInstanceCleanupConfigurationOptions, transactionHandler, NullLogger<DeleteService>.Instance, _dicomRequestContextAccessor);
         }
 
         [Fact]
@@ -67,7 +72,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
                 await _deleteService.DeleteStudyAsync(studyInstanceUid, CancellationToken.None);
                 await _indexDataStore
                     .Received(1)
-                    .DeleteStudyIndexAsync(studyInstanceUid, now + _deleteConfiguration.DeleteDelay);
+                    .DeleteStudyIndexAsync(DefaultPartition.Key, studyInstanceUid, now + _deleteConfiguration.DeleteDelay);
             }
         }
 
@@ -83,7 +88,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
                 await _deleteService.DeleteSeriesAsync(studyInstanceUid, seriesInstanceUid, CancellationToken.None);
                 await _indexDataStore
                     .Received(1)
-                    .DeleteSeriesIndexAsync(studyInstanceUid, seriesInstanceUid, now + _deleteConfiguration.DeleteDelay);
+                    .DeleteSeriesIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, now + _deleteConfiguration.DeleteDelay);
             }
         }
 
@@ -100,7 +105,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Delete
                 await _deleteService.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, CancellationToken.None);
                 await _indexDataStore
                     .Received(1)
-                    .DeleteInstanceIndexAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, now + _deleteConfiguration.DeleteDelay);
+                    .DeleteInstanceIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, sopInstanceUid, now + _deleteConfiguration.DeleteDelay);
             }
         }
 
