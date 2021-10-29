@@ -109,6 +109,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                     .Append(VLatest.Series.StudyKey, SeriesTableAlias)
                     .Append(" = ")
                     .AppendLine(VLatest.Study.StudyKey, StudyTableAlias);
+                AppendPartitionJoinClause(SeriesTableAlias, StudyTableAlias);
             }
 
             if (_queryExpression.IsInstanceIELevel())
@@ -119,6 +120,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                     .Append(VLatest.Instance.SeriesKey, InstanceTableAlias)
                     .Append(" = ")
                     .AppendLine(VLatest.Series.SeriesKey, SeriesTableAlias);
+                AppendPartitionJoinClause(InstanceTableAlias, SeriesTableAlias);
                 AppendStatusClause(InstanceTableAlias);
             }
 
@@ -126,10 +128,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
             _stringBuilder.AppendLine("WHERE 1 = 1");
 
-            if ((int)_schemaVersion >= SchemaVersionConstants.SupportDataPartitionSchemaVersion)
-            {
-                _stringBuilder.AppendLine($"AND {StudyTableAlias}.{VLatest.Study.PartitionKey} = {_partitionKey}");
-            }
+            AppendPartitionWhereClause(StudyTableAlias);
 
             using (IndentedStringBuilder.DelimitedScope delimited = _stringBuilder.BeginDelimitedWhereClause())
             {
@@ -139,6 +138,22 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             AppendFilterPaging();
 
             _stringBuilder.AppendLine($") {filterAlias}");
+        }
+
+        private void AppendPartitionJoinClause(string tableAlias1, string tableAlias2)
+        {
+            if ((int)_schemaVersion >= SchemaVersionConstants.SupportDataPartitionSchemaVersion)
+            {
+                _stringBuilder.AppendLine($"AND {tableAlias1}.{VLatest.Partition.PartitionKey} = {tableAlias2}.{VLatest.Partition.PartitionKey}");
+            }
+        }
+
+        private void AppendPartitionWhereClause(string tableAlias)
+        {
+            if ((int)_schemaVersion >= SchemaVersionConstants.SupportDataPartitionSchemaVersion)
+            {
+                _stringBuilder.AppendLine($"AND {tableAlias}.{VLatest.Partition.PartitionKey} = {_partitionKey}");
+            }
         }
 
         private void AppendExtendedQueryTagTables()
@@ -242,6 +257,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                         .Append(" = ")
                         .AppendLine(VLatest.Series.SeriesKey, filterAlias);
                 }
+
+                AppendPartitionWhereClause(tableAlias);
 
                 AppendStatusClause(tableAlias);
                 AppendOrderBy(tableAlias);
