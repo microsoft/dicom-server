@@ -82,24 +82,25 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                 if (message.ResourceType == ResourceType.Frames && message.Frames.Count() == 1 && isOriginalTransferSyntaxRequested)
                 {
 
-                    var identifier = await _versionedInstanceCache.GetInstanceAsync(
+                    var identifierMetada = await _versionedInstanceCache.GetInstanceAsync(
                          message.StudyInstanceUid,
                          message.SeriesInstanceUid,
                          message.SopInstanceUid,
                          _instanceStore.GetInstanceIdentifierAsync,
+                         _metadataStore.GetInstanceMetadataAsync,
                          cancellationToken
                         );
 
                     var frame = message.Frames.First();
-                    FrameRange range = await _framesRangeCache.GetFrameRangeAsync(identifier, frame, _metadataStore.GetInstanceFramesRangeAsync, cancellationToken);
+                    FrameRange range = await _framesRangeCache.GetFrameRangeAsync(identifierMetada.VersionedInstanceIdentifier, frame, _metadataStore.GetInstanceFramesRangeAsync, cancellationToken);
 
                     if (range != null)
                     {
-                        _logger.LogInformation("RetrieveResourceService using the fast path to get frame range: {0}, frame:{1}", identifier, frame);
+                        _logger.LogInformation("RetrieveResourceService using the fast path to get frame range: {0}, frame:{1}", identifierMetada.VersionedInstanceIdentifier, frame);
                         return new RetrieveResourceResponse(
-                            new List<Stream> { await _blobDataStore.GetFileFrameAsync(identifier, range, cancellationToken) },
+                            new List<Stream> { await _blobDataStore.GetFileFrameAsync(identifierMetada.VersionedInstanceIdentifier, range, cancellationToken) },
                             acceptHeaderDescriptor.MediaType,
-                            transferSyntax);
+                            identifierMetada.InternalTransferSyntax);
                     }
                 }
 

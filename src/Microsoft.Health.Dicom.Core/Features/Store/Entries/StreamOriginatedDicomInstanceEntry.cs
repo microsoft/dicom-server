@@ -42,6 +42,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
             if (Interlocked.CompareExchange(ref _dicomFileLoadedState, 1, 0) == 0)
             {
                 // Load the file.
+                // TODO fix to pass largeObjectSize in fo-dicom 5.0.0.0
                 _dicomFile = await DicomFile.OpenAsync(_stream, FileReadOption.ReadLargeOnDemand);
                 _dicomFileLoadingCompletionSource.SetResult(true);
             }

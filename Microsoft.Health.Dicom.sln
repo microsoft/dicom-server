@@ -51,6 +51,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{176641B3-297
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{8C9A0050-5D22-4398-9F93-DDCD80B3BA51}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyNewReader", "src\MyNewReader\MyNewReader.csproj", "{B7C8D547-C1F4-49CF-A261-51CABF896926}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -129,6 +131,10 @@ Global
 		{1D0ECFDA-2AF2-4796-995D-A7C6E18C9CD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1D0ECFDA-2AF2-4796-995D-A7C6E18C9CD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1D0ECFDA-2AF2-4796-995D-A7C6E18C9CD1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7C8D547-C1F4-49CF-A261-51CABF896926}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7C8D547-C1F4-49CF-A261-51CABF896926}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7C8D547-C1F4-49CF-A261-51CABF896926}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7C8D547-C1F4-49CF-A261-51CABF896926}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -151,9 +157,10 @@ Global
 		{ECC018C1-BFA8-44BE-B560-ACB05CA57251} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{BFB96311-9B1A-41C1-ABF1-4F6522660084} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{1D0ECFDA-2AF2-4796-995D-A7C6E18C9CD1} = {8C9A0050-5D22-4398-9F93-DDCD80B3BA51}
+		{B7C8D547-C1F4-49CF-A261-51CABF896926} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_SortFileContentOnSave = True
 		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
+		RESX_SortFileContentOnSave = True
 	EndGlobalSection
 EndGlobal

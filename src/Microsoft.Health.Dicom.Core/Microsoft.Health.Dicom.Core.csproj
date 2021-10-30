@@ -36,6 +36,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MyNewReader\MyNewReader.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="DicomCoreResource.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

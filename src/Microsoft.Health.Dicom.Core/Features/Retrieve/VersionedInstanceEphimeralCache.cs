@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -39,38 +40,41 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             _logger = logger;
         }
 
-        public async Task<VersionedInstanceIdentifier> GetInstanceAsync(
+        public async Task<InstanceMetadata> GetInstanceAsync(
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
             Func<string, string, string, CancellationToken, Task<IEnumerable<VersionedInstanceIdentifier>>> getInstanceFunc,
+            Func<VersionedInstanceIdentifier, CancellationToken, Task<DicomDataset>> getInstanceMetadataFunc,
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(getInstanceFunc, nameof(getInstanceFunc));
+            EnsureArg.IsNotNull(getInstanceMetadataFunc, nameof(getInstanceMetadataFunc));
 
             var stopWatch = Stopwatch.StartNew();
             // todo semphore lock and allow 1
-            VersionedInstanceIdentifier instanceIdentifier;
+            InstanceMetadata instanceMetadata;
             string key = GenerateKey(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-            if (!_memoryCache.TryGetValue(key, out instanceIdentifier))
+            if (!_memoryCache.TryGetValue(key, out instanceMetadata))
             {
                 var instanceIdentifiers = await getInstanceFunc(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
-
                 if (!instanceIdentifiers.Any())
                 {
                     throw new InstanceNotFoundException();
                 }
 
-                instanceIdentifier = instanceIdentifiers.First();
-                _memoryCache.Set<VersionedInstanceIdentifier>(
+                var instanceIdentifier = instanceIdentifiers.First();
+                var data = await getInstanceMetadataFunc(instanceIdentifier, cancellationToken);
+                instanceMetadata = new InstanceMetadata { InternalTransferSyntax = data.InternalTransferSyntax.UID.UID, VersionedInstanceIdentifier = instanceIdentifier };
+                _memoryCache.Set<InstanceMetadata>(
                     key,
-                    instanceIdentifiers.First(),
+                    instanceMetadata,
                     new MemoryCacheEntryOptions { Size = 1, AbsoluteExpirationRelativeToNow = new TimeSpan(0, 5, 0) });
             }
 
             stopWatch.Stop();
             _logger.LogInformation("VersionedInstanceEphimeralCache:GetInstanceAsync: {0}", stopWatch.ElapsedMilliseconds);
-            return instanceIdentifier;
+            return instanceMetadata;
         }
 
         private static string GenerateKey(
