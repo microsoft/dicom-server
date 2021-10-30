@@ -118,10 +118,12 @@ namespace Microsoft.AspNetCore.Builder
             });
 
             services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
-            services.AddSwaggerGen(options => options.OperationFilter<SwaggerDefaultValues>());
-            services.AddSwaggerGen(options => options.OperationFilter<ErrorCodeOperationFilter>());
-            services.AddSwaggerGen(options => options.OperationFilter<RetrieveOperationFilter>());
-            services.AddSwaggerGenNewtonsoftSupport();
+            services.AddSwaggerGen(options =>
+            {
+                options.OperationFilter<SwaggerDefaultValues>();
+                options.OperationFilter<ErrorCodeOperationFilter>();
+                options.OperationFilter<RetrieveOperationFilter>();
+            });
 
             services.AddSingleton<IUrlResolver, UrlResolver>();
 

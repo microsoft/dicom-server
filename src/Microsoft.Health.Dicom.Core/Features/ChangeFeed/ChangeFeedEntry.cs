@@ -4,10 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Text.Json.Serialization;
 using EnsureThat;
 using FellowOakDicom;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
 {
@@ -54,12 +53,12 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
 
         public string SopInstanceUid { get; }
 
-        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public ChangeFeedAction Action { get; }
 
         public DateTimeOffset Timestamp { get; }
 
-        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public ChangeFeedState State { get; }
 
         [JsonIgnore]
