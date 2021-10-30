@@ -8,7 +8,6 @@
 //------------------------------------------------------------------------------
 namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 {
-    using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
     internal class AddExtendedQueryTagsInputTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<AddExtendedQueryTagsInputTableTypeV1Row>

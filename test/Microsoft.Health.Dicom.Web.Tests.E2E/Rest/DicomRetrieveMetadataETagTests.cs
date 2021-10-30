@@ -7,17 +7,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text.Json;
 using System.Threading.Tasks;
-using FellowOakDicom;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.Net.Http.Headers;
 using Xunit;
-using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
-using System.Text.Json;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {

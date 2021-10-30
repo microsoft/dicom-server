@@ -9,8 +9,8 @@ using System.IO;
 using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
-using FellowOakDicom.IO.Buffer;
 using FellowOakDicom.Imaging;
+using FellowOakDicom.IO.Buffer;
 
 namespace Microsoft.Health.Dicom.Tests.Common
 {

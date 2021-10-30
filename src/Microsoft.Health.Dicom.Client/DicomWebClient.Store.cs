@@ -8,11 +8,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using FellowOakDicom;
 using EnsureThat;
-using System.Text.Json;
+using FellowOakDicom;
 
 namespace Microsoft.Health.Dicom.Client
 {

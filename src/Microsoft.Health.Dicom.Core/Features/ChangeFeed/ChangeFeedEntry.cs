@@ -4,8 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using FellowOakDicom;
 using EnsureThat;
+using FellowOakDicom;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 

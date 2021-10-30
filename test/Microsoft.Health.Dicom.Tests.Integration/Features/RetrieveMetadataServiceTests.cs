@@ -5,10 +5,12 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using FellowOakDicom;
 using EnsureThat;
+using FellowOakDicom;
+using FellowOakDicom.Serialization;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -22,8 +24,6 @@ using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence;
 using NSubstitute;
 using Xunit;
-using FellowOakDicom.Serialization;
-using System.Text.Json;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Features
 {

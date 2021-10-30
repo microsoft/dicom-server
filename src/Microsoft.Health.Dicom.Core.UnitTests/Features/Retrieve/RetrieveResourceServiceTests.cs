@@ -10,6 +10,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
+using FellowOakDicom.Imaging;
+using FellowOakDicom.IO.Buffer;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -27,8 +29,6 @@ using Microsoft.IO;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
-using FellowOakDicom.IO.Buffer;
-using FellowOakDicom.Imaging;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
 {

@@ -5,10 +5,10 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using FellowOakDicom;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Exceptions;
+using FellowOakDicom;
 using FellowOakDicom.Imaging;
+using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {

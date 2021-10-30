@@ -4,8 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using FellowOakDicom;
 using EnsureThat;
+using FellowOakDicom;
 using FellowOakDicom.Imaging;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve

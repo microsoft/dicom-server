@@ -7,11 +7,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using FellowOakDicom;
 using EnsureThat;
-using Microsoft.IO;
+using FellowOakDicom;
 using FellowOakDicom.Imaging;
 using FellowOakDicom.IO.Buffer;
+using Microsoft.IO;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 {

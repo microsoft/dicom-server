@@ -4,9 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using FellowOakDicom;
-using EnsureThat;
 using System.Text.Json.Serialization;
+using EnsureThat;
+using FellowOakDicom;
 
 namespace Microsoft.Health.Dicom.Client.Models
 {

@@ -7,15 +7,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using FellowOakDicom;
 using EnsureThat;
+using FellowOakDicom;
+using FellowOakDicom.Imaging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.IO;
 using Xunit;
-using FellowOakDicom.Imaging;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
 {

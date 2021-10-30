@@ -9,8 +9,8 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using FellowOakDicom;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.Health.Dicom.Client
