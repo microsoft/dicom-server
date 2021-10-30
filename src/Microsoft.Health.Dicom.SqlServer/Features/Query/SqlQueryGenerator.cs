@@ -258,8 +258,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                         .AppendLine(VLatest.Series.SeriesKey, filterAlias);
                 }
 
-                AppendPartitionWhereClause(tableAlias);
-
                 AppendStatusClause(tableAlias);
                 AppendOrderBy(tableAlias);
             }
