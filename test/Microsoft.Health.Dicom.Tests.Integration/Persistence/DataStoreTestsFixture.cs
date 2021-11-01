@@ -75,7 +75,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             jsonSerializerOptions.Converters.Add(new DicomJsonConverter());
 
             FileStore = new BlobFileStore(_blobClient, optionsMonitor, Options.Create(Substitute.For<BlobOperationOptions>()));
-            MetadataStore = new BlobMetadataStore(_blobClient, jsonSerializerOptions, optionsMonitor, RecyclableMemoryStreamManager);
+            MetadataStore = new BlobMetadataStore(_blobClient, RecyclableMemoryStreamManager, optionsMonitor, Options.Create(jsonSerializerOptions));
         }
 
         public async Task DisposeAsync()

@@ -7,6 +7,7 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using EnsureThat;
+using FellowOakDicom.Serialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -89,7 +90,11 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services
                 .AddMvcCore()
-                .AddJsonSerializerOptions(x => x.Converters.Add(new JsonStringEnumConverter()));
+                .AddJsonSerializerOptions(o =>
+                 {
+                     o.Converters.Add(new JsonStringEnumConverter());
+                     o.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false));
+                 });
 
             return services;
         }

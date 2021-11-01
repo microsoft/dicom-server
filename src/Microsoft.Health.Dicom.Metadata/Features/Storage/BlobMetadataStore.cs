@@ -39,19 +39,19 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 
         public BlobMetadataStore(
             BlobServiceClient client,
-            JsonSerializerOptions jsonSerializerOptions,
+            RecyclableMemoryStreamManager recyclableMemoryStreamManager,
             IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
-            RecyclableMemoryStreamManager recyclableMemoryStreamManager)
+            IOptions<JsonSerializerOptions> jsonSerializerOptions)
         {
             EnsureArg.IsNotNull(client, nameof(client));
-            EnsureArg.IsNotNull(jsonSerializerOptions, nameof(jsonSerializerOptions));
+            EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
             EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
             EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
 
             BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor.Get(Constants.ContainerConfigurationName);
 
             _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
-            _jsonSerializerOptions = jsonSerializerOptions;
+            _jsonSerializerOptions = jsonSerializerOptions.Value;
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
         }
 
@@ -70,12 +70,15 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
 
             try
             {
-                await using (Stream utf8Stream = _recyclableMemoryStreamManager.GetStream(StoreInstanceMetadataStreamTagName))
+                await using (Stream stream = _recyclableMemoryStreamManager.GetStream(StoreInstanceMetadataStreamTagName))
+                await using (Utf8JsonWriter utf8Writer = new Utf8JsonWriter(stream))
                 {
-                    await JsonSerializer.SerializeAsync(utf8Stream, dicomDatasetWithoutBulkData, _jsonSerializerOptions, cancellationToken);
-                    utf8Stream.Seek(0, SeekOrigin.Begin);
+                    // TODO: Use SerializeAsync in .NET 6
+                    JsonSerializer.Serialize(utf8Writer, dicomDatasetWithoutBulkData, _jsonSerializerOptions);
+                    await utf8Writer.FlushAsync(cancellationToken);
+                    stream.Seek(0, SeekOrigin.Begin);
                     await blob.UploadAsync(
-                        utf8Stream,
+                        stream,
                         new BlobHttpHeaders { ContentType = KnownContentTypes.ApplicationJson },
                         metadata: null,
                         conditions: null,

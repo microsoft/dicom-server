@@ -11,6 +11,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using FellowOakDicom.Imaging;
+using FellowOakDicom.Imaging.NativeCodec;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common.Comparers;
@@ -33,6 +34,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         {
             _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
             _transcoder = new Transcoder(_recyclableMemoryStreamManager, NullLogger<Transcoder>.Instance);
+
+            new DicomSetupBuilder()
+                .RegisterServices(s => s.AddTranscoderManager<NativeTranscoderManager>())
+                .Build();
         }
 
         [Theory]

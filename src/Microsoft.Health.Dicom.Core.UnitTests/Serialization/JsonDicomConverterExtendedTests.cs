@@ -119,7 +119,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization
             {
               ""00081030"": {
                 ""vr"": ""IS"",
-                ""Value"": [ ""0"" ]
+                ""Value"": [ ""01:02:03"" ]
               }
             }
             ";
