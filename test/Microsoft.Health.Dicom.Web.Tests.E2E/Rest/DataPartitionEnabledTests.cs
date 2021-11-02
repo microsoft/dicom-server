@@ -4,10 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Client;
+using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
@@ -130,6 +132,42 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.True(response5.IsSuccessStatusCode);
         }
 
+        [Fact]
+        public async Task GivenMatchingStudiesInDifferentPartitions_WhenSearchForStudySeriesLevel_OnePartitionMatchesResult()
+        {
+            if (_isUsingRemoteTestServer)
+            {
+                // Data partition feature flag only enabled locally. For Remote servers, feature flag is by default disabled
+                return;
+            }
+
+            var newPartition1 = TestUidGenerator.Generate();
+            var newPartition2 = TestUidGenerator.Generate();
+
+            var studyUid = TestUidGenerator.Generate();
+
+            DicomFile file1 = Samples.CreateRandomDicomFile(studyUid);
+            file1.Dataset.AddOrUpdate(new DicomDataset()
+            {
+                 { DicomTag.Modality, "MRI" },
+            });
+
+            DicomFile file2 = Samples.CreateRandomDicomFile(studyUid);
+            file2.Dataset.AddOrUpdate(new DicomDataset()
+            {
+                 { DicomTag.Modality, "MRI" },
+            });
+
+            using DicomWebResponse<DicomDataset> response1 = await _client.StoreAsync(new[] { file1 }, partitionName: newPartition1);
+            using DicomWebResponse<DicomDataset> response2 = await _client.StoreAsync(new[] { file2 }, partitionName: newPartition2);
+
+            using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryStudySeriesAsync(studyUid, "Modality=MRI", newPartition1);
+
+            DicomDataset[] datasets = await response.ToArrayAsync();
+
+            Assert.Single(datasets);
+            ValidationHelpers.ValidateResponseDataset(QueryResource.StudySeries, file1.Dataset, datasets[0]);
+        }
 
         private (string SopInstanceUid, string RetrieveUri, string SopClassUid) ConvertToReferencedSopSequenceEntry(DicomDataset dicomDataset, string partitionName)
         {

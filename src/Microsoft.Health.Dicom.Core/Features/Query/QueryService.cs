@@ -11,7 +11,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Features.Validation;
@@ -25,21 +27,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         private readonly IQueryStore _queryStore;
         private readonly IMetadataStore _metadataStore;
         private readonly IQueryTagService _queryTagService;
+        private readonly IDicomRequestContextAccessor _contextAccessor;
+
 
         public QueryService(
             IQueryParser queryParser,
             IQueryStore queryStore,
             IMetadataStore metadataStore,
-            IQueryTagService queryTagService)
+            IQueryTagService queryTagService,
+            IDicomRequestContextAccessor contextAccessor)
         {
-            EnsureArg.IsNotNull(queryParser, nameof(queryParser));
-            EnsureArg.IsNotNull(queryStore, nameof(queryStore));
-            EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
-
-            _queryParser = queryParser;
-            _queryStore = queryStore;
-            _metadataStore = metadataStore;
-            _queryTagService = queryTagService;
+            _queryParser = EnsureArg.IsNotNull(queryParser, nameof(queryParser));
+            _queryStore = EnsureArg.IsNotNull(queryStore, nameof(queryStore));
+            _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
+            _queryTagService = EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
+            _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
         }
 
         public async Task<QueryResourceResponse> QueryAsync(
@@ -54,7 +56,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             QueryExpression queryExpression = _queryParser.Parse(parameters, queryTags);
 
-            QueryResult queryResult = await _queryStore.QueryAsync(queryExpression, cancellationToken);
+            var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
+
+            QueryResult queryResult = await _queryStore.QueryAsync(partitionKey, queryExpression, cancellationToken);
 
             if (!queryResult.DicomInstances.Any())
             {

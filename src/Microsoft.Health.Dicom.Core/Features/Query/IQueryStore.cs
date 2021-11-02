@@ -12,6 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
     public interface IQueryStore
     {
         Task<QueryResult> QueryAsync(
+            int partitionKey,
             QueryExpression query,
             CancellationToken cancellationToken = default);
     }
