@@ -97,6 +97,15 @@ namespace Microsoft.Health.Dicom.Core
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Data partitions feature cannot be disabled while existing data has already been partitioned..
+        /// </summary>
+        internal static string DataPartitionFeatureCannotBeDisabled {
+            get {
+                return ResourceManager.GetString("DataPartitionFeatureCannotBeDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Specified PartitionName &apos;{0}&apos; does not exist..
         /// </summary>
         internal static string DataPartitionNotFound {

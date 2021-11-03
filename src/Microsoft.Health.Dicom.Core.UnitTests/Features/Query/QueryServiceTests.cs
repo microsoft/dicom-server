@@ -9,8 +9,10 @@ using System.Linq;
 using System.Threading;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -25,19 +27,25 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         private readonly QueryService _queryService;
         private readonly IQueryParser _queryParser;
         private readonly IQueryStore _queryStore;
+        private readonly IMetadataStore _metadataStore;
         private readonly IQueryTagService _queryTagService;
+        private readonly IDicomRequestContextAccessor _contextAccessor;
 
         public QueryServiceTests()
         {
             _queryParser = Substitute.For<IQueryParser>();
             _queryStore = Substitute.For<IQueryStore>();
+            _metadataStore = Substitute.For<IMetadataStore>();
             _queryTagService = Substitute.For<IQueryTagService>();
+            _contextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+            _contextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
 
             _queryService = new QueryService(
                 _queryParser,
                 _queryStore,
-                Substitute.For<IMetadataStore>(),
-                _queryTagService);
+                _metadataStore,
+                _queryTagService,
+                _contextAccessor);
         }
 
         [Theory]
@@ -92,7 +100,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 
             var list = QueryTagService.CoreQueryTags.Concat(storeEntries.Select(item => new QueryTag(item))).ToList();
             _queryTagService.GetQueryTagsAsync().ReturnsForAnyArgs(list);
-            _queryStore.QueryAsync(Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>()));
+            _queryStore.QueryAsync(Arg.Any<int>(), Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>()));
             await _queryService.QueryAsync(parameters, CancellationToken.None);
 
             _queryParser.Received().Parse(parameters, Arg.Do<IReadOnlyCollection<QueryTag>>(x => Assert.Equal(x, list, QueryTagComparer.Default)));
@@ -119,7 +127,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             };
 
             var list = QueryTagService.CoreQueryTags.Concat(storeEntries.Select(item => new QueryTag(item))).ToList();
-            _queryStore.QueryAsync(Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>()));
+            _queryStore.QueryAsync(Arg.Any<int>(), Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>()));
             await _queryService.QueryAsync(parameters, CancellationToken.None);
 
             _queryParser.Received().Parse(parameters, Arg.Do<IReadOnlyCollection<QueryTag>>(x => Assert.Equal(x, list, QueryTagComparer.Default)));
@@ -146,7 +154,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             };
 
             var list = QueryTagService.CoreQueryTags.Concat(storeEntries.Select(item => new QueryTag(item))).ToList();
-            _queryStore.QueryAsync(Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>()));
+            _queryStore.QueryAsync(Arg.Any<int>(), Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>()));
             await _queryService.QueryAsync(parameters, CancellationToken.None);
 
             _queryParser.Received().Parse(parameters, Arg.Do<IReadOnlyCollection<QueryTag>>(x => Assert.Equal(x, list, QueryTagComparer.Default)));

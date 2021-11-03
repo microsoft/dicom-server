@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo # This allows access to the repository's files via the environment variable GITHUB_WORKSPACE
-        uses: actions/checkout@v2.3.5
+        uses: actions/checkout@v2.4.0
       - name: Script to Create OSS Release
         shell: pwsh
         env: # Use secret in repo to make necessary AzureDevOps calls.

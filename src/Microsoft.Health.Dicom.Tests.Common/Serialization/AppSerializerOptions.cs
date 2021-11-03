@@ -6,13 +6,13 @@
 using System.Text.Json;
 using FellowOakDicom.Serialization;
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
+namespace Microsoft.Health.Dicom.Tests.Common.Serialization
 {
-    internal static class ClientSerializerOptions
+    public static class AppSerializerOptions
     {
         public static JsonSerializerOptions Json { get; private set; }
 
-        static ClientSerializerOptions()
+        static AppSerializerOptions()
         {
             Json = new JsonSerializerOptions();
             Json.Converters.Add(new DicomJsonConverter());

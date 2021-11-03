@@ -1,13 +1,17 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
+using Microsoft.Health.Dicom.Client.Models;
+using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
@@ -23,6 +27,32 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             EnsureArg.IsNotNull(fixture, nameof(fixture));
             _client = fixture.Client;
             _isUsingRemoteTestServer = !fixture.IsUsingInProcTestServer;
+        }
+
+        [Fact]
+        public async Task WhenRetrievingPartitions_TheServerShouldReturnAllPartitions()
+        {
+            if (_isUsingRemoteTestServer)
+            {
+                // Data partition feature flag only enabled locally. For Remote servers, feature flag is by default disabled
+                return;
+            }
+
+            var newPartition1 = TestUidGenerator.Generate();
+            var newPartition2 = TestUidGenerator.Generate();
+
+            DicomFile dicomFile = Samples.CreateRandomDicomFile();
+
+            using DicomWebResponse<DicomDataset> response1 = await _client.StoreAsync(new[] { dicomFile }, partitionName: newPartition1);
+            using DicomWebResponse<DicomDataset> response2 = await _client.StoreAsync(new[] { dicomFile }, partitionName: newPartition2);
+
+            using DicomWebResponse<IEnumerable<PartitionEntry>> response3 = await _client.GetPartitionsAsync();
+            Assert.True(response3.IsSuccessStatusCode);
+
+            IEnumerable<PartitionEntry> values = await response3.GetValueAsync();
+
+            Assert.Contains(values, x => x.PartitionName == newPartition1);
+            Assert.Contains(values, x => x.PartitionName == newPartition2);
         }
 
         [Fact]
@@ -130,6 +160,85 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.True(response5.IsSuccessStatusCode);
         }
 
+        [Fact]
+        public async Task GivenMatchingStudiesInDifferentPartitions_WhenSearchForStudySeriesLevel_OnePartitionMatchesResult()
+        {
+            if (_isUsingRemoteTestServer)
+            {
+                // Data partition feature flag only enabled locally. For Remote servers, feature flag is by default disabled
+                return;
+            }
+
+            var newPartition1 = TestUidGenerator.Generate();
+            var newPartition2 = TestUidGenerator.Generate();
+
+            var studyUid = TestUidGenerator.Generate();
+
+            DicomFile file1 = Samples.CreateRandomDicomFile(studyUid);
+            file1.Dataset.AddOrUpdate(new DicomDataset()
+            {
+                 { DicomTag.Modality, "MRI" },
+            });
+
+            DicomFile file2 = Samples.CreateRandomDicomFile(studyUid);
+            file2.Dataset.AddOrUpdate(new DicomDataset()
+            {
+                 { DicomTag.Modality, "MRI" },
+            });
+
+            using DicomWebResponse<DicomDataset> response1 = await _client.StoreAsync(new[] { file1 }, partitionName: newPartition1);
+            using DicomWebResponse<DicomDataset> response2 = await _client.StoreAsync(new[] { file2 }, partitionName: newPartition2);
+
+            using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryStudySeriesAsync(studyUid, "Modality=MRI", newPartition1);
+
+            DicomDataset[] datasets = await response.ToArrayAsync();
+
+            Assert.Single(datasets);
+            ValidationHelpers.ValidateResponseDataset(QueryResource.StudySeries, file1.Dataset, datasets[0]);
+        }
+
+        [Fact]
+        public async Task GivenAnInstance_WhenRetrievingChangeFeedWithPartition_ThenPartitionNameIsReturned()
+        {
+            if (_isUsingRemoteTestServer)
+            {
+                // Data partition feature flag only enabled locally. For Remote servers, feature flag is by default disabled
+                return;
+            }
+
+            var newPartition = TestUidGenerator.Generate();
+            string studyInstanceUID = TestUidGenerator.Generate();
+            string seriesInstanceUID = TestUidGenerator.Generate();
+            string sopInstanceUID = TestUidGenerator.Generate();
+
+            DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
+            using DicomWebResponse<DicomDataset> response1 = await _client.StoreAsync(new[] { dicomFile }, partitionName: newPartition);
+            Assert.True(response1.IsSuccessStatusCode);
+
+            long initialSequence;
+
+            using (DicomWebResponse<ChangeFeedEntry> response = await _client.GetChangeFeedLatest("?includemetadata=false"))
+            {
+                ChangeFeedEntry changeFeedEntry = await response.GetValueAsync();
+
+                initialSequence = changeFeedEntry.Sequence;
+
+                Assert.Equal(newPartition, changeFeedEntry.PartitionName);
+                Assert.Equal(studyInstanceUID, changeFeedEntry.StudyInstanceUid);
+                Assert.Equal(seriesInstanceUID, changeFeedEntry.SeriesInstanceUid);
+                Assert.Equal(sopInstanceUID, changeFeedEntry.SopInstanceUid);
+            }
+
+            using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _client.GetChangeFeed($"?offset={initialSequence - 1}&includemetadata=false"))
+            {
+                ChangeFeedEntry[] changeFeedResults = await response.ToArrayAsync();
+
+                Assert.Single(changeFeedResults);
+                Assert.Null(changeFeedResults[0].Metadata);
+                Assert.Equal(newPartition, changeFeedResults[0].PartitionName);
+                Assert.Equal(ChangeFeedState.Current, changeFeedResults[0].State);
+            }
+        }
 
         private (string SopInstanceUid, string RetrieveUri, string SopClassUid) ConvertToReferencedSopSequenceEntry(DicomDataset dicomDataset, string partitionName)
         {

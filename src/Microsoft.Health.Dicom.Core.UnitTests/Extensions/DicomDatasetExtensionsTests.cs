@@ -8,8 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using FellowOakDicom;
-using FellowOakDicom.Serialization;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Tests.Common.Serialization;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
@@ -354,13 +354,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
             // have a consistent way of getting the value out of it. So we will cheat a little bit
             // by serialize the DicomDataset into JSON string. The serializer ensures the items are
             // ordered properly.
-            var options = new JsonSerializerOptions();
-
-            options.Converters.Add(new DicomJsonConverter());
-
             Assert.Equal(
-                JsonSerializer.Serialize(expectedDicomDataset, options),
-                JsonSerializer.Serialize(copiedDicomDataset, options));
+                JsonSerializer.Serialize(expectedDicomDataset, AppSerializerOptions.Json),
+                JsonSerializer.Serialize(copiedDicomDataset, AppSerializerOptions.Json));
 
             void AddCopy<T>(Func<T> creator)
                 where T : DicomItem

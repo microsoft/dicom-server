@@ -9,6 +9,7 @@ using System.Text;
 using FellowOakDicom;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.SqlServer.Features.Query;
@@ -22,6 +23,32 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
     public class SqlQueryGeneratorTests
     {
         private const string SqlDateFormat = "yyyy-MM-dd HH:mm:ss.ffffff";
+
+        [Fact]
+        public void VersionGTE6_GivenStudyDate_WhenIELevelStudy_ValidatePartitionKeySpecified()
+        {
+            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+            var includeField = new QueryIncludeField(new List<DicomTag>());
+            var minDate = new DateTime(2020, 2, 1);
+            var maxDate = new DateTime(2020, 3, 1);
+
+            var filters = new List<QueryFilterCondition>()
+            {
+                new DateRangeValueMatchCondition(new QueryTag(DicomTag.StudyDate), minDate, maxDate),
+            };
+            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
+
+            var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
+            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V6, DefaultPartition.Key);
+
+            string expectedDistinctSelect = @"SELECT 
+st.StudyKey
+FROM dbo.Study st
+WHERE 1 = 1
+AND st.PartitionKey = 1";
+
+            Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
+        }
 
         [Fact]
         public void GivenStudyDate_WhenIELevelStudy_ValidateDistinctStudyStudies()
@@ -38,13 +65,12 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
             var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
 
             var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V6);
+            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
             string expectedDistinctSelect = @"SELECT 
 st.StudyKey
 FROM dbo.Study st
-WHERE 1 = 1
-AND st.PartitionKey = 1";
+WHERE 1 = 1";
 
             string expectedCrossApply = @"
 FROM dbo.Instance a
@@ -59,9 +85,12 @@ ORDER BY st.StudyKey DESC
 OFFSET 0 ROWS
 FETCH NEXT 100 ROWS ONLY";
 
+            string partitionFilter = "AND st.PartitionKey = 1";
+
             Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
             Assert.Contains(expectedCrossApply, stringBuilder.ToString());
             Assert.Contains(expectedFilterAndPage, stringBuilder.ToString());
+            Assert.DoesNotContain(partitionFilter, stringBuilder.ToString());
         }
 
         [Fact]
@@ -76,7 +105,7 @@ FETCH NEXT 100 ROWS ONLY";
             var query = new QueryExpression(QueryResource.AllSeries, includeField, false, 0, 0, filters, Array.Empty<string>());
 
             var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4);
+            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
             string expectedDistinctSelect = @"SELECT 
 st.StudyKey
@@ -118,7 +147,7 @@ ORDER BY a.Watermark DESC";
             var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
 
             var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4);
+            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
             string expectedDistinctSelect = @"SELECT 
 i.StudyInstanceUid
@@ -159,7 +188,7 @@ FETCH NEXT 100 ROWS ONLY";
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4);
+            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
             string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagString cts1
 ON cts1.StudyKey = st.StudyKey
@@ -191,7 +220,7 @@ AND cts1.TagValue=@p1";
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4);
+            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
             string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagLong ctl1
 ON ctl1.StudyKey = st.StudyKey
@@ -223,7 +252,7 @@ AND ctl1.TagValue=@p1";
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4);
+            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
             string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagDouble ctd1
 ON ctd1.StudyKey = st.StudyKey
@@ -256,7 +285,7 @@ AND ctd1.TagValue=@p1";
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4);
+            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
             string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagDateTime ctdt1
 ON ctdt1.StudyKey = st.StudyKey
@@ -290,7 +319,7 @@ AND ctdt1.TagValue BETWEEN @p1 AND @p2";
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4);
+            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
             string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagDateTime ctdt1
 ON ctdt1.StudyKey = st.StudyKey
@@ -327,7 +356,7 @@ AND ctdt1.TagValue BETWEEN @p1 AND @p2";
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4);
+            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
             string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagLong ctl1
 ON ctl1.StudyKey = st.StudyKey
@@ -362,7 +391,7 @@ AND ctl1.TagValue BETWEEN @p1 AND @p2";
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4);
+            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
             string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagString cts1
 ON cts1.StudyKey = st.StudyKey
@@ -401,7 +430,7 @@ AND cts1.TagValue=@p2";
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4);
+            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
             // cts1 is associated with filter1 which is at the instance level. This means the join should be on all three keys.
             // cts2 is associated with filter2 which is at the series level. This means the join should be on only study and series keys.
@@ -454,7 +483,7 @@ AND cts2.TagValue=@p3";
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4);
+            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
             // cts1 is associated with filter1 which is at the instance level. This means the join should be on all three keys.
             // cts2 is associated with filter2 which is at the series level. This means the join should be on only study and series keys.
@@ -500,7 +529,7 @@ AND ctl4.TagValue=@p5";
             var query = new QueryExpression(QueryResource.AllStudies, includeField, true, 10, 0, filters, Array.Empty<string>());
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4);
+            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
             string expectedParam = $"\"Fall 6*\"";
 
@@ -525,7 +554,7 @@ AND ctl4.TagValue=@p5";
             var query = new QueryExpression(QueryResource.AllInstances, includeField, true, 10, 0, filters, Array.Empty<string>());
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4);
+            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
             string expectedParam = $"\"Fall 6*\"";
 

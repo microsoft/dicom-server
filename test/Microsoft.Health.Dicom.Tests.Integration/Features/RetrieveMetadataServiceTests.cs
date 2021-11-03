@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using FellowOakDicom.Serialization;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -21,6 +20,7 @@ using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Tests.Common.Serialization;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence;
 using NSubstitute;
 using Xunit;
@@ -30,7 +30,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
     public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
     {
         private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
-        private static readonly JsonSerializerOptions SerializerOptions = new JsonSerializerOptions();
 
         private readonly RetrieveMetadataService _retrieveMetadataService;
         private readonly IInstanceStore _instanceStore;
@@ -52,11 +51,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
 
             _retrieveMetadataService = new RetrieveMetadataService(_instanceStore, _metadataStore, _eTagGenerator, _dicomRequestContextAccessor);
-        }
-
-        static RetrieveMetadataServiceTests()
-        {
-            SerializerOptions.Converters.Add(new DicomJsonConverter());
         }
 
         [Fact]
@@ -180,8 +174,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         {
             // Compare result datasets by serializing.
             Assert.Equal(
-                JsonSerializer.Serialize(storedDataset, SerializerOptions),
-                JsonSerializer.Serialize(retrievedDataset, SerializerOptions));
+                JsonSerializer.Serialize(storedDataset, AppSerializerOptions.Json),
+                JsonSerializer.Serialize(retrievedDataset, AppSerializerOptions.Json));
         }
     }
 }
