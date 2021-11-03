@@ -12,6 +12,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Audit
     {
         public const string System = "http://dicom.nema.org/medical/dicom/current/output/html/part15.html#sect_A.5.1";
 
+        public const string Partition = "partition";
+
         public const string ChangeFeed = "change-feed";
 
         public const string Delete = "delete";

@@ -1,14 +1,16 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Client;
+using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
@@ -25,6 +27,32 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             EnsureArg.IsNotNull(fixture, nameof(fixture));
             _client = fixture.Client;
             _isUsingRemoteTestServer = !fixture.IsUsingInProcTestServer;
+        }
+
+        [Fact]
+        public async Task WhenRetrievingPartitions_TheServerShouldReturnAllPartitions()
+        {
+            if (_isUsingRemoteTestServer)
+            {
+                // Data partition feature flag only enabled locally. For Remote servers, feature flag is by default disabled
+                return;
+            }
+
+            var newPartition1 = TestUidGenerator.Generate();
+            var newPartition2 = TestUidGenerator.Generate();
+
+            DicomFile dicomFile = Samples.CreateRandomDicomFile();
+
+            using DicomWebResponse<DicomDataset> response1 = await _client.StoreAsync(new[] { dicomFile }, partitionName: newPartition1);
+            using DicomWebResponse<DicomDataset> response2 = await _client.StoreAsync(new[] { dicomFile }, partitionName: newPartition2);
+
+            using DicomWebResponse<IEnumerable<PartitionEntry>> response3 = await _client.GetPartitionsAsync();
+            Assert.True(response3.IsSuccessStatusCode);
+
+            IEnumerable<PartitionEntry> values = await response3.GetValueAsync();
+
+            Assert.Contains(values, x => x.PartitionName == newPartition1);
+            Assert.Contains(values, x => x.PartitionName == newPartition2);
         }
 
         [Fact]
