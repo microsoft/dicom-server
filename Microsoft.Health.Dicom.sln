@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28729.10
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31825.309
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{404C6C33-DB00-4182-BD90-F10A8B17C321}"
 	ProjectSection(SolutionItems) = preProject
@@ -34,6 +34,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.UnitTests", "src\Microsoft.Health.Dicom.Functions.UnitTests\Microsoft.Health.Dicom.Functions.UnitTests.csproj", "{3D679950-A578-45AD-AF89-FAF89580375F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Metadata", "src\Microsoft.Health.Dicom.Metadata\Microsoft.Health.Dicom.Metadata.csproj", "{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.Operations", "src\Microsoft.Health.Dicom.Operations\Microsoft.Health.Dicom.Operations.csproj", "{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Tests.Common", "src\Microsoft.Health.Dicom.Tests.Common\Microsoft.Health.Dicom.Tests.Common.csproj", "{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}"
 EndProject
@@ -105,6 +107,10 @@ Global
 		{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -151,9 +157,10 @@ Global
 		{ECC018C1-BFA8-44BE-B560-ACB05CA57251} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{BFB96311-9B1A-41C1-ABF1-4F6522660084} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{1D0ECFDA-2AF2-4796-995D-A7C6E18C9CD1} = {8C9A0050-5D22-4398-9F93-DDCD80B3BA51}
+		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_SortFileContentOnSave = True
 		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
+		RESX_SortFileContentOnSave = True
 	EndGlobalSection
 EndGlobal

@@ -7,7 +7,7 @@ using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Core.Registration;
 
-namespace Microsoft.Health.Dicom.Functions.Registration
+namespace Microsoft.Health.Dicom.Operations.Registration
 {
     internal class DicomFunctionsBuilder : IDicomFunctionsBuilder
     {

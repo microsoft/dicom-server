@@ -5,7 +5,7 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace Microsoft.Health.Dicom.Functions.Configuration
+namespace Microsoft.Health.Dicom.Operations.Configuration
 {
     internal class DicomBlobContainerConfiguration
     {

@@ -21,11 +21,11 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Models.Operations;
-using Microsoft.Health.Dicom.Functions.Durable;
-using Microsoft.Health.Dicom.Functions.Extensions;
-using Microsoft.Health.Dicom.Functions.Indexing.Models;
+using Microsoft.Health.Dicom.Operations.Durable;
+using Microsoft.Health.Dicom.Operations.Extensions;
+using Microsoft.Health.Dicom.Operations.Indexing.Models;
 
-namespace Microsoft.Health.Dicom.Functions.Management
+namespace Microsoft.Health.Dicom.Operations.Management
 {
     /// <summary>
     /// Represents a set of Azure Functions that servce as a proxy for the <see cref="IDurableOrchestrationClient"/>.

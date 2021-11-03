@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Functions.Durable;
+using Microsoft.Health.Dicom.Operations.Durable;
 
-namespace Microsoft.Health.Dicom.Functions.Indexing.Models
+namespace Microsoft.Health.Dicom.Operations.Indexing.Models
 {
     internal class ReindexInput
     {

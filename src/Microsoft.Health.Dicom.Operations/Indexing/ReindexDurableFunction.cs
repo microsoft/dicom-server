@@ -9,10 +9,10 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
-using Microsoft.Health.Dicom.Functions.Durable;
+using Microsoft.Health.Dicom.Operations.Durable;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
-namespace Microsoft.Health.Dicom.Functions.Indexing
+namespace Microsoft.Health.Dicom.Operations.Indexing
 {
     /// <summary>
     /// Represents the Azure Durable Functions that perform the re-indexing of previously added DICOM instances

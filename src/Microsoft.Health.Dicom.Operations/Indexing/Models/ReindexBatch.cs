@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
-namespace Microsoft.Health.Dicom.Functions.Indexing.Models
+namespace Microsoft.Health.Dicom.Operations.Indexing.Models
 {
     /// <summary>
     ///  Represents input to <see cref="ReindexDurableFunction.ReindexBatchAsync"/>

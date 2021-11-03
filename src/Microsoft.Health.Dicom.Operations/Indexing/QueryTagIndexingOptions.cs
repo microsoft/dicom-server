@@ -7,9 +7,9 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
-using Microsoft.Health.Dicom.Functions.Durable;
+using Microsoft.Health.Dicom.Operations.Durable;
 
-namespace Microsoft.Health.Dicom.Functions.Indexing
+namespace Microsoft.Health.Dicom.Operations.Indexing
 {
     /// <summary>
     /// Represents the options for a "re-index" function.

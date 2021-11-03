@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AzureFunctionsVersion>v3</AzureFunctionsVersion>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
@@ -25,16 +24,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.Health.Dicom.Operations\Microsoft.Health.Dicom.Operations.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Dicom.Metadata\Microsoft.Health.Dicom.Metadata.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Dicom.SqlServer\Microsoft.Health.Dicom.SqlServer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="host.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="local.settings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    <None Include="Indexing\ReindexDurableFunction.*.cs">
+      <DependentUpon>ReindexDurableFunction.cs</DependentUpon>
     </None>
   </ItemGroup>
 

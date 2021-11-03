@@ -5,7 +5,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.Health.Dicom.Functions.Durable
+namespace Microsoft.Health.Dicom.Operations.Durable
 {
     internal class OperationProgress
     {

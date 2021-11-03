@@ -20,10 +20,10 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Models.Operations;
-using Microsoft.Health.Dicom.Functions.Extensions;
-using Microsoft.Health.Dicom.Functions.Indexing.Models;
+using Microsoft.Health.Dicom.Operations.Extensions;
+using Microsoft.Health.Dicom.Operations.Indexing.Models;
 
-namespace Microsoft.Health.Dicom.Functions.Indexing
+namespace Microsoft.Health.Dicom.Operations.Indexing
 {
     public partial class ReindexDurableFunction
     {

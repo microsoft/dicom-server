@@ -5,6 +5,8 @@
 
 using System;
 using System.Resources;
+using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("Microsoft.Health.Dicom.Operations.UnitTests")]
 [assembly: NeutralResourcesLanguage("en-us")]
 [assembly: CLSCompliant(false)]

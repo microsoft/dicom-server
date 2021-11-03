@@ -7,7 +7,7 @@ using System.Threading;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
 
-namespace Microsoft.Health.Dicom.Functions.Extensions
+namespace Microsoft.Health.Dicom.Operations.Extensions
 {
     internal static class HttpRequestExtensions
     {

@@ -7,12 +7,7 @@ using EnsureThat;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Health.Dicom.Core.Configs;
-using Microsoft.Health.Dicom.Core.Modules;
-using Microsoft.Health.Dicom.Functions.Configuration;
-using Microsoft.Health.Dicom.Functions.Indexing;
-using Microsoft.Health.Dicom.Functions.Management;
-using Microsoft.Health.Extensions.DependencyInjection;
+using Microsoft.Health.Dicom.Operations.Configuration;
 
 [assembly: FunctionsStartup(typeof(Microsoft.Health.Dicom.Functions.Startup))]
 namespace Microsoft.Health.Dicom.Functions
@@ -23,25 +18,11 @@ namespace Microsoft.Health.Dicom.Functions
         {
             EnsureArg.IsNotNull(builder, nameof(builder));
 
-            IConfiguration config = builder
-                .GetContext()
-                .Configuration
-                .GetSection(DicomFunctionsConfiguration.HostSectionName);
-
-            // Common DICOM Services
+            IConfiguration config = builder.GetHostConfiguration();
             builder.Services
-                .AddRecyclableMemoryStreamManager()
-                .AddDicomJsonNetSerialization()
-                .AddStorageServices(config);
-
-            // Function Services
-            builder.Services
-                .AddFunctionsOptions<QueryTagIndexingOptions>(config, QueryTagIndexingOptions.SectionName, bindNonPublicProperties: true)
-                .AddFunctionsOptions<PurgeHistoryOptions>(config, PurgeHistoryOptions.SectionName)
-                .AddDurableFunctionServices()
-                .AddHttpServices();
-
-            builder.Services.RegisterModule<ServiceModule>(new FeatureConfiguration { EnableExtendedQueryTags = true });
+                .ConfigureFunctions(config)
+                .AddMetadataStorageDataStore(config)
+                .AddSqlServer(config);
         }
     }
 }

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 
-namespace Microsoft.Health.Dicom.Functions.Management
+namespace Microsoft.Health.Dicom.Operations.Management
 {
     public class PurgeHistoryOptions
     {

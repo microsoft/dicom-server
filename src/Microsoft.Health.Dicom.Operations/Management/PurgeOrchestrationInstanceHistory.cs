@@ -12,9 +12,9 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Functions.Configuration;
+using Microsoft.Health.Dicom.Operations.Configuration;
 
-namespace Microsoft.Health.Dicom.Functions.Management
+namespace Microsoft.Health.Dicom.Operations.Management
 {
     public class PurgeOrchestrationInstanceHistory
     {
@@ -22,7 +22,7 @@ namespace Microsoft.Health.Dicom.Functions.Management
         private readonly Func<DateTime> _getUtcNow;
 
         public const string PurgeFrequencyVariable = "%"
-            + DicomFunctionsConfiguration.HostSectionName + ":"
+            + AzureFunctionsJobHost.RootConfigurationSectionName + ":"
             + DicomFunctionsConfiguration.SectionName + ":"
             + PurgeHistoryOptions.SectionName + ":"
             + nameof(PurgeHistoryOptions.Frequency) + "%";
