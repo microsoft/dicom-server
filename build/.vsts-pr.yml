@@ -8,67 +8,66 @@ variables:
 - template: pr-variables.yml
 
 stages:
-- stage: UpdateVersion
-  displayName: 'Determine Semantic Version'
-  dependsOn: []
-  jobs:
-  - job: Semver
-    pool:
-      vmImage: $(WindowsVmImage)
-    steps:
-    - template: ./update-semver.yml
-    - powershell: |
-        $buildNumber = "$(GitVersion.SemVer)" -replace "\.", ""
-        Write-Host "##vso[build.updatebuildnumber]$buildNumber"
-        Write-Host "Updated build number to '$buildNumber'"
-      name: SetBuildVersion
+# - stage: UpdateVersion
+#   displayName: 'Determine Semantic Version'
+#   dependsOn: []
+#   jobs:
+#   - job: Semver
+#     pool:
+#       vmImage: $(WindowsVmImage)
+#     steps:
+#     - template: ./update-semver.yml
+#     - powershell: |
+#         $buildNumber = "$(GitVersion.SemVer)" -replace "\.", ""
+#         Write-Host "##vso[build.updatebuildnumber]$buildNumber"
+#         Write-Host "Updated build number to '$buildNumber'"
+#       name: SetBuildVersion
 
-- stage: BuildRunUnitTests
-  displayName: 'Build and Run Unit Tests'
-  dependsOn:
-  - UpdateVersion
-  variables:
-    assemblySemVer: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.AssemblySemVer']]
-    assemblySemFileVer: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.AssemblySemFileVer']]
-    informationalVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.InformationalVersion']]
-    majorMinorPatch: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.MajorMinorPatch']]
-    nuGetVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.SemVer']]
-  jobs:
-  - job: Linux
-    pool:
-     vmImage: 'ubuntu-latest'
-    steps:
-    - template: build.yml
-      parameters:
-        packageArtifacts: true
-        packageNugets: false
+# - stage: BuildRunUnitTests
+#   displayName: 'Build and Run Unit Tests'
+#   dependsOn:
+#   - UpdateVersion
+#   variables:
+#     assemblySemVer: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.AssemblySemVer']]
+#     assemblySemFileVer: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.AssemblySemFileVer']]
+#     informationalVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.InformationalVersion']]
+#     majorMinorPatch: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.MajorMinorPatch']]
+#     nuGetVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.SemVer']]
+#   jobs:
+#   - job: Linux
+#     pool:
+#      vmImage: 'ubuntu-latest'
+#     steps:
+#     - template: build.yml
+#       parameters:
+#         packageArtifacts: true
+#         packageNugets: false
 
-- stage: AnalyzeSecurity
-  displayName: 'Run Security Analysis'
-  dependsOn:
-  - BuildRunUnitTests
-  jobs:
-  - job: Windows
-    pool:
-      vmImage: $(windowsVmImage)
-    steps:
-    - template: analyze.yml
-      parameters:
-        analyzePackages: false
+# - stage: AnalyzeSecurity
+#   displayName: 'Run Security Analysis'
+#   dependsOn:
+#   - BuildRunUnitTests
+#   jobs:
+#   - job: Windows
+#     pool:
+#       vmImage: $(windowsVmImage)
+#     steps:
+#     - template: analyze.yml
+#       parameters:
+#         analyzePackages: false
 
 - stage: DeployTestEnvironment
   displayName: 'Deploy Test Environment'
-  dependsOn:
-  - BuildRunUnitTests
+  dependsOn: []
   jobs:
   - template: deploy.yml
 
-- stage: ValidateAPIVersioning
-  displayName: 'Detect Breaking Changes in REST API'
-  dependsOn:
-  - BuildRunUnitTests
-  jobs:
-  - template: versioning.yml
+# - stage: ValidateAPIVersioning
+#   displayName: 'Detect Breaking Changes in REST API'
+#   dependsOn:
+#   - BuildRunUnitTests
+#   jobs:
+#   - template: versioning.yml
 
 - stage: RunIntegrationTests
   displayName: 'Run Integration tests'
