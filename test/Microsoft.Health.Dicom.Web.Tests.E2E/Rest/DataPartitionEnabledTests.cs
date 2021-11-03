@@ -146,9 +146,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             string seriesInstanceUID = TestUidGenerator.Generate();
             string sopInstanceUID = TestUidGenerator.Generate();
 
-
             DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
             using DicomWebResponse<DicomDataset> response1 = await _client.StoreAsync(new[] { dicomFile }, partitionName: newPartition);
+            Assert.True(response1.IsSuccessStatusCode);
 
             long initialSequence;
 
