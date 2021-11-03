@@ -28,10 +28,10 @@ namespace Microsoft.Health.Dicom.Api.Controllers
     public class PartitionController : Controller
     {
         private readonly IMediator _mediator;
-        private readonly ILogger<QueryController> _logger;
+        private readonly ILogger<PartitionController> _logger;
         private readonly bool _featureEnabled;
 
-        public PartitionController(IMediator mediator, ILogger<QueryController> logger, IOptions<FeatureConfiguration> featureConfiguration)
+        public PartitionController(IMediator mediator, ILogger<PartitionController> logger, IOptions<FeatureConfiguration> featureConfiguration)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
             EnsureArg.IsNotNull(logger, nameof(logger));
