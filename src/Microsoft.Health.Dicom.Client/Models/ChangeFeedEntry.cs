@@ -23,7 +23,8 @@ namespace Microsoft.Health.Dicom.Client.Models
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
-            ChangeFeedState state)
+            ChangeFeedState state,
+            string partitionName = default)
         {
             EnsureArg.IsNotNull(studyInstanceUid);
             EnsureArg.IsNotNull(seriesInstanceUid);
@@ -36,9 +37,12 @@ namespace Microsoft.Health.Dicom.Client.Models
             Action = action;
             Timestamp = timestamp;
             State = state;
+            PartitionName = partitionName;
         }
 
         public long Sequence { get; }
+
+        public string PartitionName { get; }
 
         public string StudyInstanceUid { get; }
 
