@@ -33,6 +33,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         }
 
         public override async Task<QueryResult> QueryAsync(
+            int partitionKey,
             QueryExpression query,
             CancellationToken cancellationToken)
         {
@@ -44,7 +45,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
 
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var sqlQueryGenerator = new SqlQueryGenerator(stringBuilder, query, new SqlQueryParameterManager(sqlCommandWrapper.Parameters), Version);
+            var sqlQueryGenerator = new SqlQueryGenerator(stringBuilder, query, new SqlQueryParameterManager(sqlCommandWrapper.Parameters), Version, partitionKey);
 
             sqlCommandWrapper.CommandText = stringBuilder.ToString();
             LogSqlCommand(sqlCommandWrapper);

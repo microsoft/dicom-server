@@ -3,17 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Core.Features.Query.Model;
+using Microsoft.Health.Dicom.Client.Models;
 
-namespace Microsoft.Health.Dicom.Core.Features.Query
+namespace Microsoft.Health.Dicom.Client
 {
-    public interface IQueryStore
+    public partial interface IDicomWebClient
     {
-        Task<QueryResult> QueryAsync(
-            int partitionKey,
-            QueryExpression query,
-            CancellationToken cancellationToken = default);
+        Task<DicomWebResponse<IEnumerable<PartitionEntry>>> GetPartitionsAsync(CancellationToken cancellationToken = default);
     }
 }

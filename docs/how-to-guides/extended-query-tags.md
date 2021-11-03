@@ -458,7 +458,7 @@ Represents extended query tag for adding.
 }
 ```
 
- **Example3: **the standard tag (0010,0040) is defined on studies: the value representation is already defined by the DICOM standard
+ **Example3:** the standard tag (0010,0040) is defined on studies: the value representation is already defined by the DICOM standard
 
 ```json
 {
