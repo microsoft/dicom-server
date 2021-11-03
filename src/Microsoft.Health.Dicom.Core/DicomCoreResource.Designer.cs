@@ -97,7 +97,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Data partitions feature cannot be disabled when the service has existing data..
+        ///   Looks up a localized string similar to Data partitions feature cannot be disabled while existing data has already been partitioned..
         /// </summary>
         internal static string DataPartitionFeatureCannotBeDisabled {
             get {

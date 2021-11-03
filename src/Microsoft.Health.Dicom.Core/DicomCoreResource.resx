@@ -466,6 +466,6 @@ For details on valid range queries, please refer to Search Matching section in C
     <comment>{0} PartitionName value.</comment>
   </data>
   <data name="DataPartitionFeatureCannotBeDisabled" xml:space="preserve">
-    <value>Data partitions feature cannot be disabled while existing data has already been partitioned./value>
+    <value>Data partitions feature cannot be disabled while existing data has already been partitioned.</value>
   </data>
 </root>
