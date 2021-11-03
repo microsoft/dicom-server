@@ -33,7 +33,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Partition
             IOptions<FeatureConfiguration> featureConfiguration)
         {
             _serviceProvider = serviceProvider;
-            EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
+            EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
+
             _isPartitionEnabled = featureConfiguration.Value.EnableDataPartitions;
         }
 
