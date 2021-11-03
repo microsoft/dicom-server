@@ -1,8 +1,8 @@
 {
 	"info": {
-		"_postman_id": "17bcaefa-8e28-4062-a1a6-e34e280c1117",
+		"_postman_id": "de237534-c661-4844-9846-0295f39a179a",
 		"name": "Conformance-as-Postman",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
 	},
 	"item": [
 		{
@@ -52,15 +52,7 @@
 						}
 					}
 				},
-				"url": {
-					"raw": "{{baseUrl}}/studies",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"studies"
-					]
-				},
+				"url": "{{baseUrl}}/partitions/{{partitionName}}/studies",
 				"description": "For the body of the request, select the red-triangle.dcm file located in the GitHub repo at ../docs/dcms.  Ensure you attach the file as `binary`.\r\n\r\n> NOTE: This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related. It allows the use of Postman to upload files to the DICOMweb service.\r\n\r\nThe following is required to upload a single DICOM file.\r\n\r\n* Path: ../studies\r\n* Method: POST\r\n* Headers:\r\n   *  `Accept: application/dicom+json`\r\n   *  `Content-Type: application/dicom`\r\n* Body:\r\n    * Contains the DICOM file as a bytes.\r\n\r\n> This API is currently not implemented\r\n"
 			},
 			"response": []
@@ -112,15 +104,7 @@
 						}
 					}
 				},
-				"url": {
-					"raw": "{{baseUrl}}/studies",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"studies"
-					]
-				},
+				"url": "{{baseUrl}}/partitions/{{partitionName}}/studies",
 				"description": "This upload is simply to ensure the remaining requests succeed. Ideally, red-triangle.dcm, blue-cirle.dcm, and green-square.dcm are all uploaded.\r\n\r\nFor the body of the request, select the green-square.dcm file located in the GitHub repo at ../docs/dcms.  Ensure you attach the file as `binary`.\r\n\r\n> NOTE: This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related. It allows the use of Postman to upload files to the DICOMweb service.\r\n\r\nThe following is required to upload a single DICOM file.\r\n\r\n* Path: ../studies\r\n* Method: POST\r\n* Headers:\r\n   *  `Accept: application/dicom+json`\r\n   *  `Content-Type: application/dicom`\r\n* Body:\r\n    * Contains the DICOM file as a bytes.\r\n\r\n> This API is currently not implemented\r\n"
 			},
 			"response": []
@@ -172,15 +156,7 @@
 						}
 					}
 				},
-				"url": {
-					"raw": "{{baseUrl}}/studies",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"studies"
-					]
-				},
+				"url": "{{baseUrl}}/partitions/{{partitionName}}/studies",
 				"description": "This upload is simply to ensure the remaining requests succeed. Ideally, red-triangle.dcm, blue-cirle.dcm, and green-square.dcm are all uploaded.\r\n\r\nFor the body of the request, select the blue-circle.dcm file located in the GitHub repo at ../docs/dcms.  Ensure you attach the file as `binary`.\r\n\r\n> NOTE: This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related. It allows the use of Postman to upload files to the DICOMweb service.\r\n\r\nThe following is required to upload a single DICOM file.\r\n\r\n* Path: ../studies\r\n* Method: POST\r\n* Headers:\r\n   *  `Accept: application/dicom+json`\r\n   *  `Content-Type: application/dicom`\r\n* Body:\r\n    * Contains the DICOM file as a bytes.\r\n\r\n> This API is currently not implemented\r\n"
 			},
 			"response": []
@@ -237,15 +213,7 @@
 						}
 					}
 				},
-				"url": {
-					"raw": "{{baseUrl}}/studies",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"studies"
-					]
-				},
+				"url": "{{baseUrl}}/studies",
 				"description": "This request intends to demonstrate how to upload DICOM files using multipart/related. However, it will not work in Postman.\r\n\r\n> NOTE: Postman cannot be used to upload DICOM files in a way that complies with the DICOM standard. This is due to a Postman limitation. Instead, consider using cURL or programatically uploading the file using Python, C# or another full featured language.\r\n\r\n_Details:_\r\n\r\n* Path: ../studies\r\n* Method: POST\r\n* Headers:\r\n    * `Accept: application/dicom+json`\r\n    * `Content-Type: multipart/related; type=\"application/dicom\"`\r\n* Body:\r\n    * `Content-Type: application/dicom` for each file uploaded, separated by a boundary value\r\n\r\n> Some programming languages and tools behave differently. For instance, some require you to define your own boundary. For those, you may need to use a slightly modified Content-Type header. The following have been used successfully.\r\n> * `Content-Type: multipart/related; type=\"application/dicom\"; boundary=ABCD1234`\r\n> * `Content-Type: multipart/related; boundary=ABCD1234`\r\n> * `Content-Type: multipart/related`\r\n\r\nIf using Postman, please consider using Store-single-instance. This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related."
 			},
 			"response": []
@@ -259,16 +227,7 @@
 					"mode": "formdata",
 					"formdata": []
 				},
-				"url": {
-					"raw": "{{baseUrl}}/studies/{{study1}}",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"studies",
-						"{{study1}}"
-					]
-				},
+				"url": "{{baseUrl}}/studies/{{study1}}",
 				"description": "This request intends to demonstrate how to upload DICOM files using multipart/related to a designated study. However, it will not work in Postman.\r\n\r\n> NOTE: Postman cannot be used to upload DICOM files in a way that complies with the DICOM standard. This is due to a Postman limitation. Instead, consider using cURL or programatically uploading the file using Python, C# or another full featured language.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}\r\n* Method: POST\r\n* Headers:\r\n    * `Accept: application/dicom+json`\r\n    * `Content-Type: multipart/related; type=\"application/dicom\"`\r\n* Body:\r\n    * `Content-Type: application/dicom` for each file uploaded, separated by a boundary value\r\n\r\n> Some programming languages and tools behave differently. For instance, some require you to define your own boundary. For those, you may need to use a slightly modified Content-Type header. The following have been used successfully.\r\n > * `Content-Type: multipart/related; type=\"application/dicom\"; boundary=ABCD1234`\r\n > * `Content-Type: multipart/related; boundary=ABCD1234`\r\n > * `Content-Type: multipart/related`\r\n\r\nIf using Postman, please consider using Store-single-instance. This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related."
 			},
 			"response": []
@@ -303,16 +262,7 @@
 						"type": "text"
 					}
 				],
-				"url": {
-					"raw": "{{baseUrl}}/studies/{{study1}}",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"studies",
-						"{{study1}}"
-					]
-				},
+				"url": "{{baseUrl}}/partitions/{{partitionName}}/studies/{{study1}}",
 				"description": "This request retrieves all instances within a single study, and returns them as a collection of multipart/related bytes.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: multipart/related; type=\"application/dicom\"; transfer-syntax=*`\r\n"
 			},
 			"response": []
@@ -351,17 +301,7 @@
 						"type": "text"
 					}
 				],
-				"url": {
-					"raw": "{{baseUrl}}/studies/{{study1}}/metadata",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"studies",
-						"{{study1}}",
-						"metadata"
-					]
-				},
+				"url": "{{baseUrl}}/partitions/{{partitionName}}/studies/{{study1}}/metadata",
 				"description": "This request retrieves the metadata for all instances within a single study.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}/metadata\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`\r\n"
 			},
 			"response": []
@@ -395,18 +335,7 @@
 						"type": "text"
 					}
 				],
-				"url": {
-					"raw": "{{baseUrl}}/studies/{{study1}}/series/{{series1}}",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"studies",
-						"{{study1}}",
-						"series",
-						"{{series1}}"
-					]
-				},
+				"url": "{{baseUrl}}/partitions/{{partitionName}}/studies/{{study1}}/series/{{series1}}",
 				"description": "This request retrieves all instances within a single series, and returns them as a collection of multipart/related bytes.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}/series{series}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: multipart/related; type=\"application/dicom\"; transfer-syntax=*`\r\n"
 			},
 			"response": []
@@ -427,19 +356,7 @@
 						"type": "text"
 					}
 				],
-				"url": {
-					"raw": "{{baseUrl}}/studies/{{study1}}/series/{{series1}}/metadata",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"studies",
-						"{{study1}}",
-						"series",
-						"{{series1}}",
-						"metadata"
-					]
-				},
+				"url": "{{baseUrl}}/partitions/{{partitionName}}/studies/{{study1}}/series/{{series1}}/metadata",
 				"description": "This request retrieves the metadata for all instances within a single series.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}/series/{series}/metadata\r\n* Method: GET\r\n* Headers:\r\n  * `Accept: application/dicom+json`\r\n"
 			},
 			"response": []
@@ -466,20 +383,7 @@
 						"disabled": true
 					}
 				],
-				"url": {
-					"raw": "{{baseUrl}}/studies/{{study1}}/series/{{series1}}/instances/{{instance1}}",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"studies",
-						"{{study1}}",
-						"series",
-						"{{series1}}",
-						"instances",
-						"{{instance1}}"
-					]
-				},
+				"url": "{{baseUrl}}/partitions/{{partitionName}}/studies/{{study1}}/series/{{series1}}/instances/{{instance1}}",
 				"description": "This request retrieves a single instances, and returns it as a DICOM formatted stream of bytes.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}/series{series}/instances/{instance}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom; transfer-syntax=*`\r\n"
 			},
 			"response": []
@@ -500,21 +404,7 @@
 						"type": "text"
 					}
 				],
-				"url": {
-					"raw": "{{baseUrl}}/studies/{{study1}}/series/{{series1}}/instances/{{instance1}}/metadata",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"studies",
-						"{{study1}}",
-						"series",
-						"{{series1}}",
-						"instances",
-						"{{instance1}}",
-						"metadata"
-					]
-				},
+				"url": "{{baseUrl}}/partitions/{{partitionName}}/studies/{{study1}}/series/{{series1}}/instances/{{instance1}}/metadata",
 				"description": "This request retrieves the metadata for a single instances within a single study and series.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}/series/{series}/instances/{instance}/metadata\r\n* Method: GET\r\n* Headers:\r\n  * `Accept: application/dicom+json`"
 			},
 			"response": []
@@ -535,22 +425,7 @@
 						"type": "text"
 					}
 				],
-				"url": {
-					"raw": "{{baseUrl}}/studies/{{study1}}/series/{{series1}}/instances/{{instance1}}/frames/1",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"studies",
-						"{{study1}}",
-						"series",
-						"{{series1}}",
-						"instances",
-						"{{instance1}}",
-						"frames",
-						"1"
-					]
-				},
+				"url": "{{baseUrl}}/partitions/{{partitionName}}/studies/{{study1}}/series/{{series1}}/instances/{{instance1}}/frames/1",
 				"description": "This request retrieves one or more frames from a single instance, and returns them as a collection of multipart/related bytes.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}/series{series}/instances/{instance}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: multipart/related; type=\"application/octet-stream\"; transfer-syntax=1.2.840.10008.1.2.1` (Default) or\r\n   * `Accept: multipart/related; type=\"application/octet-stream\"; transfer-syntax=*` or\r\n   * `Accept: multipart/related; type=\"application/octet-stream\";`\r\n"
 			},
 			"response": []
@@ -572,11 +447,13 @@
 					}
 				],
 				"url": {
-					"raw": "{{baseUrl}}/studies?StudyInstanceUID={{study1}}",
+					"raw": "{{baseUrl}}/partitions/{{partitionName}}/studies?StudyInstanceUID={{study1}}",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
+						"partitions",
+						"{{partitionName}}",
 						"studies"
 					],
 					"query": [
@@ -602,11 +479,13 @@
 					}
 				],
 				"url": {
-					"raw": "{{baseUrl}}/series?SeriesInstanceUID={{series1}}",
+					"raw": "{{baseUrl}}/partitions/{{partitionName}}/series?SeriesInstanceUID={{series1}}",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
+						"partitions",
+						"{{partitionName}}",
 						"series"
 					],
 					"query": [
@@ -632,11 +511,13 @@
 					}
 				],
 				"url": {
-					"raw": "{{baseUrl}}/studies/{{study1}}/series?SeriesInstanceUID={{series1}}",
+					"raw": "{{baseUrl}}/partitions/{{partitionName}}/studies/{{study1}}/series?SeriesInstanceUID={{series1}}",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
+						"partitions",
+						"{{partitionName}}",
 						"studies",
 						"{{study1}}",
 						"series"
@@ -669,11 +550,13 @@
 					}
 				],
 				"url": {
-					"raw": "{{baseUrl}}/instances?SOPInstanceUID={{instance1}}",
+					"raw": "{{baseUrl}}/partitions/{{partitionName}}/instances?SOPInstanceUID={{instance1}}",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
+						"partitions",
+						"{{partitionName}}",
 						"instances"
 					],
 					"query": [
@@ -704,11 +587,13 @@
 					}
 				],
 				"url": {
-					"raw": "{{baseUrl}}/studies/{{study1}}/instances?SOPInstanceUID={{instance1}}",
+					"raw": "{{baseUrl}}/partitions/{{partitionName}}/studies/{{study1}}/instances?SOPInstanceUID={{instance1}}",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
+						"partitions",
+						"{{partitionName}}",
 						"studies",
 						"{{study1}}",
 						"instances"
@@ -741,11 +626,13 @@
 					}
 				],
 				"url": {
-					"raw": "{{baseUrl}}/studies/{{study1}}/series/{{series1}}/instances?SOPInstanceUID={{instance1}}",
+					"raw": "{{baseUrl}}/partitions/{{partitionName}}/studies/{{study1}}/series/{{series1}}/instances?SOPInstanceUID={{instance1}}",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
+						"partitions",
+						"{{partitionName}}",
 						"studies",
 						"{{study1}}",
 						"series",
@@ -768,20 +655,7 @@
 			"request": {
 				"method": "DELETE",
 				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/studies/{{study1}}/series/{{series1}}/instances/{{instance1}}",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"studies",
-						"{{study1}}",
-						"series",
-						"{{series1}}",
-						"instances",
-						"{{instance1}}"
-					]
-				},
+				"url": "{{baseUrl}}/partitions/{{partitionName}}/studies/{{study1}}/series/{{series1}}/instances/{{instance1}}",
 				"description": "This request deletes a single instance within a single study and single series.\r\n\r\n> Delete is not part of the DICOM standard, but has been added for convenience.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}/series/{{series}}/instances/{{instance}}\r\n* Method: DELETE\r\n* Headers: No special headers needed"
 			},
 			"response": []
@@ -791,18 +665,7 @@
 			"request": {
 				"method": "DELETE",
 				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/studies/{{study1}}/series/{{series1}}",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"studies",
-						"{{study1}}",
-						"series",
-						"{{series1}}"
-					]
-				},
+				"url": "{{baseUrl}}/partitions/{{partitionName}}/studies/{{study1}}/series/{{series1}}",
 				"description": "This request deletes a single series (and all child instances) within a single study.\r\n\r\n> Delete is not part of the DICOM standard, but has been added for convenience.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}/series/{{series}}\r\n* Method: DELETE\r\n* Headers: No special headers needed"
 			},
 			"response": []
@@ -812,17 +675,91 @@
 			"request": {
 				"method": "DELETE",
 				"header": [],
+				"url": "{{baseUrl}}/partitions/{{partitionName}}/studies/{{study1}}",
+				"description": "This request deletes a single study (and all child series and instances).\r\n\r\n> Delete is not part of the DICOM standard, but has been added for convenience.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}\r\n* Method: DELETE\r\n* Headers: No special headers needed"
+			},
+			"response": []
+		},
+		{
+			"name": "Get-all-partitions",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "{{baseUrl}}/partitions"
+			},
+			"response": []
+		},
+		{
+			"name": "Create-extended-query-tag",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"Path\": \"{{extendedQueryTag}}\",\r\n    \"VR\": \"SS\",\r\n    \"PrivateCreator\": \"MicrosoftPC\",\r\n    \"Level\": \"Instance\"\r\n}"
+				},
+				"url": "{{baseUrl}}/extendedquerytags"
+			},
+			"response": []
+		},
+		{
+			"name": "Get-all-extended-query-tags",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "{{baseUrl}}/extendedquerytags"
+			},
+			"response": []
+		},
+		{
+			"name": "Get-extended-query-tag",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "{{baseUrl}}/extendedquerytags/{{extendedQueryTag}}"
+			},
+			"response": []
+		},
+		{
+			"name": "Search-for-extended-query-tag",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/dicom+json",
+						"type": "text"
+					}
+				],
 				"url": {
-					"raw": "{{baseUrl}}/studies/{{study1}}",
+					"raw": "{{baseUrl}}/partitions/{{partitionName}}/instances?{{extendedQueryTag}}=123",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
-						"studies",
-						"{{study1}}"
+						"partitions",
+						"{{partitionName}}",
+						"instances"
+					],
+					"query": [
+						{
+							"key": "{{extendedQueryTag}}",
+							"value": "123"
+						}
 					]
 				},
-				"description": "This request deletes a single study (and all child series and instances).\r\n\r\n> Delete is not part of the DICOM standard, but has been added for convenience.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}\r\n* Method: DELETE\r\n* Headers: No special headers needed"
+				"description": "This request enables searches for one or more instances by DICOM attributes.\r\n\r\n> Please see the [Conformance.md](https://github.com/microsoft/dicom-server/blob/main/docs/users/Conformance.md) file for supported DICOM attributes.\r\n\r\n_Details:_\r\n* Path: ../instances?SOPInstanceUID={{instance}}\r\n* Method: GET\r\n* Headers:\r\n   * `Accept: application/dicom+json`\r\n"
 			},
 			"response": []
 		}
@@ -867,6 +804,14 @@
 		{
 			"key": "instance2",
 			"value": "1.2.826.0.1.3680043.8.498.12714725698140337137334606354172323212\n"
+		},
+		{
+			"key": "partitionName",
+			"value": "Microsoft.Default"
+		},
+		{
+			"key": "extendedQueryTag",
+			"value": "04011001"
 		}
 	]
 }
