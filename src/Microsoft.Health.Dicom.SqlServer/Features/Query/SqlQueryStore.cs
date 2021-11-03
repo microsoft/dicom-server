@@ -20,11 +20,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             => _cache = EnsureArg.IsNotNull(cache, nameof(cache));
 
         public async Task<QueryResult> QueryAsync(
+            int partitionKey,
             QueryExpression query,
             CancellationToken cancellationToken)
         {
             ISqlQueryStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-            return await store.QueryAsync(query, cancellationToken);
+            return await store.QueryAsync(partitionKey, query, cancellationToken);
         }
     }
 }

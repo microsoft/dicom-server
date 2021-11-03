@@ -3,10 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Linq;
 using Dicom;
+using Dicom.Serialization;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Query;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Common
@@ -58,6 +62,75 @@ namespace Microsoft.Health.Dicom.Tests.Common
                     Assert.Equal(expectedValue, actual.GetSingleValueOrDefault<string>(dicomTag));
                 }
             }
+        }
+
+        public static void ValidateResponseDataset(
+            QueryResource resource,
+            DicomDataset storedInstance,
+            DicomDataset responseInstance)
+        {
+            DicomDataset expectedDataset = storedInstance.Clone();
+            HashSet<DicomTag> levelTags = new HashSet<DicomTag>();
+            switch (resource)
+            {
+                case QueryResource.AllStudies:
+                    levelTags.Add(DicomTag.StudyInstanceUID);
+                    levelTags.Add(DicomTag.PatientID);
+                    levelTags.Add(DicomTag.PatientName);
+                    levelTags.Add(DicomTag.StudyDate);
+                    break;
+                case QueryResource.AllSeries:
+                    levelTags.Add(DicomTag.StudyInstanceUID);
+                    levelTags.Add(DicomTag.PatientID);
+                    levelTags.Add(DicomTag.PatientName);
+                    levelTags.Add(DicomTag.StudyDate);
+                    levelTags.Add(DicomTag.SeriesInstanceUID);
+                    levelTags.Add(DicomTag.Modality);
+                    break;
+                case QueryResource.AllInstances:
+                    levelTags.Add(DicomTag.StudyInstanceUID);
+                    levelTags.Add(DicomTag.PatientID);
+                    levelTags.Add(DicomTag.PatientName);
+                    levelTags.Add(DicomTag.StudyDate);
+                    levelTags.Add(DicomTag.SeriesInstanceUID);
+                    levelTags.Add(DicomTag.Modality);
+                    levelTags.Add(DicomTag.SOPInstanceUID);
+                    levelTags.Add(DicomTag.SOPClassUID);
+                    levelTags.Add(DicomTag.BitsAllocated);
+                    break;
+                case QueryResource.StudySeries:
+                    levelTags.Add(DicomTag.StudyInstanceUID);
+                    levelTags.Add(DicomTag.SeriesInstanceUID);
+                    levelTags.Add(DicomTag.Modality);
+                    break;
+                case QueryResource.StudyInstances:
+                    levelTags.Add(DicomTag.StudyInstanceUID);
+                    levelTags.Add(DicomTag.SeriesInstanceUID);
+                    levelTags.Add(DicomTag.Modality);
+                    levelTags.Add(DicomTag.SOPInstanceUID);
+                    levelTags.Add(DicomTag.SOPClassUID);
+                    levelTags.Add(DicomTag.BitsAllocated);
+                    break;
+                case QueryResource.StudySeriesInstances:
+                    levelTags.Add(DicomTag.StudyInstanceUID);
+                    levelTags.Add(DicomTag.SeriesInstanceUID);
+                    levelTags.Add(DicomTag.SOPInstanceUID);
+                    levelTags.Add(DicomTag.SOPClassUID);
+                    levelTags.Add(DicomTag.BitsAllocated);
+                    break;
+            }
+
+            expectedDataset.Remove((di) =>
+            {
+                return !levelTags.Contains(di.Tag);
+            });
+
+            // Compare result datasets by serializing.
+            var jsonDicomConverter = new JsonDicomConverter();
+            Assert.Equal(
+                JsonConvert.SerializeObject(expectedDataset, jsonDicomConverter),
+                JsonConvert.SerializeObject(responseInstance, jsonDicomConverter));
+            Assert.Equal(expectedDataset.Count(), responseInstance.Count());
         }
     }
 }

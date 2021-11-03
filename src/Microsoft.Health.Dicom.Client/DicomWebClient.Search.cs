@@ -16,9 +16,10 @@ namespace Microsoft.Health.Dicom.Client
     {
         public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryStudyAsync(
            string queryString,
-           CancellationToken cancellationToken)
+           string partitionName = default,
+           CancellationToken cancellationToken = default)
         {
-            var uri = new Uri("/" + _apiVersion + DicomWebConstants.StudiesUriString + GetQueryParamUriString(queryString), UriKind.Relative);
+            var uri = GenerateRequestUri(DicomWebConstants.StudiesUriString + GetQueryParamUriString(queryString), partitionName);
 
             return await QueryAsync(uri, cancellationToken).ConfigureAwait(false);
         }
@@ -26,11 +27,12 @@ namespace Microsoft.Health.Dicom.Client
         public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryStudySeriesAsync(
             string studyInstanceUid,
             string queryString,
-            CancellationToken cancellationToken)
+            string partitionName = default,
+            CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
 
-            var uri = new Uri("/" + _apiVersion + string.Format(DicomWebConstants.QueryStudySeriesUriFormat, studyInstanceUid) + GetQueryParamUriString(queryString), UriKind.Relative);
+            var uri = GenerateRequestUri(string.Format(DicomWebConstants.QueryStudySeriesUriFormat, studyInstanceUid) + GetQueryParamUriString(queryString), partitionName);
 
             return await QueryAsync(uri, cancellationToken).ConfigureAwait(false);
         }
@@ -38,11 +40,12 @@ namespace Microsoft.Health.Dicom.Client
         public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryStudyInstanceAsync(
             string studyInstanceUid,
             string queryString,
-            CancellationToken cancellationToken)
+            string partitionName = default,
+            CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
 
-            var uri = new Uri("/" + _apiVersion + string.Format(DicomWebConstants.QueryStudyInstanceUriFormat, studyInstanceUid) + GetQueryParamUriString(queryString), UriKind.Relative);
+            var uri = GenerateRequestUri(string.Format(DicomWebConstants.QueryStudyInstanceUriFormat, studyInstanceUid) + GetQueryParamUriString(queryString), partitionName);
 
             return await QueryAsync(uri, cancellationToken).ConfigureAwait(false);
         }
@@ -51,21 +54,23 @@ namespace Microsoft.Health.Dicom.Client
             string studyInstanceUid,
             string seriesInstanceUid,
             string queryString,
-            CancellationToken cancellationToken)
+            string partitionName = default,
+            CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
             EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
 
-            var uri = new Uri("/" + _apiVersion + string.Format(DicomWebConstants.QueryStudySeriesInstancesUriFormat, studyInstanceUid, seriesInstanceUid) + GetQueryParamUriString(queryString), UriKind.Relative);
+            var uri = GenerateRequestUri(string.Format(DicomWebConstants.QueryStudySeriesInstancesUriFormat, studyInstanceUid, seriesInstanceUid) + GetQueryParamUriString(queryString), partitionName);
 
             return await QueryAsync(uri, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QuerySeriesAsync(
             string queryString,
-            CancellationToken cancellationToken)
+            string partitionName = default,
+            CancellationToken cancellationToken = default)
         {
-            var uri = new Uri("/" + _apiVersion + DicomWebConstants.SeriesUriString + GetQueryParamUriString(queryString), UriKind.Relative);
+            var uri = GenerateRequestUri(DicomWebConstants.SeriesUriString + GetQueryParamUriString(queryString), partitionName);
 
             return await QueryAsync(uri, cancellationToken).ConfigureAwait(false);
         }
@@ -73,20 +78,22 @@ namespace Microsoft.Health.Dicom.Client
         public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QuerySeriesInstanceAsync(
             string seriesInstanceUid,
             string queryString,
-            CancellationToken cancellationToken)
+            string partitionName = default,
+            CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
 
-            var uri = new Uri("/" + _apiVersion + string.Format(DicomWebConstants.QuerySeriesInstancUriFormat, seriesInstanceUid) + GetQueryParamUriString(queryString), UriKind.Relative);
+            var uri = GenerateRequestUri(string.Format(DicomWebConstants.QuerySeriesInstanceUriFormat, seriesInstanceUid) + GetQueryParamUriString(queryString), partitionName);
 
             return await QueryAsync(uri, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryInstancesAsync(
             string queryString,
-            CancellationToken cancellationToken)
+            string partitionName = default,
+            CancellationToken cancellationToken = default)
         {
-            var uri = new Uri("/" + _apiVersion + DicomWebConstants.InstancesUriString + GetQueryParamUriString(queryString), UriKind.Relative);
+            var uri = GenerateRequestUri(DicomWebConstants.InstancesUriString + GetQueryParamUriString(queryString), partitionName);
 
             return await QueryAsync(uri, cancellationToken).ConfigureAwait(false);
         }
