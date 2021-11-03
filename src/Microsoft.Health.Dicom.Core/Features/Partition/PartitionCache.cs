@@ -11,9 +11,8 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
-using Microsoft.Health.Dicom.Core.Features.Partition;
 
-namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
+namespace Microsoft.Health.Dicom.Core.Features.Partition
 {
     public class PartitionCache : IDisposable
     {

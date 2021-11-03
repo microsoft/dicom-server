@@ -25,6 +25,7 @@ using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 using Microsoft.Health.Dicom.Api.Features.Context;
 using Microsoft.Health.Dicom.Api.Features.Formatters;
+using Microsoft.Health.Dicom.Api.Features.Partition;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Api.Features.Swagger;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -51,6 +52,18 @@ namespace Microsoft.AspNetCore.Builder
             EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
             serverBuilder.Services.AddScoped<DeletedInstanceCleanupWorker>();
             serverBuilder.Services.AddHostedService<DeletedInstanceCleanupBackgroundService>();
+            return serverBuilder;
+        }
+
+        /// <summary>
+        /// Add services for DICOM hosted services.
+        /// </summary>
+        /// <param name="serverBuilder">The DICOM server builder instance.</param>
+        /// <returns>The DICOM server builder instance.</returns>
+        public static IDicomServerBuilder AddHostedServices(this IDicomServerBuilder serverBuilder)
+        {
+            EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
+            serverBuilder.Services.AddHostedService<DataPartitionFeatureValidatorService>();
             return serverBuilder;
         }
 
