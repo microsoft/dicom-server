@@ -23,25 +23,24 @@ stages:
 #         Write-Host "Updated build number to '$buildNumber'"
 #       name: SetBuildVersion
 
-# - stage: BuildRunUnitTests
-#   displayName: 'Build and Run Unit Tests'
-#   dependsOn:
-#   - UpdateVersion
-#   variables:
-#     assemblySemVer: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.AssemblySemVer']]
-#     assemblySemFileVer: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.AssemblySemFileVer']]
-#     informationalVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.InformationalVersion']]
-#     majorMinorPatch: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.MajorMinorPatch']]
-#     nuGetVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.SemVer']]
-#   jobs:
-#   - job: Linux
-#     pool:
-#      vmImage: 'ubuntu-latest'
-#     steps:
-#     - template: build.yml
-#       parameters:
-#         packageArtifacts: true
-#         packageNugets: false
+- stage: BuildRunUnitTests
+  displayName: 'Build and Run Unit Tests'
+  dependsOn: []
+  variables:
+    assemblySemVer: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.AssemblySemVer']]
+    assemblySemFileVer: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.AssemblySemFileVer']]
+    informationalVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.InformationalVersion']]
+    majorMinorPatch: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.MajorMinorPatch']]
+    nuGetVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.SemVer']]
+  jobs:
+  - job: Linux
+    pool:
+     vmImage: 'ubuntu-latest'
+    steps:
+    - template: build.yml
+      parameters:
+        packageArtifacts: true
+        packageNugets: false
 
 # - stage: AnalyzeSecurity
 #   displayName: 'Run Security Analysis'
@@ -58,7 +57,8 @@ stages:
 
 - stage: DeployTestEnvironment
   displayName: 'Deploy Test Environment'
-  dependsOn: []
+  dependsOn: 
+  - BuildRunUnitTests
   jobs:
   - template: deploy.yml
 
