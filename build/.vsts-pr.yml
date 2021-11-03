@@ -69,12 +69,12 @@ stages:
 #   jobs:
 #   - template: versioning.yml
 
-- stage: RunIntegrationTests
-  displayName: 'Run Integration tests'
-  dependsOn:
-  - DeployTestEnvironment
-  jobs:
-  - template: run-integration-tests.yml
+# - stage: RunIntegrationTests
+#   displayName: 'Run Integration tests'
+#   dependsOn:
+#   - DeployTestEnvironment
+#   jobs:
+#   - template: run-integration-tests.yml
 
 - stage: RunE2ETests
   displayName: 'Run E2E tests'
@@ -83,10 +83,18 @@ stages:
   jobs:
   - template: run-e2e-tests.yml
 
+- stage: RunE2EDataPartitionsTests
+  displayName: 'Run E2E Data Partitions tests'
+  dependsOn:
+  - DeployTestEnvironment
+  jobs:
+  - template: run-e2e-data-partitions-tests.yml
+
 - stage: Cleanup
   displayName: 'Clean Up Azure Environment'
   dependsOn:
-  - RunIntegrationTests
+# - RunIntegrationTests
   - RunE2ETests
+  - RunE2EDataPartitionsTests
   jobs:
   - template: cleanup.yml

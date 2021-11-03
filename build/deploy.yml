@@ -92,6 +92,8 @@ jobs:
       webAppName: '$(deploymentName)-datapartitions'
       package: '$(System.ArtifactsDirectory)/deploy/Microsoft.Health.Dicom.Web.zip'
       takeAppOfflineFlag: true
-      appSettings: -DicomServer:Features:EnableDataPartitions true
-
-
+      appSettings: 
+            -DicomServer:Features:EnableDataPartitions true
+            -DicomServer:Security:Enabled true
+            -DicomServer:Security:Authentication:Authority https://login.microsoftonline.com/$(tenant-id)
+            -DicomServer:Security:Authentication:Audience $(testApplicationResource)

@@ -25,7 +25,7 @@ jobs:
             Write-Host "##vso[task.setvariable variable=$($environmentVariableName)]$($secretValue)"
         }
 
-        Write-Host "##vso[task.setvariable variable=Resource]$(testEnvironmentUrl)"
+        Write-Host "##vso[task.setvariable variable=Resource]$(testDataPartitionsEnvironmentUrl)"
         Write-Host "##vso[task.setvariable variable=security_scope]$(testApplicationScope)"
         Write-Host "##vso[task.setvariable variable=security_resource]$(testApplicationResource)"
         Write-Host "##vso[task.setvariable variable=security_enabled]$true"
@@ -40,8 +40,8 @@ jobs:
       artifactName: 'IntegrationTests'
 
   - task: VSTest@2
-    displayName: 'E2E Tests'
+    displayName: 'DataPartition E2E Tests'
     inputs:
       testAssemblyVer2: '**\*Tests.E2E*.dll'
       searchFolder: '$(System.ArtifactsDirectory)'
-      testFiltercriteria: 'ClassName!=Microsoft.Health.Dicom.Web.Tests.E2E.Rest.DataPartitionEnabledTests'
+      testFiltercriteria: 'ClassName=Microsoft.Health.Dicom.Web.Tests.E2E.Rest.DataPartitionEnabledTests'
