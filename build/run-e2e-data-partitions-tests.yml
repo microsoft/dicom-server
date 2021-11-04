@@ -44,4 +44,4 @@ jobs:
     inputs:
       testAssemblyVer2: '**\*Tests.E2E*.dll'
       searchFolder: '$(System.ArtifactsDirectory)'
-      testFiltercriteria: 'ClassName=Microsoft.Health.Dicom.Web.Tests.E2E.Rest.DataPartitionEnabledTests'
+      testFiltercriteria: 'FullyQualifiedName~Microsoft.Health.Dicom.Web.Tests.E2E.Rest.DataPartitionEnabledTests'
