@@ -75,7 +75,11 @@
         "sqlServerConnectionStringName": "SqlServerConnectionString",
         "azureStorageConnectionStringName": "AzureStorageConnectionString",
         "appInsightsInstrumentationKeyName": "AppInsightsInstrumentationKey",
-        "functionAccessKeyName": "FunctionAccessKey"
+        "functionAccessKeyName": "FunctionAccessKey",
+        "sqlServerConnectionStringResourceId": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('loweredServiceName'), variables('sqlServerConnectionStringName'))]",
+        "azureStorageConnectionStringResourceId": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('loweredServiceName'), variables('azureStorageConnectionStringName'))]",
+        "appInsightsInstrumentationKeyResourceId": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('loweredServiceName'), variables('appInsightsInstrumentationKeyName'))]",
+        "functionAccessKeyResourceId": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('loweredServiceName'), variables('functionAccessKeyName'))]"
     },
     "resources": [
         {
@@ -101,7 +105,7 @@
                     "apiVersion": "2015-08-01",
                     "type": "config",
                     "name": "appsettings", 
-                    "properties": "[union(json(concat('{\"ApplicationInsights__InstrumentationKey\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('loweredServiceName'), variables('appInsightsInstrumentationKeyName')), '2015-06-01').secretUriWithVersion, ')'), '\"}')), json(concat('{\"BlobStore__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('loweredServiceName'), variables('azureStorageConnectionStringName')), '2015-06-01').secretUriWithVersion, ')'), '\"}')), json(concat('{\"DicomFunctions__FunctionAccessKey\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('loweredServiceName'), variables('functionAccessKeyName')), '2015-06-01').secretUriWithVersion, ')'), '\"}')), json(concat('{\"SqlServer__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('loweredServiceName'), variables('sqlServerConnectionStringName')), '2015-06-01').secretUriWithVersion, ')'), '\"}')), variables('combinedDicomServerConfigProperties'))]",
+                    "properties": "[union(json(concat('{\"ApplicationInsights__InstrumentationKey\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsInstrumentationKeyResourceId'), '2015-06-01').secretUriWithVersion, ')'), '\"}')), json(concat('{\"BlobStore__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId'), '2015-06-01').secretUriWithVersion, ')'), '\"}')), json(concat('{\"DicomFunctions__FunctionAccessKey\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('functionAccessKeyResourceId'), '2015-06-01').secretUriWithVersion, ')'), '\"}')), json(concat('{\"SqlServer__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('sqlServerConnectionStringResourceId'), '2015-06-01').secretUriWithVersion, ')'), '\"}')), variables('combinedDicomServerConfigProperties'))]",
                     "dependsOn": [
                         "[variables('featuresEnabledAppServiceResourceId')]"
                     ]
