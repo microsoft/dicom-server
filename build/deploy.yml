@@ -81,7 +81,15 @@ jobs:
       ScriptType: inlineScript
       Inline: |
         $asp = Get-AzAppServicePlan -ResourceGroup $(appServicePlanResourceGroup) -Name $(appServicePlanName)
-        New-AzWebApp -ResourceGroupName $(resourceGroupName) -Name '$(deploymentName)-datapartitions' -Location "$(resourceGroupRegion)" -AppServicePlan $asp.id
+
+        if (Get-AzWebApp -ResourceGroupName $(resourceGroupName) -Name '$(deploymentName)-datapartitions') 
+        {
+            Write-Host "App service $(deploymentName)-datapartitions already exists."
+        }
+        else
+        {
+            New-AzWebApp -ResourceGroupName $(resourceGroupName) -Name '$(deploymentName)-datapartitions' -Location "$(resourceGroupRegion)" -AppServicePlan $asp.id
+        }
 
   - task: AzureRMWebAppDeployment@4
     displayName: 'Deploy Dicom Web App with Data partitions feature enabled'
