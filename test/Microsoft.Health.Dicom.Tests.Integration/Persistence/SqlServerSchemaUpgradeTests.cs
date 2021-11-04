@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
-    public class SqlServerSchemaUpgradeTests
+    public class SqlServerSchemaUpgradeTests1
     {
         [Fact]
         public async Task GivenTwoSchemaInitializationMethods_WhenCreatingTwoDatabases_BothSchemasShouldBeEquivalent()
@@ -64,7 +64,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await snapshotFixture.DisposeAsync();
             await diffFixture.DisposeAsync();
         }
+    }
 
+    public class SqlServerSchemaUpgradeTests2
+    {
         /// <summary>
         /// There is small window where Sql schema is updated but not populated to web server, so the server still tries to call old stored procedure.
         /// This test validate it works by checking stored procedure compatiblity. 
@@ -93,6 +96,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await newSqlStore.DisposeAsync();
         }
 
+        public static IEnumerable<object[]> SchemaDiffVersions = Enumerable
+            .Range(start: SchemaVersionConstants.Min + 1, count: SchemaVersionConstants.Max - SchemaVersionConstants.Min)
+            .Select(x => new object[] { x })
+            .ToList();
+    }
+
+    public class SqlServerSchemaUpgradeTests3
+    {
         [Theory]
         [MemberData(nameof(SchemaDiffVersions))]
         public async Task GivenASchemaVersion_WhenApplyingDiffTwice_ShouldSucceed(int schemaVersion)
@@ -108,6 +119,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await snapshotFixture.DisposeAsync();
         }
 
+        public static IEnumerable<object[]> SchemaDiffVersions = Enumerable
+            .Range(start: SchemaVersionConstants.Min + 1, count: SchemaVersionConstants.Max - SchemaVersionConstants.Min)
+            .Select(x => new object[] { x })
+            .ToList();
+    }
+
+    public class SqlServerSchemaUpgradeTests4
+    {
         [Theory]
         [MemberData(nameof(SchemaSnapshotVersions))]
         public async Task GivenASchemaVersion_WhenApplyingSnapshotTwice_ShouldSucceed(int schemaVersion)
@@ -121,11 +140,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             // cleanup if succeeds
             await snapshotFixture.DisposeAsync();
         }
-
-        public static IEnumerable<object[]> SchemaDiffVersions = Enumerable
-            .Range(start: SchemaVersionConstants.Min + 1, count: SchemaVersionConstants.Max - SchemaVersionConstants.Min)
-            .Select(x => new object[] { x })
-            .ToList();
 
         public static IEnumerable<object[]> SchemaSnapshotVersions = Enumerable
             .Range(start: SchemaVersionConstants.Min, count: SchemaVersionConstants.Max - SchemaVersionConstants.Min + 1)
