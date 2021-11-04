@@ -82,12 +82,13 @@ jobs:
       Inline: |
         $asp = Get-AzAppServicePlan -ResourceGroup $(appServicePlanResourceGroup) -Name $(appServicePlanName)
 
-        if (Get-AzWebApp -ResourceGroupName $(resourceGroupName) -Name '$(deploymentName)-datapartitions') 
+        try
         {
-            Write-Host "App service $(deploymentName)-datapartitions already exists."
+            Get-AzWebApp -ResourceGroupName $(resourceGroupName) -Name '$(deploymentName)-datapartitions'
         }
-        else
+        catch
         {
+            Write-Host "App service $(deploymentName)-datapartitions doesn't exists."
             New-AzWebApp -ResourceGroupName $(resourceGroupName) -Name '$(deploymentName)-datapartitions' -Location "$(resourceGroupRegion)" -AppServicePlan $asp.id
         }
 
