@@ -103,15 +103,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
         {
             EnsureArg.IsNotNull(tagPath, nameof(tagPath));
 
-            try
-            {
-                var response = await _dicomWebClient.DeleteExtendedQueryTagAsync(tagPath, cancellationToken);
-                return response.StatusCode == System.Net.HttpStatusCode.NoContent;
-            }
-            catch (DicomWebException)
-            {
-                return false;
-            }
+            var response = await _dicomWebClient.DeleteExtendedQueryTagAsync(tagPath, cancellationToken);
+            return response.StatusCode == System.Net.HttpStatusCode.NoContent;
         }
     }
 }

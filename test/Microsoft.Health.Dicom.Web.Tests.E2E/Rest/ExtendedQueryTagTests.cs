@@ -51,8 +51,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomTag sizeTag = DicomTag.PatientSize;
 
             // Try to delete these extended query tags.
-            await DeleteExtendedQueryTag(weightTag);
-            await DeleteExtendedQueryTag(sizeTag);
+            await CleanupExtendedQueryTag(weightTag);
+            await CleanupExtendedQueryTag(sizeTag);
 
             // Define DICOM files
             DicomDataset instance1 = Samples.CreateRandomInstanceDataset();
@@ -113,7 +113,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             string tagValue = "053Y";
 
             // Try to delete this extended query tag if it exists.
-            await DeleteExtendedQueryTag(tag);
+            await CleanupExtendedQueryTag(tag);
 
             // Define DICOM files
             DicomDataset instance1 = Samples.CreateRandomInstanceDataset();
@@ -207,10 +207,16 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal("The field '[0].Level' in request body is invalid: Input Dicom Tag Level 'Studys' is invalid. It must have value 'Study', 'Series' or 'Instance'.", response.Content.ReadAsStringAsync().Result);
         }
 
-        private async Task DeleteExtendedQueryTag(DicomTag tag)
+        private async Task CleanupExtendedQueryTag(DicomTag tag)
         {
             // Try to delete this extended query tag.
-            await _tagManager.DeleteExtendedQueryTagAsync(tag.GetPath());
+            try
+            {
+                await _tagManager.DeleteExtendedQueryTagAsync(tag.GetPath());
+            }
+            catch (DicomWebException)
+            {
+            }
         }
 
         public static IEnumerable<object[]> GetRequestBodyWithMissingProperty
