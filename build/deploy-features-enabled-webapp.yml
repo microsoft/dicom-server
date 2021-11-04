@@ -26,6 +26,7 @@ jobs:
         }
 
         $templateParameters = @{
+            serviceName = "$(deploymentName)"
             appServicePlanResourceGroup = "$(appServicePlanResourceGroup)"
             appServicePlanName = "$(appServicePlanName)"
             additionalDicomServerConfigProperties = $additionalProperties
@@ -33,7 +34,7 @@ jobs:
             securityAuthenticationAudience = "$(testApplicationResource)"
         }
 
-        New-AzResourceGroupDeployment -Name "$(deploymentName)" -ResourceGroupName "$(resourceGroupName)" -TemplateFile $deployPath/featuresenabled-azuredeploy.json -TemplateParameterObject $templateParameters -Verbose
+        New-AzResourceGroupDeployment -Name "$(deploymentName)-features-enabled-webapp" -ResourceGroupName "$(resourceGroupName)" -TemplateFile $deployPath/featuresenabled-azuredeploy.json -TemplateParameterObject $templateParameters -Verbose
 
   - task: DownloadBuildArtifacts@0
     inputs:
