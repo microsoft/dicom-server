@@ -3,8 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Resources;
-
-[assembly: NeutralResourcesLanguage("en-us")]
-[assembly: CLSCompliant(false)]
+namespace Microsoft.Health.Dicom.Operations.Configuration
+{
+    internal static class DicomFunctionsConfiguration
+    {
+        public const string SectionName = "DicomFunctions";
+    }
+}

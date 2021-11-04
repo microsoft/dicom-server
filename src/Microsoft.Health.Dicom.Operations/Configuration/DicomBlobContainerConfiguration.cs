@@ -3,8 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Resources;
+using System.ComponentModel.DataAnnotations;
 
-[assembly: NeutralResourcesLanguage("en-us")]
-[assembly: CLSCompliant(false)]
+namespace Microsoft.Health.Dicom.Operations.Configuration
+{
+    internal class DicomBlobContainerConfiguration
+    {
+        public const string SectionName = "Containers";
+
+        [Required]
+        public string Metadata { get; set; }
+    }
+}
