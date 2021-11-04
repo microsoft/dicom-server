@@ -16,13 +16,13 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models.Operations;
-using Microsoft.Health.Dicom.Functions.Indexing;
-using Microsoft.Health.Dicom.Functions.Indexing.Models;
-using Microsoft.Health.Dicom.Functions.Management;
+using Microsoft.Health.Dicom.Operations.Indexing;
+using Microsoft.Health.Dicom.Operations.Indexing.Models;
+using Microsoft.Health.Dicom.Operations.Management;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
+namespace Microsoft.Health.Dicom.Operations.UnitTests.Management
 {
     public class DurableClientProxyTests
     {

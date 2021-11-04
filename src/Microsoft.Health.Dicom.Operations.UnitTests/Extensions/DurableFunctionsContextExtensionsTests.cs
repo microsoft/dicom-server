@@ -6,11 +6,11 @@
 using System;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Health.Dicom.Core.Models.Operations;
-using Microsoft.Health.Dicom.Functions.Extensions;
+using Microsoft.Health.Dicom.Operations.Extensions;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Functions.UnitTests.Extensions
+namespace Microsoft.Health.Dicom.Operations.UnitTests.Extensions
 {
     public class DurableFunctionsContextExtensionsTests
     {

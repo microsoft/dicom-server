@@ -111,13 +111,17 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        public static IServiceCollection AddHttpServices(this IServiceCollection services)
+        private static IServiceCollection AddHttpServices(this IServiceCollection services)
         {
             EnsureArg.IsNotNull(services, nameof(services));
 
             services
                 .AddMvcCore()
                 .AddJsonSerializerOptions(x => x.Converters.Add(new JsonStringEnumConverter()));
+
+            // Add the HTTP functions themselves so they may be implemented later
+            services.TryAddScoped<ReindexDurableFunction>();
+            services.TryAddScoped<DurableClientProxy>();
 
             return services;
         }

@@ -5,11 +5,11 @@
 
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Health.Dicom.Core.Models.Operations;
-using Microsoft.Health.Dicom.Functions.Extensions;
-using Microsoft.Health.Dicom.Functions.Indexing;
+using Microsoft.Health.Dicom.Operations.Extensions;
+using Microsoft.Health.Dicom.Operations.Indexing;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Functions.UnitTests.Extensions
+namespace Microsoft.Health.Dicom.Operations.UnitTests.Extensions
 {
     public class DurableOrchestrationStatusExtensionsTests
     {

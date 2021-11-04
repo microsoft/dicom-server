@@ -14,9 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
-using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Models.Operations;
@@ -42,10 +40,9 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
         /// The value of its <see cref="Task{TResult}.Result"/> property contains the <see cref="HttpResponseMessage"/>
         /// whose body encodes the resulting orchestration instance ID.
         /// </returns>
-        [FunctionName(nameof(StartReindexingInstancesAsync))]
         public async Task<HttpResponseMessage> StartReindexingInstancesAsync(
-            [HttpTrigger(AuthorizationLevel.Function, "Post", Route = "extendedquerytags/reindex")] HttpRequest request,
-            [DurableClient] IDurableOrchestrationClient client,
+            HttpRequest request,
+            IDurableOrchestrationClient client,
             ILogger logger,
             CancellationToken hostCancellationToken = default)
         {

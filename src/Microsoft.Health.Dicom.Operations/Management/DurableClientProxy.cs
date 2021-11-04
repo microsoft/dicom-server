@@ -15,9 +15,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
-using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Models.Operations;
@@ -62,10 +60,9 @@ namespace Microsoft.Health.Dicom.Operations.Management
         /// <paramref name="request"/>, <paramref name="client"/>, or <paramref name="logger"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="OperationCanceledException">The host is shutting down or the connection was aborted.</exception>
-        [FunctionName(nameof(GetStatusAsync))]
         public async Task<HttpResponseMessage> GetStatusAsync(
-            [HttpTrigger(AuthorizationLevel.Function, "GET", Route = "Orchestrations/Instances/{instanceId}")] HttpRequest request,
-            [DurableClient] IDurableOrchestrationClient client,
+            HttpRequest request,
+            IDurableOrchestrationClient client,
             Guid instanceId,
             ILogger logger,
             CancellationToken hostCancellationToken = default)

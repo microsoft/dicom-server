@@ -12,11 +12,11 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Functions.Management;
+using Microsoft.Health.Dicom.Operations.Management;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Functions.UnitTests.Management
+namespace Microsoft.Health.Dicom.Operations.UnitTests.Management
 {
     public class PurgeOrchestrationInstanceHistoryTests
     {

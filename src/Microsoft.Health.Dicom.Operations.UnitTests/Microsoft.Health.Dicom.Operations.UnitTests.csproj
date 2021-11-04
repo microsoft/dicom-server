@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
-    <ProjectReference Include="..\Microsoft.Health.Dicom.Functions\Microsoft.Health.Dicom.Functions.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Dicom.Operations\Microsoft.Health.Dicom.Operations.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Dicom.SqlServer\Microsoft.Health.Dicom.SqlServer.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Dicom.Tests.Common\Microsoft.Health.Dicom.Tests.Common.csproj" />
   </ItemGroup>

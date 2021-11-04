@@ -10,12 +10,12 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
-using Microsoft.Health.Dicom.Functions.Durable;
-using Microsoft.Health.Dicom.Functions.Indexing;
+using Microsoft.Health.Dicom.Operations.Durable;
+using Microsoft.Health.Dicom.Operations.Indexing;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using NSubstitute;
 
-namespace Microsoft.Health.Dicom.Functions.UnitTests.Indexing
+namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
 {
     public partial class ReindexDurableFunctionTests
     {
