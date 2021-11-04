@@ -17,7 +17,7 @@ using Microsoft.Health.Dicom.Operations.Management;
 
 namespace Microsoft.Health.Dicom.Functions.Management
 {
-    public class DurableClientProxyDecorator
+    public sealed class DurableClientProxyDecorator
     {
         private readonly DurableClientProxy _proxy;
 
