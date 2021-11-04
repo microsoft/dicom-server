@@ -2,7 +2,7 @@ variables:
   prNumber: $(system.pullRequest.pullRequestNumber)
   deploymentName: 'msh-dicom-pr-$(prNumber)'
   testEnvironmentUrl: 'https://$(deploymentName).azurewebsites.net/'
-  testDataPartitionsEnvironmentUrl: 'https://$(deploymentName)-datapartitions.azurewebsites.net/'
+  testFeaturesEnabledEnvironmentUrl: 'https://$(deploymentName)-featuresenabled.azurewebsites.net/'
   testApplicationScope: 'https://$(deploymentName).resoluteopensource.onmicrosoft.com/.default'
   testApplicationResource: 'https://$(deploymentName).resoluteopensource.onmicrosoft.com'
   resourceGroupName: $(deploymentName)
