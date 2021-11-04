@@ -40,7 +40,7 @@ jobs:
       artifactName: 'IntegrationTests'
 
   - task: VSTest@2
-    displayName: 'DataPartition E2E Tests'
+    displayName: 'Features-enabled E2E Tests'
     inputs:
       testAssemblyVer2: '**\*Tests.E2E*.dll'
       searchFolder: '$(System.ArtifactsDirectory)'

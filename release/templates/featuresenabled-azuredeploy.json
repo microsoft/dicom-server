@@ -1,0 +1,143 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "serviceName": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 24,
+            "metadata": {
+                "description": "Name of the DICOM Service Web App."
+            }
+        },
+        "appServicePlanResourceGroup": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of the resource group containing App Service Plan. If empty, your deployment resource group is used."
+            }
+        },
+        "appServicePlanName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of App Service Plan (existing or new). If empty, a name will be generated."
+            }
+        },
+        "additionalDicomServerConfigProperties": {
+            "type": "object",
+            "defaultValue": {},
+            "metadata": {
+                "description": "Additional configuration properties for the DICOM server. These properties can be modified after deployment. In the form {\"path1\":\"value1\",\"path2\":\"value2\"}"
+            }
+        },
+        "solutionType": {
+            "type": "string",
+            "defaultValue": "DicomServerSqlServer",
+            "metadata": {
+                "description": "The type of the solution"
+            }
+        },
+        "securityAuthenticationAuthority": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "OAuth Authority. This can be modified after deployment."
+            }
+        },
+        "securityAuthenticationAudience": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Audience (aud) to validate in JWT. This can be modified after deployment."
+            }
+        }
+    },
+    "variables": {
+        "loweredServiceName": "[toLower(parameters('serviceName'))]",
+        "featuresEnabledServiceName": "[concat(variables('loweredServiceName'),'-featuresenabled')]",
+        "functionAppName": "[concat(variables('loweredServiceName'),'-functions')]",
+        "appServicePlanResourceId": "[resourceId(parameters('appServicePlanResourceGroup'), 'Microsoft.Web/serverfarms/', parameters('appServicePlanName'))]",
+        "featuresEnabledAppServiceResourceId": "[resourceId('Microsoft.Web/sites', variables('featuresEnabledServiceName'))]",
+        "functionAppUrl": "[concat('https://', variables('functionAppName'), '.azurewebsites.net')]",
+        "staticDicomServerConfigProperties": {
+            "APPINSIGHTS_PORTALINFO": "ASP.NETCORE",
+            "APPINSIGHTS_PROFILERFEATURE_VERSION": "1.0.0",
+            "APPINSIGHTS_SNAPSHOTFEATURE_VERSION": "1.0.0",
+            "WEBSITE_NODE_DEFAULT_VERSION": "6.9.4",
+            "DicomFunctions__BaseAddress": "[concat(variables('functionAppUrl'), '/api/')]",
+            "DicomServer__Security__Enabled": "true",
+            "DicomServer__Security__Authorization__Enabled": "true",
+            "DicomServer__Security__Authentication__Authority": "[parameters('securityAuthenticationAuthority')]",
+            "DicomServer__Security__Authentication__Audience": "[parameters('securityAuthenticationAudience')]"
+        },
+        "combinedDicomServerConfigProperties": "[union(variables('staticDicomServerConfigProperties'), parameters('additionalDicomServerConfigProperties'))]",
+        "sqlServerConnectionStringName": "SqlServerConnectionString",
+        "azureStorageConnectionStringName": "AzureStorageConnectionString",
+        "appInsightsInstrumentationKeyName": "AppInsightsInstrumentationKey",
+        "functionAccessKeyName": "FunctionAccessKey"
+    },
+    "resources": [
+        {
+            "apiVersion": "2015-08-01",
+            "type": "Microsoft.Web/sites",
+            "name": "[variables('featuresEnabledServiceName')]",
+            "tags": {
+                "DicomServerSolution": "[parameters('solutionType')]"
+            },
+            "location": "[resourceGroup().location]",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "clientAffinityEnabled": false,
+                "serverFarmId": "[variables('appServicePlanResourceId')]",
+                 "siteConfig":{
+                    "use32BitWorkerProcess": false
+                }
+            },
+            "resources": [
+                {
+                    "apiVersion": "2015-08-01",
+                    "type": "config",
+                    "name": "appsettings", 
+                    "properties": "[union(json(concat('{\"ApplicationInsights__InstrumentationKey\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('loweredServiceName'), variables('appInsightsInstrumentationKeyName')), '2015-06-01').secretUriWithVersion, ')'), '\"}')), json(concat('{\"BlobStore__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('loweredServiceName'), variables('azureStorageConnectionStringName')), '2015-06-01').secretUriWithVersion, ')'), '\"}')), json(concat('{\"DicomFunctions__FunctionAccessKey\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('loweredServiceName'), variables('functionAccessKeyName')), '2015-06-01').secretUriWithVersion, ')'), '\"}')), json(concat('{\"SqlServer__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('loweredServiceName'), variables('sqlServerConnectionStringName')), '2015-06-01').secretUriWithVersion, ')'), '\"}')), variables('combinedDicomServerConfigProperties'))]",
+                    "dependsOn": [
+                        "[variables('featuresEnabledAppServiceResourceId')]"
+                    ]
+                },
+                {
+                    "apiVersion": "2015-08-01",
+                    "type": "siteextensions",
+                    "name": "AspNetCoreRuntime.5.0.x64",
+                    "dependsOn": [
+                        "[variables('featuresEnabledAppServiceResourceId')]",
+                        "[resourceId('Microsoft.Web/sites/config', variables('featuresEnabledServiceName'), 'appsettings')]" // Avoid restarts mid-installation
+                    ],
+                    "properties": {
+                        "version": "5.0.11"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/accessPolicies",
+            "name": "[concat(variables('loweredServiceName'), '/add')]",
+            "apiVersion": "2019-09-01",
+            "properties": {
+                "accessPolicies": [
+                    {
+                        "tenantId": "[reference(variables('featuresEnabledAppServiceResourceId'), '2015-08-01', 'Full').Identity.tenantId]",
+                        "objectId": "[reference(variables('featuresEnabledAppServiceResourceId'), '2015-08-01', 'Full').Identity.principalId]",
+                        "permissions": {
+                            "secrets": [ "get" ]
+                        }
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[variables('featuresEnabledAppServiceResourceId')]"
+            ]
+        }
+    ]
+}

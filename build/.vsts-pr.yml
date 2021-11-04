@@ -62,6 +62,13 @@ stages:
   jobs:
   - template: deploy.yml
 
+- stage: DeployFeaturesEnabledWebapp
+  displayName: 'Deploy features-enabled webapp'
+  dependsOn: 
+  - DeployTestEnvironment
+  jobs:
+  - template: deploy-features-enabled-webapp.yml
+
 # - stage: ValidateAPIVersioning
 #   displayName: 'Detect Breaking Changes in REST API'
 #   dependsOn:
@@ -83,18 +90,18 @@ stages:
   jobs:
   - template: run-e2e-tests.yml
 
-- stage: RunE2EDataPartitionsTests
-  displayName: 'Run E2E Data Partitions tests'
+- stage: RunE2EFeaturesEnabledTests
+  displayName: 'Run E2E features-enabled tests'
   dependsOn:
-  - DeployTestEnvironment
+  - DeployFeaturesEnabledWebapp
   jobs:
-  - template: run-e2e-data-partitions-tests.yml
+  - template: run-e2e-features-enabled-tests.yml
 
 - stage: Cleanup
   displayName: 'Clean Up Azure Environment'
   dependsOn:
 # - RunIntegrationTests
   - RunE2ETests
-  - RunE2EDataPartitionsTests
+  - RunE2EFeaturesEnabledTests
   jobs:
   - template: cleanup.yml
