@@ -3,7 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using Dicom.StructuredReport;
 using Hl7.Fhir.Model;
 
@@ -84,17 +84,13 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         public static readonly CodeableConcept AccessionCodeableConcept = new CodeableConcept("http://terminology.hl7.org/CodeSystem/v2-0203", "ACSN");
         public static readonly CodeableConcept IrradiationEventCodeableConcept = new CodeableConcept("http://dicom.nema.org/resources/ontology/DCM", "113852", "Irradiation Event");
 
-        public static readonly HashSet<DicomCodeItem> IrradiationEvents = new()
-        {
+        public static readonly ImmutableHashSet<DicomCodeItem> IrradiationEvents = ImmutableHashSet.Create(
             IrradiationEventXRayData,
             CtAcquisition,
-            RadiopharmaceuticalAdministration,
-        };
+            RadiopharmaceuticalAdministration);
 
-        public static readonly HashSet<DicomCodeItem> DoseSummaryReportCodes = new()
-        {
+        public static readonly ImmutableHashSet<DicomCodeItem> DoseSummaryReportCodes = ImmutableHashSet.Create(
             RadiopharmaceuticalRadiationDoseReport,
-            XRayRadiationDoseReport,
-        };
+            XRayRadiationDoseReport);
     }
 }

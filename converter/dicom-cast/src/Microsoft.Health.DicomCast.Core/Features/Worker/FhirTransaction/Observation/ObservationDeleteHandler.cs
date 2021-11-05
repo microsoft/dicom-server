@@ -30,11 +30,10 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             EnsureArg.IsNotNull(context.ChangeFeedEntry, nameof(context.ChangeFeedEntry));
 
             Identifier identifier = IdentifierUtility.CreateIdentifier(context.ChangeFeedEntry.StudyInstanceUid);
-            IEnumerable<Observation> matchingObservationsAsync = await _fhirService.RetrieveObservationsAsync(identifier, cancellationToken);
-            var matchingObservations = matchingObservationsAsync.ToList();
+            List<Observation> matchingObservations = (await _fhirService.RetrieveObservationsAsync(identifier, cancellationToken)).ToList();
 
             // terminate early if no observation found
-            if (!matchingObservations.Any())
+            if (matchingObservations.Count == 0)
             {
                 return null;
             }

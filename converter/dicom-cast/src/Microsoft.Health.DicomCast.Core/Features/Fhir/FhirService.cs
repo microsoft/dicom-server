@@ -39,20 +39,20 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
         }
 
         /// <inheritdoc/>
-        public async Task<Patient> RetrievePatientAsync(Identifier identifier, CancellationToken cancellationToken)
-            => await SearchByIdentifierAsync<Patient>(identifier, cancellationToken);
+        public Task<Patient> RetrievePatientAsync(Identifier identifier, CancellationToken cancellationToken)
+            => SearchByIdentifierAsync<Patient>(identifier, cancellationToken);
 
         /// <inheritdoc/>
-        public async Task<ImagingStudy> RetrieveImagingStudyAsync(Identifier identifier, CancellationToken cancellationToken)
-            => await SearchByIdentifierAsync<ImagingStudy>(identifier, cancellationToken);
+        public Task<ImagingStudy> RetrieveImagingStudyAsync(Identifier identifier, CancellationToken cancellationToken)
+            => SearchByIdentifierAsync<ImagingStudy>(identifier, cancellationToken);
 
         /// <inheritdoc/>
         public async Task<Endpoint> RetrieveEndpointAsync(string queryParameter, CancellationToken cancellationToken)
             => (await SearchByQueryParameterAsync<Endpoint>(queryParameter, 1, cancellationToken)).FirstOrDefault();
 
         /// <inheritdoc/>
-        public async Task<IEnumerable<Observation>> RetrieveObservationsAsync(Identifier identifier, CancellationToken cancellationToken = default)
-            => await SearchByIdentifierMultipleAsync<Observation>(identifier, cancellationToken);
+        public Task<IEnumerable<Observation>> RetrieveObservationsAsync(Identifier identifier, CancellationToken cancellationToken)
+            => SearchByIdentifierMultipleAsync<Observation>(identifier, cancellationToken);
 
         /// <inheritdoc/>
         public async Task CheckFhirServiceCapability(CancellationToken cancellationToken)
@@ -86,15 +86,15 @@ namespace Microsoft.Health.DicomCast.Core.Features.Fhir
             return (await SearchByQueryParameterAsync<TResource>(identifier.ToSearchQueryParameter(), 1, cancellationToken)).FirstOrDefault();
         }
 
-        private async Task<List<TResource>> SearchByIdentifierMultipleAsync<TResource>(Identifier identifier, CancellationToken cancellationToken)
+        private Task<IEnumerable<TResource>> SearchByIdentifierMultipleAsync<TResource>(Identifier identifier, CancellationToken cancellationToken)
             where TResource : Resource, new()
         {
             EnsureArg.IsNotNull(identifier, nameof(identifier));
 
-            return await SearchByQueryParameterAsync<TResource>(identifier.ToSearchQueryParameter(), null, cancellationToken);
+            return SearchByQueryParameterAsync<TResource>(identifier.ToSearchQueryParameter(), null, cancellationToken);
         }
 
-        private async Task<List<TResource>> SearchByQueryParameterAsync<TResource>(string queryParameter, int? maxCount, CancellationToken cancellationToken)
+        private async Task<IEnumerable<TResource>> SearchByQueryParameterAsync<TResource>(string queryParameter, int? maxCount, CancellationToken cancellationToken)
             where TResource : Resource, new()
         {
             EnsureArg.IsNotNullOrEmpty(queryParameter, nameof(queryParameter));

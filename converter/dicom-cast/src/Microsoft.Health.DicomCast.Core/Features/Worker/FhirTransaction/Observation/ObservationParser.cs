@@ -15,7 +15,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 {
     public class ObservationParser
     {
-        public IEnumerable<Observation> Parse(DicomDataset dataset, ResourceReference patientReference, ResourceReference imagingStudyReference, Identifier identifier)
+        public IReadOnlyCollection<Observation> Parse(DicomDataset dataset, ResourceReference patientReference, ResourceReference imagingStudyReference, Identifier identifier)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
             EnsureArg.IsNotNull(patientReference, nameof(patientReference));

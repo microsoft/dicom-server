@@ -50,7 +50,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             }
             else
             {
-                // TODO: Do these need to be cast to IEnumerable<FhirTransactionRequestEntry> or can expr tree handle it?
                 bodyExpression = Expression.NewArrayInit(typeof(FhirTransactionRequestEntry), propertyExpression);
             }
 

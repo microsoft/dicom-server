@@ -37,9 +37,9 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
             Identifier identifier = IdentifierUtility.CreateIdentifier(changeFeedEntry.StudyInstanceUid);
 
-            IEnumerable<Observation> observations = _observationParser.Parse(changeFeedEntry.Metadata, patientId.ToResourceReference(), imagingStudyId.ToResourceReference(), identifier);
+            IReadOnlyCollection<Observation> observations = _observationParser.Parse(changeFeedEntry.Metadata, patientId.ToResourceReference(), imagingStudyId.ToResourceReference(), identifier);
 
-            if (!observations.Any())
+            if (observations.Count == 0)
             {
                 return Enumerable.Empty<FhirTransactionRequestEntry>();
             }

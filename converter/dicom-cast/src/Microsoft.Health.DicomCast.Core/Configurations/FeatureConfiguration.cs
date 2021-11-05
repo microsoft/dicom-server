@@ -11,5 +11,10 @@ namespace Microsoft.Health.DicomCast.Core.Configurations
         /// Do not sync values that are invalid and are not required
         /// </summary>
         public bool EnforceValidationOfTagValues { get; set; }
+
+        /// <summary>
+        /// Generate observations from dcm
+        /// </summary>
+        public bool GenerateObservations { get; set; }
     }
 }

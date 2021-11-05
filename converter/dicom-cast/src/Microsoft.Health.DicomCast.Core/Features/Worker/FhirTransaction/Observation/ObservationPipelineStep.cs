@@ -10,7 +10,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Hl7.Fhir.Utility;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Client.Models;
+using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
@@ -19,47 +21,57 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
     {
         private readonly IObservationDeleteHandler _observationDeleteHandler;
         private readonly IObservationUpsertHandler _observationUpsertHandler;
+        private readonly IOptionsMonitor<DicomCastConfiguration> _dicomOptionsMonitor;
 
-        public ObservationPipelineStep(IObservationDeleteHandler observationDeleteHandler, IObservationUpsertHandler observationUpsertHandler)
+        public ObservationPipelineStep(IObservationDeleteHandler observationDeleteHandler,
+            IObservationUpsertHandler observationUpsertHandler,
+            IOptionsMonitor<DicomCastConfiguration> dicomCastConfiguration)
         {
             _observationDeleteHandler = EnsureArg.IsNotNull(observationDeleteHandler, nameof(observationDeleteHandler));
             _observationUpsertHandler = EnsureArg.IsNotNull(observationUpsertHandler, nameof(observationUpsertHandler));
+            _dicomOptionsMonitor = EnsureArg.IsNotNull(dicomCastConfiguration, nameof(dicomCastConfiguration));
         }
 
         public async Task PrepareRequestAsync(FhirTransactionContext context, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(context, nameof(context));
 
-            ChangeFeedEntry changeFeedEntry = context.ChangeFeedEntry;
-            context.Request.Observation = changeFeedEntry.Action switch
+            if (_dicomOptionsMonitor.CurrentValue.Features.GenerateObservations)
             {
-                ChangeFeedAction.Create => await _observationUpsertHandler.BuildAsync(context, cancellationToken),
-                ChangeFeedAction.Delete => await _observationDeleteHandler.BuildAsync(context, cancellationToken),
-                _ => throw new NotSupportedException(
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        DicomCastCoreResource.NotSupportedChangeFeedAction,
-                        changeFeedEntry.Action))
-            };
+                ChangeFeedEntry changeFeedEntry = context.ChangeFeedEntry;
+                context.Request.Observation = changeFeedEntry.Action switch
+                {
+                    ChangeFeedAction.Create => await _observationUpsertHandler.BuildAsync(context, cancellationToken),
+                    ChangeFeedAction.Delete => await _observationDeleteHandler.BuildAsync(context, cancellationToken),
+                    _ => throw new NotSupportedException(
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            DicomCastCoreResource.NotSupportedChangeFeedAction,
+                            changeFeedEntry.Action))
+                };
+            }
         }
 
         public void ProcessResponse(FhirTransactionContext context)
         {
             EnsureArg.IsNotNull(context, nameof(context));
 
-            if (context.Response?.Observation == null)
+            if (_dicomOptionsMonitor.CurrentValue.Features.GenerateObservations)
             {
-                return;
-            }
-
-            foreach (FhirTransactionResponseEntry observation in context.Response.Observation)
-            {
-                HttpStatusCode statusCode = observation.Response.Annotation<HttpStatusCode>();
-
-                // We are only currently doing POSTs which should result in a 201
-                if (statusCode != HttpStatusCode.Created)
+                if (context.Response?.Observation == null)
                 {
-                    throw new ResourceConflictException();
+                    return;
+                }
+
+                foreach (FhirTransactionResponseEntry observation in context.Response.Observation)
+                {
+                    HttpStatusCode statusCode = observation.Response.Annotation<HttpStatusCode>();
+
+                    // We are only currently doing POSTs which should result in a 201
+                    if (statusCode != HttpStatusCode.Created)
+                    {
+                        throw new ResourceConflictException();
+                    }
                 }
             }
         }
