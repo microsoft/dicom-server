@@ -8,24 +8,25 @@ variables:
 - template: pr-variables.yml
 
 stages:
-# - stage: UpdateVersion
-#   displayName: 'Determine Semantic Version'
-#   dependsOn: []
-#   jobs:
-#   - job: Semver
-#     pool:
-#       vmImage: $(WindowsVmImage)
-#     steps:
-#     - template: ./update-semver.yml
-#     - powershell: |
-#         $buildNumber = "$(GitVersion.SemVer)" -replace "\.", ""
-#         Write-Host "##vso[build.updatebuildnumber]$buildNumber"
-#         Write-Host "Updated build number to '$buildNumber'"
-#       name: SetBuildVersion
+- stage: UpdateVersion
+  displayName: 'Determine Semantic Version'
+  dependsOn: []
+  jobs:
+  - job: Semver
+    pool:
+      vmImage: $(WindowsVmImage)
+    steps:
+    - template: ./update-semver.yml
+    - powershell: |
+        $buildNumber = "$(GitVersion.SemVer)" -replace "\.", ""
+        Write-Host "##vso[build.updatebuildnumber]$buildNumber"
+        Write-Host "Updated build number to '$buildNumber'"
+      name: SetBuildVersion
 
 - stage: BuildRunUnitTests
   displayName: 'Build and Run Unit Tests'
-  dependsOn: []
+  dependsOn:
+  - UpdateVersion
   variables:
     assemblySemVer: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.AssemblySemVer']]
     assemblySemFileVer: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.AssemblySemFileVer']]
@@ -42,25 +43,32 @@ stages:
         packageArtifacts: true
         packageNugets: false
 
-# - stage: AnalyzeSecurity
-#   displayName: 'Run Security Analysis'
-#   dependsOn:
-#   - BuildRunUnitTests
-#   jobs:
-#   - job: Windows
-#     pool:
-#       vmImage: $(windowsVmImage)
-#     steps:
-#     - template: analyze.yml
-#       parameters:
-#         analyzePackages: false
+- stage: AnalyzeSecurity
+  displayName: 'Run Security Analysis'
+  dependsOn:
+  - BuildRunUnitTests
+  jobs:
+  - job: Windows
+    pool:
+      vmImage: $(windowsVmImage)
+    steps:
+    - template: analyze.yml
+      parameters:
+        analyzePackages: false
 
 - stage: DeployTestEnvironment
   displayName: 'Deploy Test Environment'
-  dependsOn: 
+  dependsOn:
   - BuildRunUnitTests
   jobs:
   - template: deploy.yml
+
+- stage: ValidateAPIVersioning
+  displayName: 'Detect Breaking Changes in REST API'
+  dependsOn:
+  - BuildRunUnitTests
+  jobs:
+  - template: versioning.yml
 
 - stage: DeployFeaturesEnabledWebapp
   displayName: 'Deploy features-enabled webapp'
@@ -69,19 +77,12 @@ stages:
   jobs:
   - template: deploy-features-enabled-webapp.yml
 
-# - stage: ValidateAPIVersioning
-#   displayName: 'Detect Breaking Changes in REST API'
-#   dependsOn:
-#   - BuildRunUnitTests
-#   jobs:
-#   - template: versioning.yml
-
-# - stage: RunIntegrationTests
-#   displayName: 'Run Integration tests'
-#   dependsOn:
-#   - DeployTestEnvironment
-#   jobs:
-#   - template: run-integration-tests.yml
+- stage: RunIntegrationTests
+  displayName: 'Run Integration tests'
+  dependsOn:
+  - DeployTestEnvironment
+  jobs:
+  - template: run-integration-tests.yml
 
 - stage: RunE2ETests
   displayName: 'Run E2E tests'
@@ -100,7 +101,7 @@ stages:
 - stage: Cleanup
   displayName: 'Clean Up Azure Environment'
   dependsOn:
-# - RunIntegrationTests
+  - RunIntegrationTests
   - RunE2ETests
   - RunE2EFeaturesEnabledTests
   jobs:
