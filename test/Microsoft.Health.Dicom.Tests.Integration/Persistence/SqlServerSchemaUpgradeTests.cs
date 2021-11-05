@@ -15,6 +15,19 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
+    public class SqlServerSchemaUpgradeTestsBase
+    {
+        public static IEnumerable<object[]> SchemaDiffVersions = Enumerable
+            .Range(start: SchemaVersionConstants.Min + 1, count: SchemaVersionConstants.Max - SchemaVersionConstants.Min)
+            .Select(x => new object[] { x })
+            .ToList();
+
+        public static IEnumerable<object[]> SchemaSnapshotVersions = Enumerable
+            .Range(start: SchemaVersionConstants.Min, count: SchemaVersionConstants.Max - SchemaVersionConstants.Min + 1)
+            .Select(x => new object[] { x })
+            .ToList();
+    }
+
     public class SqlServerSchemaUpgradeTests1
     {
         [Fact]
@@ -66,7 +79,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
     }
 
-    public class SqlServerSchemaUpgradeTests2
+    public class SqlServerSchemaUpgradeTests2 : SqlServerSchemaUpgradeTestsBase
     {
         /// <summary>
         /// There is small window where Sql schema is updated but not populated to web server, so the server still tries to call old stored procedure.
@@ -95,14 +108,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             await oldSqlStore.DisposeAsync();
             await newSqlStore.DisposeAsync();
         }
-
-        public static IEnumerable<object[]> SchemaDiffVersions = Enumerable
-            .Range(start: SchemaVersionConstants.Min + 1, count: SchemaVersionConstants.Max - SchemaVersionConstants.Min)
-            .Select(x => new object[] { x })
-            .ToList();
     }
 
-    public class SqlServerSchemaUpgradeTests3
+    public class SqlServerSchemaUpgradeTests3 : SqlServerSchemaUpgradeTestsBase
     {
         [Theory]
         [MemberData(nameof(SchemaDiffVersions))]
@@ -118,14 +126,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             // cleanup if succeeds
             await snapshotFixture.DisposeAsync();
         }
-
-        public static IEnumerable<object[]> SchemaDiffVersions = Enumerable
-            .Range(start: SchemaVersionConstants.Min + 1, count: SchemaVersionConstants.Max - SchemaVersionConstants.Min)
-            .Select(x => new object[] { x })
-            .ToList();
     }
 
-    public class SqlServerSchemaUpgradeTests4
+    public class SqlServerSchemaUpgradeTests4 : SqlServerSchemaUpgradeTestsBase
     {
         [Theory]
         [MemberData(nameof(SchemaSnapshotVersions))]
@@ -140,10 +143,5 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             // cleanup if succeeds
             await snapshotFixture.DisposeAsync();
         }
-
-        public static IEnumerable<object[]> SchemaSnapshotVersions = Enumerable
-            .Range(start: SchemaVersionConstants.Min, count: SchemaVersionConstants.Max - SchemaVersionConstants.Min + 1)
-            .Select(x => new object[] { x })
-            .ToList();
     }
 }
