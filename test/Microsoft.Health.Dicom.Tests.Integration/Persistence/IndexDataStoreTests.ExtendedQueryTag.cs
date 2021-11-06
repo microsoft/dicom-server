@@ -313,7 +313,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             return (await AddExtendedQueryTags(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry }))[0];
         }
 
-        private async Task<IReadOnlyList<QueryTag>> AddExtendedQueryTags(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags)
+        private async Task<IReadOnlyList<QueryTag>> AddExtendedQueryTags(IReadOnlyCollection<AddExtendedQueryTagEntry> extendedQueryTags)
         {
             var extendedQueryTagEntries = await _extendedQueryTagStore.AddExtendedQueryTagsAsync(extendedQueryTags, maxAllowedCount: 128, ready: true);
             return extendedQueryTagEntries.Select(entry => new QueryTag(entry)).ToList();
@@ -374,16 +374,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             QueryTagLevel series = QueryTagLevel.Series;
             QueryTagLevel instance = QueryTagLevel.Instance;
 
-            IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries = new List<AddExtendedQueryTagEntry>()
+            return await AddExtendedQueryTags(new List<AddExtendedQueryTagEntry>
             {
                 DicomTag.AcquisitionDate.BuildAddExtendedQueryTagEntry(level: study),
                 DicomTag.ConversionType.BuildAddExtendedQueryTagEntry(level: series),
                 DicomTag.DopplerCorrectionAngle.BuildAddExtendedQueryTagEntry(level: series),
                 DicomTag.ReferencePixelX0.BuildAddExtendedQueryTagEntry(level: instance),
                 DicomTag.DistributionNameRETIRED.BuildAddExtendedQueryTagEntry(level: instance),
-            };
-
-            return await AddExtendedQueryTags(extendedQueryTagEntries);
+            });
         }
 
         private async Task<Instance> StoreInstanceWithDifferentTagValues(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int index, IReadOnlyList<QueryTag> queryTags)

@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         protected ILogger Logger { get; }
 
         public override async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AddExtendedQueryTagsAsync(
-            IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries,
+            IReadOnlyCollection<AddExtendedQueryTagEntry> extendedQueryTagEntries,
             int maxCount,
             bool ready = false,
             CancellationToken cancellationToken = default)

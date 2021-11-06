@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// </returns>
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
         Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AddExtendedQueryTagsAsync(
-            IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries,
+            IReadOnlyCollection<AddExtendedQueryTagEntry> extendedQueryTagEntries,
             int maxAllowedCount,
             bool ready = false,
             CancellationToken cancellationToken = default);
@@ -69,7 +69,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <param name="queryTagKeys">The tag keys.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The task.</returns>
-        Task<IReadOnlyList<ExtendedQueryTagStoreJoinEntry>> GetExtendedQueryTagsAsync(IReadOnlyList<int> queryTagKeys, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<ExtendedQueryTagStoreJoinEntry>> GetExtendedQueryTagsAsync(IReadOnlyCollection<int> queryTagKeys, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Update QueryStatus of extended query tag.
@@ -122,7 +122,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <exception cref="ArgumentNullException"><paramref name="queryTagKeys"/> is <see langword="null"/>.</exception>
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
         Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AssignReindexingOperationAsync(
-            IReadOnlyList<int> queryTagKeys,
+            IReadOnlyCollection<int> queryTagKeys,
             Guid operationId,
             bool returnIfCompleted = false,
             CancellationToken cancellationToken = default);
@@ -142,6 +142,6 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <exception cref="ArgumentException"><paramref name="queryTagKeys"/> is empty.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="queryTagKeys"/> is <see langword="null"/>.</exception>
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-        Task<IReadOnlyList<int>> CompleteReindexingAsync(IReadOnlyList<int> queryTagKeys, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<int>> CompleteReindexingAsync(IReadOnlyCollection<int> queryTagKeys, CancellationToken cancellationToken = default);
     }
 }

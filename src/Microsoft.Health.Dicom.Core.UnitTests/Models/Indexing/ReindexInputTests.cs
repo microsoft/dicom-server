@@ -7,11 +7,11 @@ using System;
 using System.Globalization;
 using System.Linq;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Operations.Durable;
-using Microsoft.Health.Dicom.Operations.Indexing.Models;
+using Microsoft.Health.Dicom.Core.Models.Indexing;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing.Models
+namespace Microsoft.Health.Dicom.Core.UnitTests.Models.Indexing
 {
     public class ReindexInputTests
     {

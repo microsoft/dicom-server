@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Features.Operations
@@ -45,6 +46,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
         /// </returns>
         /// <exception cref="ArgumentException"><paramref name="tagKeys"/> is empty.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="tagKeys"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ExtendedQueryTagsAlreadyExistsException">
+        /// One or more values in <paramref name="tagKeys"/> has already been indexed.
+        /// </exception>
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
         Task<Guid> StartQueryTagIndexingAsync(IReadOnlyCollection<int> tagKeys, CancellationToken cancellationToken = default);
     }
