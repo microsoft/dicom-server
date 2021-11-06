@@ -19,7 +19,7 @@ using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Client.DurableTask;
-using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NSubstitute;
 using Xunit;
 
@@ -132,7 +132,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
                     CustomStatus = null,
                     History = null,
                     Input = populateInput
-                        ? JsonConvert.SerializeObject(
+                        ? JObject.FromObject(
                             new ReindexInput
                             {
                                 Completed = new WatermarkRange(21, 100),
@@ -141,7 +141,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
                         : null,
                     InstanceId = OperationId.ToString(id),
                     LastUpdatedTime = createdDateTime.AddMinutes(15),
-                    Name = "Foobar",
+                    Name = FunctionNames.ReindexInstances,
                     Output = null,
                     RuntimeStatus = OrchestrationRuntimeStatus.Running,
                 });
@@ -169,11 +169,12 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
             }
 
             OperationStatus actual = await _client.GetStatusAsync(id, source.Token);
+            Assert.NotNull(actual);
             Assert.Equal(createdDateTime, actual.CreatedTime);
             Assert.Equal(createdDateTime.AddMinutes(15), actual.LastUpdatedTime);
             Assert.Equal(id, actual.OperationId);
             Assert.Equal(populateInput ? 80 : 0, actual.PercentComplete);
-            Assert.True(expectedResourceUrls.SequenceEqual(populateInput ? actual.Resources : Array.Empty<Uri>()));
+            Assert.True(actual.Resources.SequenceEqual(populateInput ? expectedResourceUrls : Array.Empty<Uri>()));
             Assert.Equal(OperationRuntimeStatus.Running, actual.Status);
             Assert.Equal(OperationType.Reindex, actual.Type);
 
@@ -206,11 +207,11 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
         }
 
         [Fact]
-        public async Task GivenNoTagKeys_WhenStartingReindex_ThenThrowArgumentNullException()
+        public async Task GivenNoTagKeys_WhenStartingReindex_ThenThrowArgumentException()
         {
             using var source = new CancellationTokenSource();
 
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _client.StartQueryTagIndexingAsync(Array.Empty<int>(), source.Token));
+            await Assert.ThrowsAsync<ArgumentException>(() => _client.StartQueryTagIndexingAsync(Array.Empty<int>(), source.Token));
 
             _guidFactory.DidNotReceiveWithAnyArgs().Create();
             await _durableClient.DidNotReceiveWithAnyArgs().StartNewAsync(default, default);

@@ -53,6 +53,7 @@ namespace Microsoft.Health.Dicom.Functions.Client
                 x.ConnectionName = null;
 
             });
+            services.TryAddScoped<IDicomOperationsClient, DicomAzureFunctionsClient>();
 
             return dicomServerBuilder;
         }
