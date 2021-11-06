@@ -1,5 +1,5 @@
 ﻿{
-  "Version": "2.0",
+  "version": "2.0",
   "BlobStore": {
     "ConnectionString": null,
     "Containers": {
@@ -41,9 +41,9 @@
       "RuntimeStatuses": [ "Completed" ]
     }
   },
-  "Extensions": {
-    "DurableTask": {
-      "HubName": "DicomTaskHub"
+  "extensions": {
+    "durableTask": {
+      "hubName": "DicomTaskHub"
     }
   },
   "Logging": {

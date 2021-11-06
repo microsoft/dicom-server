@@ -22,37 +22,33 @@ namespace Microsoft.Health.Dicom.Functions.Client
     /// </summary>
     public static class DicomServerBuilderFunctionClientRegistrationExtensions
     {
+        private const string ConfigSectionName = "DicomFunctions";
+
         /// <summary>
         /// Adds the necessary services to support the usage of <see cref="IDicomOperationsClient"/>.
         /// </summary>
         /// <param name="dicomServerBuilder">A service builder for constructing a DICOM server.</param>
-        /// <param name="configurationRoot">The root of a configuration containing settings for the client.</param>
+        /// <param name="configuration">The root of a configuration containing settings for the client.</param>
         /// <returns>The service builder for adding additional services.</returns>
         /// <exception cref="ArgumentNullException">
         /// <para>
-        /// <paramref name="dicomServerBuilder"/> or <paramref name="configurationRoot"/> is <see langword="null"/>.
+        /// <paramref name="dicomServerBuilder"/> or <paramref name="configuration"/> is <see langword="null"/>.
         /// </para>
         /// <para>-or-</para>
         /// <para>
-        /// <paramref name="configurationRoot"/> is missing a section with the key TBD
+        /// <paramref name="configuration"/> is missing a section with the key TBD
         /// </para>
         /// </exception>
         public static IDicomServerBuilder AddAzureFunctionsClient(
             this IDicomServerBuilder dicomServerBuilder,
-            IConfiguration configurationRoot)
+            IConfiguration configuration)
         {
             EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder));
-            EnsureArg.IsNotNull(configurationRoot, nameof(configurationRoot));
+            EnsureArg.IsNotNull(configuration, nameof(configuration));
 
             IServiceCollection services = dicomServerBuilder.Services;
-            services.TryAddSingleton<IGuidFactory, GuidFactory>();
-            services.AddDurableClientFactory(x =>
-            {
-                x.IsExternalClient = true;
-                x.TaskHub = null;
-                x.ConnectionName = null;
-
-            });
+            services.TryAddSingleton(GuidFactory.Default);
+            services.AddDurableClientFactory(x => configuration.GetSection(ConfigSectionName).Bind(x));
             services.TryAddScoped<IDicomOperationsClient, DicomAzureFunctionsClient>();
 
             return dicomServerBuilder;
