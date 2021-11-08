@@ -183,19 +183,19 @@
         "deployAppInsights": "[and(parameters('deployApplicationInsights'),not(variables('isMAG')))]",
         "appInsightsName": "[concat('AppInsights-', variables('serviceName'))]",
         "securityAuthenticationEnabled": "[and(not(empty(parameters('securityAuthenticationAuthority'))),not(empty(parameters('securityAuthenticationAudience'))))]",
-        "staticDicomServerConfigProperties": {
-            "APPINSIGHTS_PORTALINFO": "ASP.NETCORE",
-            "APPINSIGHTS_PROFILERFEATURE_VERSION": "1.0.0",
-            "APPINSIGHTS_SNAPSHOTFEATURE_VERSION": "1.0.0",
-            "WEBSITE_NODE_DEFAULT_VERSION": "6.9.4",
-            "SqlServer__Initialize": "true",
-            "DicomFunctions__ConnectionName": "BlobStore__ConnectionString",
-            "DicomServer__Features__EnableOhifViewer": "[parameters('deployOhifViewer')]",
-            "DicomServer__Features__EnableExtendedQueryTags": "true",
-            "DicomServer__Security__Enabled": "[variables('securityAuthenticationEnabled')]",
-            "DicomServer__Security__Authentication__Authority": "[parameters('securityAuthenticationAuthority')]",
-            "DicomServer__Security__Authentication__Audience": "[parameters('securityAuthenticationAudience')]"
-        },
+      "staticDicomServerConfigProperties": {
+        "APPINSIGHTS_PORTALINFO": "ASP.NETCORE",
+        "APPINSIGHTS_PROFILERFEATURE_VERSION": "1.0.0",
+        "APPINSIGHTS_SNAPSHOTFEATURE_VERSION": "1.0.0",
+        "WEBSITE_NODE_DEFAULT_VERSION": "6.9.4",
+        "SqlServer__Initialize": "true",
+        "DicomFunctions__ConnectionName": "AzureWebJobsStorage",
+        "DicomServer__Features__EnableOhifViewer": "[parameters('deployOhifViewer')]",
+        "DicomServer__Features__EnableExtendedQueryTags": "true",
+        "DicomServer__Security__Enabled": "[variables('securityAuthenticationEnabled')]",
+        "DicomServer__Security__Authentication__Authority": "[parameters('securityAuthenticationAuthority')]",
+        "DicomServer__Security__Authentication__Audience": "[parameters('securityAuthenticationAudience')]"
+      },
         // See the following for Azure Function App settings: https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings
         "staticDicomFunctionAppConfigProperties": {
             "AzureWebJobsDisableHomepage": "true",
@@ -273,7 +273,7 @@
                         "[variables('azureStorageConnectionStringResourceId')]",
                         "[variables('appInsightsInstrumentationKeyResourceId')]"
                     ],
-                    "properties": "[union(if(variables('deployAppInsights'), json(concat('{\"ApplicationInsights__InstrumentationKey\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsInstrumentationKeyResourceId')).secretUriWithVersion, ')'), '\"}')), json('{}')), json(concat('{\"BlobStore__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"SqlServer__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('sqlServerConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), variables('combinedDicomServerConfigProperties'))]"
+                    "properties": "[union(if(variables('deployAppInsights'), json(concat('{\"ApplicationInsights__InstrumentationKey\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsInstrumentationKeyResourceId')).secretUriWithVersion, ')'), '\"}')), json('{}')), json(concat('{\"AzureWebJobsStorage\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"BlobStore__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"SqlServer__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('sqlServerConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), variables('combinedDicomServerConfigProperties'))]"
                 },
                 {
                     "apiVersion": "2015-08-01",
