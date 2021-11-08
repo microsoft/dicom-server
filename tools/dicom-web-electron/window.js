@@ -23,23 +23,53 @@ $(() => {
     let serverSettingsMenu = $('#server-settings-menu')
     let serverSettingsSection = $('#server-settings-section')
     let serverAddressDisplay = $('#server-address-display')
-    let postUrl = serverAddressInput.val() + "/" + serverVersionInput.val() + "/studies"
     let changeFeedSection = $('#change-feed-section')
     let changeFeedMenu = $('#change-feed-menu')
     let changeFeedButton = $('#change-feed-button')
     let changeFeedTable = $('#change-feed-table')
     let changeFeedResults = $('#change-feed-results')
     let offsetInput = $('#offset-input')
-    let resultsSection = $('#resultsSection')
-
+    let partitionContainer = $('#partition-container')
+    let partitionInput = $('#partitions-input')
+    let partitionNameInput = $('#partition-name-input')
     let offset = 0;
 
-    serverAddressDisplay.html(postUrl)
+    let isPartitionEnabled = () => {
+        return partitionInput[0].checked
+    }
+
+    let baseUrl = () => {
+        return serverAddressInput.val() + "/" + serverVersionInput.val()
+    }
+
+    let partitionUrl = () => {
+        return 'partitions/' + $('#partition-name-input').val()
+    }
+
+    let getPostUrl = () => {
+        if (isPartitionEnabled()) {
+            return baseUrl() + "/" + partitionUrl() + "/studies"
+        } else {
+            return baseUrl() + "/studies"
+        }
+    }
+
+    serverAddressDisplay.html(getPostUrl())
 
     let hideErrorSuccess = function() {
         errorDisplay.toggle(false)
         successDisplay.toggle(false)
     }
+
+    partitionInput.change((value) => {
+        let checked = value.target.checked;
+        serverAddressDisplay.html(getPostUrl())
+        if (checked) {
+            partitionContainer.show()
+        } else {
+            partitionContainer.hide()
+        }
+    })
 
     fileUploadMenu.click(() => {
         fileUploadSection.toggle(true)
@@ -79,19 +109,20 @@ $(() => {
 
     serverAddressButton.click(() => {
         if (displayServerEdit) {
-            postUrl = serverAddressInput.val() + "/" + serverVersionInput.val() + "/studies"
-            serverAddressDisplay.html(postUrl)
+            serverAddressDisplay.html(getPostUrl())
             serverAddressInput.prop('disabled', true);
             serverVersionInput.prop('disabled', true);
             bearerTokenInput.prop('disabled', true)
             serverAddressButton.val("Change")
             serverAddressButton.toggleClass("is-primary", false)
+            partitionNameInput.prop('disabled', true)
         } else {
             serverAddressButton.val("Update")
             serverAddressButton.toggleClass("is-primary", true)
             serverAddressInput.prop('disabled', false);
             serverVersionInput.prop('disabled', false);
             bearerTokenInput.prop('disabled', false)
+            partitionNameInput.prop('disabled', false)
         }
         displayServerEdit = !displayServerEdit
     })
@@ -101,7 +132,7 @@ $(() => {
     })
 
     postFileButton.click(() => {
-        let url = serverAddressInput.val() + "/" + serverVersionInput.val() + "/studies"
+        let url = getPostUrl()
         let bearerToken = bearerTokenInput.val()
 
         hideErrorSuccess()
@@ -149,7 +180,7 @@ $(() => {
 
         offset = offsetInput.val()
 
-        let url = serverAddressInput.val() + "/" + serverVersionInput.val() + "/changefeed?includemetadata=false&offset=" + offset
+        let url = baseUrl() + "/changefeed?includemetadata=false&offset=" + offset
         let bearerToken = bearerTokenInput.val()
 
         hideErrorSuccess()
