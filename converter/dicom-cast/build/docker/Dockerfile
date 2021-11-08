@@ -12,7 +12,7 @@ RUN dotnet build "./converter/dicom-cast/src/Microsoft.Health.DicomCast.Hosting/
 RUN dotnet publish "./converter/dicom-cast/src/Microsoft.Health.DicomCast.Hosting/Microsoft.Health.DicomCast.Hosting.csproj" -c Release -o "/.build" --no-build
 
 # Build the runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:5.0.11-alpine3.13@sha256:2b67665d62471d30de99340361d516d4555a9276cb4ff78fb09db784384b1574 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine3.13@sha256:c6d4f6b97ce75961f5b2c1ff7255950413b7cb3eab1fa78ca3d070a6506ed661 AS runtime
 
 RUN set -x && \
     addgroup nonroot && \
