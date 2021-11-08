@@ -199,7 +199,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
         {
             using var source = new CancellationTokenSource();
 
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _client.StartQueryTagIndexingAsync(null, source.Token));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _client.StartReindexingInstancesAsync(null, source.Token));
 
             _guidFactory.DidNotReceiveWithAnyArgs().Create();
             await _durableClient.DidNotReceiveWithAnyArgs().StartNewAsync(default, default);
@@ -211,7 +211,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
         {
             using var source = new CancellationTokenSource();
 
-            await Assert.ThrowsAsync<ArgumentException>(() => _client.StartQueryTagIndexingAsync(Array.Empty<int>(), source.Token));
+            await Assert.ThrowsAsync<ArgumentException>(() => _client.StartReindexingInstancesAsync(Array.Empty<int>(), source.Token));
 
             _guidFactory.DidNotReceiveWithAnyArgs().Create();
             await _durableClient.DidNotReceiveWithAnyArgs().StartNewAsync(default, default);
@@ -236,7 +236,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
                 .AssignReindexingOperationAsync(tagKeys, id, true, source.Token)
                 .Returns(Array.Empty<ExtendedQueryTagStoreEntry>());
 
-            await Assert.ThrowsAsync<ExtendedQueryTagsAlreadyExistsException>(() => _client.StartQueryTagIndexingAsync(tagKeys, source.Token));
+            await Assert.ThrowsAsync<ExtendedQueryTagsAlreadyExistsException>(() => _client.StartReindexingInstancesAsync(tagKeys, source.Token));
 
             _guidFactory.Received(1).Create();
             await _durableClient
@@ -276,7 +276,7 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
                         0))
                     .ToArray());
 
-            Assert.Equal(id, await _client.StartQueryTagIndexingAsync(tagKeys, source.Token));
+            Assert.Equal(id, await _client.StartReindexingInstancesAsync(tagKeys, source.Token));
 
             _guidFactory.Received(1).Create();
             await _durableClient

@@ -100,7 +100,7 @@ namespace Microsoft.Health.Dicom.Functions.Client
         }
 
         /// <inheritdoc/>
-        public async Task<Guid> StartQueryTagIndexingAsync(IReadOnlyCollection<int> tagKeys, CancellationToken cancellationToken = default)
+        public async Task<Guid> StartReindexingInstancesAsync(IReadOnlyCollection<int> tagKeys, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(tagKeys, nameof(tagKeys));
             EnsureArg.HasItems(tagKeys, nameof(tagKeys));
