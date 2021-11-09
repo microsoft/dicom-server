@@ -46,6 +46,19 @@
                         </div>
                     </div>
                     <div class="field">
+                        <label class="label">Data partitions</label>
+                        <div class="control">
+                            <input type="checkbox" id="partitions-input" name="partitions" value="partitions">
+                            <label for="partitions">Enable data partitions</label>
+                        </div>
+                    </div>
+                    <div class="field" id="partition-container" style="display: none;">
+                        <label class="label">Partition name</label>
+                        <div class="control">
+                            <input type="text" id="partition-name-input" class="input" value="Microsoft.Default" placeholder="Enter a partition name..." disabled="true"></input>
+                        </div>
+                    </div>
+                    <div class="field">
                         <label class="label">Bearer Token</label>
                         <div class="control">
                             <input type="text" id="bearer-token-input" class="input" value="" placeholder="Enter a bearer token..." disabled="true"></input>
