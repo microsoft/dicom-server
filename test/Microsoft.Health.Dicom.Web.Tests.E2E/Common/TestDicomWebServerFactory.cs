@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
 
         private static string GetEnvironmentUrl(bool enableDataPartitions = default)
         {
-            return enableDataPartitions ? Environment.GetEnvironmentVariable("TestDataPartitionsEnvironmentUrl") : Environment.GetEnvironmentVariable("TestEnvironmentUrl");
+            return enableDataPartitions ? Environment.GetEnvironmentVariable("TestFeaturesEnabledEnvironmentUrl") : Environment.GetEnvironmentVariable("TestEnvironmentUrl");
         }
     }
 }

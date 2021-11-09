@@ -1,0 +1,54 @@
+jobs:
+- job: provision
+  pool:
+    vmImage: $(windowsVmImage)
+  steps:
+  
+  - task: AzureKeyVault@1
+    displayName: 'Azure Key Vault: resolute-oss-tenant-info'
+    inputs:
+      azureSubscription: $(azureSubscriptionName)
+      KeyVaultName: 'resolute-oss-tenant-info'
+
+  - task: AzurePowerShell@4
+    displayName: 'Features-enabled webapp infrastructure deployment'
+    inputs:
+      azureSubscription: $(azureSubscriptionName)
+      azurePowerShellVersion: latestVersion
+      ScriptType: InlineScript
+      Inline: |
+        Add-Type -AssemblyName System.Web
+
+        $deployPath = "$(System.DefaultWorkingDirectory)/release/templates"
+
+        $additionalProperties = @{
+            "DicomServer__Features__EnableDataPartitions" = "true"
+        }
+
+        $templateParameters = @{
+            serviceName = "$(deploymentName)"
+            appServicePlanResourceGroup = "$(appServicePlanResourceGroup)"
+            appServicePlanName = "$(appServicePlanName)"
+            additionalDicomServerConfigProperties = $additionalProperties
+            securityAuthenticationAuthority = "https://login.microsoftonline.com/$(tenant-id)"
+            securityAuthenticationAudience = "$(testApplicationResource)"
+        }
+
+        New-AzResourceGroupDeployment -Name "$(deploymentName)-features-enabled-webapp" -ResourceGroupName "$(resourceGroupName)" -TemplateFile $deployPath/featuresenabled-azuredeploy.json -TemplateParameterObject $templateParameters -Verbose
+
+  - task: DownloadBuildArtifacts@0
+    inputs:
+      buildType: 'current'
+      downloadType: 'single'
+      downloadPath: '$(System.ArtifactsDirectory)'
+      artifactName: 'deploy'
+
+  - task: AzureRMWebAppDeployment@4
+    displayName: 'Features-enabled webapp package deployment'
+    inputs:
+      connectionType: 'AzureRM'
+      azureSubscription: $(azureSubscriptionName)
+      webAppKind: 'webApp'
+      webAppName: '$(deploymentName)-featuresenabled'
+      package: '$(System.ArtifactsDirectory)/deploy/Microsoft.Health.Dicom.Web.zip'
+      takeAppOfflineFlag: true

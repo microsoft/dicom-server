@@ -72,37 +72,3 @@ jobs:
       webAppName: '$(deploymentName)-functions'
       package: '$(System.ArtifactsDirectory)/deploy/Microsoft.Health.Dicom.Functions.zip'
       takeAppOfflineFlag: true
-
-  - task: AzurePowerShell@4
-    displayName: Create Dicom Web App with Data partitions feature enabled 
-    inputs:
-      azureSubscription: $(azureSubscriptionName)
-      azurePowerShellVersion: latestVersion
-      ScriptType: inlineScript
-      Inline: |
-        $asp = Get-AzAppServicePlan -ResourceGroup $(appServicePlanResourceGroup) -Name $(appServicePlanName)
-
-        try
-        {
-            Get-AzWebApp -ResourceGroupName $(resourceGroupName) -Name '$(deploymentName)-datapartitions'
-        }
-        catch
-        {
-            Write-Host "App service $(deploymentName)-datapartitions doesn't exists."
-            New-AzWebApp -ResourceGroupName $(resourceGroupName) -Name '$(deploymentName)-datapartitions' -Location "$(resourceGroupRegion)" -AppServicePlan $asp.id
-        }
-
-  - task: AzureRMWebAppDeployment@4
-    displayName: 'Deploy Dicom Web App with Data partitions feature enabled'
-    inputs:
-      connectionType: 'AzureRM'
-      azureSubscription: $(azureSubscriptionName)
-      webAppKind: 'webApp'
-      webAppName: '$(deploymentName)-datapartitions'
-      package: '$(System.ArtifactsDirectory)/deploy/Microsoft.Health.Dicom.Web.zip'
-      takeAppOfflineFlag: true
-      appSettings: 
-            -DicomServer:Features:EnableDataPartitions true
-            -DicomServer:Security:Enabled true
-            -DicomServer:Security:Authentication:Authority https://login.microsoftonline.com/$(tenant-id)
-            -DicomServer:Security:Authentication:Audience $(testApplicationResource)
