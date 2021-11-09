@@ -49,7 +49,10 @@
   "Logging": {
     "IncludeScopes": false,
     "LogLevel": {
-      "Default": "Warning"
+      "Default": "Warning",
+      "DurableTask": "Warning",
+      "Host": "Warning",
+      "Worker": "Warning"
     },
     "ApplicationInsights": {
       "LogLevel": {

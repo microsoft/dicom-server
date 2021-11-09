@@ -106,8 +106,9 @@ namespace Microsoft.Health.Dicom.Operations.Client
             EnsureArg.HasItems(tagKeys, nameof(tagKeys));
 
             // Start the re-indexing orchestration
-            // TODO: Pass token when supported
             Guid instanceGuid = _guidFactory.Create();
+
+            // TODO: Pass token when supported
             string instanceId = await _durableClient.StartNewAsync(
                 FunctionNames.ReindexInstances,
                 OperationId.ToString(instanceGuid),
