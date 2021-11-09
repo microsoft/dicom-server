@@ -19,10 +19,10 @@ using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
-using Microsoft.Health.Dicom.Functions.Client.DurableTask;
-using Microsoft.Health.Dicom.Functions.Client.Extensions;
+using Microsoft.Health.Dicom.Operations.Client.DurableTask;
+using Microsoft.Health.Dicom.Operations.Client.Extensions;
 
-namespace Microsoft.Health.Dicom.Functions.Client
+namespace Microsoft.Health.Dicom.Operations.Client
 {
     /// <summary>
     /// Represents a client for interacting with DICOM-specific Azure Functions.

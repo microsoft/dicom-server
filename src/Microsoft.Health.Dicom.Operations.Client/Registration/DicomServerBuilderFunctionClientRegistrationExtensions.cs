@@ -11,9 +11,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Registration;
-using Microsoft.Health.Dicom.Functions.Client.DurableTask;
+using Microsoft.Health.Dicom.Operations.Client.DurableTask;
 
-namespace Microsoft.Health.Dicom.Functions.Client
+namespace Microsoft.Health.Dicom.Operations.Client
 {
     /// <summary>
     /// Provides a set of <see langword="static"/> methods for adding services to the dependency injection

@@ -18,12 +18,12 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
-using Microsoft.Health.Dicom.Functions.Client.DurableTask;
+using Microsoft.Health.Dicom.Operations.Client.DurableTask;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Functions.Client.UnitTests
+namespace Microsoft.Health.Dicom.Operations.Client.UnitTests
 {
     public class DicomAzureFunctionsClientTests
     {

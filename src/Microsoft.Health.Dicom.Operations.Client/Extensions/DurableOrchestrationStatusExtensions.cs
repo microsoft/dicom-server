@@ -8,7 +8,7 @@ using EnsureThat;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 
-namespace Microsoft.Health.Dicom.Functions.Client.Extensions
+namespace Microsoft.Health.Dicom.Operations.Client.Extensions
 {
     internal static class DurableOrchestrationStatusExtensions
     {

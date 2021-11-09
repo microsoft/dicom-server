@@ -3,10 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Functions.Client
-{
-    internal static class FunctionNames
-    {
-        public const string ReindexInstances = "ReindexInstancesAsync";
-    }
-}
+using System;
+using System.Resources;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("Microsoft.Health.Dicom.Operations.Client.UnitTests")]
+[assembly: NeutralResourcesLanguage("en-us")]
+[assembly: CLSCompliant(false)]
