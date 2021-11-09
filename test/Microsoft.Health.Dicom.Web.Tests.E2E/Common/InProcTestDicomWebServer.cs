@@ -46,6 +46,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
                 { "DicomServer:Features:EnableDataPartitions", enableDataPartitions.ToString() },
             };
 
+            var dbName = enableDataPartitions ? "DicomWithPartitions" : "Dicom";
+
+            // Overriding sqlserver connection string to provide different DB for data partition test
+            // This will ensure there is no multiple partitions when the flag is off
+            var sqlSettings = new Dictionary<string, string>
+            {
+                { "SqlServer:ConnectionString", $"server=(local);Initial Catalog={dbName};Integrated Security=true" },
+            };
+
             IWebHostBuilder builder = WebHost.CreateDefaultBuilder()
                 .UseContentRoot(contentRoot)
                 .UseStartup(startupType)
@@ -53,6 +62,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
                 {
                     config.AddInMemoryCollection(authSettings);
                     config.AddInMemoryCollection(featureSettings);
+                    config.AddInMemoryCollection(sqlSettings);
                     var existingConfig = config.Build();
                     config.AddDevelopmentAuthEnvironmentIfConfigured(existingConfig, "DicomServer");
                     if (string.Equals(existingConfig["DicomServer:Security:Enabled"], bool.TrueString, StringComparison.OrdinalIgnoreCase))
