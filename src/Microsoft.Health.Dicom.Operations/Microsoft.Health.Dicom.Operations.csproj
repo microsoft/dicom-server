@@ -19,7 +19,7 @@
     <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.SqlServer" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />
-    <PackageReference Include="System.Text.Encodings.Web" Version="4.7.2" PrivateAssets="All" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="6.0.0" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
