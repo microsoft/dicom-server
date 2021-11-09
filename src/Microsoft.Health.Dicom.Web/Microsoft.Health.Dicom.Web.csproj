@@ -10,7 +10,7 @@
     <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="IdentityServer4" Version="4.1.2" />
     <PackageReference Include="IdentityServer4.Storage" Version="4.1.2" />
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.18.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.19.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.18.0" />
     <PackageReference Include="Microsoft.Health.Development.IdentityProvider" Version="$(HealthcareSharedPackageVersion)" />
