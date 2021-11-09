@@ -70,6 +70,13 @@ stages:
   jobs:
   - template: versioning.yml
 
+- stage: DeployFeaturesEnabledWebapp
+  displayName: 'Deploy features-enabled webapp'
+  dependsOn: 
+  - DeployTestEnvironment
+  jobs:
+  - template: deploy-features-enabled-webapp.yml
+
 - stage: RunIntegrationTests
   displayName: 'Run Integration tests'
   dependsOn:
@@ -84,10 +91,18 @@ stages:
   jobs:
   - template: run-e2e-tests.yml
 
+- stage: RunE2EFeaturesEnabledTests
+  displayName: 'Run E2E features-enabled tests'
+  dependsOn:
+  - DeployFeaturesEnabledWebapp
+  jobs:
+  - template: run-e2e-features-enabled-tests.yml
+
 - stage: Cleanup
   displayName: 'Clean Up Azure Environment'
   dependsOn:
   - RunIntegrationTests
   - RunE2ETests
+  - RunE2EFeaturesEnabledTests
   jobs:
   - template: cleanup.yml

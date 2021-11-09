@@ -20,24 +20,16 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
     public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpIntegrationTestFixture<Startup>>
     {
         private readonly IDicomWebClient _client;
-        private readonly bool _isUsingRemoteTestServer;
 
         public DataPartitionEnabledTests(DataPartitionEnabledHttpIntegrationTestFixture<Startup> fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
             _client = fixture.Client;
-            _isUsingRemoteTestServer = !fixture.IsUsingInProcTestServer;
         }
 
         [Fact]
         public async Task WhenRetrievingPartitions_TheServerShouldReturnAllPartitions()
         {
-            if (_isUsingRemoteTestServer)
-            {
-                // Data partition feature flag only enabled locally. For Remote servers, feature flag is by default disabled
-                return;
-            }
-
             var newPartition1 = TestUidGenerator.Generate();
             var newPartition2 = TestUidGenerator.Generate();
 
@@ -58,12 +50,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenDatasetWithNewPartitionName_WhenStoring_TheServerShouldReturnWithNewPartition()
         {
-            if (_isUsingRemoteTestServer)
-            {
-                // Data partition feature flag only enabled locally. For Remote servers, feature flag is by default disabled
-                return;
-            }
-
             var newPartition = TestUidGenerator.Generate();
 
             string studyInstanceUID = TestUidGenerator.Generate();
@@ -82,12 +68,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenDatasetWithNewPartitionName_WhenStoringWithStudyUid_TheServerShouldReturnWithNewPartition()
         {
-            if (_isUsingRemoteTestServer)
-            {
-                // Data partition feature flag only enabled locally. For Remote servers, feature flag is by default disabled
-                return;
-            }
-
             var newPartition = TestUidGenerator.Generate();
 
             var studyInstanceUID = TestUidGenerator.Generate();
@@ -105,12 +85,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task WhenRetrievingWithPartitionName_TheServerShouldReturnOnlyTheSpecifiedPartition()
         {
-            if (_isUsingRemoteTestServer)
-            {
-                // Data partition feature flag only enabled locally. For Remote servers, feature flag is by default disabled
-                return;
-            }
-
             var newPartition1 = "partition1";
             var newPartition2 = "partition2";
 
@@ -133,12 +107,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenDatasetInstancesWithDifferentPartitions_WhenDeleted_OneDeletedAndOtherRemains()
         {
-            if (_isUsingRemoteTestServer)
-            {
-                // Data partition feature flag only enabled locally. For Remote servers, feature flag is by default disabled
-                return;
-            }
-
             var newPartition1 = TestUidGenerator.Generate();
             var newPartition2 = TestUidGenerator.Generate();
 
@@ -163,12 +131,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenMatchingStudiesInDifferentPartitions_WhenSearchForStudySeriesLevel_OnePartitionMatchesResult()
         {
-            if (_isUsingRemoteTestServer)
-            {
-                // Data partition feature flag only enabled locally. For Remote servers, feature flag is by default disabled
-                return;
-            }
-
             var newPartition1 = TestUidGenerator.Generate();
             var newPartition2 = TestUidGenerator.Generate();
 
@@ -200,12 +162,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenAnInstance_WhenRetrievingChangeFeedWithPartition_ThenPartitionNameIsReturned()
         {
-            if (_isUsingRemoteTestServer)
-            {
-                // Data partition feature flag only enabled locally. For Remote servers, feature flag is by default disabled
-                return;
-            }
-
             var newPartition = TestUidGenerator.Generate();
             string studyInstanceUID = TestUidGenerator.Generate();
             string seriesInstanceUID = TestUidGenerator.Generate();
