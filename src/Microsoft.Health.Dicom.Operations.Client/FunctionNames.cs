@@ -3,18 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.ComponentModel.DataAnnotations;
-
-namespace Microsoft.Health.Dicom.Functions.Client.Configs
+namespace Microsoft.Health.Dicom.Operations.Client
 {
-    public class OperationRoutes
-
+    internal static class FunctionNames
     {
-        [Required]
-        public Uri StartQueryTagIndexingRoute { get; set; }
-
-        [Required]
-        public string GetStatusRouteTemplate { get; set; }
+        public const string ReindexInstances = "ReindexInstancesAsync";
     }
 }

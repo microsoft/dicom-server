@@ -5,11 +5,10 @@
 
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Health.Dicom.Core.Models.Operations;
-using Microsoft.Health.Dicom.Operations.Extensions;
-using Microsoft.Health.Dicom.Operations.Indexing;
+using Microsoft.Health.Dicom.Operations.Client.Extensions;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Operations.UnitTests.Extensions
+namespace Microsoft.Health.Dicom.Operations.Client.UnitTests.Extensions
 {
     public class DurableOrchestrationStatusExtensionsTests
     {
@@ -17,7 +16,7 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Extensions
         [InlineData(null, OperationType.Unknown)]
         [InlineData("foo", OperationType.Unknown)]
         [InlineData("Unknown", OperationType.Unknown)]
-        [InlineData(nameof(ReindexDurableFunction.ReindexInstancesAsync), OperationType.Reindex)]
+        [InlineData(FunctionNames.ReindexInstances, OperationType.Reindex)]
         [InlineData("reindexINSTANCESasync", OperationType.Reindex)]
         public void GivenOrchestrationStatus_WhenGettingOperationType_ThenConvertNameToType(string name, OperationType expected)
         {

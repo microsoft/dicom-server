@@ -3,10 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Resources;
-using System.Runtime.CompilerServices;
+using System.Collections.Generic;
 
-[assembly: InternalsVisibleTo("Microsoft.Health.Dicom.Functions.Client.UnitTests")]
-[assembly: NeutralResourcesLanguage("en-us")]
-[assembly: CLSCompliant(false)]
+namespace Microsoft.Health.Dicom.Core.Models.Operations
+{
+    internal class OperationProgress
+    {
+        public int PercentComplete { get; set; }
+
+        public IReadOnlyCollection<string> ResourceIds { get; set; }
+    }
+}

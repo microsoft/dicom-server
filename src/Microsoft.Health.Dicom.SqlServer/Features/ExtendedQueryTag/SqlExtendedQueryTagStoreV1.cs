@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         public virtual SchemaVersion Version => SchemaVersion.V1;
 
         public virtual Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AddExtendedQueryTagsAsync(
-            IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries,
+            IReadOnlyCollection<AddExtendedQueryTagEntry> extendedQueryTagEntries,
             int maxCount,
             bool ready = false,
             CancellationToken cancellationToken = default)
@@ -46,17 +46,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
 
-        public virtual Task<IReadOnlyList<ExtendedQueryTagStoreJoinEntry>> GetExtendedQueryTagsAsync(IReadOnlyList<int> queryTagKeys, CancellationToken cancellationToken = default)
+        public virtual Task<IReadOnlyList<ExtendedQueryTagStoreJoinEntry>> GetExtendedQueryTagsAsync(IReadOnlyCollection<int> queryTagKeys, CancellationToken cancellationToken = default)
         {
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
 
-        public virtual Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AssignReindexingOperationAsync(IReadOnlyList<int> queryTagKeys, Guid operationId, bool returnIfCompleted = false, CancellationToken cancellationToken = default)
+        public virtual Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AssignReindexingOperationAsync(IReadOnlyCollection<int> queryTagKeys, Guid operationId, bool returnIfCompleted = false, CancellationToken cancellationToken = default)
         {
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
 
-        public virtual Task<IReadOnlyList<int>> CompleteReindexingAsync(IReadOnlyList<int> queryTagKeys, CancellationToken cancellationToken = default)
+        public virtual Task<IReadOnlyList<int>> CompleteReindexingAsync(IReadOnlyCollection<int> queryTagKeys, CancellationToken cancellationToken = default)
         {
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }

@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
                 () => _extendedQueryTagService.AddExtendedQueryTagsAsync(input, _tokenSource.Token));
 
             _extendedQueryTagEntryValidator.Received(1).ValidateExtendedQueryTags(input);
-            await _client.DidNotReceiveWithAnyArgs().StartQueryTagIndexingAsync(default, default);
+            await _client.DidNotReceiveWithAnyArgs().StartReindexingInstancesAsync(default, default);
         }
 
         [Fact]
@@ -82,7 +82,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
                     Arg.Is(_tokenSource.Token))
                 .Returns(new List<ExtendedQueryTagStoreEntry> { storeEntry });
             _client
-                .StartQueryTagIndexingAsync(
+                .StartReindexingInstancesAsync(
                     Arg.Is<IReadOnlyList<int>>(x => x.Single() == storeEntry.Key),
                     Arg.Is(_tokenSource.Token))
                 .Returns(expectedOperationId);
@@ -104,7 +104,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
                     Arg.Is(_tokenSource.Token));
             await _client
                 .Received(1)
-                .StartQueryTagIndexingAsync(
+                .StartReindexingInstancesAsync(
                     Arg.Is<IReadOnlyList<int>>(x => x.Single() == storeEntry.Key),
                     Arg.Is(_tokenSource.Token));
             _urlResolver.Received(1).ResolveOperationStatusUri(expectedOperationId);

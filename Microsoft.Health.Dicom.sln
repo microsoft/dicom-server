@@ -27,13 +27,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Core
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions", "src\Microsoft.Health.Dicom.Functions\Microsoft.Health.Dicom.Functions.csproj", "{BB88616C-6208-43D0-B9EF-79FC0652A151}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.Client", "src\Microsoft.Health.Dicom.Functions.Client\Microsoft.Health.Dicom.Functions.Client.csproj", "{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.Client.UnitTests", "src\Microsoft.Health.Dicom.Functions.Client.UnitTests\Microsoft.Health.Dicom.Functions.Client.UnitTests.csproj", "{3D5D7F69-C766-450A-AA3D-00A50E115E9C}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Metadata", "src\Microsoft.Health.Dicom.Metadata\Microsoft.Health.Dicom.Metadata.csproj", "{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.Operations", "src\Microsoft.Health.Dicom.Operations\Microsoft.Health.Dicom.Operations.csproj", "{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Operations.Client", "src\Microsoft.Health.Dicom.Operations.Client\Microsoft.Health.Dicom.Operations.Client.csproj", "{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Operations.Client.UnitTests", "src\Microsoft.Health.Dicom.Operations.Client.UnitTests\Microsoft.Health.Dicom.Operations.Client.UnitTests.csproj", "{3D5D7F69-C766-450A-AA3D-00A50E115E9C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Operations.UnitTests", "src\Microsoft.Health.Dicom.Operations.UnitTests\Microsoft.Health.Dicom.Operations.UnitTests.csproj", "{3D679950-A578-45AD-AF89-FAF89580375F}"
 EndProject
@@ -91,14 +91,6 @@ Global
 		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3D5D7F69-C766-450A-AA3D-00A50E115E9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3D5D7F69-C766-450A-AA3D-00A50E115E9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3D5D7F69-C766-450A-AA3D-00A50E115E9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3D5D7F69-C766-450A-AA3D-00A50E115E9C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E91CFB9-45D0-4742-A23D-0FF4E2D73A73}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -107,6 +99,14 @@ Global
 		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D5D7F69-C766-450A-AA3D-00A50E115E9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D5D7F69-C766-450A-AA3D-00A50E115E9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D5D7F69-C766-450A-AA3D-00A50E115E9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D5D7F69-C766-450A-AA3D-00A50E115E9C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3D679950-A578-45AD-AF89-FAF89580375F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3D679950-A578-45AD-AF89-FAF89580375F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3D679950-A578-45AD-AF89-FAF89580375F}.Release|Any CPU.ActiveCfg = Release|Any CPU

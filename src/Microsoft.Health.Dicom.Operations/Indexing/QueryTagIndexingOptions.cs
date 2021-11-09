@@ -7,7 +7,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
-using Microsoft.Health.Dicom.Operations.Durable;
+using Microsoft.Health.Dicom.Operations.DurableTask;
 
 namespace Microsoft.Health.Dicom.Operations.Indexing
 {

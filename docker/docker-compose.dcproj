@@ -27,7 +27,6 @@
     </None>
     <None Include="docker-compose.yml" />
     <None Include="functions\Dockerfile" />
-    <None Include="functions\host_secrets.json" />
     <None Include="sql\Dockerfile" />
   </ItemGroup>
 

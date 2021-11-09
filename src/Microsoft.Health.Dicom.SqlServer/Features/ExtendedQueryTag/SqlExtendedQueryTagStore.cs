@@ -20,19 +20,19 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         public SqlExtendedQueryTagStore(VersionedCache<ISqlExtendedQueryTagStore> cache)
             => _cache = EnsureArg.IsNotNull(cache, nameof(cache));
 
-        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxAllowedCount, bool ready = false, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AddExtendedQueryTagsAsync(IReadOnlyCollection<AddExtendedQueryTagEntry> extendedQueryTagEntries, int maxAllowedCount, bool ready = false, CancellationToken cancellationToken = default)
         {
             ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
             return await store.AddExtendedQueryTagsAsync(extendedQueryTagEntries, maxAllowedCount, ready, cancellationToken);
         }
 
-        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AssignReindexingOperationAsync(IReadOnlyList<int> queryTagKeys, Guid operationId, bool returnIfCompleted = false, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AssignReindexingOperationAsync(IReadOnlyCollection<int> queryTagKeys, Guid operationId, bool returnIfCompleted = false, CancellationToken cancellationToken = default)
         {
             ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
             return await store.AssignReindexingOperationAsync(queryTagKeys, operationId, returnIfCompleted, cancellationToken);
         }
 
-        public async Task<IReadOnlyList<int>> CompleteReindexingAsync(IReadOnlyList<int> queryTagKeys, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<int>> CompleteReindexingAsync(IReadOnlyCollection<int> queryTagKeys, CancellationToken cancellationToken = default)
         {
             ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
             return await store.CompleteReindexingAsync(queryTagKeys, cancellationToken);
@@ -56,7 +56,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             return await store.GetExtendedQueryTagsAsync(limit, offset, cancellationToken);
         }
 
-        public async Task<IReadOnlyList<ExtendedQueryTagStoreJoinEntry>> GetExtendedQueryTagsAsync(IReadOnlyList<int> queryTagKeys, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<ExtendedQueryTagStoreJoinEntry>> GetExtendedQueryTagsAsync(IReadOnlyCollection<int> queryTagKeys, CancellationToken cancellationToken = default)
         {
             ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
             return await store.GetExtendedQueryTagsAsync(queryTagKeys, cancellationToken);

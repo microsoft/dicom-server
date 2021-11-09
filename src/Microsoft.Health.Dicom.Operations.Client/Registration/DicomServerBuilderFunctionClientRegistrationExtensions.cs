@@ -4,22 +4,16 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Net.Http;
 using EnsureThat;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Http;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Registration;
-using Microsoft.Health.Dicom.Functions.Client.Configs;
-using Polly;
-using Polly.Contrib.WaitAndRetry;
-using Polly.Extensions.Http;
+using Microsoft.Health.Dicom.Operations.Client.DurableTask;
 
-namespace Microsoft.Health.Dicom.Functions.Client
+namespace Microsoft.Health.Dicom.Operations.Client
 {
     /// <summary>
     /// Provides a set of <see langword="static"/> methods for adding services to the dependency injection
@@ -28,49 +22,34 @@ namespace Microsoft.Health.Dicom.Functions.Client
     /// </summary>
     public static class DicomServerBuilderFunctionClientRegistrationExtensions
     {
+        private const string ConfigSectionName = "DicomFunctions";
+
         /// <summary>
         /// Adds the necessary services to support the usage of <see cref="IDicomOperationsClient"/>.
         /// </summary>
         /// <param name="dicomServerBuilder">A service builder for constructing a DICOM server.</param>
-        /// <param name="configurationRoot">The root of a configuration containing settings for the client.</param>
+        /// <param name="configuration">The root of a configuration containing settings for the client.</param>
         /// <returns>The service builder for adding additional services.</returns>
         /// <exception cref="ArgumentNullException">
         /// <para>
-        /// <paramref name="dicomServerBuilder"/> or <paramref name="configurationRoot"/> is <see langword="null"/>.
+        /// <paramref name="dicomServerBuilder"/> or <paramref name="configuration"/> is <see langword="null"/>.
         /// </para>
         /// <para>-or-</para>
         /// <para>
-        /// <paramref name="configurationRoot"/> is missing a section with the key
-        /// <see cref="FunctionsClientOptions.SectionName"/>.
+        /// <paramref name="configuration"/> is missing a section with the key TBD
         /// </para>
         /// </exception>
         public static IDicomServerBuilder AddAzureFunctionsClient(
             this IDicomServerBuilder dicomServerBuilder,
-            IConfiguration configurationRoot)
+            IConfiguration configuration)
         {
             EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder));
-            EnsureArg.IsNotNull(configurationRoot, nameof(configurationRoot));
+            EnsureArg.IsNotNull(configuration, nameof(configuration));
 
             IServiceCollection services = dicomServerBuilder.Services;
-
-            services.TryAddScoped<IDicomOperationsClient, DicomAzureFunctionsHttpClient>();
-            services
-                .AddHttpClient<DicomAzureFunctionsHttpClient>()
-                .AddHttpMessageHandler(
-                    sp =>
-                    {
-                        FunctionsClientOptions config = sp.GetRequiredService<IOptions<FunctionsClientOptions>>().Value;
-                        IEnumerable<TimeSpan> delays = Backoff.ExponentialBackoff(
-                            TimeSpan.FromMilliseconds(config.MinRetryDelayMilliseconds),
-                            config.MaxRetries);
-
-                        IAsyncPolicy<HttpResponseMessage> policy = HttpPolicyExtensions
-                            .HandleTransientHttpError()
-                            .WaitAndRetryAsync(delays);
-
-                        return new PolicyHttpMessageHandler(policy);
-                    });
-            services.Configure<FunctionsClientOptions>(configurationRoot.GetSection(FunctionsClientOptions.SectionName));
+            services.TryAddSingleton(GuidFactory.Default);
+            services.AddDurableClientFactory(x => configuration.GetSection(ConfigSectionName).Bind(x));
+            services.TryAddScoped<IDicomOperationsClient, DicomAzureFunctionsClient>();
 
             return dicomServerBuilder;
         }

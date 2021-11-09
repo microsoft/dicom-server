@@ -7,9 +7,8 @@ using System;
 using EnsureThat;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Health.Dicom.Core.Models.Operations;
-using Microsoft.Health.Dicom.Operations.Indexing;
 
-namespace Microsoft.Health.Dicom.Operations.Extensions
+namespace Microsoft.Health.Dicom.Operations.Client.Extensions
 {
     internal static class DurableOrchestrationStatusExtensions
     {
@@ -17,10 +16,8 @@ namespace Microsoft.Health.Dicom.Operations.Extensions
         {
             EnsureArg.IsNotNull(durableOrchestrationStatus, nameof(durableOrchestrationStatus));
 
-            return string.Equals(
-                    durableOrchestrationStatus.Name,
-                    nameof(ReindexDurableFunction.ReindexInstancesAsync),
-                    StringComparison.OrdinalIgnoreCase)
+            return durableOrchestrationStatus.Name != null &&
+                durableOrchestrationStatus.Name.StartsWith(FunctionNames.ReindexInstances, StringComparison.OrdinalIgnoreCase)
                 ? OperationType.Reindex
                 : OperationType.Unknown;
         }

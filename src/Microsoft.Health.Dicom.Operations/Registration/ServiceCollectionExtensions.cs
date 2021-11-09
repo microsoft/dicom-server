@@ -15,7 +15,6 @@ using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Modules;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Operations.Configuration;
-using Microsoft.Health.Dicom.Operations.Durable;
 using Microsoft.Health.Dicom.Operations.Indexing;
 using Microsoft.Health.Dicom.Operations.Management;
 using Microsoft.Health.Dicom.Operations.Registration;
@@ -41,7 +40,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddDicomJsonNetSerialization()
                 .AddFunctionsOptions<QueryTagIndexingOptions>(configuration, QueryTagIndexingOptions.SectionName, bindNonPublicProperties: true)
                 .AddFunctionsOptions<PurgeHistoryOptions>(configuration, PurgeHistoryOptions.SectionName)
-                .AddDurableFunctionServices()
                 .AddHttpServices());
         }
 
@@ -102,15 +100,6 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        private static IServiceCollection AddDurableFunctionServices(this IServiceCollection services)
-        {
-            EnsureArg.IsNotNull(services, nameof(services));
-
-            services.TryAddSingleton(GuidFactory.Default);
-
-            return services;
-        }
-
         private static IServiceCollection AddHttpServices(this IServiceCollection services)
         {
             EnsureArg.IsNotNull(services, nameof(services));
@@ -118,10 +107,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services
                 .AddMvcCore()
                 .AddJsonSerializerOptions(x => x.Converters.Add(new JsonStringEnumConverter()));
-
-            // Add the HTTP functions themselves so they may be implemented later
-            services.TryAddScoped<ReindexDurableFunction>();
-            services.TryAddScoped<DurableClientProxy>();
 
             return services;
         }

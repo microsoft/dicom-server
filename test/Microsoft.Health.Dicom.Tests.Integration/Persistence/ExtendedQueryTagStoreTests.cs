@@ -431,7 +431,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         private async Task<IReadOnlyList<int>> AddExtendedQueryTagsAsync(
-            IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries,
+            IReadOnlyCollection<AddExtendedQueryTagEntry> extendedQueryTagEntries,
             int maxAllowedCount = 128,
             bool ready = true,
             CancellationToken cancellationToken = default)

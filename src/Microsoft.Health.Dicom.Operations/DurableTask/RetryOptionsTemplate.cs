@@ -5,7 +5,7 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Operations.Durable
+namespace Microsoft.Health.Dicom.Operations.DurableTask
 {
     internal sealed class RetryOptionsTemplate
     {
