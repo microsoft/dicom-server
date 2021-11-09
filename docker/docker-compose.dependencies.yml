@@ -3,9 +3,9 @@ version: "3.4"
 services:
   microsoft.health.dicom.web:
     environment:
+      AzureWebJobsStorage: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;"
       BlobStore__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
-      DicomFunctions__BaseAddress: "http://functions:80/api/"
-      DicomFunctions__FunctionAccessKey: "cP0rhNdD/l9Dli+kEPQwupVqfTjksqK0dmMrZo/63mD0u0ezUrRl8Q=="
+      DicomFunctions__ConnectionName: "AzureWebJobsStorage"
       SqlServer__AllowDatabaseCreation: "true"
       SqlServer__ConnectionString: "Server=tcp:sql,1433;Initial Catalog=DICOM;Persist Security Info=False;User ID=sa;Password=${SAPASSWORD:-L0ca1P@ssw0rd};MultipleActiveResultSets=False;Connection Timeout=30;"
       SqlServer__Initialize: "true"
@@ -30,7 +30,7 @@ services:
     depends_on:
       - azurite
   azurite:
-    image: mcr.microsoft.com/azure-storage/azurite:3.14.2@sha256:443c9b28466219e21005e638a28ac4bcc6d3860509d3fc9ec8753fce64424b29
+    image: mcr.microsoft.com/azure-storage/azurite:3.14.3@sha256:a9f79c01d9ef44549af22935345b5f622d45bef01c771f25a0c87c893b49f978
     # # These port bindings [source]:[dest] can be uncommented to connect to the storage emulator via Microsoft Azure Storage Explorer
     # # Note that the source ports may need to change if a storage emulator is already running on localhost
     # ports:

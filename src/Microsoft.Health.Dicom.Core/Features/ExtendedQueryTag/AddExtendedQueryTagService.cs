@@ -64,7 +64,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
                 cancellationToken: cancellationToken);
 
             // Start re-indexing
-            Guid operationId = await _client.StartQueryTagIndexingAsync(added.Select(x => x.Key).ToList(), cancellationToken);
+            Guid operationId = await _client.StartReindexingInstancesAsync(added.Select(x => x.Key).ToList(), cancellationToken);
             return new AddExtendedQueryTagResponse(new OperationReference(operationId, _uriResolver.ResolveOperationStatusUri(operationId)));
         }
     }
