@@ -7,7 +7,7 @@
 
   <!-- Properties used by sql task to generate full script-->
   <PropertyGroup>
-    <LatestSchemaVersion>6</LatestSchemaVersion>
+    <LatestSchemaVersion>7</LatestSchemaVersion>
     <GeneratedFullScriptPath>Features\Schema\Migrations\$(LatestSchemaVersion).sql</GeneratedFullScriptPath>
   </PropertyGroup>
 
@@ -72,6 +72,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Features\Schema\Migrations\7.diff.sql" />
     <None Remove="Features\Schema\Sql\Sprocs\AddPartition.sql" />
   </ItemGroup>
 

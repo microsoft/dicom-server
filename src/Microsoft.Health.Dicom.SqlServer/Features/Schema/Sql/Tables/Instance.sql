@@ -100,30 +100,30 @@ INCLUDE
 WITH (DATA_COMPRESSION = PAGE)
 
 -- Cross apply indexes - partition identifiers are not needed
-CREATE NONCLUSTERED INDEX IX_Instance_SeriesKey_Status on dbo.Instance
+CREATE NONCLUSTERED INDEX IX_Instance_SeriesKey_Status_Watermark on dbo.Instance
 (
     SeriesKey,
-    Status
+    Status,
+    Watermark
 )
 INCLUDE
 (
     StudyInstanceUid,
     SeriesInstanceUid,
-    SopInstanceUid,
-    Watermark
+    SopInstanceUid
 )
 WITH (DATA_COMPRESSION = PAGE)
 
-CREATE NONCLUSTERED INDEX IX_Instance_StudyKey_Status on dbo.Instance
+CREATE NONCLUSTERED INDEX IX_Instance_StudyKey_Status_Watermark on dbo.Instance
 (
     StudyKey,
-    Status
+    Status,
+    Watermark
 )
 INCLUDE
 (
     StudyInstanceUid,
     SeriesInstanceUid,
-    SopInstanceUid,
-    Watermark
+    SopInstanceUid
 )
 WITH (DATA_COMPRESSION = PAGE)

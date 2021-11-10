@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V6
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -263,8 +263,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly Index IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_PartitionKey = new Index("IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_PartitionKey");
             internal readonly Index IX_Instance_SopInstanceUid_Status_PartitionKey = new Index("IX_Instance_SopInstanceUid_Status_PartitionKey");
             internal readonly Index IX_Instance_Watermark_Status = new Index("IX_Instance_Watermark_Status");
-            internal readonly Index IX_Instance_SeriesKey_Status_Watermark = new Index("IX_Instance_SeriesKey_Status_Watermark");
-            internal readonly Index IX_Instance_StudyKey_Status_Watermark = new Index("IX_Instance_StudyKey_Status_Watermark");
+            internal readonly Index IX_Instance_SeriesKey_Status = new Index("IX_Instance_SeriesKey_Status");
+            internal readonly Index IX_Instance_StudyKey_Status = new Index("IX_Instance_StudyKey_Status");
         }
 
         internal class PartitionTable : Table
