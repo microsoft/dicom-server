@@ -130,6 +130,25 @@
             ]
         },
         {
+            "type": "Microsoft.Sql/servers/databases",
+            "apiVersion": "2017-10-01-preview",
+            "dependsOn": [
+                "[variables('loweredServiceName')]"
+            ],
+            "tags": {
+                "DicomServerSolution": "[parameters('solutionType')]"
+            },
+            "name": "[concat(variables('loweredServiceName'), '/', variables('dicomDatabaseName'))]",
+            "properties": {
+                "collation": "SQL_Latin1_General_CP1_CI_AS"
+            },
+            "sku": {
+                "name": "Standard",
+                "tier": "Standard",
+                "capacity": 20
+            }
+        },
+        {
             "type": "Microsoft.KeyVault/vaults/accessPolicies",
             "name": "[concat(variables('loweredServiceName'), '/add')]",
             "apiVersion": "2019-09-01",
