@@ -132,6 +132,7 @@
         {
             "type": "Microsoft.Sql/servers/databases",
             "apiVersion": "2017-10-01-preview",
+            "location": "[resourceGroup().location]",
             "tags": {
                 "DicomServerSolution": "[parameters('solutionType')]"
             },
