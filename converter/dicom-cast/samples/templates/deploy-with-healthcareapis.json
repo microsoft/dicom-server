@@ -137,7 +137,33 @@
     "fhirServiceName": "[concat(parameters('workspaceName'), '/', parameters('fhirServiceName'))]",
     "dicomServiceName": "[concat(parameters('workspaceName'), '/', parameters('dicomServiceName'))]",
     "fhirEndpoint": "[concat('https://', parameters('workspaceName'), '-', parameters('fhirServiceName'), '.fhir.azurehealthcareapis.com')]",
-    "dicomWebEndpoint": "[concat('https://', parameters('workspaceName'), '-', parameters('dicomServiceName'), '.dicom.azurehealthcareapis.com')]"
+    "dicomWebEndpoint": "[concat('https://', parameters('workspaceName'), '-', parameters('dicomServiceName'), '.dicom.azurehealthcareapis.com')]",
+    "authenticationArray": [
+      {
+        "name": "DicomWeb__Authentication__AuthenticationType",
+        "value": "ManagedIdentity"
+      },
+      {
+        "name": "DicomWeb__Authentication__Enabled",
+        "value": "true"
+      },
+      {
+        "name": "DicomWeb__Authentication__ManagedIdentityCredential__Resource",
+        "value": "https://dicom.healthcareapis.azure.com"
+      },
+      {
+        "name": "Fhir__Authentication__AuthenticationType",
+        "value": "ManagedIdentity"
+      },
+      {
+        "name": "Fhir__Authentication__Enabled",
+        "value": "true"
+      },
+      {
+        "name": "Fhir__Authentication__ManagedIdentityCredential__Resource",
+        "value": "[variables('fhirEndpoint')]"
+      }
+    ]
   },
   "resources": [{
       "type": "Microsoft.HealthcareApis/workspaces",
@@ -183,7 +209,7 @@
       "properties": {
         "mode": "Incremental",
         "templateLink": {
-          "uri": "https://raw.githubusercontent.com/microsoft/dicom-server/main/converter/dicom-cast/samples/templates/default-azuredeploy.json",
+          "uri": "https://raw.githubusercontent.com/microsoft/dicom-server/personal/brpoll/dicom-cast-arm/converter/dicom-cast/samples/templates/default-azuredeploy.json",
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
@@ -219,6 +245,9 @@
           },
           "enforceValidationOfTagValues": {
             "value": "[parameters('enforceValidationOfTagValues')]"
+          },
+          "additionalEnvironmentVariables": {
+            "value": "[variables('authenticationArray')]"
           }
         }
       }
