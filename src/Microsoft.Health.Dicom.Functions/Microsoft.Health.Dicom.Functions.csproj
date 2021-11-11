@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <AzureFunctionsVersion>v3</AzureFunctionsVersion>
+    <FunctionsInDependencies>true</FunctionsInDependencies>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
@@ -13,27 +14,14 @@
     <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.30" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions" Version="4.0.1" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.5.1" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.6.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Http" Version="3.0.12" />
-    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="$(NetCoreApp3PackageVersion)" />
-    <PackageReference Include="Microsoft.Health.Blob" Version="$(HealthcareSharedPackageVersion)" />
-    <PackageReference Include="Microsoft.Health.SqlServer" Version="$(HealthcareSharedPackageVersion)" />
-    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.13" PrivateAssets="All" />
-    <PackageReference Include="System.Text.Encodings.Web" Version="4.7.2" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
-    <ProjectReference Include="..\Microsoft.Health.Dicom.Metadata\Microsoft.Health.Dicom.Metadata.csproj" />
-    <ProjectReference Include="..\Microsoft.Health.Dicom.SqlServer\Microsoft.Health.Dicom.SqlServer.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Indexing\ReindexDurableFunction.*.cs">
-      <DependentUpon>ReindexDurableFunction.cs</DependentUpon>
-    </None>
+    <ProjectReference Include="..\Microsoft.Health.Dicom.Operations\Microsoft.Health.Dicom.Operations.csproj" />
   </ItemGroup>
 
   <ItemGroup>

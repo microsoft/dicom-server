@@ -110,7 +110,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             }
         }
 
-        public override async Task<IReadOnlyList<ExtendedQueryTagStoreJoinEntry>> GetExtendedQueryTagsAsync(IReadOnlyList<int> queryTagKeys, CancellationToken cancellationToken = default)
+        public override async Task<IReadOnlyList<ExtendedQueryTagStoreJoinEntry>> GetExtendedQueryTagsAsync(IReadOnlyCollection<int> queryTagKeys, CancellationToken cancellationToken = default)
         {
             EnsureArg.HasItems(queryTagKeys, nameof(queryTagKeys));
 
@@ -181,7 +181,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         }
 
         public override async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AddExtendedQueryTagsAsync(
-            IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries,
+            IReadOnlyCollection<AddExtendedQueryTagEntry> extendedQueryTagEntries,
             int maxAllowedCount,
             bool ready = false,
             CancellationToken cancellationToken = default)
@@ -229,7 +229,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         }
 
         public override async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AssignReindexingOperationAsync(
-            IReadOnlyList<int> queryTagKeys,
+            IReadOnlyCollection<int> queryTagKeys,
             Guid operationId,
             bool returnIfCompleted = false,
             CancellationToken cancellationToken = default)
@@ -277,7 +277,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             }
         }
 
-        public override async Task<IReadOnlyList<int>> CompleteReindexingAsync(IReadOnlyList<int> queryTagKeys, CancellationToken cancellationToken = default)
+        public override async Task<IReadOnlyList<int>> CompleteReindexingAsync(IReadOnlyCollection<int> queryTagKeys, CancellationToken cancellationToken = default)
         {
             EnsureArg.HasItems(queryTagKeys, nameof(queryTagKeys));
 

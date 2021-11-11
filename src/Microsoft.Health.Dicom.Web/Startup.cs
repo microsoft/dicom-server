@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Development.IdentityProvider.Registration;
 using Microsoft.Health.Dicom.Core.Features.Security;
-using Microsoft.Health.Dicom.Functions.Client;
+using Microsoft.Health.Dicom.Operations.Client;
 
 namespace Microsoft.Health.Dicom.Web
 {

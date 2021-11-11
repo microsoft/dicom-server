@@ -1,36 +1,5 @@
 ﻿{
   "version": "2.0",
-  "Logging": {
-    "IncludeScopes": false,
-    "LogLevel": {
-      "Default": "Warning"
-    },
-    "ApplicationInsights": {
-      "LogLevel": {
-        "Default": "Information",
-        "Microsoft.Health": "Information",
-        "Microsoft": "Warning",
-        "System": "Warning"
-      }
-    }
-  },
-  "DicomFunctions": {
-    "Indexing": {
-      "BatchSize": 100,
-      "BatchThreadCount": 5,
-      "MaxParallelBatches": 10,
-      "RetryOptions": {
-        "BackoffCoefficient": 3,
-        "FirstRetryInterval": "00:01:00",
-        "MaxNumberOfAttempts": 4
-      }
-    },
-    "PurgeHistory": {
-      "RuntimeStatuses": [ "Completed" ],
-      "MinimumAgeDays": 14,
-      "Frequency": "0 0 * * *"
-    }
-  },
   "BlobStore": {
     "ConnectionString": null,
     "Containers": {
@@ -53,6 +22,45 @@
       "MaxRetries": 6,
       "Mode": "Exponential",
       "NetworkTimeout": "00:02:00"
+    }
+  },
+  "DicomFunctions": {
+    "Indexing": {
+      "BatchSize": 100,
+      "BatchThreadCount": 5,
+      "MaxParallelBatches": 10,
+      "RetryOptions": {
+        "BackoffCoefficient": 3,
+        "FirstRetryInterval": "00:01:00",
+        "MaxNumberOfAttempts": 4
+      }
+    },
+    "PurgeHistory": {
+      "Frequency": "0 0 * * *",
+      "MinimumAgeDays": 14,
+      "RuntimeStatuses": [ "Completed" ]
+    }
+  },
+  "extensions": {
+    "durableTask": {
+      "hubName": "DicomTaskHub"
+    }
+  },
+  "Logging": {
+    "IncludeScopes": false,
+    "LogLevel": {
+      "Default": "Warning",
+      "DurableTask": "Warning",
+      "Host": "Warning",
+      "Worker": "Warning"
+    },
+    "ApplicationInsights": {
+      "LogLevel": {
+        "Default": "Information",
+        "Microsoft.Health": "Information",
+        "Microsoft": "Warning",
+        "System": "Warning"
+      }
     }
   },
   "SqlServer": {

@@ -7,10 +7,7 @@
 # FROM mcr.microsoft.com/azure-functions/dotnet:3.0-appservice
 FROM mcr.microsoft.com/azure-functions/dotnet:3.3.1@sha256:6b05f6aa60767db3a295064b146f0e5b7a13ef967261085aa723feea3025ed36 AS az-func-runtime
 ENV AzureFunctionsJobHost__Logging__Console__IsEnabled=true \
-    AzureWebJobsScriptRoot=/home/site/wwwroot \
-    AzureWebJobsSecretStorageType=Files \
-    FUNCTIONS_SECRETS_PATH=/etc/secrets
-ADD docker/functions/host_secrets.json /etc/secrets/host.json
+    AzureWebJobsScriptRoot=/home/site/wwwroot
 
 # Copy the DICOM Server repository and build the Azure Functions project
 # Note: While the latest .NET SDK is used for building, Azure Functions build target requires .NET Core 3.1 to be installed
