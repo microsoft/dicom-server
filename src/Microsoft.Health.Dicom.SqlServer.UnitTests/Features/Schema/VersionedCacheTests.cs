@@ -43,7 +43,6 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Schema
         [InlineData((SchemaVersion)SchemaVersionConstants.Min)]
         [InlineData((SchemaVersion)SchemaVersionConstants.Max)]
         [InlineData((SchemaVersion)SchemaVersionConstants.SupportDTAndTMInExtendedQueryTagSchemaVersion)]
-        [InlineData((SchemaVersion)SchemaVersionConstants.SupportDataPartitionSchemaVersion)]
         public async Task GivenValidVersion_WhenGettingValue_ThenReturnsValue(SchemaVersion version)
         {
             using CancellationTokenSource source = new CancellationTokenSource();
