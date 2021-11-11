@@ -52,7 +52,7 @@
   <!-- Dotnet CLI throws errors on restore if package references are included in docker compose projects -->
   <!-- See microsoft/DockerTools#209 for details -->
   <ItemGroup Condition="'$(MSBuildProjectExtension)' != '.dcproj'">
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>
