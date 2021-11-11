@@ -2,6 +2,9 @@ jobs:
 - job: provision
   pool:
     vmImage: $(windowsVmImage)
+  variables:
+    - name: sqlAdminPassword
+      value: $[ stageDependencies.DeployTestEnvironment.provision.outputs['deploy.sqlAdminPassword'] ]
   steps:
   
   - task: AzureKeyVault@1
@@ -30,6 +33,7 @@ jobs:
             appServicePlanResourceGroup = "$(appServicePlanResourceGroup)"
             appServicePlanName = "$(appServicePlanName)"
             additionalDicomServerConfigProperties = $additionalProperties
+            sqlAdminPassword = "$(sqlAdminPassword)"
             securityAuthenticationAuthority = "https://login.microsoftonline.com/$(tenant-id)"
             securityAuthenticationAudience = "$(testApplicationResource)"
         }
