@@ -132,9 +132,6 @@
         {
             "type": "Microsoft.Sql/servers/databases",
             "apiVersion": "2017-10-01-preview",
-            "dependsOn": [
-                "[variables('sqlServerResourceId')]"
-            ],
             "tags": {
                 "DicomServerSolution": "[parameters('solutionType')]"
             },
