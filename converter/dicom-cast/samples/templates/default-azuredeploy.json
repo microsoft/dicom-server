@@ -101,6 +101,13 @@
             "metadata": {
                 "description": "Enforce validation of all tag values and do not store to FHIR even if only non-required tags are invalid"
             }
+        },
+        "additionalEnvironmentVariables": {
+            "defaultValue": [],
+            "type": "array",
+            "metadata": {
+                "description": "Array of additional enviornment variables with objects with properties 'name' and 'value'. ex: [{\"name\": \"testName\", \"value\": \"testValue\"}]"
+            }
         }
     },
     "variables": {
@@ -112,7 +119,25 @@
         "storageAccountName": "[concat(substring(replace(variables('serviceName'), '-', ''), 0, min(11, length(variables('serviceName')))), uniquestring(resourceGroup().id))]",
         "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
         "keyVaultEndpoint": "[if(variables('isMAG'), concat('https://', variables('serviceName'), '.vault.usgovcloudapi.net/'), concat('https://', variables('serviceName'), '.vault.azure.net/'))]",
-        "keyVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', variables('serviceName'))]"
+        "keyVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', variables('serviceName'))]",
+        "environmentVariables": [
+            {
+                "name": "Fhir__Endpoint",
+                "value": "[parameters('fhirEndpoint')]"
+            },
+            {
+                "name": "DicomWeb__Endpoint",
+                "value": "[parameters('dicomWebEndpoint')]"
+            },
+            {
+                "name": "KeyVault__Endpoint",
+                "value": "[variables('keyVaultEndpoint')]"
+            },
+            {
+                "name": "DicomCast__Features__EnforceValidationOfTagValues",
+                "value": "[parameters('enforceValidationOfTagValues')]"
+            }
+        ]
     },
     "resources": [
         {
@@ -138,29 +163,7 @@
                                     "memoryInGb": "[parameters('memoryInGb')]"
                                 }
                             },
-                            "environmentVariables": [
-                                {
-                                    "name": "Fhir__Endpoint",
-                                    "value": "[parameters('fhirEndpoint')]"
-                                },
-                                {
-                                    "name": "DicomWeb__Endpoint",
-                                    "value": "[parameters('dicomWebEndpoint')]"
-                                },
-                                {
-                                    "name": "KeyVault__Endpoint",
-                                    "value": "[variables('keyVaultEndpoint')]"
-                                },
-                                {
-                                    "name": "ApplicationInsights__InstrumentationKey",
-                                    "value": "[if(variables('deployAppInsights'), reference(concat('Microsoft.Insights/components/', variables('appInsightsName'))).InstrumentationKey, '')]"
-                                },
-                                {
-                                    "name": "DicomCast__Features__EnforceValidationOfTagValues",
-                                    "value": "[parameters('enforceValidationOfTagValues')]"
-
-                                }
-                            ]
+                            "environmentVariables": "[concat(variables('environmentVariables'), parameters('additionalEnvironmentVariables'), array(createObject('name', 'ApplicationInsights__InstrumentationKey', 'value', if(variables('deployAppInsights'), reference(concat('Microsoft.Insights/components/', variables('appInsightsName'))).InstrumentationKey, ''))))]"
                         }
                     }
                 ],
