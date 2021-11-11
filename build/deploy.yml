@@ -15,6 +15,7 @@ jobs:
   - template: add-aad-test-environment.yml
 
   - task: AzurePowerShell@4
+    name: deploy
     displayName: 'New Azure resource group deployment'
     inputs:
       azureSubscription: $(azureSubscriptionName)
@@ -30,13 +31,16 @@ jobs:
             "DicomServer__Security__Authorization__Enabled" = "true"
         }
 
+        $sqlAdminPassword = "$(-join((((33,35,37,38,42,43,45,46,95) + (48..57) + (65..90) + (97..122) | Get-Random -Count 20) + ((33,35,37,38,42,43,45,46,95) | Get-Random -Count 1) + ((48..57) | Get-Random -Count 1) + ((65..90) | Get-Random -Count 1) + ((97..122) | Get-Random -Count 1) | Get-Random -Count 24) | % {[char]$_}))"
+        Write-Host "##vso[task.setvariable variable=sqlAdminPassword;isOutput=true]$sqlAdminPassword"
+
         $templateParameters = @{
             appServicePlanResourceGroup = "$(appServicePlanResourceGroup)"
             appServicePlanName = "$(appServicePlanName)"
             serviceName = "$(deploymentName)"
             functionAppName = "$(deploymentName)-functions"
             additionalDicomServerConfigProperties = $additionalProperties
-            sqlAdminPassword = "$(-join((((33,35,37,38,42,43,45,46,95) + (48..57) + (65..90) + (97..122) | Get-Random -Count 20) + ((33,35,37,38,42,43,45,46,95) | Get-Random -Count 1) + ((48..57) | Get-Random -Count 1) + ((65..90) | Get-Random -Count 1) + ((97..122) | Get-Random -Count 1) | Get-Random -Count 24) | % {[char]$_}))"
+            sqlAdminPassword = $sqlAdminPassword
             securityAuthenticationAuthority = "https://login.microsoftonline.com/$(tenant-id)"
             securityAuthenticationAudience = "$(testApplicationResource)"
             deployPackage = $false

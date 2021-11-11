@@ -37,6 +37,12 @@
             "metadata": {
                 "description": "The type of the solution"
             }
+        },        
+        "sqlAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Set a password for the sql admin."
+            }
         },
         "securityAuthenticationAuthority": {
             "type": "string",
@@ -56,10 +62,9 @@
     "variables": {
         "loweredServiceName": "[toLower(parameters('serviceName'))]",
         "featuresEnabledServiceName": "[concat(variables('loweredServiceName'),'-featuresenabled')]",
-        "functionAppName": "[concat(variables('loweredServiceName'),'-functions')]",
         "appServicePlanResourceId": "[resourceId(parameters('appServicePlanResourceGroup'), 'Microsoft.Web/serverfarms/', parameters('appServicePlanName'))]",
         "featuresEnabledAppServiceResourceId": "[resourceId('Microsoft.Web/sites', variables('featuresEnabledServiceName'))]",
-        "functionAppUrl": "[concat('https://', variables('functionAppName'), '.azurewebsites.net')]",
+        "dicomDatabaseName": "DicomWithPartitions",
         "staticDicomServerConfigProperties": {
             "APPINSIGHTS_PORTALINFO": "ASP.NETCORE",
             "APPINSIGHTS_PROFILERFEATURE_VERSION": "1.0.0",
@@ -72,10 +77,13 @@
             "DicomServer__Security__Authentication__Audience": "[parameters('securityAuthenticationAudience')]"
         },
         "combinedDicomServerConfigProperties": "[union(variables('staticDicomServerConfigProperties'), parameters('additionalDicomServerConfigProperties'))]",
+        "sqlServerResourceId": "[resourceId('Microsoft.Sql/servers/', variables('loweredServiceName'))]",
         "sqlServerConnectionStringName": "SqlServerConnectionString",
+        "sqlServerConnectionStringWithPartitionsName": "SqlServerConnectionStringWithPartitions",
         "azureStorageConnectionStringName": "AzureStorageConnectionString",
         "appInsightsInstrumentationKeyName": "AppInsightsInstrumentationKey",
         "sqlServerConnectionStringResourceId": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('loweredServiceName'), variables('sqlServerConnectionStringName'))]",
+        "sqlServerConnectionStringWithPartitionsResourceId": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('loweredServiceName'), variables('sqlServerConnectionStringWithPartitionsName'))]",
         "azureStorageConnectionStringResourceId": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('loweredServiceName'), variables('azureStorageConnectionStringName'))]",
         "appInsightsInstrumentationKeyResourceId": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('loweredServiceName'), variables('appInsightsInstrumentationKeyName'))]"
     },
@@ -103,7 +111,7 @@
                     "apiVersion": "2015-08-01",
                     "type": "config",
                     "name": "appsettings", 
-                    "properties": "[union(json(concat('{\"ApplicationInsights__InstrumentationKey\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsInstrumentationKeyResourceId'), '2015-06-01').secretUriWithVersion, ')'), '\"}')), json(concat('{\"AzureWebJobsStorage\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId'), '2015-06-01').secretUriWithVersion, ')'), '\"}')), json(concat('{\"BlobStore__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId'), '2015-06-01').secretUriWithVersion, ')'), '\"}')), json(concat('{\"SqlServer__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('sqlServerConnectionStringResourceId'), '2015-06-01').secretUriWithVersion, ')'), '\"}')), variables('combinedDicomServerConfigProperties'))]",
+                    "properties": "[union(json(concat('{\"ApplicationInsights__InstrumentationKey\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsInstrumentationKeyResourceId'), '2015-06-01').secretUriWithVersion, ')'), '\"}')), json(concat('{\"AzureWebJobsStorage\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId'), '2015-06-01').secretUriWithVersion, ')'), '\"}')), json(concat('{\"BlobStore__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId'), '2015-06-01').secretUriWithVersion, ')'), '\"}')), json(concat('{\"SqlServer__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('sqlServerConnectionStringWithPartitionsResourceId'), '2015-06-01').secretUriWithVersion, ')'), '\"}')), variables('combinedDicomServerConfigProperties'))]",
                     "dependsOn": [
                         "[variables('featuresEnabledAppServiceResourceId')]"
                     ]
@@ -140,6 +148,15 @@
             "dependsOn": [
                 "[variables('featuresEnabledAppServiceResourceId')]"
             ]
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "name": "[concat(variables('loweredServiceName'), '/', variables('sqlServerConnectionStringWithPartitionsName'))]",
+            "apiVersion": "2015-06-01",
+            "properties": {
+                "contentType": "text/plain",
+                "value": "[concat('Server=tcp:', reference(variables('sqlServerResourceId'), '2015-05-01-preview').fullyQualifiedDomainName,',1433;Initial Catalog=', variables('dicomDatabaseName'), ';Persist Security Info=False;User ID=', reference(variables('sqlServerResourceId'), '2015-05-01-preview').administratorLogin,';Password=',parameters('sqlAdminPassword'),';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]"
+            }
         }
     ]
 }
