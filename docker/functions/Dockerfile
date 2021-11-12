@@ -5,7 +5,7 @@
 
 # To enable ssh & remote debugging on app service change the base image to the one below
 # FROM mcr.microsoft.com/azure-functions/dotnet:3.0-appservice
-FROM mcr.microsoft.com/azure-functions/dotnet:3.3.1@sha256:6b05f6aa60767db3a295064b146f0e5b7a13ef967261085aa723feea3025ed36 AS az-func-runtime
+FROM mcr.microsoft.com/azure-functions/dotnet:3.4.1@sha256:43a278cdf6f4132717645a0f8eb04bc6f0153642c95f5fc5938835fd034eee73 AS az-func-runtime
 ENV AzureFunctionsJobHost__Logging__Console__IsEnabled=true \
     AzureWebJobsScriptRoot=/home/site/wwwroot
 
