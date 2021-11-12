@@ -315,7 +315,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     {
                         await sqlDataReader.ReadAsync(cancellationToken);
 
-                        if (sqlDataReader.IsDBNull(0))
+                        if (await sqlDataReader.IsDBNullAsync(0, cancellationToken))
                         {
                             return DateTimeOffset.UtcNow;
                         }

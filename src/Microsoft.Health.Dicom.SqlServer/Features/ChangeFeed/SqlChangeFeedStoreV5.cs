@@ -8,7 +8,7 @@ using Microsoft.Health.SqlServer.Features.Client;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
 {
-    public class SqlChangeFeedStoreV5 : SqlChangeFeedStoreV4
+    internal class SqlChangeFeedStoreV5 : SqlChangeFeedStoreV4
     {
         public override SchemaVersion Version => SchemaVersion.V5;
 

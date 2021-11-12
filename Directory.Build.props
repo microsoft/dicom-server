@@ -1,8 +1,9 @@
 <Project>
 
   <PropertyGroup>
-    <Authors>Microsoft Health Team</Authors>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <AspNetApiPackageVersion>5.0.0</AspNetApiPackageVersion>
+    <Authors>Microsoft Health Team</Authors>
     <Company>Microsoft Corporation</Company>
     <Copyright>Copyright © Microsoft Corporation. All rights reserved.</Copyright>
     <Deterministic>true</Deterministic>
@@ -15,23 +16,14 @@
     <HighEntropyVA>true</HighEntropyVA>
     <Hl7FhirPackageVersion>3.3.0</Hl7FhirPackageVersion>
     <LangVersion>Latest</LangVersion>
-    <NetCoreApp3PackageVersion>3.1.20</NetCoreApp3PackageVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Product>Microsoft Health</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <SdkPackageVersion>5.0.0</SdkPackageVersion>
+    <SdkPackageVersion>6.0.0</SdkPackageVersion>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
   </PropertyGroup>
-
-  <Choose>
-    <When Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
-      <PropertyGroup>
-        <SdkPackageVersion>$(NetCoreApp3PackageVersion)</SdkPackageVersion>
-      </PropertyGroup>
-    </When>
-  </Choose>
 
   <Choose>
     <When Condition="$(MSBuildProjectName.Contains('Test'))">
@@ -52,7 +44,7 @@
   <!-- Dotnet CLI throws errors on restore if package references are included in docker compose projects -->
   <!-- See microsoft/DockerTools#209 for details -->
   <ItemGroup Condition="'$(MSBuildProjectExtension)' != '.dcproj'">
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>

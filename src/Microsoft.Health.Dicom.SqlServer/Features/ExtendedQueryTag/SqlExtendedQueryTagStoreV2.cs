@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.SqlServer.Extensions;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
@@ -119,7 +120,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                         V2.ExtendedQueryTag.TagStatus);
 
                     executionTimeWatch.Stop();
-                    Logger.LogInformation(executionTimeWatch.ElapsedMilliseconds.ToString());
+                    Logger.LogStoredProcedureSuccess(nameof(V2.GetExtendedQueryTag), executionTimeWatch);
 
                     return new ExtendedQueryTagStoreJoinEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, QueryStatus.Enabled, 0);
                 }
@@ -186,7 +187,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                     }
 
                     executionTimeWatch.Stop();
-                    Logger.LogInformation(executionTimeWatch.ElapsedMilliseconds.ToString());
+                    Logger.LogStoredProcedureSuccess(nameof(V2.GetExtendedQueryTag), executionTimeWatch);
                 }
             }
 

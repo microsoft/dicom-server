@@ -98,7 +98,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
                     statusCode = HttpStatusCode.InternalServerError;
                     break;
                 case UnauthorizedDicomActionException udae:
-                    _logger.LogInformation("Expected data actions not available: {dataActions}", udae.ExpectedDataActions);
+                    _logger.LogInformation("Expected data actions not available: {DataActions}", udae.ExpectedDataActions);
                     statusCode = HttpStatusCode.Forbidden;
                     break;
                 case DicomServerException _:

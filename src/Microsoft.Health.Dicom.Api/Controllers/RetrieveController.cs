@@ -60,7 +60,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AuditEventType(AuditEventSubType.Retrieve)]
         public async Task<IActionResult> GetStudyAsync(string studyInstanceUid)
         {
-            _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: {studyInstanceUid}.", studyInstanceUid);
+            _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: {StudyInstanceUid}.", studyInstanceUid);
 
             RetrieveResourceResponse response = await _mediator.RetrieveDicomStudyAsync(studyInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
@@ -82,7 +82,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AuditEventType(AuditEventSubType.RetrieveMetadata)]
         public async Task<IActionResult> GetStudyMetadataAsync([FromHeader(Name = IfNoneMatch)] string ifNoneMatch, string studyInstanceUid)
         {
-            _logger.LogInformation("DICOM Web Retrieve Metadata Transaction request received, for study: {studyInstanceUid}.", studyInstanceUid);
+            _logger.LogInformation("DICOM Web Retrieve Metadata Transaction request received, for study: {StudyInstanceUid}.", studyInstanceUid);
 
             RetrieveMetadataResponse response = await _mediator.RetrieveDicomStudyMetadataAsync(studyInstanceUid, ifNoneMatch, HttpContext.RequestAborted);
 
@@ -104,7 +104,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             string studyInstanceUid,
             string seriesInstanceUid)
         {
-            _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: {studyInstanceUid}, series: {seriesInstanceUid}.", studyInstanceUid, seriesInstanceUid);
+            _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: {StudyInstanceUid}, series: {SeriesInstanceUid}.", studyInstanceUid, seriesInstanceUid);
 
             RetrieveResourceResponse response = await _mediator.RetrieveDicomSeriesAsync(
                 studyInstanceUid, seriesInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
@@ -127,7 +127,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AuditEventType(AuditEventSubType.RetrieveMetadata)]
         public async Task<IActionResult> GetSeriesMetadataAsync([FromHeader(Name = IfNoneMatch)] string ifNoneMatch, string studyInstanceUid, string seriesInstanceUid)
         {
-            _logger.LogInformation("DICOM Web Retrieve Metadata Transaction request received, for study: {studyInstanceUid}, series: {seriesInstanceUid}.", studyInstanceUid, seriesInstanceUid);
+            _logger.LogInformation("DICOM Web Retrieve Metadata Transaction request received, for study: {StudyInstanceUid}, series: {SeriesInstanceUid}.", studyInstanceUid, seriesInstanceUid);
 
             RetrieveMetadataResponse response = await _mediator.RetrieveDicomSeriesMetadataAsync(
                 studyInstanceUid, seriesInstanceUid, ifNoneMatch, HttpContext.RequestAborted);
@@ -151,7 +151,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             string seriesInstanceUid,
             string sopInstanceUid)
         {
-            _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: '{studyInstanceUid}', series: '{seriesInstanceUid}', instance: '{sopInstanceUid}'.", studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: '{StudyInstanceUid}', series: '{SeriesInstanceUid}', instance: '{SopInstanceUid}'.", studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
             RetrieveResourceResponse response = await _mediator.RetrieveDicomInstanceAsync(
                 studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
@@ -181,7 +181,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             string seriesInstanceUid,
             string sopInstanceUid)
         {
-            _logger.LogInformation("DICOM Web Retrieve Metadata Transaction request received, for study: {studyInstanceUid}, series: {seriesInstanceUid}, instance: {sopInstanceUid}.", studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            _logger.LogInformation("DICOM Web Retrieve Metadata Transaction request received, for study: {StudyInstanceUid}, series: {SeriesInstanceUid}, instance: {SopInstanceUid}.", studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
             RetrieveMetadataResponse response = await _mediator.RetrieveDicomInstanceMetadataAsync(
                studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch, HttpContext.RequestAborted);
@@ -206,7 +206,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             string sopInstanceUid,
             [FromRoute][ModelBinder(typeof(IntArrayModelBinder))] int[] frames)
         {
-            _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: {studyInstanceUid}, series: {seriesInstanceUid}, instance: {sopInstanceUid}, frames: {frames}.", studyInstanceUid, seriesInstanceUid, sopInstanceUid, string.Join(", ", frames ?? Array.Empty<int>()));
+            _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: {StudyInstanceUid}, series: {SeriesInstanceUid}, instance: {SopInstanceUid}, frames: {Frames}.", studyInstanceUid, seriesInstanceUid, sopInstanceUid, string.Join(", ", frames ?? Array.Empty<int>()));
             RetrieveResourceResponse response = await _mediator.RetrieveDicomFramesAsync(
                 studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
