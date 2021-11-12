@@ -10,8 +10,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using Dicom;
-using Dicom.IO.Buffer;
+using FellowOakDicom;
+using FellowOakDicom.IO.Buffer;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -23,7 +23,7 @@ namespace Common
     public class JsonDicomConverter : JsonConverter
     {
         private readonly bool _writeTagsAsKeywords;
-        private readonly static Encoding _jsonTextEncoding = Encoding.UTF8;
+        private readonly static Encoding[] Encodings = new Encoding[] { Encoding.UTF8 };
 
         /// <summary>
         /// Initialize the JsonDicomConverter.
@@ -233,16 +233,16 @@ namespace Common
                     }
                     break;
                 case "LO":
-                    item = new DicomLongString(tag, _jsonTextEncoding, (string[])data);
+                    item = new DicomLongString(tag, (string[])data);
                     break;
                 case "LT":
                     if (data is IByteBuffer dataBufferLT)
                     {
-                        item = new DicomLongText(tag, _jsonTextEncoding, dataBufferLT);
+                        item = new DicomLongText(tag, Encodings, dataBufferLT);
                     }
                     else
                     {
-                        item = new DicomLongText(tag, _jsonTextEncoding, data.AsStringArray().SingleOrEmpty());
+                        item = new DicomLongText(tag, data.AsStringArray().SingleOrEmpty());
                     }
                     break;
                 case "OB":
@@ -264,10 +264,10 @@ namespace Common
                     item = new DicomOtherVeryLong(tag, (IByteBuffer)data);
                     break;
                 case "PN":
-                    item = new DicomPersonName(tag, _jsonTextEncoding, (string[])data);
+                    item = new DicomPersonName(tag, (string[])data);
                     break;
                 case "SH":
-                    item = new DicomShortString(tag, _jsonTextEncoding, (string[])data);
+                    item = new DicomShortString(tag, (string[])data);
                     break;
                 case "SL":
                     if (data is IByteBuffer dataBufferSL)
@@ -295,11 +295,11 @@ namespace Common
                 case "ST":
                     if (data is IByteBuffer dataBufferST)
                     {
-                        item = new DicomShortText(tag, _jsonTextEncoding, dataBufferST);
+                        item = new DicomShortText(tag, Encodings, dataBufferST);
                     }
                     else
                     {
-                        item = new DicomShortText(tag, _jsonTextEncoding, data.AsStringArray().FirstOrEmpty());
+                        item = new DicomShortText(tag, data.AsStringArray().FirstOrEmpty());
                     }
                     break;
                 case "SV":
@@ -318,11 +318,11 @@ namespace Common
                 case "UC":
                     if (data is IByteBuffer dataBufferUC)
                     {
-                        item = new DicomUnlimitedCharacters(tag, _jsonTextEncoding, dataBufferUC);
+                        item = new DicomUnlimitedCharacters(tag, Encodings, dataBufferUC);
                     }
                     else
                     {
-                        item = new DicomUnlimitedCharacters(tag, _jsonTextEncoding, data.AsStringArray().SingleOrDefault());
+                        item = new DicomUnlimitedCharacters(tag, data.AsStringArray().SingleOrDefault());
                     }
                     break;
                 case "UI":
@@ -357,11 +357,11 @@ namespace Common
                 case "UT":
                     if (data is IByteBuffer dataBufferUT)
                     {
-                        item = new DicomUnlimitedText(tag, _jsonTextEncoding, dataBufferUT);
+                        item = new DicomUnlimitedText(tag, Encodings, dataBufferUT);
                     }
                     else
                     {
-                        item = new DicomUnlimitedText(tag, _jsonTextEncoding, data.AsStringArray().SingleOrEmpty());
+                        item = new DicomUnlimitedText(tag, data.AsStringArray().SingleOrEmpty());
                     }
                     break;
                 case "UV":

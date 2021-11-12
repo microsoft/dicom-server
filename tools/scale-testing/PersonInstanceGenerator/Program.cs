@@ -15,8 +15,8 @@ using Azure.Security.KeyVault.Secrets;
 using Common;
 using Common.KeyVault;
 using Common.ServiceBus;
-using Dicom;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Azure.ServiceBus;
 
 namespace PersonInstanceGenerator
