@@ -51,8 +51,8 @@ stages:
     steps:
     - template: analyze.yml
 
-- stage: UpdateCIEnvironment
-  displayName: 'Update CI Environment'
+- stage: DeployTestEnvironment
+  displayName: 'Deploy Test Environment'
   dependsOn:
   - BuildRunUnitTests
   jobs:
@@ -68,21 +68,21 @@ stages:
 - stage: DeployFeaturesEnabledWebapp
   displayName: 'Deploy features-enabled webapp'
   dependsOn: 
-  - UpdateCIEnvironment
+  - DeployTestEnvironment
   jobs:
   - template: deploy-features-enabled-webapp.yml
 
 - stage: RunIntegrationTests
   displayName: 'Run Integration Tests'
   dependsOn:
-  - UpdateCIEnvironment
+  - DeployTestEnvironment
   jobs:
   - template: run-integration-tests.yml
 
 - stage: RunE2ETests
   displayName: 'Run E2E Tests'
   dependsOn:
-  - UpdateCIEnvironment
+  - DeployTestEnvironment
   jobs:
   - template: run-e2e-tests.yml
 
@@ -100,6 +100,7 @@ stages:
   - ValidateAPIVersioning
   - RunIntegrationTests
   - RunE2ETests
+  - RunE2EFeaturesEnabledTests
   jobs:
   - job: PublishNugets
     pool:
@@ -114,6 +115,7 @@ stages:
   - ValidateAPIVersioning
   - RunIntegrationTests
   - RunE2ETests
+  - RunE2EFeaturesEnabledTests
   jobs:
   - job: 'Docker'
     pool:
