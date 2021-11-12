@@ -55,11 +55,11 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
                     CloudTable table = client.GetTableReference(tableName);
                     if (await table.CreateIfNotExistsAsync())
                     {
-                        _logger.LogInformation("Created Table named: {0}", tableName);
+                        _logger.LogInformation("Created Table named '{TableName}'", tableName);
                     }
                     else
                     {
-                        _logger.LogInformation("Table {0} already exists", tableName);
+                        _logger.LogInformation("Table '{TableName}' already exists", tableName);
                     }
                 }
 
