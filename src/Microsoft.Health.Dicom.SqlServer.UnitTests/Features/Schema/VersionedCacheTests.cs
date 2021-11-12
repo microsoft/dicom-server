@@ -23,13 +23,13 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Schema
             _schemaVersionResolver = Substitute.For<ISchemaVersionResolver>();
             _versionedCache = new VersionedCache<IVersioned>(
                 _schemaVersionResolver,
-                new List<IVersioned> { new ExampleV1(), new ExampleV2() });
+                new List<IVersioned> { new Example1(), new Example2() });
         }
 
         [Theory]
         [InlineData(SchemaVersion.Unknown)]
-        [InlineData(SchemaVersion.V4)]
-        [InlineData((SchemaVersion)10)]
+        [InlineData(SchemaVersion.V3)]
+        [InlineData((SchemaVersion)2)]
         public async Task GivenInvalidVersion_WhenGettingValue_ThenThrowException(SchemaVersion version)
         {
             using CancellationTokenSource source = new CancellationTokenSource();
@@ -39,30 +39,44 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Schema
             await _schemaVersionResolver.Received(1).GetCurrentVersionAsync(source.Token);
         }
 
+        [Theory]
+        [InlineData((SchemaVersion)SchemaVersionConstants.Min)]
+        [InlineData((SchemaVersion)SchemaVersionConstants.Max)]
+        [InlineData((SchemaVersion)SchemaVersionConstants.SupportDTAndTMInExtendedQueryTagSchemaVersion)]
+        public async Task GivenValidVersion_WhenGettingValue_ThenReturnsValue(SchemaVersion version)
+        {
+            using CancellationTokenSource source = new CancellationTokenSource();
+
+            _schemaVersionResolver.GetCurrentVersionAsync(source.Token).Returns(version);
+            var value = await _versionedCache.GetAsync(source.Token);
+            Assert.NotNull(value);
+            await _schemaVersionResolver.Received(1).GetCurrentVersionAsync(source.Token);
+        }
+
         [Fact]
         public async Task GivenValidVersion_WhenGettingValue_ThenReturnCachedValue()
         {
             using CancellationTokenSource source = new CancellationTokenSource();
 
-            _schemaVersionResolver.GetCurrentVersionAsync(source.Token).Returns(SchemaVersion.V1);
-            ExampleV1 first = (await _versionedCache.GetAsync(source.Token)) as ExampleV1;
+            _schemaVersionResolver.GetCurrentVersionAsync(source.Token).Returns((SchemaVersion)SchemaVersionConstants.Min);
+            Example1 first = (await _versionedCache.GetAsync(source.Token)) as Example1;
             Assert.NotNull(first);
             await _schemaVersionResolver.Received(1).GetCurrentVersionAsync(source.Token);
 
-            _schemaVersionResolver.GetCurrentVersionAsync(source.Token).Returns(SchemaVersion.V2);
-            ExampleV1 second = (await _versionedCache.GetAsync(source.Token)) as ExampleV1;
+            _schemaVersionResolver.GetCurrentVersionAsync(source.Token).Returns((SchemaVersion)SchemaVersionConstants.Max);
+            Example1 second = (await _versionedCache.GetAsync(source.Token)) as Example1;
             Assert.Same(first, second);
             await _schemaVersionResolver.Received(1).GetCurrentVersionAsync(source.Token);
         }
 
-        private sealed class ExampleV1 : IVersioned
+        private sealed class Example1 : IVersioned
         {
-            public SchemaVersion Version => SchemaVersion.V1;
+            public SchemaVersion Version => (SchemaVersion)SchemaVersionConstants.Min;
         }
 
-        private sealed class ExampleV2 : IVersioned
+        private sealed class Example2 : IVersioned
         {
-            public SchemaVersion Version => SchemaVersion.V2;
+            public SchemaVersion Version => (SchemaVersion)SchemaVersionConstants.Max;
         }
     }
 }

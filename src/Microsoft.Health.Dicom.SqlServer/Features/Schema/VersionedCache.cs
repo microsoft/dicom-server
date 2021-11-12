@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
     internal sealed class VersionedCache<T> : IDisposable where T : IVersioned
     {
         private readonly ISchemaVersionResolver _schemaVersionResolver;
-        private readonly Dictionary<SchemaVersion, T> _entities;
+        private readonly IEnumerable<T> _entities;
         private readonly AsyncCache<T> _cache;
 
         public VersionedCache(ISchemaVersionResolver schemaVersionResolver, IEnumerable<T> versionedEntities)
@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
             _schemaVersionResolver = EnsureArg.IsNotNull(schemaVersionResolver, nameof(schemaVersionResolver));
             _entities = EnsureArg.IsNotNull(versionedEntities, nameof(versionedEntities))
                 .Where(x => x != null)
-                .ToDictionary(x => x.Version);
+                .OrderByDescending(x => x.Version);
             _cache = new AsyncCache<T>(ResolveAsync);
         }
 
@@ -39,16 +39,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
         private async Task<T> ResolveAsync(CancellationToken cancellationToken = default)
         {
             SchemaVersion version = await _schemaVersionResolver.GetCurrentVersionAsync(cancellationToken);
-            if (!_entities.TryGetValue(version, out T value))
-            {
-                string msg = version == SchemaVersion.Unknown
+
+            // Return the latest version of the entity. If the entity is not found, throw an exception.
+            T value = _entities.Where(entity => entity.Version <= version && (int)entity.Version >= SchemaVersionConstants.Min).FirstOrDefault();
+
+            if (value != null) return value;
+
+            string msg = version == SchemaVersion.Unknown
                     ? DicomSqlServerResource.UnknownSchemaVersion
                     : string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.SchemaVersionOutOfRange, version);
 
-                throw new InvalidSchemaVersionException(msg);
-            }
-
-            return value;
+            throw new InvalidSchemaVersionException(msg);
         }
     }
 }
