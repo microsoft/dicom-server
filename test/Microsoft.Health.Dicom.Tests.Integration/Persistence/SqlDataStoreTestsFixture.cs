@@ -110,10 +110,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 new[]
                 {
                     new SqlInstanceStoreV1(SqlConnectionWrapperFactory),
-                    new SqlInstanceStoreV2(SqlConnectionWrapperFactory),
-                    new SqlInstanceStoreV3(SqlConnectionWrapperFactory),
                     new SqlInstanceStoreV4(SqlConnectionWrapperFactory),
-                    new SqlInstanceStoreV5(SqlConnectionWrapperFactory),
                     new SqlInstanceStoreV6(SqlConnectionWrapperFactory),
                 }));
 
