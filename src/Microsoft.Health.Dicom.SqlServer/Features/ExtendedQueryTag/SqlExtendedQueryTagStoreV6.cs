@@ -9,7 +9,7 @@ using Microsoft.Health.SqlServer.Features.Client;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 {
-    internal class SqlExtendedQueryTagStoreV6 : SqlExtendedQueryTagStoreV5
+    internal class SqlExtendedQueryTagStoreV6 : SqlExtendedQueryTagStoreV4
     {
         public SqlExtendedQueryTagStoreV6(
            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
