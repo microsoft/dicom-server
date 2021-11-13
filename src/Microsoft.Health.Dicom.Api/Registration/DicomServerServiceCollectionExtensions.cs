@@ -7,6 +7,7 @@ using System;
 using System.Reflection;
 using System.Text.Json.Serialization;
 using EnsureThat;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
@@ -18,7 +19,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Api.Features.Context;
-using Microsoft.Health.Api.Features.Cors;
 using Microsoft.Health.Api.Features.Headers;
 using Microsoft.Health.Api.Modules;
 using Microsoft.Health.Dicom.Api.Configs;
@@ -87,6 +87,17 @@ namespace Microsoft.AspNetCore.Builder
             services.AddApplicationInsightsTelemetry();
 
             services.AddOptions();
+
+            CorsPolicyBuilder corsPolicyBuilder = new CorsPolicyBuilder()
+                .AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy("DicomAllowAll", corsPolicyBuilder.Build());
+            });
+
 
             services
                 .AddMvc(options =>
@@ -160,7 +171,7 @@ namespace Microsoft.AspNetCore.Builder
                     // This middleware will add delegates to the OnStarting method of httpContext.Response for setting headers.
                     app.UseBaseHeaders();
 
-                    app.UseCors(CorsConstants.DefaultCorsPolicy);
+                    app.UseCors("DicomAllowAll");
 
                     app.UseDicomRequestContext();
 
