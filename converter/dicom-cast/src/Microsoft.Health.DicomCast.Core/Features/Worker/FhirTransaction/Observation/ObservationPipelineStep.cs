@@ -21,22 +21,22 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
     {
         private readonly IObservationDeleteHandler _observationDeleteHandler;
         private readonly IObservationUpsertHandler _observationUpsertHandler;
-        private readonly IOptionsMonitor<DicomCastConfiguration> _dicomOptionsMonitor;
+        private readonly DicomCastConfiguration _dicomCastConfiguration;
 
         public ObservationPipelineStep(IObservationDeleteHandler observationDeleteHandler,
             IObservationUpsertHandler observationUpsertHandler,
-            IOptionsMonitor<DicomCastConfiguration> dicomCastConfiguration)
+            IOptions<DicomCastConfiguration> dicomCastConfiguration)
         {
             _observationDeleteHandler = EnsureArg.IsNotNull(observationDeleteHandler, nameof(observationDeleteHandler));
             _observationUpsertHandler = EnsureArg.IsNotNull(observationUpsertHandler, nameof(observationUpsertHandler));
-            _dicomOptionsMonitor = EnsureArg.IsNotNull(dicomCastConfiguration, nameof(dicomCastConfiguration));
+            _dicomCastConfiguration = EnsureArg.IsNotNull(dicomCastConfiguration?.Value, nameof(dicomCastConfiguration));
         }
 
         public async Task PrepareRequestAsync(FhirTransactionContext context, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(context, nameof(context));
 
-            if (_dicomOptionsMonitor.CurrentValue.Features.GenerateObservations)
+            if (_dicomCastConfiguration.Features.GenerateObservations)
             {
                 ChangeFeedEntry changeFeedEntry = context.ChangeFeedEntry;
                 context.Request.Observation = changeFeedEntry.Action switch
@@ -56,7 +56,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         {
             EnsureArg.IsNotNull(context, nameof(context));
 
-            if (_dicomOptionsMonitor.CurrentValue.Features.GenerateObservations)
+            if (_dicomCastConfiguration.Features.GenerateObservations)
             {
                 if (context.Response?.Observation == null)
                 {
@@ -67,8 +67,8 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 {
                     HttpStatusCode statusCode = observation.Response.Annotation<HttpStatusCode>();
 
-                    // We are only currently doing POSTs which should result in a 201
-                    if (statusCode != HttpStatusCode.Created)
+                    // We are only currently doing POSTs/DELETEs which should result in a 201 or 204
+                    if (statusCode != HttpStatusCode.Created && statusCode != HttpStatusCode.NoContent)
                     {
                         throw new ResourceConflictException();
                     }
