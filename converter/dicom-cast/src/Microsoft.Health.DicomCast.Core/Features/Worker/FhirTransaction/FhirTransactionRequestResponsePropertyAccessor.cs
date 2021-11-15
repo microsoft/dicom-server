@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using EnsureThat;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
@@ -15,8 +16,8 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
     {
         public FhirTransactionRequestResponsePropertyAccessor(
             string propertyName,
-            Func<FhirTransactionRequest, FhirTransactionRequestEntry> requestEntryGetter,
-            Action<FhirTransactionResponse, FhirTransactionResponseEntry> responseEntrySetter)
+            Func<FhirTransactionRequest, IEnumerable<FhirTransactionRequestEntry>> requestEntryGetter,
+            Action<FhirTransactionResponse, IEnumerable<FhirTransactionResponseEntry>> responseEntrySetter)
         {
             EnsureArg.IsNotNullOrWhiteSpace(propertyName, nameof(propertyName));
             EnsureArg.IsNotNull(requestEntryGetter, nameof(requestEntryGetter));
@@ -35,12 +36,12 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         /// <summary>
         /// Gets the property getter for <see cref="FhirTransactionRequestEntry"/>.
         /// </summary>
-        public Func<FhirTransactionRequest, FhirTransactionRequestEntry> RequestEntryGetter { get; }
+        public Func<FhirTransactionRequest, IEnumerable<FhirTransactionRequestEntry>> RequestEntryGetter { get; }
 
         /// <summary>
         /// Gets the property setter for <see cref="FhirTransactionResponseEntry"/>.
         /// </summary>
-        public Action<FhirTransactionResponse, FhirTransactionResponseEntry> ResponseEntrySetter { get; }
+        public Action<FhirTransactionResponse, IEnumerable<FhirTransactionResponseEntry>> ResponseEntrySetter { get; }
 
         public static bool operator ==(FhirTransactionRequestResponsePropertyAccessor left, FhirTransactionRequestResponsePropertyAccessor right)
         {

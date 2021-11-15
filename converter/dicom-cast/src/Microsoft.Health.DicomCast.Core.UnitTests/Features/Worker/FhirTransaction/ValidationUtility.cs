@@ -97,7 +97,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
         public static ImagingStudy ValidateImagingStudyUpdate(string studyInstanceUid, string patientResourceId, FhirTransactionRequestEntry entry, bool hasAccessionNumber = true)
         {
-            Identifier expectedIdentifier = ImagingStudyIdentifierUtility.CreateIdentifier(studyInstanceUid);
+            Identifier expectedIdentifier = IdentifierUtility.CreateIdentifier(studyInstanceUid);
             string expectedRequestUrl = $"ImagingStudy/{entry.Resource.Id}";
 
             ValidateRequestEntryMinimumRequirementForWithChange(FhirTransactionRequestMode.Update, expectedRequestUrl, Bundle.HTTPVerb.PUT, actualEntry: entry);
