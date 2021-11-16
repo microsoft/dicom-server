@@ -186,9 +186,10 @@ namespace Microsoft.Health.Dicom.Tests.Common
             string seriesInstanceUid = null,
             string sopInstanceUid = null,
             string sopClassUid = null,
-            bool validateItems = true)
+            bool validateItems = true,
+            DicomTransferSyntax dicomTransferSyntax = null)
         {
-            var ds = new DicomDataset(DicomTransferSyntax.ExplicitVRLittleEndian);
+            var ds = new DicomDataset(dicomTransferSyntax ?? DicomTransferSyntax.ExplicitVRLittleEndian);
 
             if (!validateItems)
             {
@@ -214,6 +215,59 @@ namespace Microsoft.Health.Dicom.Tests.Common
             }
 
             return new MemoryByteBuffer(result);
+        }
+
+        public static IEnumerable<DicomTransferSyntax> GetAllDicomeTransferSyntax()
+        {
+            yield return DicomTransferSyntax.ExplicitVRLittleEndian;
+            yield return DicomTransferSyntax.ExplicitVRBigEndian;
+            yield return DicomTransferSyntax.DeflatedExplicitVRLittleEndian;
+            yield return DicomTransferSyntax.JPEGProcess1;
+            yield return DicomTransferSyntax.JPEGProcess2_4;
+            yield return DicomTransferSyntax.JPEGProcess3_5Retired;
+            yield return DicomTransferSyntax.JPEGProcess6_8Retired;
+            yield return DicomTransferSyntax.JPEGProcess7_9Retired;
+            yield return DicomTransferSyntax.JPEGProcess10_12Retired;
+            yield return DicomTransferSyntax.JPEGProcess11_13Retired;
+            yield return DicomTransferSyntax.JPEGProcess14;
+            yield return DicomTransferSyntax.JPEGProcess15Retired;
+            yield return DicomTransferSyntax.JPEGProcess16_18Retired;
+            yield return DicomTransferSyntax.JPEGProcess17_19Retired;
+            yield return DicomTransferSyntax.JPEGProcess20_22Retired;
+            yield return DicomTransferSyntax.JPEGProcess21_23Retired;
+            yield return DicomTransferSyntax.JPEGProcess24_26Retired;
+            yield return DicomTransferSyntax.JPEGProcess25_27Retired;
+            yield return DicomTransferSyntax.JPEGProcess28Retired;
+            yield return DicomTransferSyntax.JPEGProcess29Retired;
+            yield return DicomTransferSyntax.JPEGProcess14SV1;
+            yield return DicomTransferSyntax.JPEGLSLossless;
+            yield return DicomTransferSyntax.JPEGLSNearLossless;
+            yield return DicomTransferSyntax.JPEG2000Lossless;
+            yield return DicomTransferSyntax.JPEG2000Lossy;
+            yield return DicomTransferSyntax.JPEG2000Part2MultiComponentLosslessOnly;
+            yield return DicomTransferSyntax.JPEG2000Part2MultiComponent;
+            yield return DicomTransferSyntax.JPIPReferenced;
+            yield return DicomTransferSyntax.JPIPReferencedDeflate;
+            yield return DicomTransferSyntax.MPEG2;
+            yield return DicomTransferSyntax.MPEG2MainProfileHighLevel;
+            yield return DicomTransferSyntax.MPEG4AVCH264HighProfileLevel41;
+            yield return DicomTransferSyntax.MPEG4AVCH264BDCompatibleHighProfileLevel41;
+            yield return DicomTransferSyntax.MPEG4AVCH264HighProfileLevel42For2DVideo;
+            yield return DicomTransferSyntax.MPEG4AVCH264HighProfileLevel42For3DVideo;
+            yield return DicomTransferSyntax.MPEG4AVCH264StereoHighProfileLevel42;
+            yield return DicomTransferSyntax.HEVCH265MainProfileLevel51;
+            yield return DicomTransferSyntax.HEVCH265Main10ProfileLevel51;
+            yield return DicomTransferSyntax.RLELossless;
+            yield return DicomTransferSyntax.RFC2557MIMEEncapsulation;
+            yield return DicomTransferSyntax.XMLEncoding;
+            yield return DicomTransferSyntax.ImplicitVRBigEndian;
+            yield return DicomTransferSyntax.ImplicitVRLittleEndian;
+            yield return DicomTransferSyntax.Papyrus3ImplicitVRLittleEndianRetired;
+            yield return DicomTransferSyntax.GEPrivateImplicitVRBigEndian;
+            yield return DicomTransferSyntax.ImplicitVRBigEndian;
+            yield return DicomTransferSyntax.ImplicitVRLittleEndian;
+            yield return DicomTransferSyntax.Papyrus3ImplicitVRLittleEndianRetired;
+            yield return DicomTransferSyntax.GEPrivateImplicitVRBigEndian;
         }
     }
 }
