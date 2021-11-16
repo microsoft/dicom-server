@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         public static void Validate(DicomDataset dicomDataset)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
-            EnsureArg.IsNotNull(dicomDataset.InternalTransferSyntax, nameof(dicomDataset));
+            EnsureArg.IsNotNull(dicomDataset.InternalTransferSyntax, nameof(dicomDataset.InternalTransferSyntax));
 
             if (!dicomDataset.InternalTransferSyntax.IsExplicitVR)
             {
