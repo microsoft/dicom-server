@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 {
     /// <summary>
@@ -18,5 +20,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
         /// <inheritdoc/>
         public FhirTransactionRequestEntry ImagingStudy { get; set; }
+
+        public IEnumerable<FhirTransactionRequestEntry> Observation { get; set; }
     }
 }

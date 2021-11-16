@@ -59,24 +59,35 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                 Type = Bundle.BundleType.Transaction,
             };
 
-            var usedPropertyAccessors = new List<FhirTransactionRequestResponsePropertyAccessor>(_requestResponsePropertyAccessors.Count);
+            var usedPropertyAccessors = new List<(FhirTransactionRequestResponsePropertyAccessor Accessor, int Count)>(_requestResponsePropertyAccessors.Count);
 
             foreach (FhirTransactionRequestResponsePropertyAccessor propertyAccessor in _requestResponsePropertyAccessors)
             {
-                FhirTransactionRequestEntry requestEntry = propertyAccessor.RequestEntryGetter(context.Request);
+                List<FhirTransactionRequestEntry> requestEntries = propertyAccessor.RequestEntryGetter(context.Request)?.ToList();
 
-                if (requestEntry == null || requestEntry.RequestMode == FhirTransactionRequestMode.None)
+                if (requestEntries == null || requestEntries.Count == 0)
                 {
-                    // No associated request, skip it.
                     continue;
                 }
 
-                // There is a associated request, add to the list so it gets processed.
-                usedPropertyAccessors.Add(propertyAccessor);
-                bundle.Entry.Add(CreateRequestBundleEntryComponent(requestEntry));
+                int useCount = 0;
+                foreach (FhirTransactionRequestEntry requestEntry in requestEntries)
+                {
+                    if (requestEntry == null || requestEntry.RequestMode == FhirTransactionRequestMode.None)
+                    {
+                        // No associated request, skip it.
+                        continue;
+                    }
+
+                    // There is a associated request, add to the list so it gets processed.
+                    bundle.Entry.Add(CreateRequestBundleEntryComponent(requestEntry));
+                    useCount++;
+                }
+
+                usedPropertyAccessors.Add((propertyAccessor, useCount));
             }
 
-            if (!bundle.Entry.Any())
+            if (bundle.Entry.Count == 0)
             {
                 // Nothing to update.
                 return;
@@ -86,11 +97,20 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             Bundle responseBundle = await _fhirTransactionExecutor.ExecuteTransactionAsync(bundle, cancellationToken);
 
             // Process the response.
-            for (int i = 0; i < usedPropertyAccessors.Count; i++)
-            {
-                FhirTransactionResponseEntry responseEntry = CreateResponseEntry(responseBundle.Entry[i]);
+            int processedResponseItems = 0;
 
-                usedPropertyAccessors[i].ResponseEntrySetter(context.Response, responseEntry);
+            foreach ((FhirTransactionRequestResponsePropertyAccessor accessor, int count) in
+                usedPropertyAccessors.Where(x => x.Count > 0))
+            {
+                var responseEntries = new List<FhirTransactionResponseEntry>();
+                for (int j = 0; j < count; j++)
+                {
+                    FhirTransactionResponseEntry responseEntry = CreateResponseEntry(responseBundle.Entry[processedResponseItems + j]);
+                    responseEntries.Add(responseEntry);
+                }
+
+                processedResponseItems += count;
+                accessor.ResponseEntrySetter(context.Response, responseEntries);
             }
 
             // Execute any additional checks of the response.

@@ -11,7 +11,7 @@
     <FhirServerPackageVersion>2.0.55</FhirServerPackageVersion>
     <FoDicomVersion>5.0.1</FoDicomVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <HealthcareSharedPackageVersion>3.2.38</HealthcareSharedPackageVersion>
+    <HealthcareSharedPackageVersion>3.2.39</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
     <Hl7FhirPackageVersion>3.3.0</Hl7FhirPackageVersion>
     <LangVersion>Latest</LangVersion>
@@ -52,7 +52,7 @@
   <!-- Dotnet CLI throws errors on restore if package references are included in docker compose projects -->
   <!-- See microsoft/DockerTools#209 for details -->
   <ItemGroup Condition="'$(MSBuildProjectExtension)' != '.dcproj'">
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>
