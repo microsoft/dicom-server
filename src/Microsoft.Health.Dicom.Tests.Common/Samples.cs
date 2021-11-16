@@ -217,7 +217,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
             return new MemoryByteBuffer(result);
         }
 
-        public static IEnumerable<DicomTransferSyntax> GetAllDicomeTransferSyntax()
+        public static IEnumerable<DicomTransferSyntax> GetAllDicomTransferSyntax()
         {
             yield return DicomTransferSyntax.ExplicitVRLittleEndian;
             yield return DicomTransferSyntax.ExplicitVRBigEndian;

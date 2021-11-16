@@ -245,7 +245,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
         public static IEnumerable<object[]> GetImplicitVRTransferSyntax()
         {
-            foreach (var ts in Samples.GetAllDicomeTransferSyntax())
+            foreach (var ts in Samples.GetAllDicomTransferSyntax())
             {
                 if (ts.IsExplicitVR)
                     continue;

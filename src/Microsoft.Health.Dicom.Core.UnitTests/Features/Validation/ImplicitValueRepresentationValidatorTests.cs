@@ -42,7 +42,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
 
         public static IEnumerable<object[]> GetNonImplicitVRTransferSyntax()
         {
-            foreach (var ts in Samples.GetAllDicomeTransferSyntax())
+            foreach (var ts in Samples.GetAllDicomTransferSyntax())
             {
                 if (!ts.IsExplicitVR)
                     continue;
@@ -53,7 +53,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
 
         public static IEnumerable<object[]> GetImplicitVRTransferSyntax()
         {
-            foreach (var ts in Samples.GetAllDicomeTransferSyntax())
+            foreach (var ts in Samples.GetAllDicomTransferSyntax())
             {
                 if (ts.IsExplicitVR)
                     continue;
