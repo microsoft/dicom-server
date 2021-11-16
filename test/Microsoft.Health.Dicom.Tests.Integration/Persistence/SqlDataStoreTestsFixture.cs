@@ -103,6 +103,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     new SqlIndexDataStoreV4(SqlConnectionWrapperFactory),
                     new SqlIndexDataStoreV5(SqlConnectionWrapperFactory),
                     new SqlIndexDataStoreV6(SqlConnectionWrapperFactory),
+                    new SqlIndexDataStoreV7(SqlConnectionWrapperFactory),
                 }));
 
             InstanceStore = new SqlInstanceStore(new VersionedCache<ISqlInstanceStore>(

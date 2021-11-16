@@ -11,7 +11,8 @@ CREATE TABLE dbo.ExtendedQueryTagString (
     StudyKey                BIGINT               NOT NULL,              --FK
     SeriesKey               BIGINT               NULL,                  --FK
     InstanceKey             BIGINT               NULL,                  --FK
-    Watermark               BIGINT               NOT NULL
+    Watermark               BIGINT               NOT NULL,
+    PartitionKey            INT                  NOT NULL DEFAULT 1     --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
 -- Used in QIDO
@@ -19,15 +20,17 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString ON dbo.ExtendedQueryTag
 (
     TagKey,
     TagValue,
+    PartitionKey,
     StudyKey,
     SeriesKey,
     InstanceKey
 )
 
 -- Used in IIndexInstanceCore
-CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagString_TagKey_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagString
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagString_PartitionKey_TagKey_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagString
 (
     TagKey,
+    PartitionKey,
     StudyKey,
     SeriesKey,
     InstanceKey
@@ -39,8 +42,9 @@ INCLUDE
 WITH (DATA_COMPRESSION = PAGE)
 
 -- Used in DeleteInstance
-CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagString_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagString
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagString_PartitionKey_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagString
 (
+    PartitionKey,
     StudyKey,
     SeriesKey,
     InstanceKey
