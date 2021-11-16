@@ -68,7 +68,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
         }
 
         [Theory]
-        [MemberData(nameof(GetImplicitVRTransferSyntax))]
+        [MemberData(nameof(GetNonExplicitVRTransferSyntax))]
         public async Task GivenAValidDicomDatasetWithImplicitVR_WhenValidated_ThenItShouldThrowNotAcceptableException(DicomTransferSyntax transferSyntax)
         {
             var dicomDataset = Samples
@@ -243,7 +243,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             }
         }
 
-        public static IEnumerable<object[]> GetImplicitVRTransferSyntax()
+        public static IEnumerable<object[]> GetNonExplicitVRTransferSyntax()
         {
             foreach (var ts in Samples.GetAllDicomTransferSyntax())
             {

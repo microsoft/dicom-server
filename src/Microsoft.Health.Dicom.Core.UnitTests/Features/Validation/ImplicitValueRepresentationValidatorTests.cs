@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
     public class ImplicitValueRepresentationValidatorTests
     {
         [Theory]
-        [MemberData(nameof(GetNonImplicitVRTransferSyntax))]
+        [MemberData(nameof(GetExplicitVRTransferSyntax))]
         public void GivenDicomDatasetWithNonImplicitVR_WhenValidating_ThenItShouldSucceed(DicomTransferSyntax transferSyntax)
         {
             var dicomDataset = Samples
@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
         }
 
         [Theory]
-        [MemberData(nameof(GetImplicitVRTransferSyntax))]
+        [MemberData(nameof(GetNonExplicitVRTransferSyntax))]
         public void GivenDicomDatasetWithImplicitVR_WhenValidating_ThenItShouldThrowNotAcceptableException(DicomTransferSyntax transferSyntax)
         {
             var dicomDataset = Samples
@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
             Assert.IsType<NotAcceptableException>(exception);
         }
 
-        public static IEnumerable<object[]> GetNonImplicitVRTransferSyntax()
+        public static IEnumerable<object[]> GetExplicitVRTransferSyntax()
         {
             foreach (var ts in Samples.GetAllDicomTransferSyntax())
             {
@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
             }
         }
 
-        public static IEnumerable<object[]> GetImplicitVRTransferSyntax()
+        public static IEnumerable<object[]> GetNonExplicitVRTransferSyntax()
         {
             foreach (var ts in Samples.GetAllDicomTransferSyntax())
             {
