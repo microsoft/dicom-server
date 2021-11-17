@@ -4,7 +4,6 @@ Guidelines to create migration scripts - https://github.com/microsoft/healthcare
 This diff is broken up into several sections:
  - The first transaction contains changes to tables and stored procedures.
  - The second transaction contains updates to indexes.
- - After the second transaction, there's an update to a full-text index which cannot be in a transaction.
 ******************************************************************************************/
 SET XACT_ABORT ON
 

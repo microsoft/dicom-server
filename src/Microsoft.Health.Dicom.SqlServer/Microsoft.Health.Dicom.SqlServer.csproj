@@ -71,10 +71,6 @@
     <TSqlScript Include="Features\Schema\Sql\Types\*.sql" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Remove="Features\Schema\Migrations\7.diff.sql" />
-    <None Remove="Features\Schema\Sql\Sprocs\AddPartition.sql" />
-  </ItemGroup>
 
   <ItemGroup>
     <TInitSqlScript Include="Features\Schema\Sql\Scripts\TransactionCheck.sql" />
