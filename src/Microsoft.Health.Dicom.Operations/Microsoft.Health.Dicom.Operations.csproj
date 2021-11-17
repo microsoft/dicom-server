@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,12 +14,11 @@
     <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.30" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions" Version="4.0.1" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.6.0" />
-    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="$(NetCoreApp3PackageVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Blob" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.SqlServer" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />
-    <PackageReference Include="System.Text.Encodings.Web" Version="4.7.2" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>

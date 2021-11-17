@@ -62,7 +62,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AuditEventType(AuditEventSubType.AddExtendedQueryTag)]
         public async Task<IActionResult> PostAsync([Required][FromBody] IReadOnlyCollection<AddExtendedQueryTagEntry> extendedQueryTags)
         {
-            _logger.LogInformation("DICOM Web Add Extended Query Tag request received, with extendedQueryTags {extendedQueryTags}.", extendedQueryTags);
+            _logger.LogInformation("DICOM Web Add Extended Query Tag request received, with extendedQueryTags {ExtendedQueryTags}.", extendedQueryTags);
 
             EnsureFeatureIsEnabled();
             AddExtendedQueryTagResponse response = await _mediator.AddExtendedQueryTagsAsync(extendedQueryTags, HttpContext.RequestAborted);
@@ -79,7 +79,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AuditEventType(AuditEventSubType.RemoveExtendedQueryTag)]
         public async Task<IActionResult> DeleteAsync(string tagPath)
         {
-            _logger.LogInformation("DICOM Web Delete Extended Query Tag request received, with extended query tag path {tagPath}.", tagPath);
+            _logger.LogInformation("DICOM Web Delete Extended Query Tag request received, with extended query tag path {TagPath}.", tagPath);
 
             EnsureFeatureIsEnabled();
             await _mediator.DeleteExtendedQueryTagAsync(tagPath, HttpContext.RequestAborted);
@@ -139,7 +139,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AuditEventType(AuditEventSubType.GetExtendedQueryTag)]
         public async Task<IActionResult> GetTagAsync(string tagPath)
         {
-            _logger.LogInformation("DICOM Web Get Extended Query Tag request received for extended query tag: {tagPath}", tagPath);
+            _logger.LogInformation("DICOM Web Get Extended Query Tag request received for extended query tag: {TagPath}", tagPath);
 
             EnsureFeatureIsEnabled();
             GetExtendedQueryTagResponse response = await _mediator.GetExtendedQueryTagAsync(tagPath, HttpContext.RequestAborted);
@@ -170,7 +170,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             [FromRoute] string tagPath,
             [FromQuery] PaginationOptions options)
         {
-            _logger.LogInformation("DICOM Web Get Extended Query Tag Errors request received for extended query tag: {tagPath}", tagPath);
+            _logger.LogInformation("DICOM Web Get Extended Query Tag Errors request received for extended query tag: {TagPath}", tagPath);
 
             EnsureArg.IsNotNull(options, nameof(options));
             EnsureFeatureIsEnabled();
@@ -195,7 +195,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         public async Task<IActionResult> UpdateTagAsync([FromRoute] string tagPath, [FromBody] UpdateExtendedQueryTagOptions newValue)
         {
             EnsureArg.IsNotNull(newValue, nameof(newValue));
-            _logger.LogInformation("DICOM Web Update Extended Query Tag Query Status request received for extended query tag {tagPath} and new value {newValue}", tagPath, $"{nameof(newValue.QueryStatus)}: '{newValue.QueryStatus}'");
+            _logger.LogInformation("DICOM Web Update Extended Query Tag Query Status request received for extended query tag {TagPath} and new value {NewValue}", tagPath, $"{nameof(newValue.QueryStatus)}: '{newValue.QueryStatus}'");
 
             EnsureFeatureIsEnabled();
             var response = await _mediator.UpdateExtendedQueryTagAsync(tagPath, newValue.ToEntry(), HttpContext.RequestAborted);

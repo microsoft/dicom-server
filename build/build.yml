@@ -5,15 +5,15 @@ parameters:
 
 steps:
   - task: UseDotNet@2
-    displayName: 'Use .NET Core sdk'
+    displayName: 'Use .NET sdk'
     inputs:
       useGlobalJson: true
 
-  # For Az Func and SQL Code-Gen
+  # SQL Code-Gen (TODO: Delete once shared components moves to .NET 6.0)
   - task: UseDotNet@2
-    displayName: 'Use .NET Core 3.1.x SDK'
+    displayName: 'Use .NET 5.x SDK'
     inputs:
-      version: '3.1.x'
+      version: '5.x'
 
   - task: DotNetCoreCLI@2
     displayName: 'dotnet build $(buildConfiguration)'

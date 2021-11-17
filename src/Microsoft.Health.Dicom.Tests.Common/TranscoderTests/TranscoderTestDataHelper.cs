@@ -6,9 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Security.Cryptography;
 using System.Text.Json;
-using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Tests.Common.TranscoderTests
 {
@@ -77,14 +75,6 @@ namespace Microsoft.Health.Dicom.Tests.Common.TranscoderTests
             {
                 yield return GetTestData(folder);
             }
-        }
-
-        public static string GetHashFromStream(Stream byteStream)
-        {
-            EnsureArg.IsNotNull(byteStream, nameof(byteStream));
-            byte[] result = ToByteArray(byteStream);
-            using var sha256Managed = new SHA256Managed();
-            return Convert.ToBase64String(sha256Managed.ComputeHash(result));
         }
 
         private static byte[] ToByteArray(Stream stream)

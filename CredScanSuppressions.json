@@ -10,14 +10,6 @@
             "_justification": "Service principal for local testing."
         },
         {
-            "placeholder": "Oc+osXvPQ172LU1flk53w6GFM7ixfjk9NELrkLtBt+k0ML585ECReA==",
-            "_justification": "Master key for Azure Function while using docker-compose."
-        },
-        {
-            "placeholder": "cP0rhNdD/l9Dli+kEPQwupVqfTjksqK0dmMrZo/63mD0u0ezUrRl8Q==",
-            "_justification": "Function key for Azure Function while using docker-compose."
-        },
-        {
             "placeholder": "123!@#passforCI#$",
             "_justification": "Test admin password for testing SQL server using docker during CI"
         },
