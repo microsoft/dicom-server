@@ -92,10 +92,7 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---    Index instance Core V7
---
--- FIRST SCHEMA VERSION
---     7
+--    Index instance Core
 --
 -- DESCRIPTION
 --    Adds or updates the various extended query tag indices for a given DICOM instance
@@ -126,8 +123,8 @@ GO
 -- RETURN VALUE
 --     None
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCoreV7
-    @partitionKey                                                                INT,
+CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCore
+    @partitionKey                                                                INT =1,
     @studyKey                                                                    BIGINT,
     @seriesKey                                                                   BIGINT,
     @instanceKey                                                                 BIGINT,
@@ -323,10 +320,10 @@ GO
 **************************************************************/
 --
 -- STORED PROCEDURE
---     AddInstanceV7
+--     AddInstanceV6
 --
 -- FIRST SCHEMA VERSION
---     7
+--     6
 --
 -- DESCRIPTION
 --     Adds a DICOM instance, now with partition.
@@ -369,7 +366,7 @@ GO
 -- RETURN VALUE
 --     The watermark (version).
 ------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.AddInstanceV7
+CREATE OR ALTER PROCEDURE dbo.AddInstanceV6
     @partitionKey                       INT,
     @studyInstanceUid                   VARCHAR(64),
     @seriesInstanceUid                  VARCHAR(64),
@@ -476,7 +473,7 @@ BEGIN
 
     BEGIN TRY
 
-        EXEC dbo.IIndexInstanceCoreV7
+        EXEC dbo.IIndexInstanceCore
             @partitionKey,
             @studyKey,
             @seriesKey,
@@ -503,10 +500,10 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     DeleteInstanceV7
+--     DeleteInstanceV6
 --
 -- FIRST SCHEMA VERSION
---     7
+--     6
 --
 -- DESCRIPTION
 --     Removes the specified instance(s) and places them in the DeletedInstance table for later removal
@@ -525,7 +522,7 @@ GO
 --     @sopInstanceUid
 --         * The SOP instance UID.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV7
+CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV6
     @cleanupAfter       DATETIMEOFFSET(0),
     @createdStatus      TINYINT,
     @partitionKey       INT,
@@ -753,7 +750,7 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---    Index instance V7
+--    Index instance V6
 --
 -- DESCRIPTION
 --    Adds or updates the various extended query tag indices for a given DICOM instance.
@@ -774,7 +771,7 @@ GO
 -- RETURN VALUE
 --     None
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.IndexInstanceV7
+CREATE OR ALTER PROCEDURE dbo.IndexInstanceV6
     @watermark                                                                   BIGINT,
     @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1         READONLY,
     @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1             READONLY,
@@ -813,7 +810,7 @@ BEGIN
         -- String Key tags
         BEGIN TRY
 
-            EXEC dbo.IIndexInstanceCoreV7
+            EXEC dbo.IIndexInstanceCore
                 @partitionKey,
                 @studyKey,
                 @seriesKey,

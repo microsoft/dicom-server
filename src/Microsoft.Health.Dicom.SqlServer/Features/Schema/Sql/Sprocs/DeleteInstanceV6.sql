@@ -111,30 +111,35 @@ AS
     WHERE   StudyKey = @studyKey
     AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
     AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
+    AND     PartitionKey = @partitionKey
 
     DELETE
     FROM    dbo.ExtendedQueryTagLong
     WHERE   StudyKey = @studyKey
     AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
     AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
+    AND     PartitionKey = @partitionKey
 
     DELETE
     FROM    dbo.ExtendedQueryTagDouble
     WHERE   StudyKey = @studyKey
     AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
     AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
+    AND     PartitionKey = @partitionKey
 
     DELETE
     FROM    dbo.ExtendedQueryTagDateTime
     WHERE   StudyKey = @studyKey
     AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
     AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
+    AND     PartitionKey = @partitionKey
 
     DELETE
     FROM    dbo.ExtendedQueryTagPersonName
     WHERE   StudyKey = @studyKey
     AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
     AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
+    AND     PartitionKey = @partitionKey
 
     INSERT INTO dbo.DeletedInstance
     (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
@@ -173,26 +178,31 @@ AS
         FROM    dbo.ExtendedQueryTagString
         WHERE   StudyKey = @studyKey
         AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+        AND     PartitionKey = @partitionKey
 
         DELETE
         FROM    dbo.ExtendedQueryTagLong
         WHERE   StudyKey = @studyKey
         AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+        AND     PartitionKey = @partitionKey
 
         DELETE
         FROM    dbo.ExtendedQueryTagDouble
         WHERE   StudyKey = @studyKey
         AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+        AND     PartitionKey = @partitionKey
 
         DELETE
         FROM    dbo.ExtendedQueryTagDateTime
         WHERE   StudyKey = @studyKey
         AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+        AND     PartitionKey = @partitionKey
 
         DELETE
         FROM    dbo.ExtendedQueryTagPersonName
         WHERE   StudyKey = @studyKey
         AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+        AND     PartitionKey = @partitionKey
     END
 
     -- If we've removing the series, see if it's the last for a study and if so, remove the study
@@ -210,22 +220,27 @@ AS
         DELETE
         FROM    dbo.ExtendedQueryTagString
         WHERE   StudyKey = @studyKey
+        AND     PartitionKey = @partitionKey
 
         DELETE
         FROM    dbo.ExtendedQueryTagLong
         WHERE   StudyKey = @studyKey
+        AND     PartitionKey = @partitionKey
 
         DELETE
         FROM    dbo.ExtendedQueryTagDouble
         WHERE   StudyKey = @studyKey
+        AND     PartitionKey = @partitionKey
 
         DELETE
         FROM    dbo.ExtendedQueryTagDateTime
         WHERE   StudyKey = @studyKey
+        AND     PartitionKey = @partitionKey
 
         DELETE
         FROM    dbo.ExtendedQueryTagPersonName
         WHERE   StudyKey = @studyKey
+        AND     PartitionKey = @partitionKey
     END
 
     COMMIT TRANSACTION
