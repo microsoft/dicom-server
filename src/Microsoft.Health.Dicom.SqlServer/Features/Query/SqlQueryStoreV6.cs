@@ -21,7 +21,7 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 {
-    internal class SqlQueryStoreV6 : SqlQueryStoreV5
+    internal class SqlQueryStoreV6 : SqlQueryStoreV4
     {
         public override SchemaVersion Version => SchemaVersion.V6;
 

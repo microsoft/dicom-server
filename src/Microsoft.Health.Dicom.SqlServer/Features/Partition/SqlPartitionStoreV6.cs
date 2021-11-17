@@ -17,7 +17,7 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Partition
 {
-    internal class SqlPartitionStoreV6 : SqlPartitionStoreV5
+    internal class SqlPartitionStoreV6 : SqlPartitionStoreV4
     {
 
         protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory;
