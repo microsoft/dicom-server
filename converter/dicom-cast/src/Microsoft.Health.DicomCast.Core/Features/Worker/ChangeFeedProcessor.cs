@@ -81,7 +81,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                         if (!(changeFeedEntry.Action == ChangeFeedAction.Create && changeFeedEntry.State == ChangeFeedState.Deleted))
                         {
                             await _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, cancellationToken);
-                            _logger.LogInformation("Succesfully process DICOM event with SequenceID: {SequenceId}", changeFeedEntry.Sequence);
+                            _logger.LogInformation("Succesfully processed DICOM event with SequenceID: {SequenceId}", changeFeedEntry.Sequence);
                         }
                         else
                         {

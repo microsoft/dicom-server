@@ -15,7 +15,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
     public interface IImagingStudyUpsertHandler
     {
         /// <summary>
-        /// Builds a request for creating or udpating the <see cref="ImagingStudy"/> resource..
+        /// Builds a request for creating or updating the <see cref="ImagingStudy"/> resource..
         /// </summary>
         /// <param name="context">The transaction context.</param>
         /// <param name="cancellationToken">The cancellation token.</param>

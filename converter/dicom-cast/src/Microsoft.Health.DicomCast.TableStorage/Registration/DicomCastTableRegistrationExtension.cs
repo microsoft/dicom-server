@@ -17,7 +17,7 @@ using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Health.DicomCast.TableStorage
 {
-    public static class DiocmCastTableRegistrationExtension
+    public static class DicomCastTableRegistrationExtension
     {
         public const string TableStoreConfigurationSectionName = "TableStore";
 

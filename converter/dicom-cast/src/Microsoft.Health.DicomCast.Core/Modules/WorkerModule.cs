@@ -65,6 +65,8 @@ namespace Microsoft.Health.DicomCast.Core.Modules
                 .Singleton()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
+            services.AddSingleton<ObservationParser>();
         }
 
         private static void RegisterPipeline(IServiceCollection services)
@@ -145,6 +147,11 @@ namespace Microsoft.Health.DicomCast.Core.Modules
                 .AsImplementedInterfaces();
 
             services.Add<ImagingStudyPipelineStep>()
+                .Singleton()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<ObservationPipelineStep>()
                 .Singleton()
                 .AsSelf()
                 .AsImplementedInterfaces();
