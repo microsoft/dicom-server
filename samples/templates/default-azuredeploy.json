@@ -283,7 +283,7 @@
                         "[resourceId('Microsoft.Web/sites/config', variables('serviceName'), 'appsettings')]" // Avoid restarts mid-installation
                     ],
                     "properties": {
-                        "version": "5.0.11"
+                        "version": "5.0.12"
                     }
                 },
                 {
