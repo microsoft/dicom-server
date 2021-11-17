@@ -5,7 +5,7 @@ steps:
     inputs:
       command: pack
       configuration: '$(buildConfiguration)'
-      packagesToPack: '**/*.csproj;!**/*.UnitTests.csproj'
+      packagesToPack: '**/*.csproj;!**/*Test*.csproj'
       packDirectory: '$(build.artifactStagingDirectory)/nupkgs'
       versioningScheme: byEnvVar
       versionEnvVar: 'nuGetVersion'
@@ -17,3 +17,11 @@ steps:
       pathtoPublish: '$(build.artifactStagingDirectory)/nupkgs'
       artifactName: 'nuget'
       publishLocation: 'container'
+
+  - task: PublishSymbols@2
+    displayName: 'Publish symbols'
+    inputs:
+      searchFolder: '$(build.artifactStagingDirectory)'
+      searchPattern: '**\*.pdb'
+      symbolServerType: 'TeamServices'
+      indexSources: false # done in build step
