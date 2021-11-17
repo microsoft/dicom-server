@@ -3,12 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Dicom.SqlServer.Features.Schema;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Partition
+namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 {
-    internal class SqlPartitionStoreV5 : SqlPartitionStoreV4
+    public interface IObservationDeleteHandler
     {
-        public override SchemaVersion Version => SchemaVersion.V5;
+        Task<IEnumerable<FhirTransactionRequestEntry>> BuildAsync(FhirTransactionContext context, CancellationToken cancellationToken);
     }
 }

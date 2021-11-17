@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Linq;
 using Hl7.Fhir.Model;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
@@ -32,11 +33,12 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [Fact]
         public void GivenAPatientResponse_WhenPropertySetterIsUsed_ThenCorrectValueShouldBeSet()
         {
-            FhirTransactionResponseEntry expectedResponse = ExecutePropertySetter(nameof(FhirTransactionRequest.Patient));
+            IEnumerable<FhirTransactionResponseEntry> expectedResponse = ExecutePropertySetter(nameof(FhirTransactionRequest.Patient));
 
-            Assert.Same(_fhirTransactionResponse.Patient, expectedResponse);
+            Assert.Same(_fhirTransactionResponse.Patient, expectedResponse.Single());
             Assert.Null(_fhirTransactionResponse.ImagingStudy);
             Assert.Null(_fhirTransactionResponse.Endpoint);
+            Assert.Null(_fhirTransactionResponse.Observation);
         }
 
         [Fact]
@@ -48,9 +50,9 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [Fact]
         public void GivenAnImagingStudyResponse_WhenPropertySetterIsUsed_ThenCorrectValueShouldBeSet()
         {
-            FhirTransactionResponseEntry expectedResponse = ExecutePropertySetter(nameof(FhirTransactionRequest.ImagingStudy));
+            IEnumerable<FhirTransactionResponseEntry> expectedResponse = ExecutePropertySetter(nameof(FhirTransactionRequest.ImagingStudy));
 
-            Assert.Same(_fhirTransactionResponse.ImagingStudy, expectedResponse);
+            Assert.Same(_fhirTransactionResponse.ImagingStudy, expectedResponse.Single());
         }
 
         [Fact]
@@ -62,25 +64,25 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [Fact]
         public void GivenAnEndpointResponse_WhenPropertySetterIsUsed_ThenCorrectValueShouldBeSet()
         {
-            FhirTransactionResponseEntry expectedResponse = ExecutePropertySetter(nameof(FhirTransactionRequest.Endpoint));
+            IEnumerable<FhirTransactionResponseEntry> expectedResponse = ExecutePropertySetter(nameof(FhirTransactionRequest.Endpoint));
 
-            Assert.Same(_fhirTransactionResponse.Endpoint, expectedResponse);
+            Assert.Same(_fhirTransactionResponse.Endpoint, expectedResponse.Single());
         }
 
         private void ExecuteAndValidatePropertyGetter(string propertyName, FhirTransactionRequestEntry expectedEntry)
         {
             FhirTransactionRequestResponsePropertyAccessor propertyAccessor = GetPropertyAccessor(propertyName);
 
-            FhirTransactionRequestEntry requestEntry = propertyAccessor.RequestEntryGetter(_fhirTransactionRequest);
+            IEnumerable<FhirTransactionRequestEntry> requestEntry = propertyAccessor.RequestEntryGetter(_fhirTransactionRequest);
 
-            Assert.Same(expectedEntry, requestEntry);
+            Assert.Same(expectedEntry, requestEntry.Single());
         }
 
-        private FhirTransactionResponseEntry ExecutePropertySetter(string propertyName)
+        private IEnumerable<FhirTransactionResponseEntry> ExecutePropertySetter(string propertyName)
         {
             FhirTransactionRequestResponsePropertyAccessor propertyAccessor = GetPropertyAccessor(propertyName);
 
-            var expectedResponse = new FhirTransactionResponseEntry(new Bundle.ResponseComponent(), new Patient());
+            var expectedResponse = new[] { new FhirTransactionResponseEntry(new Bundle.ResponseComponent(), new Patient()) };
 
             propertyAccessor.ResponseEntrySetter(_fhirTransactionResponse, expectedResponse);
 
