@@ -8,7 +8,6 @@
     <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="fo-dicom" Version="$(FoDicomVersion)" />
     <PackageReference Include="fo-dicom.Json" Version="$(FoDicomVersion)" NoWarn="NU1701" />
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.FileProviders.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(SdkPackageVersion)" />

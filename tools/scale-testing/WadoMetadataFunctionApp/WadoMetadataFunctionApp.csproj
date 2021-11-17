@@ -1,17 +1,27 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
   </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="Ensure.That" Version="10.1.0" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="fo-dicom" Version="$(FoDicomVersion)" />
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.30" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="5.1.0" />
-    <PackageReference Include="Microsoft.Azure.ServiceBus" Version="5.2.0" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.0.1" PrivateAssets="All" />
   </ItemGroup>
+
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Microsoft.Health.Dicom.Client\Microsoft.Health.Dicom.Client.csproj" />
     <ProjectReference Include="..\Common\Common.csproj" />
   </ItemGroup>
+
   <ItemGroup>
     <None Update="host.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -21,4 +31,5 @@
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
   </ItemGroup>
+
 </Project>
