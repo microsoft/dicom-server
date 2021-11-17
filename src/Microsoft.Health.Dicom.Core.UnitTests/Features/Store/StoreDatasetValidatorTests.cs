@@ -75,10 +75,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                 .CreateRandomInstanceDataset(dicomTransferSyntax: transferSyntax)
                 .NotValidated();
 
-            var exception = await Record.ExceptionAsync(() => _dicomDatasetValidator.ValidateAsync(dicomDataset, requiredStudyInstanceUid: null));
-
-            Assert.NotNull(exception);
-            Assert.IsType<NotAcceptableException>(exception);
+            await Assert.ThrowsAsync<NotAcceptableException>(() => _dicomDatasetValidator.ValidateAsync(dicomDataset, requiredStudyInstanceUid: null));
         }
 
         [Fact]

@@ -22,8 +22,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
                 .CreateRandomInstanceDataset(dicomTransferSyntax: transferSyntax)
                 .NotValidated();
 
-            var exception = Record.Exception(() => ImplicitValueRepresentationValidator.Validate(dicomDataset));
-            Assert.Null(exception);
+            ImplicitValueRepresentationValidator.Validate(dicomDataset);
         }
 
         [Theory]
@@ -34,10 +33,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
                 .CreateRandomInstanceDataset(dicomTransferSyntax: transferSyntax)
                 .NotValidated();
 
-            var exception = Record.Exception(() => ImplicitValueRepresentationValidator.Validate(dicomDataset));
-
-            Assert.NotNull(exception);
-            Assert.IsType<NotAcceptableException>(exception);
+            Assert.Throws<NotAcceptableException>(() => ImplicitValueRepresentationValidator.Validate(dicomDataset));
         }
 
         public static IEnumerable<object[]> GetExplicitVRTransferSyntax()
