@@ -4,8 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Linq;
-using Dicom;
-using Dicom.StructuredReport;
+using FellowOakDicom;
+using FellowOakDicom.StructuredReport;
 using Hl7.Fhir.Model;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;

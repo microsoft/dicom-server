@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Immutable;
-using Dicom.StructuredReport;
+using FellowOakDicom.StructuredReport;
 using Hl7.Fhir.Model;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
