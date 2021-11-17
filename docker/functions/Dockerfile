@@ -10,7 +10,7 @@ ENV AzureFunctionsJobHost__Logging__Console__IsEnabled=true \
     AzureWebJobsScriptRoot=/home/site/wwwroot
 
 # Copy the DICOM Server repository and build the Azure Functions project
-FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine3.13@sha256:14cc4b76c0c06ec6fc58270662105c790da59e01600d60f741eea7920c023c96 AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0.100-alpine3.14@sha256:1d9d66775f0d67cb68af9c7a083d22b576ea96f3f7a6893660d48f536b73e59f AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /dicom-server
 COPY . .

@@ -120,7 +120,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                         V2.ExtendedQueryTag.TagStatus);
 
                     executionTimeWatch.Stop();
-                    Logger.LogStoredProcedureSuccess(nameof(V2.GetExtendedQueryTag), executionTimeWatch);
+                    Logger.StoredProcedureSucceeded(nameof(V2.GetExtendedQueryTag), executionTimeWatch);
 
                     return new ExtendedQueryTagStoreJoinEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, QueryStatus.Enabled, 0);
                 }
@@ -187,7 +187,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                     }
 
                     executionTimeWatch.Stop();
-                    Logger.LogStoredProcedureSuccess(nameof(V2.GetExtendedQueryTag), executionTimeWatch);
+                    Logger.StoredProcedureSucceeded(nameof(V2.GetExtendedQueryTag), executionTimeWatch);
                 }
             }
 

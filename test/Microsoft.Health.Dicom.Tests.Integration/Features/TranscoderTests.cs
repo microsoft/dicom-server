@@ -152,7 +152,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 
         private string GetByteArrayHashCode(byte[] byteArray)
         {
-            return Convert.ToBase64String(HashAlgorithm.Create(nameof(SHA1)).ComputeHash(byteArray));
+            return Convert.ToBase64String(HashAlgorithm.Create(nameof(SHA256)).ComputeHash(byteArray));
         }
     }
 }

@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Api.Extensions
     {
         public const string ErroneousAttributesHeader = "erroneous-dicom-attributes";
 
-        private static readonly Uri UnusedRoot = new Uri("http://unused/", UriKind.Absolute);
+        private static readonly Uri ExampleRoot = new Uri("https://example.com/", UriKind.Absolute);
 
         public static void AddLocationHeader(this HttpResponse response, Uri locationUrl)
         {
@@ -39,6 +39,8 @@ namespace Microsoft.Health.Dicom.Api.Extensions
         }
 
         private static string GetRelativeUri(Uri uri)
-            => new Uri(UnusedRoot, uri).GetComponents(UriComponents.AbsoluteUri & ~UriComponents.SchemeAndServer & ~UriComponents.UserInfo, UriFormat.UriEscaped);
+            // ExampleRoot is necessary as GetComponents, like many of the URI members, throws an exception
+            // when used on relative URI instances. As a workaround, we make it absolute temporarily.
+            => new Uri(ExampleRoot, uri).GetComponents(UriComponents.AbsoluteUri & ~UriComponents.SchemeAndServer & ~UriComponents.UserInfo, UriFormat.UriEscaped);
     }
 }

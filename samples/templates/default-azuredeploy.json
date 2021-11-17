@@ -199,7 +199,7 @@
         "staticDicomFunctionAppConfigProperties": {
             "AzureWebJobsDisableHomepage": "true",
             "CONTAINER_NAME": "azure-webjobs-secrets",
-            "FUNCTIONS_EXTENSION_VERSION": "~3",
+            "FUNCTIONS_EXTENSION_VERSION": "~4",
             "FUNCTIONS_WORKER_RUNTIME": "dotnet",
             "WEBSITE_ENABLE_SYNC_UPDATE_SITE": "1"
         },
@@ -277,13 +277,13 @@
                 {
                     "apiVersion": "2015-08-01",
                     "type": "siteextensions",
-                    "name": "AspNetCoreRuntime.5.0.x64",
+                    "name": "AspNetCoreRuntime.6.0.x64",
                     "dependsOn": [
                         "[variables('appServiceResourceId')]",
                         "[resourceId('Microsoft.Web/sites/config', variables('serviceName'), 'appsettings')]" // Avoid restarts mid-installation
                     ],
                     "properties": {
-                        "version": "5.0.11"
+                        "version": "6.0.0"
                     }
                 },
                 {
@@ -294,7 +294,7 @@
                     "dependsOn": [
                         "[variables('appServiceResourceId')]",
                         "[resourceId('Microsoft.Web/sites/config', variables('serviceName'), 'appsettings')]",
-                        "[concat(variables('appServiceResourceId'), '/siteextensions/AspNetCoreRuntime.5.0.x64')]"
+                        "[concat(variables('appServiceResourceId'), '/siteextensions/AspNetCoreRuntime.6.0.x64')]"
                     ],
                   "properties": {
                     "packageUri": "[variables('deployWebPackageUrl')]"
@@ -330,7 +330,7 @@
                         },
                         {
                             "name": "FUNCTIONS_EXTENSION_VERSION",
-                            "value": "~3"
+                            "value": "~4"
                         },
                         {
                             "name": "FUNCTIONS_WORKER_RUNTIME",
