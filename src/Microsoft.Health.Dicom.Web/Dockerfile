@@ -3,12 +3,9 @@
 # Define the "runtime" image which will run the DICOM Server
 FROM mcr.microsoft.com/dotnet/aspnet:5.0.12-focal@sha256:41205f0c24e4bbe74710e2122e691cdf768c98edbe2fb98385f481fcb8190c57 AS runtime
 RUN set -x && \
-    # See https://www.abhith.net/blog/docker-sql-error-on-aspnet-core-alpine/
-    apk add --no-cache icu-libs && \
     addgroup nonroot && \
     adduser -S -D -H -s /sbin/nologin -G nonroot -g nonroot nonroot
-ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
-    ASPNETCORE_URLS=http://+:8080
+ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 USER nonroot
 

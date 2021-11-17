@@ -14,7 +14,6 @@ ENV AzureFunctionsJobHost__Logging__Console__IsEnabled=true \
 FROM mcr.microsoft.com/dotnet/sdk:5.0.403-focal@sha256:90903d4c7085f4f40ceee2818daebc737a2d3bf526e5a8acaccd1184bbb168dc AS build
 ARG BUILD_CONFIGURATION=Release
 RUN set -x && \
-    apk add --no-cache bash && \
     curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin -Channel 3.1 -InstallDir /usr/share/dotnet
 WORKDIR /dicom-server
 COPY . .
