@@ -7,9 +7,9 @@ While UIDs **should** be [unique across all contexts](http://dicom.nema.org/dico
 ## Feature Enablement
 The data partitions feature can be enabled by setting the configuration key `DicomServer:Features:EnableDataPartitions` to `true` through your local [appsettings.json](../../src/Microsoft.Health.Dicom.Web/appsettings.json) file or host-specific options.
 
-Once enabled, this feature adds a new data partition resource, creates an initial partition named `Microsoft.Default`, and modifies the API surface of the DICOM server. 
+Once enabled, the feature modifies the API surface of the DICOM server, and makes any previous data accessible under the `Microsoft.Default` partition. 
 
-> *The data partition feature **cannot be disabled** once partitioned data is present - a `DataPartitionsFeatureCannotBeDisabledException` will be thrown at startup.*
+> *The data partition feature **cannot be disabled** if partitions other than `Microsoft.Default` are present - a `DataPartitionsFeatureCannotBeDisabledException` will be thrown at startup.*
 
 ## API Changes
 All following URIs assume an implicit DICOM service base URI. For example, the base URI of a DICOM server running locally would be `https://localhost:63838/`. Example requests for new and modified APIs can be found in the [data partition Postman collection](../resources/data-partition-feature.postman_collection.json).
@@ -79,7 +79,7 @@ DELETE /partitions/myPartition1/studies?StudyInstanceUID=2.25.0000
 All other APIs (including [extended query tags](../how-to-guides/extended-query-tags.md), [operations](../how-to-guides/extended-query-tags.md#get-operation), and [change feed](change-feed.md)) will continue to be accessed at the base URI. 
 
 ## Limitations
- - Once partitioned data has been stored, the feature cannot be disabled
+ - If partitions other than `Microsoft.Default` are present, the feature cannot be disabled
  - Querying across partitions is not supported
  - Updating and deleting partitions is not supported 
 
