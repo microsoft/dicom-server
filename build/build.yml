@@ -36,13 +36,6 @@ steps:
       alertWarningLevel: 'High'
       failOnAlert: true
 
-  - task: PublishBuildArtifacts@1
-    displayName: 'publish symbol artifacts'
-    inputs:
-      pathtoPublish: '$(build.artifactStagingDirectory)/symbols'
-      artifactName: 'symbols'
-      publishLocation: 'container'
-
   - ${{ if eq(parameters.packageArtifacts, 'true') }}:
     - template: package.yml
 
