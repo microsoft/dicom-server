@@ -36,6 +36,23 @@ steps:
       alertWarningLevel: 'High'
       failOnAlert: true
 
+  # Temp
+  - task: CopyFiles@2
+    displayName: 'copy symbols'
+    inputs:
+      SourceFolder: '$(build.sourcesDirectory)'
+      Contents: '**/*.pdb'
+      TargetFolder: '$(build.artifactStagingDirectory)/symbols'
+      CleanTargetFolder: true
+      flattenFolders: true
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'publish symbol artifacts'
+    inputs:
+      pathtoPublish: '$(build.artifactStagingDirectory)/symbols'
+      artifactName: 'symbols'
+      publishLocation: 'container'
+
   - ${{ if eq(parameters.packageArtifacts, 'true') }}:
     - template: package.yml
 
