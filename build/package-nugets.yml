@@ -22,7 +22,7 @@ steps:
     displayName: 'copy symbols'
     inputs:
       sourceFolder: '$(build.sourcesDirectory)'
-      contents: '**/*.pdb'
+      contents: '**/*.pdb;!**/*.UnitTests.pdb'
       targetFolder: '$(build.artifactStagingDirectory)/symbols'
       cleanTargetFolder: true
       flattenFolders: true
