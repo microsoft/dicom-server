@@ -129,13 +129,13 @@
             "resources": [
                 {
                     "apiVersion": "2015-08-01",
-                    "name": "AspNetCoreRuntime.5.0.x64",
+                    "name": "AspNetCoreRuntime.6.0.x64",
                     "type": "siteextensions",
                     "dependsOn": [
                         "[variables('appServiceResourceId')]"
                     ],
                     "properties": {
-                        "version": "5.0.11"
+                        "version": "6.0.0"
                     }
                 }
             ]

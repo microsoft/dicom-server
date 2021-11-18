@@ -3,12 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -149,11 +149,20 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
                 MemoryStream seekableStream = new MemoryStream();
                 stream.CopyTo(seekableStream);
 
-                await seekableStream.DrainAsync(cancellationToken);
+                await DrainAsync(seekableStream, cancellationToken);
 
                 seekableStream.Seek(0, SeekOrigin.Begin);
 
                 return seekableStream;
+            }
+
+            private static async Task DrainAsync(Stream stream, CancellationToken cancellationToken = default)
+            {
+                const int bufferSize = 4096;
+                using IMemoryOwner<byte> bufferOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
+
+                while (await stream.ReadAsync(bufferOwner.Memory, cancellationToken) > 0)
+                { }
             }
         }
     }

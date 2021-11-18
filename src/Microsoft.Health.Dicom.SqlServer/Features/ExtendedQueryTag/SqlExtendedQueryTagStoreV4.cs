@@ -25,7 +25,7 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 {
-    internal class SqlExtendedQueryTagStoreV4 : SqlExtendedQueryTagStoreV3
+    internal class SqlExtendedQueryTagStoreV4 : SqlExtendedQueryTagStoreV2
     {
         public SqlExtendedQueryTagStoreV4(
            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
@@ -68,7 +68,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                     }
 
                     executionTimeWatch.Stop();
-                    Logger.LogInformation(executionTimeWatch.ElapsedMilliseconds.ToString());
+                    Logger.StoredProcedureSucceeded(nameof(VLatest.GetExtendedQueryTags), executionTimeWatch);
                 }
             }
 
@@ -102,7 +102,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                         VLatest.ExtendedQueryTagOperation.OperationId.AsNullable());
 
                     executionTimeWatch.Stop();
-                    Logger.LogInformation(executionTimeWatch.ElapsedMilliseconds.ToString());
+                    Logger.StoredProcedureSucceeded(nameof(VLatest.GetExtendedQueryTag), executionTimeWatch);
 
                     return new ExtendedQueryTagStoreJoinEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, (QueryStatus)queryStatus, errorCount, operationId);
                 }
@@ -142,7 +142,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                     }
 
                     executionTimeWatch.Stop();
-                    Logger.LogInformation(executionTimeWatch.ElapsedMilliseconds.ToString());
+                    Logger.StoredProcedureSucceeded(nameof(VLatest.GetExtendedQueryTagsByKey), executionTimeWatch);
                 }
             }
 

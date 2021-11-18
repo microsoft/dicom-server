@@ -196,6 +196,7 @@ dotnet_diagnostic.CA1032.severity = suggestion # Implement standard exception co
 dotnet_diagnostic.CA1054.severity = error      # URI parameters should not be strings
 dotnet_diagnostic.CA1305.severity = suggestion # Specify IFormatProvider
 dotnet_diagnostic.CA1716.severity = warning    # Identifiers should not match keywords
+dotnet_diagnostic.CA1848.severity = none       # Do not encourage LoggerMessage delegates in every instance
 dotnet_diagnostic.CA2007.severity = suggestion # Do not directly await a Task
 
 # Code Style Rules
@@ -215,6 +216,7 @@ file_header_template = ---------------------------------------------------------
 dotnet_diagnostic.IDE0073.severity = warning
 
 # C++ Files
+
 [*.{cpp,h,in}]
 curly_bracket_next_line = true
 indent_brace_style = Allman

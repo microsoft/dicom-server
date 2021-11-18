@@ -19,7 +19,7 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
 {
-    internal class SqlInstanceStoreV4 : SqlInstanceStoreV3
+    internal class SqlInstanceStoreV4 : SqlInstanceStoreV1
     {
 
         public SqlInstanceStoreV4(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)

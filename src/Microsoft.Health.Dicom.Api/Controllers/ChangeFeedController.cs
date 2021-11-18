@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AuditEventType(AuditEventSubType.ChangeFeed)]
         public async Task<IActionResult> GetChangeFeed([FromQuery] long offset = 0, [FromQuery] int limit = 10, [FromQuery] bool includeMetadata = true)
         {
-            _logger.LogInformation("Change feed was read with an offset of {offset} and limit of {limit} and metadata is {metadata} included.", offset, limit, includeMetadata ? string.Empty : "not");
+            _logger.LogInformation("Change feed was read with an offset of {Offset} and limit of {Limit} and metadata is {Metadata} included.", offset, limit, includeMetadata ? string.Empty : "not");
 
             var response = await _mediator.GetChangeFeed(
                 offset,
@@ -69,7 +69,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AuditEventType(AuditEventSubType.ChangeFeed)]
         public async Task<IActionResult> GetChangeFeedLatest([FromQuery] bool includeMetadata = true)
         {
-            _logger.LogInformation("Change feed  latest was read and metadata is {metadata} included.", includeMetadata ? string.Empty : "not");
+            _logger.LogInformation("Change feed latest was read and metadata is {Metadata} included.", includeMetadata ? string.Empty : "not");
 
             var response = await _mediator.GetChangeFeedLatest(
                 includeMetadata,

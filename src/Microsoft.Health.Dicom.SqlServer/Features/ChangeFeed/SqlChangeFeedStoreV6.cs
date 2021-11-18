@@ -17,7 +17,7 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
 {
-    public class SqlChangeFeedStoreV6 : SqlChangeFeedStoreV5
+    internal class SqlChangeFeedStoreV6 : SqlChangeFeedStoreV4
     {
         public override SchemaVersion Version => SchemaVersion.V6;
 

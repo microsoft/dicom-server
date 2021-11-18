@@ -49,7 +49,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         {
             EnsureArg.IsNotNull(acceptHeaders, nameof(acceptHeaders));
 
-            _logger.LogInformation("Getting transfer syntax for retrieving {resourceType} with accept headers {acceptHeaders}.", resourceType, string.Join(";", acceptHeaders));
+            _logger.LogInformation("Getting transfer syntax for retrieving {ResourceType} with accept headers {AcceptHeaders}.", resourceType, string.Join(";", acceptHeaders));
 
             // TODO: disable multiple accept headers, will fully implement it later (https://microsofthealth.visualstudio.com/Health/_workitems/edit/75782)
             if (acceptHeaders.Count() > 1)

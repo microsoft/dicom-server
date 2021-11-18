@@ -56,12 +56,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
                 return null;
             }
 
-            if (!ushort.TryParse(s.Substring(0, 4), NumberStyles.HexNumber, null, out ushort group))
+            if (!ushort.TryParse(s.AsSpan(0, 4), NumberStyles.HexNumber, null, out ushort group))
             {
                 return null;
             }
 
-            if (!ushort.TryParse(s.Substring(4, 4), NumberStyles.HexNumber, null, out ushort element))
+            if (!ushort.TryParse(s.AsSpan(4, 4), NumberStyles.HexNumber, null, out ushort element))
             {
                 return null;
             }
