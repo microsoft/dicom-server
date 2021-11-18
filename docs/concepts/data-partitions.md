@@ -42,7 +42,7 @@ Once partitions are enabled, STOW requests **must** include a data partition URI
 
 If a partition with the given valid name does not exist, it will be created **implicitly** by the STOW request. If the partition segment is not included, a 400 invalid request will be returned with a message indicating that a partition must be specified. 
 
-**Example:** A DICOM file is stored in the partition `myPartition-1`. If it doesn't already exist, it will be created.
+**Example:** A DICOM file is stored in the partition `myPartition-1`. If `myPartition-1` doesn't already exist, it will be created.
 
 ```http
 POST /partitions/myPartition-1/studies
