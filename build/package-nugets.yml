@@ -18,10 +18,18 @@ steps:
       artifactName: 'nuget'
       publishLocation: 'container'
 
-  - task: PublishSymbols@2
-    displayName: 'Publish symbols'
+  - task: CopyFiles@2
+    displayName: 'copy symbols'
     inputs:
-      searchFolder: '$(build.sourcesDirectory)'
-      searchPattern: '**\*.pdb'
-      symbolServerType: 'TeamServices'
-      indexSources: false # done in build step
+      SourceFolder: '$(build.sourcesDirectory)'
+      Contents: '**\*.pdb'
+      TargetFolder: '$(build.artifactStagingDirectory)/symbols'
+      CleanTargetFolder: true
+      flattenFolders: true
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'publish symbol artifacts'
+    inputs:
+      pathtoPublish: '$(build.artifactStagingDirectory)/symbols'
+      artifactName: 'symbols'
+      publishLocation: 'container'

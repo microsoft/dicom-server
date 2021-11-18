@@ -20,3 +20,18 @@ steps:
       command: push
       publishVstsFeed: 'InternalBuilds'
       allowPackageConflicts: true
+
+  - task: DownloadBuildArtifacts@0
+    inputs:
+      buildType: 'current'
+      downloadType: 'single'
+      downloadPath: '$(build.artifactStagingDirectory)'
+      artifactName: 'symbols'
+
+  - task: PublishSymbols@2
+    displayName: 'Publish Symbols'
+    inputs:
+      SymbolsFolder: '$(build.artifactStagingDirectory)/symbols'
+      SearchPattern: '**/*.pdb'
+      SymbolServerType: 'TeamServices'
+      IndexSources: false # done in build step
