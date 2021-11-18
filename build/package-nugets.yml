@@ -17,3 +17,11 @@ steps:
       pathtoPublish: '$(build.artifactStagingDirectory)/nupkgs'
       artifactName: 'nuget'
       publishLocation: 'container'
+
+  - task: PublishSymbols@2
+    displayName: 'Publish symbols'
+    inputs:
+      searchFolder: '$(build.sourcesDirectory)'
+      searchPattern: '**\*.pdb'
+      symbolServerType: 'TeamServices'
+      indexSources: false # done in build step
