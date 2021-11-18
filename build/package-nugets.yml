@@ -21,11 +21,12 @@ steps:
   - task: CopyFiles@2
     displayName: 'copy symbols'
     inputs:
-      SourceFolder: '$(build.sourcesDirectory)'
-      Contents: '**/*.pdb'
-      TargetFolder: '$(build.artifactStagingDirectory)/symbols'
-      CleanTargetFolder: true
+      sourceFolder: '$(build.sourcesDirectory)'
+      contents: '**/*.pdb'
+      targetFolder: '$(build.artifactStagingDirectory)/symbols'
+      cleanTargetFolder: true
       flattenFolders: true
+      overWrite: true
 
   - task: PublishBuildArtifacts@1
     displayName: 'publish symbol artifacts'
