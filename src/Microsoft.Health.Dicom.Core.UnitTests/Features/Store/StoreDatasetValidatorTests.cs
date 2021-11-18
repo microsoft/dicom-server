@@ -67,6 +67,17 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             await _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null);
         }
 
+        [Theory]
+        [MemberData(nameof(GetNonExplicitVRTransferSyntax))]
+        public async Task GivenAValidDicomDatasetWithImplicitVR_WhenValidated_ThenItShouldThrowNotAcceptableException(DicomTransferSyntax transferSyntax)
+        {
+            var dicomDataset = Samples
+                .CreateRandomInstanceDataset(dicomTransferSyntax: transferSyntax)
+                .NotValidated();
+
+            await Assert.ThrowsAsync<NotAcceptableException>(() => _dicomDatasetValidator.ValidateAsync(dicomDataset, requiredStudyInstanceUid: null));
+        }
+
         [Fact]
         public async Task GivenAValidDicomDatasetThatMatchesTheRequiredStudyInstanceUid_WhenValidated_ThenItShouldSucceed()
         {
@@ -226,6 +237,17 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
             {
                 Assert.IsType<T>(e);
                 Assert.Equal(expectedMessage, e.Message);
+            }
+        }
+
+        public static IEnumerable<object[]> GetNonExplicitVRTransferSyntax()
+        {
+            foreach (var ts in Samples.GetAllDicomTransferSyntax())
+            {
+                if (ts.IsExplicitVR)
+                    continue;
+
+                yield return new object[] { ts };
             }
         }
     }

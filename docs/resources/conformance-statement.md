@@ -50,6 +50,8 @@ Each file stored must have a unique combination of StudyInstanceUID, SeriesInsta
 
 > DICOM File Size Limit: there is a size limit of 2GB for a DICOM file by default.
 
+> Only transfer syntaxes with explicit Value Representations are accepted.
+
 ### Store Response Status Codes
 
 | Code                         | Description |

@@ -51,6 +51,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         /// </summary>
         UnexpectedVR = 5,
 
+        /// <summary>
+        /// Implicit VR Transfer Syntax is not allowed.
+        /// </summary>
+        ImplicitVRNotAllowed = 0011,
+
         // Person Name specific errors
 
         /// <summary>
