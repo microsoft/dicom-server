@@ -10,16 +10,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
     /// <summary>
     /// Validation Error Code.
     /// </summary>
-    /// <remarks>Error Code is  4 letter number. 
-    /// First 2 letters indicate VR:
-    ///  00 - General error for all VR
-    ///  01 - Error for PN
-    /// Last 2 letters indicate specific errors for VR.
-    /// ErrorCode naming convention:
-    /// VR specific error code should start with VR name.
-    /// e.g: PatientNameGroupIsTooLong starts with PatientName.
+    /// <remarks>
+    /// Error Code is smallint/short ranging between [0, 32,767].
+    /// For convenience, codes are grouped together by VR where the first 1000 values are agnostic of VR.
+    /// By convention, each VR-specific error code should start with the VR name.
+    /// e.g. <see cref="PersonNameExceedMaxGroups"/> starts with PersonName.
     /// </remarks>
-    [SuppressMessage(category: "Design", checkId: "CA1028: Enum Storage should be Int32", Justification = "aule is stroed in SQL as SMALLINT")]
+    [SuppressMessage(category: "Design", checkId: "CA1028: Enum Storage should be Int32", Justification = "Value is stored in SQL as SMALLINT")]
     public enum ValidationErrorCode : short
     {
         /// <summary>
@@ -32,27 +29,27 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         /// <summary>
         /// The dicom element has multiple values.
         /// </summary>
-        MultiValues = 0001,
+        MultiValues = 1,
 
         /// <summary>
         /// The length of dicom element value exceed max allowed.
         /// </summary>
-        ExceedMaxLength = 0002,
+        ExceedMaxLength = 2,
 
         /// <summary>
         /// The length of dicom element value is not expected.
         /// </summary>
-        UnexpectedLength = 0003,
+        UnexpectedLength = 3,
 
         /// <summary>
         /// The dicom element value has invalid characters.
         /// </summary>
-        InvalidCharacters = 0004,
+        InvalidCharacters = 4,
 
         /// <summary>
         /// The VR of dicom element is not expected.
         /// </summary>
-        UnexpectedVR = 0005,
+        UnexpectedVR = 5,
 
         // Person Name specific errors
 
