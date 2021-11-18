@@ -1,7 +1,7 @@
 function Grant-ClientAppAdminConsent {
     <#
     .SYNOPSIS
-    Grants admin consent to a client app, so that users of the app are 
+    Grants admin consent to a client app, so that users of the app are
     not required to consent to the app calling the Dicom apli app on their behalf.
     .PARAMETER AppId
     The client application app ID.
@@ -22,10 +22,10 @@ function Grant-ClientAppAdminConsent {
     Write-Host "Granting admin consent for app ID $AppId"
 
     # get applicatioin and service principle
-    
+
     $app = Get-AzureADApplication -Filter "AppId eq '$AppId'"
     $sp = Get-AzureADServicePrincipal -Filter "AppId eq '$AppId'"
-    
+
     foreach($access in $app.RequiredResourceAccess)
     {
         # grant permission for each required access
@@ -42,19 +42,19 @@ function Grant-ClientAppAdminConsent {
                 continue
             }
             $targetAppResourceId = $resourceAccess.Id
-            
+
             # get target app service principle
             $targetSp =  Get-AzureADServicePrincipal -Filter "AppId eq '$targetAppId'"
 
             # get scope value
             $oauth2Permission =  $targetSp.Oauth2Permissions | ? {$_.Id -eq $targetAppResourceId}
             $scopeValue = $oauth2Permission.Value
-            
+
             # AllPrincipals indicates authorization to impersonate all users (https://docs.microsoft.com/en-us/graph/api/resources/oauth2permissiongrant?view=graph-rest-1.0#properties)
-            Grant-AzureAdOauth2Permission -ClientId $sp.ObjectId -ConsentType "AllPrincipals" -ResourceId $targetSp.ObjectId -Scope $scopeValue -TenantAdminCredential $TenantAdminCredential        
-            Write-Host "Permission '$scopeValue' on '$($targetSp.appDisplayName)' to '$($sp.appDisplayName)' is granted!"   
+            Grant-AzureAdOauth2Permission -ClientId $sp.ObjectId -ConsentType "AllPrincipals" -ResourceId $targetSp.ObjectId -Scope $scopeValue -TenantAdminCredential $TenantAdminCredential
+            Write-Host "Permission '$scopeValue' on '$($targetSp.appDisplayName)' to '$($sp.appDisplayName)' is granted!"
         }
-    
+
     }
 }
 
@@ -63,7 +63,7 @@ function Grant-AzureAdOauth2Permission
     param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string]$ClientId, 
+        [string]$ClientId,
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [string]$ConsentType,
@@ -77,7 +77,7 @@ function Grant-AzureAdOauth2Permission
         [Parameter(Mandatory = $true)]
         [ValidateNotNull()]
         [pscredential]$TenantAdminCredential
-    ) 
+    )
 
     # check existense
     $existingEntry = Get-AzureADOAuth2PermissionGrant -All $true | ? {$_.ClientId -eq $sp.ObjectId -and $_.ResourceId -eq $targetSp.ObjectId -and $_.Scope -eq $Scope }
@@ -98,7 +98,7 @@ function Get-GraphApiAccessToken
         [ValidateNotNull()]
         [pscredential]$TenantAdminCredential
 
-    ) 
+    )
     [string]$tenantId = ((Get-AzureADCurrentSessionInfo).Tenant.Id)
     $username = $TenantAdminCredential.GetNetworkCredential().UserName
     $password_raw = $TenantAdminCredential.GetNetworkCredential().Password
@@ -110,7 +110,7 @@ function Get-GraphApiAccessToken
           grant_type = "password"
           username   = $username
           password   = $password_raw
-          resource   = $resource 
+          resource   = $resource
           client_id  = "1950a258-227b-4e31-a9cf-717495945fc2" # Microsoft Azure PowerShell
     }
     $response = Invoke-RestMethod -Method 'Post' -Uri $adTokenUrl -ContentType "application/x-www-form-urlencoded" -Body $body
@@ -123,7 +123,7 @@ function Add-AzureAdOauth2PermissionGrant
     param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string]$ClientId, 
+        [string]$ClientId,
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [string]$ConsentType,
@@ -138,7 +138,7 @@ function Add-AzureAdOauth2PermissionGrant
         [ValidateNotNull()]
         [pscredential]$TenantAdminCredential
 
-    ) 
+    )
 
     [string]$tenantId = ((Get-AzureADCurrentSessionInfo).Tenant.Id)
 
@@ -148,19 +148,20 @@ function Add-AzureAdOauth2PermissionGrant
           clientId     =   $ClientId
           consentType  =   $ConsentType
           resourceId   =   $ResourceId
-          scope        =   $Scope 
+          scope        =   $Scope
     }
-     
+
     if (-not [string]::IsNullOrEmpty($PrincipalId))
     {
         $body.Add("principalId",$PrincipalId)
     }
-           
+
     $header = @{
-        Authorization  = "Bearer $accessToken"                    
+        Authorization  = "Bearer $accessToken"
         'Content-Type' = 'application/json'
     }
 
-    $response = Invoke-RestMethod "https://graph.microsoft.com/v1.0/oauth2PermissionGrants" -Method Post -Body ($body | ConvertTo-Json) -Headers $header 
+    Write-Host "Granting permission '$Scope' on '$resourceId' to '$ClientId'"
+    $response = Invoke-RestMethod "https://graph.microsoft.com/v1.0/oauth2PermissionGrants" -Method Post -Body ($body | ConvertTo-Json) -Headers $header
     return $response
 }
