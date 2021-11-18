@@ -4,6 +4,7 @@ Guidelines to create migration scripts - https://github.com/microsoft/healthcare
 This diff is broken up into several sections:
  - The first transaction contains changes to tables and stored procedures.
  - The second transaction contains updates to indexes.
+ - IMPORTANT: Avoid rebuiling indexes inside the transaction, it locks the table during the transaction.
 ******************************************************************************************/
 SET XACT_ABORT ON
 
