@@ -26,6 +26,7 @@ function Grant-ClientAppAdminConsent {
     $app = Get-AzureADApplication -Filter "AppId eq '$AppId'"
     $sp = Get-AzureADServicePrincipal -Filter "AppId eq '$AppId'"
     
+    Write-Host "Get Application successfull"   
     foreach($access in $app.RequiredResourceAccess)
     {
         # grant permission for each required access
@@ -50,6 +51,7 @@ function Grant-ClientAppAdminConsent {
             $oauth2Permission =  $targetSp.Oauth2Permissions | ? {$_.Id -eq $targetAppResourceId}
             $scopeValue = $oauth2Permission.Value
             
+            Write-Host "Grant-AzureAdOauth2Permission - targetApp = $(targetSp) - '$(oauth2Permission.Value)'"   
             # AllPrincipals indicates authorization to impersonate all users (https://docs.microsoft.com/en-us/graph/api/resources/oauth2permissiongrant?view=graph-rest-1.0#properties)
             Grant-AzureAdOauth2Permission -ClientId $sp.ObjectId -ConsentType "AllPrincipals" -ResourceId $targetSp.ObjectId -Scope $scopeValue -TenantAdminCredential $TenantAdminCredential        
             Write-Host "Permission '$scopeValue' on '$($targetSp.appDisplayName)' to '$($sp.appDisplayName)' is granted!"   
@@ -82,11 +84,16 @@ function Grant-AzureAdOauth2Permission
     # check existense
     $existingEntry = Get-AzureADOAuth2PermissionGrant -All $true | ? {$_.ClientId -eq $sp.ObjectId -and $_.ResourceId -eq $targetSp.ObjectId -and $_.Scope -eq $Scope }
 
+    Write-Host "Check existence $(existingEntry)'"   
+            # AllPrincipals indicates authorization to impersonate all users (https://docs.microsoft.com/en-us/graph/api/resources/oauth2permissiongrant?view=graph-rest-1.0#properties)
+
     if ($existingEntry)
     {
         # remove if exist
         Remove-AzureADOAuth2PermissionGrant -ObjectId $existingEntry.ObjectId
     }
+
+    Write-Host "AzureAdOauth2PermissionGrant $(ClientId) - $(ConsentType) - $(PrincipalId) - $(ResourceId  - $(Scope)  - $(TenantAdminCredential)"   
     Add-AzureAdOauth2PermissionGrant -ClientId $ClientId -ConsentType $ConsentType -PrincipalId $PrincipalId -ResourceId $ResourceId -Scope $Scope -TenantAdminCredential $TenantAdminCredential
 }
 
