@@ -162,6 +162,14 @@ function Add-AzureAdOauth2PermissionGrant
     }
 
     Write-Host "Granting permission '$Scope' on '$resourceId' to '$ClientId'"
-    $response = Invoke-RestMethod "https://graph.microsoft.com/v1.0/oauth2PermissionGrants" -Method Post -Body ($body | ConvertTo-Json) -Headers $header
+
+    try {
+        $response = Invoke-RestMethod "https://graph.microsoft.com/v1.0/oauth2PermissionGrants" -Method Post -Body ($body | ConvertTo-Json) -Headers $header
     return $response
+    }
+    catch {
+        Write-Host "StatusCode:" $_.Exception.Response.StatusCode.value__
+        Write-Host "StatusDescription:" $_.Exception.Response.StatusDescription
+        throw
+    }
 }
