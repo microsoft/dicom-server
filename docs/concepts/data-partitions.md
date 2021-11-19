@@ -35,48 +35,34 @@ GET /partitions
 | 204 (No Content)  |                               | No partitions exist                   |
 | 400 (Bad Request) |                               | Data partitions feature is disabled   |
 
-### STOW Changes
-Once partitions are enabled, STOW requests **must** include a data partition URI segment after the base URI, of the form `/partitions/{partitionName}`, where `partitionName` is:
+### STOW, WADO, QIDO, and Delete
+Once partitions are enabled, STOW, WADO, QIDO, and Delete requests **must** include a data partition URI segment after the base URI, of the form `/partitions/{partitionName}`, where `partitionName` is:
  - Up to 64 characters long
  - Composed of any combination of alphanumeric characters, `.`, `-`, and `_`, to allow both DICOM UID and GUID formats, as well as human-readable identifiers
 
-If a partition with the given valid name does not exist, it will be created **implicitly** by the STOW request. If the partition segment is not included, a 400 invalid request will be returned with a message indicating that a partition must be specified. 
+| Action  | Example URI                                                         |
+| ------- | ------------------------------------------------------------------- |
+| STOW    | `POST /partitions/myPartition-1/studies`                            |
+| WADO    | `GET /partitions/myPartition-1/studies/2.25.0000`                   |
+| QIDO    | `GET /partitions/myPartition1/studies?StudyInstanceUID=2.25.0000`   |
+| Delete  | `DELETE /partitions/myPartition1/studies/2.25.0000`                 |
 
-**Example:** A DICOM file is stored in the partition `myPartition-1`. If `myPartition-1` doesn't already exist, it will be created.
+#### New Responses
 
-```http
-POST /partitions/myPartition-1/studies
-```
-
-### WADO Changes
-Once partitions are enabled, STOW requests **must** include a data partition URI segment after the base URI. Otherwise, a 400 invalid request will be returned with a message indicating that a partition must be specified.
-
-**Example:** Retrieve all DICOM files stored in partition `myPartition-1` under study UID `2.25.0000`.
-
-```http
-GET /partitions/myPartition-1/studies/2.25.0000
-```
-
-### QIDO Changes
-Once partitions are enabled, QIDO requests **must** include a data partition URI segment after the base URI. Otherwise, a 400 invalid request will be returned with a message indicating that a partition must be specified.
-
-**Example** Search for images in partition `myPartition-1` under study UID `2.25.0000`. 
-
-```http
-GET /partitions/myPartition1/studies?StudyInstanceUID=2.25.0000
-``` 
-
-### Delete Changes
-Once partitions are enabled, delete requests **must** include a data partition URI segment after the base URI. Otherwise, a 400 invalid request will be returned with a message indicating that a partition must be specified.
-
-**Example** Delete all images in partition `myPartition-1` under study UID `2.25.0000`. 
-
-```http
-DELETE /partitions/myPartition1/studies?StudyInstanceUID=2.25.0000
-```
+| Name              | Message                                                   |
+| ----------------- | --------------------------------------------------------- |
+| 400 (Bad Request) | Data partitions feature is disabled                       |
+| 400 (Bad Request) | PartitionName value is missing in the route segment.      |
+| 400 (Bad Request) | Specified PartitionName {PartitionName} does not exist.   |
 
 ### Other APIs
 All other APIs (including [extended query tags](../how-to-guides/extended-query-tags.md), [operations](../how-to-guides/extended-query-tags.md#get-operation), and [change feed](change-feed.md)) will continue to be accessed at the base URI. 
+
+## Managing Partitions
+
+Currently, the only management operation supported for partitions is an **implicit** creation during STOW requests.
+If the partition specified in the URI does not exist, it will be created implicitly and the response will return a retrieve URI
+including the partition path. 
 
 ## Limitations
  - If partitions other than `Microsoft.Default` are present, the feature cannot be disabled
