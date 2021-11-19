@@ -47,11 +47,11 @@ namespace MessageHandler
             };
             var client = new SecretClient(new Uri(KnownApplicationUrls.KeyVaultUrl), new DefaultAzureCredential(), options);
 
-            KeyVaultSecret secret = client.GetSecret(KnownSecretNames.ServiceBusConnectionString);
+            KeyVaultSecret secret = await client.GetSecretAsync(KnownSecretNames.ServiceBusConnectionString);
 
             s_serviceBusConnectionString = secret.Value;
 
-            secret = client.GetSecret(KnownSecretNames.AppConfigurationConnectionString);
+            secret = await client.GetSecretAsync(KnownSecretNames.AppConfigurationConnectionString);
             var builder = new ConfigurationBuilder();
             builder.AddAzureAppConfiguration(secret.Value);
 

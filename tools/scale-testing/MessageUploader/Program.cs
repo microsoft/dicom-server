@@ -41,7 +41,7 @@ namespace MessageUploader
             };
             var client = new SecretClient(new Uri(KnownApplicationUrls.KeyVaultUrl), new DefaultAzureCredential(), options);
 
-            KeyVaultSecret secret = client.GetSecret(KnownSecretNames.ServiceBusConnectionString);
+            KeyVaultSecret secret = await client.GetSecretAsync(KnownSecretNames.ServiceBusConnectionString);
 
             s_serviceBusConnectionString = secret.Value;
             s_topicName = args[0];

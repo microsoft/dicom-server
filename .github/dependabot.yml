@@ -18,6 +18,14 @@ updates:
       timezone: "America/Los_Angeles"
     open-pull-requests-limit: 30
 
+  - package-ecosystem: "nuget"
+    directory: "/tools/scale-testing"
+    schedule:
+      interval: "daily"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 30
+
   - package-ecosystem: "docker"
     directory: "/"
     schedule:

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>Defines a RESTful client for interacting with DICOMweb APIs.</Description>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,13 +15,13 @@
     <PackageReference Include="fo-dicom.Json" Version="$(FoDicomVersion)" NoWarn="NU1701" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Include="IDicomWebClient.*.cs">
       <DependentUpon>IDicomWebClient.cs</DependentUpon>
     </None>
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Include="DicomWebClient.*.cs">
       <DependentUpon>DicomWebClient.cs</DependentUpon>

@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Api.Extensions;
@@ -26,20 +25,19 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
         }
 
         [Theory]
-        [InlineData("https://absolute.url:8080/there%20are%20spaces")]
-        [InlineData("/relative/url?with=query&string=and#fragment")]
-        [SuppressMessage("Design", "CA1054:URI-like parameters should not be strings", Justification = "XUnit more easily leverages compile-time values.")]
-        public void GivenValidLocationHeader_WhenAddLocationHeader_ThenShouldAddExpectedHeader(string url)
+        [InlineData("https://absolute.url:8080/there are spaces", "https://absolute.url:8080/there%20are%20spaces")]
+        [InlineData("/relative/url?with=query&string=and#fragment", "/relative/url?with=query&string=and#fragment")]
+        public void GivenValidLocationHeader_WhenAddLocationHeader_ThenShouldAddExpectedHeader(string actual, string expected)
         {
             var response = new DefaultHttpContext().Response;
-            var uri = new Uri(url, UriKind.RelativeOrAbsolute);
+            var uri = new Uri(actual, UriKind.RelativeOrAbsolute);
 
             Assert.False(response.Headers.ContainsKey(HeaderNames.Location));
             response.AddLocationHeader(uri);
 
             Assert.True(response.Headers.TryGetValue(HeaderNames.Location, out StringValues headerValue));
             Assert.Single(headerValue);
-            Assert.Equal(url, headerValue[0]); // Should continue to be escaped!
+            Assert.Equal(expected, headerValue[0]); // Should continue to be escaped!
         }
 
         [Fact]

@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -78,6 +79,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             return new QueryResult(results);
         }
 
+        [SuppressMessage("Usage", "CA2254:Template should be a static expression", Justification = "Template does not contain placeholders.")]
         protected void LogSqlCommand(SqlCommandWrapper sqlCommandWrapper)
         {
             var sb = new StringBuilder();

@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.ModelBinders
         public async Task GivenHeaderWithValidTransferSyntax_WhenBindingTransferSyntax_ModelIsSetAndExpectedResultIsParsed(string contextValue, string expectedResult)
         {
             ModelBindingContext bindingContext = Substitute.For<ModelBindingContext>();
-            bindingContext.HttpContext.Request.Headers["Accept"].Returns(new StringValues(contextValue));
+            bindingContext.HttpContext.Request.Headers.Accept.Returns(new StringValues(contextValue));
 
             ModelStateDictionary modelStateDictionary = new ModelStateDictionary();
             bindingContext.ModelState.Returns(modelStateDictionary);

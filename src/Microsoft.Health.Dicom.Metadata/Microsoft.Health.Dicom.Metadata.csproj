@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>Utilities for managing a metadata store for use within Microsoft's DICOMweb APIs.</Description>
-    <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
+    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
