@@ -93,7 +93,7 @@ function Grant-AzureAdOauth2Permission
         Remove-AzureADOAuth2PermissionGrant -ObjectId $existingEntry.ObjectId
     }
 
-    Write-Host "AzureAdOauth2PermissionGrant $(ClientId) - $(ConsentType) - $(PrincipalId) - $(ResourceId  - $(Scope)  - $(TenantAdminCredential)"   
+    Write-Host "AzureAdOauth2PermissionGrant $(ClientId) - $(ConsentType) - $(PrincipalId) - $(ResourceId)  - $(Scope)  - $(TenantAdminCredential)"  
     Add-AzureAdOauth2PermissionGrant -ClientId $ClientId -ConsentType $ConsentType -PrincipalId $PrincipalId -ResourceId $ResourceId -Scope $Scope -TenantAdminCredential $TenantAdminCredential
 }
 
@@ -168,6 +168,13 @@ function Add-AzureAdOauth2PermissionGrant
         'Content-Type' = 'application/json'
     }
 
-    $response = Invoke-RestMethod "https://graph.microsoft.com/v1.0/oauth2PermissionGrants" -Method Post -Body ($body | ConvertTo-Json) -Headers $header 
-    return $response
-}
+    try
+    {
+        $response = Invoke-RestMethod "https://graph.microsoft.com/v1.0/oauth2PermissionGrants" -Method Post -Body ($body | ConvertTo-Json) -Headers $header 
+        return $response
+    }
+    catch
+    {
+        Write-Host "Error: $(($_.Exception.Message))"
+        return
+    }
