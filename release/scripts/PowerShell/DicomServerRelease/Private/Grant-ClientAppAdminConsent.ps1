@@ -51,7 +51,6 @@ function Grant-ClientAppAdminConsent {
             $oauth2Permission =  $targetSp.Oauth2Permissions | ? {$_.Id -eq $targetAppResourceId}
             $scopeValue = $oauth2Permission.Value
             
-            Write-Host "Grant-AzureAdOauth2Permission - targetApp = $(targetSp) - '$(oauth2Permission.Value)'"   
             # AllPrincipals indicates authorization to impersonate all users (https://docs.microsoft.com/en-us/graph/api/resources/oauth2permissiongrant?view=graph-rest-1.0#properties)
             Grant-AzureAdOauth2Permission -ClientId $sp.ObjectId -ConsentType "AllPrincipals" -ResourceId $targetSp.ObjectId -Scope $scopeValue -TenantAdminCredential $TenantAdminCredential        
             Write-Host "Permission '$scopeValue' on '$($targetSp.appDisplayName)' to '$($sp.appDisplayName)' is granted!"   
