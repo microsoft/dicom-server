@@ -178,3 +178,4 @@ function Add-AzureAdOauth2PermissionGrant
         Write-Host "Error: $(($_.Exception.Message))"
         return
     }
+}
