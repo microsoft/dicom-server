@@ -13,7 +13,8 @@ CREATE TABLE dbo.ExtendedQueryTagDateTime (
     SeriesKey               BIGINT               NULL,                  --FK
     InstanceKey             BIGINT               NULL,                  --FK
     Watermark               BIGINT               NOT NULL,
-    TagValueUtc             DATETIME2(7)         NULL
+    TagValueUtc             DATETIME2(7)         NULL,
+    PartitionKey            INT                  NOT NULL DEFAULT 1     --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
 -- Used in QIDO
@@ -21,15 +22,17 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryT
 (
     TagKey,
     TagValue,
+    PartitionKey,
     StudyKey,
     SeriesKey,
     InstanceKey
 )
 
 -- Used in IIndexInstanceCore
-CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_TagKey_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagDateTime
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagDateTime
 (
     TagKey,
+    PartitionKey,
     StudyKey,
     SeriesKey,
     InstanceKey
@@ -41,8 +44,9 @@ INCLUDE
 WITH (DATA_COMPRESSION = PAGE)
 
 -- Used in DeleteInstance
-CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagDateTime
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_PartitionKey_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagDateTime
 (
+    PartitionKey,
     StudyKey,
     SeriesKey,
     InstanceKey

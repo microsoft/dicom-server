@@ -34,6 +34,7 @@ BEGIN
     SET XACT_ABORT ON
     BEGIN TRANSACTION
 
+        DECLARE @partitionKey BIGINT
         DECLARE @studyKey BIGINT
         DECLARE @seriesKey BIGINT
         DECLARE @instanceKey BIGINT
@@ -41,6 +42,7 @@ BEGIN
         -- Add lock so that the instance cannot be removed
         DECLARE @status TINYINT
         SELECT
+            @partitionKey = PartitionKey,
             @studyKey = StudyKey,
             @seriesKey = SeriesKey,
             @instanceKey = InstanceKey,
@@ -59,6 +61,7 @@ BEGIN
         BEGIN TRY
 
             EXEC dbo.IIndexInstanceCore
+                @partitionKey,
                 @studyKey,
                 @seriesKey,
                 @instanceKey,

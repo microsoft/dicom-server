@@ -7,7 +7,7 @@
 
   <!-- Properties used by sql task to generate full script-->
   <PropertyGroup>
-    <LatestSchemaVersion>6</LatestSchemaVersion>
+    <LatestSchemaVersion>7</LatestSchemaVersion>
     <GeneratedFullScriptPath>Features\Schema\Migrations\$(LatestSchemaVersion).sql</GeneratedFullScriptPath>
   </PropertyGroup>
 
@@ -71,9 +71,6 @@
     <TSqlScript Include="Features\Schema\Sql\Types\*.sql" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Remove="Features\Schema\Sql\Sprocs\AddPartition.sql" />
-  </ItemGroup>
 
   <ItemGroup>
     <TInitSqlScript Include="Features\Schema\Sql\Scripts\TransactionCheck.sql" />
