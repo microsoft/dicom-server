@@ -57,6 +57,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
         private static void ValidateCoreTags(DicomDataset dicomDataset, string requiredStudyInstanceUid)
         {
+            // Validate for Implicit VR
+            ImplicitValueRepresentationValidator.Validate(dicomDataset);
+
             // Ensure required tags are present.
             EnsureRequiredTagIsPresent(DicomTag.PatientID);
             EnsureRequiredTagIsPresent(DicomTag.SOPClassUID);

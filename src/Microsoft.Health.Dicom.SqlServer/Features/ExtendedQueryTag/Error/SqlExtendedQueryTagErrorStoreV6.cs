@@ -22,7 +22,7 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
 {
-    internal class SqlExtendedQueryTagErrorStoreV6 : SqlExtendedQueryTagErrorStoreV5
+    internal class SqlExtendedQueryTagErrorStoreV6 : SqlExtendedQueryTagErrorStoreV4
     {
         public SqlExtendedQueryTagErrorStoreV6(
            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,

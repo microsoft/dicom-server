@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>Defines a RESTful client for interacting with DICOMweb APIs.</Description>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,13 +13,13 @@
     <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="fo-dicom" Version="$(FoDicomVersion)" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Include="IDicomWebClient.*.cs">
       <DependentUpon>IDicomWebClient.cs</DependentUpon>
     </None>
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Include="DicomWebClient.*.cs">
       <DependentUpon>DicomWebClient.cs</DependentUpon>

@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using FellowOakLogLevel = FellowOakDicom.Log.LogLevel;
@@ -11,6 +12,7 @@ using IFellowOakLogger = FellowOakDicom.Log.ILogger;
 
 namespace Microsoft.Health.Dicom.Core.Logging
 {
+    [SuppressMessage("Usage", "CA2254:Template should be a static expression", Justification = "Class serves as a passthrough for ILogger arguments.")]
     internal class FellowOakLoggerDecorator : IFellowOakLogger
     {
         private readonly ILogger _logger;

@@ -143,7 +143,7 @@ namespace PersonInstanceGenerator
             };
             var client = new SecretClient(new Uri(KnownApplicationUrls.KeyVaultUrl), new DefaultAzureCredential(), options);
 
-            KeyVaultSecret secret = client.GetSecret(KnownSecretNames.ServiceBusConnectionString);
+            KeyVaultSecret secret = await client.GetSecretAsync(KnownSecretNames.ServiceBusConnectionString);
 
             s_serviceBusConnectionString = secret.Value;
 
@@ -210,7 +210,7 @@ namespace PersonInstanceGenerator
                             // Send the message to the topic
                             await s_topicClient.SendAsync(message);
 
-                            sw.WriteLine(patient);
+                            await sw.WriteLineAsync(patient);
                         }
                         catch (Exception exception)
                         {

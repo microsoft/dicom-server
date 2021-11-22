@@ -72,7 +72,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Partition
 
                 if (!_partitionCache.TryGetValue(partitionName, out PartitionEntry partitionEntry))
                 {
-                    _logger.LogInformation("Partition with name '{partitionName}' not found in cache", partitionName);
+                    _logger.LogInformation("Partition with name '{PartitionName}' not found in cache", partitionName);
 
                     partitionEntry = await action(partitionName, cancellationToken);
 

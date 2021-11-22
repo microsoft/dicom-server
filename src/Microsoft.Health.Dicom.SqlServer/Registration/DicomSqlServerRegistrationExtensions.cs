@@ -117,7 +117,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddScoped<IPartitionStore, SqlPartitionStore>();
             services.TryAddScoped<VersionedCache<ISqlPartitionStore>>();
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlPartitionStore, SqlPartitionStoreV4>());
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlPartitionStore, SqlPartitionStoreV5>());
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlPartitionStore, SqlPartitionStoreV6>());
 
             return services;
@@ -128,7 +127,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddScoped<IChangeFeedStore, SqlChangeFeedStore>();
             services.TryAddScoped<VersionedCache<ISqlChangeFeedStore>>();
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlChangeFeedStore, SqlChangeFeedStoreV4>());
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlChangeFeedStore, SqlChangeFeedStoreV5>());
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlChangeFeedStore, SqlChangeFeedStoreV6>());
 
             return services;
@@ -139,7 +137,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddScoped<IQueryStore, SqlQueryStore>();
             services.TryAddScoped<VersionedCache<ISqlQueryStore>>();
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlQueryStore, SqlQueryStoreV4>());
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlQueryStore, SqlQueryStoreV5>());
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlQueryStore, SqlQueryStoreV6>());
 
             return services;
@@ -151,10 +148,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddScoped<VersionedCache<ISqlExtendedQueryTagStore>>();
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagStore, SqlExtendedQueryTagStoreV1>());
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagStore, SqlExtendedQueryTagStoreV2>());
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagStore, SqlExtendedQueryTagStoreV3>());
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagStore, SqlExtendedQueryTagStoreV4>());
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagStore, SqlExtendedQueryTagStoreV5>());
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagStore, SqlExtendedQueryTagStoreV6>());
 
             return services;
         }
@@ -164,10 +158,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddScoped<IExtendedQueryTagErrorStore, SqlExtendedQueryTagErrorStore>();
             services.TryAddScoped<VersionedCache<ISqlExtendedQueryTagErrorStore>>();
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagErrorStore, SqlExtendedQueryTagErrorStoreV1>());
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagErrorStore, SqlExtendedQueryTagErrorStoreV2>());
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagErrorStore, SqlExtendedQueryTagErrorStoreV3>());
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagErrorStore, SqlExtendedQueryTagErrorStoreV4>());
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagErrorStore, SqlExtendedQueryTagErrorStoreV5>());
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagErrorStore, SqlExtendedQueryTagErrorStoreV6>());
 
             return services;
@@ -178,10 +169,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddScoped<IInstanceStore, SqlInstanceStore>();
             services.TryAddScoped<VersionedCache<ISqlInstanceStore>>();
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV1>());
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV2>());
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV3>());
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV4>());
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV5>());
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV6>());
 
             return services;

@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
             ElementMaxLengthValidation.Validate(value, 64, name, DicomVR.LO);
 
-            if (value.Contains("\\", StringComparison.OrdinalIgnoreCase) || ContainsControlExceptEsc(value))
+            if (value.Contains('\\', StringComparison.OrdinalIgnoreCase) || ContainsControlExceptEsc(value))
             {
                 throw ElementValidationExceptionFactory.CreateInvalidCharactersException(name, DicomVR.LO, value);
             }

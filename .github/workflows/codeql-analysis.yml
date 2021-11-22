@@ -26,12 +26,12 @@ jobs:
       uses: actions/setup-dotnet@v1.8.2
       if: ${{ matrix.language == 'csharp' }}
 
-    # For Az Func and SQL Code-Gen
-    - name: 'Setup dotnet 3.1.x'
+    # SQL Code-Gen (TODO: Delete once shared components moves to .NET 6.0)
+    - name: 'Setup dotnet 5.x'
       uses: actions/setup-dotnet@v1.8.2
       if: ${{ matrix.language == 'csharp' }}
       with:
-        dotnet-version: '3.1.x'
+        dotnet-version: '5.x'
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL

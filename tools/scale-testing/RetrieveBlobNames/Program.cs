@@ -39,7 +39,7 @@ namespace RetrieveBlobNames
             };
             var client = new SecretClient(new Uri(KnownApplicationUrls.KeyVaultUrl), new DefaultAzureCredential(), options);
 
-            KeyVaultSecret secret = client.GetSecret(KnownSecretNames.BlobStoreConnectionString);
+            KeyVaultSecret secret = await client.GetSecretAsync(KnownSecretNames.BlobStoreConnectionString);
 
             s_containerConnectionString = secret.Value;
 
@@ -56,7 +56,7 @@ namespace RetrieveBlobNames
                     string[] parsedInstanceName = blob.Name.Split(KnownSeparators.MessageSeparators, StringSplitOptions.RemoveEmptyEntries);
                     studies.Add(parsedInstanceName[0]);
                     series.Add(parsedInstanceName[0] + " " + parsedInstanceName[1]);
-                    sw.WriteLine(blob.Name);
+                    await sw.WriteLineAsync(blob.Name);
                     i++;
                     Console.WriteLine(blob.Name + " Count:" + i);
                 }

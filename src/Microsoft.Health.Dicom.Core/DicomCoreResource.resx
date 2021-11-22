@@ -468,4 +468,7 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="DataPartitionFeatureCannotBeDisabled" xml:space="preserve">
     <value>Data partitions feature cannot be disabled while existing data has already been partitioned.</value>
   </data>
+  <data name="ImplicitVRNotAllowed" xml:space="preserve">
+    <value>Implicit VR is not allowed.</value>
+  </data>
 </root>

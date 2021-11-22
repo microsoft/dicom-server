@@ -103,7 +103,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AuditEventType(AuditEventSubType.Query)]
         public async Task<IActionResult> QueryForSeriesInStudyAsync([FromRoute] string studyInstanceUid, [FromQuery] QueryOptions options)
         {
-            _logger.LogInformation("DICOM Web Query Series request for study {studyInstanceUid} received. QueryString {RequestQueryString}.", studyInstanceUid, Request.QueryString);
+            _logger.LogInformation("DICOM Web Query Series request for study {StudyInstanceUid} received. QueryString {RequestQueryString}.", studyInstanceUid, Request.QueryString);
 
             EnsureArg.IsNotNull(options);
             var response = await _mediator.QueryDicomResourcesAsync(
@@ -149,7 +149,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AuditEventType(AuditEventSubType.Query)]
         public async Task<IActionResult> QueryForInstancesInStudyAsync([FromRoute] string studyInstanceUid, [FromQuery] QueryOptions options)
         {
-            _logger.LogInformation("DICOM Web Query Instances for study {studyInstanceUid} received. QueryString {RequestQueryString}.", studyInstanceUid, Request.QueryString);
+            _logger.LogInformation("DICOM Web Query Instances for study {StudyInstanceUid} received. QueryString {RequestQueryString}.", studyInstanceUid, Request.QueryString);
 
             EnsureArg.IsNotNull(options);
             var response = await _mediator.QueryDicomResourcesAsync(
@@ -172,7 +172,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AuditEventType(AuditEventSubType.Query)]
         public async Task<IActionResult> QueryForInstancesInSeriesAsync([FromRoute] string studyInstanceUid, [FromRoute] string seriesInstanceUid, [FromQuery] QueryOptions options)
         {
-            _logger.LogInformation("DICOM Web Query Instances for study {studyInstanceUid} and series {seriesInstanceUid} received. QueryString {RequestQueryString}.", studyInstanceUid, seriesInstanceUid, Request.QueryString);
+            _logger.LogInformation("DICOM Web Query Instances for study {StudyInstanceUid} and series {SeriesInstanceUid} received. QueryString {RequestQueryString}.", studyInstanceUid, seriesInstanceUid, Request.QueryString);
 
             EnsureArg.IsNotNull(options);
             var response = await _mediator.QueryDicomResourcesAsync(

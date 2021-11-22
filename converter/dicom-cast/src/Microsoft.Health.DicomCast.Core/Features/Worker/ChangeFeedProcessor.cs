@@ -81,11 +81,11 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                         if (!(changeFeedEntry.Action == ChangeFeedAction.Create && changeFeedEntry.State == ChangeFeedState.Deleted))
                         {
                             await _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, cancellationToken);
-                            _logger.LogInformation("Successfully processed DICOM event with SequenceID: {sequenceId}", changeFeedEntry.Sequence);
+                            _logger.LogInformation("Successfully processed DICOM event with SequenceID: {SequenceId}", changeFeedEntry.Sequence);
                         }
                         else
                         {
-                            _logger.LogInformation("Skip DICOM event with SequenceId {sequenceId} due to deletion before processing creation.", changeFeedEntry.Sequence);
+                            _logger.LogInformation("Skip DICOM event with SequenceId {SequenceId} due to deletion before processing creation.", changeFeedEntry.Sequence);
                         }
                     }
                     catch (Exception ex)
@@ -114,7 +114,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                                 errorType,
                                 cancellationToken);
 
-                            _logger.LogError("Failed to process DICOM event with SequenceID: {sequenceId}, StudyUid: {studyUid}, SeriesUid: {seriesUid}, instanceUid: {instanceUid}  and will not be retried further. Continuing to next event.", changeFeedEntry.Sequence, studyUid, seriesUid, instanceUid);
+                            _logger.LogError("Failed to process DICOM event with SequenceID: {SequenceId}, StudyUid: {StudyUid}, SeriesUid: {SeriesUid}, instanceUid: {InstanceUid}  and will not be retried further. Continuing to next event.", changeFeedEntry.Sequence, studyUid, seriesUid, instanceUid);
                         }
                         else
                         {
@@ -127,7 +127,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
 
                 await _syncStateService.UpdateSyncStateAsync(newSyncState, cancellationToken);
 
-                _logger.LogInformation("Processed DICOM events sequenced {sequenceId}-{maxSequence}.", state.SyncedSequence + 1, maxSequence);
+                _logger.LogInformation("Processed DICOM events sequenced {SequenceId}-{MaxSequence}.", state.SyncedSequence + 1, maxSequence);
 
                 state = newSyncState;
 

@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Partition
         {
             EnsureArg.IsNotNull(partitionName, nameof(partitionName));
 
-            _logger.LogInformation("Creating partition with name '{partitionName}'.", partitionName);
+            _logger.LogInformation("Creating partition with name '{PartitionName}'.", partitionName);
 
             var partitionEntry = await _partitionCache.GetOrAddPartitionAsync(_partitionStore.AddPartitionAsync, partitionName, cancellationToken);
 
@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Partition
         {
             EnsureArg.IsNotNull(partitionName, nameof(partitionName));
 
-            _logger.LogInformation("Getting partition with name '{partitionName}'.", partitionName);
+            _logger.LogInformation("Getting partition with name '{PartitionName}'.", partitionName);
 
             var partitionEntry = await _partitionCache.GetOrAddPartitionAsync(_partitionStore.GetPartitionAsync, partitionName, cancellationToken);
             return new GetPartitionResponse(partitionEntry);

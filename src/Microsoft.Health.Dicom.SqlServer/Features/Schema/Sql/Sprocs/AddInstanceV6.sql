@@ -157,6 +157,7 @@ BEGIN
     BEGIN TRY
 
         EXEC dbo.IIndexInstanceCore
+            @partitionKey,
             @studyKey,
             @seriesKey,
             @instanceKey,

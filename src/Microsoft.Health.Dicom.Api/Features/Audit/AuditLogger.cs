@@ -71,6 +71,9 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
                 customerHeadersInString = string.Join(";", customHeaders.Select(header => $"{header.Key}={header.Value}"));
             }
 
+#pragma warning disable CA2254
+            // AuditMessageFormat is not const and erroneously flags CA2254.
+            // While the template does indeed change per OS, it does not change the variables in use.
             _logger.LogInformation(
                 AuditMessageFormat,
                 auditAction,
@@ -83,6 +86,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit
                 correlationId,
                 claimsInString,
                 customerHeadersInString);
+#pragma warning restore CA2254
         }
     }
 }
