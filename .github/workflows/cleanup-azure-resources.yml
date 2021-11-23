@@ -1,37 +1,123 @@
+name: CleanupAzureResources
+
 on:
   pull_request:
     types: [closed]
+  #push:
+  #  branches: [users/v-shivakumar/AB#86411]
 
-name: CleanupAzureResources
+permissions:
+   id-token: write
+   contents: write
 
 jobs:
   cleanup:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest # AzureAD PS module requires Windows.
+
     steps:
+      - name: Checkout Current Branch to access Custom Powershell Modules
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          #ref: ${{ github.ref }}
+          ref: 'main' # we are only interested in importing the custom PS modules from main branch
+
       - name: Login via Az module
         uses: azure/login@v1.4.1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id: "${{secrets.AZ_DEVOPS_APP_ID}}"
+          tenant-id: "${{secrets.AZ_DEVOPS_TENANT_ID}}"
+          subscription-id: "${{secrets.AZ_DEVOPS_SUBSCRIPTION_ID}}"
           enable-AzPSSession: true
-      
-      - name: Clean Up Azure Resources
+
+      - name: Clean Up Azure Resource Groups
         uses: azure/powershell@v1.1.0
         with:
-          azPSVersion: '3.1.0'
+          azPSVersion: latest
           inlineScript: | 
-            [string]$PRNumber = "${{github.event.pull_request.number}}"
-            $groups = Get-AzResourceGroup -Name "dcm-pr$PRNumber-*-*"  
+            $azContext = Get-AzContext
+
+            [string]$prNumber = "${{github.event.pull_request.number}}"
+            [string]$resourceGroupName = "dcm-pr$prNumber-*-*"
+
+            $groups = Get-AzResourceGroup -DefaultProfile $azContext -Name $resourceGroupName
             if ($groups -eq $null -or $groups.Count -eq 0)
             {
-              Write-Host "No Resource groups related to PR $PRNumber are found."
+              Write-Host "No Resource groups related to PR $prNumber are found."
             }
             else
             {
-              Write-Host "$($groups.Count) Resource groups related to PR $PRNumber are found."
+              Write-Host "$($groups.Count) Resource groups related to PR $prNumber are found."
+            
               foreach($group in $groups)
               {
+                Write-Host "$($groups.Count) Resource groups related to PR $prNumber are found."
                 [string]$name = $group.ResourceGroupName
                 Write-Host "Deleting Resource Group $name"
-                Remove-AzResourceGroup -Name $name -Force
-              }  
+                Remove-AzResourceGroup -DefaultProfile $azContext -Name $name -Force
+              }
             }
+
+      - name: Purge key vault
+        uses: azure/powershell@v1.1.0
+        with:
+          azPSVersion: latest
+          inlineScript: | 
+            $azContext = Get-AzContext
+
+            [string]$resourceGroupRegion = 'southcentralus'
+            [string]$prNumber = "${{github.event.pull_request.number}}"
+            [string]$deploymentName = 'msh-dicom-pr-$(prNumber)'
+
+            $kv = Get-AzKeyVault -DefaultProfile $azContext -VaultName $deploymentName -Location $resourceGroupRegion -InRemovedState
+            if ($kv -eq $null -or $kv.Count -eq 0) {
+              Write-Host "No KeyVaults are found."
+            } else {
+              [string]$kvName = $kv.VaultName
+              Write-Host "Purging Key Vault $kvName"
+              Remove-AzKeyVault -DefaultProfile $azContext -VaultName $kvName -InRemovedState -Location $kv.Location -Force
+            }
+
+      - name: Get resolute tenant information from Azure key vault
+        uses: Azure/get-keyvault-secrets@v1
+        with:
+          keyvault: "resolute-oss-tenant-info"
+          secrets: 'tenant-admin-service-principal-name, tenant-admin-service-principal-password, tenant-admin-user-name, tenant-admin-user-password, tenant-id'
+        id: getResoluteSettingsAction
+
+      - name: Azure logout
+        run: az logout
+
+      - name: Delete AAD apps
+        uses: azure/powershell@v1.1.0
+        with:
+          azPSVersion: latest
+          inlineScript: | 
+
+            Install-Module -Name AzureAD -Repository PSGallery -Scope CurrentUser -AcceptLicense -AllowClobber -Force
+            Import-Module -Name AzureAD
+
+            [string]$deploymentName = 'msh-dicom-pr-$(prNumber)'
+
+            $username = "${{steps.getResoluteSettingsAction.outputs.tenant-admin-user-name}}"
+            $clientId = "${{steps.getResoluteSettingsAction.outputs.tenant-admin-service-principal-name}}"
+            $clientSecret = "${{steps.getResoluteSettingsAction.outputs.tenant-admin-service-principal-password}}"
+            $tenantId = "${{steps.getResoluteSettingsAction.outputs.tenant-id}}"
+
+            $resource = "https://graph.windows.net/"
+            $adTokenUrl = "https://login.microsoftonline.com/$tenantId/oauth2/token"
+
+            $body = @{
+                grant_type    = "client_credentials"
+                client_id     = $clientId
+                client_secret = $clientSecret
+                resource      = $resource
+            }
+
+            $response = Invoke-RestMethod -Method 'Post' -Uri $adTokenUrl -ContentType "application/x-www-form-urlencoded" -Body $body
+            Connect-AzureAD -TenantId $tenantId -AadAccessToken $response.access_token -AccountId $username
+
+            Import-Module ${{ github.workspace }}/samples/scripts/PowerShell/DicomServer.psd1
+            Import-Module ${{ github.workspace }}/release/scripts/PowerShell/DicomServerRelease/DicomServerRelease.psd1
+
+            Remove-AadTestAuthEnvironment -TestAuthEnvironmentPath ${{ github.workspace }}/testauthenvironment.json -EnvironmentName $deploymentName -TenantIdDomain $tenantId
