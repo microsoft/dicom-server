@@ -3,8 +3,6 @@ name: CleanupAzureResources
 on:
   pull_request:
     types: [closed]
-  #push:
-  #  branches: [users/v-shivakumar/AB#86411]
 
 permissions:
    id-token: write
@@ -19,9 +17,9 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          #ref: ${{ github.ref }}
-          ref: 'main' # we are only interested in importing the custom PS modules from main branch
+          ref: "${{ github.base_ref }}"
 
+      # refer: https://microsofthealth.visualstudio.com/Health/_wiki/wikis/Health.wiki/163/OSS-CI
       - name: Login via Az module
         uses: azure/login@v1.4.1
         with:
