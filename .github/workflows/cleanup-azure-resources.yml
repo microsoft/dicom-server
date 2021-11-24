@@ -34,27 +34,10 @@ jobs:
           azPSVersion: latest
           inlineScript: | 
             $azContext = Get-AzContext
-
             [string]$prNumber = "${{github.event.pull_request.number}}"
-            [string]$resourceGroupName = "dcm-pr$prNumber-*-*"
+            [string]$deploymentName = 'msh-dicom-pr-$(prNumber)'
 
-            $groups = Get-AzResourceGroup -DefaultProfile $azContext -Name $resourceGroupName
-            if ($groups -eq $null -or $groups.Count -eq 0)
-            {
-              Write-Host "No Resource groups related to PR $prNumber are found."
-            }
-            else
-            {
-              Write-Host "$($groups.Count) Resource groups related to PR $prNumber are found."
-            
-              foreach($group in $groups)
-              {
-                Write-Host "$($groups.Count) Resource groups related to PR $prNumber are found."
-                [string]$name = $group.ResourceGroupName
-                Write-Host "Deleting Resource Group $name"
-                Remove-AzResourceGroup -DefaultProfile $azContext -Name $name -Force
-              }
-            }
+            Get-AzResourceGroup -DefaultProfile $azContext -Name $deploymentName | Remove-AzResourceGroup -Verbose -Force
 
       - name: Purge key vault
         uses: azure/powershell@v1.1.0
