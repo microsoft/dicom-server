@@ -97,12 +97,3 @@ stages:
   - DeployFeaturesEnabledWebapp
   jobs:
   - template: run-e2e-features-enabled-tests.yml
-
-- stage: Cleanup
-  displayName: 'Clean Up Azure Environment'
-  dependsOn:
-  - RunIntegrationTests
-  - RunE2ETests
-  - RunE2EFeaturesEnabledTests
-  jobs:
-  - template: cleanup.yml
