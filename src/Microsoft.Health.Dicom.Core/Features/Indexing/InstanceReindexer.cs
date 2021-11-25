@@ -9,6 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
+using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -24,24 +26,47 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
         private readonly IMetadataStore _metadataStore;
         private readonly IIndexDataStore _indexDataStore;
         private readonly IReindexDatasetValidator _dicomDatasetReindexValidator;
+        private readonly ILogger _logger;
 
-        public InstanceReindexer(IMetadataStore metadataStore, IIndexDataStore indexDataStore, IReindexDatasetValidator dicomDatasetReindexValidator)
+        public InstanceReindexer(
+            IMetadataStore metadataStore,
+            IIndexDataStore indexDataStore,
+            IReindexDatasetValidator dicomDatasetReindexValidator,
+            ILogger<InstanceReindexer> logger)
         {
             _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
             _indexDataStore = EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
             _dicomDatasetReindexValidator = EnsureArg.IsNotNull(dicomDatasetReindexValidator, nameof(dicomDatasetReindexValidator));
+            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
-        public async Task ReindexInstanceAsync(IReadOnlyCollection<ExtendedQueryTagStoreEntry> entries, VersionedInstanceIdentifier versionedInstanceId, CancellationToken cancellationToken)
+        public async Task<bool> ReindexInstanceAsync(
+            IReadOnlyCollection<ExtendedQueryTagStoreEntry> entries,
+            VersionedInstanceIdentifier versionedInstanceId,
+            CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(entries, nameof(entries));
             EnsureArg.IsNotNull(versionedInstanceId, nameof(versionedInstanceId));
 
-            DicomDataset dataset = await _metadataStore.GetInstanceMetadataAsync(versionedInstanceId, cancellationToken);
+            DicomDataset dataset;
+            try
+            {
+                dataset = await _metadataStore.GetInstanceMetadataAsync(versionedInstanceId, cancellationToken);
+            }
+            catch (ItemNotFoundException)
+            {
+                _logger.LogWarning("Could not find metadata for instance with {Identifier}", versionedInstanceId);
+                return false;
+            }
 
             // Only reindex on valid query tags
-            var validQueryTags = await _dicomDatasetReindexValidator.ValidateAsync(dataset, versionedInstanceId.Version, entries.Select(x => new QueryTag(x)).ToList(), cancellationToken);
+            IReadOnlyCollection<QueryTag> validQueryTags = await _dicomDatasetReindexValidator.ValidateAsync(
+                dataset,
+                versionedInstanceId.Version,
+                entries.Select(x => new QueryTag(x)).ToList(),
+                cancellationToken);
             await _indexDataStore.ReindexInstanceAsync(dataset, versionedInstanceId.Version, validQueryTags, cancellationToken);
+            return true;
         }
     }
 }

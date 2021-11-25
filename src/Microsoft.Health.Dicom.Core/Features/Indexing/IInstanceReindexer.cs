@@ -17,12 +17,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Indexing
     public interface IInstanceReindexer
     {
         /// <summary>
-        /// Reindex DICOM instance of watermark on extended query tags.
+        /// Asynchronously reindexes the DICOM instance with the <paramref name="versionedInstanceId"/>
+        /// for the set of <paramref name="entries"/>.
         /// </summary>
         /// <param name="entries">Extended query tag store entries.</param>
         /// <param name="versionedInstanceId">The versioned instance id.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The task.</returns>
-        Task ReindexInstanceAsync(IReadOnlyCollection<ExtendedQueryTagStoreEntry> entries, VersionedInstanceIdentifier versionedInstanceId, CancellationToken cancellationToken = default);
+        /// <returns>
+        /// A <see cref="Task{TResult}"/> representing the asynchronous operation. The value of the
+        /// <see cref="Task{TResult}.Result"/> indicates whether the reindexing was successful.
+        /// </returns>
+        Task<bool> ReindexInstanceAsync(IReadOnlyCollection<ExtendedQueryTagStoreEntry> entries, VersionedInstanceIdentifier versionedInstanceId, CancellationToken cancellationToken = default);
     }
 }

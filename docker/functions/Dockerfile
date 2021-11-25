@@ -8,6 +8,9 @@
 FROM mcr.microsoft.com/azure-functions/dotnet:4.0.1.16816@sha256:2c18c4ca6ad982257e9023161329c38be6d9d494bc48a6aae15ef43cc8f7ea5d AS az-func-runtime
 ENV AzureFunctionsJobHost__Logging__Console__IsEnabled=true \
     AzureWebJobsScriptRoot=/home/site/wwwroot
+RUN groupadd nonroot && useradd -r -M -s /sbin/nologin -g nonroot -c nonroot nonroot
+RUN chown -R nonroot:nonroot /azure-functions-host
+USER nonroot
 
 # Copy the DICOM Server repository and build the Azure Functions project
 FROM mcr.microsoft.com/dotnet/sdk:6.0.100-alpine3.14@sha256:1d9d66775f0d67cb68af9c7a083d22b576ea96f3f7a6893660d48f536b73e59f AS build
