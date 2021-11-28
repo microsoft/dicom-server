@@ -196,6 +196,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
                 _stringBuilder
                     .Append("ON ")
+                    .Append($"{extendedQueryTagTableAlias}.PartitionKey")
+                    .Append(" = ")
+                    .AppendLine(VLatest.Study.PartitionKey, StudyTableAlias);
+
+                _stringBuilder
+                    .Append("AND ")
                     .Append($"{extendedQueryTagTableAlias}.StudyKey")
                     .Append(" = ")
                     .AppendLine(VLatest.Study.StudyKey, StudyTableAlias);

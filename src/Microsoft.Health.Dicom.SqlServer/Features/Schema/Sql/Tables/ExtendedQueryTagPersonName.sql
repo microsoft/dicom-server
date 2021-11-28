@@ -15,7 +15,8 @@ CREATE TABLE dbo.ExtendedQueryTagPersonName (
     InstanceKey             BIGINT               NULL,                  --FK
     Watermark               BIGINT               NOT NULL,
     WatermarkAndTagKey      AS CONCAT(TagKey, '.', Watermark),          --PK
-    TagValueWords           AS REPLACE(REPLACE(TagValue, '^', ' '), '=', ' ') PERSISTED
+    TagValueWords           AS REPLACE(REPLACE(TagValue, '^', ' '), '=', ' ') PERSISTED,
+    PartitionKey            INT                  NOT NULL DEFAULT 1     --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
 -- Used in QIDO
@@ -23,15 +24,17 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName ON dbo.ExtendedQuer
 (
     TagKey,
     TagValue,
+    PartitionKey,
     StudyKey,
     SeriesKey,
     InstanceKey
 )
 
 -- Used in IIndexInstanceCore
-CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_TagKey_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagPersonName
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_PartitionKey_TagKey_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagPersonName
 (
     TagKey,
+    PartitionKey,
     StudyKey,
     SeriesKey,
     InstanceKey
@@ -43,8 +46,9 @@ INCLUDE
 WITH (DATA_COMPRESSION = PAGE)
 
 -- Used in DeleteInstance
-CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagPersonName
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_PartitionKey_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagPersonName
 (
+    PartitionKey,
     StudyKey,
     SeriesKey,
     InstanceKey

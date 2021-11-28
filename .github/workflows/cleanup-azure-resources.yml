@@ -51,6 +51,7 @@ jobs:
             $azContext = Get-AzContext
 
             $kv = Get-AzKeyVault -DefaultProfile $azContext -VaultName ${{ DEPLOYMENT_NAME }} -Location ${{ RG_REGION }} -InRemovedState
+
             if ($kv -eq $null -or $kv.Count -eq 0) {
               Write-Host "No KeyVaults are found."
             } else {
