@@ -40,7 +40,7 @@ jobs:
           inlineScript: | 
             $azContext = Get-AzContext
 
-            Get-AzResourceGroup -DefaultProfile $azContext -Name $DEPLOYMENT_NAME | Remove-AzResourceGroup -Verbose -Force
+            Get-AzResourceGroup -DefaultProfile $azContext -Name "${{ env.DEPLOYMENT_NAME }}" | Remove-AzResourceGroup -Verbose -Force
 
       - name: Purge key vault
         uses: azure/powershell@v1.1.0
@@ -49,7 +49,7 @@ jobs:
           inlineScript: | 
             $azContext = Get-AzContext
 
-            $kv = Get-AzKeyVault -DefaultProfile $azContext -VaultName $DEPLOYMENT_NAME -Location $RG_REGION -InRemovedState
+            $kv = Get-AzKeyVault -DefaultProfile $azContext -VaultName "${{ env.DEPLOYMENT_NAME }}" -Location "${{ env.RG_REGION }}" -InRemovedState
 
             if ($kv -eq $null -or $kv.Count -eq 0) {
               Write-Host "No KeyVaults are found."
@@ -99,4 +99,4 @@ jobs:
             Import-Module ${{ github.workspace }}/samples/scripts/PowerShell/DicomServer.psd1
             Import-Module ${{ github.workspace }}/release/scripts/PowerShell/DicomServerRelease/DicomServerRelease.psd1
 
-            Remove-AadTestAuthEnvironment -TestAuthEnvironmentPath ${{ github.workspace }}/testauthenvironment.json -EnvironmentName $DEPLOYMENT_NAME -TenantIdDomain $tenantId
+            Remove-AadTestAuthEnvironment -TestAuthEnvironmentPath ${{ github.workspace }}/testauthenvironment.json -EnvironmentName "${{ env.DEPLOYMENT_NAME }}" -TenantIdDomain $tenantId
