@@ -15,8 +15,7 @@ jobs:
 
     env:
       RG_REGION: southcentralus
-      PR_NUMBER: ${{ github.event.pull_request.number }}
-      DEPLOYMENT_NAME: msh-dicom-pr-$PR_NUMBER
+      DEPLOYMENT_NAME: msh-dicom-pr-${{ github.event.pull_request.number }}
 
     steps:
       - name: Checkout Current Branch to access Custom Powershell Modules
