@@ -17,26 +17,25 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <summary>
         /// Level of this tag. Could be Study, Series or Instance.
         /// </summary>
-        public string Level { get; set; }
+        public QueryTagLevel? Level { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             string property;
             if (string.IsNullOrWhiteSpace(Path))
             {
-                property = "Path";
+                property = nameof(Path);
                 yield return new ValidationResult(string.Format(DicomCoreResource.AddExtendedQueryTagEntryPropertyNotSpecified, property), new[] { property });
             }
 
-            if (string.IsNullOrWhiteSpace(Level))
+            if (!Level.HasValue)
             {
-                property = "Level";
+                property = nameof(Level);
                 yield return new ValidationResult(string.Format(DicomCoreResource.AddExtendedQueryTagEntryPropertyNotSpecified, property), new[] { property });
             }
-
-            if (!Enum.TryParse(typeof(QueryTagLevel), Level, true, out object _))
+            else if (!Enum.IsDefined(Level.GetValueOrDefault()))
             {
-                property = "Level";
+                property = nameof(Level);
                 yield return new ValidationResult(string.Format(DicomCoreResource.InvalidDicomTagLevel, Level), new[] { property });
             }
         }

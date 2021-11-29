@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         public void GivenPrivateTagWithNonEmptyPrivateCreator_WhenNormalizing_ThenPrivateCreatorShouldBeNull(string privateCreator)
         {
             DicomTag tag1 = new DicomTag(0x0405, 0x1001);
-            AddExtendedQueryTagEntry normalized = new AddExtendedQueryTagEntry() { Level = QueryTagLevel.Instance.ToString(), Path = tag1.GetPath(), PrivateCreator = privateCreator, VR = DicomVRCode.CS }.Normalize();
+            AddExtendedQueryTagEntry normalized = new AddExtendedQueryTagEntry() { Level = QueryTagLevel.Instance, Path = tag1.GetPath(), PrivateCreator = privateCreator, VR = DicomVRCode.CS }.Normalize();
             Assert.Null(normalized.PrivateCreator);
         }
 
@@ -117,7 +117,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
 
         private static AddExtendedQueryTagEntry CreateExtendedQueryTagEntry(string path, string vr, string privateCreator, QueryTagLevel level = QueryTagLevel.Instance)
         {
-            return new AddExtendedQueryTagEntry { Path = path, VR = vr, PrivateCreator = privateCreator, Level = level.ToString() };
+            return new AddExtendedQueryTagEntry { Path = path, VR = vr, PrivateCreator = privateCreator, Level = level };
         }
     }
 }
