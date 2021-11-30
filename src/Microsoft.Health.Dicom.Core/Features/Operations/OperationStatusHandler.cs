@@ -52,7 +52,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
         public async Task<OperationStatusResponse> Handle(OperationStatusRequest request, CancellationToken cancellationToken)
         {
-            // TODO: Check for data action
             EnsureArg.IsNotNull(request, nameof(request));
 
             if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
