@@ -39,6 +39,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
+        [Trait("Category", "bvt")]
         public async Task GivenExtendedQueryTag_WhenReindexing_ThenShouldSucceed()
         {
             if (_isUsingInProcTestServer)
