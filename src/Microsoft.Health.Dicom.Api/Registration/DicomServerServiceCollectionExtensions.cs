@@ -5,7 +5,6 @@
 
 using System;
 using System.Reflection;
-using System.Text.Json.Serialization;
 using EnsureThat;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -32,6 +31,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Registration;
+using Microsoft.Health.Dicom.Core.Serialization;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.IO;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -109,7 +109,7 @@ namespace Microsoft.AspNetCore.Builder
                     options.RespectBrowserAcceptHeader = true;
                     options.OutputFormatters.Insert(0, new DicomJsonOutputFormatter());
                 })
-                .AddJsonSerializerOptions(o => o.Converters.Add(new JsonStringEnumConverter()));
+                .AddJsonSerializerOptions(o => o.Converters.Add(new StrictStringEnumConverterFactory()));
 
             services.AddApiVersioning(c =>
             {
