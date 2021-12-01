@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        [Trait("Category", "bvt")]
+        // [Trait("Category", "bvt")] // TODO: Enable once functions are enabled in PAAS
         public async Task GivenExtendedQueryTag_WhenReindexing_ThenShouldSucceed()
         {
             if (_isUsingInProcTestServer)
