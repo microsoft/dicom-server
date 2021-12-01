@@ -38,8 +38,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             _instanceManager = new DicomInstancesManager(_client);
         }
 
-        [Fact]
-        [Trait("Category", "bvt")]
+        [Fact]        
         public async Task GivenExtendedQueryTag_WhenReindexing_ThenShouldSucceed()
         {
             if (_isUsingInProcTestServer)
