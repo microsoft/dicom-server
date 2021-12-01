@@ -151,7 +151,7 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
 
             foreach (VersionedInstanceIdentifier identifier in expected)
             {
-                _instanceReindexer.ReindexInstanceAsync(batch.QueryTags, identifier).Returns(Task.CompletedTask);
+                _instanceReindexer.ReindexInstanceAsync(batch.QueryTags, identifier).Returns(true);
             }
 
             // Call the activity

@@ -1,9 +1,6 @@
 openapi: 3.0.1
 info:
   title: Medical Imaging Server for DICOM
-  license:
-    name: MIT License
-    url: https://github.com/microsoft/dicom-server/blob/main/LICENSE
   version: 1.0-prerelease
 paths:
   /v1-prerelease/changefeed:
@@ -134,6 +131,262 @@ paths:
             application/json:
               schema:
                 type: string
+  '/v1-prerelease/partitions/{partitionName}/studies/{studyInstanceUid}':
+    delete:
+      tags:
+        - Delete
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Success
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+    get:
+      tags:
+        - Retrieve
+      operationId: VersionedPartitionRetrieveStudy
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            multipart/related: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+    post:
+      tags:
+        - Store
+      operationId: VersionedPartitionStoreInstancesInStudy
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '202':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+        '409':
+          description: Conflict
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '415':
+          description: Client Error
+          content:
+            application/json:
+              schema:
+                type: string
+  '/partitions/{partitionName}/studies/{studyInstanceUid}':
+    delete:
+      tags:
+        - Delete
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Success
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+    get:
+      tags:
+        - Retrieve
+      operationId: PartitionRetrieveStudy
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            multipart/related: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+    post:
+      tags:
+        - Store
+      operationId: PartitionStoreInstancesInStudy
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '202':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+        '409':
+          description: Conflict
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '415':
+          description: Client Error
+          content:
+            application/json:
+              schema:
+                type: string
   '/v1-prerelease/studies/{studyInstanceUid}':
     delete:
       tags:
@@ -195,6 +448,7 @@ paths:
     post:
       tags:
         - Store
+      operationId: VersionedStoreInstancesInStudy
       parameters:
         - name: studyInstanceUid
           in: path
@@ -307,6 +561,7 @@ paths:
     post:
       tags:
         - Store
+      operationId: StoreInstancesInStudy
       parameters:
         - name: studyInstanceUid
           in: path
@@ -354,6 +609,162 @@ paths:
                   $ref: '#/components/schemas/DicomItem'
         '415':
           description: Client Error
+          content:
+            application/json:
+              schema:
+                type: string
+  '/v1-prerelease/partitions/{partitionName}/studies/{studyInstanceUid}/series/{seriesInstanceUid}':
+    delete:
+      tags:
+        - Delete
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Success
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+    get:
+      tags:
+        - Retrieve
+      operationId: VersionedPartitionRetrieveSeries
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            multipart/related: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+  '/partitions/{partitionName}/studies/{studyInstanceUid}/series/{seriesInstanceUid}':
+    delete:
+      tags:
+        - Delete
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Success
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+    get:
+      tags:
+        - Retrieve
+      operationId: PartitionRetrieveSeries
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            multipart/related: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
           content:
             application/json:
               schema:
@@ -475,6 +886,184 @@ paths:
         '200':
           description: Success
           content:
+            multipart/related: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+  '/v1-prerelease/partitions/{partitionName}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}':
+    delete:
+      tags:
+        - Delete
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sopInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Success
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+    get:
+      tags:
+        - Retrieve
+      operationId: VersionedPartitionRetrieveInstance
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sopInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom: { }
+            multipart/related: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+  '/partitions/{partitionName}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}':
+    delete:
+      tags:
+        - Delete
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sopInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Success
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+    get:
+      tags:
+        - Retrieve
+      operationId: PartitionRetrieveInstance
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sopInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom: { }
             multipart/related: { }
         '400':
           description: Bad Request
@@ -663,6 +1252,7 @@ paths:
               type: array
               items:
                 $ref: '#/components/schemas/AddExtendedQueryTagEntry'
+        required: true
       responses:
         '202':
           description: Success
@@ -670,9 +1260,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AddExtendedQueryTagResponse'
+        '400':
+          description: Bad Request
     get:
       tags:
         - ExtendedQueryTag
+      parameters:
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
       responses:
         '200':
           description: Success
@@ -682,6 +1289,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/GetExtendedQueryTagEntry'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
         '404':
           description: Not Found
           content:
@@ -699,6 +1312,7 @@ paths:
               type: array
               items:
                 $ref: '#/components/schemas/AddExtendedQueryTagEntry'
+        required: true
       responses:
         '202':
           description: Success
@@ -706,9 +1320,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AddExtendedQueryTagResponse'
+        '400':
+          description: Bad Request
     get:
       tags:
         - ExtendedQueryTag
+      parameters:
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
       responses:
         '200':
           description: Success
@@ -718,6 +1349,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/GetExtendedQueryTagEntry'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
         '404':
           description: Not Found
           content:
@@ -744,12 +1381,52 @@ paths:
     get:
       tags:
         - ExtendedQueryTag
+      operationId: VersionedGetExtendedQueryTag
       parameters:
         - name: tagPath
           in: path
           required: true
           schema:
             type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetExtendedQueryTagEntry'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+    patch:
+      tags:
+        - ExtendedQueryTag
+      parameters:
+        - name: tagPath
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateExtendedQueryTagOptions'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/UpdateExtendedQueryTagOptions'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/UpdateExtendedQueryTagOptions'
       responses:
         '200':
           description: Success
@@ -789,6 +1466,7 @@ paths:
     get:
       tags:
         - ExtendedQueryTag
+      operationId: GetExtendedQueryTag
       parameters:
         - name: tagPath
           in: path
@@ -814,10 +1492,295 @@ paths:
             application/json:
               schema:
                 type: string
-  /v1-prerelease/studies:
+    patch:
+      tags:
+        - ExtendedQueryTag
+      parameters:
+        - name: tagPath
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateExtendedQueryTagOptions'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/UpdateExtendedQueryTagOptions'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/UpdateExtendedQueryTagOptions'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetExtendedQueryTagEntry'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+  '/v1-prerelease/extendedquerytags/{tagPath}/errors':
+    get:
+      tags:
+        - ExtendedQueryTag
+      operationId: VersionedGetExtendedQueryTagErrors
+      parameters:
+        - name: tagPath
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExtendedQueryTagError'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+  '/extendedquerytags/{tagPath}/errors':
+    get:
+      tags:
+        - ExtendedQueryTag
+      operationId: GetExtendedQueryTagErrors
+      parameters:
+        - name: tagPath
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExtendedQueryTagError'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+  '/operations/{operationId}':
+    get:
+      tags:
+        - Operations
+      operationId: OperationStatus
+      parameters:
+        - name: operationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '202':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/OperationStatus'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationStatus'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/OperationStatus'
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/OperationStatus'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationStatus'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/OperationStatus'
+  '/v1-prerelease/operations/{operationId}':
+    get:
+      tags:
+        - Operations
+      operationId: VersionedOperationStatus
+      parameters:
+        - name: operationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '202':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/OperationStatus'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationStatus'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/OperationStatus'
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/OperationStatus'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationStatus'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/OperationStatus'
+  /v1-prerelease/partitions:
+    get:
+      tags:
+        - Partition
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PartitionEntry'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /partitions:
+    get:
+      tags:
+        - Partition
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PartitionEntry'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  '/v1-prerelease/partitions/{partitionName}/studies':
     get:
       tags:
         - Query
+      parameters:
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: Success
@@ -840,6 +1803,218 @@ paths:
     post:
       tags:
         - Store
+      operationId: VersionedPartitionStoreInstance
+      parameters:
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '202':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+        '409':
+          description: Conflict
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '415':
+          description: Client Error
+          content:
+            application/json:
+              schema:
+                type: string
+  '/partitions/{partitionName}/studies':
+    get:
+      tags:
+        - Query
+      parameters:
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+    post:
+      tags:
+        - Store
+      operationId: PartitionStoreInstance
+      parameters:
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '202':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+        '409':
+          description: Conflict
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        '415':
+          description: Client Error
+          content:
+            application/json:
+              schema:
+                type: string
+  /v1-prerelease/studies:
+    get:
+      tags:
+        - Query
+      parameters:
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+    post:
+      tags:
+        - Store
+      operationId: VersionedStoreInstance
       responses:
         '200':
           description: Success
@@ -889,6 +2064,31 @@ paths:
     get:
       tags:
         - Query
+      parameters:
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
       responses:
         '200':
           description: Success
@@ -911,6 +2111,7 @@ paths:
     post:
       tags:
         - Store
+      operationId: StoreInstance
       responses:
         '200':
           description: Success
@@ -956,10 +2157,141 @@ paths:
             application/json:
               schema:
                 type: string
+  '/v1-prerelease/partitions/{partitionName}/series':
+    get:
+      tags:
+        - Query
+      parameters:
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  '/partitions/{partitionName}/series':
+    get:
+      tags:
+        - Query
+      parameters:
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
   /v1-prerelease/series:
     get:
       tags:
         - Query
+      parameters:
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
       responses:
         '200':
           description: Success
@@ -983,6 +2315,147 @@ paths:
     get:
       tags:
         - Query
+      parameters:
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  '/v1-prerelease/partitions/{partitionName}/studies/{studyInstanceUid}/series':
+    get:
+      tags:
+        - Query
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  '/partitions/{partitionName}/studies/{studyInstanceUid}/series':
+    get:
+      tags:
+        - Query
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: Success
@@ -1012,6 +2485,30 @@ paths:
           required: true
           schema:
             type: string
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
       responses:
         '200':
           description: Success
@@ -1041,6 +2538,136 @@ paths:
           required: true
           schema:
             type: string
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  '/v1-prerelease/partitions/{partitionName}/instances':
+    get:
+      tags:
+        - Query
+      parameters:
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  '/partitions/{partitionName}/instances':
+    get:
+      tags:
+        - Query
+      parameters:
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: Success
@@ -1064,6 +2691,31 @@ paths:
     get:
       tags:
         - Query
+      parameters:
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
       responses:
         '200':
           description: Success
@@ -1087,6 +2739,147 @@ paths:
     get:
       tags:
         - Query
+      parameters:
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  '/v1-prerelease/partitions/{partitionName}/studies/{studyInstanceUid}/instances':
+    get:
+      tags:
+        - Query
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  '/partitions/{partitionName}/studies/{studyInstanceUid}/instances':
+    get:
+      tags:
+        - Query
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: Success
@@ -1116,6 +2909,30 @@ paths:
           required: true
           schema:
             type: string
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
       responses:
         '200':
           description: Success
@@ -1141,6 +2958,156 @@ paths:
         - Query
       parameters:
         - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  '/v1-prerelease/partitions/{partitionName}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances':
+    get:
+      tags:
+        - Query
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '204':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  '/partitions/{partitionName}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances':
+    get:
+      tags:
+        - Query
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
+        - name: partitionName
           in: path
           required: true
           schema:
@@ -1179,6 +3146,30 @@ paths:
           required: true
           schema:
             type: string
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
       responses:
         '200':
           description: Success
@@ -1213,6 +3204,30 @@ paths:
           required: true
           schema:
             type: string
+        - name: FuzzyMatching
+          in: query
+          schema:
+            type: boolean
+        - name: IncludeField
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: Offset
+          in: query
+          schema:
+            maximum: 2147483647
+            minimum: 0
+            type: integer
+            format: int32
+        - name: Limit
+          in: query
+          schema:
+            maximum: 200
+            minimum: 1
+            type: integer
+            format: int32
       responses:
         '200':
           description: Success
@@ -1232,6 +3247,106 @@ paths:
             application/json:
               schema:
                 type: string
+  '/v1-prerelease/partitions/{partitionName}/studies/{studyInstanceUid}/metadata':
+    get:
+      tags:
+        - Retrieve
+      parameters:
+        - name: If-None-Match
+          in: header
+          schema:
+            type: string
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+        '304':
+          description: Not Modified
+  '/partitions/{partitionName}/studies/{studyInstanceUid}/metadata':
+    get:
+      tags:
+        - Retrieve
+      parameters:
+        - name: If-None-Match
+          in: header
+          schema:
+            type: string
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+        '304':
+          description: Not Modified
   '/v1-prerelease/studies/{studyInstanceUid}/metadata':
     get:
       tags:
@@ -1287,6 +3402,116 @@ paths:
           schema:
             type: string
         - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+        '304':
+          description: Not Modified
+  '/v1-prerelease/partitions/{partitionName}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/metadata':
+    get:
+      tags:
+        - Retrieve
+      parameters:
+        - name: If-None-Match
+          in: header
+          schema:
+            type: string
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+        '304':
+          description: Not Modified
+  '/partitions/{partitionName}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/metadata':
+    get:
+      tags:
+        - Retrieve
+      parameters:
+        - name: If-None-Match
+          in: header
+          schema:
+            type: string
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partitionName
           in: path
           required: true
           schema:
@@ -1387,6 +3612,126 @@ paths:
           schema:
             type: string
         - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+        '304':
+          description: Not Modified
+  '/v1-prerelease/partitions/{partitionName}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/metadata':
+    get:
+      tags:
+        - Retrieve
+      parameters:
+        - name: If-None-Match
+          in: header
+          schema:
+            type: string
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sopInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/dicom+json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DicomItem'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+        '304':
+          description: Not Modified
+  '/partitions/{partitionName}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/metadata':
+    get:
+      tags:
+        - Retrieve
+      parameters:
+        - name: If-None-Match
+          in: header
+          schema:
+            type: string
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sopInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partitionName
           in: path
           required: true
           schema:
@@ -1532,6 +3877,120 @@ paths:
                 type: string
         '304':
           description: Not Modified
+  '/partitions/{partitionName}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/frames/{frames}':
+    get:
+      tags:
+        - Retrieve
+      operationId: PartitionRetrieveFrame
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sopInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: frames
+          in: path
+          required: true
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            multipart/related: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+  '/v1-prerelease/partitions/{partitionName}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/frames/{frames}':
+    get:
+      tags:
+        - Retrieve
+      operationId: VersionedPartitionRetrieveFrame
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sopInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: frames
+          in: path
+          required: true
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            multipart/related: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
   '/v1-prerelease/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/frames/{frames}':
     get:
       tags:
@@ -1692,9 +4151,6 @@ components:
     AddExtendedQueryTagEntry:
       type: object
       properties:
-        level:
-          type: string
-          nullable: true
         path:
           type: string
           nullable: true
@@ -1704,22 +4160,29 @@ components:
         privateCreator:
           type: string
           nullable: true
+        level:
+          $ref: '#/components/schemas/QueryTagLevel'
       additionalProperties: false
     AddExtendedQueryTagResponse:
       type: object
+      properties:
+        operation:
+          $ref: '#/components/schemas/OperationReference'
       additionalProperties: false
     ChangeFeedAction:
       enum:
-        - 0
-        - 1
-      type: integer
-      format: int32
+        - Create
+        - Delete
+      type: string
     ChangeFeedEntry:
       type: object
       properties:
         sequence:
           type: integer
           format: int64
+        partitionName:
+          type: string
+          nullable: true
         studyInstanceUid:
           type: string
           nullable: true
@@ -1736,19 +4199,27 @@ components:
           format: date-time
         state:
           $ref: '#/components/schemas/ChangeFeedState'
+        originalVersion:
+          type: integer
+          format: int64
+        currentVersion:
+          type: integer
+          format: int64
+          nullable: true
         metadata:
           type: array
           items:
             $ref: '#/components/schemas/DicomItem'
           nullable: true
+        includeMetadata:
+          type: boolean
       additionalProperties: false
     ChangeFeedState:
       enum:
-        - 0
-        - 1
-        - 2
-      type: integer
-      format: int32
+        - Current
+        - Replaced
+        - Deleted
+      type: string
     DeleteExtendedQueryTagResponse:
       type: object
       additionalProperties: false
@@ -1883,25 +4354,49 @@ components:
           type: integer
           format: int32
           readOnly: true
-        valueType:
+      additionalProperties: false
+    ExtendedQueryTagError:
+      type: object
+      properties:
+        partitionName:
           type: string
           nullable: true
-          readOnly: true
+        studyInstanceUid:
+          type: string
+          nullable: true
+        seriesInstanceUid:
+          type: string
+          nullable: true
+        sopInstanceUid:
+          type: string
+          nullable: true
+        createdTime:
+          type: string
+          format: date-time
+        errorMessage:
+          type: string
+          nullable: true
+      additionalProperties: false
+    ExtendedQueryTagErrorReference:
+      type: object
+      properties:
+        count:
+          type: integer
+          format: int32
+        href:
+          type: string
+          format: uri
+          nullable: true
       additionalProperties: false
     ExtendedQueryTagStatus:
       enum:
-        - 0
-        - 1
-        - 2
-      type: integer
-      format: int32
+        - Adding
+        - Ready
+        - Deleting
+      type: string
     GetExtendedQueryTagEntry:
       type: object
       properties:
-        status:
-          $ref: '#/components/schemas/ExtendedQueryTagStatus'
-        level:
-          $ref: '#/components/schemas/QueryTagLevel'
         path:
           type: string
           nullable: true
@@ -1911,11 +4406,97 @@ components:
         privateCreator:
           type: string
           nullable: true
+        status:
+          $ref: '#/components/schemas/ExtendedQueryTagStatus'
+        level:
+          $ref: '#/components/schemas/QueryTagLevel'
+        errors:
+          $ref: '#/components/schemas/ExtendedQueryTagErrorReference'
+        operation:
+          $ref: '#/components/schemas/OperationReference'
+        queryStatus:
+          $ref: '#/components/schemas/QueryStatus'
       additionalProperties: false
+    OperationReference:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        href:
+          type: string
+          format: uri
+          nullable: true
+      additionalProperties: false
+    OperationRuntimeStatus:
+      enum:
+        - Unknown
+        - NotStarted
+        - Running
+        - Completed
+        - Failed
+        - Canceled
+      type: string
+    OperationStatus:
+      type: object
+      properties:
+        operationId:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/OperationType'
+        createdTime:
+          type: string
+          format: date-time
+        lastUpdatedTime:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/OperationRuntimeStatus'
+        percentComplete:
+          type: integer
+          format: int32
+        resources:
+          type: array
+          items:
+            type: string
+            format: uri
+          nullable: true
+      additionalProperties: false
+    OperationType:
+      enum:
+        - Unknown
+        - Reindex
+      type: string
+    PartitionEntry:
+      type: object
+      properties:
+        partitionKey:
+          type: integer
+          format: int32
+        partitionName:
+          type: string
+          nullable: true
+        createdDate:
+          type: string
+          format: date-time
+      additionalProperties: false
+    QueryStatus:
+      enum:
+        - Disabled
+        - Enabled
+      type: string
     QueryTagLevel:
       enum:
-        - 0
-        - 1
-        - 2
-      type: integer
-      format: int32
+        - Instance
+        - Series
+        - Study
+      type: string
+    UpdateExtendedQueryTagOptions:
+      required:
+        - queryStatus
+      type: object
+      properties:
+        queryStatus:
+          $ref: '#/components/schemas/QueryStatus'
+      additionalProperties: { }

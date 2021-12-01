@@ -8,6 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
+using Microsoft.Health.Core.Features.Security.Authorization;
+using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 
@@ -17,16 +21,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
     /// Represents a handler that encapsulates <see cref="IDicomOperationsClient.GetStatusAsync"/>
     /// to process instances of <see cref="OperationStatusRequest"/>.
     /// </summary>
-    public class OperationStatusHandler : IRequestHandler<OperationStatusRequest, OperationStatusResponse>
+    public class OperationStatusHandler : BaseHandler, IRequestHandler<OperationStatusRequest, OperationStatusResponse>
     {
         private readonly IDicomOperationsClient _client;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OperationStatusHandler"/> class.
         /// </summary>
+        /// <param name="authorizationService">A service for determining if a user is authorized.</param>
         /// <param name="client">A client for interacting with DICOM operations.</param>
         /// <exception cref="ArgumentNullException"><paramref name="client"/> is <see langword="null"/>.</exception>
-        public OperationStatusHandler(IDicomOperationsClient client)
+        public OperationStatusHandler(IAuthorizationService<DataActions> authorizationService, IDicomOperationsClient client)
+            : base(authorizationService)
             => _client = EnsureArg.IsNotNull(client, nameof(client));
 
         /// <summary>
@@ -46,8 +52,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
         public async Task<OperationStatusResponse> Handle(OperationStatusRequest request, CancellationToken cancellationToken)
         {
-            // TODO: Check for data action
             EnsureArg.IsNotNull(request, nameof(request));
+
+            if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
+            {
+                throw new UnauthorizedDicomActionException(DataActions.Read);
+            }
+
             OperationStatus status = await _client.GetStatusAsync(request.OperationId, cancellationToken);
             return status != null ? new OperationStatusResponse(status) : null;
         }
