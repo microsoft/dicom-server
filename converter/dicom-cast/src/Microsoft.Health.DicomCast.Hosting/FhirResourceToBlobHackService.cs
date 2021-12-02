@@ -19,6 +19,7 @@ using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Extensions.Logging;
+using System.Security.Cryptography.Xml;
 
 namespace Microsoft.Health.DicomCast.Hosting
 {
@@ -28,6 +29,9 @@ namespace Microsoft.Health.DicomCast.Hosting
         private readonly FhirConfiguration _fhirConfiguration;
         private readonly ILogger<FhirResourceToBlobHackService> _logger;
         private readonly HashSet<string> _processedResources;
+
+        private string _currentContinuationToken;
+
 
         public FhirResourceToBlobHackService(
             IFhirClient fhirClient,
@@ -40,6 +44,8 @@ namespace Microsoft.Health.DicomCast.Hosting
             _processedResources = new HashSet<string>();
         }
 
+
+        // one time job
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
@@ -47,53 +53,79 @@ namespace Microsoft.Health.DicomCast.Hosting
                 try
                 {
                     // patients
-                    var patients = await FindAll<HL7M.Patient>(stoppingToken);
-                    foreach (var patient in patients)
+                    int cnt = 0;
+                    do
                     {
-                        if (!_processedResources.Contains(patient.Key))
+                        var patients = await FindAll<HL7M.Patient>(GetCtString(), stoppingToken);
+                        cnt = 0;
+                        foreach (var patient in patients)
                         {
-                            await UploadToBlob(_fhirConfiguration.BlobEndpoint, "fhirpatient", patient.Key, patient.Value, stoppingToken);
-                            _processedResources.Add(patient.Key);
+                            if (!_processedResources.Contains(patient.Key))
+                            {
+                                await UploadToBlob(_fhirConfiguration.BlobEndpoint, "fhirpatient", patient.Key, patient.Value, stoppingToken);
+                                _processedResources.Add(patient.Key);
+                                _logger.LogInformation($"Patients {patient.Key} processed.");
+                                cnt++;
+                            }
                         }
+                        _logger.LogInformation($"token {_currentContinuationToken}");
                     }
-                    _logger.LogInformation($"Patients {patients.Count} processed.");
-
-                    // ImagingStudy
-                    var studies = await FindAll<HL7M.ImagingStudy>(stoppingToken);
-                    foreach (var study in studies)
-                    {
-                        if (!_processedResources.Contains(study.Key))
-                        {
-                            await UploadToBlob(_fhirConfiguration.BlobEndpoint, "fhirimagingstudy", study.Key, study.Value, stoppingToken);
-                            _processedResources.Add(study.Key);
-                        }
-                    }
-                    _logger.LogInformation($"studies {studies.Count} processed.");
+                    while (_currentContinuationToken != null && cnt == 1000);
 
                     // Consent
-                    var consents = await FindAll<HL7M.Consent>(stoppingToken);
-                    foreach (var consent in consents)
+                    do
                     {
-                        if (!_processedResources.Contains(consent.Key))
+                        var consents = await FindAll<HL7M.Consent>(GetCtString(), stoppingToken);
+                        cnt = 0;
+                        foreach (var consent in consents)
                         {
-                            await UploadToBlob(_fhirConfiguration.BlobEndpoint, "fhirconsent", consent.Key, consent.Value, stoppingToken);
-                            _processedResources.Add(consent.Key);
+                            if (!_processedResources.Contains(consent.Key))
+                            {
+                                await UploadToBlob(_fhirConfiguration.BlobEndpoint, "fhirconsent", consent.Key, consent.Value, stoppingToken);
+                                _processedResources.Add(consent.Key);
+                                _logger.LogInformation($"consents {consent.Key} processed.");
+                                cnt++;
+                            }
                         }
-                    }
-                    _logger.LogInformation($"consents {consents.Count} processed.");
+                    } while (_currentContinuationToken != null && cnt == 1000);
 
                     // Diagnostic reports
-                    var diags = await FindAll<HL7M.DiagnosticReport>(stoppingToken);
-                    foreach (var diag in diags)
+                    do
                     {
-                        if (!_processedResources.Contains(diag.Key))
+                        var diags = await FindAll<HL7M.DiagnosticReport>(GetCtString(), stoppingToken);
+                        cnt = 0;
+                        foreach (var diag in diags)
                         {
-                            await UploadToBlob(_fhirConfiguration.BlobEndpoint, "fhirdiagnosticreport", diag.Key, diag.Value, stoppingToken);
-                            _processedResources.Add(diag.Key);
+                            if (!_processedResources.Contains(diag.Key))
+                            {
+                                await UploadToBlob(_fhirConfiguration.BlobEndpoint, "fhirdiagnosticreport", diag.Key, diag.Value, stoppingToken);
+                                _processedResources.Add(diag.Key);
+                                _logger.LogInformation($"DiagnosticReport {diag.Key} processed.");
+                                cnt++;
+                            }
                         }
+                        _logger.LogInformation($"token {_currentContinuationToken}");
                     }
+                    while (_currentContinuationToken != null && cnt == 1000);
 
-                    _logger.LogInformation($"DiagnosticReport {diags.Count} processed.");
+                    //// ImagingStudy
+                    do
+                    {
+                        var studies = await FindAll<HL7M.ImagingStudy>(GetCtString(), stoppingToken);
+                        cnt = 0;
+                        foreach (var study in studies)
+                        {
+                            if (!_processedResources.Contains(study.Key))
+                            {
+                                await UploadToBlob(_fhirConfiguration.BlobEndpoint, "fhirimagingstudy", study.Key, study.Value, stoppingToken);
+                                _processedResources.Add(study.Key);
+
+                                _logger.LogInformation($"fhirimagingstudy {study.Key} processed.");
+                                cnt++;
+                            }
+                        }
+                    } while (_currentContinuationToken != null && cnt == 1000);
+
                     await Task.Delay(10000, stoppingToken);
                 }
                 catch (Exception e)
@@ -104,7 +136,17 @@ namespace Microsoft.Health.DicomCast.Hosting
             }
         }
 
-        private async Task<Dictionary<string, string>> FindAll<TResource>(CancellationToken cancellationToken)
+
+        private string GetCtString()
+        {
+            //if (_currentContinuationToken != null)
+            //{
+            //    return $"ct={_currentContinuationToken}";
+            //}
+            return _currentContinuationToken;
+        }
+
+        private async Task<Dictionary<string, string>> FindAll<TResource>(string query, CancellationToken cancellationToken)
            where TResource : HL7M.Resource, new()
         {
             string fhirTypeName = HL7M.ModelInfo.GetFhirTypeNameForType(typeof(TResource));
@@ -115,9 +157,26 @@ namespace Microsoft.Health.DicomCast.Hosting
 
             HL7M.Bundle bundle = await _fhirClient.SearchAsync(
                 resourceType,
-                query: null,
+                query: query,
                 count: 1000,
                 cancellationToken);
+
+            if (bundle.NextLink != null)
+            {
+                var parsedString = bundle.NextLink.AbsoluteUri.Split('?')[1].Split('&');
+                if (parsedString[0].Contains("ct", StringComparison.OrdinalIgnoreCase))
+                {
+                    _currentContinuationToken = parsedString[0];
+                }
+                else
+                {
+                    _currentContinuationToken = parsedString[1];
+                }
+            }
+            else
+            {
+                _currentContinuationToken = null;
+            }
 
             int matchCount = 0;
             var results = new Dictionary<string, string>();
