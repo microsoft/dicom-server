@@ -49,14 +49,14 @@
   "Logging": {
     "IncludeScopes": false,
     "LogLevel": {
-      "Default": "Warning",
+      "Azure.Core": "Warning",
+      "Default": "Information",
       "DurableTask": "Warning",
       "Host": "Warning",
       "Worker": "Warning"
     },
     "ApplicationInsights": {
       "LogLevel": {
-        "Default": "Information",
         "Microsoft.Health": "Information",
         "Microsoft": "Warning",
         "System": "Warning"
@@ -64,7 +64,6 @@
     }
   },
   "SqlServer": {
-    "ConnectionString": "server=(local);Initial Catalog=Dicom;Integrated Security=true",
     "TransientFaultRetryPolicy": {
       "InitialDelay": "00:00:00.100",
       "RetryCount": 3,

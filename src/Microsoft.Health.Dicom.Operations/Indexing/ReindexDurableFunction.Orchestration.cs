@@ -120,12 +120,5 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
                     nameof(AssignReindexingOperationAsync),
                     _options.ActivityRetryOptions,
                     input.QueryTagKeys);
-
-        private static int GetPercentComplete(WatermarkRange range)
-        {
-            // If we processed a batch, there must be at least one row. And because the Watermark
-            // sequence starts at 1, we know both Start and End must at least be 1.
-            return range.End == 1 ? 100 : (int)((double)(range.End - range.Start + 1) / range.End * 100);
-        }
     }
 }
