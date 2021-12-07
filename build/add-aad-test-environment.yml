@@ -13,7 +13,9 @@ steps:
     azurePowerShellVersion: latestVersion
     ScriptType: inlineScript
     Inline: |
-      Install-Module -Name AzureAD -Force -Verbose -Scope CurrentUser
+      Install-Module -Name AzureAD -Repository PSGallery -Scope CurrentUser -AcceptLicense -Force
+      Import-Module -Name AzureAD
+
       $tenantId = "$(tenant-id)"
 
       # Get admin token

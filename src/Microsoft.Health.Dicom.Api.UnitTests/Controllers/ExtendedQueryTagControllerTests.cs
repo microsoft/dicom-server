@@ -127,13 +127,13 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
             {
                 new AddExtendedQueryTagEntry
                 {
-                    Level = QueryTagLevel.Instance.ToString(),
+                    Level = QueryTagLevel.Instance,
                     Path = "00101001",
                     VR = DicomVRCode.PN,
                 },
                 new AddExtendedQueryTagEntry
                 {
-                    Level = QueryTagLevel.Instance.ToString(),
+                    Level = QueryTagLevel.Instance,
                     Path = "11330001",
                     PrivateCreator = "Microsoft",
                     VR = DicomVRCode.SS,

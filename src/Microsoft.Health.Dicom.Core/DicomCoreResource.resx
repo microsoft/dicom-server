@@ -471,4 +471,12 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="ImplicitVRNotAllowed" xml:space="preserve">
     <value>Implicit VR is not allowed.</value>
   </data>
+  <data name="UnexpectedJsonToken" xml:space="preserve">
+    <value>Expected token type '{0}' but read '{1}' instead.</value>
+    <comment>{0} Expected token type. {1} Actual token type.</comment>
+  </data>
+  <data name="UnexpectedValue" xml:space="preserve">
+    <value>Expected value '{0}' to be one of the following values: [{1}]</value>
+    <comment>{0} Actual value. {1} Comma-separated list of expected values.</comment>
+  </data>
 </root>

@@ -913,6 +913,24 @@ namespace Microsoft.Health.Dicom.Core
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expected token type &apos;{0}&apos; but read &apos;{1}&apos; instead..
+        /// </summary>
+        internal static string UnexpectedJsonToken {
+            get {
+                return ResourceManager.GetString("UnexpectedJsonToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expected value &apos;{0}&apos; to be one of the following values: [{1}].
+        /// </summary>
+        internal static string UnexpectedValue {
+            get {
+                return ResourceManager.GetString("UnexpectedValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid QIDO-RS query. Unknown query parameter &apos;{0}&apos;. If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters, attributes and the levels..
         /// </summary>
         internal static string UnknownQueryParameter {

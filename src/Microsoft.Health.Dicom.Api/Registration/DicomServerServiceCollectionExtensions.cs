@@ -5,7 +5,6 @@
 
 using System;
 using System.Reflection;
-using System.Text.Json.Serialization;
 using EnsureThat;
 using FellowOakDicom.Serialization;
 using Microsoft.AspNetCore.Hosting;
@@ -32,6 +31,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Registration;
+using Microsoft.Health.Dicom.Core.Serialization;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.IO;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -110,7 +110,7 @@ namespace Microsoft.AspNetCore.Builder
                 })
                 .AddJsonSerializerOptions(o =>
                 {
-                    o.Converters.Add(new JsonStringEnumConverter());
+                    o.Converters.Add(new StrictStringEnumConverterFactory());
                     o.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false));
                 });
 
@@ -136,6 +136,7 @@ namespace Microsoft.AspNetCore.Builder
                 options.OperationFilter<SwaggerDefaultValues>();
                 options.OperationFilter<ErrorCodeOperationFilter>();
                 options.OperationFilter<RetrieveOperationFilter>();
+                options.DocumentFilter<ReflectionTypeFilter>();
             });
 
             services.AddSingleton<IUrlResolver, UrlResolver>();
@@ -199,13 +200,13 @@ namespace Microsoft.AspNetCore.Builder
                     });
 
                     //Disabling swagger ui until accesability team gets back to us
-                    /*app.UseSwaggerUI(options =>
-                    {
-                        foreach (ApiVersionDescription description in provider.ApiVersionDescriptions)
-                        {
-                            options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.yaml", description.GroupName.ToUpperInvariant());
-                        }
-                    });*/
+                    //app.UseSwaggerUI(options =>
+                    //{
+                    //    foreach (ApiVersionDescription description in provider.ApiVersionDescriptions)
+                    //    {
+                    //        options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.yaml", description.GroupName.ToUpperInvariant());
+                    //    }
+                    //});
 
                     next(app);
                 };

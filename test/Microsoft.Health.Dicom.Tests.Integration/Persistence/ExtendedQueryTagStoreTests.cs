@@ -350,7 +350,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             for (int i = 0; i < addEntries.Length; i++)
             {
                 Assert.Equal(addEntries[i].Path, entries[i].Path);
-                Assert.Equal(addEntries[i].Level, entries[i].Level.ToString());
+                Assert.Equal(addEntries[i].Level, entries[i].Level);
                 Assert.Equal(addEntries[i].PrivateCreator, entries[i].PrivateCreator);
                 Assert.Equal(addEntries[i].VR, entries[i].VR);
                 Assert.Equal(ExtendedQueryTagStatus.Ready, entries[i].Status);
@@ -414,7 +414,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.Equal(expected.Path, actual.Path);
             Assert.Equal(expected.PrivateCreator, actual.PrivateCreator);
             Assert.Equal(expected.VR, actual.VR);
-            Assert.Equal(expected.Level, actual.Level.ToString());
+            Assert.Equal(expected.Level, actual.Level);
             Assert.Equal(status, actual.Status); // Typically we'll set the status to Adding
             Assert.Equal(queryStatus, actual.QueryStatus);
             Assert.Equal(operationId, actual.OperationId);

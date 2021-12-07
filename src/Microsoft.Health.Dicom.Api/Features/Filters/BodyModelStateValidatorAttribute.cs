@@ -17,7 +17,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
             EnsureArg.IsNotNull(context, nameof(context));
             if (!context.ModelState.IsValid)
             {
-                var error = context.ModelState.First(x => x.Value.ValidationState == AspNetCore.Mvc.ModelBinding.ModelValidationState.Invalid);
+                var error = context.ModelState.Last(x => x.Value.ValidationState == AspNetCore.Mvc.ModelBinding.ModelValidationState.Invalid);
                 throw new InvalidRequestBodyException(error.Key, error.Value.Errors.First().ErrorMessage);
             }
         }

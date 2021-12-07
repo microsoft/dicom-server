@@ -39,6 +39,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
+        // [Trait("Category", "bvt")] // TODO: Enable once functions are enabled in PAAS
         public async Task GivenExtendedQueryTag_WhenReindexing_ThenShouldSucceed()
         {
             if (_isUsingInProcTestServer)
@@ -204,7 +205,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             HttpResponseMessage response = await _client.HttpClient.SendAsync(request, default(CancellationToken)).ConfigureAwait(false);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Equal("The field '[0].Level' in request body is invalid: Input Dicom Tag Level 'Studys' is invalid. It must have value 'Study', 'Series' or 'Instance'.", response.Content.ReadAsStringAsync().Result);
+            Assert.Equal("The field '$[0].Level' in request body is invalid: Expected value 'Studys' to be one of the following values: ['Instance', 'Series', 'Study']", response.Content.ReadAsStringAsync().Result);
         }
 
         private async Task CleanupExtendedQueryTag(DicomTag tag)
