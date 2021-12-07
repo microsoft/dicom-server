@@ -23,11 +23,6 @@
     <PackageReference Include="System.Linq.Async" Version="5.1.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
-
-    <!-- TODO: Remove once shared components are updated -->
-    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="6.15.0" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.15.0" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.15.0" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
