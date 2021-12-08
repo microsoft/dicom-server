@@ -22,9 +22,9 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities
         /// <summary>
         /// Initializes a new instance of the <see cref="IntransientEntity"/> class.
         /// </summary>
-        /// <param name="studyUid">StudyUID of the changefeed entry that failed </param>
-        /// <param name="seriesUid">SeriesUID of the changefeed entry that failed</param>
-        /// <param name="instanceUid">InstanceUID of the changefeed entry that failed</param>
+        /// <param name="studyUid">StudyUid of the changefeed entry that failed </param>
+        /// <param name="seriesUid">SeriesUid of the changefeed entry that failed</param>
+        /// <param name="instanceUid">InstanceUid of the changefeed entry that failed</param>
         /// <param name="changeFeedSequence">Changefeed sequence number that threw exception</param>
         /// <param name="ex">The exception that was thrown</param>
         public IntransientEntity(string studyUid, string seriesUid, string instanceUid, long changeFeedSequence, Exception ex)
@@ -37,18 +37,18 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities
             PartitionKey = ex.GetType().Name;
             RowKey = Guid.NewGuid().ToString();
 
-            StudyUID = studyUid;
-            SeriesUID = seriesUid;
-            InstanceUID = instanceUid;
+            StudyUid = studyUid;
+            SeriesUid = seriesUid;
+            InstanceUid = instanceUid;
             ChangeFeedSequence = changeFeedSequence;
             Exception = ex.ToString();
         }
 
-        public string StudyUID { get; set; }
+        public string StudyUid { get; set; }
 
-        public string SeriesUID { get; set; }
+        public string SeriesUid { get; set; }
 
-        public string InstanceUID { get; set; }
+        public string InstanceUid { get; set; }
 
         public string Exception { get; set; }
 
