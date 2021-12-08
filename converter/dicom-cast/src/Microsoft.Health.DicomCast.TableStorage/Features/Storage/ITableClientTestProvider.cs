@@ -5,7 +5,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.Cosmos.Table;
+using Azure.Data.Tables;
 using Microsoft.Health.DicomCast.TableStorage.Configs;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
@@ -15,10 +15,10 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         /// <summary>
         /// Check to make sure Table Storage is set up and is working properly
         /// </summary>
-        /// <param name="client">Cloud table client to use in the test</param>
+        /// <param name="testServiceClient"><see cref="TableServiceClient"/> to use in the test</param>
         /// <param name="configuration"> Configuration for the table data store</param>
         /// <param name="cancellationToken"> Cancellation Token</param>
         /// <returns>A <see cref="Task"/>.</returns>
-        Task PerformTestAsync(CloudTableClient client, TableDataStoreConfiguration configuration, CancellationToken cancellationToken = default);
+        Task PerformTestAsync(TableServiceClient testServiceClient, TableDataStoreConfiguration configuration, CancellationToken cancellationToken = default);
     }
 }

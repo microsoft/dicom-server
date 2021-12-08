@@ -6,8 +6,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Data.Tables;
 using EnsureThat;
-using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Core;
@@ -16,23 +16,23 @@ using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 {
-    public class TableClientProvider : IHostedService, IRequireInitializationOnFirstRequest, IDisposable
+    public class TableServiceClientProvider : IHostedService, IRequireInitializationOnFirstRequest, IDisposable
     {
-        private readonly CloudTableClient _cloudTableClient;
+        private readonly TableServiceClient _tableServiceClient;
         private readonly RetryableInitializationOperation _initializationOperation;
 
-        public TableClientProvider(
+        public TableServiceClientProvider(
             TableDataStoreConfiguration tableDataStoreConfiguration,
-            ITableClientInitializer tableClientIntilizer,
-            ILogger<TableClientProvider> logger)
+            ITableServiceClientInitializer tableServiceClientInitializer,
+            ILogger<TableServiceClientProvider> logger)
         {
             EnsureArg.IsNotNull(tableDataStoreConfiguration, nameof(tableDataStoreConfiguration));
-            EnsureArg.IsNotNull(tableClientIntilizer, nameof(tableClientIntilizer));
+            EnsureArg.IsNotNull(tableServiceClientInitializer, nameof(tableServiceClientInitializer));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _cloudTableClient = tableClientIntilizer.CreateTableClient();
+            _tableServiceClient = tableServiceClientInitializer.CreateTableServiceClient();
             _initializationOperation = new RetryableInitializationOperation(
-                () => tableClientIntilizer.IntializeDataStoreAsync(_cloudTableClient));
+                () => tableServiceClientInitializer.InitializeDataStoreAsync(_tableServiceClient));
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -68,14 +68,14 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             }
         }
 
-        public CloudTableClient CreateTableClient()
+        public TableServiceClient CreateTableServiceClient()
         {
             if (!_initializationOperation.IsInitialized)
             {
                 _initializationOperation.EnsureInitialized().AsTask().GetAwaiter().GetResult();
             }
 
-            return _cloudTableClient;
+            return _tableServiceClient;
         }
     }
 }

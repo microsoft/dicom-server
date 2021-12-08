@@ -5,20 +5,21 @@
 
 using System;
 using System.Threading.Tasks;
+using Azure.Data.Tables;
+using Azure.Identity;
 using EnsureThat;
-using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.DicomCast.TableStorage.Configs;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 {
-    public class TableClientInitializer : ITableClientInitializer
+    public class TableServiceClientInitializer : ITableServiceClientInitializer
     {
-        private readonly ILogger<TableClientInitializer> _logger;
+        private readonly ILogger<TableServiceClientInitializer> _logger;
         private readonly TableDataStoreConfiguration _configuration;
 
-        public TableClientInitializer(
-            ILogger<TableClientInitializer> logger,
+        public TableServiceClientInitializer(
+            ILogger<TableServiceClientInitializer> logger,
             TableDataStoreConfiguration configuration)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
@@ -28,32 +29,29 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         }
 
         /// <inheritdoc />
-        public CloudTableClient CreateTableClient()
+        public TableServiceClient CreateTableServiceClient()
         {
-            _logger.LogInformation("Creating TableClient instance");
+            // TODO: Add retry policy for accessing the table storage
+            if (!string.IsNullOrWhiteSpace(_configuration.ConnectionString))
+            {
+                return new TableServiceClient(_configuration.ConnectionString);
+            }
 
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(_configuration.ConnectionString);
-
-            // TODO: Add retry policy for acessing the table storage
-            var tableRequestOptions = new TableRequestOptions();
-
-            CloudTableClient tableClient = storageAccount.CreateCloudTableClient(new TableClientConfiguration());
-
-            return tableClient;
+            var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions { ManagedIdentityClientId = _configuration.ManagedIdentityClientId });
+            return new TableServiceClient(_configuration.EndpointUri, credential);
         }
 
         /// <inheritdoc />
-        public async Task IntializeDataStoreAsync(CloudTableClient client)
+        public async Task InitializeDataStoreAsync(TableServiceClient tableServiceClient)
         {
-            EnsureArg.IsNotNull(client, nameof(client));
+            EnsureArg.IsNotNull(tableServiceClient, nameof(tableServiceClient));
 
             try
             {
                 _logger.LogInformation("Initializing Table Storage and tables");
                 foreach (string tableName in Constants.AllTables)
                 {
-                    CloudTable table = client.GetTableReference(tableName);
-                    if (await table.CreateIfNotExistsAsync())
+                    if (await tableServiceClient.CreateTableIfNotExistsAsync(tableName) != null)
                     {
                         _logger.LogInformation("Created Table named '{TableName}'", tableName);
                     }

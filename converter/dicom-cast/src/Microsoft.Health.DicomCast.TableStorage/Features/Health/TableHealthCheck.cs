@@ -6,8 +6,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Data.Tables;
 using EnsureThat;
-using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.DicomCast.TableStorage.Configs;
@@ -17,13 +17,13 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Health
 {
     public class TableHealthCheck : IHealthCheck
     {
-        private readonly CloudTableClient _client;
+        private readonly TableServiceClient _client;
         private readonly TableDataStoreConfiguration _configuration;
         private readonly ITableClientTestProvider _testProvider;
         private readonly ILogger<TableHealthCheck> _logger;
 
         public TableHealthCheck(
-            CloudTableClient client,
+            TableServiceClient client,
             TableDataStoreConfiguration configuration,
             ITableClientTestProvider testProvider,
             ILogger<TableHealthCheck> logger)

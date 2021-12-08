@@ -4,15 +4,16 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using Azure;
+using Azure.Data.Tables;
 using EnsureThat;
-using Microsoft.Azure.Cosmos.Table;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities
 {
     /// <summary>
     /// Entity used to represent a fhir intransient error
     /// </summary>
-    public class IntransientEntity : TableEntity
+    public class IntransientEntity : ITableEntity
     {
         public IntransientEntity()
         {
@@ -52,5 +53,9 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities
         public string Exception { get; set; }
 
         public long ChangeFeedSequence { get; set; }
+        public string PartitionKey { get; set; }
+        public string RowKey { get; set; }
+        public DateTimeOffset? Timestamp { get; set; }
+        public ETag ETag { get; set; }
     }
 }

@@ -4,12 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using Azure;
+using Azure.Data.Tables;
 using EnsureThat;
-using Microsoft.Azure.Cosmos.Table;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Models.Entities
 {
-    public class RetryableEntity : TableEntity
+    public class RetryableEntity : ITableEntity
     {
         public RetryableEntity()
         {
@@ -53,5 +54,9 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Models.Entiti
         public int RetryNumber { get; set; }
 
         public string Exception { get; set; }
+        public string PartitionKey { get; set; }
+        public string RowKey { get; set; }
+        public DateTimeOffset? Timestamp { get; set; }
+        public ETag ETag { get; set; }
     }
 }

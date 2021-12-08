@@ -6,7 +6,8 @@
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.Azure.Cosmos.Table;
+using Azure.Data.Tables;
+using Azure.Identity;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.DicomCast.TableStorage.Configs;
@@ -20,7 +21,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.UnitTests.Features.Health
 {
     public class TableHealthCheckTests
     {
-        private readonly CloudTableClient _client = Substitute.For<CloudTableClient>(new Uri("https://www.microsoft.com/"), new StorageCredentials(), new TableClientConfiguration());
+        private readonly TableServiceClient _client = Substitute.For<TableServiceClient>(new Uri("https://www.microsoft.com/"), new DefaultAzureCredential());
         private readonly ITableClientTestProvider _testProvider = Substitute.For<ITableClientTestProvider>();
         private readonly TableDataStoreConfiguration _configuration = new TableDataStoreConfiguration { };
 

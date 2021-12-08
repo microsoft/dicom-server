@@ -5,8 +5,8 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Data.Tables;
 using EnsureThat;
-using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Health.DicomCast.TableStorage.Configs;
 using Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities;
 
@@ -20,27 +20,23 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         private const string TestTable = "testTable";
 
         /// <inheritdoc/>
-        public async Task PerformTestAsync(CloudTableClient client, TableDataStoreConfiguration configuration, CancellationToken cancellationToken = default)
+        public async Task PerformTestAsync(TableServiceClient testServiceClient, TableDataStoreConfiguration configuration, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNull(client, nameof(client));
+            EnsureArg.IsNotNull(testServiceClient, nameof(testServiceClient));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-            CloudTable table = client.GetTableReference(TestTable);
-            await table.CreateIfNotExistsAsync(cancellationToken);
+            await testServiceClient.CreateTableIfNotExistsAsync(TestTable, cancellationToken: cancellationToken);
 
+            var tableClient = testServiceClient.GetTableClient(TestTable);
             var entity = new HealthEntity(TestPartitionKey, TestRowKey) { Data = TestData };
 
-            var insertOrMergeOperation = TableOperation.InsertOrMerge(entity);
+            await tableClient.UpsertEntityAsync(entity, cancellationToken: cancellationToken);
 
-            await table.ExecuteAsync(insertOrMergeOperation, cancellationToken);
+            await tableClient.GetEntityAsync<HealthEntity>(TestPartitionKey, TestRowKey, cancellationToken: cancellationToken);
 
-            var retrieveOperation = TableOperation.Retrieve<HealthEntity>(TestPartitionKey, TestRowKey);
-            await table.ExecuteAsync(retrieveOperation, cancellationToken);
+            await tableClient.DeleteEntityAsync(TestPartitionKey, TestRowKey, cancellationToken: cancellationToken);
 
-            var deleteOperation = TableOperation.Delete(entity);
-            await table.ExecuteAsync(deleteOperation, cancellationToken);
-
-            await table.DeleteAsync(cancellationToken);
+            await testServiceClient.DeleteTableAsync(TestTable, cancellationToken);
         }
     }
 }

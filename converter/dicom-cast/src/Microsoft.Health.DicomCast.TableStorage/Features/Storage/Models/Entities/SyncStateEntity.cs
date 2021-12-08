@@ -3,13 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using Azure;
+using Azure.Data.Tables;
 using EnsureThat;
-using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Health.DicomCast.Core.Features.State;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Models.Entities
 {
-    public class SyncStateEntity : TableEntity
+    public class SyncStateEntity : ITableEntity
     {
         public SyncStateEntity()
         {
@@ -30,5 +32,9 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Models.Entiti
         }
 
         public long SyncedSequence { get; set; }
+        public string PartitionKey { get; set; }
+        public string RowKey { get; set; }
+        public DateTimeOffset? Timestamp { get; set; }
+        public ETag ETag { get; set; }
     }
 }

@@ -51,7 +51,7 @@ namespace Microsoft.Health.DicomCast.TableStorage
                     var config = new TableDataStoreConfiguration();
                     configuration.GetSection(TableStoreConfigurationSectionName).Bind(config);
 
-                    if (string.IsNullOrEmpty(config.ConnectionString))
+                    if (string.IsNullOrEmpty(config.ConnectionString) && config.EndpointUri == null)
                     {
                         config.ConnectionString = TableStorageLocalEmulator.ConnectionString;
                     }
@@ -61,19 +61,19 @@ namespace Microsoft.Health.DicomCast.TableStorage
                 .Singleton()
                 .AsSelf();
 
-            serviceCollection.Add<TableClientProvider>()
+            serviceCollection.Add<TableServiceClientProvider>()
                 .Singleton()
                 .AsSelf()
                 .AsService<IHostedService>()
                 .AsService<IRequireInitializationOnFirstRequest>();
 
-            serviceCollection.Add(sp => sp.GetService<TableClientProvider>().CreateTableClient())
+            serviceCollection.Add(sp => sp.GetService<TableServiceClientProvider>().CreateTableServiceClient())
                 .Singleton()
                 .AsSelf();
 
-            serviceCollection.Add<TableClientInitializer>()
+            serviceCollection.Add<TableServiceClientInitializer>()
                 .Singleton()
-                .AsService<ITableClientInitializer>();
+                .AsService<ITableServiceClientInitializer>();
 
             serviceCollection.Add<TableExceptionStore>()
                 .Singleton()

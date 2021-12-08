@@ -5,8 +5,9 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Azure;
+using Azure.Data.Tables;
 using EnsureThat;
-using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Health.DicomCast.Core.Features.State;
 using Microsoft.Health.DicomCast.TableStorage.Features.Storage.Models.Entities;
 
@@ -14,35 +15,36 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Models
 {
     public class TableSyncStateStore : ISyncStateStore
     {
-        private readonly CloudTableClient _client;
+        private readonly TableServiceClient _tableServiceClient;
 
-        public TableSyncStateStore(CloudTableClient client)
+        public TableSyncStateStore(TableServiceClient tableServiceClient)
         {
-            EnsureArg.IsNotNull(client, nameof(client));
+            EnsureArg.IsNotNull(tableServiceClient, nameof(tableServiceClient));
 
-            _client = client;
+            _tableServiceClient = tableServiceClient;
         }
 
         public async Task<SyncState> ReadAsync(CancellationToken cancellationToken = default)
         {
-            CloudTable table = _client.GetTableReference(Constants.SyncStateTableName);
-            TableOperation retrieveOperation = TableOperation.Retrieve<SyncStateEntity>(Constants.SyncStatePartitionKey, Constants.SyncStateRowKey);
+            TableClient tableClient = _tableServiceClient.GetTableClient(Constants.SyncStateTableName);
 
-            TableResult result = await table.ExecuteAsync(retrieveOperation, cancellationToken);
-
-            return result.Result is SyncStateEntity syncState
-                ? new SyncState(syncState.SyncedSequence, syncState.Timestamp)
-                : SyncState.CreateInitialSyncState();
+            try
+            {
+                var entity = await tableClient.GetEntityAsync<SyncStateEntity>(Constants.SyncStatePartitionKey, Constants.SyncStateRowKey, cancellationToken: cancellationToken);
+                return new SyncState(entity.Value.SyncedSequence, entity.Value.Timestamp.Value);
+            }
+            catch (RequestFailedException)
+            {
+                return SyncState.CreateInitialSyncState();
+            }
         }
 
         public async Task UpdateAsync(SyncState state, CancellationToken cancellationToken = default)
         {
-            CloudTable table = _client.GetTableReference(Constants.SyncStateTableName);
-            TableEntity entity = new SyncStateEntity(state);
+            TableClient tableClient = _tableServiceClient.GetTableClient(Constants.SyncStateTableName);
+            var entity = new SyncStateEntity(state);
 
-            TableOperation operation = TableOperation.InsertOrReplace(entity);
-
-            await table.ExecuteAsync(operation, cancellationToken);
+            await tableClient.UpsertEntityAsync(entity, cancellationToken: cancellationToken);
         }
     }
 }

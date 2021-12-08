@@ -4,27 +4,27 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Threading.Tasks;
-using Microsoft.Azure.Cosmos.Table;
+using Azure.Data.Tables;
 using Microsoft.Health.DicomCast.TableStorage.Configs;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 {
     /// <summary>
-    /// Provides methods for creating a TableClient instance and initializing tables.
+    /// Provides methods for creating a <see cref="TableServiceClient"/> instance and initializing tables.
     /// </summary>
-    public interface ITableClientInitializer
+    public interface ITableServiceClientInitializer
     {
         /// <summary>
-        /// Creates <see cref="CloudTableClient"/> based on the given <see cref="TableDataStoreConfiguration"/>.
+        /// Creates <see cref="TableServiceClient"/> based on the given <see cref="TableDataStoreConfiguration"/>.
         /// </summary>
-        /// <returns>A <see cref="CloudTableClient"/> instance</returns>
-        CloudTableClient CreateTableClient();
+        /// <returns>A <see cref="TableServiceClient"/> instance</returns>
+        TableServiceClient CreateTableServiceClient();
 
         /// <summary>
         /// Initialize table data store
         /// </summary>
-        /// <param name="client">The <see cref="CloudTableClient"/> instance to use for initialization.</param>
+        /// <param name="tableServiceClient">The <see cref="TableServiceClient"/> instance to use for initialization.</param>
         /// <returns>A <see cref="Task"/>.</returns>
-        Task IntializeDataStoreAsync(CloudTableClient client);
+        Task InitializeDataStoreAsync(TableServiceClient tableServiceClient);
     }
 }
