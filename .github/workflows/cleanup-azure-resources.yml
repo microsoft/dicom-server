@@ -26,7 +26,7 @@ jobs:
 
       # refer: https://microsofthealth.visualstudio.com/Health/_wiki/wikis/Health.wiki/163/OSS-CI
       - name: Login via Az module
-        uses: azure/login@v1.4.1
+        uses: azure/login@v1.4.2
         with:
           client-id: "${{secrets.AZ_DEVOPS_APP_ID}}"
           tenant-id: "${{secrets.AZ_DEVOPS_TENANT_ID}}"

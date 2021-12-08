@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
     public class SqlDataStoreTestsFixture : IAsyncLifetime
     {
-        private const string LocalConnectionString = "server=(local);Integrated Security=true";
+        private const string LocalConnectionString = "server=(local);Integrated Security=true;TrustServerCertificate=true";
 
         private readonly string _masterConnectionString;
         private readonly SchemaInitializer _schemaInitializer;

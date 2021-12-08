@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Common primitives and utilities used by Microsoft's DICOM Cast APIs.</Description>
@@ -24,7 +24,7 @@
     <PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="$(FhirServerPackageVersion)" />
     <PackageReference Include="Polly" Version="7.2.2" />
     <PackageReference Include="Scrutor" Version="3.3.0" />
-    <PackageReference Include="System.Linq.Async" Version="5.0.0" />
+    <PackageReference Include="System.Linq.Async" Version="5.1.0" />
   </ItemGroup>
 
   <ItemGroup>
