@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
             // This will ensure there is no multiple partitions when the flag is off
             var sqlSettings = new Dictionary<string, string>
             {
-                { "SqlServer:ConnectionString", $"server=(local);Initial Catalog={dbName};Integrated Security=true" },
+                { "SqlServer:ConnectionString", $"server=(local);Initial Catalog={dbName};Integrated Security=true;TrustServerCertificate=true" },
             };
 
             IWebHostBuilder builder = WebHost.CreateDefaultBuilder()
