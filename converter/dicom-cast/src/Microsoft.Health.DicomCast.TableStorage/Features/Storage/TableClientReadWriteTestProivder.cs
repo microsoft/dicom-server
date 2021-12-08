@@ -7,27 +7,30 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure.Data.Tables;
 using EnsureThat;
-using Microsoft.Health.DicomCast.TableStorage.Configs;
 using Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 {
-    public class TableClientReadWriteTestProivder : ITableClientTestProvider
+    public class TableClientReadWriteTestProvider : ITableClientTestProvider
     {
         private const string TestPartitionKey = "testpartition";
         private const string TestRowKey = "testrow";
         private const string TestData = "testdata";
         private const string TestTable = "testTable";
 
-        /// <inheritdoc/>
-        public async Task PerformTestAsync(TableServiceClient testServiceClient, TableDataStoreConfiguration configuration, CancellationToken cancellationToken = default)
+        private readonly TableServiceClient _testServiceClient;
+
+        public TableClientReadWriteTestProvider(TableServiceClient testServiceClient)
         {
-            EnsureArg.IsNotNull(testServiceClient, nameof(testServiceClient));
-            EnsureArg.IsNotNull(configuration, nameof(configuration));
+            _testServiceClient = EnsureArg.IsNotNull(testServiceClient, nameof(testServiceClient));
+        }
 
-            await testServiceClient.CreateTableIfNotExistsAsync(TestTable, cancellationToken: cancellationToken);
+        /// <inheritdoc/>
+        public async Task PerformTestAsync(CancellationToken cancellationToken = default)
+        {
+            await _testServiceClient.CreateTableIfNotExistsAsync(TestTable, cancellationToken: cancellationToken);
 
-            var tableClient = testServiceClient.GetTableClient(TestTable);
+            var tableClient = _testServiceClient.GetTableClient(TestTable);
             var entity = new HealthEntity(TestPartitionKey, TestRowKey) { Data = TestData };
 
             await tableClient.UpsertEntityAsync(entity, cancellationToken: cancellationToken);
@@ -36,7 +39,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 
             await tableClient.DeleteEntityAsync(TestPartitionKey, TestRowKey, cancellationToken: cancellationToken);
 
-            await testServiceClient.DeleteTableAsync(TestTable, cancellationToken);
+            await _testServiceClient.DeleteTableAsync(TestTable, cancellationToken);
         }
     }
 }

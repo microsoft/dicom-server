@@ -6,35 +6,25 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Data.Tables;
 using EnsureThat;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.DicomCast.TableStorage.Configs;
 using Microsoft.Health.DicomCast.TableStorage.Features.Storage;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Health
 {
     public class TableHealthCheck : IHealthCheck
     {
-        private readonly TableServiceClient _client;
-        private readonly TableDataStoreConfiguration _configuration;
         private readonly ITableClientTestProvider _testProvider;
         private readonly ILogger<TableHealthCheck> _logger;
 
         public TableHealthCheck(
-            TableServiceClient client,
-            TableDataStoreConfiguration configuration,
             ITableClientTestProvider testProvider,
             ILogger<TableHealthCheck> logger)
         {
-            EnsureArg.IsNotNull(client, nameof(client));
-            EnsureArg.IsNotNull(configuration, nameof(configuration));
             EnsureArg.IsNotNull(testProvider, nameof(testProvider));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _client = client;
-            _configuration = configuration;
             _testProvider = testProvider;
             _logger = logger;
         }
@@ -43,7 +33,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Health
         {
             try
             {
-                await _testProvider.PerformTestAsync(_client, _configuration, cancellationToken);
+                await _testProvider.PerformTestAsync(cancellationToken);
 
                 return HealthCheckResult.Healthy("Successfully connected to the table data store.");
             }
