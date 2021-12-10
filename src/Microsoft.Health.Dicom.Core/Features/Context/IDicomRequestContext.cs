@@ -22,6 +22,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Context
 
         long ResponseSize { get; set; }
 
+        long ResponseSize2 { get; set; }
+
         PartitionEntry DataPartitionEntry { get; set; }
     }
 }

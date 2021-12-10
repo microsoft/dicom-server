@@ -59,14 +59,16 @@ namespace Microsoft.Health.Dicom.Api.Features.Context
                 {
                     // Call the next delegate/middleware in the pipeline
                     await _next(context);
-                }
-                finally
-                {
+
                     long responseBodySize = byteCountingStream.WriteCount;
                     long responseHeaderSize = context.Response.Headers.GetTotalHeaderLength();
                     long totalResponseSize = responseBodySize + responseHeaderSize;
 
                     dicomRequestContextAccessor.RequestContext.ResponseSize = totalResponseSize;
+                }
+                finally
+                {
+                    dicomRequestContextAccessor.RequestContext.ResponseSize2 = -3;
                 }
             }
         }
