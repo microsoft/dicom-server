@@ -13,11 +13,18 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Development.IdentityProvider.Registration;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
+using Microsoft.Health.Dicom.Web.Tests.E2E.Functions;
+using FunctionsStartup = Microsoft.Health.Dicom.Functions.Startup;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E
 {
@@ -27,10 +34,16 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
     /// </summary>
     public class InProcTestDicomWebServer : TestDicomWebServer
     {
+        public TestServer Server { get; }
+
+        public override IFunctionApp FunctionApp => new FunctionApp(_webJobsHost);
+
+        private readonly IHost _webJobsHost;
+
         public InProcTestDicomWebServer(Type startupType, bool enableDataPartitions)
             : base(new Uri("http://localhost/"))
         {
-            var contentRoot = GetProjectPath("src", startupType);
+            string contentRoot = GetProjectPath("src", startupType);
 
             var authSettings = new Dictionary<string, string>
             {
@@ -46,7 +59,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
                 { "DicomServer:Features:EnableDataPartitions", enableDataPartitions.ToString() },
             };
 
-            var dbName = enableDataPartitions ? "DicomWithPartitions" : "Dicom";
+            string dbName = enableDataPartitions ? "DicomWithPartitions" : "Dicom";
 
             // Overriding sqlserver connection string to provide different DB for data partition test
             // This will ensure there is no multiple partitions when the flag is off
@@ -63,7 +76,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
                     config.AddInMemoryCollection(authSettings);
                     config.AddInMemoryCollection(featureSettings);
                     config.AddInMemoryCollection(sqlSettings);
-                    var existingConfig = config.Build();
+                    IConfigurationRoot existingConfig = config.Build();
+
                     config.AddDevelopmentAuthEnvironmentIfConfigured(existingConfig, "DicomServer");
                     if (string.Equals(existingConfig["DicomServer:Security:Enabled"], bool.TrueString, StringComparison.OrdinalIgnoreCase))
                     {
@@ -83,19 +97,24 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
                 });
 
             Server = new TestServer(builder);
-        }
 
-        public TestServer Server { get; }
+            _webJobsHost = CreateWebJobHost<FunctionsStartup>(
+                GetProjectPath("src", typeof(FunctionsStartup)),
+                Server.Services.GetRequiredService<ILoggerFactory>());
+        }
 
         public override HttpMessageHandler CreateMessageHandler()
-        {
-            return Server.CreateHandler();
-        }
+            => Server.CreateHandler();
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            Server?.Dispose();
-            base.Dispose();
+            if (disposing)
+            {
+                Server.Dispose();
+                _webJobsHost.Dispose();
+            }
+
+            base.Dispose(disposing);
         }
 
         /// <summary>
@@ -137,6 +156,30 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
             }
 
             throw new Exception($"Project root could not be located for startup type {startupType.FullName}");
+        }
+
+        private static IHost CreateWebJobHost<T>(string contentRoot, ILoggerFactory loggerFactory)
+        {
+            return new HostBuilder()
+                .UseContentRoot(contentRoot)
+                .ConfigureLogging(b => b.AddConsole())
+                .ConfigureAppConfiguration(
+                    b =>
+                    {
+                        b.Add(new HostJsonFileConfigurationSource(contentRoot, loggerFactory));
+                        b.AddConfiguration(EnvironmentConfig.FromLocalSettings(contentRoot));
+                    })
+                .ConfigureWebJobs(
+                   (c, b) =>
+                   {
+                       b.UseWebJobsStartup(typeof(T), new WebJobsBuilderContext { Configuration = c.Configuration }, loggerFactory);
+
+                       // Durable Task
+                       b.AddExtension<DurableTaskExtension>().BindOptions<DurableTaskOptions>();
+                       b.Services.AddDurableClientFactory();
+                       b.Services.TryAddSingleton<IApplicationLifetimeWrapper, HostLifecycleService>();
+                   })
+                .Build();
         }
     }
 }

@@ -16,6 +16,7 @@ using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
+using Microsoft.Health.Dicom.Web.Tests.E2E.Functions;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
@@ -24,6 +25,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
     {
         private const string ErroneousDicomAttributesHeader = "erroneous-dicom-attributes";
         private readonly IDicomWebClient _client;
+        private readonly IFunctionApp _functionApp;
         private readonly DicomTagsManager _tagManager;
         private readonly DicomInstancesManager _instanceManager;
         private readonly bool _isUsingInProcTestServer;
@@ -33,7 +35,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             EnsureArg.IsNotNull(fixture, nameof(fixture));
             EnsureArg.IsNotNull(fixture.Client, nameof(fixture.Client));
             _client = fixture.Client;
-            _isUsingInProcTestServer = fixture.IsUsingInProcTestServer;
+            _functionApp = fixture.FunctionApp;
+            _isUsingInProcTestServer = fixture.IsInProcess;
             _tagManager = new DicomTagsManager(_client);
             _instanceManager = new DicomInstancesManager(_client);
         }
@@ -42,11 +45,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         // [Trait("Category", "bvt")] // TODO: Enable once functions are enabled in PAAS
         public async Task GivenExtendedQueryTag_WhenReindexing_ThenShouldSucceed()
         {
-            if (_isUsingInProcTestServer)
-            {
-                // AzureFunction doesn't have InProc test sever, skip this test.
-                return;
-            }
+            await using JobHostExecution webJobs = await _functionApp.StartAsync();
 
             DicomTag weightTag = DicomTag.PatientWeight;
             DicomTag sizeTag = DicomTag.PatientSize;

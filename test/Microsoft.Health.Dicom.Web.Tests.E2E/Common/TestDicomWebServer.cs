@@ -6,6 +6,7 @@
 using System;
 using System.Net.Http;
 using EnsureThat;
+using Microsoft.Health.Dicom.Web.Tests.E2E.Functions;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
 {
@@ -15,18 +16,21 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
     public abstract class TestDicomWebServer : IDisposable
     {
         protected TestDicomWebServer(Uri baseAddress)
-        {
-            EnsureArg.IsNotNull(baseAddress, nameof(baseAddress));
-
-            BaseAddress = baseAddress;
-        }
+            => BaseAddress = EnsureArg.IsNotNull(baseAddress, nameof(baseAddress));
 
         public Uri BaseAddress { get; }
 
+        public virtual IFunctionApp FunctionApp => NullFunctionApp.Instance;
+
         public abstract HttpMessageHandler CreateMessageHandler();
 
-        public virtual void Dispose()
+        protected virtual void Dispose(bool disposing)
+        { }
+
+        public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }
