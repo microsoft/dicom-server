@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
-using Microsoft.Health.Api.Extensions;
-using Microsoft.Health.Core.Features.MonitorStream;
 using Microsoft.Health.Dicom.Core.Features.Context;
 
 namespace Microsoft.Health.Dicom.Api.Features.Context
@@ -51,26 +49,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Context
 
             dicomRequestContextAccessor.RequestContext = dicomRequestContext;
 
-            using (MonitoredStream byteCountingStream = new MonitoredStream(context.Response.Body))
-            {
-                context.Response.Body = byteCountingStream;
-
-                try
-                {
-                    // Call the next delegate/middleware in the pipeline
-                    await _next(context);
-
-                    long responseBodySize = byteCountingStream.WriteCount;
-                    long responseHeaderSize = context.Response.Headers.GetTotalHeaderLength();
-                    long totalResponseSize = responseBodySize + responseHeaderSize;
-
-                    dicomRequestContextAccessor.RequestContext.ResponseSize = totalResponseSize;
-                }
-                finally
-                {
-                    dicomRequestContextAccessor.RequestContext.ResponseSize2 = -3;
-                }
-            }
+            // Call the next delegate/middleware in the pipeline
+            await _next(context);
         }
     }
 }
