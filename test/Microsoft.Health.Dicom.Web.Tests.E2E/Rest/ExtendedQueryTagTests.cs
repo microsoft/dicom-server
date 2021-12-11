@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -17,25 +16,22 @@ using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
-using Microsoft.Health.Dicom.Web.Tests.E2E.Functions;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
-    public class ExtendedQueryTagTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
+    public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture<Startup>>, IAsyncLifetime
     {
         private const string ErroneousDicomAttributesHeader = "erroneous-dicom-attributes";
         private readonly IDicomWebClient _client;
-        private readonly IFunctionApp _functionApp;
         private readonly DicomTagsManager _tagManager;
         private readonly DicomInstancesManager _instanceManager;
 
-        public ExtendedQueryTagTests(HttpIntegrationTestFixture<Startup> fixture)
+        public ExtendedQueryTagTests(WebJobsIntegrationTestFixture<Startup> fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
             EnsureArg.IsNotNull(fixture.Client, nameof(fixture.Client));
             _client = fixture.Client;
-            _functionApp = fixture.FunctionApp;
             _tagManager = new DicomTagsManager(_client);
             _instanceManager = new DicomInstancesManager(_client);
         }
@@ -44,8 +40,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         // [Trait("Category", "bvt")] // TODO: Enable once functions are enabled in PAAS
         public async Task GivenExtendedQueryTag_WhenReindexing_ThenShouldSucceed()
         {
-            await using IAsyncDisposable hostExecution = await _functionApp.StartAsync();
-
             DicomTag weightTag = DicomTag.PatientWeight;
             DicomTag sizeTag = DicomTag.PatientSize;
 
@@ -101,8 +95,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenExtendedQueryTagWithErrors_WhenReindexing_ThenShouldSucceedWithErrors()
         {
-            await using IAsyncDisposable hostExecution = await _functionApp.StartAsync();
-
             // Define tags
             DicomTag tag = DicomTag.PatientAge;
             string tagValue = "053Y";
@@ -224,9 +216,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         public Task InitializeAsync()
-        {
-            return Task.CompletedTask;
-        }
+            => Task.CompletedTask;
 
         public async Task DisposeAsync()
         {

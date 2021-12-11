@@ -10,9 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using EnsureThat;
-using Microsoft.Azure.WebJobs.Logging;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -22,39 +20,23 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
     // https://github.com/Azure/azure-functions-host/blob/dev/src/WebJobs.Script/Config/HostJsonFileConfigurationSource.cs
     public class HostJsonFileConfigurationSource : IConfigurationSource
     {
-        private readonly ILogger _logger;
-
         public string ScriptPath { get; }
 
-        public HostJsonFileConfigurationSource(string scriptPath, ILoggerFactory loggerFactory)
-        {
-            ScriptPath = EnsureArg.IsNotEmpty(scriptPath, nameof(scriptPath));
-            _logger = EnsureArg.IsNotNull(loggerFactory, nameof(loggerFactory)).CreateLogger(LogCategories.Startup);
-        }
+        public HostJsonFileConfigurationSource(string scriptPath)
+            => ScriptPath = EnsureArg.IsNotEmpty(scriptPath, nameof(scriptPath));
 
         public IConfigurationProvider Build(IConfigurationBuilder builder)
-        {
-            return new HostJsonFileConfigurationProvider(this, _logger);
-        }
+            => new HostJsonFileConfigurationProvider(this);
 
         public class HostJsonFileConfigurationProvider : ConfigurationProvider
         {
-            private static readonly string[] WellKnownHostJsonProperties = new[]
-            {
-                "version", "functionTimeout", "retry", "functions", "http", "watchDirectories", "watchFiles", "queues", "serviceBus",
-                "eventHub", "singleton", "logging", "aggregator", "healthMonitor", "extensionBundle", "managedDependencies",
-                "customHandler", "httpWorker", "extensions", "concurrency"
-            };
-
             private readonly HostJsonFileConfigurationSource _configurationSource;
             private readonly Stack<string> _path;
-            private readonly ILogger _logger;
 
-            public HostJsonFileConfigurationProvider(HostJsonFileConfigurationSource configurationSource, ILogger logger)
+            public HostJsonFileConfigurationProvider(HostJsonFileConfigurationSource configurationSource)
             {
                 _configurationSource = configurationSource;
                 _path = new Stack<string>();
-                _logger = logger;
             }
 
             public override void Load()
@@ -132,10 +114,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
                 string hostFilePath = Path.Combine(_configurationSource.ScriptPath, ScriptConstants.HostMetadataFileName);
                 JObject hostConfigObject = LoadHostConfig(hostFilePath);
                 hostConfigObject = InitializeHostConfig(hostFilePath, hostConfigObject);
-                string sanitizedJson = SanitizeHostJson(hostConfigObject);
-
-                _logger.LogInformation("Loaded configuration from '{Path}'.", hostFilePath);
-                _logger.LogDebug("Host configuration:" + Environment.NewLine + "{Config}", sanitizedJson);
 
                 return hostConfigObject;
             }
@@ -145,8 +123,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
                 // If the object is empty, initialize it to include the version and write the file.
                 if (!hostConfigObject.HasValues)
                 {
-                    _logger.LogWarning("Host configuration is empty");
-
                     hostConfigObject = GetDefaultHostConfigObject();
                     TryWriteHostJson(hostJsonPath, hostConfigObject);
                 }
@@ -186,9 +162,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
                 }
                 catch (Exception ex) when (ex is FileNotFoundException || ex is DirectoryNotFoundException)
                 {
-                    // if no file exists we default the config
-                    _logger.LogError("Cannot find host configuration at '{Path}'.", configFilePath);
-
                     // There isn't a clean way to create a new function app resource with host.json as initial payload.
                     // So a newly created function app from the portal would have no host.json. In that case we need to
                     // create a new function app with host.json that includes a matching extension bundle based on the app kind.
@@ -215,34 +188,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
                     File.WriteAllText(filePath, content.ToString(Formatting.Indented));
                 }
                 catch
-                {
-                    _logger.LogError("Unable to write host configuration to '{Path}'.", filePath);
-                }
+                { }
             }
 
             private JObject TryAddBundleConfiguration(JObject content, string bundleId, string bundleVersion)
             {
                 string bundleConfiguration = "{ 'id': '" + bundleId + "', 'version': '" + bundleVersion + "'}";
                 content.Add("extensionBundle", JToken.Parse(bundleConfiguration));
-                _logger.LogInformation("Added bundle '{BundleId}' with version '{BundleVersion}'.", bundleId, bundleVersion);
 
                 return content;
-            }
-
-            internal static string SanitizeHostJson(JObject hostJsonObject)
-            {
-                JObject sanitizedObject = new JObject();
-
-                foreach (var propName in WellKnownHostJsonProperties)
-                {
-                    var propValue = hostJsonObject[propName];
-                    if (propValue != null)
-                    {
-                        sanitizedObject[propName] = propValue;
-                    }
-                }
-
-                return sanitizedObject.ToString();
             }
         }
     }
