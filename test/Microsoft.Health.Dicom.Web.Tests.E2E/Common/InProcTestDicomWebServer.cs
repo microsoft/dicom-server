@@ -162,13 +162,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
             return new HostBuilder()
                 .UseContentRoot(contentRoot)
                 .ConfigureLogging(b => b.AddConsole())
-                .ConfigureAppConfiguration(
-                    b =>
-                    {
-                        b.Add(AzureFunctionsConfiguration.CreateRoot());
-                        b.Add(new HostJsonFileConfigurationSource(contentRoot, loggerFactory));
-                        b.Add(EnvironmentConfig.FromLocalSettings(contentRoot));
-                    })
+                .ConfigureAppConfiguration(b => b
+                    .Add(AzureFunctionsConfiguration.CreateRoot())
+                    .Add(new HostJsonFileConfigurationSource(contentRoot, loggerFactory))
+                    .Add(EnvironmentConfig.FromLocalSettings(contentRoot)))
                 .ConfigureWebJobs(
                    (c, b) =>
                    {

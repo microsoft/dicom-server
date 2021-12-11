@@ -3,10 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.Threading;
+using System;
 using System.Threading.Tasks;
-using Microsoft.Azure.WebJobs;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
 {
@@ -17,24 +15,21 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
         private NullFunctionApp()
         { }
 
-        public ValueTask<JobHostExecution> StartAsync()
-            => ValueTask.FromResult(new JobHostExecution(NullJobHost.Instance));
+        public ValueTask<IAsyncDisposable> StartAsync()
+            => ValueTask.FromResult(NullAsyncDisposable.Instance);
 
-        private sealed class NullJobHost : IJobHost
+        public ValueTask StopAsync()
+            => ValueTask.CompletedTask;
+
+        private sealed class NullAsyncDisposable : IAsyncDisposable
         {
-            public static IJobHost Instance { get; } = new NullJobHost();
+            public static IAsyncDisposable Instance { get; } = new NullAsyncDisposable();
 
-            private NullJobHost()
+            private NullAsyncDisposable()
             { }
 
-            public Task CallAsync(string name, IDictionary<string, object> arguments = null, CancellationToken cancellationToken = default)
-                => Task.CompletedTask;
-
-            public Task StartAsync(CancellationToken cancellationToken)
-                => Task.CompletedTask;
-
-            public Task StopAsync()
-                => Task.CompletedTask;
+            public ValueTask DisposeAsync()
+                => ValueTask.CompletedTask;
         }
     }
 }

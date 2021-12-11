@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -43,7 +44,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         // [Trait("Category", "bvt")] // TODO: Enable once functions are enabled in PAAS
         public async Task GivenExtendedQueryTag_WhenReindexing_ThenShouldSucceed()
         {
-            await using JobHostExecution webJobs = await _functionApp.StartAsync();
+            await using IAsyncDisposable hostExecution = await _functionApp.StartAsync();
 
             DicomTag weightTag = DicomTag.PatientWeight;
             DicomTag sizeTag = DicomTag.PatientSize;
@@ -100,7 +101,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenExtendedQueryTagWithErrors_WhenReindexing_ThenShouldSucceedWithErrors()
         {
-            await using JobHostExecution webJobs = await _functionApp.StartAsync();
+            await using IAsyncDisposable hostExecution = await _functionApp.StartAsync();
 
             // Define tags
             DicomTag tag = DicomTag.PatientAge;

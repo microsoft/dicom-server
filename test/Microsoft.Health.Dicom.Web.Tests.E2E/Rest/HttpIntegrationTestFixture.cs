@@ -7,9 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
-using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Client;
 using Microsoft.Health.Dicom.Client;
@@ -118,17 +116,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             HttpClient.Dispose();
             TestDicomWebServer?.Dispose();
             GC.SuppressFinalize(this);
-        }
-
-        private sealed class JobHostLifetime : IAsyncDisposable
-        {
-            private readonly IJobHost _jobHost;
-
-            public JobHostLifetime(IJobHost jobHost)
-                => _jobHost = EnsureArg.IsNotNull(jobHost, nameof(jobHost));
-
-            public async ValueTask DisposeAsync()
-                => await _jobHost.StopAsync();
         }
     }
 }
