@@ -98,7 +98,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
                     case JTokenType.Raw:
                     case JTokenType.Bytes:
                     case JTokenType.TimeSpan:
-                        string key = AzureFunctionsConfigurationSectionNames.JobHost + ConfigurationPath.KeyDelimiter + ConfigurationPath.Combine(_path.Reverse());
+                        string key = AzureFunctionsConfiguration.JobHostSectionName + ConfigurationPath.KeyDelimiter + ConfigurationPath.Combine(_path.Reverse());
                         Data[key] = token.Value<JValue>().ToString(CultureInfo.InvariantCulture);
                         break;
                     default:

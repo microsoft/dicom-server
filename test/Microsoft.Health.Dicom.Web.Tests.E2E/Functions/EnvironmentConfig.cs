@@ -9,12 +9,13 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Memory;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
 {
     internal static class EnvironmentConfig
     {
-        public static IConfiguration FromLocalSettings(string filePath)
+        public static IConfigurationSource FromLocalSettings(string filePath)
         {
             using FileStream file = File.OpenRead(Path.Combine(filePath, ScriptConstants.LocalSettingsFileName));
             Settings settings = JsonSerializer.Deserialize<Settings>(file);
@@ -24,9 +25,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
                 throw new InvalidOperationException($"Cannot process encrypted settings at '{filePath}'.");
             }
 
-            return new ConfigurationBuilder()
-                .AddInMemoryCollection(settings.Values.Select(x => KeyValuePair.Create(x.Key.Replace("__", ":"), x.Value)))
-                .Build();
+            return new MemoryConfigurationSource
+            {
+                InitialData = settings.Values.Select(x => KeyValuePair.Create(x.Key.Replace("__", ":"), x.Value)),
+            };
         }
 
         private sealed class Settings

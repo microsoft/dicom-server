@@ -17,7 +17,6 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -68,7 +67,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
                 { "SqlServer:ConnectionString", $"server=(local);Initial Catalog={dbName};Integrated Security=true;TrustServerCertificate=true" },
             };
 
-            IWebHostBuilder builder = WebHost.CreateDefaultBuilder()
+            IWebHostBuilder builder = WebHost.CreateDefaultBuilder(new string[] { "--environment", "Development" })
                 .UseContentRoot(contentRoot)
                 .UseStartup(startupType)
                 .ConfigureAppConfiguration((hostingContext, config) =>
@@ -166,8 +165,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
                 .ConfigureAppConfiguration(
                     b =>
                     {
+                        b.Add(AzureFunctionsConfiguration.CreateRoot());
                         b.Add(new HostJsonFileConfigurationSource(contentRoot, loggerFactory));
-                        b.AddConfiguration(EnvironmentConfig.FromLocalSettings(contentRoot));
+                        b.Add(EnvironmentConfig.FromLocalSettings(contentRoot));
                     })
                 .ConfigureWebJobs(
                    (c, b) =>
@@ -176,8 +176,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
 
                        // Durable Task
                        b.AddExtension<DurableTaskExtension>().BindOptions<DurableTaskOptions>();
-                       b.Services.AddDurableClientFactory();
-                       b.Services.TryAddSingleton<IApplicationLifetimeWrapper, HostLifecycleService>();
+                       b.AddDurableTask();
                    })
                 .Build();
         }

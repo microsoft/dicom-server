@@ -28,7 +28,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         private readonly IFunctionApp _functionApp;
         private readonly DicomTagsManager _tagManager;
         private readonly DicomInstancesManager _instanceManager;
-        private readonly bool _isUsingInProcTestServer;
 
         public ExtendedQueryTagTests(HttpIntegrationTestFixture<Startup> fixture)
         {
@@ -36,7 +35,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             EnsureArg.IsNotNull(fixture.Client, nameof(fixture.Client));
             _client = fixture.Client;
             _functionApp = fixture.FunctionApp;
-            _isUsingInProcTestServer = fixture.IsInProcess;
             _tagManager = new DicomTagsManager(_client);
             _instanceManager = new DicomInstancesManager(_client);
         }
@@ -102,11 +100,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenExtendedQueryTagWithErrors_WhenReindexing_ThenShouldSucceedWithErrors()
         {
-            if (_isUsingInProcTestServer)
-            {
-                // AzureFunction doesn't have InProc test sever, skip this test.
-                return;
-            }
+            await using JobHostExecution webJobs = await _functionApp.StartAsync();
 
             // Define tags
             DicomTag tag = DicomTag.PatientAge;
