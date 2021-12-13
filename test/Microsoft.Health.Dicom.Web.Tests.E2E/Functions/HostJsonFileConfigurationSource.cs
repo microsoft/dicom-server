@@ -31,13 +31,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
         public class HostJsonFileConfigurationProvider : ConfigurationProvider
         {
             private readonly HostJsonFileConfigurationSource _configurationSource;
-            private readonly Stack<string> _path;
+            private readonly Stack<string> _path = new Stack<string>();
 
             public HostJsonFileConfigurationProvider(HostJsonFileConfigurationSource configurationSource)
-            {
-                _configurationSource = configurationSource;
-                _path = new Stack<string>();
-            }
+                => _configurationSource = EnsureArg.IsNotNull(configurationSource, nameof(configurationSource));
 
             public override void Load()
             {
@@ -47,7 +44,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
 
             private void ProcessObject(JObject hostJson)
             {
-                foreach (var property in hostJson.Properties())
+                foreach (JProperty property in hostJson.Properties())
                 {
                     _path.Push(property.Name);
                     ProcessProperty(property);
@@ -56,9 +53,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
             }
 
             private void ProcessProperty(JProperty property)
-            {
-                ProcessToken(property.Value);
-            }
+                => ProcessToken(property.Value);
 
             private void ProcessToken(JToken token)
             {
@@ -92,7 +87,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
             {
                 for (int i = 0; i < jArray.Count; i++)
                 {
-                    _path.Push(i.ToString());
+                    _path.Push(i.ToString(CultureInfo.InvariantCulture));
                     ProcessToken(jArray[i]);
                     _path.Pop();
                 }
@@ -118,7 +113,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
                 return hostConfigObject;
             }
 
-            private JObject InitializeHostConfig(string hostJsonPath, JObject hostConfigObject)
+            private static JObject InitializeHostConfig(string hostJsonPath, JObject hostConfigObject)
             {
                 // If the object is empty, initialize it to include the version and write the file.
                 if (!hostConfigObject.HasValues)
@@ -148,7 +143,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
                 return hostConfigObject;
             }
 
-            internal JObject LoadHostConfig(string configFilePath)
+            internal static JObject LoadHostConfig(string configFilePath)
             {
                 JObject hostConfigObject;
                 try
@@ -178,10 +173,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
                 return hostConfigObject;
             }
 
-            private JObject GetDefaultHostConfigObject()
+            private static JObject GetDefaultHostConfigObject()
                 => JObject.Parse("{'version': '2.0'}");
 
-            private void TryWriteHostJson(string filePath, JObject content)
+            private static void TryWriteHostJson(string filePath, JObject content)
             {
                 try
                 {
@@ -191,7 +186,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
                 { }
             }
 
-            private JObject TryAddBundleConfiguration(JObject content, string bundleId, string bundleVersion)
+            private static JObject TryAddBundleConfiguration(JObject content, string bundleId, string bundleVersion)
             {
                 string bundleConfiguration = "{ 'id': '" + bundleId + "', 'version': '" + bundleVersion + "'}";
                 content.Add("extensionBundle", JToken.Parse(bundleConfiguration));

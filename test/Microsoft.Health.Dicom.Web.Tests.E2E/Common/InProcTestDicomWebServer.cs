@@ -161,15 +161,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
                     .Add(AzureFunctionsConfiguration.CreateRoot())
                     .Add(new HostJsonFileConfigurationSource(contentRoot))
                     .Add(EnvironmentConfig.FromLocalSettings(contentRoot)))
-                .ConfigureWebJobs(
-                   (c, b) =>
-                   {
-                       b.UseWebJobsStartup(typeof(T), new WebJobsBuilderContext { Configuration = c.Configuration }, NullLoggerFactory.Instance);
-
-                       // Durable Task
-                       b.AddExtension<DurableTaskExtension>().BindOptions<DurableTaskOptions>();
-                       b.AddDurableTask();
-                   })
+                .ConfigureWebJobs((c, b) => b
+                    .UseWebJobsStartup(typeof(T), new WebJobsBuilderContext { Configuration = c.Configuration }, NullLoggerFactory.Instance)
+                    .AddDurableTask())
                 .ConfigureServices(s => s.Configure<HostOptions>(h => h.ShutdownTimeout = Timeout.InfiniteTimeSpan))
                 .Build();
         }
