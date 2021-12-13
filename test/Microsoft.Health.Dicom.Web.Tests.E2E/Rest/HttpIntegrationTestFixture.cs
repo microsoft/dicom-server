@@ -105,9 +105,17 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         public void Dispose()
         {
-            HttpClient.Dispose();
-            TestDicomWebServer?.Dispose();
+            Dispose(disposing: true);
             GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                HttpClient.Dispose();
+                TestDicomWebServer.Dispose();
+            }
         }
     }
 }

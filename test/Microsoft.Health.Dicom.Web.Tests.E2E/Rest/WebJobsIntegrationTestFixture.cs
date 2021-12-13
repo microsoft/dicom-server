@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task DisposeAsync()
         {
             await TestDicomWebServer.WebJobsHost.StopAsync();
-            base.Dispose();
+            Dispose();
         }
 
         public Task InitializeAsync()
