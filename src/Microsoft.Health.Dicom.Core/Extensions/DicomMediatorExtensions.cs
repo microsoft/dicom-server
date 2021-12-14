@@ -20,6 +20,7 @@ using Microsoft.Health.Dicom.Core.Messages.Partition;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Store;
+using Microsoft.Health.Dicom.Core.Messages.WorkItemMessages;
 
 namespace Microsoft.Health.Dicom.Core.Extensions
 {
@@ -216,5 +217,13 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             EnsureArg.IsNotNull(mediator, nameof(mediator));
             return mediator.Send(new GetPartitionsRequest(), cancellationToken);
         }
+
+        public static Task<WorkItemStoreResponse> StoreDicomWorkItemAsync(
+            this IMediator mediator, Stream requestBody, string requestContentType, string workItemInstanceUid, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
+            return mediator.Send(new WorkItemStoreRequest(requestBody, requestContentType, workItemInstanceUid), cancellationToken);
+        }
+
     }
 }
