@@ -38,24 +38,19 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         public async Task WriteExceptionAsync(ChangeFeedEntry changeFeedEntry, Exception exceptionToStore, ErrorType errorType, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(changeFeedEntry, nameof(changeFeedEntry));
-            string tableName;
 
-            switch (errorType)
+            string tableName = errorType switch
             {
-                case ErrorType.FhirError:
-                    tableName = Constants.FhirExceptionTableName;
-                    break;
-                case ErrorType.DicomError:
-                    tableName = Constants.DicomExceptionTableName;
-                    break;
-                case ErrorType.DicomValidationError:
-                    tableName = Constants.DicomValidationTableName;
-                    break;
-                case ErrorType.TransientFailure:
-                    tableName = Constants.TransientFailureTableName;
-                    break;
-                default:
-                    return;
+                ErrorType.FhirError => Constants.FhirExceptionTableName,
+                ErrorType.DicomError => Constants.DicomExceptionTableName,
+                ErrorType.DicomValidationError => Constants.DicomValidationTableName,
+                ErrorType.TransientFailure => Constants.TransientFailureTableName,
+                _ => null,
+            };
+
+            if (tableName == null)
+            {
+                return;
             }
 
             DicomDataset dataset = changeFeedEntry.Metadata;
