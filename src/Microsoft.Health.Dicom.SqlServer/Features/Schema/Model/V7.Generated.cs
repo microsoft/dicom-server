@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V7
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -27,10 +27,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static PartitionTable Partition = new PartitionTable();
         internal readonly static SeriesTable Series = new SeriesTable();
         internal readonly static StudyTable Study = new StudyTable();
-        internal readonly static WorkitemTable Workitem = new WorkitemTable();
         internal readonly static AddExtendedQueryTagErrorProcedure AddExtendedQueryTagError = new AddExtendedQueryTagErrorProcedure();
         internal readonly static AddExtendedQueryTagsProcedure AddExtendedQueryTags = new AddExtendedQueryTagsProcedure();
-        internal readonly static AddExtendedQueryTagsV8Procedure AddExtendedQueryTagsV8 = new AddExtendedQueryTagsV8Procedure();
         internal readonly static AddInstanceProcedure AddInstance = new AddInstanceProcedure();
         internal readonly static AddInstanceV2Procedure AddInstanceV2 = new AddInstanceV2Procedure();
         internal readonly static AddInstanceV6Procedure AddInstanceV6 = new AddInstanceV6Procedure();
@@ -40,7 +38,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static DeleteDeletedInstanceProcedure DeleteDeletedInstance = new DeleteDeletedInstanceProcedure();
         internal readonly static DeleteDeletedInstanceV6Procedure DeleteDeletedInstanceV6 = new DeleteDeletedInstanceV6Procedure();
         internal readonly static DeleteExtendedQueryTagProcedure DeleteExtendedQueryTag = new DeleteExtendedQueryTagProcedure();
-        internal readonly static DeleteExtendedQueryTagV8Procedure DeleteExtendedQueryTagV8 = new DeleteExtendedQueryTagV8Procedure();
         internal readonly static DeleteInstanceProcedure DeleteInstance = new DeleteInstanceProcedure();
         internal readonly static DeleteInstanceV6Procedure DeleteInstanceV6 = new DeleteInstanceV6Procedure();
         internal readonly static GetChangeFeedProcedure GetChangeFeed = new GetChangeFeedProcedure();
@@ -50,13 +47,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetExtendedQueryTagProcedure GetExtendedQueryTag = new GetExtendedQueryTagProcedure();
         internal readonly static GetExtendedQueryTagErrorsProcedure GetExtendedQueryTagErrors = new GetExtendedQueryTagErrorsProcedure();
         internal readonly static GetExtendedQueryTagErrorsV6Procedure GetExtendedQueryTagErrorsV6 = new GetExtendedQueryTagErrorsV6Procedure();
-        internal readonly static GetExtendedQueryTagErrorsV8Procedure GetExtendedQueryTagErrorsV8 = new GetExtendedQueryTagErrorsV8Procedure();
-        internal readonly static GetExtendedQueryTagV8Procedure GetExtendedQueryTagV8 = new GetExtendedQueryTagV8Procedure();
         internal readonly static GetExtendedQueryTagsProcedure GetExtendedQueryTags = new GetExtendedQueryTagsProcedure();
         internal readonly static GetExtendedQueryTagsByKeyProcedure GetExtendedQueryTagsByKey = new GetExtendedQueryTagsByKeyProcedure();
-        internal readonly static GetExtendedQueryTagsByKeyV8Procedure GetExtendedQueryTagsByKeyV8 = new GetExtendedQueryTagsByKeyV8Procedure();
         internal readonly static GetExtendedQueryTagsByOperationProcedure GetExtendedQueryTagsByOperation = new GetExtendedQueryTagsByOperationProcedure();
-        internal readonly static GetExtendedQueryTagsV8Procedure GetExtendedQueryTagsV8 = new GetExtendedQueryTagsV8Procedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
         internal readonly static GetInstanceBatchesProcedure GetInstanceBatches = new GetInstanceBatchesProcedure();
         internal readonly static GetInstanceV6Procedure GetInstanceV6 = new GetInstanceV6Procedure();
@@ -127,9 +120,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly TinyIntColumn TagStatus = new TinyIntColumn("TagStatus");
             internal readonly TinyIntColumn QueryStatus = new TinyIntColumn("QueryStatus");
             internal readonly IntColumn ErrorCount = new IntColumn("ErrorCount");
-            internal readonly TinyIntColumn ResourceType = new TinyIntColumn("ResourceType");
             internal readonly Index IXC_ExtendedQueryTag = new Index("IXC_ExtendedQueryTag");
-            internal readonly Index IX_ExtendedQueryTag_TagPath_ResourceType = new Index("IX_ExtendedQueryTag_TagPath_ResourceType");
+            internal readonly Index IX_ExtendedQueryTag_TagPath = new Index("IX_ExtendedQueryTag_TagPath");
         }
 
         internal class ExtendedQueryTagDateTimeTable : Table
@@ -140,16 +132,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
             internal readonly IntColumn TagKey = new IntColumn("TagKey");
             internal readonly DateTime2Column TagValue = new DateTime2Column("TagValue", 7);
-            internal readonly BigIntColumn SopInstanceKey1 = new BigIntColumn("SopInstanceKey1");
-            internal readonly NullableBigIntColumn SopInstanceKey2 = new NullableBigIntColumn("SopInstanceKey2");
-            internal readonly NullableBigIntColumn SopInstanceKey3 = new NullableBigIntColumn("SopInstanceKey3");
+            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
+            internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
+            internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly NullableDateTime2Column TagValueUtc = new NullableDateTime2Column("TagValueUtc", 7);
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
-            internal readonly TinyIntColumn ResourceType = new TinyIntColumn("ResourceType");
             internal readonly Index IXC_ExtendedQueryTagDateTime = new Index("IXC_ExtendedQueryTagDateTime");
-            internal readonly Index IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
-            internal readonly Index IX_ExtendedQueryTagDateTime_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagDateTime_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
+            internal readonly Index IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey");
+            internal readonly Index IX_ExtendedQueryTagDateTime_PartitionKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagDateTime_PartitionKey_StudyKey_SeriesKey_InstanceKey");
         }
 
         internal class ExtendedQueryTagDoubleTable : Table
@@ -160,15 +151,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
             internal readonly IntColumn TagKey = new IntColumn("TagKey");
             internal readonly FloatColumn TagValue = new FloatColumn("TagValue", 53);
-            internal readonly BigIntColumn SopInstanceKey1 = new BigIntColumn("SopInstanceKey1");
-            internal readonly NullableBigIntColumn SopInstanceKey2 = new NullableBigIntColumn("SopInstanceKey2");
-            internal readonly NullableBigIntColumn SopInstanceKey3 = new NullableBigIntColumn("SopInstanceKey3");
+            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
+            internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
+            internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
-            internal readonly TinyIntColumn ResourceType = new TinyIntColumn("ResourceType");
             internal readonly Index IXC_ExtendedQueryTagDouble = new Index("IXC_ExtendedQueryTagDouble");
-            internal readonly Index IX_ExtendedQueryTagDouble_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagDouble_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
-            internal readonly Index IX_ExtendedQueryTagDouble_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagDouble_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
+            internal readonly Index IX_ExtendedQueryTagDouble_PartitionKey_TagKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagDouble_PartitionKey_TagKey_StudyKey_SeriesKey_InstanceKey");
+            internal readonly Index IX_ExtendedQueryTagDouble_PartitionKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagDouble_PartitionKey_StudyKey_SeriesKey_InstanceKey");
         }
 
         internal class ExtendedQueryTagErrorTable : Table
@@ -194,15 +184,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
             internal readonly IntColumn TagKey = new IntColumn("TagKey");
             internal readonly BigIntColumn TagValue = new BigIntColumn("TagValue");
-            internal readonly BigIntColumn SopInstanceKey1 = new BigIntColumn("SopInstanceKey1");
-            internal readonly NullableBigIntColumn SopInstanceKey2 = new NullableBigIntColumn("SopInstanceKey2");
-            internal readonly NullableBigIntColumn SopInstanceKey3 = new NullableBigIntColumn("SopInstanceKey3");
+            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
+            internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
+            internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
-            internal readonly TinyIntColumn ResourceType = new TinyIntColumn("ResourceType");
             internal readonly Index IXC_ExtendedQueryTagLong = new Index("IXC_ExtendedQueryTagLong");
-            internal readonly Index IX_ExtendedQueryTagLong_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagLong_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
-            internal readonly Index IX_ExtendedQueryTagLong_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagLong_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
+            internal readonly Index IX_ExtendedQueryTagLong_PartitionKey_TagKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagLong_PartitionKey_TagKey_StudyKey_SeriesKey_InstanceKey");
+            internal readonly Index IX_ExtendedQueryTagLong_PartitionKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagLong_PartitionKey_StudyKey_SeriesKey_InstanceKey");
         }
 
         internal class ExtendedQueryTagOperationTable : Table
@@ -225,17 +214,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
             internal readonly IntColumn TagKey = new IntColumn("TagKey");
             internal readonly NVarCharColumn TagValue = new NVarCharColumn("TagValue", 200, "SQL_Latin1_General_CP1_CI_AI");
-            internal readonly BigIntColumn SopInstanceKey1 = new BigIntColumn("SopInstanceKey1");
-            internal readonly NullableBigIntColumn SopInstanceKey2 = new NullableBigIntColumn("SopInstanceKey2");
-            internal readonly NullableBigIntColumn SopInstanceKey3 = new NullableBigIntColumn("SopInstanceKey3");
+            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
+            internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
+            internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal const string WatermarkAndTagKey = "WatermarkAndTagKey";
             internal const string TagValueWords = "TagValueWords";
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
-            internal readonly TinyIntColumn ResourceType = new TinyIntColumn("ResourceType");
             internal readonly Index IXC_ExtendedQueryTagPersonName = new Index("IXC_ExtendedQueryTagPersonName");
-            internal readonly Index IX_ExtendedQueryTagPersonName_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagPersonName_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
-            internal readonly Index IX_ExtendedQueryTagPersonName_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagPersonName_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
+            internal readonly Index IX_ExtendedQueryTagPersonName_PartitionKey_TagKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagPersonName_PartitionKey_TagKey_StudyKey_SeriesKey_InstanceKey");
+            internal readonly Index IX_ExtendedQueryTagPersonName_PartitionKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagPersonName_PartitionKey_StudyKey_SeriesKey_InstanceKey");
             internal readonly Index IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey = new Index("IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey");
         }
 
@@ -247,15 +235,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
             internal readonly IntColumn TagKey = new IntColumn("TagKey");
             internal readonly NVarCharColumn TagValue = new NVarCharColumn("TagValue", 64);
-            internal readonly BigIntColumn SopInstanceKey1 = new BigIntColumn("SopInstanceKey1");
-            internal readonly NullableBigIntColumn SopInstanceKey2 = new NullableBigIntColumn("SopInstanceKey2");
-            internal readonly NullableBigIntColumn SopInstanceKey3 = new NullableBigIntColumn("SopInstanceKey3");
+            internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
+            internal readonly NullableBigIntColumn SeriesKey = new NullableBigIntColumn("SeriesKey");
+            internal readonly NullableBigIntColumn InstanceKey = new NullableBigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
-            internal readonly TinyIntColumn ResourceType = new TinyIntColumn("ResourceType");
             internal readonly Index IXC_ExtendedQueryTagString = new Index("IXC_ExtendedQueryTagString");
-            internal readonly Index IX_ExtendedQueryTagString_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagString_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
-            internal readonly Index IX_ExtendedQueryTagString_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagString_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
+            internal readonly Index IX_ExtendedQueryTagString_PartitionKey_TagKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagString_PartitionKey_TagKey_StudyKey_SeriesKey_InstanceKey");
+            internal readonly Index IX_ExtendedQueryTagString_PartitionKey_StudyKey_SeriesKey_InstanceKey = new Index("IX_ExtendedQueryTagString_PartitionKey_StudyKey_SeriesKey_InstanceKey");
         }
 
         internal class InstanceTable : Table
@@ -349,20 +336,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly Index IX_Study_PatientBirthDate_PartitionKey = new Index("IX_Study_PatientBirthDate_PartitionKey");
         }
 
-        internal class WorkitemTable : Table
-        {
-            internal WorkitemTable() : base("dbo.Workitem")
-            {
-            }
-
-            internal readonly BigIntColumn WorkitemKey = new BigIntColumn("WorkitemKey");
-            internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
-            internal readonly VarCharColumn WorkitemUid = new VarCharColumn("WorkitemUid", 64);
-            internal readonly DateTime2Column CreatedDate = new DateTime2Column("CreatedDate", 7);
-            internal readonly Index IXC_Workitem = new Index("IXC_Workitem");
-            internal readonly Index IX_Workitem_PartitionKey_WorkitemUid = new Index("IX_Workitem_PartitionKey_WorkitemUid");
-        }
-
         internal class AddExtendedQueryTagErrorProcedure : StoredProcedure
         {
             internal AddExtendedQueryTagErrorProcedure() : base("dbo.AddExtendedQueryTagError")
@@ -426,56 +399,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal struct AddExtendedQueryTagsTableValuedParameters
         {
             internal AddExtendedQueryTagsTableValuedParameters(global::System.Collections.Generic.IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> ExtendedQueryTags)
-            {
-                this.ExtendedQueryTags = ExtendedQueryTags;
-            }
-
-            internal global::System.Collections.Generic.IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> ExtendedQueryTags { get; }
-        }
-
-        internal class AddExtendedQueryTagsV8Procedure : StoredProcedure
-        {
-            internal AddExtendedQueryTagsV8Procedure() : base("dbo.AddExtendedQueryTagsV8")
-            {
-            }
-
-            private readonly AddExtendedQueryTagsInputTableTypeV1TableValuedParameterDefinition _extendedQueryTags = new AddExtendedQueryTagsInputTableTypeV1TableValuedParameterDefinition("@extendedQueryTags");
-            private readonly ParameterDefinition<System.Nullable<System.Int32>> _maxAllowedCount = new ParameterDefinition<System.Nullable<System.Int32>>("@maxAllowedCount", global::System.Data.SqlDbType.Int, true);
-            private readonly ParameterDefinition<System.Nullable<System.Boolean>> _ready = new ParameterDefinition<System.Nullable<System.Boolean>>("@ready", global::System.Data.SqlDbType.Bit, true);
-
-            public void PopulateCommand(SqlCommandWrapper command, global::System.Collections.Generic.IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> extendedQueryTags, System.Nullable<System.Int32> maxAllowedCount, System.Nullable<System.Boolean> ready)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.AddExtendedQueryTagsV8";
-                _extendedQueryTags.AddParameter(command.Parameters, extendedQueryTags);
-                _maxAllowedCount.AddParameter(command.Parameters, maxAllowedCount);
-                _ready.AddParameter(command.Parameters, ready);
-            }
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Nullable<System.Int32> maxAllowedCount, System.Nullable<System.Boolean> ready, AddExtendedQueryTagsV8TableValuedParameters tableValuedParameters)
-            {
-                PopulateCommand(command, maxAllowedCount: maxAllowedCount, ready: ready, extendedQueryTags: tableValuedParameters.ExtendedQueryTags);
-            }
-        }
-
-        internal class AddExtendedQueryTagsV8TvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, AddExtendedQueryTagsV8TableValuedParameters>
-        {
-            public AddExtendedQueryTagsV8TvpGenerator(ITableValuedParameterRowGenerator<TInput, AddExtendedQueryTagsInputTableTypeV1Row> AddExtendedQueryTagsInputTableTypeV1RowGenerator)
-            {
-                this.AddExtendedQueryTagsInputTableTypeV1RowGenerator = AddExtendedQueryTagsInputTableTypeV1RowGenerator;
-            }
-
-            private readonly ITableValuedParameterRowGenerator<TInput, AddExtendedQueryTagsInputTableTypeV1Row> AddExtendedQueryTagsInputTableTypeV1RowGenerator;
-
-            public AddExtendedQueryTagsV8TableValuedParameters Generate(TInput input)
-            {
-                return new AddExtendedQueryTagsV8TableValuedParameters(AddExtendedQueryTagsInputTableTypeV1RowGenerator.GenerateRows(input));
-            }
-        }
-
-        internal struct AddExtendedQueryTagsV8TableValuedParameters
-        {
-            internal AddExtendedQueryTagsV8TableValuedParameters(global::System.Collections.Generic.IEnumerable<AddExtendedQueryTagsInputTableTypeV1Row> ExtendedQueryTags)
             {
                 this.ExtendedQueryTags = ExtendedQueryTags;
             }
@@ -955,24 +878,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class DeleteExtendedQueryTagV8Procedure : StoredProcedure
-        {
-            internal DeleteExtendedQueryTagV8Procedure() : base("dbo.DeleteExtendedQueryTagV8")
-            {
-            }
-
-            private readonly ParameterDefinition<System.String> _tagPath = new ParameterDefinition<System.String>("@tagPath", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.Byte> _dataType = new ParameterDefinition<System.Byte>("@dataType", global::System.Data.SqlDbType.TinyInt, false);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath, System.Byte dataType)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.DeleteExtendedQueryTagV8";
-                _tagPath.AddParameter(command.Parameters, tagPath);
-                _dataType.AddParameter(command.Parameters, dataType);
-            }
-        }
-
         internal class DeleteInstanceProcedure : StoredProcedure
         {
             internal DeleteInstanceProcedure() : base("dbo.DeleteInstance")
@@ -1141,42 +1046,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class GetExtendedQueryTagErrorsV8Procedure : StoredProcedure
-        {
-            internal GetExtendedQueryTagErrorsV8Procedure() : base("dbo.GetExtendedQueryTagErrorsV8")
-            {
-            }
-
-            private readonly ParameterDefinition<System.String> _tagPath = new ParameterDefinition<System.String>("@tagPath", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.Int32> _limit = new ParameterDefinition<System.Int32>("@limit", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.Int32> _offset = new ParameterDefinition<System.Int32>("@offset", global::System.Data.SqlDbType.Int, false);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath, System.Int32 limit, System.Int32 offset)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetExtendedQueryTagErrorsV8";
-                _tagPath.AddParameter(command.Parameters, tagPath);
-                _limit.AddParameter(command.Parameters, limit);
-                _offset.AddParameter(command.Parameters, offset);
-            }
-        }
-
-        internal class GetExtendedQueryTagV8Procedure : StoredProcedure
-        {
-            internal GetExtendedQueryTagV8Procedure() : base("dbo.GetExtendedQueryTagV8")
-            {
-            }
-
-            private readonly ParameterDefinition<System.String> _tagPath = new ParameterDefinition<System.String>("@tagPath", global::System.Data.SqlDbType.VarChar, true, 64);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetExtendedQueryTagV8";
-                _tagPath.AddParameter(command.Parameters, tagPath);
-            }
-        }
-
         internal class GetExtendedQueryTagsProcedure : StoredProcedure
         {
             internal GetExtendedQueryTagsProcedure() : base("dbo.GetExtendedQueryTags")
@@ -1241,52 +1110,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal global::System.Collections.Generic.IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> ExtendedQueryTagKeys { get; }
         }
 
-        internal class GetExtendedQueryTagsByKeyV8Procedure : StoredProcedure
-        {
-            internal GetExtendedQueryTagsByKeyV8Procedure() : base("dbo.GetExtendedQueryTagsByKeyV8")
-            {
-            }
-
-            private readonly ExtendedQueryTagKeyTableTypeV1TableValuedParameterDefinition _extendedQueryTagKeys = new ExtendedQueryTagKeyTableTypeV1TableValuedParameterDefinition("@extendedQueryTagKeys");
-
-            public void PopulateCommand(SqlCommandWrapper command, global::System.Collections.Generic.IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> extendedQueryTagKeys)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetExtendedQueryTagsByKeyV8";
-                _extendedQueryTagKeys.AddParameter(command.Parameters, extendedQueryTagKeys);
-            }
-
-            public void PopulateCommand(SqlCommandWrapper command, GetExtendedQueryTagsByKeyV8TableValuedParameters tableValuedParameters)
-            {
-                PopulateCommand(command, extendedQueryTagKeys: tableValuedParameters.ExtendedQueryTagKeys);
-            }
-        }
-
-        internal class GetExtendedQueryTagsByKeyV8TvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, GetExtendedQueryTagsByKeyV8TableValuedParameters>
-        {
-            public GetExtendedQueryTagsByKeyV8TvpGenerator(ITableValuedParameterRowGenerator<TInput, ExtendedQueryTagKeyTableTypeV1Row> ExtendedQueryTagKeyTableTypeV1RowGenerator)
-            {
-                this.ExtendedQueryTagKeyTableTypeV1RowGenerator = ExtendedQueryTagKeyTableTypeV1RowGenerator;
-            }
-
-            private readonly ITableValuedParameterRowGenerator<TInput, ExtendedQueryTagKeyTableTypeV1Row> ExtendedQueryTagKeyTableTypeV1RowGenerator;
-
-            public GetExtendedQueryTagsByKeyV8TableValuedParameters Generate(TInput input)
-            {
-                return new GetExtendedQueryTagsByKeyV8TableValuedParameters(ExtendedQueryTagKeyTableTypeV1RowGenerator.GenerateRows(input));
-            }
-        }
-
-        internal struct GetExtendedQueryTagsByKeyV8TableValuedParameters
-        {
-            internal GetExtendedQueryTagsByKeyV8TableValuedParameters(global::System.Collections.Generic.IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> ExtendedQueryTagKeys)
-            {
-                this.ExtendedQueryTagKeys = ExtendedQueryTagKeys;
-            }
-
-            internal global::System.Collections.Generic.IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> ExtendedQueryTagKeys { get; }
-        }
-
         internal class GetExtendedQueryTagsByOperationProcedure : StoredProcedure
         {
             internal GetExtendedQueryTagsByOperationProcedure() : base("dbo.GetExtendedQueryTagsByOperation")
@@ -1300,24 +1123,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetExtendedQueryTagsByOperation";
                 _operationId.AddParameter(command.Parameters, operationId);
-            }
-        }
-
-        internal class GetExtendedQueryTagsV8Procedure : StoredProcedure
-        {
-            internal GetExtendedQueryTagsV8Procedure() : base("dbo.GetExtendedQueryTagsV8")
-            {
-            }
-
-            private readonly ParameterDefinition<System.Int32> _limit = new ParameterDefinition<System.Int32>("@limit", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.Int32> _offset = new ParameterDefinition<System.Int32>("@offset", global::System.Data.SqlDbType.Int, false);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 limit, System.Int32 offset)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetExtendedQueryTagsV8";
-                _limit.AddParameter(command.Parameters, limit);
-                _offset.AddParameter(command.Parameters, offset);
             }
         }
 
