@@ -17,11 +17,11 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Models
     {
         private readonly TableServiceClient _tableServiceClient;
 
-        public TableSyncStateStore(TableServiceClient tableServiceClient)
+        public TableSyncStateStore(TableServiceClientProvider tableServiceClientProvider)
         {
-            EnsureArg.IsNotNull(tableServiceClient, nameof(tableServiceClient));
+            EnsureArg.IsNotNull(tableServiceClientProvider, nameof(tableServiceClientProvider));
 
-            _tableServiceClient = tableServiceClient;
+            _tableServiceClient = tableServiceClientProvider.GetTableServiceClient();
         }
 
         public async Task<SyncState> ReadAsync(CancellationToken cancellationToken = default)

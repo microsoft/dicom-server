@@ -3,11 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Azure.Identity;
 using EnsureThat;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.TableStorage.Configs;
 using Microsoft.Health.DicomCast.TableStorage.Features.Health;
@@ -46,30 +49,26 @@ namespace Microsoft.Health.DicomCast.TableStorage
             EnsureArg.IsNotNull(serviceCollection, nameof(serviceCollection));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-            serviceCollection.Add(provider =>
+            TableDataStoreConfiguration tableDataStoreConfiguration = RegisterTableDataStoreConfiguration(serviceCollection, configuration);
+
+            serviceCollection.AddAzureClients(builder =>
+            {
+                if (string.IsNullOrWhiteSpace(tableDataStoreConfiguration.ConnectionString))
                 {
-                    var config = new TableDataStoreConfiguration();
-                    configuration.GetSection(TableStoreConfigurationSectionName).Bind(config);
-
-                    if (string.IsNullOrEmpty(config.ConnectionString) && config.EndpointUri == null)
-                    {
-                        config.ConnectionString = TableStorageLocalEmulator.ConnectionString;
-                    }
-
-                    return config;
-                })
-                .Singleton()
-                .AsSelf();
+                    builder.AddTableServiceClient(tableDataStoreConfiguration.EndpointUri)
+                        .WithCredential(new DefaultAzureCredential(new DefaultAzureCredentialOptions { ManagedIdentityClientId = tableDataStoreConfiguration.ClientId }));
+                }
+                else
+                {
+                    builder.AddTableServiceClient(tableDataStoreConfiguration.ConnectionString);
+                }
+            });
 
             serviceCollection.Add<TableServiceClientProvider>()
                 .Singleton()
                 .AsSelf()
                 .AsService<IHostedService>()
                 .AsService<IRequireInitializationOnFirstRequest>();
-
-            serviceCollection.Add(sp => sp.GetService<TableServiceClientProvider>().CreateTableServiceClient())
-                .Singleton()
-                .AsSelf();
 
             serviceCollection.Add<TableServiceClientInitializer>()
                 .Singleton()
@@ -86,6 +85,20 @@ namespace Microsoft.Health.DicomCast.TableStorage
                 .AsImplementedInterfaces();
 
             return serviceCollection;
+        }
+
+        private static TableDataStoreConfiguration RegisterTableDataStoreConfiguration(IServiceCollection serviceCollection, IConfiguration configuration)
+        {
+            var tableDataStoreConfiguration = new TableDataStoreConfiguration();
+            configuration.GetSection(TableStoreConfigurationSectionName).Bind(tableDataStoreConfiguration);
+
+            if (string.IsNullOrEmpty(tableDataStoreConfiguration.ConnectionString) && tableDataStoreConfiguration.EndpointUri == null)
+            {
+                tableDataStoreConfiguration.ConnectionString = TableStorageLocalEmulator.ConnectionString;
+            }
+
+            serviceCollection.AddSingleton(Options.Create(tableDataStoreConfiguration));
+            return tableDataStoreConfiguration;
         }
     }
 }

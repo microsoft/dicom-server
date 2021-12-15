@@ -5,7 +5,6 @@
 
 using System.Threading.Tasks;
 using Azure.Data.Tables;
-using Microsoft.Health.DicomCast.TableStorage.Configs;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 {
@@ -14,12 +13,6 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
     /// </summary>
     public interface ITableServiceClientInitializer
     {
-        /// <summary>
-        /// Creates <see cref="TableServiceClient"/> based on the given <see cref="TableDataStoreConfiguration"/>.
-        /// </summary>
-        /// <returns>A <see cref="TableServiceClient"/> instance</returns>
-        TableServiceClient CreateTableServiceClient();
-
         /// <summary>
         /// Initialize table data store
         /// </summary>

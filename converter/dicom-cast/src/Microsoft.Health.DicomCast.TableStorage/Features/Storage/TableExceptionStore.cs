@@ -24,13 +24,13 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         private readonly ILogger<TableExceptionStore> _logger;
 
         public TableExceptionStore(
-            TableServiceClient tableServiceClient,
+            TableServiceClientProvider tableServiceClientProvider,
             ILogger<TableExceptionStore> logger)
         {
-            EnsureArg.IsNotNull(tableServiceClient, nameof(tableServiceClient));
+            EnsureArg.IsNotNull(tableServiceClientProvider, nameof(tableServiceClientProvider));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _tableServiceClient = tableServiceClient;
+            _tableServiceClient = tableServiceClientProvider.GetTableServiceClient();
             _logger = logger;
         }
 

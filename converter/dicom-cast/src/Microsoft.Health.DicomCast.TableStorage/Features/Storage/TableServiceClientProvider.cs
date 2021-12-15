@@ -11,7 +11,6 @@ using EnsureThat;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Core;
-using Microsoft.Health.DicomCast.TableStorage.Configs;
 using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
@@ -22,15 +21,15 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         private readonly RetryableInitializationOperation _initializationOperation;
 
         public TableServiceClientProvider(
-            TableDataStoreConfiguration tableDataStoreConfiguration,
+            TableServiceClient tableServiceClient,
             ITableServiceClientInitializer tableServiceClientInitializer,
             ILogger<TableServiceClientProvider> logger)
         {
-            EnsureArg.IsNotNull(tableDataStoreConfiguration, nameof(tableDataStoreConfiguration));
+            EnsureArg.IsNotNull(tableServiceClient, nameof(tableServiceClient));
             EnsureArg.IsNotNull(tableServiceClientInitializer, nameof(tableServiceClientInitializer));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _tableServiceClient = tableServiceClientInitializer.CreateTableServiceClient();
+            _tableServiceClient = tableServiceClient;
             _initializationOperation = new RetryableInitializationOperation(
                 () => tableServiceClientInitializer.InitializeDataStoreAsync(_tableServiceClient));
         }
@@ -68,7 +67,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             }
         }
 
-        public TableServiceClient CreateTableServiceClient()
+        public TableServiceClient GetTableServiceClient()
         {
             if (!_initializationOperation.IsInitialized)
             {
