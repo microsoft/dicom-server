@@ -1,6 +1,6 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetExtendedQueryTags
+--     GetExtendedQueryTagsV8
 --
 -- DESCRIPTION
 --     Gets a possibly paginated set of query tags as indicated by the parameters

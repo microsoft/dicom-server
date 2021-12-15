@@ -60,6 +60,14 @@ CREATE SEQUENCE dbo.PartitionKeySequence
     NO CYCLE
     CACHE 10000;
 
+CREATE SEQUENCE dbo.WorkitemKeySequence
+    AS INT
+    START WITH 1
+    INCREMENT BY 1
+    MINVALUE 1
+    NO CYCLE
+    CACHE 10000;
+
 CREATE TABLE dbo.ChangeFeed (
     Sequence          BIGINT             IDENTITY (1, 1) NOT NULL,
     Timestamp         DATETIMEOFFSET (7) NOT NULL,
@@ -108,13 +116,14 @@ CREATE TABLE dbo.ExtendedQueryTag (
     QueryStatus       TINYINT       DEFAULT 1 NOT NULL,
     ErrorCount        INT           DEFAULT 0 NOT NULL,
     ResourceType      TINYINT       DEFAULT 0 NOT NULL
-);
+)
+WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag
     ON dbo.ExtendedQueryTag(TagKey);
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath_ResourceType
-    ON dbo.ExtendedQueryTag(TagPath, ResourceType);
+    ON dbo.ExtendedQueryTag(TagPath, ResourceType) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.ExtendedQueryTagDateTime (
     TagKey          INT           NOT NULL,

@@ -1,6 +1,6 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---     AddExtendedQueryTags
+--     AddExtendedQueryTagsV8
 --
 -- DESCRIPTION
 --    Adds a list of extended query tags. If a tag already exists, but it has yet to be assigned to a re-indexing

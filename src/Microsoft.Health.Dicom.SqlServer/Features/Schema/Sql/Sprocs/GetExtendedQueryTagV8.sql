@@ -1,7 +1,7 @@
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetExtendedQueryTag
+--     GetExtendedQueryTagV8
 --
 -- DESCRIPTION
 --     Gets all extended query tags or given extended query tag by tag path

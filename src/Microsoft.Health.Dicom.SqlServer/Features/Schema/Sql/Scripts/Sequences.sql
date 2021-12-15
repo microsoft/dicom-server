@@ -49,3 +49,12 @@ CREATE SEQUENCE dbo.PartitionKeySequence
     MINVALUE 1
     NO CYCLE
     CACHE 10000
+
+
+CREATE SEQUENCE dbo.WorkitemKeySequence
+    AS INT
+    START WITH 1
+    INCREMENT BY 1
+    MINVALUE 1
+    NO CYCLE
+    CACHE 10000

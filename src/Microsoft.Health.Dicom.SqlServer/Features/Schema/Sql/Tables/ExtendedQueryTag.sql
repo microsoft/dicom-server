@@ -18,7 +18,7 @@ CREATE TABLE dbo.ExtendedQueryTag (
     QueryStatus             TINYINT              DEFAULT 1 NOT NULL,
     ErrorCount              INT                  DEFAULT 0 NOT NULL,
     ResourceType            TINYINT              NOT NULL DEFAULT 0
-)
+) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
 (
@@ -31,3 +31,4 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath_ResourceType ON dbo
     TagPath,
     ResourceType
 )
+WITH (DATA_COMPRESSION = PAGE)

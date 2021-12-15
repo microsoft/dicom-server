@@ -1,6 +1,6 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetExtendedQueryTagsByKey
+--     GetExtendedQueryTagsByKeyV8
 --
 -- DESCRIPTION
 --     Gets the extended query tags by their respective keys.
