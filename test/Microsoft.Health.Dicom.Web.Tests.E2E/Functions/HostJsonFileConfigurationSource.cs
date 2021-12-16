@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
         public string ScriptPath { get; }
 
         public HostJsonFileConfigurationSource(string scriptPath)
-            => ScriptPath = EnsureArg.IsNotEmpty(scriptPath, nameof(scriptPath));
+            => ScriptPath = EnsureArg.IsNotNull(scriptPath, nameof(scriptPath));
 
         public IConfigurationProvider Build(IConfigurationBuilder builder)
             => new HostJsonFileConfigurationProvider(this);
@@ -128,7 +128,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
                     throw new FormatException($"The {ScriptConstants.HostMetadataFileName} file is missing the required 'version' property. See https://aka.ms/functions-hostjson for steps to migrate the configuration file.");
                 }
 
-                if (!hostJsonVersion.Equals("2.0"))
+                if (!hostJsonVersion.Equals(ScriptConstants.LatestHostConfigVersion))
                 {
                     StringBuilder errorMsg = new StringBuilder($"'{hostJsonVersion}' is an invalid value for {ScriptConstants.HostMetadataFileName} 'version' property. We recommend you set the 'version' property to '2.0'. ");
                     if (hostJsonVersion.StartsWith("3", StringComparison.OrdinalIgnoreCase))

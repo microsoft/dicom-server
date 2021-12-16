@@ -12,5 +12,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
 
         public const string DefaultExtensionBundleId = "Microsoft.Azure.Functions.ExtensionBundle";
         public const string DefaultExtensionBundleVersion = "[2.*, 3.0.0)";
+
+        public const string LatestHostConfigVersion = "2.0";
     }
 }

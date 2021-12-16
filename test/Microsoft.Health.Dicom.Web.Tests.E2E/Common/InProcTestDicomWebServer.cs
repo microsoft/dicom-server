@@ -164,7 +164,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
                 .ConfigureWebJobs((c, b) => b
                     .UseWebJobsStartup(typeof(T), new WebJobsBuilderContext { Configuration = c.Configuration }, NullLoggerFactory.Instance)
                     .AddDurableTask())
-                .ConfigureServices(s => s.Configure<HostOptions>(h => h.ShutdownTimeout = Timeout.InfiniteTimeSpan))
                 .Build();
         }
     }
