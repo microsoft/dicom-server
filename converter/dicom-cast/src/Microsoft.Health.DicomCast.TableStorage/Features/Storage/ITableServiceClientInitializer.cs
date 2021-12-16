@@ -3,18 +3,21 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Threading;
 using System.Threading.Tasks;
+using Azure.Data.Tables;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 {
-    public interface ITableClientTestProvider
+    /// <summary>
+    /// Provides methods for creating a <see cref="TableServiceClient"/> instance and initializing tables.
+    /// </summary>
+    public interface ITableServiceClientInitializer
     {
         /// <summary>
-        /// Check to make sure Table Storage is set up and is working properly
+        /// Initialize table data store
         /// </summary>
-        /// <param name="cancellationToken"> Cancellation Token</param>
+        /// <param name="tableServiceClient">The <see cref="TableServiceClient"/> instance to use for initialization.</param>
         /// <returns>A <see cref="Task"/>.</returns>
-        Task PerformTestAsync(CancellationToken cancellationToken = default);
+        Task InitializeDataStoreAsync(TableServiceClient tableServiceClient);
     }
 }
