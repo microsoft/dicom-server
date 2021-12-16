@@ -9,15 +9,15 @@ using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Metadata.Features.Storage;
-using Microsoft.Health.Dicom.WorkItems;
-using Microsoft.Health.Dicom.WorkItems.Health;
+using Microsoft.Health.Dicom.Workitems;
+using Microsoft.Health.Dicom.Workitems.Health;
 using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DicomServerBuilderMetadataRegistrationExtensions
     {
-        private const string DicomServerBlobConfigurationSectionName = "DicomWeb:WorkItemStore";
+        private const string DicomServerBlobConfigurationSectionName = "DicomWeb:WorkitemStore";
 
         /// <summary>
         /// Adds the metadata store for the DICOM server.
@@ -70,7 +70,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private static IServiceCollection AddMetadataPersistence(this IServiceCollection services)
         {
-            services.Add<BlobWorkItemStore>()
+            services.Add<BlobWorkitemStore>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
@@ -85,7 +85,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private static IDicomServerBuilder AddMetadataHealthCheck(this IDicomServerBuilder serverBuilder)
         {
-            serverBuilder.Services.AddHealthChecks().AddCheck<WorkItemHealthCheck>(name: nameof(WorkItemHealthCheck));
+            serverBuilder.Services.AddHealthChecks().AddCheck<WorkitemHealthCheck>(name: nameof(WorkitemHealthCheck));
             return serverBuilder;
         }
     }

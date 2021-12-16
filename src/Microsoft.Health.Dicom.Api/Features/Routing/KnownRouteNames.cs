@@ -46,14 +46,14 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         internal const string VersionedStoreInstancesInStudy = nameof(VersionedStoreInstancesInStudy);
         internal const string StoreInstancesInStudy = nameof(StoreInstancesInStudy);
 
-        internal const string VersionedPartitionWorkItemInstance = nameof(VersionedPartitionWorkItemInstance);
-        internal const string PartitionWorkItemInstance = nameof(PartitionWorkItemInstance);
-        internal const string VersionedWorkItemInstance = nameof(VersionedWorkItemInstance);
-        internal const string WorkItemInstance = nameof(WorkItemInstance);
+        internal const string VersionedPartitionWorkitemInstance = nameof(VersionedPartitionWorkitemInstance);
+        internal const string PartitionWorkitemInstance = nameof(PartitionWorkitemInstance);
+        internal const string VersionedWorkitemInstance = nameof(VersionedWorkitemInstance);
+        internal const string WorkitemInstance = nameof(WorkitemInstance);
 
-        internal const string VersionedPartitionWorkItemInstancesInWorkItem = nameof(VersionedPartitionWorkItemInstancesInWorkItem);
-        internal const string PartitionWorkItemInstancesInWorkItem = nameof(PartitionWorkItemInstancesInWorkItem);
-        internal const string VersionedWorkItemInstancesInWorkItem = nameof(VersionedWorkItemInstancesInWorkItem);
-        internal const string WorkItemInstancesInWorkItem = nameof(WorkItemInstancesInWorkItem);
+        internal const string VersionedPartitionWorkitemInstancesInWorkitem = nameof(VersionedPartitionWorkitemInstancesInWorkitem);
+        internal const string PartitionWorkitemInstancesInWorkitem = nameof(PartitionWorkitemInstancesInWorkitem);
+        internal const string VersionedWorkitemInstancesInWorkitem = nameof(VersionedWorkitemInstancesInWorkitem);
+        internal const string WorkitemInstancesInWorkitem = nameof(WorkitemInstancesInWorkitem);
     }
 }

@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
     /// <summary>
     /// Provides functionalities managing the DICOM instance work-item.
     /// </summary>
-    public interface IWorkItemStore
+    public interface IWorkitemStore
     {
         /// <summary>
         /// Asynchronously stores a DICOM instance work-item.
@@ -21,8 +21,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         /// <param name="version">The version.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous add operation.</returns>
-        Task StoreInstanceWorkItemAsync(
-            WorkItem workItem,
+        Task StoreInstanceWorkitemAsync(
+            Workitem workItem,
             long version,
             CancellationToken cancellationToken = default);
 
@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous get operation.</returns>
-        Task<WorkItem> GetInstanceWorkItemAsync(
+        Task<Workitem> GetInstanceWorkitemAsync(
             VersionedInstanceIdentifier versionedInstanceIdentifier,
             CancellationToken cancellationToken = default);
 
@@ -42,7 +42,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous delete operation.</returns>
-        Task DeleteInstanceWorkItemIfExistsAsync(
+        Task DeleteInstanceWorkitemIfExistsAsync(
             VersionedInstanceIdentifier versionedInstanceIdentifier,
             CancellationToken cancellationToken = default);
     }

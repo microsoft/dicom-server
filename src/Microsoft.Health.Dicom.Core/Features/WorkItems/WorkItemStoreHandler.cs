@@ -15,20 +15,20 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
-using Microsoft.Health.Dicom.Core.Features.WorkItems;
-using Microsoft.Health.Dicom.Core.Messages.WorkItemMessages;
+using Microsoft.Health.Dicom.Core.Features.Workitems;
+using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {
-    public class WorkItemStoreHandler : BaseHandler, IRequestHandler<WorkItemStoreRequest, WorkItemStoreResponse>
+    public class WorkitemStoreHandler : BaseHandler, IRequestHandler<WorkitemStoreRequest, WorkitemStoreResponse>
     {
         private readonly IDicomInstanceEntryReaderManager _dicomInstanceEntryReaderManager;
-        private readonly IWorkItemService _workItemService;
+        private readonly IWorkitemService _workItemService;
 
-        public WorkItemStoreHandler(
+        public WorkitemStoreHandler(
             IAuthorizationService<DataActions> authorizationService,
             IDicomInstanceEntryReaderManager dicomInstanceEntryReaderManager,
-            IWorkItemService workItemService)
+            IWorkitemService workItemService)
             : base(authorizationService)
         {
             _dicomInstanceEntryReaderManager = EnsureArg.IsNotNull(dicomInstanceEntryReaderManager, nameof(dicomInstanceEntryReaderManager));
@@ -36,8 +36,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public async Task<WorkItemStoreResponse> Handle(
-            WorkItemStoreRequest request,
+        public async Task<WorkitemStoreResponse> Handle(
+            WorkitemStoreRequest request,
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(request, nameof(request));
@@ -67,7 +67,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             // Process list of entries.
             return await _workItemService
                 .ProcessAsync(// instanceEntries,
-                    request.WorkItemInstanceUid, cancellationToken);
+                    request.WorkitemInstanceUid, cancellationToken);
         }
     }
 }

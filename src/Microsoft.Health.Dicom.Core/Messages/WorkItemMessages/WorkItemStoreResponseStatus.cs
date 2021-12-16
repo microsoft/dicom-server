@@ -3,12 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Messages.WorkItemMessages
+namespace Microsoft.Health.Dicom.Core.Messages.WorkitemMessages
 {
     /// <summary>
     /// Represents the store work-item response status.
     /// </summary>
-    public enum WorkItemStoreResponseStatus
+    public enum WorkitemStoreResponseStatus
     {
         /// <summary>
         /// There is no DICOM instance to store.

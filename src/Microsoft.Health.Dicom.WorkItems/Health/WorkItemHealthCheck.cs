@@ -10,25 +10,25 @@ using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Blob.Features.Health;
 using Microsoft.Health.Blob.Features.Storage;
 
-namespace Microsoft.Health.Dicom.WorkItems.Health
+namespace Microsoft.Health.Dicom.Workitems.Health
 {
     /// <summary>
     /// Checks for the DICOM metadata service health.
     /// </summary>
-    public class WorkItemHealthCheck : BlobHealthCheck
+    public class WorkitemHealthCheck : BlobHealthCheck
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="WorkItemHealthCheck"/> class.
+        /// Initializes a new instance of the <see cref="WorkitemHealthCheck"/> class.
         /// </summary>
         /// <param name="client">The blob client factory.</param>
         /// <param name="namedBlobContainerConfigurationAccessor">The IOptions accessor to get a named blob container version.</param>
         /// <param name="testProvider">The test provider.</param>
         /// <param name="logger">The logger.</param>
-        public WorkItemHealthCheck(
+        public WorkitemHealthCheck(
             BlobServiceClient client,
             IOptionsSnapshot<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
             IBlobClientTestProvider testProvider,
-            ILogger<WorkItemHealthCheck> logger)
+            ILogger<WorkitemHealthCheck> logger)
             : base(
                   client,
                   namedBlobContainerConfigurationAccessor,

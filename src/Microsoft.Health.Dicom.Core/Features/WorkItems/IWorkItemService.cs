@@ -5,23 +5,23 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Core.Messages.WorkItemMessages;
+using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
 
-namespace Microsoft.Health.Dicom.Core.Features.WorkItems
+namespace Microsoft.Health.Dicom.Core.Features.Workitems
 {
-    public interface IWorkItemService
+    public interface IWorkitemService
     {
         /// <summary>
         /// Asynchronously processes the ...
         /// </summary>
         /// <remarks>
-        /// If the <paramref name="requiredWorkItemInstanceUid"/> is specified, every element in the
+        /// If the <paramref name="requiredWorkitemInstanceUid"/> is specified, every element in the
         /// </remarks>
-        /// <param name="requiredWorkItemInstanceUid">An optional value for the Work Item InstanceUID tag.</param>
+        /// <param name="requiredWorkitemInstanceUid">An optional value for the Work Item InstanceUID tag.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous process operation.</returns>
-        Task<WorkItemStoreResponse> ProcessAsync(
-            string requiredWorkItemInstanceUid,
+        Task<WorkitemStoreResponse> ProcessAsync(
+            string requiredWorkitemInstanceUid,
             CancellationToken cancellationToken);
     }
 }

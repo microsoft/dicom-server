@@ -25,12 +25,12 @@ namespace Microsoft.Health.Dicom.Api.Controllers
     [QueryModelStateValidator]
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
     [ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
-    public class WorkItemController : Controller
+    public class WorkitemController : Controller
     {
         private readonly IMediator _mediator;
-        private readonly ILogger<WorkItemController> _logger;
+        private readonly ILogger<WorkitemController> _logger;
 
-        public WorkItemController(IMediator mediator, ILogger<WorkItemController> logger)
+        public WorkitemController(IMediator mediator, ILogger<WorkitemController> logger)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
             EnsureArg.IsNotNull(logger, nameof(logger));
@@ -42,19 +42,19 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
         [Produces(KnownContentTypes.ApplicationDicomJson)]
         [Consumes(KnownContentTypes.ApplicationDicom, KnownContentTypes.MultipartRelated)]
-        [ProducesResponseType(typeof(WorkItem), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(WorkItem), (int)HttpStatusCode.Accepted)]
+        [ProducesResponseType(typeof(Workitem), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(Workitem), (int)HttpStatusCode.Accepted)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
-        [ProducesResponseType(typeof(WorkItem), (int)HttpStatusCode.Conflict)]
+        [ProducesResponseType(typeof(Workitem), (int)HttpStatusCode.Conflict)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.UnsupportedMediaType)]
         [HttpPost]
-        [VersionedPartitionRoute(KnownRoutes.WorkItemInstancesRoute, Name = KnownRouteNames.VersionedPartitionWorkItemInstance)]
-        [PartitionRoute(KnownRoutes.WorkItemInstancesRoute, Name = KnownRouteNames.PartitionWorkItemInstance)]
-        [VersionedRoute(KnownRoutes.WorkItemInstancesRoute, Name = KnownRouteNames.VersionedWorkItemInstance)]
-        [Route(KnownRoutes.WorkItemInstancesRoute, Name = KnownRouteNames.WorkItemInstance)]
-        [AuditEventType(AuditEventSubType.WorkItem)]
+        [VersionedPartitionRoute(KnownRoutes.WorkitemInstancesRoute, Name = KnownRouteNames.VersionedPartitionWorkitemInstance)]
+        [PartitionRoute(KnownRoutes.WorkitemInstancesRoute, Name = KnownRouteNames.PartitionWorkitemInstance)]
+        [VersionedRoute(KnownRoutes.WorkitemInstancesRoute, Name = KnownRouteNames.VersionedWorkitemInstance)]
+        [Route(KnownRoutes.WorkitemInstancesRoute, Name = KnownRouteNames.WorkitemInstance)]
+        [AuditEventType(AuditEventSubType.Workitem)]
         public async Task<IActionResult> PostInstanceAsync()
         {
             return await PostAsync(null);
@@ -63,19 +63,19 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
         [Produces(KnownContentTypes.ApplicationDicomJson)]
         [Consumes(KnownContentTypes.ApplicationDicom, KnownContentTypes.MultipartRelated)]
-        [ProducesResponseType(typeof(WorkItem), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(WorkItem), (int)HttpStatusCode.Accepted)]
+        [ProducesResponseType(typeof(Workitem), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(Workitem), (int)HttpStatusCode.Accepted)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.UnsupportedMediaType)]
         [HttpPost]
-        [VersionedPartitionRoute(KnownRoutes.WorkItemInstancesInWorkItemRoute, Name = KnownRouteNames.VersionedPartitionWorkItemInstancesInWorkItem)]
-        [PartitionRoute(KnownRoutes.WorkItemInstancesInWorkItemRoute, Name = KnownRouteNames.PartitionWorkItemInstancesInWorkItem)]
-        [VersionedRoute(KnownRoutes.WorkItemInstancesInWorkItemRoute, Name = KnownRouteNames.VersionedWorkItemInstancesInWorkItem)]
-        [Route(KnownRoutes.WorkItemInstancesInWorkItemRoute, Name = KnownRouteNames.WorkItemInstancesInWorkItem)]
-        [AuditEventType(AuditEventSubType.WorkItem)]
-        public async Task<IActionResult> PostInstanceInWorkItemAsync(string workItemInstanceUid)
+        [VersionedPartitionRoute(KnownRoutes.WorkitemInstancesInWorkitemRoute, Name = KnownRouteNames.VersionedPartitionWorkitemInstancesInWorkitem)]
+        [PartitionRoute(KnownRoutes.WorkitemInstancesInWorkitemRoute, Name = KnownRouteNames.PartitionWorkitemInstancesInWorkitem)]
+        [VersionedRoute(KnownRoutes.WorkitemInstancesInWorkitemRoute, Name = KnownRouteNames.VersionedWorkitemInstancesInWorkitem)]
+        [Route(KnownRoutes.WorkitemInstancesInWorkitemRoute, Name = KnownRouteNames.WorkitemInstancesInWorkitem)]
+        [AuditEventType(AuditEventSubType.Workitem)]
+        public async Task<IActionResult> PostInstanceInWorkitemAsync(string workItemInstanceUid)
         {
             return await PostAsync(workItemInstanceUid);
         }
@@ -83,9 +83,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         private async Task<IActionResult> PostAsync(string workItemInstanceUid)
         {
             long fileSize = Request.ContentLength ?? 0;
-            _logger.LogInformation("DICOM Web Store Transaction request received, with work-item instance UID {WorkItemInstanceUid} and file size of {FileSize} bytes", workItemInstanceUid, fileSize);
+            _logger.LogInformation("DICOM Web Store Transaction request received, with work-item instance UID {WorkitemInstanceUid} and file size of {FileSize} bytes", workItemInstanceUid, fileSize);
 
-            var storeResponse = await _mediator.StoreDicomWorkItemAsync(
+            var storeResponse = await _mediator.StoreDicomWorkitemAsync(
                 Request.Body,
                 Request.ContentType,
                 workItemInstanceUid,
@@ -93,7 +93,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
             return StatusCode(
                 (int)storeResponse.Status.ToHttpStatusCode(),
-                storeResponse.WorkItem);
+                storeResponse.Workitem);
         }
     }
 }

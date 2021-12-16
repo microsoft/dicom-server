@@ -13,7 +13,7 @@ using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.WorkItems;
+using Microsoft.Health.Dicom.Workitems;
 using Microsoft.IO;
 using Newtonsoft.Json;
 
@@ -22,13 +22,13 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
     /// <summary>
     /// Provides functionality for managing the DICOM instance work-item.
     /// </summary>
-    public class BlobWorkItemStore : IWorkItemStore
+    public class BlobWorkitemStore : IWorkitemStore
     {
         private readonly BlobContainerClient _container;
         private readonly JsonSerializer _jsonSerializer;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
-        public BlobWorkItemStore(
+        public BlobWorkitemStore(
             BlobServiceClient client,
             JsonSerializer jsonSerializer,
             IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
@@ -47,8 +47,8 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task StoreInstanceWorkItemAsync(
-            WorkItem workItem,
+        public async Task StoreInstanceWorkitemAsync(
+            Workitem workItem,
             long version,
             CancellationToken cancellationToken)
         {
@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task DeleteInstanceWorkItemIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+        public async Task DeleteInstanceWorkitemIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
             var blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
@@ -67,12 +67,12 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task<WorkItem> GetInstanceWorkItemAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+        public async Task<Workitem> GetInstanceWorkitemAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
             var cloudBlockBlob = GetInstanceBlockBlob(versionedInstanceIdentifier);
 
-            return await Task.FromResult(default(WorkItem));
+            return await Task.FromResult(default(Workitem));
         }
 
         private BlockBlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)

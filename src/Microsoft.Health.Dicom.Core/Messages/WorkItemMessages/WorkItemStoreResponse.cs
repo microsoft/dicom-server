@@ -5,18 +5,18 @@
 
 using Microsoft.Health.Dicom.Core.Features.Model;
 
-namespace Microsoft.Health.Dicom.Core.Messages.WorkItemMessages
+namespace Microsoft.Health.Dicom.Core.Messages.WorkitemMessages
 {
-    public sealed class WorkItemStoreResponse
+    public sealed class WorkitemStoreResponse
     {
-        public WorkItemStoreResponse(WorkItemStoreResponseStatus status, WorkItem workItem)
+        public WorkitemStoreResponse(WorkitemStoreResponseStatus status, Workitem workItem)
         {
             Status = status;
-            WorkItem = workItem;
+            Workitem = workItem;
         }
 
-        public WorkItemStoreResponseStatus Status { get; }
+        public WorkitemStoreResponseStatus Status { get; }
 
-        public WorkItem WorkItem { get; }
+        public Workitem Workitem { get; }
     }
 }
