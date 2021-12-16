@@ -197,7 +197,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit
 
         private async Task ExecuteAndValidate<T>(Func<Task<T>> action, string expectedAction, string expectedPathSegment, HttpStatusCode expectedStatusCode)
         {
-            if (!_fixture.IsUsingInProcTestServer)
+            if (!_fixture.IsInProcess)
             {
                 // This test only works with the in-proc server with customized middleware pipeline
                 return;
