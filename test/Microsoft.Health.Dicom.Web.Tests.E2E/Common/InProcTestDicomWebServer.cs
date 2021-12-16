@@ -13,11 +13,19 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Development.IdentityProvider.Registration;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
+using Microsoft.Health.Dicom.Web.Tests.E2E.Functions;
+using DicomFunctionsStartup = Microsoft.Health.Dicom.Functions.Startup;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E
 {
@@ -28,9 +36,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
     public class InProcTestDicomWebServer : TestDicomWebServer
     {
         public InProcTestDicomWebServer(Type startupType, bool enableDataPartitions)
-            : base(new Uri("http://localhost/"))
+            : base(new Uri("http://localhost/"), CreateWebJobsHost<DicomFunctionsStartup>("src"))
         {
-            var contentRoot = GetProjectPath("src", startupType);
+            string contentRoot = GetProjectPath("src", startupType);
 
             var authSettings = new Dictionary<string, string>
             {
@@ -46,7 +54,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
                 { "DicomServer:Features:EnableDataPartitions", enableDataPartitions.ToString() },
             };
 
-            var dbName = enableDataPartitions ? "DicomWithPartitions" : "Dicom";
+            string dbName = enableDataPartitions ? "DicomWithPartitions" : "Dicom";
 
             // Overriding sqlserver connection string to provide different DB for data partition test
             // This will ensure there is no multiple partitions when the flag is off
@@ -55,7 +63,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
                 { "SqlServer:ConnectionString", $"server=(local);Initial Catalog={dbName};Integrated Security=true;TrustServerCertificate=true" },
             };
 
-            IWebHostBuilder builder = WebHost.CreateDefaultBuilder()
+            IWebHostBuilder builder = WebHost.CreateDefaultBuilder(new string[] { "--environment", "Development" })
                 .UseContentRoot(contentRoot)
                 .UseStartup(startupType)
                 .ConfigureAppConfiguration((hostingContext, config) =>
@@ -63,7 +71,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
                     config.AddInMemoryCollection(authSettings);
                     config.AddInMemoryCollection(featureSettings);
                     config.AddInMemoryCollection(sqlSettings);
-                    var existingConfig = config.Build();
+                    IConfigurationRoot existingConfig = config.Build();
+
                     config.AddDevelopmentAuthEnvironmentIfConfigured(existingConfig, "DicomServer");
                     if (string.Equals(existingConfig["DicomServer:Security:Enabled"], bool.TrueString, StringComparison.OrdinalIgnoreCase))
                     {
@@ -88,14 +97,16 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
         public TestServer Server { get; }
 
         public override HttpMessageHandler CreateMessageHandler()
-        {
-            return Server.CreateHandler();
-        }
+            => Server.CreateHandler();
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            Server?.Dispose();
-            base.Dispose();
+            if (disposing)
+            {
+                Server.Dispose();
+            }
+
+            base.Dispose(disposing);
         }
 
         /// <summary>
@@ -112,10 +123,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
             for (Type type = startupType; type != null; type = type.BaseType)
             {
                 // Get name of the target project which we want to test
-                var projectName = type.GetTypeInfo().Assembly.GetName().Name;
+                string projectName = type.GetTypeInfo().Assembly.GetName().Name;
 
                 // Get currently executing test project path
-                var applicationBasePath = AppContext.BaseDirectory;
+                string applicationBasePath = AppContext.BaseDirectory;
 
                 // Find the path to the target project
                 var directoryInfo = new DirectoryInfo(applicationBasePath);
@@ -137,6 +148,23 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
             }
 
             throw new Exception($"Project root could not be located for startup type {startupType.FullName}");
+        }
+
+        private static IHost CreateWebJobsHost<T>(string path)
+            where T : FunctionsStartup, new()
+        {
+            string contentRoot = GetProjectPath(path, typeof(T));
+            return new HostBuilder()
+                .UseContentRoot(contentRoot)
+                .ConfigureLogging(b => b.AddConsole())
+                .ConfigureAppConfiguration(b => b
+                    .Add(AzureFunctionsConfiguration.CreateRoot())
+                    .Add(new HostJsonFileConfigurationSource(contentRoot))
+                    .Add(EnvironmentConfig.FromLocalSettings(contentRoot)))
+                .ConfigureWebJobs((c, b) => b
+                    .UseWebJobsStartup(typeof(T), new WebJobsBuilderContext { Configuration = c.Configuration }, NullLoggerFactory.Instance)
+                    .AddDurableTask())
+                .Build();
         }
     }
 }
