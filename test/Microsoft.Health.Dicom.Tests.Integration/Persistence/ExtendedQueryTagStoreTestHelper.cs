@@ -47,9 +47,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             string instanceKeyParam = "@instanceKey";
 
             // Columns on all extended query tag index data tables are of same names
-            string studyKeyColName = VLatest.ExtendedQueryTagString.StudyKey.Metadata.Name;
-            string seriesKeyColName = VLatest.ExtendedQueryTagString.SeriesKey.Metadata.Name;
-            string instanceKeyColName = VLatest.ExtendedQueryTagString.InstanceKey.Metadata.Name;
+            string studyKeyColName = VLatest.ExtendedQueryTagString.SopInstanceKey1.Metadata.Name;
+            string seriesKeyColName = VLatest.ExtendedQueryTagString.SopInstanceKey2.Metadata.Name;
+            string instanceKeyColName = VLatest.ExtendedQueryTagString.SopInstanceKey3.Metadata.Name;
             string tagKeyName = VLatest.ExtendedQueryTagString.TagKey.Metadata.Name;
             string seriesFilter = seriesKey.HasValue ? $"{seriesKeyColName} = {seriesKeyParam}" : $"{seriesKeyColName} IS NULL";
             string instanceFilter = instanceKey.HasValue ? $"{instanceKeyColName} = {instanceKeyParam}" : $"{instanceKeyColName} IS NULL";

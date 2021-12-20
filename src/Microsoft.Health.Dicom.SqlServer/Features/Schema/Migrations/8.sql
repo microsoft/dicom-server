@@ -430,7 +430,7 @@ WITH (DATA_COMPRESSION = PAGE);
 CREATE UNIQUE CLUSTERED INDEX IXC_Workitem
     ON dbo.Workitem(PartitionKey, WorkitemKey);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_PartitionKey_WorkitemUid
+CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemUid_PartitionKey
     ON dbo.Workitem(WorkitemUid, PartitionKey)
     INCLUDE(WorkitemKey) WITH (DATA_COMPRESSION = PAGE);
 
@@ -554,66 +554,13 @@ SET NOCOUNT ON;
 SET XACT_ABORT ON;
 BEGIN
     BEGIN TRANSACTION;
-    IF (SELECT COUNT(*)
-        FROM   dbo.ExtendedQueryTag AS XQT WITH (HOLDLOCK)
-               FULL OUTER JOIN
-               @extendedQueryTags AS input
-               ON XQT.TagPath = input.TagPath) > @maxAllowedCount
-        THROW 50409, 'extended query tags exceed max allowed count', 1;
-    DECLARE @existingTags TABLE (
-        TagKey      INT             ,
-        TagStatus   TINYINT         ,
-        OperationId UNIQUEIDENTIFIER NULL);
-    INSERT INTO @existingTags (TagKey, TagStatus, OperationId)
-    SELECT XQT.TagKey,
-           TagStatus,
-           OperationId
-    FROM   dbo.ExtendedQueryTag AS XQT
-           INNER JOIN
-           @extendedQueryTags AS input
-           ON input.TagPath = XQT.TagPath
-           LEFT OUTER JOIN
-           dbo.ExtendedQueryTagOperation AS XQTO
-           ON XQT.TagKey = XQTO.TagKey;
-    IF EXISTS (SELECT 1
-               FROM   @existingTags
-               WHERE  TagStatus <> 0
-                      OR (TagStatus = 0
-                          AND OperationId IS NOT NULL))
-        THROW 50409, 'extended query tag(s) already exist', 2;
-    DELETE XQT
-    FROM   dbo.ExtendedQueryTag AS XQT
-           INNER JOIN
-           @existingTags AS et
-           ON XQT.TagKey = et.TagKey;
-    INSERT INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount)
-    OUTPUT INSERTED.TagKey, INSERTED.TagPath, INSERTED.TagVR, INSERTED.TagPrivateCreator, INSERTED.TagLevel, INSERTED.TagStatus, INSERTED.QueryStatus, INSERTED.ErrorCount
-    SELECT  NEXT VALUE FOR TagKeySequence,
-           TagPath,
-           TagPrivateCreator,
-           TagVR,
-           TagLevel,
-           @ready,
-           1,
-           0
-    FROM   @extendedQueryTags;
-    COMMIT TRANSACTION;
-END
-
-GO
-CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTagsV8
-@extendedQueryTags dbo.AddExtendedQueryTagsInputTableType_1 READONLY, @maxAllowedCount INT=128, @ready BIT=0
-AS
-SET NOCOUNT ON;
-SET XACT_ABORT ON;
-BEGIN
-    BEGIN TRANSACTION;
+    DECLARE @imageResourceType AS TINYINT = 0;
     IF (SELECT COUNT(*)
         FROM   dbo.ExtendedQueryTag AS XQT WITH (HOLDLOCK)
                FULL OUTER JOIN
                @extendedQueryTags AS input
                ON XQT.TagPath = input.TagPath
-        WHERE  XQT.ResourceType = 0) > @maxAllowedCount
+        WHERE  XQT.ResourceType = @imageResourceType) > @maxAllowedCount
         THROW 50409, 'extended query tags exceed max allowed count', 1;
     DECLARE @existingTags TABLE (
         TagKey      INT             ,
@@ -627,10 +574,10 @@ BEGIN
            INNER JOIN
            @extendedQueryTags AS input
            ON input.TagPath = XQT.TagPath
+              AND XQT.ResourceType = @imageResourceType
            LEFT OUTER JOIN
            dbo.ExtendedQueryTagOperation AS XQTO
-           ON XQT.TagKey = XQTO.TagKey
-    WHERE  XQT.ResourceType = 0;
+           ON XQT.TagKey = XQTO.TagKey;
     IF EXISTS (SELECT 1
                FROM   @existingTags
                WHERE  TagStatus <> 0
@@ -1100,6 +1047,37 @@ BEGIN
 END
 
 GO
+CREATE OR ALTER PROCEDURE dbo.AddWorkitem
+@partitionKey INT, @workitemUid VARCHAR (64), @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+    DECLARE @newWatermark AS INT;
+    DECLARE @workitemResourceType AS TINYINT = 1;
+    SELECT WorkitemUid
+    FROM   dbo.Workitem
+    WHERE  PartitionKey = @partitionKey
+           AND WorkitemUid = @workitemUid;
+    IF @@ROWCOUNT <> 0
+        THROW 50409, 'Workitem already exists', @workitemUid;
+    SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
+    SET @workitemKey =  NEXT VALUE FOR dbo.WorkitemKeySequence;
+    INSERT  INTO dbo.Workitem (WorkitemKey, PartitionKey, WorkitemUid, WorkitemState, CreatedDate)
+    VALUES                   (@workitemKey, @partitionKey, @workitemUid, @workitemState, @currentDate);
+    BEGIN TRY
+        EXECUTE dbo.IIndexInstanceCore @partitionKey, @workitemKey, NULL, NULL, @newWatermark, @workitemResourceType, @stringExtendedQueryTags, NULL, NULL, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
+    SELECT @workitemKey;
+    COMMIT TRANSACTION;
+END
+
+GO
 CREATE OR ALTER PROCEDURE dbo.AssignReindexingOperation
 @extendedQueryTagKeys dbo.ExtendedQueryTagKeyTableType_1 READONLY, @operationId UNIQUEIDENTIFIER, @returnIfCompleted BIT=0
 AS
@@ -1199,59 +1177,12 @@ BEGIN
     BEGIN TRANSACTION;
     DECLARE @tagStatus AS TINYINT;
     DECLARE @tagKey AS INT;
-    SELECT @tagKey = TagKey,
-           @tagStatus = TagStatus
-    FROM   dbo.ExtendedQueryTag WITH (XLOCK)
-    WHERE  dbo.ExtendedQueryTag.TagPath = @tagPath;
-    IF @@ROWCOUNT = 0
-        THROW 50404, 'extended query tag not found', 1;
-    IF @tagStatus = 2
-        THROW 50412, 'extended query tag is not in Ready or Adding status', 1;
-    UPDATE dbo.ExtendedQueryTag
-    SET    TagStatus = 2
-    WHERE  dbo.ExtendedQueryTag.TagKey = @tagKey;
-    COMMIT TRANSACTION;
-    BEGIN TRANSACTION;
-    IF @dataType = 0
-        DELETE dbo.ExtendedQueryTagString
-        WHERE  TagKey = @tagKey;
-    ELSE
-        IF @dataType = 1
-            DELETE dbo.ExtendedQueryTagLong
-            WHERE  TagKey = @tagKey;
-        ELSE
-            IF @dataType = 2
-                DELETE dbo.ExtendedQueryTagDouble
-                WHERE  TagKey = @tagKey;
-            ELSE
-                IF @dataType = 3
-                    DELETE dbo.ExtendedQueryTagDateTime
-                    WHERE  TagKey = @tagKey;
-                ELSE
-                    DELETE dbo.ExtendedQueryTagPersonName
-                    WHERE  TagKey = @tagKey;
-    DELETE dbo.ExtendedQueryTag
-    WHERE  TagKey = @tagKey;
-    DELETE dbo.ExtendedQueryTagError
-    WHERE  TagKey = @tagKey;
-    COMMIT TRANSACTION;
-END
-
-GO
-CREATE OR ALTER PROCEDURE dbo.DeleteExtendedQueryTagV8
-@tagPath VARCHAR (64), @dataType TINYINT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    BEGIN TRANSACTION;
-    DECLARE @tagStatus AS TINYINT;
-    DECLARE @tagKey AS INT;
+    DECLARE @imageResourceType AS TINYINT = 0;
     SELECT @tagKey = TagKey,
            @tagStatus = TagStatus
     FROM   dbo.ExtendedQueryTag WITH (XLOCK)
     WHERE  dbo.ExtendedQueryTag.TagPath = @tagPath
-           AND dbo.ExtendedQueryTag.ResourceType = 0;
+           AND dbo.ExtendedQueryTag.ResourceType = @imageResourceType;
     IF @@ROWCOUNT = 0
         THROW 50404, 'extended query tag not found', 1;
     IF @tagStatus = 2
@@ -1693,6 +1624,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
+    DECLARE @imageResourceType AS TINYINT = 0;
     SELECT XQT.TagKey,
            TagPath,
            TagVR,
@@ -1706,7 +1638,8 @@ BEGIN
            LEFT OUTER JOIN
            dbo.ExtendedQueryTagOperation AS XQTO
            ON XQT.TagKey = XQTO.TagKey
-    WHERE  TagPath = ISNULL(@tagPath, TagPath);
+    WHERE  TagPath = ISNULL(@tagPath, TagPath)
+           AND ResourceType = @imageResourceType;
 END
 
 GO
@@ -1745,42 +1678,11 @@ BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
     DECLARE @tagKey AS INT;
-    SELECT @tagKey = TagKey
-    FROM   dbo.ExtendedQueryTag WITH (HOLDLOCK)
-    WHERE  dbo.ExtendedQueryTag.TagPath = @tagPath;
-    IF (@@ROWCOUNT = 0)
-        THROW 50404, 'extended query tag not found', 1;
-    SELECT   TagKey,
-             ErrorCode,
-             CreatedTime,
-             PartitionName,
-             StudyInstanceUid,
-             SeriesInstanceUid,
-             SopInstanceUid
-    FROM     dbo.ExtendedQueryTagError AS XQTE
-             INNER JOIN
-             dbo.Instance AS I
-             ON XQTE.Watermark = I.Watermark
-             INNER JOIN
-             dbo.Partition AS P
-             ON P.PartitionKey = I.PartitionKey
-    WHERE    XQTE.TagKey = @tagKey
-    ORDER BY CreatedTime ASC, XQTE.Watermark ASC, TagKey ASC
-    OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
-END
-
-GO
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrorsV8
-@tagPath VARCHAR (64), @limit INT, @offset INT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    DECLARE @tagKey AS INT;
+    DECLARE @imageResourceType AS TINYINT = 0;
     SELECT @tagKey = TagKey
     FROM   dbo.ExtendedQueryTag WITH (HOLDLOCK)
     WHERE  dbo.ExtendedQueryTag.TagPath = @tagPath
-           AND ResourceType = 0;
+           AND ResourceType = @imageResourceType;
     IF (@@ROWCOUNT = 0)
         THROW 50404, 'extended query tag not found', 1;
     SELECT   TagKey,
@@ -1809,6 +1711,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
+    DECLARE @imageResourceType AS TINYINT = 0;
     SELECT   XQT.TagKey,
              TagPath,
              TagVR,
@@ -1822,6 +1725,7 @@ BEGIN
              LEFT OUTER JOIN
              dbo.ExtendedQueryTagOperation AS XQTO
              ON XQT.TagKey = XQTO.TagKey
+    WHERE    XQT.ResourceType = @imageResourceType
     ORDER BY XQT.TagKey ASC
     OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
 END
@@ -1833,31 +1737,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
-    SELECT XQT.TagKey,
-           TagPath,
-           TagVR,
-           TagPrivateCreator,
-           TagLevel,
-           TagStatus,
-           QueryStatus,
-           ErrorCount,
-           OperationId
-    FROM   @extendedQueryTagKeys AS input
-           INNER JOIN
-           dbo.ExtendedQueryTag AS XQT
-           ON input.TagKey = XQT.TagKey
-           LEFT OUTER JOIN
-           dbo.ExtendedQueryTagOperation AS XQTO
-           ON XQT.TagKey = XQTO.TagKey;
-END
-
-GO
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagsByKeyV8
-@extendedQueryTagKeys dbo.ExtendedQueryTagKeyTableType_1 READONLY
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
+    DECLARE @imageResourceType AS TINYINT = 0;
     SELECT XQT.TagKey,
            TagPath,
            TagVR,
@@ -1874,7 +1754,7 @@ BEGIN
            LEFT OUTER JOIN
            dbo.ExtendedQueryTagOperation AS XQTO
            ON XQT.TagKey = XQTO.TagKey
-    WHERE  XQT.ResourceType = 0;
+    WHERE  XQT.ResourceType = @imageResourceType;
 END
 
 GO
@@ -1897,55 +1777,6 @@ BEGIN
            dbo.ExtendedQueryTagOperation AS XQTO
            ON XQT.TagKey = XQTO.TagKey
     WHERE  OperationId = @operationId;
-END
-
-GO
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagsV8
-@limit INT, @offset INT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    SELECT   XQT.TagKey,
-             TagPath,
-             TagVR,
-             TagPrivateCreator,
-             TagLevel,
-             TagStatus,
-             QueryStatus,
-             ErrorCount,
-             OperationId
-    FROM     dbo.ExtendedQueryTag AS XQT
-             LEFT OUTER JOIN
-             dbo.ExtendedQueryTagOperation AS XQTO
-             ON XQT.TagKey = XQTO.TagKey
-    WHERE    XQT.ResourceType = 0
-    ORDER BY XQT.TagKey ASC
-    OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
-END
-
-GO
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagV8
-@tagPath VARCHAR (64)=NULL
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    SELECT XQT.TagKey,
-           TagPath,
-           TagVR,
-           TagPrivateCreator,
-           TagLevel,
-           TagStatus,
-           QueryStatus,
-           ErrorCount,
-           OperationId
-    FROM   dbo.ExtendedQueryTag AS XQT
-           LEFT OUTER JOIN
-           dbo.ExtendedQueryTagOperation AS XQTO
-           ON XQT.TagKey = XQTO.TagKey
-    WHERE  TagPath = ISNULL(@tagPath, TagPath)
-           AND ResourceType = 0;
 END
 
 GO
@@ -2062,7 +1893,7 @@ END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCore
-@partitionKey INT=1, @studyKey BIGINT, @seriesKey BIGINT, @instanceKey BIGINT, @watermark BIGINT, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
+@partitionKey INT=1, @sopInstanceKey1 BIGINT, @sopInstanceKey2 BIGINT, @sopInstanceKey3 BIGINT, @watermark BIGINT, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY, @resourceType TINYINT=0
 AS
 BEGIN
     IF EXISTS (SELECT 1
@@ -2079,13 +1910,13 @@ BEGIN
                           ON dbo.ExtendedQueryTag.TagKey = input.TagKey
                              AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
                                                                               AND T.PartitionKey = @partitionKey
-                                                                              AND T.StudyKey = @studyKey
-                                                                              AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                              AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+                                                                              AND T.SopInstanceKey1 = @sopInstanceKey1
+                                                                              AND ISNULL(T.SopInstanceKey2, @sopInstanceKey2) = @sopInstanceKey2
+                                                                              AND ISNULL(T.SopInstanceKey3, @sopInstanceKey3) = @sopInstanceKey3
             WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
             SET T.Watermark = @watermark,
                 T.TagValue  = S.TagValue
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
+            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType) VALUES (S.TagKey, S.TagValue, @partitionKey, @sopInstanceKey1, (CASE WHEN S.TagLevel <> 2 THEN @sopInstanceKey2 ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @sopInstanceKey3 ELSE NULL END), @watermark, @resourceType);
         END
     IF EXISTS (SELECT 1
                FROM   @longExtendedQueryTags)
@@ -2101,13 +1932,13 @@ BEGIN
                           ON dbo.ExtendedQueryTag.TagKey = input.TagKey
                              AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
                                                                               AND T.PartitionKey = @partitionKey
-                                                                              AND T.StudyKey = @studyKey
-                                                                              AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                              AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+                                                                              AND T.SopInstanceKey1 = @sopInstanceKey1
+                                                                              AND ISNULL(T.SopInstanceKey2, @sopInstanceKey2) = @sopInstanceKey2
+                                                                              AND ISNULL(T.SopInstanceKey3, @sopInstanceKey3) = @sopInstanceKey3
             WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
             SET T.Watermark = @watermark,
                 T.TagValue  = S.TagValue
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
+            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType) VALUES (S.TagKey, S.TagValue, @partitionKey, @sopInstanceKey1, (CASE WHEN S.TagLevel <> 2 THEN @sopInstanceKey2 ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @sopInstanceKey3 ELSE NULL END), @watermark, @resourceType);
         END
     IF EXISTS (SELECT 1
                FROM   @doubleExtendedQueryTags)
@@ -2123,13 +1954,13 @@ BEGIN
                           ON dbo.ExtendedQueryTag.TagKey = input.TagKey
                              AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
                                                                               AND T.PartitionKey = @partitionKey
-                                                                              AND T.StudyKey = @studyKey
-                                                                              AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                              AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+                                                                              AND T.SopInstanceKey1 = @sopInstanceKey1
+                                                                              AND ISNULL(T.SopInstanceKey2, @sopInstanceKey2) = @sopInstanceKey2
+                                                                              AND ISNULL(T.SopInstanceKey3, @sopInstanceKey3) = @sopInstanceKey3
             WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
             SET T.Watermark = @watermark,
                 T.TagValue  = S.TagValue
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
+            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType) VALUES (S.TagKey, S.TagValue, @partitionKey, @sopInstanceKey1, (CASE WHEN S.TagLevel <> 2 THEN @sopInstanceKey2 ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @sopInstanceKey3 ELSE NULL END), @watermark, @resourceType);
         END
     IF EXISTS (SELECT 1
                FROM   @dateTimeExtendedQueryTags)
@@ -2146,14 +1977,13 @@ BEGIN
                           ON dbo.ExtendedQueryTag.TagKey = input.TagKey
                              AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
                                                                               AND T.PartitionKey = @partitionKey
-                                                                              AND T.StudyKey = @studyKey
-                                                                              AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                              AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+                                                                              AND T.SopInstanceKey1 = @sopInstanceKey1
+                                                                              AND ISNULL(T.SopInstanceKey2, @sopInstanceKey2) = @sopInstanceKey2
+                                                                              AND ISNULL(T.SopInstanceKey3, @sopInstanceKey3) = @sopInstanceKey3
             WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
-            SET T.Watermark   = @watermark,
-                T.TagValue    = S.TagValue,
-                T.TagValueUtc = S.TagValueUtc
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark, TagValueUtc) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark, S.TagValueUtc);
+            SET T.Watermark = @watermark,
+                T.TagValue  = S.TagValue
+            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, TagValueUtc, ResourceType) VALUES (S.TagKey, S.TagValue, @partitionKey, @sopInstanceKey1, (CASE WHEN S.TagLevel <> 2 THEN @sopInstanceKey2 ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @sopInstanceKey3 ELSE NULL END), @watermark, S.TagValueUtc, @resourceType);
         END
     IF EXISTS (SELECT 1
                FROM   @personNameExtendedQueryTags)
@@ -2169,13 +1999,13 @@ BEGIN
                           ON dbo.ExtendedQueryTag.TagKey = input.TagKey
                              AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
                                                                               AND T.PartitionKey = @partitionKey
-                                                                              AND T.StudyKey = @studyKey
-                                                                              AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-                                                                              AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+                                                                              AND T.SopInstanceKey1 = @sopInstanceKey1
+                                                                              AND ISNULL(T.SopInstanceKey2, @sopInstanceKey2) = @sopInstanceKey2
+                                                                              AND ISNULL(T.SopInstanceKey3, @sopInstanceKey3) = @sopInstanceKey3
             WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
             SET T.Watermark = @watermark,
                 T.TagValue  = S.TagValue
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
+            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType) VALUES (S.TagKey, S.TagValue, @partitionKey, @sopInstanceKey1, (CASE WHEN S.TagLevel <> 2 THEN @sopInstanceKey2 ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @sopInstanceKey3 ELSE NULL END), @watermark, @resourceType);
         END
 END
 

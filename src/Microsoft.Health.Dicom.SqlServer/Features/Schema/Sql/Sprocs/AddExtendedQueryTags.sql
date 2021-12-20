@@ -27,12 +27,15 @@ AS
 BEGIN
     BEGIN TRANSACTION
 
+        DECLARE @imageResourceType TINYINT = 0
+
         -- Check if total count exceed @maxCount
         -- HOLDLOCK to prevent adding queryTags from other transactions at same time.
         IF (SELECT COUNT(*)
             FROM dbo.ExtendedQueryTag AS XQT WITH(HOLDLOCK)
             FULL OUTER JOIN @extendedQueryTags AS input 
-            ON XQT.TagPath = input.TagPath) > @maxAllowedCount
+            ON XQT.TagPath = input.TagPath
+            WHERE XQT.ResourceType = @imageResourceType) > @maxAllowedCount
             THROW 50409, 'extended query tags exceed max allowed count', 1
 
         -- Check if tag with same path already exist
@@ -46,6 +49,7 @@ BEGIN
         FROM dbo.ExtendedQueryTag AS XQT
         INNER JOIN @extendedQueryTags AS input 
         ON input.TagPath = XQT.TagPath
+        AND XQT.ResourceType = @imageResourceType
         LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO 
         ON XQT.TagKey = XQTO.TagKey
 
