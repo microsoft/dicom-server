@@ -65,12 +65,12 @@ BEGIN
             NULL,
             NULL,
             @newWatermark,
-            @workitemResourceType,
             @stringExtendedQueryTags,
             NULL,
             NULL,
             @dateTimeExtendedQueryTags,
-            @personNameExtendedQueryTags
+            @personNameExtendedQueryTags,
+            @workitemResourceType
 
     END TRY
     BEGIN CATCH
