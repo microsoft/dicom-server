@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************/
 -- STORED PROCEDURE
---    Index instance Core
+--    IIndexInstanceCoreV8
 --
 -- DESCRIPTION
 --    Adds or updates the various extended query tag indices for a given DICOM instance
@@ -33,7 +33,7 @@
 -- RETURN VALUE
 --     None
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCore
+CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCoreV8
     @partitionKey                                                                INT = 1,
     @sopInstanceKey1                                                             BIGINT,
     @sopInstanceKey2                                                             BIGINT,

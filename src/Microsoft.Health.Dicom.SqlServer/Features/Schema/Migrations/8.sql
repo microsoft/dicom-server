@@ -560,7 +560,7 @@ BEGIN
                FULL OUTER JOIN
                @extendedQueryTags AS input
                ON XQT.TagPath = input.TagPath
-        WHERE  XQT.ResourceType = @imageResourceType) > @maxAllowedCount
+                  AND XQT.ResourceType = @imageResourceType) > @maxAllowedCount
         THROW 50409, 'extended query tags exceed max allowed count', 1;
     DECLARE @existingTags TABLE (
         TagKey      INT             ,
@@ -673,7 +673,7 @@ BEGIN
     INSERT  INTO dbo.Instance (PartitionKey, StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
     VALUES                   (@partitionKey, @studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate);
     BEGIN TRY
-        EXECUTE dbo.IIndexInstanceCore @partitionKey, @studyKey, @seriesKey, @instanceKey, @newWatermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
+        EXECUTE dbo.IIndexInstanceCoreV8 @partitionKey, @studyKey, @seriesKey, @instanceKey, @newWatermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
     END TRY
     BEGIN CATCH
         THROW;
@@ -724,7 +724,7 @@ BEGIN
     INSERT  INTO dbo.Workitem (WorkitemKey, PartitionKey, WorkitemUid, CreatedDate)
     VALUES                   (@workitemKey, @partitionKey, @workitemUid, @currentDate);
     BEGIN TRY
-        EXECUTE dbo.IIndexInstanceCore @partitionKey, @workitemKey, NULL, NULL, @newWatermark, @stringExtendedQueryTags, NULL, NULL, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags, @workitemResourceType;
+        EXECUTE dbo.IIndexInstanceCoreV8 @partitionKey, @workitemKey, NULL, NULL, @newWatermark, @stringExtendedQueryTags, NULL, NULL, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags, @workitemResourceType;
     END TRY
     BEGIN CATCH
         THROW;
@@ -1402,7 +1402,7 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCore
+CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCoreV8
 @partitionKey INT=1, @sopInstanceKey1 BIGINT, @sopInstanceKey2 BIGINT, @sopInstanceKey3 BIGINT, @watermark BIGINT, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY, @resourceType TINYINT=0
 AS
 BEGIN
@@ -1575,7 +1575,7 @@ BEGIN
     IF @status <> 1
         THROW 50409, 'Instance has not yet been stored succssfully', 1;
     BEGIN TRY
-        EXECUTE dbo.IIndexInstanceCore @partitionKey, @studyKey, @seriesKey, @instanceKey, @watermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
+        EXECUTE dbo.IIndexInstanceCoreV8 @partitionKey, @studyKey, @seriesKey, @instanceKey, @watermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
     END TRY
     BEGIN CATCH
         THROW;

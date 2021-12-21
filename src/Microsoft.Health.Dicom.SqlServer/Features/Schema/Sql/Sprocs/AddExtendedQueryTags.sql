@@ -9,7 +9,7 @@
 -- PARAMETERS
 --     @extendedQueryTags
 --         * The extended query tag list
---     @maxCount
+--     @maxAllowedCount
 --         * The max allowed extended query tag count
 --     @ready
 --         * Indicates whether the new query tags have been fully indexed
@@ -35,7 +35,7 @@ BEGIN
             FROM dbo.ExtendedQueryTag AS XQT WITH(HOLDLOCK)
             FULL OUTER JOIN @extendedQueryTags AS input 
             ON XQT.TagPath = input.TagPath
-            WHERE XQT.ResourceType = @imageResourceType) > @maxAllowedCount
+            AND XQT.ResourceType = @imageResourceType) > @maxAllowedCount
             THROW 50409, 'extended query tags exceed max allowed count', 1
 
         -- Check if tag with same path already exist
