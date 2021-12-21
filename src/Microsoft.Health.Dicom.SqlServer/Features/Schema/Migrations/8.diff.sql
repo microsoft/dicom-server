@@ -192,6 +192,24 @@ BEGIN
 END
 GO
 
+/*************************************************************
+    Dropping obsolete stored procedures that refer to renamed columns 
+**************************************************************/
+DROP PROCEDURE IF EXISTS dbo.AddInstance
+GO
+
+DROP PROCEDURE IF EXISTS dbo.AddInstanceV2
+GO
+
+DROP PROCEDURE IF EXISTS dbo.DeleteInstance
+GO
+
+DROP PROCEDURE IF EXISTS dbo.IndexInstance
+GO
+
+DROP PROCEDURE IF EXISTS dbo.IndexInstanceV2
+GO
+
 /***************************************************************************************/
 -- STORED PROCEDURE
 --    Index instance Core
@@ -1213,7 +1231,7 @@ BEGIN TRY
             SopInstanceKey3
         ) WITH (DROP_EXISTING = ON)
     
-        DROP INDEX IX_ExtendedQueryTagDouble_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey ON dbo.ExtendedQueryTagDouble
+        DROP INDEX IX_ExtendedQueryTagDouble_PartitionKey_TagKey_StudyKey_SeriesKey_InstanceKey ON dbo.ExtendedQueryTagDouble
         
         CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagDouble
         (
@@ -1262,7 +1280,7 @@ BEGIN TRY
             SopInstanceKey3
         ) WITH (DROP_EXISTING = ON)
     
-        DROP INDEX IX_ExtendedQueryTagLong_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey ON dbo.ExtendedQueryTagLong
+        DROP INDEX IX_ExtendedQueryTagLong_PartitionKey_TagKey_StudyKey_SeriesKey_InstanceKey ON dbo.ExtendedQueryTagLong
         
         CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagLong
         (
