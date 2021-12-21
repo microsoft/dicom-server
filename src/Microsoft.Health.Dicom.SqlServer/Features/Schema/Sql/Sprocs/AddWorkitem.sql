@@ -53,9 +53,9 @@ BEGIN
     -- The workitem does not exist, insert it.
     SET @workitemKey = NEXT VALUE FOR dbo.WorkitemKeySequence
     INSERT INTO dbo.Workitem
-        (WorkitemKey, PartitionKey, WorkitemUid, WorkitemState, CreatedDate)
+        (WorkitemKey, PartitionKey, WorkitemUid, CreatedDate)
     VALUES
-        (@workitemKey, @partitionKey, @workitemUid, @workitemState, @currentDate)
+        (@workitemKey, @partitionKey, @workitemUid, @currentDate)
 
     BEGIN TRY
 
