@@ -826,6 +826,7 @@ BEGIN
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
     DECLARE @newWatermark INT
     DECLARE @workitemResourceType TINYINT = 1
+    DECLARE @workitemKey BIGINT
 
     SELECT WorkitemUid
     FROM dbo.Workitem
