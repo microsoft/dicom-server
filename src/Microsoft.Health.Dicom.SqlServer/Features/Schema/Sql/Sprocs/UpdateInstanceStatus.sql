@@ -30,6 +30,7 @@ CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatus
     @watermark          BIGINT,
     @status             TINYINT
 AS
+BEGIN
     SET NOCOUNT ON
 
     SET XACT_ABORT ON
@@ -45,7 +46,7 @@ AS
     AND Watermark = @watermark
 
     IF @@ROWCOUNT = 0
-    BEGIN
+    BEGIN;
         -- The instance does not exist. Perhaps it was deleted?
         THROW 50404, 'Instance does not exist', 1;
     END
@@ -66,3 +67,4 @@ AS
         AND SopInstanceUid    = @sopInstanceUid
 
     COMMIT TRANSACTION
+END
