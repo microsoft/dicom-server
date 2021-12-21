@@ -826,6 +826,7 @@ BEGIN
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
     DECLARE @newWatermark INT
     DECLARE @workitemResourceType TINYINT = 1
+    DECLARE @workitemKey BIGINT
 
     SELECT WorkitemUid
     FROM dbo.Workitem
@@ -840,9 +841,9 @@ BEGIN
     -- The workitem does not exist, insert it.
     SET @workitemKey = NEXT VALUE FOR dbo.WorkitemKeySequence
     INSERT INTO dbo.Workitem
-        (WorkitemKey, PartitionKey, WorkitemUid, WorkitemState, CreatedDate)
+        (WorkitemKey, PartitionKey, WorkitemUid, CreatedDate)
     VALUES
-        (@workitemKey, @partitionKey, @workitemUid, @workitemState, @currentDate)
+        (@workitemKey, @partitionKey, @workitemUid, @currentDate)
 
     BEGIN TRY
 
