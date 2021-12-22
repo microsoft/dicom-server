@@ -32,6 +32,23 @@ namespace Microsoft.Health.DicomCast.Core.Modules
                 .AsService<NamedCredentialProvider>();
         }
 
+        public static void AddNamedOAuth2ClientCertificateCredentialProvider(this IServiceCollection serviceCollection, OAuth2ClientCertificateCredentialConfiguration oAuth2ClientCertificateCredentialConfiguration, string name)
+        {
+            EnsureArg.IsNotNull(serviceCollection, nameof(serviceCollection));
+            EnsureArg.IsNotNull(oAuth2ClientCertificateCredentialConfiguration, nameof(oAuth2ClientCertificateCredentialConfiguration));
+            EnsureArg.IsNotNullOrWhiteSpace(name, nameof(name));
+
+            serviceCollection.Add(provider =>
+                {
+                    var options = Options.Create(oAuth2ClientCertificateCredentialConfiguration);
+                    var httpClient = new HttpClient();
+                    var credentialProvider = new OAuth2ClientCertificateCredentialProvider(options, httpClient);
+                    return new NamedCredentialProvider(name, credentialProvider);
+                })
+                .Singleton()
+                .AsService<NamedCredentialProvider>();
+        }
+
         public static void AddNamedOAuth2ClientCredentialProvider(this IServiceCollection serviceCollection, OAuth2ClientCredentialConfiguration oAuth2ClientCredentialConfiguration, string name)
         {
             EnsureArg.IsNotNull(serviceCollection, nameof(serviceCollection));
