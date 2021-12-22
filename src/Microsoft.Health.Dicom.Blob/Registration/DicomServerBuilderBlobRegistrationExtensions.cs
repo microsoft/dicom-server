@@ -19,13 +19,12 @@ namespace Microsoft.Extensions.DependencyInjection
     public static class DicomServerBuilderBlobRegistrationExtensions
     {
         /// <summary>
-        /// Adds the blob data store for the DICOM server.
+        /// Adds the data store for the DICOM server.
         /// </summary>
-        /// <param name="serverBuilder">The DICOM server builder instance.</param>
+        /// <param name="serverBuilder">The DICOM server builder.</param>
         /// <param name="configuration">The configuration for the server.</param>
-        /// <returns>The server builder.</returns>
-        public static IDicomServerBuilder AddDataStore<TStoreConfigurationAware>(
-            this IDicomServerBuilder serverBuilder, IConfiguration configuration)
+        /// <returns>The service collection.</returns>
+        public static IDicomServerBuilder AddDataStore(this IDicomServerBuilder serverBuilder, IConfiguration configuration)
         {
             EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
@@ -33,11 +32,13 @@ namespace Microsoft.Extensions.DependencyInjection
             var blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
 
             serverBuilder.Services
-                .AddBlobServiceClient(blobConfig)
-                .AddPersistence()
-                .AddHealthCheck()
                 .AddOptions<BlobOperationOptions>()
                 .Bind(blobConfig.GetSection(nameof(BlobServiceClientOptions.Operations)));
+
+            serverBuilder.Services
+                .AddBlobServiceClient(blobConfig)
+                .AddPersistence()
+                .AddHealthCheck();
 
             serverBuilder
                 .AddStorage<BlobContainerConfigurationAware>(configuration)

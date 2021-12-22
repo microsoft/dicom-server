@@ -15,13 +15,11 @@ using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Features.Common;
-using Microsoft.Health.Dicom.Metadata.Features.Storage;
+using Microsoft.Health.Dicom.Metadata.Utilities;
 using Microsoft.IO;
 using Newtonsoft.Json;
 using NSubstitute;
 using Xunit;
-using BlobConstants = Microsoft.Health.Dicom.Blob.Constants;
-using MetadataConstants = Microsoft.Health.Dicom.Metadata.Constants;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
@@ -56,8 +54,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public async Task InitializeAsync()
         {
             IOptionsMonitor<BlobContainerConfiguration> optionsMonitor = Substitute.For<IOptionsMonitor<BlobContainerConfiguration>>();
-            optionsMonitor.Get(BlobConstants.ContainerConfigurationName).Returns(_blobContainerConfiguration);
-            optionsMonitor.Get(MetadataConstants.ContainerConfigurationName).Returns(_metadataContainerConfiguration);
+            optionsMonitor.Get(BlobContainerConfigurationAware.ContainerName).Returns(_blobContainerConfiguration);
+            optionsMonitor.Get(MetadataContainerConfigurationAware.ContainerName).Returns(_metadataContainerConfiguration);
 
             IBlobClientTestProvider testProvider = new BlobClientReadWriteTestProvider(RecyclableMemoryStreamManager, NullLogger<BlobClientReadWriteTestProvider>.Instance);
 
