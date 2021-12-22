@@ -3,10 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-
-using Microsoft.Health.Dicom.Blob.Utilities;
-
-namespace Microsoft.Health.Dicom.Metadata.Utilities
+namespace Microsoft.Health.Dicom.Blob.Utilities
 {
     /// <summary>
     /// 

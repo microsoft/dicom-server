@@ -16,12 +16,12 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
+using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Web;
-using Microsoft.Health.Dicom.Metadata.Utilities;
 using Microsoft.IO;
 using Newtonsoft.Json;
 

@@ -14,10 +14,10 @@ using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
+using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Metadata.Utilities;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage
 {

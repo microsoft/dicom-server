@@ -11,7 +11,6 @@ using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Registration;
-using Microsoft.Health.Dicom.Metadata.Utilities;
 using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Extensions.DependencyInjection
