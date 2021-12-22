@@ -13,6 +13,8 @@ namespace Microsoft.Health.DicomCast.Core.Configurations
 
         public AuthenticationType? AuthenticationType { get; set; }
 
+        public OAuth2ClientCertificateCredentialConfiguration OAuth2ClientCertificateCredential { get; set; }
+
         public OAuth2ClientCredentialConfiguration OAuth2ClientCredential { get; set; }
 
         public OAuth2UserPasswordCredentialConfiguration OAuth2UserPasswordCredential { get; set; }
