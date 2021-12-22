@@ -30,6 +30,9 @@ namespace Microsoft.Health.DicomCast.Core.Extensions
                 case AuthenticationType.ManagedIdentity:
                     services.AddNamedManagedIdentityCredentialProvider(authenticationConfiguration.ManagedIdentityCredential, credentialProviderName);
                     break;
+                case AuthenticationType.OAuth2ClientCertificateCredential:
+                    services.AddNamedOAuth2ClientCertificateCredentialProvider(authenticationConfiguration.OAuth2ClientCertificateCredential, credentialProviderName);
+                    break;
                 case AuthenticationType.OAuth2ClientCredential:
                     services.AddNamedOAuth2ClientCredentialProvider(authenticationConfiguration.OAuth2ClientCredential, credentialProviderName);
                     break;
