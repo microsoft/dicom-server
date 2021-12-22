@@ -22,44 +22,36 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="serverBuilder">The DICOM server builder.</param>
         /// <param name="configuration">The configuration for the server.</param>
-        /// <returns>The service collection.</returns>
+        /// <returns>The server builder.</returns>
         public static IDicomServerBuilder AddDataStore(this IDicomServerBuilder serverBuilder, IConfiguration configuration)
         {
             EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
+            serverBuilder.Services
+                .Add<BlobContainerConfigurationAware>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            serverBuilder.Services
+                .Add<MetadataContainerConfigurationAware>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
             var blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
-
-            serverBuilder.Services
-                .AddOptions<BlobOperationOptions>()
-                .Bind(blobConfig.GetSection(nameof(BlobServiceClientOptions.Operations)));
-
-            serverBuilder.Services
-                .AddBlobServiceClient(blobConfig)
-                .AddPersistence()
-                .AddHealthCheck();
 
             serverBuilder
                 .AddStorage<BlobContainerConfigurationAware>(configuration)
                 .AddStorage<MetadataContainerConfigurationAware>(configuration);
 
-            return serverBuilder;
-        }
-
-        private static IDicomServerBuilder AddStorage<TStoreConfigurationAware>(
-            this IDicomServerBuilder serverBuilder, IConfiguration configuration)
-            where TStoreConfigurationAware : IStoreConfigurationAware, new()
-        {
-            var config = new TStoreConfigurationAware();
-            var blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
-
             serverBuilder.Services
-                .AddBlobContainerInitialization(x => blobConfig
-                    .GetSection(BlobInitializerOptions.DefaultSectionName)
-                    .Bind(x))
-                .ConfigureContainer(config.Name, x => configuration
-                    .GetSection(config.SectionName)
-                    .Bind(x));
+                .AddBlobServiceClient(blobConfig)
+                .AddPersistence()
+                .AddHealthCheck()
+                .AddOptions<BlobOperationOptions>()
+                .Bind(blobConfig.GetSection(nameof(BlobServiceClientOptions.Operations)));
 
             return serverBuilder;
         }
@@ -86,6 +78,24 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Configure<BlobContainerConfiguration>(MetadataContainerConfigurationAware.ConfigurationSectionName, c => c.ContainerName = containerName);
 
             return functionsBuilder;
+        }
+
+        private static IDicomServerBuilder AddStorage<TStoreConfigurationAware>(
+            this IDicomServerBuilder serverBuilder, IConfiguration configuration)
+            where TStoreConfigurationAware : IStoreConfigurationAware, new()
+        {
+            var config = new TStoreConfigurationAware();
+            var blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
+
+            serverBuilder.Services
+                .AddBlobContainerInitialization(x => blobConfig
+                    .GetSection(BlobInitializerOptions.DefaultSectionName)
+                    .Bind(x))
+                .ConfigureContainer(config.Name, x => configuration
+                    .GetSection(config.SectionName)
+                    .Bind(x));
+
+            return serverBuilder;
         }
 
         private static IServiceCollection AddPersistence(this IServiceCollection services)
