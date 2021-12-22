@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,11 +33,21 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.AddWorkitem.PopulateCommand(sqlCommandWrapper, partitionKey, workitemUid, new VLatest.AddWorkitemTableValuedParameters());
+                var parameters = new VLatest.AddWorkitemTableValuedParameters(
+                    new List<InsertStringExtendedQueryTagTableTypeV1Row>(),
+                    new List<InsertDateTimeExtendedQueryTagTableTypeV2Row>(),
+                    new List<InsertPersonNameExtendedQueryTagTableTypeV1Row>()
+                );
+
+                VLatest.AddWorkitem.PopulateCommand(
+                    sqlCommandWrapper,
+                    partitionKey,
+                    workitemUid,
+                    parameters);
 
                 try
                 {
-                    return (long)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken));
+                    return (long)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
                 }
                 catch (SqlException ex)
                 {

@@ -510,7 +510,7 @@ CREATE OR ALTER PROCEDURE dbo.AddWorkitem
     @partitionKey                       INT,
     @workitemUid                        VARCHAR(64),
     @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY,
-    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1 READONLY,
+    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY,
     @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
 BEGIN
@@ -550,8 +550,8 @@ BEGIN
             NULL,
             @newWatermark,
             @stringExtendedQueryTags,
-            NULL,
-            NULL,
+            DEFAULT,
+            DEFAULT,
             @dateTimeExtendedQueryTags,
             @personNameExtendedQueryTags,
             @workitemResourceType

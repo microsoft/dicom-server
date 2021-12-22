@@ -42,9 +42,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         {
             var results = new List<ExtendedQueryTagDataRow>();
             string tagKeyParam = "@tagKey";
-            string studyKeyParam = "@studyKey";
-            string seriesKeyParam = "@seriesKey";
-            string instanceKeyParam = "@instanceKey";
+            string studyKeyParam = "@sopInstanceKey1";
+            string seriesKeyParam = "@sopInstanceKey2";
+            string instanceKeyParam = "@sopInstanceKey3";
 
             // Columns on all extended query tag index data tables are of same names
             string studyKeyColName = VLatest.ExtendedQueryTagString.SopInstanceKey1.Metadata.Name;

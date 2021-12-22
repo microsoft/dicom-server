@@ -548,10 +548,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
             private readonly ParameterDefinition<System.String> _workitemUid = new ParameterDefinition<System.String>("@workitemUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly InsertStringExtendedQueryTagTableTypeV1TableValuedParameterDefinition _stringExtendedQueryTags = new InsertStringExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@stringExtendedQueryTags");
-            private readonly InsertDateTimeExtendedQueryTagTableTypeV1TableValuedParameterDefinition _dateTimeExtendedQueryTags = new InsertDateTimeExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@dateTimeExtendedQueryTags");
+            private readonly InsertDateTimeExtendedQueryTagTableTypeV2TableValuedParameterDefinition _dateTimeExtendedQueryTags = new InsertDateTimeExtendedQueryTagTableTypeV2TableValuedParameterDefinition("@dateTimeExtendedQueryTags");
             private readonly InsertPersonNameExtendedQueryTagTableTypeV1TableValuedParameterDefinition _personNameExtendedQueryTags = new InsertPersonNameExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@personNameExtendedQueryTags");
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String workitemUid, global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> stringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV1Row> dateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNameExtendedQueryTags)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String workitemUid, global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> stringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> dateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNameExtendedQueryTags)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.AddWorkitem";
@@ -570,26 +570,26 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
         internal class AddWorkitemTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, AddWorkitemTableValuedParameters>
         {
-            public AddWorkitemTvpGenerator(ITableValuedParameterRowGenerator<TInput, InsertStringExtendedQueryTagTableTypeV1Row> InsertStringExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertDateTimeExtendedQueryTagTableTypeV1Row> InsertDateTimeExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertPersonNameExtendedQueryTagTableTypeV1Row> InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator)
+            public AddWorkitemTvpGenerator(ITableValuedParameterRowGenerator<TInput, InsertStringExtendedQueryTagTableTypeV1Row> InsertStringExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertDateTimeExtendedQueryTagTableTypeV2Row> InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertPersonNameExtendedQueryTagTableTypeV1Row> InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator)
             {
                 this.InsertStringExtendedQueryTagTableTypeV1RowGenerator = InsertStringExtendedQueryTagTableTypeV1RowGenerator;
-                this.InsertDateTimeExtendedQueryTagTableTypeV1RowGenerator = InsertDateTimeExtendedQueryTagTableTypeV1RowGenerator;
+                this.InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator = InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator;
                 this.InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator = InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator;
             }
 
             private readonly ITableValuedParameterRowGenerator<TInput, InsertStringExtendedQueryTagTableTypeV1Row> InsertStringExtendedQueryTagTableTypeV1RowGenerator;
-            private readonly ITableValuedParameterRowGenerator<TInput, InsertDateTimeExtendedQueryTagTableTypeV1Row> InsertDateTimeExtendedQueryTagTableTypeV1RowGenerator;
+            private readonly ITableValuedParameterRowGenerator<TInput, InsertDateTimeExtendedQueryTagTableTypeV2Row> InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator;
             private readonly ITableValuedParameterRowGenerator<TInput, InsertPersonNameExtendedQueryTagTableTypeV1Row> InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator;
 
             public AddWorkitemTableValuedParameters Generate(TInput input)
             {
-                return new AddWorkitemTableValuedParameters(InsertStringExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertDateTimeExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input));
+                return new AddWorkitemTableValuedParameters(InsertStringExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator.GenerateRows(input), InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input));
             }
         }
 
         internal struct AddWorkitemTableValuedParameters
         {
-            internal AddWorkitemTableValuedParameters(global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> StringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV1Row> DateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameExtendedQueryTags)
+            internal AddWorkitemTableValuedParameters(global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> StringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> DateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameExtendedQueryTags)
             {
                 this.StringExtendedQueryTags = StringExtendedQueryTags;
                 this.DateTimeExtendedQueryTags = DateTimeExtendedQueryTags;
@@ -597,7 +597,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             internal global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> StringExtendedQueryTags { get; }
-            internal global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV1Row> DateTimeExtendedQueryTags { get; }
+            internal global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> DateTimeExtendedQueryTags { get; }
             internal global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameExtendedQueryTags { get; }
         }
 

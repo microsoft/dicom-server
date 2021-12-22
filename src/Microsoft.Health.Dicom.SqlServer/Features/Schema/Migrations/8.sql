@@ -703,7 +703,7 @@ END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.AddWorkitem
-@partitionKey INT, @workitemUid VARCHAR (64), @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_1 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
+@partitionKey INT, @workitemUid VARCHAR (64), @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -724,7 +724,7 @@ BEGIN
     INSERT  INTO dbo.Workitem (WorkitemKey, PartitionKey, WorkitemUid, CreatedDate)
     VALUES                   (@workitemKey, @partitionKey, @workitemUid, @currentDate);
     BEGIN TRY
-        EXECUTE dbo.IIndexInstanceCoreV8 @partitionKey, @workitemKey, NULL, NULL, @newWatermark, @stringExtendedQueryTags, NULL, NULL, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags, @workitemResourceType;
+        EXECUTE dbo.IIndexInstanceCoreV8 @partitionKey, @workitemKey, NULL, NULL, @newWatermark, @stringExtendedQueryTags, DEFAULT, DEFAULT, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags, @workitemResourceType;
     END TRY
     BEGIN CATCH
         THROW;
