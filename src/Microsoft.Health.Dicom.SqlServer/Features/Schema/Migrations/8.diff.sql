@@ -520,18 +520,17 @@ BEGIN
     BEGIN TRANSACTION
 
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
-    DECLARE @newWatermark INT
+    DECLARE @newWatermark BIGINT
     DECLARE @workitemResourceType TINYINT = 1
     DECLARE @workitemKey BIGINT
 
-    SELECT WorkitemUid
+    SELECT @workitemKey = WorkitemKey
     FROM dbo.Workitem
     WHERE PartitionKey = @partitionKey
         AND WorkitemUid = @workitemUid
 
     IF @@ROWCOUNT <> 0
-        THROW 50409, 'Workitem already exists', @workitemUid;
-
+        THROW 50409, 'Workitem already exists', 1;
     SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence
 
     -- The workitem does not exist, insert it.

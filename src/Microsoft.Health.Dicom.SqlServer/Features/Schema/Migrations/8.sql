@@ -710,15 +710,15 @@ BEGIN
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
     DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
-    DECLARE @newWatermark AS INT;
+    DECLARE @newWatermark AS BIGINT;
     DECLARE @workitemResourceType AS TINYINT = 1;
     DECLARE @workitemKey AS BIGINT;
-    SELECT WorkitemUid
+    SELECT @workitemKey = WorkitemKey
     FROM   dbo.Workitem
     WHERE  PartitionKey = @partitionKey
            AND WorkitemUid = @workitemUid;
     IF @@ROWCOUNT <> 0
-        THROW 50409, 'Workitem already exists', @workitemUid;
+        THROW 50409, 'Workitem already exists', 1;
     SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
     SET @workitemKey =  NEXT VALUE FOR dbo.WorkitemKeySequence;
     INSERT  INTO dbo.Workitem (WorkitemKey, PartitionKey, WorkitemUid, CreatedDate)
