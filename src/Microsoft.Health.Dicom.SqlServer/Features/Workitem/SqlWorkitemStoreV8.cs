@@ -7,8 +7,12 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
+using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Workitem;
+using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
@@ -28,21 +32,22 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
         public virtual SchemaVersion Version => SchemaVersion.V8;
 
-        public virtual async Task<long> AddWorkitemAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken)
+        public virtual async Task<long> AddWorkitemAsync(int partitionKey, WorkitemDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
+                var rows = ExtendedQueryTagDataRowsBuilder.Build(dataset, queryTags, Version);
                 var parameters = new VLatest.AddWorkitemTableValuedParameters(
-                    new List<InsertStringExtendedQueryTagTableTypeV1Row>(),
-                    new List<InsertDateTimeExtendedQueryTagTableTypeV2Row>(),
-                    new List<InsertPersonNameExtendedQueryTagTableTypeV1Row>()
+                    rows.StringRows,
+                    rows.DateTimeWithUtcRows,
+                    rows.PersonNameRows
                 );
 
                 VLatest.AddWorkitem.PopulateCommand(
                     sqlCommandWrapper,
                     partitionKey,
-                    workitemUid,
+                    dataset.GetString(DicomTag.SOPInstanceUID),
                     parameters);
 
                 try
