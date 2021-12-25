@@ -30,6 +30,7 @@ CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatus
     @watermark          BIGINT,
     @status             TINYINT
 AS
+BEGIN
     SET NOCOUNT ON
 
     SET XACT_ABORT ON
@@ -66,3 +67,4 @@ AS
         AND SopInstanceUid    = @sopInstanceUid
 
     COMMIT TRANSACTION
+END

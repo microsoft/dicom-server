@@ -46,6 +46,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         public static readonly HashSet<DicomTag> CoreTags = new HashSet<DicomTag>(
             CoreStudyTags.Union(CoreSeriesTags).Union(CoreInstanceTags));
 
+        public static readonly HashSet<DicomTag> CoreWorkitemTags = new HashSet<DicomTag>()
+        {
+            DicomTag.SOPInstanceUID,
+
+            /* TODO: make this list sequence-aware
+            DicomTag.AccessionNumber,
+            DicomTag.PatientName,
+            DicomTag.PatientID,
+            DicomTag.ScheduledStationNameCodeSequence,
+            DicomTag.ScheduledProcedureStepStartDateTime,
+            DicomTag.ScheduledStationClassCodeSequence,
+            DicomTag.ReferencedRequestSequence,
+            DicomTag.ProcedureStepState,
+            DicomElement
+            */
+        };
+
         public static readonly HashSet<DicomVR> ValidRangeQueryTags = new HashSet<DicomVR>()
         {
             DicomVR.DA,

@@ -6,6 +6,7 @@
     TagPrivateCreator is identification code of private tag implementer, only apply to private tag.
     TagStatus can be 0, 1 or 2 to represent Adding, Ready or Deleting.
     QueryStatus can be 0, or 1 to represent Disabled or Enabled.
+    ResourceType = 0 means Image SOP instance, ResourceType = 1 means UPS SOP instance.
 **************************************************************/
 CREATE TABLE dbo.ExtendedQueryTag (
     TagKey                  INT                  NOT NULL, --PK
@@ -15,8 +16,9 @@ CREATE TABLE dbo.ExtendedQueryTag (
     TagLevel                TINYINT              NOT NULL,
     TagStatus               TINYINT              NOT NULL,
     QueryStatus             TINYINT              DEFAULT 1 NOT NULL,
-    ErrorCount              INT                  DEFAULT 0 NOT NULL
-)
+    ErrorCount              INT                  DEFAULT 0 NOT NULL,
+    ResourceType            TINYINT              NOT NULL DEFAULT 0
+) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
 (
@@ -24,7 +26,9 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
 )
 
 -- Used in GetExtendedQueryTag
-CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath ON dbo.ExtendedQueryTag
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath_ResourceType ON dbo.ExtendedQueryTag
 (
-    TagPath
+    TagPath,
+    ResourceType
 )
+WITH (DATA_COMPRESSION = PAGE)
