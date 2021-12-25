@@ -19,12 +19,12 @@ namespace Microsoft.Extensions.DependencyInjection
     public static class DicomServerBuilderBlobRegistrationExtensions
     {
         /// <summary>
-        /// Adds the blob data store for the DICOM server.
+        /// Adds the blob data stores for the DICOM server.
         /// </summary>
         /// <param name="serverBuilder">The DICOM server builder instance.</param>
         /// <param name="configuration">The configuration for the server.</param>
         /// <returns>The server builder.</returns>
-        public static IDicomServerBuilder AddBlobStorageDataStore(this IDicomServerBuilder serverBuilder, IConfiguration configuration)
+        public static IDicomServerBuilder AddDataStores(this IDicomServerBuilder serverBuilder, IConfiguration configuration)
         {
             EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
@@ -35,20 +35,16 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Bind(blobConfig.GetSection(nameof(BlobServiceClientOptions.Operations)));
 
             serverBuilder
-                .AddStorageDataStore<BlobStoreConfigurationSection, IFileStore, BlobFileStore, LoggingFileStore>(configuration)
-                .AddStorageDataStore<MetadataStoreConfigurationSection, IMetadataStore, BlobMetadataStore, LoggingMetadataStore>(configuration);
+                .AddStorageDataStore<BlobStoreConfigurationSection, IFileStore, BlobFileStore, LoggingFileStore>(
+                    configuration, "DcmHealthCheck")
+                .AddStorageDataStore<MetadataStoreConfigurationSection, IMetadataStore, BlobMetadataStore, LoggingMetadataStore>(
+                    configuration, "MetadataHealthCheck");
 
             return serverBuilder;
         }
 
-        /// <summary>
-        /// Adds the blob data store for the DICOM server.
-        /// </summary>
-        /// <param name="serverBuilder">The DICOM server builder instance.</param>
-        /// <param name="configuration">The configuration for the server.</param>
-        /// <returns>The server builder.</returns>
         private static IDicomServerBuilder AddStorageDataStore<TStoreConfigurationSection, TIStore, TStore, TLogStore>(
-            this IDicomServerBuilder serverBuilder, IConfiguration configuration)
+            this IDicomServerBuilder serverBuilder, IConfiguration configuration, string healthCheckName)
             where TStoreConfigurationSection : class, IStoreConfigurationSection, new()
             where TStore : class, TIStore
             where TLogStore : TIStore
@@ -58,6 +54,8 @@ namespace Microsoft.Extensions.DependencyInjection
             var config = new TStoreConfigurationSection();
 
             serverBuilder.Services
+                .AddSingleton<TStoreConfigurationSection>()
+                .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<TStoreConfigurationSection>())
                 .AddPersistence<TIStore, TStore, TLogStore>()
                 .AddBlobServiceClient(blobConfig)
                 .AddBlobContainerInitialization(x => blobConfig
@@ -68,7 +66,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     .Bind(x));
 
             serverBuilder
-                .AddBlobHealthCheck<DicomBlobHealthCheck<TStoreConfigurationSection>>("DcmHealthCheck");
+                .AddBlobHealthCheck<DicomBlobHealthCheck<TStoreConfigurationSection>>(healthCheckName);
 
             return serverBuilder;
         }

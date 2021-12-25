@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Blob;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
+using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Registration;
 
@@ -30,8 +31,10 @@ namespace Microsoft.Extensions.DependencyInjection
             EnsureArg.IsNotNull(functionsBuilder, nameof(functionsBuilder));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-            IConfiguration blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
+            var blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
             functionsBuilder.Services
+                .AddSingleton<MetadataStoreConfigurationSection>()
+                .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<MetadataStoreConfigurationSection>())
                 .AddPersistence<IMetadataStore, BlobMetadataStore, LoggingMetadataStore>()
                 .AddBlobServiceClient(blobConfig)
                 .Configure<BlobContainerConfiguration>(Constants.MetadataContainerConfigurationName, c => c.ContainerName = containerName);
