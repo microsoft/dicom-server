@@ -8,10 +8,10 @@ namespace Microsoft.Health.Dicom.Blob.Utilities
     /// <summary>
     /// 
     /// </summary>
-    public interface IStoreConfigurationAware
+    public interface IStoreConfigurationSection
     {
-        string SectionName { get; }
+        string ConfigurationSectionName { get; }
 
-        string Name { get; }
+        string ContainerConfigurationName { get; }
     }
 }

@@ -13,8 +13,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Blob.Features.Storage;
+using Microsoft.Health.Dicom.Blob;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
-using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.IO;
 using Newtonsoft.Json;
@@ -54,8 +54,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public async Task InitializeAsync()
         {
             IOptionsMonitor<BlobContainerConfiguration> optionsMonitor = Substitute.For<IOptionsMonitor<BlobContainerConfiguration>>();
-            optionsMonitor.Get(BlobContainerConfigurationAware.ContainerName).Returns(_blobContainerConfiguration);
-            optionsMonitor.Get(MetadataContainerConfigurationAware.ContainerName).Returns(_metadataContainerConfiguration);
+            optionsMonitor.Get(Constants.BlobContainerConfigurationName).Returns(_blobContainerConfiguration);
+            optionsMonitor.Get(Constants.MetadataContainerConfigurationName).Returns(_metadataContainerConfiguration);
 
             IBlobClientTestProvider testProvider = new BlobClientReadWriteTestProvider(RecyclableMemoryStreamManager, NullLogger<BlobClientReadWriteTestProvider>.Instance);
 

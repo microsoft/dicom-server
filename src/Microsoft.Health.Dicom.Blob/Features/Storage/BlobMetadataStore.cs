@@ -16,7 +16,6 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
-using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -51,8 +50,8 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
             EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
 
-            var containerConfiguration = namedBlobContainerConfigurationAccessor
-                .Get(MetadataContainerConfigurationAware.ContainerName);
+            BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
+                .Get(Constants.MetadataContainerConfigurationName);
 
             _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
             _jsonSerializer = jsonSerializer;
