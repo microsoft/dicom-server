@@ -3,10 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Metadata
+namespace Microsoft.Health.Dicom.Blob.Utilities
 {
-    internal static class Constants
+    /// <summary>
+    /// 
+    /// </summary>
+    public interface IStoreConfigurationSection
     {
-        public const string ContainerConfigurationName = "dicomMetadata";
+        string ConfigurationSectionName { get; }
+
+        string ContainerConfigurationName { get; }
     }
 }

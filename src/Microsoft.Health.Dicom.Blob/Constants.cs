@@ -5,8 +5,12 @@
 
 namespace Microsoft.Health.Dicom.Blob
 {
-    internal static class Constants
+    public static class Constants
     {
-        public const string ContainerConfigurationName = "dicomBlob";
+        public const string BlobStoreConfigurationSection = "DicomWeb:DicomStore";
+        public const string BlobContainerConfigurationName = "dicomBlob";
+
+        public const string MetadataStoreConfigurationSection = "DicomWeb:MetadataStore";
+        public const string MetadataContainerConfigurationName = "dicomMetadata";
     }
 }
