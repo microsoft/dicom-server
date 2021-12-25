@@ -15,7 +15,7 @@ using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
-using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Core.Web;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
@@ -42,12 +42,12 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
         [Produces(KnownContentTypes.ApplicationDicomJson)]
         [Consumes(KnownContentTypes.ApplicationDicom, KnownContentTypes.MultipartRelated)]
-        [ProducesResponseType(typeof(Workitem), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(Workitem), (int)HttpStatusCode.Accepted)]
+        [ProducesResponseType(typeof(WorkitemDataset), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(WorkitemDataset), (int)HttpStatusCode.Accepted)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
-        [ProducesResponseType(typeof(Workitem), (int)HttpStatusCode.Conflict)]
+        [ProducesResponseType(typeof(WorkitemDataset), (int)HttpStatusCode.Conflict)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.UnsupportedMediaType)]
         [HttpPost]
         [VersionedPartitionRoute(KnownRoutes.WorkitemInstancesRoute, Name = KnownRouteNames.VersionedPartitionWorkitemInstance)]
@@ -63,8 +63,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
         [Produces(KnownContentTypes.ApplicationDicomJson)]
         [Consumes(KnownContentTypes.ApplicationDicom, KnownContentTypes.MultipartRelated)]
-        [ProducesResponseType(typeof(Workitem), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(Workitem), (int)HttpStatusCode.Accepted)]
+        [ProducesResponseType(typeof(WorkitemDataset), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(WorkitemDataset), (int)HttpStatusCode.Accepted)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]

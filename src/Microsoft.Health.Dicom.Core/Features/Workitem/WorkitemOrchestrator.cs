@@ -49,7 +49,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             // TODO: generate QueryTags list for workitem
             var queryTags = new List<QueryTag>();
 
-            long watermark = await _workitemStore.AddWorkitemAsync(partitionKey, workitemDataset, queryTags, cancellationToken);
+            long watermark = await _workitemStore
+                .AddWorkitemAsync(partitionKey, workitemDataset, queryTags, cancellationToken);
 
             // We have successfully created the index, store the file.
             await StoreWorkitemBlobAsync(workitemDataset, watermark, cancellationToken);

@@ -3,16 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Azure;
 using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
-using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
-using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Workitems;
 using Microsoft.IO;
 using Newtonsoft.Json;
@@ -46,56 +43,17 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
         }
 
-        /// <inheritdoc />
-        public async Task StoreInstanceWorkitemAsync(
-            Workitem workItem,
-            long version,
-            CancellationToken cancellationToken)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="partitionKey"></param>
+        /// <param name="workitemDataset"></param>
+        /// <param name="queryTags"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<long> AddWorkitemAsync(int partitionKey, WorkitemDataset workitemDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
-            // EnsureArg.IsNotNull(workItem, nameof(workItem));
-
-            await Task.CompletedTask;
-        }
-
-        /// <inheritdoc />
-        public async Task DeleteInstanceWorkitemIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
-        {
-            EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-            var blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
-
-            await ExecuteAsync(() => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken));
-        }
-
-        /// <inheritdoc />
-        public async Task<Workitem> GetInstanceWorkitemAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
-        {
-            EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-            var cloudBlockBlob = GetInstanceBlockBlob(versionedInstanceIdentifier);
-
-            return await Task.FromResult(default(Workitem));
-        }
-
-        private BlockBlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
-        {
-            var blobName = $"{versionedInstanceIdentifier.StudyInstanceUid}/{versionedInstanceIdentifier.SeriesInstanceUid}/{versionedInstanceIdentifier.SopInstanceUid}_{versionedInstanceIdentifier.Version}_metadata.json";
-
-            return _container.GetBlockBlobClient(blobName);
-        }
-
-        private static async Task ExecuteAsync(Func<Task> action)
-        {
-            try
-            {
-                await action();
-            }
-            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
-            {
-                throw new ItemNotFoundException(ex);
-            }
-            catch (Exception ex)
-            {
-                throw new DataStoreException(ex);
-            }
+            return await Task.FromResult(0);
         }
     }
 }

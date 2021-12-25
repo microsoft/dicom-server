@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
 
-namespace Microsoft.Health.Dicom.Core.Features.Workitems
+namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
     public interface IWorkitemService
     {

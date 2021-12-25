@@ -20,7 +20,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
     <PackageReference Include="Microsoft.Health.Blob" Version="4.0.2" />
-    <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="4.0.2" />
+    <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="4.0.4" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Scrutor" Version="3.3.0" />

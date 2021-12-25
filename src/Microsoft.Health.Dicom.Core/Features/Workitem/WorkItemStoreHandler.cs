@@ -15,10 +15,9 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
-using Microsoft.Health.Dicom.Core.Features.Workitems;
 using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
 
-namespace Microsoft.Health.Dicom.Core.Features.Store
+namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
     public class WorkitemStoreHandler : BaseHandler, IRequestHandler<WorkitemStoreRequest, WorkitemStoreResponse>
     {
@@ -50,7 +49,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             // StoreRequestValidator.ValidateRequest(request);
 
             // Find a reader that can parse the request body.
-            IDicomInstanceEntryReader dicomInstanceEntryReader = _dicomInstanceEntryReaderManager.FindReader(request.RequestContentType);
+            var dicomInstanceEntryReader = _dicomInstanceEntryReaderManager.FindReader(request.RequestContentType);
 
             if (dicomInstanceEntryReader == null)
             {

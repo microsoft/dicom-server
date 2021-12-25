@@ -3,9 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Workitem;
 
 namespace Microsoft.Health.Dicom.Core.Features.Common
 {
@@ -15,35 +17,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
     public interface IWorkitemStore
     {
         /// <summary>
-        /// Asynchronously stores a DICOM instance work-item.
+        /// 
         /// </summary>
-        /// <param name="workItem">The DICOM work-item instance.</param>
-        /// <param name="version">The version.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A task that represents the asynchronous add operation.</returns>
-        Task StoreInstanceWorkitemAsync(
-            Workitem workItem,
-            long version,
-            CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Asynchronously gets a DICOM instance work-item.
-        /// </summary>
-        /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A task that represents the asynchronous get operation.</returns>
-        Task<Workitem> GetInstanceWorkitemAsync(
-            VersionedInstanceIdentifier versionedInstanceIdentifier,
-            CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Asynchronously deletes a DICOM instance work-item.
-        /// </summary>
-        /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A task that represents the asynchronous delete operation.</returns>
-        Task DeleteInstanceWorkitemIfExistsAsync(
-            VersionedInstanceIdentifier versionedInstanceIdentifier,
-            CancellationToken cancellationToken = default);
+        /// <param name="partitionKey"></param>
+        /// <param name="workitemDataset"></param>
+        /// <param name="queryTags"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task<long> AddWorkitemAsync(int partitionKey, WorkitemDataset workitemDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken);
     }
 }

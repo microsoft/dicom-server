@@ -3,9 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Core.Features.Partition;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
@@ -19,14 +16,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             _fixture = fixture;
         }
 
-        [Fact]
-        public async Task WhenValidWorkitemIsCreated_CreationSucceeds()
-        {
-            string workitemUid = "2.25.1234";
+        //[Fact]
+        //public async Task WhenValidWorkitemIsCreated_CreationSucceeds()
+        //{
+        //    string workitemUid = "2.25.1234";
 
-            long workitemKey = await _fixture.WorkitemStore.AddWorkitemAsync(DefaultPartition.Key, workitemUid, CancellationToken.None);
+        //    long workitemKey = await _fixture.WorkitemStore.AddWorkitemAsync(DefaultPartition.Key, workitemUid, CancellationToken.None);
 
-            Assert.True(workitemKey > 0, "WorkitemKey not returned.");
-        }
+        //    Assert.True(workitemKey > 0, "WorkitemKey not returned.");
+        //}
     }
 }
