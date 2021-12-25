@@ -37,7 +37,8 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
             EnsureArg.IsNotNull(options?.Value, nameof(options));
 
-            BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor.Get(Constants.ContainerConfigurationName);
+            BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
+                .Get(Constants.BlobContainerConfigurationName);
 
             _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
             _options = options.Value;
