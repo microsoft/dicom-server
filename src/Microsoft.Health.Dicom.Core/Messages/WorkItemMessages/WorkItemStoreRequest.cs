@@ -13,14 +13,18 @@ namespace Microsoft.Health.Dicom.Core.Messages.WorkitemMessages
         public WorkitemStoreRequest(
             Stream requestBody,
             string requestContentType,
-            string workItemInstanceUid = null)
+            string workItemInstanceUid = null,
+            string transactionUid = null)
         {
             WorkitemInstanceUid = workItemInstanceUid;
+            WorkitemTransactionUid = transactionUid;
             RequestBody = requestBody;
             RequestContentType = requestContentType;
         }
 
         public string WorkitemInstanceUid { get; }
+
+        public string WorkitemTransactionUid { get; }
 
         public Stream RequestBody { get; }
 

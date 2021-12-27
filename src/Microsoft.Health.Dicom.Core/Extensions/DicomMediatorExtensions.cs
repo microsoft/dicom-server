@@ -219,10 +219,10 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         public static Task<WorkitemStoreResponse> StoreDicomWorkitemAsync(
-            this IMediator mediator, Stream requestBody, string requestContentType, string workItemInstanceUid, CancellationToken cancellationToken)
+            this IMediator mediator, Stream requestBody, string requestContentType, string upsInstanceUid, string transactionUid, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
-            return mediator.Send(new WorkitemStoreRequest(requestBody, requestContentType, workItemInstanceUid), cancellationToken);
+            return mediator.Send(new WorkitemStoreRequest(requestBody, requestContentType, upsInstanceUid, transactionUid), cancellationToken);
         }
 
     }

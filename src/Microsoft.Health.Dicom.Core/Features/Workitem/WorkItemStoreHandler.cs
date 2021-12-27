@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -58,15 +57,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
 
             // Read list of entries.
-            IReadOnlyList<IDicomInstanceEntry> instanceEntries = await dicomInstanceEntryReader.ReadAsync(
+            var instanceEntries = await dicomInstanceEntryReader.ReadAsync(
                     request.RequestContentType,
                     request.RequestBody,
                     cancellationToken);
 
             // Process list of entries.
             return await _workItemService
-                .ProcessAsync(// instanceEntries,
-                    request.WorkitemInstanceUid, cancellationToken);
+                .ProcessAsync(instanceEntries, request.WorkitemInstanceUid, cancellationToken);
         }
     }
 }
