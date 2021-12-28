@@ -6,13 +6,13 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Client;
-using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
 {
@@ -46,7 +46,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
         public async Task<DicomWebResponse<DicomDataset>> StoreAsync(DicomFile dicomFile, string studyInstanceUid = default, string partitionName = default, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
-            _instanceIds.Add(DicomInstanceId.FromInstanceIdentifier(dicomFile.Dataset.ToInstanceIdentifier(), partitionName));
+            _instanceIds.Add(DicomInstanceId.FromDicomFile(dicomFile, partitionName));
             return await _dicomWebClient.StoreAsync(dicomFile, studyInstanceUid, partitionName, cancellationToken);
         }
 
@@ -66,10 +66,21 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
             EnsureArg.IsNotNull(dicomFiles, nameof(dicomFiles));
             foreach (var file in dicomFiles)
             {
-                _instanceIds.Add(DicomInstanceId.FromInstanceIdentifier(file.Dataset.ToInstanceIdentifier(), partitionName));
+                _instanceIds.Add(DicomInstanceId.FromDicomFile(file, partitionName));
             }
 
             return await _dicomWebClient.StoreAsync(dicomFiles, studyInstanceUid, partitionName, cancellationToken);
+        }
+
+        public async Task<DicomWebResponse<DicomDataset>> StoreAsync(Stream stream, string studyInstanceUid = default, string partitionName = default, CancellationToken cancellationToken = default, DicomInstanceId instanceId = default)
+        {
+            EnsureArg.IsNotNull(stream, nameof(stream));
+            // Null instanceId indiates Store will fail
+            if (instanceId != null)
+            {
+                _instanceIds.Add(instanceId);
+            }
+            return await _dicomWebClient.StoreAsync(stream, studyInstanceUid, partitionName, cancellationToken);
         }
     }
 }

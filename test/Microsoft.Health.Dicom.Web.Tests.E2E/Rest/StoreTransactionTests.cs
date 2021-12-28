@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Client;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.IO;
@@ -139,7 +138,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                     multiContent.Add(validByteContent);
                 }
 
-                using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(multiContent, instanceId: DicomInstanceId.FromInstanceIdentifier(validFile.Dataset.ToInstanceIdentifier()));
+                using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(multiContent, instanceId: DicomInstanceId.FromDicomFile(validFile));
 
                 Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
@@ -173,7 +172,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                     multiContent.Add(byteContent);
                 }
 
-                using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(multiContent, instanceId: DicomInstanceId.FromInstanceIdentifier(dicomFile.Dataset.ToInstanceIdentifier()));
+                using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(multiContent, instanceId: DicomInstanceId.FromDicomFile(dicomFile));
 
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -347,7 +346,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             await using MemoryStream stream = _recyclableMemoryStreamManager.GetStream();
             await dicomFile.SaveAsync(stream);
 
-            using DicomWebResponse<DicomDataset> response = await _client.StoreAsync(stream);
+            using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(stream, instanceId: DicomInstanceId.FromDicomFile(dicomFile));
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
