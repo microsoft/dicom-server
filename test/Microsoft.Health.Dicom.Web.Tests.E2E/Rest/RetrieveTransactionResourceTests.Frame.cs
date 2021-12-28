@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomFile inputDicomFile = await DicomFile.OpenAsync(transcoderTestData.InputDicomFile);
             var instanceId = RandomizeInstanceIdentifier(inputDicomFile.Dataset);
 
-            await InternalStoreAsync(new[] { inputDicomFile });
+            await _instancesManager.StoreAsync(new[] { inputDicomFile });
 
             DicomFile outputDicomFile = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);
             DicomPixelData pixelData = DicomPixelData.Create(outputDicomFile.Dataset);
@@ -89,7 +89,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 transferSyntax: DicomTransferSyntax.HEVCH265Main10ProfileLevel51.UID.UID,
                 encode: false);
 
-            await InternalStoreAsync(new[] { dicomFile });
+            await _instancesManager.StoreAsync(new[] { dicomFile });
 
             // Check for series
             using DicomWebAsyncEnumerableResponse<Stream> response = await _client.RetrieveFramesAsync(
@@ -120,7 +120,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 transferSyntax: DicomTransferSyntax.HEVCH265Main10ProfileLevel51.UID.UID,
                 encode: false);
 
-            await InternalStoreAsync(new[] { dicomFile });
+            await _instancesManager.StoreAsync(new[] { dicomFile });
 
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveFramesAsync(
                 studyInstanceUid,
@@ -141,7 +141,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomPixelData pixelData = DicomPixelData.Create(dicomFile1.Dataset);
             InstanceIdentifier dicomInstance = dicomFile1.Dataset.ToInstanceIdentifier();
 
-            await InternalStoreAsync(new[] { dicomFile1 });
+            await _instancesManager.StoreAsync(new[] { dicomFile1 });
 
             using DicomWebAsyncEnumerableResponse<Stream> response = await _client.RetrieveFramesAsync(
                 dicomInstance.StudyInstanceUid,

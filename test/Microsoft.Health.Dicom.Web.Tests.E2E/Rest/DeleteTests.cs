@@ -10,18 +10,21 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
-    public class DeleteTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
+    public class DeleteTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
     {
         private readonly IDicomWebClient _client;
+        private readonly DicomInstancesManager _instancesManager;
 
         public DeleteTests(HttpIntegrationTestFixture<Startup> fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
-            _client = fixture.Client;
+            _client = fixture.GetDicomWebClient();
+            _instancesManager = new DicomInstancesManager(_client);
         }
 
         [Fact]
@@ -274,6 +277,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
         }
 
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
+        {
+            await _instancesManager.DisposeAsync();
+        }
+
         private async Task VerifyAllRemoval(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
             await VerifySopInstanceRemoval(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
@@ -315,7 +325,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-            await _client.StoreAsync(new[] { dicomFile1 }, studyInstanceUid);
+            await _instancesManager.StoreAsync(new[] { dicomFile1 }, studyInstanceUid);
         }
     }
 }
