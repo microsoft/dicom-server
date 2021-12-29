@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -72,6 +73,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             if (AcceptableTransferSyntaxes.Contains(acceptHeader.TransferSyntax.Value))
             {
+                if (string.Equals(acceptHeader.TransferSyntax.Value, "*", StringComparison.OrdinalIgnoreCase))
+                {
+                    transferSyntax = DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID;
+                    return true;
+                }
+
                 transferSyntax = acceptHeader.TransferSyntax.Value;
                 return true;
             }
