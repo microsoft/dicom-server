@@ -14,7 +14,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
     internal class DicomInstanceId
     {
         private const StringComparison EqualsStringComparison = StringComparison.Ordinal;
-        public DicomInstanceId(string partitionName, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+        public DicomInstanceId(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string partitionName)
         {
             StudyInstanceUid = EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
             SeriesInstanceUid = EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
         public static DicomInstanceId FromDicomFile(DicomFile dicomFile, string partitionName = default)
         {
             InstanceIdentifier instanceIdentifier = dicomFile.Dataset.ToInstanceIdentifier();
-            return new DicomInstanceId(partitionName, instanceIdentifier.StudyInstanceUid, instanceIdentifier.SeriesInstanceUid, instanceIdentifier.SopInstanceUid);
+            return new DicomInstanceId(instanceIdentifier.StudyInstanceUid, instanceIdentifier.SeriesInstanceUid, instanceIdentifier.SopInstanceUid, partitionName);
         }
 
         public override bool Equals(object obj)

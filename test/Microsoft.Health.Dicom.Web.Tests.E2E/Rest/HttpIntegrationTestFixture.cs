@@ -32,8 +32,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         public bool IsInProcess => TestDicomWebServer is InProcTestDicomWebServer;
 
-        public HttpClient HttpClient => GetDicomWebClient().HttpClient;
-
         protected TestDicomWebServer TestDicomWebServer { get; }
 
         public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; } = new RecyclableMemoryStreamManager();
@@ -110,7 +108,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             if (disposing)
             {
-                HttpClient.Dispose();
                 TestDicomWebServer.Dispose();
             }
         }
