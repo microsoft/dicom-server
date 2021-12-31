@@ -12,6 +12,10 @@
     <meta name="HandheldFriendly" content="True" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
 
+    <!-- WEB FONTS -->
+    <link href="https://fonts.googleapis.com/css?family=Sanchez" rel="stylesheet" />
+
+
     <title>OHIF Standalone Viewer</title>
 </head>
 
@@ -22,7 +26,8 @@
 
     <script src="https://unpkg.com/@ohif/viewer@latest/dist/index.umd.js" crossorigin></script>
     <script>
-        var rootUrl = `${window.location.protocol}//${window.location.hostname}:${window.location.port}`;
+        //var rootUrl = `${window.location.protocol}//${window.location.hostname}:${window.location.port}`;
+        var rootUrl = "https://localhost:8042/dicom-web";
         var containerId = "root";
         var componentRenderedOrUpdatedCallback = function () {
             console.log('OHIF Viewer rendered/updated');
