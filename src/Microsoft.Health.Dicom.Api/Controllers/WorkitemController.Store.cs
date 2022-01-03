@@ -24,12 +24,12 @@ namespace Microsoft.Health.Dicom.Api.Controllers
     [QueryModelStateValidator]
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
     [ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
-    public class WorkitemsController : Controller
+    public partial class WorkitemController : Controller
     {
         private readonly IMediator _mediator;
-        private readonly ILogger<WorkitemsController> _logger;
+        private readonly ILogger<WorkitemController> _logger;
 
-        public WorkitemsController(IMediator mediator, ILogger<WorkitemsController> logger)
+        public WorkitemController(IMediator mediator, ILogger<WorkitemController> logger)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
             EnsureArg.IsNotNull(logger, nameof(logger));
@@ -66,25 +66,17 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AuditEventType(AuditEventSubType.Workitem)]
         public async Task<IActionResult> CreateUPSAsync()
         {
-            return await PostAsync();
+            return await PostAsync(null);
         }
 
         /// <summary>
-        /// This action sets the attributes of a UPS Instance managed by the Origin-Server. It corresponds to the UPS DIMSE N-SET operation.
+        /// This action requests the creation of a UPS Instance on the Origin-Server. It corresponds to the UPS DIMSE N-CREATE operation.
         /// </summary>
-        /// <param name="upsInstanceUid">UID of the Unified Procedure Step Instance</param>
-        /// <param name="transactionUid">
-        /// The Transaction UID / Locking UID for the specified Unified Procedure Step Instance.
-        /// If the UPS instance is currently in the SCHEDULED state, {transaction} shall not be specified.
-        /// If the UPS instance is currently in the IN PROGRESS state, {transaction} shall be specified
-        /// </param>
         /// <remarks>
-        /// The request body describes changes to a single Unified Procedure Step Instance. It shall include all
-        /// Attributes for which Attribute Values are to be set.The changes shall comply with all requirements
-        /// described in PS 3.4 Section CC.2.6.2. DICOM PS 3.19 XML metadata is not supported.
-        /// 
-        /// Because the request will be treated as atomic (indivisible) and idempotent (repeat executions have no
-        /// additional effect), all changes contained in the request shall leave the UPS instance in an internally consistent state.
+        /// The request body contains all the metadata to be stored in DICOM PS 3.18 JSON metadata.
+        /// Any binary data contained in the message shall be inline.
+        ///
+        /// DICOM PS 3.19 XML metadata is not supported.
         /// </remarks>
         /// <returns></returns>
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
@@ -98,25 +90,27 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.UnsupportedMediaType)]
         [HttpPost]
-        [VersionedPartitionRoute(KnownRoutes.UpdateWorkitemInstanceRoute, Name = KnownRouteNames.VersionedPartitionWorkitemInstance)]
-        [PartitionRoute(KnownRoutes.UpdateWorkitemInstanceRoute, Name = KnownRouteNames.PartitionedWorkitemInstance)]
-        [VersionedRoute(KnownRoutes.UpdateWorkitemInstanceRoute, Name = KnownRouteNames.VersionedWorkitemInstance)]
-        [Route(KnownRoutes.UpdateWorkitemInstanceRoute, Name = KnownRouteNames.WorkitemInstance)]
+        [VersionedPartitionRoute(KnownRoutes.CreateWorkitemWithInstanceUidRoute, Name = KnownRouteNames.VersionedPartitionWorkitemInstance)]
+        [PartitionRoute(KnownRoutes.CreateWorkitemWithInstanceUidRoute, Name = KnownRouteNames.PartitionedWorkitemInstance)]
+        [VersionedRoute(KnownRoutes.CreateWorkitemWithInstanceUidRoute, Name = KnownRouteNames.VersionedWorkitemInstance)]
+        [Route(KnownRoutes.CreateWorkitemWithInstanceUidRoute, Name = KnownRouteNames.WorkitemInstance)]
         [AuditEventType(AuditEventSubType.Workitem)]
-        public async Task<IActionResult> UpdateUPSAsync(string upsInstanceUid, string transactionUid = null)
+        public async Task<IActionResult> CreateUPSAsync(string upsInstanceUid)
         {
-            return await PostAsync(upsInstanceUid, transactionUid);
+            return await PostAsync(upsInstanceUid);
         }
 
-        private async Task<IActionResult> PostAsync(string upsInstanceUid = null, string transactionUid = null)
+        private async Task<IActionResult> PostAsync(string upsInstanceUid)
         {
             long fileSize = Request.ContentLength ?? 0;
-            _logger.LogInformation("DICOM Web Store Workitem Transaction request received, with UPS instance UID {UPSInstanceUid} and file size of {FileSize} bytes", upsInstanceUid, fileSize);
+            _logger.LogInformation("DICOM Web Store Workitem Transaction request received, with UPS instance UID {UPSInstanceUid}, and file size of {FileSize} bytes",
+                upsInstanceUid ?? string.Empty,
+                fileSize);
 
             var storeResponse = await _mediator.StoreDicomWorkitemAsync(
                 Request.Body,
                 Request.ContentType,
-                upsInstanceUid, transactionUid,
+                upsInstanceUid,
                 HttpContext.RequestAborted);
 
             return StatusCode(

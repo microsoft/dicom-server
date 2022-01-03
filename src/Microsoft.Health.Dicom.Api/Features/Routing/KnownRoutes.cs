@@ -30,6 +30,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         public const string StoreInstancesInStudyRoute = StudiesRouteSegment + "/{" + KnownActionParameterNames.StudyInstanceUid + "}";
 
         public const string CreateWorkitemInstancesRoute = WorkitemsRouteSegment;
+        public const string CreateWorkitemWithInstanceUidRoute = WorkitemsRouteSegment + "/{" + KnownActionParameterNames.WorkItemInstanceUid + "}";
         public const string UpdateWorkitemInstanceRoute = WorkitemsRouteSegment + "/{" + KnownActionParameterNames.WorkItemInstanceUid + "}" + "/{" + KnownActionParameterNames.WorkItemTransactionUid + "?}";
 
         public const string PartitionRoute = PartitionsRouteSegment + "/" + PartitionNameRouteSegment;
