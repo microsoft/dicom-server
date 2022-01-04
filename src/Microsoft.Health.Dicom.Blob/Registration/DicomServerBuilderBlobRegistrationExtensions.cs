@@ -24,7 +24,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="serverBuilder">The DICOM server builder instance.</param>
         /// <param name="configuration">The configuration for the server.</param>
         /// <returns>The server builder.</returns>
-        public static IDicomServerBuilder AddDataStores(this IDicomServerBuilder serverBuilder, IConfiguration configuration)
+        public static IDicomServerBuilder AddBlobDataStores(this IDicomServerBuilder serverBuilder, IConfiguration configuration)
         {
             EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
