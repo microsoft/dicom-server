@@ -12,13 +12,19 @@
   </ItemGroup>
   
   <ItemGroup>
+    <PackageReference Include="Ensure.That" Version="10.1.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.30" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.6.0" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Http" Version="3.0.12" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.0.1" PrivateAssets="All" />
   </ItemGroup>
-  
-  <ItemGroup>
-    <ProjectReference Include="..\Microsoft.Health.Dicom.Functions\Microsoft.Health.Dicom.Functions.csproj" />
-  </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Dicom.Operations\Microsoft.Health.Dicom.Operations.csproj" />
+  </ItemGroup>
+  
   <ItemGroup>
     <None Update="host.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
