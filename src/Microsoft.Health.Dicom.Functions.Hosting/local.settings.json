@@ -1,0 +1,8 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureFunctionsJobHost__SqlServer__ConnectionString": "server=(local);Initial Catalog=Dicom;Integrated Security=true;TrustServerCertificate=true",
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet"
+  }
+}
