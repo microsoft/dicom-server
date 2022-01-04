@@ -69,6 +69,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return await PostAsync(upsInstanceUid);
         }
 
+        // TODO: Add a POST call to accept instance UID from the header
+
         private async Task<IActionResult> PostAsync(string upsInstanceUid)
         {
             long fileSize = Request.ContentLength ?? 0;
@@ -76,7 +78,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
                 upsInstanceUid ?? string.Empty,
                 fileSize);
 
-            var storeResponse = await _mediator.StoreDicomWorkitemAsync(
+            var storeResponse = await _mediator.AddWorkitemAsync(
                 Request.Body,
                 Request.ContentType,
                 upsInstanceUid,
@@ -84,7 +86,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
             return StatusCode(
                 (int)storeResponse.Status.ToHttpStatusCode(),
-                storeResponse.Workitem);
+                storeResponse.Dataset);
         }
     }
 }

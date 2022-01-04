@@ -6,12 +6,14 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -21,27 +23,27 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     public class WorkitemOrchestrator : IWorkitemOrchestrator
     {
         private readonly IDicomRequestContextAccessor _contextAccessor;
-        private readonly IMetadataStore _metadataStore;
+        private readonly IIndexWorkitemStore _indexWorkitemStore;
         private readonly IWorkitemStore _workitemStore;
 
         public WorkitemOrchestrator(
             IDicomRequestContextAccessor contextAccessor,
-            IMetadataStore metadataStore,
             IWorkitemStore workitemStore,
+            IIndexWorkitemStore indexWorkitemStore,
             IDeleteService deleteService,
             IQueryTagService queryTagService)
         {
             _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
-            _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
+            _indexWorkitemStore = EnsureArg.IsNotNull(indexWorkitemStore, nameof(indexWorkitemStore));
             _workitemStore = EnsureArg.IsNotNull(workitemStore, nameof(workitemStore));
         }
 
         /// <inheritdoc />
-        public async Task StoreWorkitemEntryAsync(
-            WorkitemDataset workitemDataset,
+        public async Task AddWorkitemAsync(
+            DicomDataset dataset,
             CancellationToken cancellationToken)
         {
-            EnsureArg.IsNotNull(workitemDataset, nameof(workitemDataset));
+            EnsureArg.IsNotNull(dataset, nameof(dataset));
             var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
             // TODO: set instance uid - either from route param or from dataset
@@ -49,20 +51,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             // TODO: generate QueryTags list for workitem
             var queryTags = new List<QueryTag>();
 
-            long watermark = await _workitemStore
-                .AddWorkitemAsync(partitionKey, workitemDataset, queryTags, cancellationToken);
+            long workitemKey = await _indexWorkitemStore
+                .AddWorkitemAsync(partitionKey, dataset, queryTags, cancellationToken);
+
+            var identifier = dataset.ToWorkitemInstanceIdentifier(workitemKey, partitionKey);
 
             // We have successfully created the index, store the file.
-            await StoreWorkitemBlobAsync(workitemDataset, watermark, cancellationToken);
+            await StoreWorkitemBlobAsync(identifier, dataset, cancellationToken);
 
             // TODO: implement cleanup to delete the index if blob storage fails
         }
 
 
         private Task StoreWorkitemBlobAsync(
-            WorkitemDataset dicomDataset,
-            long version,
+            WorkitemInstanceIdentifier identifier,
+            DicomDataset dicomDataset,
             CancellationToken cancellationToken)
-            => _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version, cancellationToken);
+            => _workitemStore.AddWorkitemAsync(identifier, dicomDataset, cancellationToken);
     }
 }

@@ -19,6 +19,7 @@ using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Validation;
+using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Health.Dicom.Core.Modules
@@ -204,6 +205,31 @@ namespace Microsoft.Health.Dicom.Core.Modules
                     .AsSelf()
                     .AsImplementedInterfaces();
             }
+
+            SetupWorkitemTypes(services);
+        }
+
+        private static void SetupWorkitemTypes(IServiceCollection services)
+        {
+            services.Add<WorkitemService>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<WorkitemOrchestrator>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<WorkitemStoreResponseBuilder>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<WorkitemStoreDatasetValidator>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
         }
     }
 }

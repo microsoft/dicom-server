@@ -38,7 +38,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddStorageDataStore<BlobStoreConfigurationSection, IFileStore, BlobFileStore, LoggingFileStore>(
                     configuration, "DcmHealthCheck")
                 .AddStorageDataStore<MetadataStoreConfigurationSection, IMetadataStore, BlobMetadataStore, LoggingMetadataStore>(
-                    configuration, "MetadataHealthCheck");
+                    configuration, "MetadataHealthCheck")
+                .AddStorageDataStore<WorkitemStoreConfigurationSection, IWorkitemStore, BlobWorkitemStore, LoggingWorkitemStore>(
+                    configuration, "WorkitemHealthCheck");
 
             return serverBuilder;
         }

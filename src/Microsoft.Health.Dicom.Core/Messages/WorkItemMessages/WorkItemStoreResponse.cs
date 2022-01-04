@@ -3,20 +3,20 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Dicom.Core.Features.Workitem;
+using Dicom;
 
 namespace Microsoft.Health.Dicom.Core.Messages.WorkitemMessages
 {
     public sealed class WorkitemStoreResponse
     {
-        public WorkitemStoreResponse(WorkitemStoreResponseStatus status, WorkitemDataset workItem)
+        public WorkitemStoreResponse(WorkitemStoreResponseStatus status, DicomDataset dataset)
         {
             Status = status;
-            Workitem = workItem;
+            Dataset = dataset;
         }
 
         public WorkitemStoreResponseStatus Status { get; }
 
-        public WorkitemDataset Workitem { get; }
+        public DicomDataset Dataset { get; }
     }
 }

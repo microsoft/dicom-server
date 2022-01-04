@@ -8,12 +8,12 @@ using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
@@ -199,7 +199,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private static IServiceCollection AddSqlWorkitemStores(this IServiceCollection services)
         {
-            services.TryAddScoped<IWorkitemStore, SqlWorkitemStore>();
+            services.TryAddScoped<IIndexWorkitemStore, SqlWorkitemStore>();
             services.TryAddScoped<VersionedCache<ISqlWorkitemStore>>();
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlWorkitemStore, SqlWorkitemStoreV8>());
 

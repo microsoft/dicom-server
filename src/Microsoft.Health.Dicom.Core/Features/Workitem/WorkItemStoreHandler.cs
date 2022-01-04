@@ -45,6 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 throw new UnauthorizedDicomActionException(DataActions.Write);
             }
 
+            // TODO: Consider moving this into Service
             // StoreRequestValidator.ValidateRequest(request);
 
             // Find a reader that can parse the request body.
@@ -56,15 +57,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedContentType, request.RequestContentType));
             }
 
-            // Read list of entries.
+            // Read list of entries, but we only expect a single entry to be present.
             var instanceEntries = await dicomInstanceEntryReader.ReadAsync(
                     request.RequestContentType,
                     request.RequestBody,
                     cancellationToken);
 
-            // Process list of entries.
+            // TODO: Validate/Check instance-entries is non-empty. Add test coverage.
+
+            // Process the instance entry.
             return await _workItemService
-                .ProcessAsync(instanceEntries, request.WorkitemInstanceUid, cancellationToken);
+                .ProcessAsync(instanceEntries?[0], request.WorkitemInstanceUid, cancellationToken);
         }
     }
 }

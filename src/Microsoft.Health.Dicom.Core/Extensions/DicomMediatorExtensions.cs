@@ -218,7 +218,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             return mediator.Send(new GetPartitionsRequest(), cancellationToken);
         }
 
-        public static Task<WorkitemStoreResponse> StoreDicomWorkitemAsync(
+        public static Task<WorkitemStoreResponse> AddWorkitemAsync(
             this IMediator mediator, Stream requestBody, string requestContentType, string upsInstanceUid, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));

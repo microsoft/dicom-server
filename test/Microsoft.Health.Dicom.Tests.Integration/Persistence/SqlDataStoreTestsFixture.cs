@@ -12,11 +12,11 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error;
 using Microsoft.Health.Dicom.SqlServer.Features.Partition;
@@ -141,7 +141,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     new SqlExtendedQueryTagErrorStoreV6(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV6>.Instance),
                }));
 
-            WorkitemStore = new SqlWorkitemStore(new VersionedCache<ISqlWorkitemStore>(
+            IndexWorkitemStore = new SqlWorkitemStore(new VersionedCache<ISqlWorkitemStore>(
                 schemaResolver,
                 new[]
                 {
@@ -173,7 +173,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public IExtendedQueryTagErrorStore ExtendedQueryTagErrorStore { get; }
 
-        public IWorkitemStore WorkitemStore { get; }
+        public IIndexWorkitemStore IndexWorkitemStore { get; }
 
         public SchemaUpgradeRunner SchemaUpgradeRunner { get; }
         public string TestConnectionString { get; }

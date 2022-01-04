@@ -47,5 +47,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Routing
         /// <param name="instanceIdentifier">The identifier to the instance.</param>
         /// <returns>An instance of <see cref="Uri"/> pointing to where the instance can be retrieved.</returns>
         Uri ResolveRetrieveInstanceUri(InstanceIdentifier instanceIdentifier);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="workitemInstanceUid"></param>
+        /// <returns></returns>
+        Uri ResolveRetrieveWorkitemUri(string workitemInstanceUid);
     }
 }
