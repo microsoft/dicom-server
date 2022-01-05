@@ -54,22 +54,22 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             }
 
             DicomDataset dataset = changeFeedEntry.Metadata;
-            string studyUid = dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
-            string seriesUid = dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
-            string instanceUid = dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+            string studyInstanceUid = dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+            string seriesInstanceUid = dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
+            string sopInstanceUid = dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
             long changeFeedSequence = changeFeedEntry.Sequence;
 
             var tableClient = _tableServiceClient.GetTableClient(tableName);
-            var entity = new IntransientEntity(studyUid, seriesUid, instanceUid, changeFeedSequence, exceptionToStore);
+            var entity = new IntransientEntity(studyInstanceUid, seriesInstanceUid, sopInstanceUid, changeFeedSequence, exceptionToStore);
 
             try
             {
                 await tableClient.UpsertEntityAsync(entity, cancellationToken: cancellationToken);
-                _logger.LogInformation("Error when processing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Stored into table: {Table} in table storage.", changeFeedSequence, studyUid, seriesUid, instanceUid, tableName);
+                _logger.LogInformation("Error when processing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyInstanceUid}, SeriesUID: {SeriesInstanceUid}, InstanceUID: {SopInstanceUid}. Stored into table: {Table} in table storage.", changeFeedSequence, studyInstanceUid, seriesInstanceUid, sopInstanceUid, tableName);
             }
             catch
             {
-                _logger.LogInformation("Error when processing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Failed to store to table storage.", changeFeedSequence, studyUid, seriesUid, instanceUid);
+                _logger.LogInformation("Error when processing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyInstanceUid}, SeriesUID: {SeriesInstanceUid}, InstanceUID: {SopInstanceUid}. Failed to store to table storage.", changeFeedSequence, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
                 throw;
             }
         }
@@ -80,22 +80,22 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             EnsureArg.IsNotNull(changeFeedEntry, nameof(changeFeedEntry));
 
             DicomDataset dataset = changeFeedEntry.Metadata;
-            string studyUid = dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
-            string seriesUid = dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
-            string instanceUid = dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+            string studyInstanceUid = dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+            string seriesInstanceUid = dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
+            string sopInstanceUid = dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
             long changeFeedSequence = changeFeedEntry.Sequence;
 
             var tableClient = _tableServiceClient.GetTableClient(Constants.TransientRetryTableName);
-            var entity = new RetryableEntity(studyUid, seriesUid, instanceUid, changeFeedSequence, retryNum, exceptionToStore);
+            var entity = new RetryableEntity(studyInstanceUid, seriesInstanceUid, sopInstanceUid, changeFeedSequence, retryNum, exceptionToStore);
 
             try
             {
                 await tableClient.UpsertEntityAsync(entity, cancellationToken: cancellationToken);
-                _logger.LogInformation("Retryable error when processing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Tried {RetryNum} time(s). Waiting {Milliseconds} milliseconds . Stored into table: {Table} in table storage.", changeFeedSequence, studyUid, seriesUid, instanceUid, retryNum, nextDelayTimeSpan.TotalMilliseconds, Constants.TransientRetryTableName);
+                _logger.LogInformation("Retryable error when processing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyInstanceUid}, SeriesUID: {SeriesInstanceUid}, InstanceUID: {SopInstanceUid}. Tried {RetryNum} time(s). Waiting {Milliseconds} milliseconds . Stored into table: {Table} in table storage.", changeFeedSequence, studyInstanceUid, seriesInstanceUid, sopInstanceUid, retryNum, nextDelayTimeSpan.TotalMilliseconds, Constants.TransientRetryTableName);
             }
             catch
             {
-                _logger.LogInformation("Retryable error when processing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyUID}, SeriesUID: {SeriesUID}, InstanceUID: {InstanceUID}. Tried {RetryNum} time(s). Failed to store to table storage.", changeFeedSequence, studyUid, seriesUid, instanceUid, retryNum);
+                _logger.LogInformation("Retryable error when processing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyInstanceUid}, SeriesUID: {SeriesInstanceUid}, InstanceUID: {SopInstanceUid}. Tried {RetryNum} time(s). Failed to store to table storage.", changeFeedSequence, studyInstanceUid, seriesInstanceUid, sopInstanceUid, retryNum);
                 throw;
             }
         }
