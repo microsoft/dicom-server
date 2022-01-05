@@ -41,12 +41,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 default,
                 "Successfully stored the DICOM instance work-item entry.");
 
-        private static readonly Action<ILogger, Exception> LogFailedToDisposeDelegate =
-            LoggerMessage.Define(
-                LogLevel.Warning,
-                default,
-                "Failed to dispose the DICOM instance work-item entry.");
-
         private readonly IWorkitemStoreResponseBuilder _storeResponseBuilder;
         private readonly IWorkitemStoreDatasetValidator _dicomDatasetValidator;
         private readonly IWorkitemOrchestrator _storeOrchestrator;
@@ -67,96 +61,71 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
-        public async Task<WorkitemStoreResponse> ProcessAsync(IDicomInstanceEntry instanceEntry, string workitemInstanceUid, CancellationToken cancellationToken)
+        public async Task<WorkitemStoreResponse> ProcessAsync(DicomDataset dataset, string workitemInstanceUid, CancellationToken cancellationToken)
         {
-            if (instanceEntry != null)
-            {
-                try
-                {
-                    DicomDataset dataset = null;
+            EnsureArg.IsNotNull(dataset, nameof(dataset));
 
-                    try
-                    {
-                        // Open and validate the DICOM instance.
-                        dataset = await instanceEntry.GetDicomDatasetAsync(cancellationToken);
-
-                        // TODO: Add a method to setup workitem with additional data-points. (including, may be "creating" a workitem instance uid)
-                        // await _dicomDatasetValidator.ValidateAsync(dataset, workitemInstanceUid, cancellationToken);
-                    }
-                    catch (Exception ex)
-                    {
-                        ushort failureCode = FailureReasonCodes.ProcessingFailure;
-
-                        switch (ex)
-                        {
-                            case DicomValidationException _:
-                                failureCode = FailureReasonCodes.ValidationFailure;
-                                break;
-
-                            case DatasetValidationException dicomDatasetValidationException:
-                                failureCode = dicomDatasetValidationException.FailureCode;
-                                break;
-
-                            case ValidationException _:
-                                failureCode = FailureReasonCodes.ValidationFailure;
-                                break;
-                        }
-
-                        LogValidationFailedDelegate(_logger, failureCode, ex);
-
-                        _storeResponseBuilder.AddFailure(dataset, failureCode);
-
-                        return _storeResponseBuilder.BuildResponse(workitemInstanceUid);
-                    }
-
-                    try
-                    {
-                        // Store the instance.
-                        await _storeOrchestrator.AddWorkitemAsync(dataset, cancellationToken);
-
-                        LogSuccessfullyStoredDelegate(_logger, null);
-
-                        _storeResponseBuilder.AddSuccess(dataset);
-                    }
-                    catch (Exception ex)
-                    {
-                        ushort failureCode = FailureReasonCodes.ProcessingFailure;
-
-                        switch (ex)
-                        {
-                            case PendingInstanceException _:
-                                failureCode = FailureReasonCodes.PendingSopInstance;
-                                break;
-
-                            case InstanceAlreadyExistsException _:
-                                failureCode = FailureReasonCodes.SopInstanceAlreadyExists;
-                                break;
-                        }
-
-                        LogFailedToStoreDelegate(_logger, failureCode, ex);
-
-                        _storeResponseBuilder.AddFailure(dataset, failureCode);
-                    }
-                }
-                finally
-                {
-                    _ = Task.Run(() => DisposeResourceAsync(instanceEntry), CancellationToken.None);
-                }
-            }
-
-            return _storeResponseBuilder.BuildResponse(workitemInstanceUid);
-        }
-
-        private async Task DisposeResourceAsync(IDicomInstanceEntry instanceEntry)
-        {
             try
             {
-                await instanceEntry.DisposeAsync();
+                // TODO: Add a method to setup workitem with additional data-points. (including, may be "creating" a workitem instance uid)
+                // await _dicomDatasetValidator.ValidateAsync(dataset, workitemInstanceUid, cancellationToken);
             }
             catch (Exception ex)
             {
-                LogFailedToDisposeDelegate(_logger, ex);
+                ushort failureCode = FailureReasonCodes.ProcessingFailure;
+
+                switch (ex)
+                {
+                    case DicomValidationException _:
+                        failureCode = FailureReasonCodes.ValidationFailure;
+                        break;
+
+                    case DatasetValidationException dicomDatasetValidationException:
+                        failureCode = dicomDatasetValidationException.FailureCode;
+                        break;
+
+                    case ValidationException _:
+                        failureCode = FailureReasonCodes.ValidationFailure;
+                        break;
+                }
+
+                LogValidationFailedDelegate(_logger, failureCode, ex);
+
+                _storeResponseBuilder.AddFailure(dataset, failureCode);
+
+                return _storeResponseBuilder.BuildResponse(workitemInstanceUid);
             }
+
+            try
+            {
+                // Store the instance.
+                await _storeOrchestrator.AddWorkitemAsync(dataset, cancellationToken);
+
+                LogSuccessfullyStoredDelegate(_logger, null);
+
+                _storeResponseBuilder.AddSuccess(dataset);
+            }
+            catch (Exception ex)
+            {
+                ushort failureCode = FailureReasonCodes.ProcessingFailure;
+
+                switch (ex)
+                {
+                    case PendingInstanceException _:
+                        failureCode = FailureReasonCodes.PendingSopInstance;
+                        break;
+
+                    case InstanceAlreadyExistsException _:
+                        failureCode = FailureReasonCodes.SopInstanceAlreadyExists;
+                        break;
+                }
+
+                LogFailedToStoreDelegate(_logger, failureCode, ex);
+
+                _storeResponseBuilder.AddFailure(dataset, failureCode);
+            }
+
+            return _storeResponseBuilder.BuildResponse(workitemInstanceUid);
         }
     }
 }

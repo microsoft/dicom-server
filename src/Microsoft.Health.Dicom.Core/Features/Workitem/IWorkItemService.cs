@@ -5,7 +5,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Core.Features.Store.Entries;
+using Dicom;
 using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
@@ -21,12 +21,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <remarks>
         /// If the <paramref name="workitemInstanceUid"/> is not specified, a new workitemInstanceUid is created.
         /// </remarks>
-        /// <param name="instanceEntry">The <see cref="IDicomInstanceEntry"/> to process.</param>
+        /// <param name="dataset">The <see cref="DicomDataset"/> to process.</param>
         /// <param name="workitemInstanceUid">An optional value for the Work Item InstanceUID tag.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous process operation.</returns>
         Task<WorkitemStoreResponse> ProcessAsync(
-            IDicomInstanceEntry instanceEntry,
+            DicomDataset dataset,
             string workitemInstanceUid,
             CancellationToken cancellationToken);
     }
