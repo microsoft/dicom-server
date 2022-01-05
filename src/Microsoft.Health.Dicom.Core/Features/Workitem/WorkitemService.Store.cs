@@ -67,6 +67,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             try
             {
+                dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
                 // TODO: Add a method to setup workitem with additional data-points. (including, may be "creating" a workitem instance uid)
                 // await _dicomDatasetValidator.ValidateAsync(dataset, workitemInstanceUid, cancellationToken);
             }
