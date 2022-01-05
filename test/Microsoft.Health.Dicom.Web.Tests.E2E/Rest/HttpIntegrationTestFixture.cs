@@ -28,18 +28,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         protected HttpIntegrationTestFixture(string targetProjectParentDirectory, bool enableDataPartitions = false)
         {
             TestDicomWebServer = TestDicomWebServerFactory.GetTestDicomWebServer(typeof(TStartup), enableDataPartitions);
-            Client = GetDicomWebClient();
         }
 
         public bool IsInProcess => TestDicomWebServer is InProcTestDicomWebServer;
 
-        public HttpClient HttpClient => Client.HttpClient;
-
         protected TestDicomWebServer TestDicomWebServer { get; }
 
         public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; } = new RecyclableMemoryStreamManager();
-
-        public IDicomWebClient Client { get; }
 
         public IDicomWebClient GetDicomWebClient()
         {
@@ -113,7 +108,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             if (disposing)
             {
-                HttpClient.Dispose();
                 TestDicomWebServer.Dispose();
             }
         }

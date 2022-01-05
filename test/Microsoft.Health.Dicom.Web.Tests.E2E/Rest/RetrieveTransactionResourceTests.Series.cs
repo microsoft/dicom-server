@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             TranscoderTestData transcoderTestData = TranscoderTestDataHelper.GetTestData(testDataFolder);
             DicomFile inputDicomFile = DicomFile.Open(transcoderTestData.InputDicomFile);
             var instanceId = RandomizeInstanceIdentifier(inputDicomFile.Dataset);
-            await InternalStoreAsync(new[] { inputDicomFile });
+            await _instancesManager.StoreAsync(new[] { inputDicomFile });
 
             using DicomWebAsyncEnumerableResponse<DicomFile> response = await _client.RetrieveSeriesAsync(instanceId.StudyInstanceUid, instanceId.SeriesInstanceUid, transferSyntax);
             Assert.Equal(DicomWebConstants.MultipartRelatedMediaType, response.ContentHeaders.ContentType.MediaType);
@@ -86,7 +86,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 TestUidGenerator.Generate(),
                 transferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID);
 
-            await InternalStoreAsync(new[] { dicomFile1, dicomFile2, dicomFile3 });
+            await _instancesManager.StoreAsync(new[] { dicomFile1, dicomFile2, dicomFile3 });
 
             using DicomWebAsyncEnumerableResponse<DicomFile> response = await _client.RetrieveSeriesAsync(studyInstanceUid, seriesInstanceUid);
 
@@ -117,7 +117,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 transferSyntax: DicomTransferSyntax.MPEG2.UID.UID,
                 encode: false);
 
-            await InternalStoreAsync(new[] { dicomFile1, dicomFile2 });
+            await _instancesManager.StoreAsync(new[] { dicomFile1, dicomFile2 });
 
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveSeriesAsync(studyInstanceUid, seriesInstanceUid, dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID));
             Assert.Equal(HttpStatusCode.NotAcceptable, exception.StatusCode);
@@ -140,7 +140,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 transferSyntax: DicomTransferSyntax.MPEG2.UID.UID,
                 encode: false);
 
-            await InternalStoreAsync(new[] { dicomFile1, dicomFile2 });
+            await _instancesManager.StoreAsync(new[] { dicomFile1, dicomFile2 });
 
             using DicomWebAsyncEnumerableResponse<DicomFile> response = await _client.RetrieveSeriesAsync(studyInstanceUid, seriesInstanceUid, dicomTransferSyntax: "*");
 
@@ -167,7 +167,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var studyInstanceUid = TestUidGenerator.Generate();
             var seriesInstanceUid = TestUidGenerator.Generate();
             DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid);
-            await InternalStoreAsync(new[] { dicomFile1 });
+            await _instancesManager.StoreAsync(new[] { dicomFile1 });
 
             using DicomWebAsyncEnumerableResponse<DicomFile> response = await _client.RetrieveSeriesAsync(studyInstanceUid, seriesInstanceUid, dicomTransferSyntax: "*");
 

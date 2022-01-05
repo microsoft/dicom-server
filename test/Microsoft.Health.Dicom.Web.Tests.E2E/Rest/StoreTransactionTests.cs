@@ -14,13 +14,14 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.IO;
 using Microsoft.Net.Http.Headers;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
-    public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
+    public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
     {
         private const ushort ValidationFailedFailureCode = 43264;
         private const ushort SopInstanceAlreadyExistsFailureCode = 45070;
@@ -28,11 +29,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         private readonly IDicomWebClient _client;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+        private readonly DicomInstancesManager _instancesManager;
 
         public StoreTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
-            _client = fixture.Client;
+            _client = fixture.GetDicomWebClient();
+            _instancesManager = new DicomInstancesManager(_client);
             _recyclableMemoryStreamManager = fixture.RecyclableMemoryStreamManager;
         }
 
@@ -89,7 +92,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var multiContent = new MultipartContent("related");
             multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebConstants.MediaTypeApplicationDicom.MediaType}\""));
 
-            using DicomWebResponse response = await _client.StoreAsync(multiContent);
+            using DicomWebResponse response = await _instancesManager.StoreAsync(multiContent);
 
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
@@ -105,7 +108,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             multiContent.Add(byteContent);
 
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-                () => _client.StoreAsync(multiContent));
+                () => _instancesManager.StoreAsync(multiContent));
 
             Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
         }
@@ -135,7 +138,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                     multiContent.Add(validByteContent);
                 }
 
-                using DicomWebResponse<DicomDataset> response = await _client.StoreAsync(multiContent);
+                using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(multiContent, instanceId: DicomInstanceId.FromDicomFile(validFile));
 
                 Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
@@ -169,7 +172,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                     multiContent.Add(byteContent);
                 }
 
-                using DicomWebResponse<DicomDataset> response = await _client.StoreAsync(multiContent);
+                using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(multiContent, instanceId: DicomInstanceId.FromDicomFile(dicomFile));
 
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -191,7 +194,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             var studyInstanceUID = TestUidGenerator.Generate();
 
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _instancesManager.StoreAsync(
                 new[] { dicomFile1, dicomFile2 }, studyInstanceUid: studyInstanceUID));
 
             Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
@@ -219,7 +222,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID1);
                 DicomFile dicomFile2 = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID2);
 
-                using DicomWebResponse<DicomDataset> response = await _client.StoreAsync(new[] { dicomFile1, dicomFile2 }, studyInstanceUid: studyInstanceUID1);
+                using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile1, dicomFile2 }, studyInstanceUid: studyInstanceUID1);
 
                 Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
@@ -250,7 +253,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var studyInstanceUID = TestUidGenerator.Generate();
             DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUID, studyInstanceUID);
 
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(new[] { dicomFile1 }));
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _instancesManager.StoreAsync(new[] { dicomFile1 }));
 
             Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
 
@@ -272,7 +275,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             {
                 DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUID);
 
-                using DicomWebResponse<DicomDataset> response = await _client.StoreAsync(new[] { dicomFile1 });
+                using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile1 });
 
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -285,7 +288,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 Assert.False(dataset.TryGetSequence(DicomTag.FailedSOPSequence, out DicomSequence _));
 
                 DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-                    () => _client.StoreAsync(new[] { dicomFile1 }));
+                    () => _instancesManager.StoreAsync(new[] { dicomFile1 }));
 
                 Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
 
@@ -306,7 +309,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithInvalidVr(studyInstanceUID);
 
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(new[] { dicomFile1 }));
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _instancesManager.StoreAsync(new[] { dicomFile1 }));
 
             Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
             Assert.False(exception.ResponseDataset.TryGetSequence(DicomTag.ReferencedSOPSequence, out DicomSequence _));
@@ -323,7 +326,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUID, validateItems: false);
 
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(new[] { dicomFile1 }));
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _instancesManager.StoreAsync(new[] { dicomFile1 }));
 
             Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
 
@@ -343,7 +346,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             await using MemoryStream stream = _recyclableMemoryStreamManager.GetStream();
             await dicomFile.SaveAsync(stream);
 
-            using DicomWebResponse<DicomDataset> response = await _client.StoreAsync(stream);
+            using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(stream, instanceId: DicomInstanceId.FromDicomFile(dicomFile));
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
@@ -353,7 +356,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var studyInstanceUID = TestUidGenerator.Generate();
             DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID);
 
-            using DicomWebResponse<DicomDataset> response = await _client.StoreAsync(dicomFile, studyInstanceUid: studyInstanceUID);
+            using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(dicomFile, studyInstanceUid: studyInstanceUID);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
@@ -364,6 +367,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 yield return new object[] { "application/dicom" };
                 yield return new object[] { "application/data" };
             }
+        }
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
+        {
+            await _instancesManager.DisposeAsync();
         }
 
         private (string SopInstanceUid, string RetrieveUri, string SopClassUid) ConvertToReferencedSopSequenceEntry(DicomDataset dicomDataset)
