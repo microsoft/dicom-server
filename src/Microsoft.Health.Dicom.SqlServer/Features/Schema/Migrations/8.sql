@@ -474,6 +474,36 @@ CREATE TYPE dbo.InsertPersonNameExtendedQueryTagTableType_1 AS TABLE (
 CREATE TYPE dbo.ExtendedQueryTagKeyTableType_1 AS TABLE (
     TagKey INT);
 
+INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00100010', NULL, 'PN', 0, 1, 1, 0, 1);
+
+INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00100020', NULL, 'LO', 0, 1, 1, 0, 1);
+
+INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '0040A370.00080050', NULL, 'SH', 0, 1, 1, 0, 1);
+
+INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '0040A370.00401001', NULL, 'SH', 0, 1, 1, 0, 1);
+
+INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404005', NULL, 'DT', 0, 1, 1, 0, 1);
+
+INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404025.00080100', NULL, 'SH', 0, 1, 1, 0, 1);
+
+INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404026.00080100', NULL, 'SH', 0, 1, 1, 0, 1);
+
+INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00741000', NULL, 'CS', 0, 1, 1, 0, 1);
+
+INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404027.00080100', NULL, 'SH', 0, 1, 1, 0, 1);
+
+INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00081195', NULL, 'UI', 0, 1, 0, 0, 1);
+
 COMMIT
 GO
 IF NOT EXISTS (SELECT *
