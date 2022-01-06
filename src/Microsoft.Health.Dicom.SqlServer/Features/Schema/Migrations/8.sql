@@ -1699,7 +1699,8 @@ BEGIN
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
     IF @maxTagKey < (SELECT ISNULL(MAX(TagKey), 0)
-                     FROM   dbo.ExtendedQueryTag WITH (HOLDLOCK))
+                     FROM   dbo.ExtendedQueryTag WITH (HOLDLOCK)
+                     WHERE  ResourceType = 0)
         THROW 50409, 'Max extended query tag key does not match', 10;
     DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
     UPDATE dbo.Instance
