@@ -23,9 +23,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
         public async Task<long> AddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
         {
-            var store = await _cache.GetAsync(cancellationToken: cancellationToken);
+            ISqlWorkitemStore store = await _cache.GetAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            return await store.AddWorkitemAsync(partitionKey, dataset, queryTags, cancellationToken);
+            return await store.AddWorkitemAsync(partitionKey, dataset, queryTags, cancellationToken).ConfigureAwait(false);
         }
     }
 }
