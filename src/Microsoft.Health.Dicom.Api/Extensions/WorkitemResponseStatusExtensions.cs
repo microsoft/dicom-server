@@ -9,22 +9,22 @@ using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
 
 namespace Microsoft.Health.Dicom.Api.Extensions
 {
-    public static class WorkitemStoreResponseStatusExtensions
+    public static class WorkitemResponseStatusExtensions
     {
-        private static readonly IReadOnlyDictionary<WorkitemStoreResponseStatus, HttpStatusCode> StoreResponseStatusToHttpStatusCodeMapping =
-            new Dictionary<WorkitemStoreResponseStatus, HttpStatusCode>()
+        private static readonly IReadOnlyDictionary<WorkitemResponseStatus, HttpStatusCode> StoreResponseStatusToHttpStatusCodeMapping =
+            new Dictionary<WorkitemResponseStatus, HttpStatusCode>()
             {
-                { WorkitemStoreResponseStatus.None, HttpStatusCode.NoContent },
-                { WorkitemStoreResponseStatus.Success, HttpStatusCode.OK },
-                { WorkitemStoreResponseStatus.Failure, HttpStatusCode.Conflict },
+                { WorkitemResponseStatus.None, HttpStatusCode.NoContent },
+                { WorkitemResponseStatus.Success, HttpStatusCode.OK },
+                { WorkitemResponseStatus.Failure, HttpStatusCode.Conflict },
             };
 
         /// <summary>
-        /// Converts from <see cref="WorkitemStoreResponseStatus"/> to <see cref="HttpStatusCode"/>.
+        /// Converts from <see cref="WorkitemResponseStatus"/> to <see cref="HttpStatusCode"/>.
         /// </summary>
         /// <param name="status">The status to convert.</param>
         /// <returns>The converted <see cref="HttpStatusCode"/>.</returns>
-        public static HttpStatusCode ToHttpStatusCode(this WorkitemStoreResponseStatus status)
+        public static HttpStatusCode ToHttpStatusCode(this WorkitemResponseStatus status)
             => StoreResponseStatusToHttpStatusCodeMapping[status];
     }
 }

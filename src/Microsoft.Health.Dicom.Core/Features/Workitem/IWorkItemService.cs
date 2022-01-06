@@ -11,7 +11,7 @@ using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
     /// <summary>
-    /// Provides functionality to process the list of <see cref="WorkitemEntry"/>.
+    /// Provides functionality to process the <see cref="DicomDataset"/>.
     /// </summary>
     public interface IWorkitemService
     {
@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <param name="workitemInstanceUid">An optional value for the Work Item InstanceUID tag.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous process operation.</returns>
-        Task<WorkitemStoreResponse> ProcessAsync(
+        Task<AddWorkitemResponse> ProcessAsync(
             DicomDataset dataset,
             string workitemInstanceUid,
             CancellationToken cancellationToken);

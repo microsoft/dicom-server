@@ -12,14 +12,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     /// <summary>
     /// Provides functionality to build the response for the workitem store transaction.
     /// </summary>
-    public interface IWorkitemStoreResponseBuilder
+    public interface IAddWorkitemResponseBuilder
     {
         /// <summary>
         /// Builds the response.
         /// </summary>
-        /// <param name="workitemInstanceUid">If specified and there is at least one success, then the RetrieveURL for the study will be set.</param>
-        /// <returns>An instance of <see cref="WorkitemStoreResponse"/> representing the response.</returns>
-        WorkitemStoreResponse BuildResponse(string workitemInstanceUid);
+        /// <returns>An instance of <see cref="AddWorkitemResponse"/> representing the response.</returns>
+        AddWorkitemResponse BuildResponse();
 
         /// <summary>
         /// Adds a successful entry to the response.

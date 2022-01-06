@@ -8,9 +8,9 @@ using MediatR;
 
 namespace Microsoft.Health.Dicom.Core.Messages.WorkitemMessages
 {
-    public class WorkitemStoreRequest : IRequest<WorkitemStoreResponse>
+    public class AddWorkitemRequest : IRequest<AddWorkitemResponse>
     {
-        public WorkitemStoreRequest(
+        public AddWorkitemRequest(
             Stream requestBody,
             string requestContentType,
             string workItemInstanceUid)

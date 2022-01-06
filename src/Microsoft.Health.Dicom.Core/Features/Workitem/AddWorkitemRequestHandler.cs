@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,11 +21,11 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
-    public class WorkitemStoreHandler : BaseHandler, IRequestHandler<WorkitemStoreRequest, WorkitemStoreResponse>
+    public class AddWorkitemRequestHandler : BaseHandler, IRequestHandler<AddWorkitemRequest, AddWorkitemResponse>
     {
         private readonly IWorkitemService _workItemService;
 
-        public WorkitemStoreHandler(
+        public AddWorkitemRequestHandler(
             IAuthorizationService<DataActions> authorizationService,
             IWorkitemService workItemService)
             : base(authorizationService)
@@ -35,8 +34,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         }
 
         /// <inheritdoc />
-        public async Task<WorkitemStoreResponse> Handle(
-            WorkitemStoreRequest request,
+        public async Task<AddWorkitemResponse> Handle(
+            AddWorkitemRequest request,
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(request, nameof(request));
@@ -46,27 +45,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 throw new UnauthorizedDicomActionException(DataActions.Write);
             }
 
-            // TODO: Consider moving this into Service
-            // StoreRequestValidator.ValidateRequest(request);
+            request.Validate();
 
-            try
+            using (var streamReader = new StreamReader(request.RequestBody))
             {
-                using (var streamReader = new StreamReader(request.RequestBody))
-                {
-                    JsonDicomConverter converter = new JsonDicomConverter();
-                    var json = await streamReader.ReadToEndAsync();
+                var json = await streamReader.ReadToEndAsync();
 
-                    IEnumerable<DicomDataset> dataset = JsonConvert.DeserializeObject<IEnumerable<DicomDataset>>(json, converter);
+                IEnumerable<DicomDataset> dataset = JsonConvert.DeserializeObject<IEnumerable<DicomDataset>>(json, new JsonDicomConverter());
 
-                    return await _workItemService
-                        .ProcessAsync(dataset.FirstOrDefault(), request.WorkitemInstanceUid, cancellationToken);
-
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
+                return await _workItemService
+                    .ProcessAsync(dataset.FirstOrDefault(), request.WorkitemInstanceUid, cancellationToken);
             }
         }
     }

@@ -3,20 +3,20 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Dicom;
+using System;
 
 namespace Microsoft.Health.Dicom.Core.Messages.WorkitemMessages
 {
-    public sealed class WorkitemStoreResponse
+    public sealed class AddWorkitemResponse
     {
-        public WorkitemStoreResponse(WorkitemStoreResponseStatus status, DicomDataset dataset)
+        public AddWorkitemResponse(WorkitemResponseStatus status, Uri url)
         {
             Status = status;
-            Dataset = dataset;
+            Url = url;
         }
 
-        public WorkitemStoreResponseStatus Status { get; }
+        public WorkitemResponseStatus Status { get; }
 
-        public DicomDataset Dataset { get; }
+        public Uri Url { get; }
     }
 }

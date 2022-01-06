@@ -8,7 +8,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.WorkitemMessages
     /// <summary>
     /// Represents the store work-item response status.
     /// </summary>
-    public enum WorkitemStoreResponseStatus
+    public enum WorkitemResponseStatus
     {
         /// <summary>
         /// There is no DICOM instance to store.

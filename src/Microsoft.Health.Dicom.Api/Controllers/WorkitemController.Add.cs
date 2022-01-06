@@ -15,6 +15,7 @@ using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
+using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
 using Microsoft.Health.Dicom.Core.Web;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
@@ -64,29 +65,33 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [VersionedRoute(KnownRoutes.CreateWorkitemInstancesRoute, Name = KnownRouteNames.VersionedWorkitemInstance)]
         [Route(KnownRoutes.CreateWorkitemInstancesRoute, Name = KnownRouteNames.WorkitemInstance)]
         [AuditEventType(AuditEventSubType.Workitem)]
-        public async Task<IActionResult> CreateUPSAsync(string upsInstanceUid = null)
+        public async Task<IActionResult> AddAsync(string workitemInstanceUid = null)
         {
-            return await PostAsync(upsInstanceUid);
+            return await PostAsync(workitemInstanceUid);
         }
 
         // TODO: Add a POST call to accept instance UID from the header
 
-        private async Task<IActionResult> PostAsync(string upsInstanceUid)
+        private async Task<IActionResult> PostAsync(string workitemInstanceUid)
         {
             long fileSize = Request.ContentLength ?? 0;
             _logger.LogInformation("DICOM Web Store Workitem Transaction request received, with UPS instance UID {UPSInstanceUid}, and file size of {FileSize} bytes",
-                upsInstanceUid ?? string.Empty,
+                workitemInstanceUid ?? string.Empty,
                 fileSize);
 
-            var storeResponse = await _mediator.AddWorkitemAsync(
+            AddWorkitemResponse response = await _mediator.AddWorkitemAsync(
                 Request.Body,
                 Request.ContentType,
-                upsInstanceUid,
+                workitemInstanceUid,
                 HttpContext.RequestAborted);
 
-            return StatusCode(
-                (int)storeResponse.Status.ToHttpStatusCode(),
-                storeResponse.Dataset);
+            if (response.Status == WorkitemResponseStatus.Success)
+            {
+                Response.Headers.Add("Content-Location", response.Url.ToString());
+                // Response.AddLocationHeader(response.Url);
+            }
+
+            return StatusCode((int)response.Status.ToHttpStatusCode());
         }
     }
 }

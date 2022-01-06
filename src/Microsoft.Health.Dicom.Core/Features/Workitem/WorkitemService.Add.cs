@@ -29,47 +29,71 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 default,
                 "Validation failed for the DICOM instance work-item entry. Failure code: {FailureCode}.");
 
-        private static readonly Action<ILogger, ushort, Exception> LogFailedToStoreDelegate =
+        private static readonly Action<ILogger, ushort, Exception> LogFailedToAddDelegate =
             LoggerMessage.Define<ushort>(
                 LogLevel.Warning,
                 default,
                 "Failed to store the DICOM instance work-item entry. Failure code: {FailureCode}.");
 
-        private static readonly Action<ILogger, Exception> LogSuccessfullyStoredDelegate =
+        private static readonly Action<ILogger, Exception> LogSuccessfullyAddedDelegate =
             LoggerMessage.Define(
                 LogLevel.Information,
                 default,
                 "Successfully stored the DICOM instance work-item entry.");
 
-        private readonly IWorkitemStoreResponseBuilder _storeResponseBuilder;
-        private readonly IWorkitemStoreDatasetValidator _dicomDatasetValidator;
-        private readonly IWorkitemOrchestrator _storeOrchestrator;
+        private readonly IAddWorkitemResponseBuilder _responseBuilder;
+        private readonly IAddWorkitemDatasetValidator _validator;
+        private readonly IWorkitemOrchestrator _workitemOrchestrator;
         private readonly IElementMinimumValidator _minimumValidator;
         private readonly ILogger _logger;
 
         public WorkitemService(
-            IWorkitemStoreResponseBuilder storeResponseBuilder,
-            IWorkitemStoreDatasetValidator dicomDatasetValidator,
+            IAddWorkitemResponseBuilder storeResponseBuilder,
+            IAddWorkitemDatasetValidator dicomDatasetValidator,
             IWorkitemOrchestrator storeOrchestrator,
             IElementMinimumValidator minimumValidator,
             ILogger<StoreService> logger)
         {
-            _storeResponseBuilder = EnsureArg.IsNotNull(storeResponseBuilder, nameof(storeResponseBuilder));
-            _dicomDatasetValidator = EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
-            _storeOrchestrator = EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
+            _responseBuilder = EnsureArg.IsNotNull(storeResponseBuilder, nameof(storeResponseBuilder));
+            _validator = EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
+            _workitemOrchestrator = EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
             _minimumValidator = EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
-        public async Task<WorkitemStoreResponse> ProcessAsync(DicomDataset dataset, string workitemInstanceUid, CancellationToken cancellationToken)
+        public async Task<AddWorkitemResponse> ProcessAsync(DicomDataset dataset, string workitemInstanceUid, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
 
+            PrepareWorkitemDataset(dataset, workitemInstanceUid);
+
+            if (ValidateAsync(dataset))
+            {
+                await AddWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
+            }
+
+            return _responseBuilder.BuildResponse();
+        }
+
+        private static void PrepareWorkitemDataset(DicomDataset dataset, string workitemInstanceUid)
+        {
+            if (string.IsNullOrWhiteSpace(workitemInstanceUid) ||
+                !dataset.TryGetSingleValue<string>(DicomTag.AffectedSOPInstanceUID, out workitemInstanceUid))
+            {
+                workitemInstanceUid = DicomUID.Generate().UID;
+            }
+
+            dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
+        }
+
+        private bool ValidateAsync(DicomDataset dataset)
+        {
             try
             {
-                dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
                 // TODO: Add a method to setup workitem with additional data-points. (including, may be "creating" a workitem instance uid)
-                // await _dicomDatasetValidator.ValidateAsync(dataset, workitemInstanceUid, cancellationToken);
+                // _dicomDatasetValidator.ValidateAsync(dataset, workitemInstanceUid);
+
+                return true;
             }
             catch (Exception ex)
             {
@@ -92,19 +116,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
                 LogValidationFailedDelegate(_logger, failureCode, ex);
 
-                _storeResponseBuilder.AddFailure(dataset, failureCode);
+                _responseBuilder.AddFailure(dataset, failureCode);
 
-                return _storeResponseBuilder.BuildResponse(workitemInstanceUid);
+                return false;
             }
+        }
 
+        private async Task AddWorkitemAsync(DicomDataset dataset, CancellationToken cancellationToken)
+        {
             try
             {
                 // Store the instance.
-                await _storeOrchestrator.AddWorkitemAsync(dataset, cancellationToken);
+                await _workitemOrchestrator.AddWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
 
-                LogSuccessfullyStoredDelegate(_logger, null);
+                LogSuccessfullyAddedDelegate(_logger, null);
 
-                _storeResponseBuilder.AddSuccess(dataset);
+                _responseBuilder.AddSuccess(dataset);
             }
             catch (Exception ex)
             {
@@ -112,21 +139,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
                 switch (ex)
                 {
-                    case PendingInstanceException _:
-                        failureCode = FailureReasonCodes.PendingSopInstance;
-                        break;
-
-                    case InstanceAlreadyExistsException _:
+                    case WorkitemAlreadyExistsException _:
                         failureCode = FailureReasonCodes.SopInstanceAlreadyExists;
                         break;
                 }
 
-                LogFailedToStoreDelegate(_logger, failureCode, ex);
+                LogFailedToAddDelegate(_logger, failureCode, ex);
 
-                _storeResponseBuilder.AddFailure(dataset, failureCode);
+                _responseBuilder.AddFailure(dataset, failureCode);
             }
-
-            return _storeResponseBuilder.BuildResponse(workitemInstanceUid);
         }
     }
 }

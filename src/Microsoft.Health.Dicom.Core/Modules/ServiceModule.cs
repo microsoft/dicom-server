@@ -221,12 +221,12 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<WorkitemStoreResponseBuilder>()
+            services.Add<AddWorkitemResponseBuilder>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<WorkitemStoreDatasetValidator>()
+            services.Add<AddWorkitemDatasetValidator>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();

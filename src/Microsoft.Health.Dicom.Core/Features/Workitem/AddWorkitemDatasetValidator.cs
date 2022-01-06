@@ -20,15 +20,15 @@ using Microsoft.Health.Dicom.Core.Features.Validation;
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
     /// <summary>
-    /// Provides functionality to validate a <see cref="DicomDataset"/> to make sure it meets the minimum requirement when storing.
+    /// Provides functionality to validate a <see cref="DicomDataset"/> to make sure it meets the minimum requirement when Adding.
     /// </summary>
-    public class WorkitemStoreDatasetValidator : IWorkitemStoreDatasetValidator
+    public class AddWorkitemDatasetValidator : IAddWorkitemDatasetValidator
     {
         private readonly bool _enableFullDicomItemValidation;
         private readonly IElementMinimumValidator _minimumValidator;
         private readonly IQueryTagService _queryTagService;
 
-        public WorkitemStoreDatasetValidator(IOptions<FeatureConfiguration> featureConfiguration, IElementMinimumValidator minimumValidator, IQueryTagService queryTagService)
+        public AddWorkitemDatasetValidator(IOptions<FeatureConfiguration> featureConfiguration, IElementMinimumValidator minimumValidator, IQueryTagService queryTagService)
         {
             EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
             EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));

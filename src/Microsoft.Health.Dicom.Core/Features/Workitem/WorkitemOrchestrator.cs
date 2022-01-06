@@ -54,6 +54,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             long workitemKey = await _indexWorkitemStore
                 .AddWorkitemAsync(partitionKey, dataset, queryTags, cancellationToken);
 
+            // TODO: this needs to be done before storing the dataset in the Blob Store.
+            var workitemInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
+            dataset.Add(DicomTag.RequestedSOPInstanceUID, workitemInstanceUid);
+
             var identifier = dataset.ToWorkitemInstanceIdentifier(workitemKey, partitionKey);
 
             // We have successfully created the index, store the file.
