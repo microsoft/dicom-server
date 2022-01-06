@@ -1664,31 +1664,29 @@ GO
 CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatus
 @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT
 AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    BEGIN TRANSACTION;
-    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
-    UPDATE dbo.Instance
-    SET    Status                = @status,
-           LastStatusUpdatedDate = @currentDate
-    WHERE  StudyInstanceUid = @studyInstanceUid
-           AND SeriesInstanceUid = @seriesInstanceUid
-           AND SopInstanceUid = @sopInstanceUid
-           AND Watermark = @watermark;
-    IF @@ROWCOUNT = 0
-        BEGIN
-            THROW 50404, 'Instance does not exist', 1;
-        END
-    INSERT  INTO dbo.ChangeFeed (Timestamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-    VALUES                     (@currentDate, 0, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
-    UPDATE dbo.ChangeFeed
-    SET    CurrentWatermark = @watermark
-    WHERE  StudyInstanceUid = @studyInstanceUid
-           AND SeriesInstanceUid = @seriesInstanceUid
-           AND SopInstanceUid = @sopInstanceUid;
-    COMMIT TRANSACTION;
-END
+SET NOCOUNT ON;
+SET XACT_ABORT ON;
+BEGIN TRANSACTION;
+DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+UPDATE dbo.Instance
+SET    Status                = @status,
+       LastStatusUpdatedDate = @currentDate
+WHERE  StudyInstanceUid = @studyInstanceUid
+       AND SeriesInstanceUid = @seriesInstanceUid
+       AND SopInstanceUid = @sopInstanceUid
+       AND Watermark = @watermark;
+IF @@ROWCOUNT = 0
+    BEGIN
+        THROW 50404, 'Instance does not exist', 1;
+    END
+INSERT  INTO dbo.ChangeFeed (Timestamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+VALUES                     (@currentDate, 0, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
+UPDATE dbo.ChangeFeed
+SET    CurrentWatermark = @watermark
+WHERE  StudyInstanceUid = @studyInstanceUid
+       AND SeriesInstanceUid = @seriesInstanceUid
+       AND SopInstanceUid = @sopInstanceUid;
+COMMIT TRANSACTION;
 
 GO
 CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV6
