@@ -10,7 +10,6 @@ using Dicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Partition;
-using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
@@ -30,7 +29,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             string workitemUid = "2.25.1234";
             DicomTag tag2 = DicomTag.PatientName;
 
-            var dataset = new WorkitemDataset();
+            var dataset = new DicomDataset();
             dataset.Add(DicomTag.SOPInstanceUID, workitemUid);
             dataset.Add(DicomTag.PatientName, "Foo");
 

@@ -173,7 +173,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public IExtendedQueryTagErrorStore ExtendedQueryTagErrorStore { get; }
 
-        public IWorkitemStore WorkitemStore { get; }
+        public IIndexWorkitemStore WorkitemStore { get; }
 
         public SchemaUpgradeRunner SchemaUpgradeRunner { get; }
         public string TestConnectionString { get; }

@@ -11,7 +11,6 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
@@ -32,7 +31,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
         public virtual SchemaVersion Version => SchemaVersion.V8;
 
-        public virtual async Task<long> AddWorkitemAsync(int partitionKey, WorkitemDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+        public virtual async Task<long> AddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())

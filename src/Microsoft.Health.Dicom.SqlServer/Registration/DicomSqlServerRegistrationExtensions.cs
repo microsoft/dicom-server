@@ -200,7 +200,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private static IServiceCollection AddSqlWorkitemStores(this IServiceCollection services)
         {
-            services.TryAddScoped<IWorkitemStore, SqlWorkitemStore>();
+            services.TryAddScoped<IIndexWorkitemStore, SqlWorkitemStore>();
             services.TryAddScoped<VersionedCache<ISqlWorkitemStore>>();
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlWorkitemStore, SqlWorkitemStoreV8>());
 

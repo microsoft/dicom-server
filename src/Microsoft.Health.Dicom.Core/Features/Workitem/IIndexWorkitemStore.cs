@@ -6,12 +6,13 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Dicom;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
-    public interface IWorkitemStore
+    public interface IIndexWorkitemStore
     {
-        Task<long> AddWorkitemAsync(int partitionKey, WorkitemDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
+        Task<long> AddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
     }
 }

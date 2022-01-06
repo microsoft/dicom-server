@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
@@ -13,14 +14,14 @@ using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 {
-    internal sealed class SqlWorkitemStore : IWorkitemStore
+    internal sealed class SqlWorkitemStore : IIndexWorkitemStore
     {
         private readonly VersionedCache<ISqlWorkitemStore> _cache;
 
         public SqlWorkitemStore(VersionedCache<ISqlWorkitemStore> cache)
             => _cache = EnsureArg.IsNotNull(cache, nameof(cache));
 
-        public async Task<long> AddWorkitemAsync(int partitionKey, WorkitemDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
+        public async Task<long> AddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
         {
             ISqlWorkitemStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
             return await store.AddWorkitemAsync(partitionKey, dataset, queryTags, cancellationToken);

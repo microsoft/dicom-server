@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
     /// <summary>
     ///  Sql version of IWorkitemStore.
     /// </summary>
-    internal interface ISqlWorkitemStore : IWorkitemStore, IVersioned
+    internal interface ISqlWorkitemStore : IIndexWorkitemStore, IVersioned
     {
     }
 }
