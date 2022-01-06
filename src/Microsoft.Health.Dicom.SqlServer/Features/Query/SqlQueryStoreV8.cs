@@ -11,6 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 {
     internal class SqlQueryStoreV8 : SqlQueryStoreV6
     {
+        // Overriding the version to ensure QueryGenerators receieves V8 schema version for workitem support.
         public override SchemaVersion Version => SchemaVersion.V8;
 
         public SqlQueryStoreV8(
