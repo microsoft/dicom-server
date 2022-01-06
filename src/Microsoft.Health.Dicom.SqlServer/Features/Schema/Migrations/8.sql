@@ -474,6 +474,36 @@ CREATE TYPE dbo.InsertPersonNameExtendedQueryTagTableType_1 AS TABLE (
 CREATE TYPE dbo.ExtendedQueryTagKeyTableType_1 AS TABLE (
     TagKey INT);
 
+INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00100010', NULL, 'PN', 0, 1, 1, 0, 1);
+
+INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00100020', NULL, 'LO', 0, 1, 1, 0, 1);
+
+INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '0040A370.00080050', NULL, 'SH', 0, 1, 1, 0, 1);
+
+INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '0040A370.00401001', NULL, 'SH', 0, 1, 1, 0, 1);
+
+INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404005', NULL, 'DT', 0, 1, 1, 0, 1);
+
+INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404025.00080100', NULL, 'SH', 0, 1, 1, 0, 1);
+
+INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404026.00080100', NULL, 'SH', 0, 1, 1, 0, 1);
+
+INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00741000', NULL, 'CS', 0, 1, 1, 0, 1);
+
+INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404027.00080100', NULL, 'SH', 0, 1, 1, 0, 1);
+
+INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00081195', NULL, 'UI', 0, 1, 0, 0, 1);
+
 COMMIT
 GO
 IF NOT EXISTS (SELECT *
@@ -1634,31 +1664,29 @@ GO
 CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatus
 @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT
 AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    BEGIN TRANSACTION;
-    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
-    UPDATE dbo.Instance
-    SET    Status                = @status,
-           LastStatusUpdatedDate = @currentDate
-    WHERE  StudyInstanceUid = @studyInstanceUid
-           AND SeriesInstanceUid = @seriesInstanceUid
-           AND SopInstanceUid = @sopInstanceUid
-           AND Watermark = @watermark;
-    IF @@ROWCOUNT = 0
-        BEGIN
-            THROW 50404, 'Instance does not exist', 1;
-        END
-    INSERT  INTO dbo.ChangeFeed (Timestamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-    VALUES                     (@currentDate, 0, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
-    UPDATE dbo.ChangeFeed
-    SET    CurrentWatermark = @watermark
-    WHERE  StudyInstanceUid = @studyInstanceUid
-           AND SeriesInstanceUid = @seriesInstanceUid
-           AND SopInstanceUid = @sopInstanceUid;
-    COMMIT TRANSACTION;
-END
+SET NOCOUNT ON;
+SET XACT_ABORT ON;
+BEGIN TRANSACTION;
+DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+UPDATE dbo.Instance
+SET    Status                = @status,
+       LastStatusUpdatedDate = @currentDate
+WHERE  StudyInstanceUid = @studyInstanceUid
+       AND SeriesInstanceUid = @seriesInstanceUid
+       AND SopInstanceUid = @sopInstanceUid
+       AND Watermark = @watermark;
+IF @@ROWCOUNT = 0
+    BEGIN
+        THROW 50404, 'Instance does not exist', 1;
+    END
+INSERT  INTO dbo.ChangeFeed (Timestamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+VALUES                     (@currentDate, 0, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
+UPDATE dbo.ChangeFeed
+SET    CurrentWatermark = @watermark
+WHERE  StudyInstanceUid = @studyInstanceUid
+       AND SeriesInstanceUid = @seriesInstanceUid
+       AND SopInstanceUid = @sopInstanceUid;
+COMMIT TRANSACTION;
 
 GO
 CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV6
@@ -1669,7 +1697,8 @@ BEGIN
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
     IF @maxTagKey < (SELECT ISNULL(MAX(TagKey), 0)
-                     FROM   dbo.ExtendedQueryTag WITH (HOLDLOCK))
+                     FROM   dbo.ExtendedQueryTag WITH (HOLDLOCK)
+                     WHERE  ResourceType = 0)
         THROW 50409, 'Max extended query tag key does not match', 10;
     DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
     UPDATE dbo.Instance

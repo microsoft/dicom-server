@@ -1,4 +1,4 @@
-/****************************************************************************************
+﻿/****************************************************************************************
 Guidelines to create migration scripts - https://github.com/microsoft/healthcare-shared-components/tree/master/src/Microsoft.Health.SqlServer/SqlSchemaScriptsGuidelines.md
 
 This diff is broken up into several sections:
@@ -1408,6 +1408,90 @@ BEGIN
 END
 GO
 
+
+/*************************************************************
+    Stored procedures for updating an instance status.
+**************************************************************/
+--
+-- STORED PROCEDURE
+--     UpdateInstanceStatusV6
+--
+-- DESCRIPTION
+--     Updates a DICOM instance status, which allows for consistency during indexing.
+--
+-- PARAMETERS
+--     @partitionKey
+--         * The partition key.
+--     @studyInstanceUid
+--         * The study instance UID.
+--     @seriesInstanceUid
+--         * The series instance UID.
+--     @sopInstanceUid
+--         * The SOP instance UID.
+--     @watermark
+--         * The watermark.
+--     @status
+--         * The new status to update to.
+--     @maxTagKey
+--         * Optional max ExtendedQueryTag key
+--
+-- RETURN VALUE
+--     None
+--
+CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV6
+    @partitionKey       INT,
+    @studyInstanceUid   VARCHAR(64),
+    @seriesInstanceUid  VARCHAR(64),
+    @sopInstanceUid     VARCHAR(64),
+    @watermark          BIGINT,
+    @status             TINYINT,
+    @maxTagKey          INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    SET XACT_ABORT ON
+    BEGIN TRANSACTION
+
+    -- This check ensures the client is not potentially missing 1 or more query tags that may need to be indexed.
+    -- Note that if @maxTagKey is NULL, < will always return UNKNOWN.
+    IF @maxTagKey < (SELECT ISNULL(MAX(TagKey), 0) FROM dbo.ExtendedQueryTag WITH (HOLDLOCK) WHERE ResourceType = 0)
+        THROW 50409, 'Max extended query tag key does not match', 10
+
+    DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
+
+    UPDATE dbo.Instance
+    SET Status = @status, LastStatusUpdatedDate = @currentDate
+    WHERE PartitionKey = @partitionKey
+        AND StudyInstanceUid = @studyInstanceUid
+        AND SeriesInstanceUid = @seriesInstanceUid
+        AND SopInstanceUid = @sopInstanceUid
+        AND Watermark = @watermark
+
+    -- The instance does not exist. Perhaps it was deleted?
+    IF @@ROWCOUNT = 0
+        THROW 50404, 'Instance does not exist', 1
+
+    -- Insert to change feed.
+    -- Currently this procedure is used only updating the status to created
+    -- If that changes an if condition is needed.
+    INSERT INTO dbo.ChangeFeed
+        (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    VALUES
+        (@currentDate, 0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)
+
+    -- Update existing instance currentWatermark to latest
+    UPDATE dbo.ChangeFeed
+    SET CurrentWatermark      = @watermark
+    WHERE PartitionKey = @partitionKey
+        AND StudyInstanceUid    = @studyInstanceUid
+        AND SeriesInstanceUid = @seriesInstanceUid
+        AND SopInstanceUid    = @sopInstanceUid
+
+    COMMIT TRANSACTION
+END
+GO
+
 COMMIT TRANSACTION
 
 BEGIN TRANSACTION
@@ -1684,3 +1768,54 @@ BEGIN CATCH
     ROLLBACK;
     THROW;
 END CATCH
+
+-- List of extended query tags that are supported for UPS-RS queries
+
+IF NOT EXISTS (
+SELECT 1 FROM  dbo.ExtendedQueryTag WHERE ResourceType = 1
+)
+BEGIN 
+    BEGIN TRANSACTION
+
+        -- Patient name
+        INSERT INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+        VALUES (NEXT VALUE FOR TagKeySequence, '00100010', NULL, 'PN', 0, 1, 1, 0, 1)
+
+        -- Patient ID
+        INSERT INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+        VALUES (NEXT VALUE FOR TagKeySequence, '00100020', NULL, 'LO', 0, 1, 1, 0, 1)
+
+        -- ReferencedRequestSequence.Accesionnumber
+        INSERT INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+        VALUES (NEXT VALUE FOR TagKeySequence, '0040A370.00080050', NULL, 'SH', 0, 1, 1, 0, 1)
+
+        -- ReferencedRequestSequence.Requested​Procedure​ID
+        INSERT INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+        VALUES (NEXT VALUE FOR TagKeySequence, '0040A370.00401001', NULL, 'SH', 0, 1, 1, 0, 1)
+
+        -- 	Scheduled​Procedure​Step​Start​Date​Time
+        INSERT INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+        VALUES (NEXT VALUE FOR TagKeySequence, '00404005', NULL, 'DT', 0, 1, 1, 0, 1)
+
+        -- 	ScheduledStationNameCodeSequence.CodeValue
+        INSERT INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+        VALUES (NEXT VALUE FOR TagKeySequence, '00404025.00080100', NULL, 'SH', 0, 1, 1, 0, 1)
+
+        -- 	ScheduledStationClassCodeSequence.CodeValue
+        INSERT INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+        VALUES (NEXT VALUE FOR TagKeySequence, '00404026.00080100', NULL, 'SH', 0, 1, 1, 0, 1)
+
+        -- 	Procedure​Step​State
+        INSERT INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+        VALUES (NEXT VALUE FOR TagKeySequence, '00741000', NULL, 'CS', 0, 1, 1, 0, 1)
+
+        -- 	Scheduled​Station​Geographic​Location​Code​Sequence.CodeValue
+        INSERT INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+        VALUES (NEXT VALUE FOR TagKeySequence, '00404027.00080100', NULL, 'SH', 0, 1, 1, 0, 1)
+
+        -- 	Transaction​UID
+        INSERT INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
+        VALUES (NEXT VALUE FOR TagKeySequence, '00081195', NULL, 'UI', 0, 1, 0, 0, 1)
+
+    COMMIT TRANSACTION
+END 

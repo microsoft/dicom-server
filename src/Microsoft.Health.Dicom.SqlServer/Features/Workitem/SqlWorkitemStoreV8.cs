@@ -57,7 +57,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                 {
                     if (ex.Number == SqlErrorCodes.Conflict)
                     {
-                        throw new InstanceAlreadyExistsException();
+                        throw new WorkitemAlreadyExistsException();
                     }
 
                     throw new DataStoreException(ex);

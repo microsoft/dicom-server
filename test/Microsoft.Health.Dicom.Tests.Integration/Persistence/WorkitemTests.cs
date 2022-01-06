@@ -3,6 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Dicom;
+using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
@@ -16,14 +23,22 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             _fixture = fixture;
         }
 
-        //[Fact]
-        //public async Task WhenValidWorkitemIsCreated_CreationSucceeds()
-        //{
-        //    string workitemUid = "2.25.1234";
+        [Fact]
+        public async Task WhenValidWorkitemIsCreated_CreationSucceeds()
+        {
+            string workitemUid = "2.25.1234";
+            DicomTag tag2 = DicomTag.PatientName;
 
-        //    long workitemKey = await _fixture.WorkitemStore.AddWorkitemAsync(DefaultPartition.Key, workitemUid, CancellationToken.None);
+            var dataset = new DicomDataset();
+            dataset.Add(DicomTag.SOPInstanceUID, workitemUid);
+            dataset.Add(DicomTag.PatientName, "Foo");
 
-        //    Assert.True(workitemKey > 0, "WorkitemKey not returned.");
-        //}
+            var queryTags = new List<QueryTag>()
+            {
+                new QueryTag(new ExtendedQueryTagStoreEntry(2, tag2.GetPath(), tag2.GetDefaultVR().Code, null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled,0)),
+            };
+
+            long workitemKey = await _fixture.WorkitemStore.AddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
+        }
     }
 }

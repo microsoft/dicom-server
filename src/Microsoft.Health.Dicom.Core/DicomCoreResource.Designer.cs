@@ -983,5 +983,14 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("UnsupportedVRCodeOnTag", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The workitem instance already exists..
+        /// </summary>
+        internal static string WorkitemInstanceAlreadyExists {
+            get {
+                return ResourceManager.GetString("WorkitemInstanceAlreadyExists", resourceCulture);
+            }
+        }
     }
 }

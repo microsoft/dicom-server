@@ -193,6 +193,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddScoped<VersionedCache<ISqlQueryStore>>();
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlQueryStore, SqlQueryStoreV4>());
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlQueryStore, SqlQueryStoreV6>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlQueryStore, SqlQueryStoreV8>());
 
             return services;
         }
