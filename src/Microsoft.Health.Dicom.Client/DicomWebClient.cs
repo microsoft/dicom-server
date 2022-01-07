@@ -42,6 +42,7 @@ namespace Microsoft.Health.Dicom.Client
             HttpClient = httpClient;
             _apiVersion = apiVersion;
             _jsonSerializerSettings = new JsonSerializerSettings();
+            _jsonSerializerSettings.TypeNameHandling = TypeNameHandling.None;
             _jsonSerializerSettings.Converters.Add(new JsonDicomConverter(writeTagsAsKeywords: true, autoValidate: false));
 
             // Used by extended query tag apis
