@@ -14,5 +14,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     public interface IIndexWorkitemStore
     {
         Task<long> AddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
+
+        Task DeleteWorkitemAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default);
     }
 }
