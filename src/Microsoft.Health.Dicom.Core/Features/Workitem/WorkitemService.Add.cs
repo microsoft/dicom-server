@@ -65,9 +65,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
 
-            PrepareWorkitemDataset(dataset, workitemInstanceUid);
+            PrepareWorkitemDataset(dataset, ref workitemInstanceUid);
 
-            if (ValidateAsync(dataset))
+            if (ValidateAsync(dataset, workitemInstanceUid))
             {
                 await AddWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
             }
@@ -75,7 +75,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             return _responseBuilder.BuildResponse();
         }
 
-        private static void PrepareWorkitemDataset(DicomDataset dataset, string workitemInstanceUid)
+        private static void PrepareWorkitemDataset(DicomDataset dataset, ref string workitemInstanceUid)
         {
             if (string.IsNullOrWhiteSpace(workitemInstanceUid) ||
                 !dataset.TryGetSingleValue<string>(DicomTag.AffectedSOPInstanceUID, out workitemInstanceUid))
@@ -86,13 +86,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
         }
 
-        private bool ValidateAsync(DicomDataset dataset)
+        private bool ValidateAsync(DicomDataset dataset, string workitemInstanceUid)
         {
             try
             {
-                // TODO: Add a method to setup workitem with additional data-points. (including, may be "creating" a workitem instance uid)
-                // _dicomDatasetValidator.ValidateAsync(dataset, workitemInstanceUid);
-
+                _validator.ValidateAsync(dataset, workitemInstanceUid);
                 return true;
             }
             catch (Exception ex)

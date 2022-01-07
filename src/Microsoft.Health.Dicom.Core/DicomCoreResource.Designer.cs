@@ -670,6 +670,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The AffectedSOPInstanceUID &apos;{0}&apos; in the payload does not match the specified WorkimteInstanceUID &apos;{1}&apos;..
+        /// </summary>
+        internal static string MismatchWorkitemInstanceUid {
+            get {
+                return ResourceManager.GetString("MismatchWorkitemInstanceUid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The extended query tag(s) is missing..
         /// </summary>
         internal static string MissingExtendedQueryTag {

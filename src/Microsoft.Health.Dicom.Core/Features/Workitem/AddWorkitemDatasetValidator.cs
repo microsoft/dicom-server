@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +11,6 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
@@ -39,11 +37,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             _queryTagService = queryTagService;
         }
 
-        public async Task ValidateAsync(DicomDataset dicomDataset, string requiredStudyInstanceUid, CancellationToken cancellationToken)
+        public async Task ValidateAsync(DicomDataset dicomDataset, string workitemInstanceUid, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-            ValidateCoreTags(dicomDataset, requiredStudyInstanceUid);
+            ValidateRequiredTags(dicomDataset, workitemInstanceUid);
 
             // validate input data elements
             if (_enableFullDicomItemValidation)
@@ -52,45 +50,54 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
             else
             {
-                await ValidateIndexedItems(dicomDataset, cancellationToken);
+                // await ValidateIndexedItems(dicomDataset, cancellationToken);
+                await Task.Delay(0, cancellationToken);
             }
         }
 
-        private static void ValidateCoreTags(DicomDataset dicomDataset, string requiredStudyInstanceUid)
+        private static void ValidateRequiredTags(DicomDataset dicomDataset, string workitemInstanceUid)
         {
-            // Validate for Implicit VR
-            ImplicitValueRepresentationValidator.Validate(dicomDataset);
-
             // Ensure required tags are present.
+            EnsureRequiredTagIsPresent(DicomTag.ScheduledProcedureStepPriority);
+            EnsureRequiredTagIsPresent(DicomTag.ProcedureStepLabel);
+            EnsureRequiredTagIsPresent(DicomTag.WorklistLabel);
+            EnsureRequiredTagIsPresent(DicomTag.ScheduledStationNameCodeSequence);
+            EnsureRequiredTagIsPresent(DicomTag.ScheduledStationClassCodeSequence);
+            EnsureRequiredTagIsPresent(DicomTag.ScheduledStationGeographicLocationCodeSequence);
+            EnsureRequiredTagIsPresent(DicomTag.ScheduledHumanPerformersSequence);
+            EnsureRequiredTagIsPresent(DicomTag.HumanPerformerCodeSequence);
+            EnsureRequiredTagIsPresent(DicomTag.ScheduledProcedureStepStartDateTime);
+            EnsureRequiredTagIsPresent(DicomTag.ExpectedCompletionDateTime);
+            EnsureRequiredTagIsPresent(DicomTag.ScheduledWorkitemCodeSequence);
+            EnsureRequiredTagIsPresent(DicomTag.InputReadinessState);
+            EnsureRequiredTagIsPresent(DicomTag.PatientName);
             EnsureRequiredTagIsPresent(DicomTag.PatientID);
-            EnsureRequiredTagIsPresent(DicomTag.SOPClassUID);
+            EnsureRequiredTagIsPresent(DicomTag.PatientBirthDate);
+            EnsureRequiredTagIsPresent(DicomTag.PatientSex);
+            EnsureRequiredTagIsPresent(DicomTag.AdmissionID);
+            EnsureRequiredTagIsPresent(DicomTag.IssuerOfAdmissionIDSequence);
+            EnsureRequiredTagIsPresent(DicomTag.ReferencedRequestSequence);
+            EnsureRequiredTagIsPresent(DicomTag.AccessionNumber);
+            EnsureRequiredTagIsPresent(DicomTag.IssuerOfAccessionNumberSequence);
+            EnsureRequiredTagIsPresent(DicomTag.RequestedProcedureID);
+            EnsureRequiredTagIsPresent(DicomTag.RequestingService);
+            EnsureRequiredTagIsPresent(DicomTag.ReplacedProcedureStepSequence);
+            EnsureRequiredTagIsPresent(DicomTag.ProcedureStepState);
 
             // The format of the identifiers will be validated by fo-dicom.
-            string studyInstanceUid = EnsureRequiredTagIsPresent(DicomTag.StudyInstanceUID);
-            string seriesInstanceUid = EnsureRequiredTagIsPresent(DicomTag.SeriesInstanceUID);
-            string sopInstanceUid = EnsureRequiredTagIsPresent(DicomTag.SOPInstanceUID);
+            string workitemUid = EnsureRequiredTagIsPresent(DicomTag.AffectedSOPInstanceUID);
 
-            // Ensure the StudyInstanceUid != SeriesInstanceUid != sopInstanceUid
-            if (studyInstanceUid == seriesInstanceUid ||
-                studyInstanceUid == sopInstanceUid ||
-                seriesInstanceUid == sopInstanceUid)
+            // If the workitemInstanceUid is specified, then the workitemUid must match.
+            if (workitemInstanceUid != null &&
+                !workitemUid.Equals(workitemInstanceUid, StringComparison.OrdinalIgnoreCase))
             {
                 throw new DatasetValidationException(
-                    FailureReasonCodes.ValidationFailure,
-                    DicomCoreResource.DuplicatedUidsNotAllowed);
-            }
-
-            // If the requestedStudyInstanceUid is specified, then the StudyInstanceUid must match.
-            if (requiredStudyInstanceUid != null &&
-                !studyInstanceUid.Equals(requiredStudyInstanceUid, StringComparison.OrdinalIgnoreCase))
-            {
-                throw new DatasetValidationException(
-                    FailureReasonCodes.MismatchStudyInstanceUid,
+                    FailureReasonCodes.MismatchWorkitemInstanceUid,
                     string.Format(
                         CultureInfo.InvariantCulture,
-                        DicomCoreResource.MismatchStudyInstanceUid,
-                        studyInstanceUid,
-                        requiredStudyInstanceUid));
+                        DicomCoreResource.MismatchWorkitemInstanceUid,
+                        workitemUid,
+                        workitemInstanceUid));
             }
 
             string EnsureRequiredTagIsPresent(DicomTag dicomTag)
@@ -109,14 +116,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
         }
 
-        private async Task ValidateIndexedItems(DicomDataset dicomDataset, CancellationToken cancellationToken)
-        {
-            IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
-            foreach (QueryTag queryTag in queryTags)
-            {
-                dicomDataset.ValidateQueryTag(queryTag, _minimumValidator);
-            }
-        }
+        // TODO : Get cached workitem query tag
+        //private async Task ValidateIndexedItems(DicomDataset dicomDataset, CancellationToken cancellationToken)
+        //{
+        //    IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
+        //    foreach (QueryTag queryTag in queryTags)
+        //    {
+        //        dicomDataset.ValidateQueryTag(queryTag, _minimumValidator);
+        //    }
+        //}
 
         private static void ValidateAllItems(DicomDataset dicomDataset)
         {

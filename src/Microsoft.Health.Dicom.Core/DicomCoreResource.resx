@@ -482,4 +482,8 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="WorkitemInstanceAlreadyExists" xml:space="preserve">
     <value>The workitem instance already exists.</value>
   </data>
+  <data name="MismatchWorkitemInstanceUid" xml:space="preserve">
+    <value>The AffectedSOPInstanceUID '{0}' in the payload does not match the specified WorkimteInstanceUID '{1}'.</value>
+    <comment>{0} and {1} are both WorkimteInstanceUID.</comment>
+  </data>
 </root>

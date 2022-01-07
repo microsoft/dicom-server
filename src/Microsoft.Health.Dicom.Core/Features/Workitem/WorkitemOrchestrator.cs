@@ -46,8 +46,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             EnsureArg.IsNotNull(dataset, nameof(dataset));
             var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
-            // TODO: set instance uid - either from route param or from dataset
-
             // TODO: generate QueryTags list for workitem
             var queryTags = new List<QueryTag>();
 

@@ -34,5 +34,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// The DICOM instance is being created.
         /// </summary>
         public const ushort PendingSopInstance = 45071;
+
+        /// <summary>
+        /// The workitem instance does not belong to the specified workitem.
+        /// </summary>
+        public const ushort MismatchWorkitemInstanceUid = 45072;
     }
 }

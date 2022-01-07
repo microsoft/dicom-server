@@ -16,11 +16,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// Validates the <paramref name="dicomDataset"/>.
         /// </summary>
         /// <param name="dicomDataset">The DICOM dataset to validate.</param>
-        /// <param name="requiredStudyInstanceUid">
-        /// If supplied, the StudyInstanceUID in the <paramref name="dicomDataset"/> must match to be considered valid.
+        /// <param name="workitemInstanceUid">
+        /// If supplied, the SopInstanceUID in the <paramref name="dicomDataset"/> must match to be considered valid.
         /// </param>
         /// <param name="cancellationToken">The cancellation token</param>
         /// <exception cref="DatasetValidationException">Thrown when the validation fails.</exception>
-        Task ValidateAsync(DicomDataset dicomDataset, string requiredStudyInstanceUid, CancellationToken cancellationToken = default);
+        Task ValidateAsync(DicomDataset dicomDataset, string workitemInstanceUid, CancellationToken cancellationToken = default);
     }
 }
