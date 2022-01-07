@@ -44,31 +44,66 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
-            var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
-            // TODO: generate QueryTags list for workitem
-            var queryTags = new List<QueryTag>();
+            WorkitemInstanceIdentifier identifier = null;
 
-            long workitemKey = await _indexWorkitemStore
-                .AddWorkitemAsync(partitionKey, dataset, queryTags, cancellationToken);
+            try
+            {
+                int partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
-            // TODO: this needs to be done before storing the dataset in the Blob Store.
-            var workitemInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
-            dataset.Add(DicomTag.RequestedSOPInstanceUID, workitemInstanceUid);
+                // TODO: generate QueryTags list for workitem
+                var queryTags = new List<QueryTag>();
 
-            var identifier = dataset.ToWorkitemInstanceIdentifier(workitemKey, partitionKey);
+                long workitemKey = await _indexWorkitemStore
+                    .AddWorkitemAsync(partitionKey, dataset, queryTags, cancellationToken)
+                    .ConfigureAwait(false);
 
-            // We have successfully created the index, store the file.
-            await StoreWorkitemBlobAsync(identifier, dataset, cancellationToken);
+                // TODO: this needs to be done before storing the dataset in the Blob Store.
+                string workitemInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
+                dataset.Add(DicomTag.RequestedSOPInstanceUID, workitemInstanceUid);
 
-            // TODO: implement cleanup to delete the index if blob storage fails
+                identifier = dataset.ToWorkitemInstanceIdentifier(workitemKey, partitionKey);
+
+                // We have successfully created the index, store the file.
+                await StoreWorkitemBlobAsync(identifier, dataset, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch
+            {
+                // TODO: implement cleanup to delete the index if blob storage fails
+                await TryDeleteWorkitemAsync(identifier, cancellationToken).ConfigureAwait(false);
+
+                throw;
+            }
         }
 
+        /// <inheritdoc />
+        private async Task TryDeleteWorkitemAsync(
+            WorkitemInstanceIdentifier identifier,
+            CancellationToken cancellationToken)
+        {
+            if (null == identifier)
+            {
+                return;
+            }
 
-        private Task StoreWorkitemBlobAsync(
+            try
+            {
+                await _indexWorkitemStore
+                    .DeleteWorkitemAsync(identifier.PartitionKey, identifier.WorkitemUid, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch
+            {
+            }
+        }
+
+        private async Task StoreWorkitemBlobAsync(
             WorkitemInstanceIdentifier identifier,
             DicomDataset dicomDataset,
             CancellationToken cancellationToken)
-            => _workitemStore.AddWorkitemAsync(identifier, dicomDataset, cancellationToken);
+            => await _workitemStore
+                .AddWorkitemAsync(identifier, dicomDataset, cancellationToken)
+                .ConfigureAwait(false);
     }
 }
