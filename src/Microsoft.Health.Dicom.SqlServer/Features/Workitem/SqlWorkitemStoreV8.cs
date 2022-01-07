@@ -65,5 +65,26 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
             }
         }
+
+        public async Task DeleteWorkitemAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
+        {
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.DeleteWorkitem.PopulateCommand(
+                    sqlCommandWrapper,
+                    partitionKey,
+                    workitemUid); ;
+
+                try
+                {
+                    await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+                }
+                catch (SqlException ex)
+                {
+                    throw new DataStoreException(ex);
+                }
+            }
+        }
     }
 }
