@@ -4,14 +4,16 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Linq;
 using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
@@ -37,7 +39,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             _queryTagService = queryTagService;
         }
 
-        public async Task ValidateAsync(DicomDataset dicomDataset, string workitemInstanceUid, CancellationToken cancellationToken)
+        public void Validate(DicomDataset dicomDataset, string workitemInstanceUid)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
@@ -50,8 +52,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
             else
             {
-                // await ValidateIndexedItems(dicomDataset, cancellationToken);
-                await Task.Delay(0, cancellationToken);
+                ValidateIndexedItems(dicomDataset);
             }
         }
 
@@ -116,15 +117,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
         }
 
-        // TODO : Get cached workitem query tag
-        //private async Task ValidateIndexedItems(DicomDataset dicomDataset, CancellationToken cancellationToken)
-        //{
-        //    IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
-        //    foreach (QueryTag queryTag in queryTags)
-        //    {
-        //        dicomDataset.ValidateQueryTag(queryTag, _minimumValidator);
-        //    }
-        //}
+        private void ValidateIndexedItems(DicomDataset dicomDataset)
+        {
+            IReadOnlyCollection<QueryTag> queryTags = QueryLimit.IndexedWorkItemQueryTags.Select(x => new QueryTag(x)).ToList();
+            foreach (QueryTag queryTag in queryTags)
+            {
+                dicomDataset.ValidateQueryTag(queryTag, _minimumValidator);
+            }
+        }
 
         private static void ValidateAllItems(DicomDataset dicomDataset)
         {

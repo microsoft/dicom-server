@@ -67,7 +67,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             PrepareWorkitemDataset(dataset, ref workitemInstanceUid);
 
-            if (ValidateAsync(dataset, workitemInstanceUid))
+            if (Validate(dataset, workitemInstanceUid))
             {
                 await AddWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
             }
@@ -86,11 +86,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
         }
 
-        private bool ValidateAsync(DicomDataset dataset, string workitemInstanceUid)
+        private bool Validate(DicomDataset dataset, string workitemInstanceUid)
         {
             try
             {
-                _validator.ValidateAsync(dataset, workitemInstanceUid);
+                _validator.Validate(dataset, workitemInstanceUid);
                 return true;
             }
             catch (Exception ex)

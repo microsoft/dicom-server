@@ -3,8 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Threading;
-using System.Threading.Tasks;
 using Dicom;
 using Microsoft.Health.Dicom.Core.Features.Store;
 
@@ -19,8 +17,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <param name="workitemInstanceUid">
         /// If supplied, the SopInstanceUID in the <paramref name="dicomDataset"/> must match to be considered valid.
         /// </param>
-        /// <param name="cancellationToken">The cancellation token</param>
         /// <exception cref="DatasetValidationException">Thrown when the validation fails.</exception>
-        Task ValidateAsync(DicomDataset dicomDataset, string workitemInstanceUid, CancellationToken cancellationToken = default);
+        void Validate(DicomDataset dicomDataset, string workitemInstanceUid);
     }
 }

@@ -43,6 +43,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             DicomTag.SOPInstanceUID,
         };
 
+        public static readonly HashSet<DicomTag> IndexedWorkItemQueryTags = new HashSet<DicomTag>()
+        {
+            DicomTag.PatientID,
+            DicomTag.PatientName,
+            DicomTag.Procedure​Step​State,
+            DicomTag.Scheduled​Procedure​Step​Start​Date​Time,
+            DicomTag.ReferencedRequestSequence,
+            DicomTag.ScheduledStationNameCodeSequence,
+            DicomTag.ScheduledStationClassCodeSequence,
+            DicomTag.Scheduled​Station​Geographic​Location​Code​Sequence
+        };
+
         public static readonly HashSet<DicomTag> CoreTags = new HashSet<DicomTag>(
             CoreStudyTags.Union(CoreSeriesTags).Union(CoreInstanceTags));
 
