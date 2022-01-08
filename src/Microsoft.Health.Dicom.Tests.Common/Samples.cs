@@ -206,6 +206,48 @@ namespace Microsoft.Health.Dicom.Tests.Common
             return ds;
         }
 
+        public static DicomDataset CreateRandomWorkitemInstanceDataset(
+            string workitemUid = null,
+            bool validateItems = true,
+            DicomTransferSyntax dicomTransferSyntax = null)
+        {
+            var ds = new DicomDataset(dicomTransferSyntax ?? DicomTransferSyntax.ExplicitVRLittleEndian);
+
+            if (!validateItems)
+            {
+                ds = ds.NotValidated();
+            }
+
+            ds.Add(DicomTag.AffectedSOPInstanceUID, workitemUid ?? TestUidGenerator.Generate());
+            ds.Add(DicomTag.ScheduledProcedureStepPriority, Guid.NewGuid().ToString("N"));
+            ds.Add(DicomTag.ProcedureStepLabel, Guid.NewGuid().ToString("N"));
+            ds.Add(DicomTag.WorklistLabel, Guid.NewGuid().ToString("N"));
+            ds.Add(DicomTag.ScheduledStationNameCodeSequence, new DicomDataset());
+            ds.Add(DicomTag.ScheduledStationClassCodeSequence, new DicomDataset());
+            ds.Add(DicomTag.ScheduledStationGeographicLocationCodeSequence, new DicomDataset());
+            ds.Add(DicomTag.ScheduledHumanPerformersSequence, new DicomDataset());
+            ds.Add(DicomTag.HumanPerformerCodeSequence, new DicomDataset());
+            ds.Add(DicomTag.ScheduledProcedureStepStartDateTime, DateTime.Now);
+            ds.Add(DicomTag.ExpectedCompletionDateTime, DateTime.Now);
+            ds.Add(DicomTag.ScheduledWorkitemCodeSequence, new DicomDataset());
+            ds.Add(DicomTag.InputReadinessState, Guid.NewGuid().ToString("N"));
+            ds.Add(DicomTag.PatientName, Guid.NewGuid().ToString("N"));
+            ds.Add(DicomTag.PatientID, TestUidGenerator.Generate());
+            ds.Add(DicomTag.PatientBirthDate, DateTime.Now.ToShortDateString());
+            ds.Add(DicomTag.PatientSex, Guid.NewGuid().ToString("N"));
+            ds.Add(DicomTag.AdmissionID, Guid.NewGuid().ToString("N"));
+            ds.Add(DicomTag.IssuerOfAdmissionIDSequence, new DicomDataset());
+            ds.Add(DicomTag.ReferencedRequestSequence, new DicomDataset());
+            ds.Add(DicomTag.AccessionNumber, Guid.NewGuid().ToString("N"));
+            ds.Add(DicomTag.IssuerOfAccessionNumberSequence, new DicomDataset());
+            ds.Add(DicomTag.RequestedProcedureID, Guid.NewGuid().ToString("N"));
+            ds.Add(DicomTag.RequestingService, Guid.NewGuid().ToString("N"));
+            ds.Add(DicomTag.ReplacedProcedureStepSequence, new DicomDataset());
+            ds.Add(DicomTag.ProcedureStepState, Guid.NewGuid().ToString("N"));
+
+            return ds;
+        }
+
         private static IByteBuffer CreateRandomPixelData(int pixelDataSize)
         {
             var result = new byte[pixelDataSize];

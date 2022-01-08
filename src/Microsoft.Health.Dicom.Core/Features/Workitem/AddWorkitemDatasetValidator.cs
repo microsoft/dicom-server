@@ -52,7 +52,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
             else
             {
-                ValidateIndexedItems(dicomDataset);
+                // TODO Validate all the indexed items.
+                // ValidateIndexedItems(dicomDataset);
             }
         }
 
@@ -62,28 +63,28 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             EnsureRequiredTagIsPresent(DicomTag.ScheduledProcedureStepPriority);
             EnsureRequiredTagIsPresent(DicomTag.ProcedureStepLabel);
             EnsureRequiredTagIsPresent(DicomTag.WorklistLabel);
-            EnsureRequiredTagIsPresent(DicomTag.ScheduledStationNameCodeSequence);
-            EnsureRequiredTagIsPresent(DicomTag.ScheduledStationClassCodeSequence);
-            EnsureRequiredTagIsPresent(DicomTag.ScheduledStationGeographicLocationCodeSequence);
-            EnsureRequiredTagIsPresent(DicomTag.ScheduledHumanPerformersSequence);
-            EnsureRequiredTagIsPresent(DicomTag.HumanPerformerCodeSequence);
             EnsureRequiredTagIsPresent(DicomTag.ScheduledProcedureStepStartDateTime);
             EnsureRequiredTagIsPresent(DicomTag.ExpectedCompletionDateTime);
-            EnsureRequiredTagIsPresent(DicomTag.ScheduledWorkitemCodeSequence);
             EnsureRequiredTagIsPresent(DicomTag.InputReadinessState);
             EnsureRequiredTagIsPresent(DicomTag.PatientName);
             EnsureRequiredTagIsPresent(DicomTag.PatientID);
             EnsureRequiredTagIsPresent(DicomTag.PatientBirthDate);
             EnsureRequiredTagIsPresent(DicomTag.PatientSex);
             EnsureRequiredTagIsPresent(DicomTag.AdmissionID);
-            EnsureRequiredTagIsPresent(DicomTag.IssuerOfAdmissionIDSequence);
-            EnsureRequiredTagIsPresent(DicomTag.ReferencedRequestSequence);
             EnsureRequiredTagIsPresent(DicomTag.AccessionNumber);
-            EnsureRequiredTagIsPresent(DicomTag.IssuerOfAccessionNumberSequence);
             EnsureRequiredTagIsPresent(DicomTag.RequestedProcedureID);
             EnsureRequiredTagIsPresent(DicomTag.RequestingService);
-            EnsureRequiredTagIsPresent(DicomTag.ReplacedProcedureStepSequence);
             EnsureRequiredTagIsPresent(DicomTag.ProcedureStepState);
+            EnsureRequiredSequenceTagIsPresent(DicomTag.IssuerOfAdmissionIDSequence);
+            EnsureRequiredSequenceTagIsPresent(DicomTag.ReferencedRequestSequence);
+            EnsureRequiredSequenceTagIsPresent(DicomTag.IssuerOfAccessionNumberSequence);
+            EnsureRequiredSequenceTagIsPresent(DicomTag.ScheduledWorkitemCodeSequence);
+            EnsureRequiredSequenceTagIsPresent(DicomTag.ScheduledStationNameCodeSequence);
+            EnsureRequiredSequenceTagIsPresent(DicomTag.ScheduledStationClassCodeSequence);
+            EnsureRequiredSequenceTagIsPresent(DicomTag.ScheduledStationGeographicLocationCodeSequence);
+            EnsureRequiredSequenceTagIsPresent(DicomTag.ScheduledHumanPerformersSequence);
+            EnsureRequiredSequenceTagIsPresent(DicomTag.HumanPerformerCodeSequence);
+            EnsureRequiredSequenceTagIsPresent(DicomTag.ReplacedProcedureStepSequence);
 
             // The format of the identifiers will be validated by fo-dicom.
             string workitemUid = EnsureRequiredTagIsPresent(DicomTag.AffectedSOPInstanceUID);
@@ -106,6 +107,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 if (dicomDataset.TryGetSingleValue(dicomTag, out string value))
                 {
                     return value;
+                }
+
+                throw new DatasetValidationException(
+                    FailureReasonCodes.ValidationFailure,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.MissingRequiredTag,
+                        dicomTag.ToString()));
+            }
+
+            DicomSequence EnsureRequiredSequenceTagIsPresent(DicomTag dicomTag)
+            {
+                if (dicomTag.GetDefaultVR().Code == DicomVRCode.SQ)
+                {
+                    dicomDataset.TryGetSequence(dicomTag, out var sequence);
+                    return sequence;
                 }
 
                 throw new DatasetValidationException(
