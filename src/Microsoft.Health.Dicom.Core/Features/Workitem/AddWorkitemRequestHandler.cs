@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             EnsureArg.IsNotNull(request, nameof(request));
 
-            if (await AuthorizationService.CheckAccess(DataActions.Write, cancellationToken) != DataActions.Write)
+            if (await AuthorizationService.CheckAccess(DataActions.Write, cancellationToken).ConfigureAwait(false) != DataActions.Write)
             {
                 throw new UnauthorizedDicomActionException(DataActions.Write);
             }
@@ -49,12 +49,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             using (var streamReader = new StreamReader(request.RequestBody))
             {
-                var json = await streamReader.ReadToEndAsync();
+                string json = await streamReader.ReadToEndAsync().ConfigureAwait(false);
 
                 IEnumerable<DicomDataset> dataset = JsonConvert.DeserializeObject<IEnumerable<DicomDataset>>(json, new JsonDicomConverter());
 
                 return await _workItemService
-                    .ProcessAsync(dataset.FirstOrDefault(), request.WorkitemInstanceUid, cancellationToken);
+                    .ProcessAsync(dataset.FirstOrDefault(), request.WorkitemInstanceUid, cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
     }

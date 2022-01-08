@@ -125,7 +125,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             try
             {
-                // Store the instance.
                 await _workitemOrchestrator.AddWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
 
                 LogSuccessfullyAddedDelegate(_logger, null);
