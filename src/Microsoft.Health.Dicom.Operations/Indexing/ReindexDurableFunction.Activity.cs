@@ -92,16 +92,31 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
         /// A task representing the asynchronous get operation. The value of its <see cref="Task{TResult}.Result"/>
         /// property contains a list of batches as defined by their smallest and largest watermark.
         /// </returns>
+        [Obsolete("Please use GetInstanceBatchesAsyncV2 instead.")]
         [FunctionName(nameof(GetInstanceBatchesAsync))]
-        public Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesAsync(
-            [ActivityTrigger] long? maxWatermark,
+        public Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesAsync([ActivityTrigger] long? maxWatermark, ILogger logger)
+            => GetInstanceBatchesV2Async(BatchCreationArguments.FromOptions(maxWatermark, _options), logger);
+
+        /// <summary>
+        /// Asynchronously retrieves the next set of instance batches based on the configured options.
+        /// </summary>
+        /// <param name="arguments">The options for configuring the batches.</param>
+        /// <param name="logger">A diagnostic logger.</param>
+        /// <returns>
+        /// A task representing the asynchronous get operation. The value of its <see cref="Task{TResult}.Result"/>
+        /// property contains a list of batches as defined by their smallest and largest watermark.
+        /// </returns>
+        [FunctionName(nameof(GetInstanceBatchesV2Async))]
+        public Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesV2Async(
+            [ActivityTrigger] BatchCreationArguments arguments,
             ILogger logger)
         {
+            EnsureArg.IsNotNull(arguments, nameof(arguments));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            if (maxWatermark.HasValue)
+            if (arguments.MaxWatermark.HasValue)
             {
-                logger.LogInformation("Dividing up the instances into batches starting from {Watermark}.", maxWatermark);
+                logger.LogInformation("Dividing up the instances into batches starting from {Watermark}.", arguments.MaxWatermark);
             }
             else
             {
@@ -109,10 +124,10 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
             }
 
             return _instanceStore.GetInstanceBatchesAsync(
-                _options.BatchSize,
-                _options.MaxParallelBatches,
+                arguments.BatchSize,
+                arguments.MaxParallelBatches,
                 IndexStatus.Created,
-                maxWatermark,
+                arguments.MaxWatermark,
                 CancellationToken.None);
         }
 
@@ -122,26 +137,37 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
         /// <param name="batch">The batch that should be re-indexed including the range of data and the new tags.</param>
         /// <param name="logger">A diagnostic logger.</param>
         /// <returns>A task representing the <see cref="ReindexBatchAsync"/> operation.</returns>
+        [Obsolete("Please use ReindexBatchV2Async instead.")]
         [FunctionName(nameof(ReindexBatchAsync))]
-        public async Task ReindexBatchAsync([ActivityTrigger] ReindexBatch batch, ILogger logger)
+        public Task ReindexBatchAsync([ActivityTrigger] ReindexBatch batch, ILogger logger)
+            => ReindexBatchV2Async(batch?.ToArguments(_options.BatchThreadCount), logger);
+
+        /// <summary>
+        /// Asynchronously re-indexes a range of data.
+        /// </summary>
+        /// <param name="arguments">The options that include the instances to re-index and the query tags.</param>
+        /// <param name="logger">A diagnostic logger.</param>
+        /// <returns>A task representing the <see cref="ReindexBatchAsync"/> operation.</returns>
+        [FunctionName(nameof(ReindexBatchV2Async))]
+        public async Task ReindexBatchV2Async([ActivityTrigger] ReindexBatchArguments arguments, ILogger logger)
         {
-            EnsureArg.IsNotNull(batch, nameof(batch));
+            EnsureArg.IsNotNull(arguments, nameof(arguments));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             logger.LogInformation("Re-indexing instances in the range {Range} for the {TagCount} query tags {{{Tags}}}",
-                batch.WatermarkRange,
-                batch.QueryTags.Count,
-                string.Join(", ", batch.QueryTags.Select(x => x.Path)));
+                arguments.WatermarkRange,
+                arguments.QueryTags.Count,
+                string.Join(", ", arguments.QueryTags.Select(x => x.Path)));
 
             IReadOnlyList<VersionedInstanceIdentifier> instanceIdentifiers =
-                await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(batch.WatermarkRange, IndexStatus.Created);
+                await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(arguments.WatermarkRange, IndexStatus.Created);
 
-            for (int i = 0; i < instanceIdentifiers.Count; i += _options.BatchThreadCount)
+            for (int i = 0; i < instanceIdentifiers.Count; i += arguments.ThreadCount)
             {
                 var tasks = new List<Task>();
-                for (int j = i; j < Math.Min(instanceIdentifiers.Count, i + _options.BatchThreadCount); j++)
+                for (int j = i; j < Math.Min(instanceIdentifiers.Count, i + arguments.ThreadCount); j++)
                 {
-                    tasks.Add(_instanceReindexer.ReindexInstanceAsync(batch.QueryTags, instanceIdentifiers[j]));
+                    tasks.Add(_instanceReindexer.ReindexInstanceAsync(arguments.QueryTags, instanceIdentifiers[j]));
                 }
 
                 await Task.WhenAll(tasks);
