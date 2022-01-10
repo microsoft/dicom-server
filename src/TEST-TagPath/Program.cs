@@ -35,6 +35,14 @@ namespace TestTagPath
             sequence = new DicomSequence(DicomTag.ReferencedPatientSequence, new DicomDataset[] { dataset, dataset });
             Console.WriteLine("Sequence items: " + sequence.Items.Count); // 2
 
+            // We could define paths via DicomSequence - but that would require
+            // knowing concrete types and will always instantiate with empty value 
+            var searchSequence = new DicomSequence(DicomTag.ReferencedPatientSequence,
+                new DicomDataset[]
+                {
+                    new DicomDataset().Add(new DicomPersonName(DicomTag.PatientName))
+                });
+
             // A QueryTagPath is simply the tags that trace a path through a sequence, not their corresponding values.
             var tagPath = new QueryTagPath();
             tagPath.AddPath(DicomTag.ReferencedPatientSequence)

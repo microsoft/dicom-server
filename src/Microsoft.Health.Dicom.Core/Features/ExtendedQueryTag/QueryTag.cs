@@ -7,6 +7,7 @@ using Dicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
@@ -18,12 +19,13 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <summary>
         /// Initializes a new instance of the <see cref="QueryTag"/> class.
         /// </summary>
-        /// <remarks>Used for constuctoring from core dicom tag.PatientName e.g. </remarks>
+        /// <remarks>Used for constructing from core Dicom tags, e.g. PatientName.</remarks>
         /// <param name="tag">The core dicom Tag.</param>
         public QueryTag(DicomTag tag)
         {
             EnsureArg.IsNotNull(tag, nameof(tag));
 
+            TagPath = new QueryTagPath(tag); 
             Tag = tag;
             VR = tag.GetDefaultVR();
             Level = QueryLimit.GetQueryTagLevel(tag);
@@ -33,17 +35,38 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <summary>
         /// Initializes a new instance of the <see cref="QueryTag"/> class.
         /// </summary>
-        /// <remarks>Used for constuctoring from extended query tags.</remarks>
+        /// <remarks>Used for constructing from extended query tags.</remarks>
         /// <param name="entry">The extended query tag store entry.</param>
         public QueryTag(ExtendedQueryTagStoreEntry entry)
         {
             EnsureArg.IsNotNull(entry, nameof(entry));
             string fullPath = string.IsNullOrEmpty(entry.PrivateCreator) ? entry.Path : $"{entry.Path}:{entry.PrivateCreator}";
             Tag = DicomTag.Parse(fullPath);
+            Item = new EquatableDicomItem(Tag);
             VR = DicomVR.Parse(entry.VR);
             Level = entry.Level;
             ExtendedQueryTagStoreEntry = entry;
         }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="QueryTag"/> class.
+        /// </summary>
+        /// <remarks>Used for constructing from Dicom item (allows sequences).</remarks>
+        /// <param name="item">The Dicom item.</param>
+        public QueryTag(DicomItem item)
+        {
+            EnsureArg.IsNotNull(item, nameof(item));
+            Item = item;
+            Tag = Item.Tag;
+            VR = Item.ValueRepresentation;
+            Level = QueryLimit.GetQueryTagLevel(Tag);
+            ExtendedQueryTagStoreEntry = null;
+        }
+
+        /// <summary>
+        /// Gets query tag path.
+        /// </summary>
+        public QueryTagPath TagPath { get; }
 
         /// <summary>
         /// Gets Dicom Tag.

@@ -12,7 +12,16 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     /// </summary>
     public class ExtendedQueryTagStoreEntry : ExtendedQueryTagEntry
     {
-        public ExtendedQueryTagStoreEntry(int key, string path, string vr, string privateCreator, QueryTagLevel level, ExtendedQueryTagStatus status, QueryStatus queryStatus, int errorCount)
+        public ExtendedQueryTagStoreEntry(
+            int key,
+            string path,
+            string vr,
+            string privateCreator,
+            QueryTagLevel level,
+            ExtendedQueryTagStatus status,
+            QueryStatus queryStatus,
+            int errorCount,
+            QueryTagResourceType resourceType = QueryTagResourceType.Image)
         {
             Key = key;
             Path = EnsureArg.IsNotNullOrWhiteSpace(path);
@@ -22,6 +31,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             Status = EnsureArg.EnumIsDefined(status);
             QueryStatus = EnsureArg.EnumIsDefined(queryStatus);
             ErrorCount = EnsureArg.IsGte(errorCount, 0, nameof(errorCount));
+            ResourceType = EnsureArg.EnumIsDefined(resourceType);
         }
 
         /// <summary>
@@ -48,5 +58,10 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// Error count on this tag.
         /// </summary>
         public int ErrorCount { get; }
+
+        /// <summary>
+        /// The resource type this tag belongs to.
+        /// </summary>
+        public QueryTagResourceType ResourceType { get; }
     }
 }

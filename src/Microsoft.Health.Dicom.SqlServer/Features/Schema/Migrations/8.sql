@@ -1260,7 +1260,8 @@ BEGIN
              TagStatus,
              QueryStatus,
              ErrorCount,
-             OperationId
+             OperationId,
+             ResourceType
     FROM     dbo.ExtendedQueryTag AS XQT
              LEFT OUTER JOIN
              dbo.ExtendedQueryTagOperation AS XQTO

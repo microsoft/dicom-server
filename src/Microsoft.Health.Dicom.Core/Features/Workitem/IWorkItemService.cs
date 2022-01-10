@@ -11,7 +11,7 @@ using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
     /// <summary>
-    /// Provides functionality to process the list of <see cref="WorkitemEntry"/>.
+    /// Provides functionality to process the <see cref="DicomDataset"/>.
     /// </summary>
     public interface IWorkitemService
     {

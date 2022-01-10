@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 new QueryTag(new ExtendedQueryTagStoreEntry(2, tag2.GetPath(), tag2.GetDefaultVR().Code, null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled,0)),
             };
 
-            long workitemKey = await _fixture.WorkitemStore.AddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
+            long workitemKey = await _fixture.IndexWorkitemStore.AddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
         }
     }
 }

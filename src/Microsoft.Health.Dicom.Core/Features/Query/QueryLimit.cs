@@ -43,6 +43,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             DicomTag.SOPInstanceUID,
         };
 
+        public static readonly HashSet<DicomTag> WorkitemTags = new HashSet<DicomTag>()
+        {
+            DicomTag.PatientName,
+            DicomTag.PatientID,
+            DicomTag.ReferencedRequestSequence,
+            DicomTag.ScheduledProcedureStepStartDateTime,
+            DicomTag.ScheduledStationNameCodeSequence,
+            DicomTag.ScheduledStationClassCodeSequence,
+            DicomTag.ScheduledStationGeographicLocationCodeSequence,
+            DicomTag.ProcedureStepState,
+            DicomTag.TransactionUID,
+        };
+
         public static readonly HashSet<DicomTag> CoreTags = new HashSet<DicomTag>(
             CoreStudyTags.Union(CoreSeriesTags).Union(CoreInstanceTags));
 
@@ -80,7 +93,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             {
                 return QueryTagLevel.Series;
             }
-            if (CoreInstanceTags.Contains(coreTag))
+            if (CoreInstanceTags.Contains(coreTag) || WorkitemTags.Contains(coreTag))
             {
                 return QueryTagLevel.Instance;
             }

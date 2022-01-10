@@ -52,5 +52,22 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
             Assert.True(queryTag.IsExtendedQueryTag);
             Assert.Equal(level, queryTag.Level);
         }
+
+        [Fact]
+        public void GivenSequence_WhenInitialize_ThenShouldCreatedSuccessfully()
+        {
+            var dataset = new DicomDataset();
+            dataset.Add(DicomTag.RequestedProcedureID, "foo");
+
+            var sequence = new DicomSequence(DicomTag.ReferencedRequestSequence, dataset);
+
+            var queryTag = new QueryTag(sequence);
+
+            Assert.Equal(sequence.Tag, queryTag.Tag);
+            Assert.Equal(DicomVR.SQ, queryTag.VR);
+            Assert.Null(queryTag.ExtendedQueryTagStoreEntry);
+            Assert.False(queryTag.IsExtendedQueryTag);
+            Assert.Equal(QueryTagLevel.Instance, queryTag.Level);
+        }
     }
 }

@@ -32,7 +32,8 @@ BEGIN
            TagStatus,
            QueryStatus,
            ErrorCount,
-           OperationId
+           OperationId,
+           ResourceType
     FROM dbo.ExtendedQueryTag AS XQT
     LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
     WHERE XQT.ResourceType = @imageResourceType
