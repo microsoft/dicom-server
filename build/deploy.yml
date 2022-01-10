@@ -74,5 +74,5 @@ jobs:
       azureSubscription: $(azureSubscriptionName)
       webAppKind: 'functionApp'
       webAppName: '$(deploymentName)-functions'
-      package: '$(System.ArtifactsDirectory)/deploy/Microsoft.Health.Dicom.Functions.Hosting.zip'
+      package: '$(System.ArtifactsDirectory)/deploy/Microsoft.Health.Dicom.Functions.zip'
       takeAppOfflineFlag: true
