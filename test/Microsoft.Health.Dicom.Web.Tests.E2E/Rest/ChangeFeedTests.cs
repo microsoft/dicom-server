@@ -11,6 +11,7 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Xunit;
 using ChangeFeedAction = Microsoft.Health.Dicom.Client.Models.ChangeFeedAction;
 using ChangeFeedState = Microsoft.Health.Dicom.Client.Models.ChangeFeedState;
@@ -18,14 +19,16 @@ using ChangeFeedState = Microsoft.Health.Dicom.Client.Models.ChangeFeedState;
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
     [CollectionDefinition("Non-Parallel Collection", DisableParallelization = true)]
-    public class ChangeFeedTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
+    public class ChangeFeedTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
     {
         private readonly IDicomWebClient _client;
+        private readonly DicomInstancesManager _instancesManager;
 
         public ChangeFeedTests(HttpIntegrationTestFixture<Startup> fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
-            _client = fixture.Client;
+            _client = fixture.GetDicomWebClient();
+            _instancesManager = new DicomInstancesManager(_client);
         }
 
         [Fact]
@@ -200,10 +203,17 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
         }
 
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
+        {
+            await _instancesManager.DisposeAsync();
+        }
+
         private async Task CreateFile(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         {
             DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-            await _client.StoreAsync(new[] { dicomFile1 }, studyInstanceUid);
+            await _instancesManager.StoreAsync(new[] { dicomFile1 }, studyInstanceUid);
         }
     }
 }

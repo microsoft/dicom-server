@@ -211,7 +211,7 @@
         "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
         "keyVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', variables('serviceName'))]",
         "defaultWebDeployPackageUrl": "https://dcmcistorage.blob.core.windows.net/cibuild/Microsoft.Health.Dicom.Web.zip",
-        "defaultFunctionAppDeployPackageUrl": "https://dcmcistorage.blob.core.windows.net/cibuild/Microsoft.Health.Dicom.Functions.Hosting.zip",
+        "defaultFunctionAppDeployPackageUrl": "https://dcmcistorage.blob.core.windows.net/cibuild/Microsoft.Health.Dicom.Functions.zip",
         "deployWebPackageUrl": "[if(empty(parameters('deployWebPackageUrl')),variables('defaultWebDeployPackageUrl'),parameters('deployWebPackageUrl'))]",
         "deployFunctionAppPackageUrl": "[if(empty(parameters('deployFunctionAppPackageUrl')),variables('defaultFunctionAppDeployPackageUrl'),parameters('deployFunctionAppPackageUrl'))]",
         "sqlServerConnectionStringName": "SqlServerConnectionString",

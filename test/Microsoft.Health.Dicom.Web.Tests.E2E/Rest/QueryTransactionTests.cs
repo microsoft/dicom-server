@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -15,19 +14,21 @@ using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
-    public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IDisposable
+    public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
     {
         private readonly IDicomWebClient _client;
-        private readonly HashSet<string> _createdDicomStudies = new HashSet<string>();
+        private readonly DicomInstancesManager _instancesManager;
 
         public QueryTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
-            _client = fixture.Client;
+            _client = fixture.GetDicomWebClient();
+            _instancesManager = new DicomInstancesManager(_client);
         }
 
         [Fact]
@@ -295,23 +296,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 dicomFile1.Dataset.AddOrUpdate(metadataItems);
             }
 
-            await _client.StoreAsync(new[] { dicomFile1 });
-
-            _createdDicomStudies.Add(dicomFile1.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID));
-
+            await _instancesManager.StoreAsync(new[] { dicomFile1 });
             return dicomFile1.Dataset;
         }
 
-        void IDisposable.Dispose()
-        {
-            // xunit does not seem to call IAsyncDispose.DisposeAsync()
-            // Also wait should be okay in a test context
-            foreach (string studyUid in _createdDicomStudies)
-            {
-                _client.DeleteStudyAsync(studyUid).Wait();
-            }
+        public Task InitializeAsync() => Task.CompletedTask;
 
-            _createdDicomStudies.Clear();
+        public async Task DisposeAsync()
+        {
+            await _instancesManager.DisposeAsync();
         }
     }
 }

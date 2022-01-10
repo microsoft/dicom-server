@@ -14,6 +14,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit
@@ -21,10 +22,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit
     /// <summary>
     /// Provides Audit specific tests.
     /// </summary>
-    public class AuditTests : IClassFixture<AuditTestFixture>
+    public class AuditTests : IClassFixture<AuditTestFixture>, IAsyncLifetime
     {
         private readonly AuditTestFixture _fixture;
         private readonly IDicomWebClient _client;
+        private readonly DicomInstancesManager _instancesManager;
 
         private readonly TraceAuditLogger _auditLogger;
 
@@ -32,8 +34,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
             _fixture = fixture;
-            _client = fixture.Client;
-
+            _client = fixture.GetDicomWebClient();
+            _instancesManager = new DicomInstancesManager(_client);
             _auditLogger = _fixture.AuditLogger;
         }
 
@@ -78,7 +80,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit
         {
             DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(frames: 1);
             var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
-            await _client.StoreAsync(new[] { dicomFile }, dicomInstance.StudyInstanceUid);
+            await _instancesManager.StoreAsync(new[] { dicomFile }, dicomInstance.StudyInstanceUid);
 
             await ExecuteAndValidate(
                 () => _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new int[] { 1 }),
@@ -189,10 +191,17 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit
             InstanceIdentifier dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
 
             await ExecuteAndValidate(
-                () => _client.StoreAsync(new[] { dicomFile }, studyInstanceUid),
+                () => _instancesManager.StoreAsync(new[] { dicomFile }, studyInstanceUid),
                 AuditEventSubType.Store,
                 $"studies/{dicomInstance.StudyInstanceUid}",
                 HttpStatusCode.OK);
+        }
+
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
+        {
+            await _instancesManager.DisposeAsync();
         }
 
         private async Task ExecuteAndValidate<T>(Func<Task<T>> action, string expectedAction, string expectedPathSegment, HttpStatusCode expectedStatusCode)
@@ -237,9 +246,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit
             string studyInstanceUid = TestUidGenerator.Generate();
             DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid);
             InstanceIdentifier dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
-            await _client.StoreAsync(new[] { dicomFile }, studyInstanceUid);
+            await _instancesManager.StoreAsync(new[] { dicomFile }, studyInstanceUid);
 
             return dicomInstance;
         }
+
     }
 }

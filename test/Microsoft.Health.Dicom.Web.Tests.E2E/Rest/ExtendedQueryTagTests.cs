@@ -30,8 +30,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public ExtendedQueryTagTests(WebJobsIntegrationTestFixture<Startup> fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
-            EnsureArg.IsNotNull(fixture.Client, nameof(fixture.Client));
-            _client = fixture.Client;
+            _client = fixture.GetDicomWebClient();
             _tagManager = new DicomTagsManager(_client);
             _instanceManager = new DicomInstancesManager(_client);
         }
