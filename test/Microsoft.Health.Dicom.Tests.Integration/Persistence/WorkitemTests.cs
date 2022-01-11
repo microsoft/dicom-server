@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task WhenValidWorkitemIsCreated_CreationSucceeds()
         {
-            string workitemUid = "2.25.1234";
+            string workitemUid = DicomUID.Generate().UID;
             DicomTag tag2 = DicomTag.PatientName;
 
             var dataset = new DicomDataset();
@@ -46,7 +46,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task WhenValidWorkitemIsDeleted_DeletionSucceeds()
         {
-            string workitemUid = "2.25.1234";
+            string workitemUid = DicomUID.Generate().UID;
             DicomTag tag2 = DicomTag.PatientName;
 
             var dataset = new DicomDataset();
@@ -65,6 +65,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             // Try adding it back again, if this succeeds, then assume that Delete operation has succeeded.
             workitemKey = await _fixture.IndexWorkitemStore.AddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
             Assert.True(workitemKey > 0);
+
+            await _fixture.IndexWorkitemStore.DeleteWorkitemAsync(DefaultPartition.Key, workitemUid, CancellationToken.None);
         }
     }
 }
