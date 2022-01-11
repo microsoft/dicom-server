@@ -4,7 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Client;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Modules;
@@ -13,36 +15,38 @@ namespace Microsoft.Health.DicomCast.Core.Extensions
 {
     public static class IHttpClientBuilderRegistrationExtensions
     {
-        public static void AddAuthenticationHandler(this IHttpClientBuilder httpClientBuilder, IServiceCollection services, AuthenticationConfiguration authenticationConfiguration, string credentialProviderName)
+        public static void AddAuthenticationHandler(this IHttpClientBuilder httpClientBuilder, IServiceCollection services, IConfiguration authenticationConfiguration, string credentialProviderName)
         {
             EnsureArg.IsNotNull(httpClientBuilder, nameof(httpClientBuilder));
             EnsureArg.IsNotNull(services, nameof(services));
             EnsureArg.IsNotNull(authenticationConfiguration, nameof(authenticationConfiguration));
             EnsureArg.IsNotNullOrWhiteSpace(credentialProviderName, nameof(credentialProviderName));
 
-            if (!authenticationConfiguration.Enabled)
+            var auth = new AuthenticationConfiguration();
+            authenticationConfiguration.Bind(auth);
+            if (!auth.Enabled)
             {
                 return;
             }
 
-            switch (authenticationConfiguration.AuthenticationType)
+            switch (auth.AuthenticationType)
             {
                 case AuthenticationType.ManagedIdentity:
-                    services.AddNamedManagedIdentityCredentialProvider(authenticationConfiguration.ManagedIdentityCredential, credentialProviderName);
+                    services.AddNamedManagedIdentityCredentialProvider(authenticationConfiguration.GetSection("ManagedIdentityCredential"), credentialProviderName);
                     break;
                 case AuthenticationType.OAuth2ClientCertificateCredential:
-                    services.AddNamedOAuth2ClientCertificateCredentialProvider(authenticationConfiguration.OAuth2ClientCertificateCredential, credentialProviderName);
+                    services.AddNamedOAuth2ClientCertificateCredentialProvider(authenticationConfiguration.GetSection("OAuth2ClientCertificateCredential"), credentialProviderName);
                     break;
                 case AuthenticationType.OAuth2ClientCredential:
-                    services.AddNamedOAuth2ClientCredentialProvider(authenticationConfiguration.OAuth2ClientCredential, credentialProviderName);
+                    services.AddNamedOAuth2ClientCredentialProvider(authenticationConfiguration.GetSection("OAuth2ClientCredential"), credentialProviderName);
                     break;
                 case AuthenticationType.OAuth2UserPasswordCredential:
-                    services.AddNamedOAuth2UserPasswordCredentialProvider(authenticationConfiguration.OAuth2UserPasswordCredential, credentialProviderName);
+                    services.AddNamedOAuth2UserPasswordCredentialProvider(authenticationConfiguration.GetSection("OAuth2UserPasswordCredential"), credentialProviderName);
                     break;
             }
 
             httpClientBuilder
-                .AddHttpMessageHandler(x => new AuthenticationHttpMessageHandler(x.ResolveNamedCredentialProvider(credentialProviderName)));
+                .AddHttpMessageHandler(x => new LoggingAuthenticationHttpMessageHandler(x.ResolveNamedCredentialProvider(credentialProviderName), x.GetService<ILogger<LoggingAuthenticationHttpMessageHandler>>()));
         }
     }
 }
