@@ -1472,7 +1472,7 @@ END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCoreV8
-@partitionKey INT=1, @sopInstanceKey1 BIGINT, @sopInstanceKey2 BIGINT, @sopInstanceKey3 BIGINT, @watermark BIGINT, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
+@partitionKey INT=1, @studyKey BIGINT, @seriesKey BIGINT, @instanceKey BIGINT, @watermark BIGINT, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
 BEGIN
     DECLARE @resourceType AS TINYINT = 0;
@@ -1490,13 +1490,13 @@ BEGIN
                           ON dbo.ExtendedQueryTag.TagKey = input.TagKey
                              AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
                                                                               AND T.PartitionKey = @partitionKey
-                                                                              AND T.SopInstanceKey1 = @sopInstanceKey1
-                                                                              AND ISNULL(T.SopInstanceKey2, @sopInstanceKey2) = @sopInstanceKey2
-                                                                              AND ISNULL(T.SopInstanceKey3, @sopInstanceKey3) = @sopInstanceKey3
+                                                                              AND T.SopInstanceKey1 = @studyKey
+                                                                              AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
+                                                                              AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
             WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
             SET T.Watermark = @watermark,
                 T.TagValue  = S.TagValue
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType) VALUES (S.TagKey, S.TagValue, @partitionKey, @sopInstanceKey1, (CASE WHEN S.TagLevel <> 2 THEN @sopInstanceKey2 ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @sopInstanceKey3 ELSE NULL END), @watermark, @resourceType);
+            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark, @resourceType);
         END
     IF EXISTS (SELECT 1
                FROM   @longExtendedQueryTags)
@@ -1512,13 +1512,13 @@ BEGIN
                           ON dbo.ExtendedQueryTag.TagKey = input.TagKey
                              AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
                                                                               AND T.PartitionKey = @partitionKey
-                                                                              AND T.SopInstanceKey1 = @sopInstanceKey1
-                                                                              AND ISNULL(T.SopInstanceKey2, @sopInstanceKey2) = @sopInstanceKey2
-                                                                              AND ISNULL(T.SopInstanceKey3, @sopInstanceKey3) = @sopInstanceKey3
+                                                                              AND T.SopInstanceKey1 = @studyKey
+                                                                              AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
+                                                                              AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
             WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
             SET T.Watermark = @watermark,
                 T.TagValue  = S.TagValue
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType) VALUES (S.TagKey, S.TagValue, @partitionKey, @sopInstanceKey1, (CASE WHEN S.TagLevel <> 2 THEN @sopInstanceKey2 ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @sopInstanceKey3 ELSE NULL END), @watermark, @resourceType);
+            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType) VALUES (S.TagKey, S.TagValue, @partitionKey, @sopInstanceKey1, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark, @resourceType);
         END
     IF EXISTS (SELECT 1
                FROM   @doubleExtendedQueryTags)
@@ -1534,13 +1534,13 @@ BEGIN
                           ON dbo.ExtendedQueryTag.TagKey = input.TagKey
                              AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
                                                                               AND T.PartitionKey = @partitionKey
-                                                                              AND T.SopInstanceKey1 = @sopInstanceKey1
-                                                                              AND ISNULL(T.SopInstanceKey2, @sopInstanceKey2) = @sopInstanceKey2
-                                                                              AND ISNULL(T.SopInstanceKey3, @sopInstanceKey3) = @sopInstanceKey3
+                                                                              AND T.SopInstanceKey1 = @studyKey
+                                                                              AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
+                                                                              AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
             WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
             SET T.Watermark = @watermark,
                 T.TagValue  = S.TagValue
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType) VALUES (S.TagKey, S.TagValue, @partitionKey, @sopInstanceKey1, (CASE WHEN S.TagLevel <> 2 THEN @sopInstanceKey2 ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @sopInstanceKey3 ELSE NULL END), @watermark, @resourceType);
+            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType) VALUES (S.TagKey, S.TagValue, @partitionKey, @sopInstanceKey1, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark, @resourceType);
         END
     IF EXISTS (SELECT 1
                FROM   @dateTimeExtendedQueryTags)
@@ -1557,13 +1557,13 @@ BEGIN
                           ON dbo.ExtendedQueryTag.TagKey = input.TagKey
                              AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
                                                                               AND T.PartitionKey = @partitionKey
-                                                                              AND T.SopInstanceKey1 = @sopInstanceKey1
-                                                                              AND ISNULL(T.SopInstanceKey2, @sopInstanceKey2) = @sopInstanceKey2
-                                                                              AND ISNULL(T.SopInstanceKey3, @sopInstanceKey3) = @sopInstanceKey3
+                                                                              AND T.SopInstanceKey1 = @studyKey
+                                                                              AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
+                                                                              AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
             WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
             SET T.Watermark = @watermark,
                 T.TagValue  = S.TagValue
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, TagValueUtc, ResourceType) VALUES (S.TagKey, S.TagValue, @partitionKey, @sopInstanceKey1, (CASE WHEN S.TagLevel <> 2 THEN @sopInstanceKey2 ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @sopInstanceKey3 ELSE NULL END), @watermark, S.TagValueUtc, @resourceType);
+            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, TagValueUtc, ResourceType) VALUES (S.TagKey, S.TagValue, @partitionKey, @sopInstanceKey1, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark, S.TagValueUtc, @resourceType);
         END
     IF EXISTS (SELECT 1
                FROM   @personNameExtendedQueryTags)
@@ -1579,13 +1579,13 @@ BEGIN
                           ON dbo.ExtendedQueryTag.TagKey = input.TagKey
                              AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
                                                                               AND T.PartitionKey = @partitionKey
-                                                                              AND T.SopInstanceKey1 = @sopInstanceKey1
-                                                                              AND ISNULL(T.SopInstanceKey2, @sopInstanceKey2) = @sopInstanceKey2
-                                                                              AND ISNULL(T.SopInstanceKey3, @sopInstanceKey3) = @sopInstanceKey3
+                                                                              AND T.SopInstanceKey1 = @studyKey
+                                                                              AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
+                                                                              AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
             WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
             SET T.Watermark = @watermark,
                 T.TagValue  = S.TagValue
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType) VALUES (S.TagKey, S.TagValue, @partitionKey, @sopInstanceKey1, (CASE WHEN S.TagLevel <> 2 THEN @sopInstanceKey2 ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @sopInstanceKey3 ELSE NULL END), @watermark, @resourceType);
+            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType) VALUES (S.TagKey, S.TagValue, @partitionKey, @sopInstanceKey1, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark, @resourceType);
         END
 END
 

@@ -1163,9 +1163,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             private readonly ParameterDefinition<System.Nullable<System.Int32>> _partitionKey = new ParameterDefinition<System.Nullable<System.Int32>>("@partitionKey", global::System.Data.SqlDbType.Int, true);
-            private readonly ParameterDefinition<System.Int64> _sopInstanceKey1 = new ParameterDefinition<System.Int64>("@sopInstanceKey1", global::System.Data.SqlDbType.BigInt, false);
-            private readonly ParameterDefinition<System.Int64> _sopInstanceKey2 = new ParameterDefinition<System.Int64>("@sopInstanceKey2", global::System.Data.SqlDbType.BigInt, false);
-            private readonly ParameterDefinition<System.Int64> _sopInstanceKey3 = new ParameterDefinition<System.Int64>("@sopInstanceKey3", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.Int64> _studyKey = new ParameterDefinition<System.Int64>("@studyKey", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.Int64> _seriesKey = new ParameterDefinition<System.Int64>("@seriesKey", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.Int64> _instanceKey = new ParameterDefinition<System.Int64>("@instanceKey", global::System.Data.SqlDbType.BigInt, false);
             private readonly ParameterDefinition<System.Int64> _watermark = new ParameterDefinition<System.Int64>("@watermark", global::System.Data.SqlDbType.BigInt, false);
             private readonly InsertStringExtendedQueryTagTableTypeV1TableValuedParameterDefinition _stringExtendedQueryTags = new InsertStringExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@stringExtendedQueryTags");
             private readonly InsertLongExtendedQueryTagTableTypeV1TableValuedParameterDefinition _longExtendedQueryTags = new InsertLongExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@longExtendedQueryTags");
@@ -1173,14 +1173,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly InsertDateTimeExtendedQueryTagTableTypeV2TableValuedParameterDefinition _dateTimeExtendedQueryTags = new InsertDateTimeExtendedQueryTagTableTypeV2TableValuedParameterDefinition("@dateTimeExtendedQueryTags");
             private readonly InsertPersonNameExtendedQueryTagTableTypeV1TableValuedParameterDefinition _personNameExtendedQueryTags = new InsertPersonNameExtendedQueryTagTableTypeV1TableValuedParameterDefinition("@personNameExtendedQueryTags");
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Nullable<System.Int32> partitionKey, System.Int64 sopInstanceKey1, System.Int64 sopInstanceKey2, System.Int64 sopInstanceKey3, System.Int64 watermark, global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> stringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> longExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> dateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNameExtendedQueryTags)
+            public void PopulateCommand(SqlCommandWrapper command, System.Nullable<System.Int32> partitionKey, System.Int64 studyKey, System.Int64 seriesKey, System.Int64 instanceKey, System.Int64 watermark, global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> stringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> longExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> dateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNameExtendedQueryTags)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.IIndexInstanceCoreV8";
                 _partitionKey.AddParameter(command.Parameters, partitionKey);
-                _sopInstanceKey1.AddParameter(command.Parameters, sopInstanceKey1);
-                _sopInstanceKey2.AddParameter(command.Parameters, sopInstanceKey2);
-                _sopInstanceKey3.AddParameter(command.Parameters, sopInstanceKey3);
+                _studyKey.AddParameter(command.Parameters, studyKey);
+                _seriesKey.AddParameter(command.Parameters, seriesKey);
+                _instanceKey.AddParameter(command.Parameters, instanceKey);
                 _watermark.AddParameter(command.Parameters, watermark);
                 _stringExtendedQueryTags.AddParameter(command.Parameters, stringExtendedQueryTags);
                 _longExtendedQueryTags.AddParameter(command.Parameters, longExtendedQueryTags);
@@ -1189,9 +1189,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _personNameExtendedQueryTags.AddParameter(command.Parameters, personNameExtendedQueryTags);
             }
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Nullable<System.Int32> partitionKey, System.Int64 sopInstanceKey1, System.Int64 sopInstanceKey2, System.Int64 sopInstanceKey3, System.Int64 watermark, IIndexInstanceCoreV8TableValuedParameters tableValuedParameters)
+            public void PopulateCommand(SqlCommandWrapper command, System.Nullable<System.Int32> partitionKey, System.Int64 studyKey, System.Int64 seriesKey, System.Int64 instanceKey, System.Int64 watermark, IIndexInstanceCoreV8TableValuedParameters tableValuedParameters)
             {
-                PopulateCommand(command, partitionKey: partitionKey, sopInstanceKey1: sopInstanceKey1, sopInstanceKey2: sopInstanceKey2, sopInstanceKey3: sopInstanceKey3, watermark: watermark, stringExtendedQueryTags: tableValuedParameters.StringExtendedQueryTags, longExtendedQueryTags: tableValuedParameters.LongExtendedQueryTags, doubleExtendedQueryTags: tableValuedParameters.DoubleExtendedQueryTags, dateTimeExtendedQueryTags: tableValuedParameters.DateTimeExtendedQueryTags, personNameExtendedQueryTags: tableValuedParameters.PersonNameExtendedQueryTags);
+                PopulateCommand(command, partitionKey: partitionKey, studyKey: studyKey, seriesKey: seriesKey, instanceKey: instanceKey, watermark: watermark, stringExtendedQueryTags: tableValuedParameters.StringExtendedQueryTags, longExtendedQueryTags: tableValuedParameters.LongExtendedQueryTags, doubleExtendedQueryTags: tableValuedParameters.DoubleExtendedQueryTags, dateTimeExtendedQueryTags: tableValuedParameters.DateTimeExtendedQueryTags, personNameExtendedQueryTags: tableValuedParameters.PersonNameExtendedQueryTags);
             }
         }
 
