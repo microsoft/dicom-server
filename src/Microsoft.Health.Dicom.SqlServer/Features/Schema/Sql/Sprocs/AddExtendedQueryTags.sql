@@ -9,7 +9,7 @@
 -- PARAMETERS
 --     @extendedQueryTags
 --         * The extended query tag list
---     @maxAllowedCount
+--     @maxCount
 --         * The max allowed extended query tag count
 --     @ready
 --         * Indicates whether the new query tags have been fully indexed

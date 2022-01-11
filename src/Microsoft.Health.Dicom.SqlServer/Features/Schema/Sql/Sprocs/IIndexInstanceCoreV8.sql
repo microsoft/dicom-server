@@ -10,12 +10,12 @@
 -- PARAMETERS
 --     @partitionKey
 --         * The Partition key
---     @sopInstanceKey1
---         * Refers to either StudyKey or WorkItemKey depending on ResourceType
---     @sopInstanceKey2
---         * Refers to SeriesKey if ResourceType is Image else NULL
---     @sopInstanceKey3
---         * Refers to InstanceKey if ResourceType is Image else NULL
+--     @studyKey
+--         * The internal key for the study
+--     @seriesKey
+--         * The internal key for the series
+--     @instanceKey
+--         * The internal key for the instance
 --     @watermark
 --         * The DICOM instance watermark
 --     @stringExtendedQueryTags
@@ -35,9 +35,9 @@
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCoreV8
     @partitionKey                                                                INT = 1,
-    @sopInstanceKey1                                                             BIGINT,
-    @sopInstanceKey2                                                             BIGINT,
-    @sopInstanceKey3                                                             BIGINT,
+    @studyKey                                                                    BIGINT,
+    @seriesKey                                                                   BIGINT,
+    @instanceKey                                                                 BIGINT,
     @watermark                                                                   BIGINT,
     @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1         READONLY,
     @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1             READONLY,
@@ -63,11 +63,11 @@ BEGIN
         ) AS S
         ON T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
-            AND T.SopInstanceKey1 = @sopInstanceKey1
-            -- Null SopInstanceKey2 indicates a Study level or Workitem tag, no need to compare further
-            AND ISNULL(T.SopInstanceKey2, @sopInstanceKey2) = @sopInstanceKey2
-            -- Null SopInstanceKey3 indicates a Study/Series level or Workitem tag, no need to compare further
-            AND ISNULL(T.SopInstanceKey3, @sopInstanceKey3) = @sopInstanceKey3
+            AND T.SopInstanceKey1 = @studyKey
+            -- Null SeriesKey indicates a Study level tag, no need to compare SeriesKey
+            AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
+            -- Null InstanceKey indicates a Study/Series level tag, no to compare InstanceKey
+            AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
             UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
@@ -78,11 +78,11 @@ BEGIN
                 S.TagKey,
                 S.TagValue,
                 @partitionKey,
-                @sopInstanceKey1,
-                -- When TagLevel is not Study, we should fill SopInstanceKey2 (Series)
-                (CASE WHEN S.TagLevel <> 2 THEN @sopInstanceKey2 ELSE NULL END),
-                -- When TagLevel is Instance, we should fill SopInstanceKey3 (Instance)
-                (CASE WHEN S.TagLevel = 0 THEN @sopInstanceKey3 ELSE NULL END),
+                @studyKey,
+                -- When TagLevel is not Study, we should fill SeriesKey
+                (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+                -- When TagLevel is Instance, we should fill InstanceKey
+                (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
                 @watermark,
                 @resourceType
             );
@@ -103,11 +103,9 @@ BEGIN
         ) AS S
         ON T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
-            AND T.SopInstanceKey1 = @sopInstanceKey1
-            -- Null SopInstanceKey2 indicates a Study level or Workitem tag, no need to compare further
-            AND ISNULL(T.SopInstanceKey2, @sopInstanceKey2) = @sopInstanceKey2
-            -- Null SopInstanceKey3 indicates a Study/Series level or Workitem tag, no need to compare further
-            AND ISNULL(T.SopInstanceKey3, @sopInstanceKey3) = @sopInstanceKey3
+            AND T.SopInstanceKey1 = @studyKey
+            AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
+            AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
             UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
@@ -119,10 +117,8 @@ BEGIN
                 S.TagValue,
                 @partitionKey,
                 @sopInstanceKey1,
-                -- When TagLevel is not Study, we should fill SopInstanceKey2 (Series)
-                (CASE WHEN S.TagLevel <> 2 THEN @sopInstanceKey2 ELSE NULL END),
-                -- When TagLevel is Instance, we should fill SopInstanceKey3 (Instance)
-                (CASE WHEN S.TagLevel = 0 THEN @sopInstanceKey3 ELSE NULL END),
+                (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+                (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
                 @watermark,
                 @resourceType
             );
@@ -143,11 +139,9 @@ BEGIN
         ) AS S
         ON T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
-            AND T.SopInstanceKey1 = @sopInstanceKey1
-            -- Null SopInstanceKey2 indicates a Study level or Workitem tag, no need to compare further
-            AND ISNULL(T.SopInstanceKey2, @sopInstanceKey2) = @sopInstanceKey2
-            -- Null SopInstanceKey3 indicates a Study/Series level or Workitem tag, no need to compare further
-            AND ISNULL(T.SopInstanceKey3, @sopInstanceKey3) = @sopInstanceKey3
+            AND T.SopInstanceKey1 = @studyKey
+            AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
+            AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
             UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
@@ -159,10 +153,8 @@ BEGIN
                 S.TagValue,
                 @partitionKey,
                 @sopInstanceKey1,
-                -- When TagLevel is not Study, we should fill SopInstanceKey2 (Series)
-                (CASE WHEN S.TagLevel <> 2 THEN @sopInstanceKey2 ELSE NULL END),
-                -- When TagLevel is Instance, we should fill SopInstanceKey3 (Instance)
-                (CASE WHEN S.TagLevel = 0 THEN @sopInstanceKey3 ELSE NULL END),
+                (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+                (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
                 @watermark,
                 @resourceType
             );
@@ -183,11 +175,9 @@ BEGIN
         ) AS S
         ON T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
-            AND T.SopInstanceKey1 = @sopInstanceKey1
-            -- Null SopInstanceKey2 indicates a Study level or Workitem tag, no need to compare further
-            AND ISNULL(T.SopInstanceKey2, @sopInstanceKey2) = @sopInstanceKey2
-            -- Null SopInstanceKey3 indicates a Study/Series level or Workitem tag, no need to compare further
-            AND ISNULL(T.SopInstanceKey3, @sopInstanceKey3) = @sopInstanceKey3
+            AND T.SopInstanceKey1 = @studyKey
+            AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
+            AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
             UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
@@ -199,10 +189,8 @@ BEGIN
                 S.TagValue,
                 @partitionKey,
                 @sopInstanceKey1,
-                -- When TagLevel is not Study, we should fill SopInstanceKey2 (Series)
-                (CASE WHEN S.TagLevel <> 2 THEN @sopInstanceKey2 ELSE NULL END),
-                -- When TagLevel is Instance, we should fill SopInstanceKey3 (Instance)
-                (CASE WHEN S.TagLevel = 0 THEN @sopInstanceKey3 ELSE NULL END),
+                (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+                (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
                 @watermark,
                 S.TagValueUtc,
                 @resourceType
@@ -224,11 +212,9 @@ BEGIN
         ) AS S
         ON T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
-            AND T.SopInstanceKey1 = @sopInstanceKey1
-            -- Null SopInstanceKey2 indicates a Study level or Workitem tag, no need to compare further
-            AND ISNULL(T.SopInstanceKey2, @sopInstanceKey2) = @sopInstanceKey2
-            -- Null SopInstanceKey3 indicates a Study/Series level or Workitem tag, no need to compare further
-            AND ISNULL(T.SopInstanceKey3, @sopInstanceKey3) = @sopInstanceKey3
+            AND T.SopInstanceKey1 = @studyKey
+            AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
+            AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
             UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
@@ -240,10 +226,8 @@ BEGIN
                 S.TagValue,
                 @partitionKey,
                 @sopInstanceKey1,
-                -- When TagLevel is not Study, we should fill SopInstanceKey2 (Series)
-                (CASE WHEN S.TagLevel <> 2 THEN @sopInstanceKey2 ELSE NULL END),
-                -- When TagLevel is Instance, we should fill SopInstanceKey3 (Instance)
-                (CASE WHEN S.TagLevel = 0 THEN @sopInstanceKey3 ELSE NULL END),
+                (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+                (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
                 @watermark,
                 @resourceType
             );
