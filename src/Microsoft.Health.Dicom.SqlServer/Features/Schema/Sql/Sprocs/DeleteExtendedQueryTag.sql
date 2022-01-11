@@ -24,13 +24,9 @@ BEGIN
         DECLARE @tagStatus TINYINT
         DECLARE @tagKey INT
 
-        DECLARE @imageResourceType TINYINT = 0
-
-
         SELECT @tagKey = TagKey, @tagStatus = TagStatus
         FROM dbo.ExtendedQueryTag WITH(XLOCK)
         WHERE dbo.ExtendedQueryTag.TagPath = @tagPath
-        AND dbo.ExtendedQueryTag.ResourceType = @imageResourceType
 
         -- Check existence
         IF @@ROWCOUNT = 0

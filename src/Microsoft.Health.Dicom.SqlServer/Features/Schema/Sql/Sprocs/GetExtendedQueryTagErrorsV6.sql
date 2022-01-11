@@ -26,12 +26,10 @@ BEGIN
     SET XACT_ABORT  ON
 
     DECLARE @tagKey INT
-    DECLARE @imageResourceType TINYINT = 0
 
     SELECT @tagKey = TagKey
     FROM dbo.ExtendedQueryTag WITH(HOLDLOCK)
     WHERE dbo.ExtendedQueryTag.TagPath = @tagPath
-    AND ResourceType = @imageResourceType
 
     -- Check existence
     IF (@@ROWCOUNT = 0)

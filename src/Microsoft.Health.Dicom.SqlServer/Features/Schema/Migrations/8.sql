@@ -114,16 +114,15 @@ CREATE TABLE dbo.ExtendedQueryTag (
     TagLevel          TINYINT       NOT NULL,
     TagStatus         TINYINT       NOT NULL,
     QueryStatus       TINYINT       DEFAULT 1 NOT NULL,
-    ErrorCount        INT           DEFAULT 0 NOT NULL,
-    ResourceType      TINYINT       DEFAULT 0 NOT NULL
+    ErrorCount        INT           DEFAULT 0 NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag
     ON dbo.ExtendedQueryTag(TagKey);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath_ResourceType
-    ON dbo.ExtendedQueryTag(TagPath, ResourceType) WITH (DATA_COMPRESSION = PAGE);
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath
+    ON dbo.ExtendedQueryTag(TagPath) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.ExtendedQueryTagDateTime (
     TagKey          INT           NOT NULL,
@@ -434,6 +433,20 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemUid_PartitionKey
     ON dbo.Workitem(WorkitemUid, PartitionKey)
     INCLUDE(WorkitemKey) WITH (DATA_COMPRESSION = PAGE);
 
+CREATE TABLE dbo.WorkitemQueryTag (
+    TagKey      INT          NOT NULL,
+    TagPath     VARCHAR (64) NOT NULL,
+    TagVR       VARCHAR (2)  NOT NULL,
+    QueryStatus TINYINT      DEFAULT 1 NOT NULL
+)
+WITH (DATA_COMPRESSION = PAGE);
+
+CREATE UNIQUE CLUSTERED INDEX IXC_WorkitemQueryTag
+    ON dbo.WorkitemQueryTag(TagKey);
+
+CREATE UNIQUE NONCLUSTERED INDEX IXC_WorkitemQueryTag_TagPath
+    ON dbo.WorkitemQueryTag(TagPath) WITH (DATA_COMPRESSION = PAGE);
+
 CREATE TYPE dbo.AddExtendedQueryTagsInputTableType_1 AS TABLE (
     TagPath           VARCHAR (64) ,
     TagVR             VARCHAR (2)  ,
@@ -474,35 +487,35 @@ CREATE TYPE dbo.InsertPersonNameExtendedQueryTagTableType_1 AS TABLE (
 CREATE TYPE dbo.ExtendedQueryTagKeyTableType_1 AS TABLE (
     TagKey INT);
 
-INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '00100010', NULL, 'PN', 0, 1, 1, 0, 1);
+INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00100010', 'PN', 1);
 
-INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '00100020', NULL, 'LO', 0, 1, 1, 0, 1);
+INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00100020', 'LO', 1);
 
-INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '0040A370.00080050', NULL, 'SH', 0, 1, 1, 0, 1);
+INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '0040A370.00080050', 'SH', 1);
 
-INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '0040A370.00401001', NULL, 'SH', 0, 1, 1, 0, 1);
+INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '0040A370.00401001', 'SH', 1);
 
-INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404005', NULL, 'DT', 0, 1, 1, 0, 1);
+INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404005', 'DT', 1);
 
-INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404025.00080100', NULL, 'SH', 0, 1, 1, 0, 1);
+INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404025.00080100', 'SH', 1);
 
-INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404026.00080100', NULL, 'SH', 0, 1, 1, 0, 1);
+INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404026.00080100', 'SH', 1);
 
-INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '00741000', NULL, 'CS', 0, 1, 1, 0, 1);
+INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00741000', 'CS', 1);
 
-INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404027.00080100', NULL, 'SH', 0, 1, 1, 0, 1);
+INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404027.00080100', 'SH', 1);
 
-INSERT  INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '00081195', NULL, 'UI', 0, 1, 0, 0, 1);
+INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00081195', 'UI', 0);
 
 COMMIT
 GO
@@ -584,13 +597,11 @@ SET NOCOUNT ON;
 SET XACT_ABORT ON;
 BEGIN
     BEGIN TRANSACTION;
-    DECLARE @imageResourceType AS TINYINT = 0;
     IF (SELECT COUNT(*)
         FROM   dbo.ExtendedQueryTag AS XQT WITH (HOLDLOCK)
                FULL OUTER JOIN
                @extendedQueryTags AS input
-               ON XQT.TagPath = input.TagPath
-                  AND XQT.ResourceType = @imageResourceType) > @maxAllowedCount
+               ON XQT.TagPath = input.TagPath) > @maxAllowedCount
         THROW 50409, 'extended query tags exceed max allowed count', 1;
     DECLARE @existingTags TABLE (
         TagKey      INT             ,
@@ -604,7 +615,6 @@ BEGIN
            INNER JOIN
            @extendedQueryTags AS input
            ON input.TagPath = XQT.TagPath
-              AND XQT.ResourceType = @imageResourceType
            LEFT OUTER JOIN
            dbo.ExtendedQueryTagOperation AS XQTO
            ON XQT.TagKey = XQTO.TagKey;
@@ -740,7 +750,6 @@ BEGIN
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
     DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
-    DECLARE @newWatermark AS BIGINT;
     DECLARE @workitemResourceType AS TINYINT = 1;
     DECLARE @workitemKey AS BIGINT;
     SELECT @workitemKey = WorkitemKey
@@ -749,12 +758,11 @@ BEGIN
            AND WorkitemUid = @workitemUid;
     IF @@ROWCOUNT <> 0
         THROW 50409, 'Workitem already exists', 1;
-    SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
     SET @workitemKey =  NEXT VALUE FOR dbo.WorkitemKeySequence;
     INSERT  INTO dbo.Workitem (WorkitemKey, PartitionKey, WorkitemUid, CreatedDate)
     VALUES                   (@workitemKey, @partitionKey, @workitemUid, @currentDate);
     BEGIN TRY
-        EXECUTE dbo.IIndexInstanceCoreV8 @partitionKey, @workitemKey, NULL, NULL, @newWatermark, @stringExtendedQueryTags, DEFAULT, DEFAULT, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags, @workitemResourceType;
+        EXECUTE dbo.IIndexWorkitemInstanceCore @partitionKey, @workitemKey, @stringExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
     END TRY
     BEGIN CATCH
         THROW;
@@ -863,12 +871,10 @@ BEGIN
     BEGIN TRANSACTION;
     DECLARE @tagStatus AS TINYINT;
     DECLARE @tagKey AS INT;
-    DECLARE @imageResourceType AS TINYINT = 0;
     SELECT @tagKey = TagKey,
            @tagStatus = TagStatus
     FROM   dbo.ExtendedQueryTag WITH (XLOCK)
-    WHERE  dbo.ExtendedQueryTag.TagPath = @tagPath
-           AND dbo.ExtendedQueryTag.ResourceType = @imageResourceType;
+    WHERE  dbo.ExtendedQueryTag.TagPath = @tagPath;
     IF @@ROWCOUNT = 0
         THROW 50404, 'extended query tag not found', 1;
     IF @tagStatus = 2
@@ -1206,7 +1212,6 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
-    DECLARE @imageResourceType AS TINYINT = 0;
     SELECT XQT.TagKey,
            TagPath,
            TagVR,
@@ -1220,8 +1225,7 @@ BEGIN
            LEFT OUTER JOIN
            dbo.ExtendedQueryTagOperation AS XQTO
            ON XQT.TagKey = XQTO.TagKey
-    WHERE  TagPath = ISNULL(@tagPath, TagPath)
-           AND ResourceType = @imageResourceType;
+    WHERE  TagPath = ISNULL(@tagPath, TagPath);
 END
 
 GO
@@ -1260,11 +1264,9 @@ BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
     DECLARE @tagKey AS INT;
-    DECLARE @imageResourceType AS TINYINT = 0;
     SELECT @tagKey = TagKey
     FROM   dbo.ExtendedQueryTag WITH (HOLDLOCK)
-    WHERE  dbo.ExtendedQueryTag.TagPath = @tagPath
-           AND ResourceType = @imageResourceType;
+    WHERE  dbo.ExtendedQueryTag.TagPath = @tagPath;
     IF (@@ROWCOUNT = 0)
         THROW 50404, 'extended query tag not found', 1;
     SELECT   TagKey,
@@ -1293,7 +1295,6 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
-    DECLARE @imageResourceType AS TINYINT = 0;
     SELECT   XQT.TagKey,
              TagPath,
              TagVR,
@@ -1307,7 +1308,6 @@ BEGIN
              LEFT OUTER JOIN
              dbo.ExtendedQueryTagOperation AS XQTO
              ON XQT.TagKey = XQTO.TagKey
-    WHERE    XQT.ResourceType = @imageResourceType
     ORDER BY XQT.TagKey ASC
     OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
 END
@@ -1319,7 +1319,6 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
-    DECLARE @imageResourceType AS TINYINT = 0;
     SELECT XQT.TagKey,
            TagPath,
            TagVR,
@@ -1335,8 +1334,7 @@ BEGIN
            ON input.TagKey = XQT.TagKey
            LEFT OUTER JOIN
            dbo.ExtendedQueryTagOperation AS XQTO
-           ON XQT.TagKey = XQTO.TagKey
-    WHERE  XQT.ResourceType = @imageResourceType;
+           ON XQT.TagKey = XQTO.TagKey;
 END
 
 GO
@@ -1475,9 +1473,10 @@ END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCoreV8
-@partitionKey INT=1, @sopInstanceKey1 BIGINT, @sopInstanceKey2 BIGINT, @sopInstanceKey3 BIGINT, @watermark BIGINT, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY, @resourceType TINYINT=0
+@partitionKey INT=1, @sopInstanceKey1 BIGINT, @sopInstanceKey2 BIGINT, @sopInstanceKey3 BIGINT, @watermark BIGINT, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
 BEGIN
+    DECLARE @resourceType AS TINYINT = 0;
     IF EXISTS (SELECT 1
                FROM   @stringExtendedQueryTags)
         BEGIN
@@ -1588,6 +1587,67 @@ BEGIN
             SET T.Watermark = @watermark,
                 T.TagValue  = S.TagValue
             WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType) VALUES (S.TagKey, S.TagValue, @partitionKey, @sopInstanceKey1, (CASE WHEN S.TagLevel <> 2 THEN @sopInstanceKey2 ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @sopInstanceKey3 ELSE NULL END), @watermark, @resourceType);
+        END
+END
+
+GO
+CREATE OR ALTER PROCEDURE dbo.IIndexWorkitemInstanceCore
+@partitionKey INT=1, @workitemKey BIGINT, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
+AS
+BEGIN
+    DECLARE @workitemResourceType AS TINYINT = 1;
+    DECLARE @newWatermark AS BIGINT;
+    SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
+    IF EXISTS (SELECT 1
+               FROM   @stringExtendedQueryTags)
+        BEGIN
+            INSERT dbo.ExtendedQueryTagString (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType)
+            SELECT input.TagKey,
+                   input.TagValue,
+                   @partitionKey,
+                   @workitemKey,
+                   NULL,
+                   NULL,
+                   @newWatermark,
+                   @workitemResourceType
+            FROM   @stringExtendedQueryTags AS input
+                   INNER JOIN
+                   dbo.WorkitemQueryTag
+                   ON dbo.WorkitemQueryTag.TagKey = input.TagKey;
+        END
+    IF EXISTS (SELECT 1
+               FROM   @dateTimeExtendedQueryTags)
+        BEGIN
+            INSERT dbo.ExtendedQueryTagDateTime (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType)
+            SELECT input.TagKey,
+                   input.TagValue,
+                   @partitionKey,
+                   @workitemKey,
+                   NULL,
+                   NULL,
+                   @newWatermark,
+                   @workitemResourceType
+            FROM   @dateTimeExtendedQueryTags AS input
+                   INNER JOIN
+                   dbo.WorkitemQueryTag
+                   ON dbo.WorkitemQueryTag.TagKey = input.TagKey;
+        END
+    IF EXISTS (SELECT 1
+               FROM   @personNameExtendedQueryTags)
+        BEGIN
+            INSERT dbo.ExtendedQueryTagPersonName (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType)
+            SELECT input.TagKey,
+                   input.TagValue,
+                   @partitionKey,
+                   @workitemKey,
+                   NULL,
+                   NULL,
+                   @newWatermark,
+                   @workitemResourceType
+            FROM   @personNameExtendedQueryTags AS input
+                   INNER JOIN
+                   dbo.WorkitemQueryTag
+                   ON dbo.WorkitemQueryTag.TagKey = input.TagKey;
         END
 END
 
@@ -1739,8 +1799,7 @@ BEGIN
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
     IF @maxTagKey < (SELECT ISNULL(MAX(TagKey), 0)
-                     FROM   dbo.ExtendedQueryTag WITH (HOLDLOCK)
-                     WHERE  ResourceType = 0)
+                     FROM   dbo.ExtendedQueryTag WITH (HOLDLOCK))
         THROW 50409, 'Max extended query tag key does not match', 10;
     DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
     UPDATE dbo.Instance

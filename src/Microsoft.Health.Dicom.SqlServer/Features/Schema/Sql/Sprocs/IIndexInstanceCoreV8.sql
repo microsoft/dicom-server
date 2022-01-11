@@ -43,10 +43,10 @@ CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCoreV8
     @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1             READONLY,
     @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1         READONLY,
     @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2     READONLY,
-    @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY,
-    @resourceType                                                                TINYINT = 0
+    @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
 BEGIN
+    DECLARE @resourceType TINYINT = 0
     -- String Key tags
     IF EXISTS (SELECT 1 FROM @stringExtendedQueryTags)
     BEGIN
