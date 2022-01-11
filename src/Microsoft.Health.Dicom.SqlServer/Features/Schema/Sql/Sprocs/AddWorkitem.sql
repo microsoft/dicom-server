@@ -36,7 +36,6 @@ BEGIN
     BEGIN TRANSACTION
 
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
-    DECLARE @newWatermark BIGINT
     DECLARE @workitemResourceType TINYINT = 1
     DECLARE @workitemKey BIGINT
 
@@ -48,8 +47,6 @@ BEGIN
     IF @@ROWCOUNT <> 0
         THROW 50409, 'Workitem already exists', 1;
 
-    SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence
-
     -- The workitem does not exist, insert it.
     SET @workitemKey = NEXT VALUE FOR dbo.WorkitemKeySequence
     INSERT INTO dbo.Workitem
@@ -59,18 +56,12 @@ BEGIN
 
     BEGIN TRY
 
-        EXEC dbo.IIndexInstanceCoreV8
+        EXEC dbo.IIndexWorkitemInstanceCore
             @partitionKey,
             @workitemKey,
-            NULL,
-            NULL,
-            @newWatermark,
             @stringExtendedQueryTags,
-            DEFAULT,
-            DEFAULT,
             @dateTimeExtendedQueryTags,
-            @personNameExtendedQueryTags,
-            @workitemResourceType
+            @personNameExtendedQueryTags
 
     END TRY
     BEGIN CATCH

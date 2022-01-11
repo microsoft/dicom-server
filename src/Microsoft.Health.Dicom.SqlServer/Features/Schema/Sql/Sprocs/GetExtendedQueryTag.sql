@@ -19,8 +19,6 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-    DECLARE @imageResourceType TINYINT = 0
-
     SELECT XQT.TagKey,
            TagPath,
            TagVR,
@@ -33,5 +31,4 @@ BEGIN
     FROM dbo.ExtendedQueryTag AS XQT
     LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
     WHERE TagPath = ISNULL(@tagPath, TagPath)
-    AND ResourceType = @imageResourceType
 END

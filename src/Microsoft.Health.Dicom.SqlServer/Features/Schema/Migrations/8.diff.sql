@@ -68,24 +68,37 @@ BEGIN
 END
 
 /*************************************************************
-    ExtendedQueryTag Table
-    Add ResourceType column.
+    Workitem Query Tag Table
+    Stores static workitem indexed tags
+    TagPath is represented without any delimiters and each level takes 8 bytes
 **************************************************************/
 IF NOT EXISTS 
 (
     SELECT *
-    FROM    sys.columns
-    WHERE   NAME = 'ResourceType'
-        AND Object_id = OBJECT_ID('dbo.ExtendedQueryTag')
+    FROM    sys.tables
+    WHERE   Name = 'WorkitemQueryTag'
 )
 BEGIN
-    ALTER TABLE dbo.ExtendedQueryTag
-        ADD ResourceType TINYINT NOT NULL DEFAULT 0
+    CREATE TABLE dbo.WorkitemQueryTag (
+        TagKey                  INT                  NOT NULL, --PK
+        TagPath                 VARCHAR(64)          NOT NULL,
+        TagVR                   VARCHAR(2)           NOT NULL,
+        QueryStatus             TINYINT              DEFAULT 1 NOT NULL,
+    ) WITH (DATA_COMPRESSION = PAGE)
 
-    ALTER TABLE dbo.ExtendedQueryTag
-        REBUILD WITH (DATA_COMPRESSION = PAGE)
+    CREATE UNIQUE CLUSTERED INDEX IXC_WorkitemQueryTag ON dbo.WorkitemQueryTag
+    (
+        TagKey
+    )
+
+    -- Used in GetExtendedQueryTag
+    CREATE UNIQUE NONCLUSTERED INDEX IXC_WorkitemQueryTag_TagPath ON dbo.WorkitemQueryTag
+    (
+        TagPath
+    )
+    WITH (DATA_COMPRESSION = PAGE)
 END
-
+ 
 /*************************************************************
     ExtendedQueryTagDateTime Table
     Add ResourceType column and rename columns for usage by both images and workitems.
@@ -211,92 +224,6 @@ DROP PROCEDURE IF EXISTS dbo.IndexInstance
 GO
 
 DROP PROCEDURE IF EXISTS dbo.IndexInstanceV2
-GO
-
-/***************************************************************************************/
--- STORED PROCEDURE
---     AddExtendedQueryTags
---
--- DESCRIPTION
---    Adds a list of extended query tags. If a tag already exists, but it has yet to be assigned to a re-indexing
---    operation, then its existing row is deleted before the addition.
---
--- PARAMETERS
---     @extendedQueryTags
---         * The extended query tag list
---     @maxCount
---         * The max allowed extended query tag count
---     @ready
---         * Indicates whether the new query tags have been fully indexed
---
--- RETURN VALUE
---     The added extended query tags.
-/***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTags
-    @extendedQueryTags dbo.AddExtendedQueryTagsInputTableType_1 READONLY,
-    @maxAllowedCount INT = 128, -- Default value for backwards compatibility
-    @ready BIT = 0
-AS
-    SET NOCOUNT     ON
-    SET XACT_ABORT  ON
-BEGIN
-    BEGIN TRANSACTION
-
-        DECLARE @imageResourceType TINYINT = 0
-
-        -- Check if total count exceed @maxCount
-        -- HOLDLOCK to prevent adding queryTags from other transactions at same time.
-        IF (SELECT COUNT(*)
-            FROM dbo.ExtendedQueryTag AS XQT WITH(HOLDLOCK)
-            FULL OUTER JOIN @extendedQueryTags AS input 
-            ON XQT.TagPath = input.TagPath
-            AND XQT.ResourceType = @imageResourceType) > @maxAllowedCount
-            THROW 50409, 'extended query tags exceed max allowed count', 1
-
-        -- Check if tag with same path already exist
-        -- Because the web client may fail between the addition of the tag and the starting of re-indexing operation,
-        -- the stored procedure allows tags that are not assigned to an operation to be overwritten
-        DECLARE @existingTags TABLE(TagKey INT, TagStatus TINYINT, OperationId uniqueidentifier NULL)
-
-        INSERT INTO @existingTags
-            (TagKey, TagStatus, OperationId)
-        SELECT XQT.TagKey, TagStatus, OperationId
-        FROM dbo.ExtendedQueryTag AS XQT
-        INNER JOIN @extendedQueryTags AS input 
-        ON input.TagPath = XQT.TagPath
-        AND XQT.ResourceType = @imageResourceType
-        LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO 
-        ON XQT.TagKey = XQTO.TagKey
-
-        IF EXISTS(
-            SELECT 1 
-            FROM @existingTags 
-            WHERE TagStatus <> 0 
-            OR (TagStatus = 0 AND OperationId IS NOT NULL))
-            THROW 50409, 'extended query tag(s) already exist', 2
-
-        -- Delete any "pending" tags whose operation has yet to be assigned
-        DELETE XQT
-        FROM dbo.ExtendedQueryTag AS XQT
-        INNER JOIN @existingTags AS et
-        ON XQT.TagKey = et.TagKey
-
-        -- Add the new tags with the given status
-        INSERT INTO dbo.ExtendedQueryTag
-            (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount)
-        OUTPUT
-            INSERTED.TagKey,
-            INSERTED.TagPath,
-            INSERTED.TagVR,
-            INSERTED.TagPrivateCreator,
-            INSERTED.TagLevel,
-            INSERTED.TagStatus,
-            INSERTED.QueryStatus,
-            INSERTED.ErrorCount
-        SELECT NEXT VALUE FOR TagKeySequence, TagPath, TagPrivateCreator, TagVR, TagLevel, @ready, 1, 0 FROM @extendedQueryTags
-
-    COMMIT TRANSACTION
-END
 GO
 
 /*************************************************************
@@ -504,14 +431,14 @@ GO
 --     @personNameExtendedQueryTags
 --         * PersonName extended query tag data
 -- RETURN VALUE
---     The watermark (version).
+--     The WorkitemKey
 ------------------------------------------------------------------------
 CREATE OR ALTER PROCEDURE dbo.AddWorkitem
-    @partitionKey                       INT,
-    @workitemUid                        VARCHAR(64),
-    @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY,
-    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY,
-    @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
+    @partitionKey                   INT,
+    @workitemUid                    VARCHAR(64),
+    @stringExtendedQueryTags        dbo.InsertStringExtendedQueryTagTableType_1 READONLY,
+    @dateTimeExtendedQueryTags      dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY,
+    @personNameExtendedQueryTags    dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
 BEGIN
     SET NOCOUNT ON
@@ -520,7 +447,6 @@ BEGIN
     BEGIN TRANSACTION
 
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
-    DECLARE @newWatermark BIGINT
     DECLARE @workitemResourceType TINYINT = 1
     DECLARE @workitemKey BIGINT
 
@@ -531,7 +457,6 @@ BEGIN
 
     IF @@ROWCOUNT <> 0
         THROW 50409, 'Workitem already exists', 1;
-    SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence
 
     -- The workitem does not exist, insert it.
     SET @workitemKey = NEXT VALUE FOR dbo.WorkitemKeySequence
@@ -542,18 +467,12 @@ BEGIN
 
     BEGIN TRY
 
-        EXEC dbo.IIndexInstanceCoreV8
+        EXEC dbo.IIndexWorkitemInstanceCore
             @partitionKey,
             @workitemKey,
-            NULL,
-            NULL,
-            @newWatermark,
             @stringExtendedQueryTags,
-            DEFAULT,
-            DEFAULT,
             @dateTimeExtendedQueryTags,
-            @personNameExtendedQueryTags,
-            @workitemResourceType
+            @personNameExtendedQueryTags
 
     END TRY
     BEGIN CATCH
@@ -562,81 +481,7 @@ BEGIN
 
     END CATCH
 
-    SELECT @newWatermark
-
-    COMMIT TRANSACTION
-END
-GO
-
-/***************************************************************************************/
--- STORED PROCEDURE
---    DeleteExtendedQueryTag
---
--- DESCRIPTION
---    Delete specific extended query tag
---
--- PARAMETERS
---     @tagPath
---         * The extended query tag path
---     @dataType
---         * the data type of extended query tag. 0 -- String, 1 -- Long, 2 -- Double, 3 -- DateTime, 4 -- PersonName
-/***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.DeleteExtendedQueryTag
-    @tagPath VARCHAR(64),
-    @dataType TINYINT
-AS
-BEGIN
-    SET NOCOUNT     ON
-    SET XACT_ABORT  ON
-
-    BEGIN TRANSACTION
-
-        DECLARE @tagStatus TINYINT
-        DECLARE @tagKey INT
-
-        DECLARE @imageResourceType TINYINT = 0
-
-
-        SELECT @tagKey = TagKey, @tagStatus = TagStatus
-        FROM dbo.ExtendedQueryTag WITH(XLOCK)
-        WHERE dbo.ExtendedQueryTag.TagPath = @tagPath
-        AND dbo.ExtendedQueryTag.ResourceType = @imageResourceType
-
-        -- Check existence
-        IF @@ROWCOUNT = 0
-            THROW 50404, 'extended query tag not found', 1
-
-        -- check if status is Ready or Adding
-        IF @tagStatus = 2
-            THROW 50412, 'extended query tag is not in Ready or Adding status', 1
-
-        -- Update status to Deleting
-        UPDATE dbo.ExtendedQueryTag
-        SET TagStatus = 2
-        WHERE dbo.ExtendedQueryTag.TagKey = @tagKey
-
-    COMMIT TRANSACTION
-
-    BEGIN TRANSACTION
-
-        -- Delete index data
-        IF @dataType = 0
-            DELETE FROM dbo.ExtendedQueryTagString WHERE TagKey = @tagKey
-        ELSE IF @dataType = 1
-            DELETE FROM dbo.ExtendedQueryTagLong WHERE TagKey = @tagKey
-        ELSE IF @dataType = 2
-            DELETE FROM dbo.ExtendedQueryTagDouble WHERE TagKey = @tagKey
-        ELSE IF @dataType = 3
-            DELETE FROM dbo.ExtendedQueryTagDateTime WHERE TagKey = @tagKey
-        ELSE
-            DELETE FROM dbo.ExtendedQueryTagPersonName WHERE TagKey = @tagKey
-
-        -- Delete tag
-        DELETE FROM dbo.ExtendedQueryTag
-        WHERE TagKey = @tagKey
-
-        DELETE FROM dbo.ExtendedQueryTagError
-        WHERE TagKey = @tagKey
+    SELECT @workitemKey
 
     COMMIT TRANSACTION
 END
@@ -962,186 +807,6 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetExtendedQueryTagErrorsV6
---
--- DESCRIPTION
---     Gets the extended query tag errors by tag path.
---
--- PARAMETERS
---     @tagPath
---         * The TagPath for the extended query tag for which we retrieve error(s).
---     @limit
---         * The maximum number of results to retrieve.
---     @offset
---         * The offset from which to retrieve paginated results.
---
--- RETURN VALUE
---     The tag error fields and the corresponding instance UIDs.
-/***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrorsV6
-    @tagPath VARCHAR(64),
-    @limit   INT,
-    @offset  INT
-AS
-BEGIN
-    SET NOCOUNT     ON
-    SET XACT_ABORT  ON
-
-    DECLARE @tagKey INT
-    DECLARE @imageResourceType TINYINT = 0
-
-    SELECT @tagKey = TagKey
-    FROM dbo.ExtendedQueryTag WITH(HOLDLOCK)
-    WHERE dbo.ExtendedQueryTag.TagPath = @tagPath
-    AND ResourceType = @imageResourceType
-
-    -- Check existence
-    IF (@@ROWCOUNT = 0)
-        THROW 50404, 'extended query tag not found', 1
-
-    SELECT
-        TagKey,
-        ErrorCode,
-        CreatedTime,
-        PartitionName,
-        StudyInstanceUid,
-        SeriesInstanceUid,
-        SopInstanceUid
-    FROM dbo.ExtendedQueryTagError AS XQTE
-    INNER JOIN dbo.Instance AS I
-    ON XQTE.Watermark = I.Watermark
-    INNER JOIN dbo.Partition P
-    ON P.PartitionKey = I.PartitionKey
-    WHERE XQTE.TagKey = @tagKey
-    ORDER BY CreatedTime ASC, XQTE.Watermark ASC, TagKey ASC
-    OFFSET @offset ROWS
-    FETCH NEXT @limit ROWS ONLY
-END
-GO
-
-
-/***************************************************************************************/
--- STORED PROCEDURE
---     GetExtendedQueryTag
---
--- DESCRIPTION
---     Gets all extended query tags or given extended query tag by tag path
---
--- PARAMETERS
---     @tagPath
---         * The TagPath for the extended query tag to retrieve.
--- RETURN VALUE
---     The desired extended query tag, if found.
-/***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTag
-    @tagPath  VARCHAR(64) = NULL -- Support NULL for backwards compatibility
-AS
-BEGIN
-    SET NOCOUNT     ON
-    SET XACT_ABORT  ON
-
-    DECLARE @imageResourceType TINYINT = 0
-
-    SELECT XQT.TagKey,
-           TagPath,
-           TagVR,
-           TagPrivateCreator,
-           TagLevel,
-           TagStatus,
-           QueryStatus,
-           ErrorCount,
-           OperationId
-    FROM dbo.ExtendedQueryTag AS XQT
-    LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
-    WHERE TagPath = ISNULL(@tagPath, TagPath)
-    AND ResourceType = @imageResourceType
-END
-GO
-
-/***************************************************************************************/
--- STORED PROCEDURE
---     GetExtendedQueryTagsByKey
---
--- DESCRIPTION
---     Gets the extended query tags by their respective keys.
---
--- PARAMETERS
---     @extendedQueryTagKeys
---         * The list of extended query tag keys.
--- RETURN VALUE
---     The corresponding extended query tags, if any.
-/***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagsByKey
-    @extendedQueryTagKeys dbo.ExtendedQueryTagKeyTableType_1 READONLY
-AS
-BEGIN
-    SET NOCOUNT     ON
-    SET XACT_ABORT  ON
-
-    DECLARE @imageResourceType TINYINT = 0
-
-    SELECT XQT.TagKey,
-           TagPath,
-           TagVR,
-           TagPrivateCreator,
-           TagLevel,
-           TagStatus,
-           QueryStatus,
-           ErrorCount,
-           OperationId
-    FROM @extendedQueryTagKeys AS input
-    INNER JOIN dbo.ExtendedQueryTag AS XQT ON input.TagKey = XQT.TagKey
-    LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
-    WHERE XQT.ResourceType = @imageResourceType
-END
-GO
-
-/***************************************************************************************/
--- STORED PROCEDURE
---     GetExtendedQueryTags
---
--- DESCRIPTION
---     Gets a possibly paginated set of query tags as indicated by the parameters
---
--- PARAMETERS
---     @limit
---         * The maximum number of results to retrieve.
---     @offset
---         * The offset from which to retrieve paginated results.
---
--- RETURN VALUE
---     The set of query tags.
-/***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTags
-    @limit INT,
-    @offset INT
-AS
-BEGIN
-    SET NOCOUNT     ON
-    SET XACT_ABORT  ON
-
-    DECLARE @imageResourceType TINYINT = 0
-
-    SELECT XQT.TagKey,
-           TagPath,
-           TagVR,
-           TagPrivateCreator,
-           TagLevel,
-           TagStatus,
-           QueryStatus,
-           ErrorCount,
-           OperationId
-    FROM dbo.ExtendedQueryTag AS XQT
-    LEFT OUTER JOIN dbo.ExtendedQueryTagOperation AS XQTO ON XQT.TagKey = XQTO.TagKey
-    WHERE XQT.ResourceType = @imageResourceType
-    ORDER BY XQT.TagKey ASC
-    OFFSET @offset ROWS
-    FETCH NEXT @limit ROWS ONLY
-END
-GO
-
-/***************************************************************************************/
--- STORED PROCEDURE
 --    IIndexInstanceCoreV8
 --
 -- DESCRIPTION
@@ -1152,12 +817,12 @@ GO
 -- PARAMETERS
 --     @partitionKey
 --         * The Partition key
---     @sopInstanceKey1
---         * Refers to either StudyKey or WorkItemKey depending on ResourceType
---     @sopInstanceKey2
---         * Refers to SeriesKey if ResourceType is Image else NULL
---     @sopInstanceKey3
---         * Refers to InstanceKey if ResourceType is Image else NULL
+--     @studyKey
+--         * The internal key for the study
+--     @seriesKey
+--         * The internal key for the series
+--     @instanceKey
+--         * The internal key for the instance
 --     @watermark
 --         * The DICOM instance watermark
 --     @stringExtendedQueryTags
@@ -1177,18 +842,18 @@ GO
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCoreV8
     @partitionKey                                                                INT = 1,
-    @sopInstanceKey1                                                             BIGINT,
-    @sopInstanceKey2                                                             BIGINT,
-    @sopInstanceKey3                                                             BIGINT,
+    @studyKey                                                                    BIGINT,
+    @seriesKey                                                                   BIGINT,
+    @instanceKey                                                                 BIGINT,
     @watermark                                                                   BIGINT,
     @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1         READONLY,
     @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1             READONLY,
     @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1         READONLY,
     @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2     READONLY,
-    @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY,
-    @resourceType                                                                TINYINT = 0
+    @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
 BEGIN
+    DECLARE @resourceType TINYINT = 0
     -- String Key tags
     IF EXISTS (SELECT 1 FROM @stringExtendedQueryTags)
     BEGIN
@@ -1205,11 +870,11 @@ BEGIN
         ) AS S
         ON T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
-            AND T.SopInstanceKey1 = @sopInstanceKey1
-            -- Null SopInstanceKey2 indicates a Study level or Workitem tag, no need to compare further
-            AND ISNULL(T.SopInstanceKey2, @sopInstanceKey2) = @sopInstanceKey2
-            -- Null SopInstanceKey3 indicates a Study/Series level or Workitem tag, no need to compare further
-            AND ISNULL(T.SopInstanceKey3, @sopInstanceKey3) = @sopInstanceKey3
+            AND T.SopInstanceKey1 = @studyKey
+            -- Null SeriesKey indicates a Study level tag, no need to compare SeriesKey
+            AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
+            -- Null InstanceKey indicates a Study/Series level tag, no to compare InstanceKey
+            AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
             UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
@@ -1220,11 +885,11 @@ BEGIN
                 S.TagKey,
                 S.TagValue,
                 @partitionKey,
-                @sopInstanceKey1,
-                -- When TagLevel is not Study, we should fill SopInstanceKey2 (Series)
-                (CASE WHEN S.TagLevel <> 2 THEN @sopInstanceKey2 ELSE NULL END),
-                -- When TagLevel is Instance, we should fill SopInstanceKey3 (Instance)
-                (CASE WHEN S.TagLevel = 0 THEN @sopInstanceKey3 ELSE NULL END),
+                @studyKey,
+                -- When TagLevel is not Study, we should fill SeriesKey
+                (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+                -- When TagLevel is Instance, we should fill InstanceKey
+                (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
                 @watermark,
                 @resourceType
             );
@@ -1245,11 +910,9 @@ BEGIN
         ) AS S
         ON T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
-            AND T.SopInstanceKey1 = @sopInstanceKey1
-            -- Null SopInstanceKey2 indicates a Study level or Workitem tag, no need to compare further
-            AND ISNULL(T.SopInstanceKey2, @sopInstanceKey2) = @sopInstanceKey2
-            -- Null SopInstanceKey3 indicates a Study/Series level or Workitem tag, no need to compare further
-            AND ISNULL(T.SopInstanceKey3, @sopInstanceKey3) = @sopInstanceKey3
+            AND T.SopInstanceKey1 = @studyKey
+            AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
+            AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
             UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
@@ -1260,11 +923,9 @@ BEGIN
                 S.TagKey,
                 S.TagValue,
                 @partitionKey,
-                @sopInstanceKey1,
-                -- When TagLevel is not Study, we should fill SopInstanceKey2 (Series)
-                (CASE WHEN S.TagLevel <> 2 THEN @sopInstanceKey2 ELSE NULL END),
-                -- When TagLevel is Instance, we should fill SopInstanceKey3 (Instance)
-                (CASE WHEN S.TagLevel = 0 THEN @sopInstanceKey3 ELSE NULL END),
+                @studyKey,
+                (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+                (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
                 @watermark,
                 @resourceType
             );
@@ -1285,11 +946,9 @@ BEGIN
         ) AS S
         ON T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
-            AND T.SopInstanceKey1 = @sopInstanceKey1
-            -- Null SopInstanceKey2 indicates a Study level or Workitem tag, no need to compare further
-            AND ISNULL(T.SopInstanceKey2, @sopInstanceKey2) = @sopInstanceKey2
-            -- Null SopInstanceKey3 indicates a Study/Series level or Workitem tag, no need to compare further
-            AND ISNULL(T.SopInstanceKey3, @sopInstanceKey3) = @sopInstanceKey3
+            AND T.SopInstanceKey1 = @studyKey
+            AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
+            AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
             UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
@@ -1300,11 +959,9 @@ BEGIN
                 S.TagKey,
                 S.TagValue,
                 @partitionKey,
-                @sopInstanceKey1,
-                -- When TagLevel is not Study, we should fill SopInstanceKey2 (Series)
-                (CASE WHEN S.TagLevel <> 2 THEN @sopInstanceKey2 ELSE NULL END),
-                -- When TagLevel is Instance, we should fill SopInstanceKey3 (Instance)
-                (CASE WHEN S.TagLevel = 0 THEN @sopInstanceKey3 ELSE NULL END),
+                @studyKey,
+                (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+                (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
                 @watermark,
                 @resourceType
             );
@@ -1325,11 +982,9 @@ BEGIN
         ) AS S
         ON T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
-            AND T.SopInstanceKey1 = @sopInstanceKey1
-            -- Null SopInstanceKey2 indicates a Study level or Workitem tag, no need to compare further
-            AND ISNULL(T.SopInstanceKey2, @sopInstanceKey2) = @sopInstanceKey2
-            -- Null SopInstanceKey3 indicates a Study/Series level or Workitem tag, no need to compare further
-            AND ISNULL(T.SopInstanceKey3, @sopInstanceKey3) = @sopInstanceKey3
+            AND T.SopInstanceKey1 = @studyKey
+            AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
+            AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
             UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
@@ -1340,11 +995,9 @@ BEGIN
                 S.TagKey,
                 S.TagValue,
                 @partitionKey,
-                @sopInstanceKey1,
-                -- When TagLevel is not Study, we should fill SopInstanceKey2 (Series)
-                (CASE WHEN S.TagLevel <> 2 THEN @sopInstanceKey2 ELSE NULL END),
-                -- When TagLevel is Instance, we should fill SopInstanceKey3 (Instance)
-                (CASE WHEN S.TagLevel = 0 THEN @sopInstanceKey3 ELSE NULL END),
+                @studyKey,
+                (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+                (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
                 @watermark,
                 S.TagValueUtc,
                 @resourceType
@@ -1366,11 +1019,9 @@ BEGIN
         ) AS S
         ON T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
-            AND T.SopInstanceKey1 = @sopInstanceKey1
-            -- Null SopInstanceKey2 indicates a Study level or Workitem tag, no need to compare further
-            AND ISNULL(T.SopInstanceKey2, @sopInstanceKey2) = @sopInstanceKey2
-            -- Null SopInstanceKey3 indicates a Study/Series level or Workitem tag, no need to compare further
-            AND ISNULL(T.SopInstanceKey3, @sopInstanceKey3) = @sopInstanceKey3
+            AND T.SopInstanceKey1 = @studyKey
+            AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
+            AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
             UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
@@ -1381,14 +1032,81 @@ BEGIN
                 S.TagKey,
                 S.TagValue,
                 @partitionKey,
-                @sopInstanceKey1,
-                -- When TagLevel is not Study, we should fill SopInstanceKey2 (Series)
-                (CASE WHEN S.TagLevel <> 2 THEN @sopInstanceKey2 ELSE NULL END),
-                -- When TagLevel is Instance, we should fill SopInstanceKey3 (Instance)
-                (CASE WHEN S.TagLevel = 0 THEN @sopInstanceKey3 ELSE NULL END),
+                @studyKey,
+                (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
+                (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
                 @watermark,
                 @resourceType
             );
+    END
+END
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--    IIndexWorkitemInstanceCore
+--
+-- DESCRIPTION
+--    Adds workitem query tag values
+--    Unlike IndexInstance, IndexInstanceCore is not wrapped in a transaction and may be re-used by other
+--    stored procedures whose logic may vary.
+--
+-- PARAMETERS
+--     @partitionKey
+--         * The Partition key
+--     @workitemKey
+--         * Refers to WorkItemKey
+--     @stringExtendedQueryTags
+--         * String extended query tag data
+--     @dateTimeExtendedQueryTags
+--         * DateTime extended query tag data
+--     @personNameExtendedQueryTags
+--         * PersonName extended query tag data
+-- RETURN VALUE
+--     None
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.IIndexWorkitemInstanceCore
+    @partitionKey                                                                INT = 1,
+    @workitemKey                                                                 BIGINT,
+    @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1         READONLY,
+    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2     READONLY,
+    @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
+AS
+BEGIN
+
+    DECLARE @workitemResourceType TINYINT = 1
+    DECLARE @newWatermark BIGINT
+
+    SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence
+
+    -- String Key tags
+    IF EXISTS (SELECT 1 FROM @stringExtendedQueryTags)
+    BEGIN
+        INSERT dbo.ExtendedQueryTagString (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType)
+        SELECT input.TagKey, input.TagValue, @partitionKey, @workitemKey, NULL, NULL, @newWatermark,@workitemResourceType
+        FROM @stringExtendedQueryTags input
+        INNER JOIN dbo.WorkitemQueryTag
+        ON dbo.WorkitemQueryTag.TagKey = input.TagKey
+    END
+
+    -- DateTime Key tags
+    IF EXISTS (SELECT 1 FROM @dateTimeExtendedQueryTags)
+    BEGIN
+        INSERT dbo.ExtendedQueryTagDateTime (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType)
+        SELECT input.TagKey, input.TagValue, @partitionKey, @workitemKey, NULL, NULL, @newWatermark,@workitemResourceType
+        FROM @dateTimeExtendedQueryTags input
+        INNER JOIN dbo.WorkitemQueryTag
+        ON dbo.WorkitemQueryTag.TagKey = input.TagKey
+    END
+
+    -- PersonName Key tags
+    IF EXISTS (SELECT 1 FROM @personNameExtendedQueryTags)
+    BEGIN
+        INSERT dbo.ExtendedQueryTagPersonName (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType)
+        SELECT input.TagKey, input.TagValue, @partitionKey, @workitemKey, NULL, NULL, @newWatermark,@workitemResourceType
+        FROM @personNameExtendedQueryTags input
+        INNER JOIN dbo.WorkitemQueryTag
+        ON dbo.WorkitemQueryTag.TagKey = input.TagKey
     END
 END
 GO
@@ -1478,114 +1196,12 @@ BEGIN
 END
 GO
 
-
-/*************************************************************
-    Stored procedures for updating an instance status.
-**************************************************************/
---
--- STORED PROCEDURE
---     UpdateInstanceStatusV6
---
--- DESCRIPTION
---     Updates a DICOM instance status, which allows for consistency during indexing.
---
--- PARAMETERS
---     @partitionKey
---         * The partition key.
---     @studyInstanceUid
---         * The study instance UID.
---     @seriesInstanceUid
---         * The series instance UID.
---     @sopInstanceUid
---         * The SOP instance UID.
---     @watermark
---         * The watermark.
---     @status
---         * The new status to update to.
---     @maxTagKey
---         * Optional max ExtendedQueryTag key
---
--- RETURN VALUE
---     None
---
-CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV6
-    @partitionKey       INT,
-    @studyInstanceUid   VARCHAR(64),
-    @seriesInstanceUid  VARCHAR(64),
-    @sopInstanceUid     VARCHAR(64),
-    @watermark          BIGINT,
-    @status             TINYINT,
-    @maxTagKey          INT = NULL
-AS
-BEGIN
-    SET NOCOUNT ON
-
-    SET XACT_ABORT ON
-    BEGIN TRANSACTION
-
-    -- This check ensures the client is not potentially missing 1 or more query tags that may need to be indexed.
-    -- Note that if @maxTagKey is NULL, < will always return UNKNOWN.
-    IF @maxTagKey < (SELECT ISNULL(MAX(TagKey), 0) FROM dbo.ExtendedQueryTag WITH (HOLDLOCK) WHERE ResourceType = 0)
-        THROW 50409, 'Max extended query tag key does not match', 10
-
-    DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
-
-    UPDATE dbo.Instance
-    SET Status = @status, LastStatusUpdatedDate = @currentDate
-    WHERE PartitionKey = @partitionKey
-        AND StudyInstanceUid = @studyInstanceUid
-        AND SeriesInstanceUid = @seriesInstanceUid
-        AND SopInstanceUid = @sopInstanceUid
-        AND Watermark = @watermark
-
-    -- The instance does not exist. Perhaps it was deleted?
-    IF @@ROWCOUNT = 0
-        THROW 50404, 'Instance does not exist', 1
-
-    -- Insert to change feed.
-    -- Currently this procedure is used only updating the status to created
-    -- If that changes an if condition is needed.
-    INSERT INTO dbo.ChangeFeed
-        (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-    VALUES
-        (@currentDate, 0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)
-
-    -- Update existing instance currentWatermark to latest
-    UPDATE dbo.ChangeFeed
-    SET CurrentWatermark      = @watermark
-    WHERE PartitionKey = @partitionKey
-        AND StudyInstanceUid    = @studyInstanceUid
-        AND SeriesInstanceUid = @seriesInstanceUid
-        AND SopInstanceUid    = @sopInstanceUid
-
-    COMMIT TRANSACTION
-END
-GO
-
 COMMIT TRANSACTION
 
 BEGIN TRANSACTION
 BEGIN TRY
 -- wrapping the contents of this transaction in try/catch because errors on index
 -- operations won't rollback unless caught and re-thrown
-    IF EXISTS 
-    (
-        SELECT *
-        FROM    sys.indexes
-        WHERE   NAME = 'IX_ExtendedQueryTag_TagPath'
-            AND Object_id = OBJECT_ID('dbo.ExtendedQueryTag')
-    )
-    BEGIN
-        DROP INDEX IX_ExtendedQueryTag_TagPath ON dbo.ExtendedQueryTag
-
-        CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath_ResourceType ON dbo.ExtendedQueryTag
-        (
-            TagPath,
-            ResourceType
-        )
-        WITH (DATA_COMPRESSION = PAGE)
-    END
-
     IF EXISTS 
     (
         SELECT *
@@ -1842,50 +1458,50 @@ END CATCH
 -- List of extended query tags that are supported for UPS-RS queries
 
 IF NOT EXISTS (
-SELECT 1 FROM  dbo.ExtendedQueryTag WHERE ResourceType = 1
+SELECT 1 FROM  dbo.WorkitemQueryTag
 )
 BEGIN 
     BEGIN TRANSACTION
 
         -- Patient name
-        INSERT INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
-        VALUES (NEXT VALUE FOR TagKeySequence, '00100010', NULL, 'PN', 0, 1, 1, 0, 1)
+        INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
+        VALUES (NEXT VALUE FOR TagKeySequence, '00100010', 'PN', 1)
 
         -- Patient ID
-        INSERT INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
-        VALUES (NEXT VALUE FOR TagKeySequence, '00100020', NULL, 'LO', 0, 1, 1, 0, 1)
+        INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
+        VALUES (NEXT VALUE FOR TagKeySequence, '00100020', 'LO', 1)
 
         -- ReferencedRequestSequence.Accesionnumber
-        INSERT INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
-        VALUES (NEXT VALUE FOR TagKeySequence, '0040A370.00080050', NULL, 'SH', 0, 1, 1, 0, 1)
+        INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
+        VALUES (NEXT VALUE FOR TagKeySequence, '0040A370.00080050', 'SH', 1)
 
         -- ReferencedRequestSequence.Requested​Procedure​ID
-        INSERT INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
-        VALUES (NEXT VALUE FOR TagKeySequence, '0040A370.00401001', NULL, 'SH', 0, 1, 1, 0, 1)
+        INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
+        VALUES (NEXT VALUE FOR TagKeySequence, '0040A370.00401001', 'SH', 1)
 
         -- 	Scheduled​Procedure​Step​Start​Date​Time
-        INSERT INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
-        VALUES (NEXT VALUE FOR TagKeySequence, '00404005', NULL, 'DT', 0, 1, 1, 0, 1)
+        INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
+        VALUES (NEXT VALUE FOR TagKeySequence, '00404005', 'DT', 1)
 
         -- 	ScheduledStationNameCodeSequence.CodeValue
-        INSERT INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
-        VALUES (NEXT VALUE FOR TagKeySequence, '00404025.00080100', NULL, 'SH', 0, 1, 1, 0, 1)
+        INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
+        VALUES (NEXT VALUE FOR TagKeySequence, '00404025.00080100', 'SH', 1)
 
         -- 	ScheduledStationClassCodeSequence.CodeValue
-        INSERT INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
-        VALUES (NEXT VALUE FOR TagKeySequence, '00404026.00080100', NULL, 'SH', 0, 1, 1, 0, 1)
+        INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
+        VALUES (NEXT VALUE FOR TagKeySequence, '00404026.00080100', 'SH', 1)
 
         -- 	Procedure​Step​State
-        INSERT INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
-        VALUES (NEXT VALUE FOR TagKeySequence, '00741000', NULL, 'CS', 0, 1, 1, 0, 1)
+        INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
+        VALUES (NEXT VALUE FOR TagKeySequence, '00741000', 'CS', 1)
 
         -- 	Scheduled​Station​Geographic​Location​Code​Sequence.CodeValue
-        INSERT INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
-        VALUES (NEXT VALUE FOR TagKeySequence, '00404027.00080100', NULL, 'SH', 0, 1, 1, 0, 1)
+        INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
+        VALUES (NEXT VALUE FOR TagKeySequence, '00404027.00080100', 'SH', 1)
 
         -- 	Transaction​UID
-        INSERT INTO dbo.ExtendedQueryTag (TagKey, TagPath, TagPrivateCreator, TagVR, TagLevel, TagStatus, QueryStatus, ErrorCount, ResourceType)
-        VALUES (NEXT VALUE FOR TagKeySequence, '00081195', NULL, 'UI', 0, 1, 0, 0, 1)
+        INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
+        VALUES (NEXT VALUE FOR TagKeySequence, '00081195', 'UI', 0)
 
     COMMIT TRANSACTION
 END 
