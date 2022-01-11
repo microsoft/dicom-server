@@ -14,29 +14,29 @@ namespace TestTagPath
         /// Gets DicomElements from a DicomDataset by following a QueryTagPath/>.
         /// </summary>
         /// <param name="dataset">The DicomSequence to be traversed.</param>
-        /// <param name="tagPath">The DICOM tag path.</param>
-        /// <returns>The DicomItems specified by the tag path.</returns>
-        public static IEnumerable<DicomElement> GetLastPathElements(this DicomDataset dataset, QueryTagPath tagPath)
+        /// <param name="searchItem">The DICOM tag path.</param>
+        /// <returns>The DicomElements specified by the tag path.</returns>
+        public static IEnumerable<DicomElement> GetLastPathElements(this DicomDataset dataset, DicomItem searchItem)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
-            EnsureArg.IsNotNull(tagPath, nameof(tagPath));
+            EnsureArg.IsNotNull(searchItem, nameof(searchItem));
 
             var returnElements = new List<DicomElement>();
 
-            // base case
-            if (tagPath.Tags.Count == 0) return returnElements;
+            // base cases
+            if (searchItem == null) return returnElements;
 
-            DicomItem item = dataset.GetDicomItem<DicomItem>(tagPath.Tags[0]);
-
+            DicomItem item = dataset.GetDicomItem<DicomItem>(searchItem.Tag);
             if (item == null) return returnElements;
-
-            var newTagPath = new QueryTagPath(tagPath.Tags.Skip(1));
 
             if (item is DicomSequence)
             {
                 DicomSequence sequence = (DicomSequence)item;
 
-                returnElements.AddRange(sequence.Items.Select(x => x.GetLastPathElements(newTagPath)).SelectMany(x => x));
+                var firstChild = sequence.Items.FirstOrDefault()?.FirstOrDefault();
+                if (firstChild == null) return returnElements;
+
+                returnElements.AddRange(sequence.Items.Select(x => x.GetLastPathElements(firstChild)).SelectMany(x => x));
             }
             else if (item is DicomElement)
             {
