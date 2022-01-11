@@ -115,14 +115,13 @@ CREATE TABLE dbo.ExtendedQueryTag (
     TagStatus         TINYINT       NOT NULL,
     QueryStatus       TINYINT       DEFAULT 1 NOT NULL,
     ErrorCount        INT           DEFAULT 0 NOT NULL
-)
-WITH (DATA_COMPRESSION = PAGE);
+);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag
     ON dbo.ExtendedQueryTag(TagKey);
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath
-    ON dbo.ExtendedQueryTag(TagPath) WITH (DATA_COMPRESSION = PAGE);
+    ON dbo.ExtendedQueryTag(TagPath);
 
 CREATE TABLE dbo.ExtendedQueryTagDateTime (
     TagKey          INT           NOT NULL,
