@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public WorkItemTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
-            _client = fixture.Client;
+            _client = fixture.GetDicomWebClient();
         }
 
         [Fact]
