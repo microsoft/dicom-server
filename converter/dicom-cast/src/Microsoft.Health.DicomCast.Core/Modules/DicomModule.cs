@@ -33,9 +33,8 @@ namespace Microsoft.Health.DicomCast.Core.Modules
             EnsureArg.IsNotNull(services, nameof(services));
 
             var dicomWebConfiguration = new DicomWebConfiguration();
-            var test = _configuration.GetSection(DicomWebConfigurationSectionName);
-
-            test.Bind(dicomWebConfiguration);
+            IConfigurationSection dicomWebConfigurationSection = _configuration.GetSection(DicomWebConfigurationSectionName);
+            dicomWebConfigurationSection.Bind(dicomWebConfiguration);
 
             services.AddSingleton(Options.Create(dicomWebConfiguration));
 
@@ -44,7 +43,7 @@ namespace Microsoft.Health.DicomCast.Core.Modules
                     sp.BaseAddress = dicomWebConfiguration.Endpoint;
 
                 })
-                .AddAuthenticationHandler(services, test.GetSection("Authentication"), DicomWebConfigurationSectionName);
+                .AddAuthenticationHandler(services, dicomWebConfigurationSection.GetSection(AuthenticationConfiguration.SectionName), DicomWebConfigurationSectionName);
 
             services.Add<ChangeFeedRetrieveService>()
                 .Singleton()

@@ -9,6 +9,8 @@ namespace Microsoft.Health.DicomCast.Core.Configurations
 {
     public class AuthenticationConfiguration
     {
+        public const string SectionName = "Authentication";
+
         public bool Enabled { get; set; }
 
         public AuthenticationType? AuthenticationType { get; set; }
