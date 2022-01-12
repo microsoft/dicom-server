@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Linq;
 using Dicom;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
@@ -51,36 +50,36 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             new QueryTag(DicomTag.Procedure​Step​State),
             new QueryTag(DicomTag.Scheduled​Procedure​Step​Start​Date​Time),
             new QueryTag(DicomTag.StudyInstanceUID),
-            new QueryTag(
-                new DicomSequence(
-                    DicomTag.ReferencedRequestSequence,
-                    new DicomDataset[] {
-                        new DicomDataset(
-                            new DicomValuelessItem(
-                                DicomTag.AccessionNumber),
-                            new DicomValuelessItem(
-                                DicomTag.RequestedProcedureID))})),
-            new QueryTag(
-                new DicomSequence(
-                    DicomTag.ScheduledStationNameCodeSequence,
-                    new DicomDataset[] {
-                        new DicomDataset(
-                            new DicomValuelessItem(
-                                DicomTag.CodeValue))})),
-            new QueryTag(
-                new DicomSequence(
-                    DicomTag.ScheduledStationClassCodeSequence,
-                    new DicomDataset[] {
-                        new DicomDataset(
-                            new DicomValuelessItem(
-                                DicomTag.CodeValue))})),
-            new QueryTag(
-                new DicomSequence(
-                    DicomTag.Scheduled​Station​Geographic​Location​Code​Sequence,
-                    new DicomDataset[] {
-                        new DicomDataset(
-                            new DicomValuelessItem(
-                                DicomTag.CodeValue))})),
+            //new QueryTag(
+            //    new DicomSequence(
+            //        DicomTag.ReferencedRequestSequence,
+            //        new DicomDataset[] {
+            //            new DicomDataset(
+            //                new DicomValuelessItem(
+            //                    DicomTag.AccessionNumber),
+            //                new DicomValuelessItem(
+            //                    DicomTag.RequestedProcedureID))})),
+            //new QueryTag(
+            //    new DicomSequence(
+            //        DicomTag.ScheduledStationNameCodeSequence,
+            //        new DicomDataset[] {
+            //            new DicomDataset(
+            //                new DicomValuelessItem(
+            //                    DicomTag.CodeValue))})),
+            //new QueryTag(
+            //    new DicomSequence(
+            //        DicomTag.ScheduledStationClassCodeSequence,
+            //        new DicomDataset[] {
+            //            new DicomDataset(
+            //                new DicomValuelessItem(
+            //                    DicomTag.CodeValue))})),
+            //new QueryTag(
+            //    new DicomSequence(
+            //        DicomTag.Scheduled​Station​Geographic​Location​Code​Sequence,
+            //        new DicomDataset[] {
+            //            new DicomDataset(
+            //                new DicomValuelessItem(
+            //                    DicomTag.CodeValue))})),
         };
 
         public static readonly HashSet<DicomTag> CoreTags = new HashSet<DicomTag>(

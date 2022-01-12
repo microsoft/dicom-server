@@ -20,5 +20,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         /// <param name="supportMultiple">True to support multiple dicom tags like '00101002.00100024.00400032'.</param>
         /// <returns>True if succeed.</returns>
         bool TryParse(string dicomTagPath, out DicomTag[] dicomTags, bool supportMultiple = false);
+
+        /// <summary>
+        /// Parse dicom tag path to a Dicomitem. Currently it supports only 2 levels.
+        /// </summary>
+        /// <param name="dicomTagPath">The dicom tag path.</param>
+        /// <param name="dicomItem">The parsed dicom item.</param>
+        /// <returns>True if succeed.</returns>
+        bool TryParseToDicomItem(string dicomTagPath, out DicomItem dicomItem);
     }
 }

@@ -52,17 +52,17 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <summary>
         /// Initializes a new instance of the <see cref="QueryTag"/> class.
         /// </summary>
-        /// <remarks>Used for constructing from <see cref="DicomItem"/> (to model sequences).</remarks>
-        /// <param name="item">The Dicom item.</param>
-        public QueryTag(DicomItem item)
+        /// <remarks>Used for constructing from <see cref="WorkitemQueryTagStoreEntry"/> (to model sequences).</remarks>
+        /// <param name="entry">The WorkitemQueryTagStore entry.</param>
+        public QueryTag(WorkitemQueryTagStoreEntry entry)
         {
-            EnsureArg.IsNotNull(item, nameof(item));
+            EnsureArg.IsNotNull(entry, nameof(entry));
 
-            Item = item;
-            Tag = Item.Tag;
-            VR = Item.ValueRepresentation;
-            Level = QueryLimit.GetQueryTagLevel(Tag);
+            Tag = DicomTag.Parse(entry.Path);
+            Item = new DicomValuelessItem(Tag);
+            VR = DicomVR.Parse(entry.VR);
             ExtendedQueryTagStoreEntry = null;
+            WorkitemQueryTagStoreEntry = entry;
         }
 
         /// <summary>
@@ -93,7 +93,9 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <summary>
         /// Gets the underlying extendedQueryTagStoreEntry for extended query tag.
         /// </summary>
-        public QueryTagEntry ExtendedQueryTagStoreEntry { get; }
+        public ExtendedQueryTagStoreEntry ExtendedQueryTagStoreEntry { get; }
+
+        public WorkitemQueryTagStoreEntry WorkitemQueryTagStoreEntry { get; }
 
         /// <summary>
         /// Gets name of this query tag.

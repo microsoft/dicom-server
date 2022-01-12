@@ -486,4 +486,7 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>The AffectedSOPInstanceUID '{0}' in the payload does not match the specified WorkimteInstanceUID '{1}'.</value>
     <comment>{0} and {1} are both WorkimteInstanceUID.</comment>
   </data>
+  <data name="NestedSequencesNotSupported" xml:space="preserve">
+    <value>Nested Dicom sequence tags are currently not supported.</value>
+  </data>
 </root>

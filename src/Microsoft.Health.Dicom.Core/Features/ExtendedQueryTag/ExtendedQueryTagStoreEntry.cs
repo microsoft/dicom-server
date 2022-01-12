@@ -10,7 +10,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
     /// <summary>
     /// Represent each extended query tag entry has retrieved from the store.
     /// </summary>
-    public class ExtendedQueryTagStoreEntry : ExtendedQueryTagEntry, Storeen
+    public class ExtendedQueryTagStoreEntry : ExtendedQueryTagEntry
     {
         public ExtendedQueryTagStoreEntry(int key, string path, string vr, string privateCreator, QueryTagLevel level, ExtendedQueryTagStatus status, QueryStatus queryStatus, int errorCount)
         {
@@ -23,6 +23,11 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             QueryStatus = EnsureArg.EnumIsDefined(queryStatus);
             ErrorCount = EnsureArg.IsGte(errorCount, 0, nameof(errorCount));
         }
+
+        /// <summary>
+        /// Key of this extended query tag entry.
+        /// </summary>
+        public int Key { get; }
 
         /// <summary>
         /// Status of this tag.

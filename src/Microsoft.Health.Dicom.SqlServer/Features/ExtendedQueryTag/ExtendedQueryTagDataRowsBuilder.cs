@@ -40,8 +40,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         public static ExtendedQueryTagDataRows Build(
             DicomDataset instance,
             IEnumerable<QueryTag> queryTags,
-            SchemaVersion schemaVersion,
-            bool isWorkitem = default)
+            SchemaVersion schemaVersion)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
@@ -53,7 +52,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             var dateTimeWithUtcRows = new List<InsertDateTimeExtendedQueryTagTableTypeV2Row>();
             var personNameRows = new List<InsertPersonNameExtendedQueryTagTableTypeV1Row>();
 
-            foreach (QueryTag queryTag in queryTags.Where(x => x.IsExtendedQueryTag || isWorkitem))
+            foreach (QueryTag queryTag in queryTags.Where(x => x.IsExtendedQueryTag))
             {
                 // Create row
                 ExtendedQueryTagDataType dataType = ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[queryTag.VR.Code];
@@ -79,6 +78,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                 }
             }
 
+            return new ExtendedQueryTagDataRows
+            {
+                StringRows = stringRows,
+                LongRows = longRows,
+                DoubleRows = doubleRows,
+                DateTimeRows = dateTimeRows,
+                DateTimeWithUtcRows = dateTimeWithUtcRows,
+                PersonNameRows = personNameRows,
+            };
         }
         public static ExtendedQueryTagDataRows BuildWorkitem(
             DicomDataset dataset,
@@ -111,14 +119,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                     case ExtendedQueryTagDataType.LongData: AddLongRow(dataset, longRows, queryTag); break;
                     case ExtendedQueryTagDataType.DoubleData: AddDoubleRow(dataset, doubleRows, queryTag); break;
                     case ExtendedQueryTagDataType.DateTimeData:
-                        if ((int)schemaVersion < SchemaVersionConstants.SupportDTAndTMInExtendedQueryTagSchemaVersion)
-                        {
-                            AddDateTimeRow(dataset, dateTimeRows, queryTag);
-                        }
-                        else
-                        {
-                            AddDateTimeWithUtcRow(dataset, dateTimeWithUtcRows, queryTag);
-                        }
+                        AddDateTimeWithUtcRow(dataset, dateTimeWithUtcRows, queryTag);
                         break;
                     case ExtendedQueryTagDataType.PersonNameData: AddPersonNameRow(dataset, personNameRows, queryTag); break;
                     default:
