@@ -56,8 +56,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             instance2.Add(sizeTag, 1.5M);
 
             // Upload files
-            await _instanceManager.StoreAsync(new DicomFile(instance1));
-            await _instanceManager.StoreAsync(new DicomFile(instance2));
+            Assert.True((await _instanceManager.StoreAsync(new DicomFile(instance1))).IsSuccessStatusCode);
+            Assert.True((await _instanceManager.StoreAsync(new DicomFile(instance2))).IsSuccessStatusCode);
 
             // Add extended query tag
             OperationStatus operation = await _tagManager.AddTagsAsync(
@@ -70,12 +70,17 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             // Check specific tag
             DicomWebResponse<GetExtendedQueryTagEntry> getResponse;
+            GetExtendedQueryTagEntry entry;
 
             getResponse = await _client.GetExtendedQueryTagAsync(weightTag.GetPath());
-            Assert.Null((await getResponse.GetValueAsync()).Errors);
+            entry = await getResponse.GetValueAsync();
+            Assert.Null(entry.Errors);
+            Assert.Equal(QueryStatus.Enabled, entry.QueryStatus);
 
             getResponse = await _client.GetExtendedQueryTagAsync(sizeTag.GetPath());
-            Assert.Null((await getResponse.GetValueAsync()).Errors);
+            entry = await getResponse.GetValueAsync();
+            Assert.Null(entry.Errors);
+            Assert.Equal(QueryStatus.Enabled, entry.QueryStatus);
 
             // Query multiple tags
             // Note: We don't necessarily need to check the tags are the above ones, as another test may have added ones beforehand
@@ -86,7 +91,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(multipleTags[1].Path, (await _tagManager.GetTagsAsync(1, 1)).Single().Path);
 
             // QIDO
-            DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryInstancesAsync($"{weightTag.GetPath()}={50}");
+            DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryInstancesAsync($"{weightTag.GetPath()}=50.0");
             DicomDataset[] instances = await queryResponse.ToArrayAsync();
             Assert.Contains(instances, instance => instance.ToInstanceIdentifier().Equals(instance2.ToInstanceIdentifier()));
         }

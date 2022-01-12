@@ -5,6 +5,7 @@
 
 using System;
 using System.Reflection;
+using System.Text.Json;
 using EnsureThat;
 using FellowOakDicom.Serialization;
 using Microsoft.AspNetCore.Hosting;
@@ -112,6 +113,8 @@ namespace Microsoft.AspNetCore.Builder
                 {
                     o.Converters.Add(new StrictStringEnumConverterFactory());
                     o.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false));
+                    o.PropertyNameCaseInsensitive = true;
+                    o.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                 });
 
             services.AddApiVersioning(c =>

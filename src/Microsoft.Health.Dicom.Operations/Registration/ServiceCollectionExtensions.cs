@@ -55,7 +55,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddFellowOakDicomExtension()
                 .AddFunctionsOptions<QueryTagIndexingOptions>(configuration, QueryTagIndexingOptions.SectionName, bindNonPublicProperties: true)
                 .AddFunctionsOptions<PurgeHistoryOptions>(configuration, PurgeHistoryOptions.SectionName)
-                .AddHttpServices());
+                .AddJsonSerializerOptions());
         }
 
         /// <summary>
@@ -143,30 +143,20 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        private static IServiceCollection AddHttpServices(this IServiceCollection services)
+        private static IServiceCollection AddJsonSerializerOptions(this IServiceCollection services)
         {
             EnsureArg.IsNotNull(services, nameof(services));
 
-            services
-                .AddMvcCore()
-                .AddJsonSerializerOptions(o =>
-                 {
-                     o.Converters.Add(new JsonStringEnumConverter());
-                     o.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false));
-                 });
-
-            return services;
-        }
-
-        private static IMvcCoreBuilder AddJsonSerializerOptions(this IMvcCoreBuilder builder, Action<JsonSerializerOptions> configure)
-        {
-            EnsureArg.IsNotNull(builder, nameof(builder));
-            EnsureArg.IsNotNull(configure, nameof(configure));
-
-            // TODO: Configure System.Text.Json for Azure Functions when available
+            // TODO: Configure System.Text.Json for Azure Functions MVC services when available
+            //       and if we decide to expose HTTP services
             //builder.AddJsonOptions(o => configure(o.JsonSerializerOptions));
-            builder.Services.Configure(configure);
-            return builder;
+            return services.Configure<JsonSerializerOptions>(o =>
+            {
+                o.Converters.Add(new JsonStringEnumConverter());
+                o.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false));
+                o.PropertyNameCaseInsensitive = true;
+                o.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            });
         }
 
         private sealed class FellowOakExtensionConfiguration : IExtensionConfigProvider

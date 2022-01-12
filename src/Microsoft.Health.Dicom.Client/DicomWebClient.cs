@@ -41,7 +41,12 @@ namespace Microsoft.Health.Dicom.Client
 
             HttpClient = httpClient;
             _apiVersion = apiVersion;
-            _jsonSerializerOptions = new JsonSerializerOptions();
+            _jsonSerializerOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            };
+
             _jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             _jsonSerializerOptions.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: true, autoValidate: false));
 
