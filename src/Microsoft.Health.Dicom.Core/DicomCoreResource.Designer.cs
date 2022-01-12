@@ -724,6 +724,15 @@ namespace Microsoft.Health.Dicom.Core
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Nested Dicom sequence tags are currently not supported..
+        /// </summary>
+        internal static string NestedSequencesNotSupported {
+            get {
+                return ResourceManager.GetString("NestedSequencesNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The request headers are not acceptable.
         /// </summary>
         internal static string NotAcceptableHeaders {

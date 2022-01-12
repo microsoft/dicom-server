@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using FellowOakDicom;
 
@@ -27,7 +28,63 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
                 return false;
             }
 
+            DicomTag dicomTag = GetTagFromKeywordOrNumber(dicomTagPath);
 
+            dicomTags = new DicomTag[] { dicomTag };
+            return dicomTag != null;
+        }
+
+        public bool TryParseToDicomItem(string dicomTagPath, out DicomItem dicomItem)
+        {
+            dicomItem = null;
+
+            if (string.IsNullOrWhiteSpace(dicomTagPath))
+            {
+                return false;
+            }
+
+            DicomTag[] dicomTags = ParseMultipleStandardTag(dicomTagPath);
+
+            if (dicomTags.Length == 1)
+            {
+                var tag = GetTagFromKeywordOrNumber(dicomTagPath);
+                if (tag != null) dicomItem = new DicomValuelessItem(tag);
+                return tag != null;
+            }
+
+            if (dicomTags.Length > 2)
+            {
+                throw new NotImplementedException(DicomCoreResource.NestedSequencesNotSupported);
+            }
+
+            if (dicomTags[0] != null && dicomTags[1] != null)
+            {
+                var sequenceItem = new DicomSequence(dicomTags[0]);
+                sequenceItem.Items.Add(new DicomDataset(new DicomValuelessItem(dicomTags[1])));
+
+                dicomItem = sequenceItem;
+            }
+
+
+            return dicomTags[0] != null && dicomTags[1] != null;
+        }
+
+
+        private static DicomTag[] ParseMultipleStandardTag(string dicomTagPath)
+        {
+            var paths = dicomTagPath.Split(".");
+            var dicomTags = new List<DicomTag>();
+
+            foreach (var path in paths)
+            {
+                dicomTags.Add(GetTagFromKeywordOrNumber(path));
+            }
+
+            return dicomTags.ToArray();
+        }
+
+        private static DicomTag GetTagFromKeywordOrNumber(string dicomTagPath)
+        {
             DicomTag dicomTag = ParseStardandDicomTagKeyword(dicomTagPath);
 
             if (dicomTag == null)
@@ -35,8 +92,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
                 dicomTag = ParseDicomTagNumber(dicomTagPath);
             }
 
-            dicomTags = new DicomTag[] { dicomTag };
-            return dicomTag != null;
+            return dicomTag;
         }
 
         private static DicomTag ParseStardandDicomTagKeyword(string keyword)
@@ -44,7 +100,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
             // Try Keyword match, returns null if not found
             DicomTag dicomTag = DicomDictionary.Default[keyword];
 
-            // We don't accept private tag from keywrod
+            // We don't accept private tag from keyword
             return (dicomTag != null && dicomTag.IsPrivate) ? null : dicomTag;
         }
 
