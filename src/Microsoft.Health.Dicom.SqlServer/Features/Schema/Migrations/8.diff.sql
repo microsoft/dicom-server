@@ -70,7 +70,7 @@ END
 /*************************************************************
     Workitem Query Tag Table
     Stores static workitem indexed tags
-    TagPath is represented without any delimiters and each level takes 8 bytes
+    TagPath is represented with delimiters to repesent multiple levels
 **************************************************************/
 IF NOT EXISTS 
 (
@@ -91,7 +91,6 @@ BEGIN
         TagKey
     )
 
-    -- Used in GetExtendedQueryTag
     CREATE UNIQUE NONCLUSTERED INDEX IXC_WorkitemQueryTag_TagPath ON dbo.WorkitemQueryTag
     (
         TagPath
