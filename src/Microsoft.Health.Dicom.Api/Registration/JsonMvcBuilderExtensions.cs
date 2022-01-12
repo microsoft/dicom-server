@@ -6,10 +6,6 @@
 using System;
 using System.Text.Json;
 using EnsureThat;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Api.Features.Formatters;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -22,20 +18,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
             builder.AddJsonOptions(o => configure(o.JsonSerializerOptions));
             builder.Services.Configure(configure);
-            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<MvcOptions>, DicomJsonOutputFormatterPostConfigureOptions>());
 
             return builder;
-        }
-
-        private sealed class DicomJsonOutputFormatterPostConfigureOptions : IPostConfigureOptions<MvcOptions>
-        {
-            private readonly JsonOptions _jsonOptions;
-
-            public DicomJsonOutputFormatterPostConfigureOptions(IOptions<JsonOptions> jsonOptions)
-                => _jsonOptions = EnsureArg.IsNotNull(jsonOptions?.Value, nameof(jsonOptions));
-
-            public void PostConfigure(string name, MvcOptions options)
-                => options.OutputFormatters.Insert(0, new DicomJsonOutputFormatter(_jsonOptions));
         }
     }
 }
