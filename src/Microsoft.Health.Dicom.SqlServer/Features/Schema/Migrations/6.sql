@@ -116,47 +116,45 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTag_TagPath
     ON dbo.ExtendedQueryTag(TagPath);
 
 CREATE TABLE dbo.ExtendedQueryTagDateTime (
-    TagKey       INT           NOT NULL,
-    TagValue     DATETIME2 (7) NOT NULL,
-    StudyKey     BIGINT        NOT NULL,
-    SeriesKey    BIGINT        NULL,
-    InstanceKey  BIGINT        NULL,
-    Watermark    BIGINT        NOT NULL,
-    TagValueUtc  DATETIME2 (7) NULL,
-    PartitionKey INT           DEFAULT 1 NOT NULL
+    TagKey      INT           NOT NULL,
+    TagValue    DATETIME2 (7) NOT NULL,
+    StudyKey    BIGINT        NOT NULL,
+    SeriesKey   BIGINT        NULL,
+    InstanceKey BIGINT        NULL,
+    Watermark   BIGINT        NOT NULL,
+    TagValueUtc DATETIME2 (7) NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime
-    ON dbo.ExtendedQueryTagDateTime(TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey);
+    ON dbo.ExtendedQueryTagDateTime(TagKey, TagValue, StudyKey, SeriesKey, InstanceKey);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_StudyKey_SeriesKey_InstanceKey
-    ON dbo.ExtendedQueryTagDateTime(TagKey, PartitionKey, StudyKey, SeriesKey, InstanceKey)
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_TagKey_StudyKey_SeriesKey_InstanceKey
+    ON dbo.ExtendedQueryTagDateTime(TagKey, StudyKey, SeriesKey, InstanceKey)
     INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_PartitionKey_StudyKey_SeriesKey_InstanceKey
-    ON dbo.ExtendedQueryTagDateTime(PartitionKey, StudyKey, SeriesKey, InstanceKey) WITH (DATA_COMPRESSION = PAGE);
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_StudyKey_SeriesKey_InstanceKey
+    ON dbo.ExtendedQueryTagDateTime(StudyKey, SeriesKey, InstanceKey) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.ExtendedQueryTagDouble (
-    TagKey       INT        NOT NULL,
-    TagValue     FLOAT (53) NOT NULL,
-    StudyKey     BIGINT     NOT NULL,
-    SeriesKey    BIGINT     NULL,
-    InstanceKey  BIGINT     NULL,
-    Watermark    BIGINT     NOT NULL,
-    PartitionKey INT        DEFAULT 1 NOT NULL
+    TagKey      INT        NOT NULL,
+    TagValue    FLOAT (53) NOT NULL,
+    StudyKey    BIGINT     NOT NULL,
+    SeriesKey   BIGINT     NULL,
+    InstanceKey BIGINT     NULL,
+    Watermark   BIGINT     NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble
-    ON dbo.ExtendedQueryTagDouble(TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey);
+    ON dbo.ExtendedQueryTagDouble(TagKey, TagValue, StudyKey, SeriesKey, InstanceKey);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_PartitionKey_TagKey_StudyKey_SeriesKey_InstanceKey
-    ON dbo.ExtendedQueryTagDouble(TagKey, PartitionKey, StudyKey, SeriesKey, InstanceKey)
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_TagKey_StudyKey_SeriesKey_InstanceKey
+    ON dbo.ExtendedQueryTagDouble(TagKey, StudyKey, SeriesKey, InstanceKey)
     INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_PartitionKey_StudyKey_SeriesKey_InstanceKey
-    ON dbo.ExtendedQueryTagDouble(PartitionKey, StudyKey, SeriesKey, InstanceKey) WITH (DATA_COMPRESSION = PAGE);
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_StudyKey_SeriesKey_InstanceKey
+    ON dbo.ExtendedQueryTagDouble(StudyKey, SeriesKey, InstanceKey) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.ExtendedQueryTagError (
     TagKey      INT           NOT NULL,
@@ -176,25 +174,24 @@ CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagError_Watermark
     ON dbo.ExtendedQueryTagError(Watermark);
 
 CREATE TABLE dbo.ExtendedQueryTagLong (
-    TagKey       INT    NOT NULL,
-    TagValue     BIGINT NOT NULL,
-    StudyKey     BIGINT NOT NULL,
-    SeriesKey    BIGINT NULL,
-    InstanceKey  BIGINT NULL,
-    Watermark    BIGINT NOT NULL,
-    PartitionKey INT    DEFAULT 1 NOT NULL
+    TagKey      INT    NOT NULL,
+    TagValue    BIGINT NOT NULL,
+    StudyKey    BIGINT NOT NULL,
+    SeriesKey   BIGINT NULL,
+    InstanceKey BIGINT NULL,
+    Watermark   BIGINT NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong
-    ON dbo.ExtendedQueryTagLong(TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey);
+    ON dbo.ExtendedQueryTagLong(TagKey, TagValue, StudyKey, SeriesKey, InstanceKey);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_PartitionKey_TagKey_StudyKey_SeriesKey_InstanceKey
-    ON dbo.ExtendedQueryTagLong(TagKey, PartitionKey, StudyKey, SeriesKey, InstanceKey)
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_TagKey_StudyKey_SeriesKey_InstanceKey
+    ON dbo.ExtendedQueryTagLong(TagKey, StudyKey, SeriesKey, InstanceKey)
     INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_PartitionKey_StudyKey_SeriesKey_InstanceKey
-    ON dbo.ExtendedQueryTagLong(PartitionKey, StudyKey, SeriesKey, InstanceKey) WITH (DATA_COMPRESSION = PAGE);
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_StudyKey_SeriesKey_InstanceKey
+    ON dbo.ExtendedQueryTagLong(StudyKey, SeriesKey, InstanceKey) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.ExtendedQueryTagOperation (
     TagKey      INT              NOT NULL,
@@ -216,44 +213,42 @@ CREATE TABLE dbo.ExtendedQueryTagPersonName (
     InstanceKey        BIGINT         NULL,
     Watermark          BIGINT         NOT NULL,
     WatermarkAndTagKey AS             CONCAT(TagKey, '.', Watermark),
-    TagValueWords      AS             REPLACE(REPLACE(TagValue, '^', ' '), '=', ' ') PERSISTED,
-    PartitionKey       INT            DEFAULT 1 NOT NULL
+    TagValueWords      AS             REPLACE(REPLACE(TagValue, '^', ' '), '=', ' ') PERSISTED
 )
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName
-    ON dbo.ExtendedQueryTagPersonName(TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey);
+    ON dbo.ExtendedQueryTagPersonName(TagKey, TagValue, StudyKey, SeriesKey, InstanceKey);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_PartitionKey_TagKey_StudyKey_SeriesKey_InstanceKey
-    ON dbo.ExtendedQueryTagPersonName(TagKey, PartitionKey, StudyKey, SeriesKey, InstanceKey)
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_TagKey_StudyKey_SeriesKey_InstanceKey
+    ON dbo.ExtendedQueryTagPersonName(TagKey, StudyKey, SeriesKey, InstanceKey)
     INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_PartitionKey_StudyKey_SeriesKey_InstanceKey
-    ON dbo.ExtendedQueryTagPersonName(PartitionKey, StudyKey, SeriesKey, InstanceKey) WITH (DATA_COMPRESSION = PAGE);
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_StudyKey_SeriesKey_InstanceKey
+    ON dbo.ExtendedQueryTagPersonName(StudyKey, SeriesKey, InstanceKey) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE NONCLUSTERED INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey
     ON dbo.ExtendedQueryTagPersonName(WatermarkAndTagKey) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.ExtendedQueryTagString (
-    TagKey       INT           NOT NULL,
-    TagValue     NVARCHAR (64) NOT NULL,
-    StudyKey     BIGINT        NOT NULL,
-    SeriesKey    BIGINT        NULL,
-    InstanceKey  BIGINT        NULL,
-    Watermark    BIGINT        NOT NULL,
-    PartitionKey INT           DEFAULT 1 NOT NULL
+    TagKey      INT           NOT NULL,
+    TagValue    NVARCHAR (64) NOT NULL,
+    StudyKey    BIGINT        NOT NULL,
+    SeriesKey   BIGINT        NULL,
+    InstanceKey BIGINT        NULL,
+    Watermark   BIGINT        NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString
-    ON dbo.ExtendedQueryTagString(TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey);
+    ON dbo.ExtendedQueryTagString(TagKey, TagValue, StudyKey, SeriesKey, InstanceKey);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagString_PartitionKey_TagKey_StudyKey_SeriesKey_InstanceKey
-    ON dbo.ExtendedQueryTagString(TagKey, PartitionKey, StudyKey, SeriesKey, InstanceKey)
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagString_TagKey_StudyKey_SeriesKey_InstanceKey
+    ON dbo.ExtendedQueryTagString(TagKey, StudyKey, SeriesKey, InstanceKey)
     INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagString_PartitionKey_StudyKey_SeriesKey_InstanceKey
-    ON dbo.ExtendedQueryTagString(PartitionKey, StudyKey, SeriesKey, InstanceKey) WITH (DATA_COMPRESSION = PAGE);
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagString_StudyKey_SeriesKey_InstanceKey
+    ON dbo.ExtendedQueryTagString(StudyKey, SeriesKey, InstanceKey) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.Instance (
     InstanceKey           BIGINT        NOT NULL,
@@ -293,13 +288,13 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_Watermark_Status
     ON dbo.Instance(Watermark, Status)
     INCLUDE(PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_Instance_SeriesKey_Status_Watermark
-    ON dbo.Instance(SeriesKey, Status, Watermark)
-    INCLUDE(StudyInstanceUid, SeriesInstanceUid, SopInstanceUid) WITH (DATA_COMPRESSION = PAGE);
+CREATE NONCLUSTERED INDEX IX_Instance_SeriesKey_Status
+    ON dbo.Instance(SeriesKey, Status)
+    INCLUDE(StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_Instance_StudyKey_Status_Watermark
-    ON dbo.Instance(StudyKey, Status, Watermark)
-    INCLUDE(StudyInstanceUid, SeriesInstanceUid, SopInstanceUid) WITH (DATA_COMPRESSION = PAGE);
+CREATE NONCLUSTERED INDEX IX_Instance_StudyKey_Status
+    ON dbo.Instance(StudyKey, Status)
+    INCLUDE(StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.Partition (
     PartitionKey  INT           NOT NULL,
@@ -985,7 +980,7 @@ BEGIN
     INSERT  INTO dbo.Instance (PartitionKey, StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
     VALUES                   (@partitionKey, @studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate);
     BEGIN TRY
-        EXECUTE dbo.IIndexInstanceCore @partitionKey, @studyKey, @seriesKey, @instanceKey, @newWatermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
+        EXECUTE dbo.IIndexInstanceCore @studyKey, @seriesKey, @instanceKey, @newWatermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
     END TRY
     BEGIN CATCH
         THROW;
@@ -1360,28 +1355,23 @@ IF EXISTS (SELECT *
 DELETE dbo.ExtendedQueryTagString
 WHERE  StudyKey = @studyKey
        AND SeriesKey = ISNULL(@seriesKey, SeriesKey)
-       AND InstanceKey = ISNULL(@instanceKey, InstanceKey)
-       AND PartitionKey = @partitionKey;
+       AND InstanceKey = ISNULL(@instanceKey, InstanceKey);
 DELETE dbo.ExtendedQueryTagLong
 WHERE  StudyKey = @studyKey
        AND SeriesKey = ISNULL(@seriesKey, SeriesKey)
-       AND InstanceKey = ISNULL(@instanceKey, InstanceKey)
-       AND PartitionKey = @partitionKey;
+       AND InstanceKey = ISNULL(@instanceKey, InstanceKey);
 DELETE dbo.ExtendedQueryTagDouble
 WHERE  StudyKey = @studyKey
        AND SeriesKey = ISNULL(@seriesKey, SeriesKey)
-       AND InstanceKey = ISNULL(@instanceKey, InstanceKey)
-       AND PartitionKey = @partitionKey;
+       AND InstanceKey = ISNULL(@instanceKey, InstanceKey);
 DELETE dbo.ExtendedQueryTagDateTime
 WHERE  StudyKey = @studyKey
        AND SeriesKey = ISNULL(@seriesKey, SeriesKey)
-       AND InstanceKey = ISNULL(@instanceKey, InstanceKey)
-       AND PartitionKey = @partitionKey;
+       AND InstanceKey = ISNULL(@instanceKey, InstanceKey);
 DELETE dbo.ExtendedQueryTagPersonName
 WHERE  StudyKey = @studyKey
        AND SeriesKey = ISNULL(@seriesKey, SeriesKey)
-       AND InstanceKey = ISNULL(@instanceKey, InstanceKey)
-       AND PartitionKey = @partitionKey;
+       AND InstanceKey = ISNULL(@instanceKey, InstanceKey);
 INSERT INTO dbo.DeletedInstance (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
 SELECT PartitionKey,
        StudyInstanceUid,
@@ -1422,24 +1412,19 @@ IF NOT EXISTS (SELECT *
                AND PartitionKey = @partitionKey;
         DELETE dbo.ExtendedQueryTagString
         WHERE  StudyKey = @studyKey
-               AND SeriesKey = ISNULL(@seriesKey, SeriesKey)
-               AND PartitionKey = @partitionKey;
+               AND SeriesKey = ISNULL(@seriesKey, SeriesKey);
         DELETE dbo.ExtendedQueryTagLong
         WHERE  StudyKey = @studyKey
-               AND SeriesKey = ISNULL(@seriesKey, SeriesKey)
-               AND PartitionKey = @partitionKey;
+               AND SeriesKey = ISNULL(@seriesKey, SeriesKey);
         DELETE dbo.ExtendedQueryTagDouble
         WHERE  StudyKey = @studyKey
-               AND SeriesKey = ISNULL(@seriesKey, SeriesKey)
-               AND PartitionKey = @partitionKey;
+               AND SeriesKey = ISNULL(@seriesKey, SeriesKey);
         DELETE dbo.ExtendedQueryTagDateTime
         WHERE  StudyKey = @studyKey
-               AND SeriesKey = ISNULL(@seriesKey, SeriesKey)
-               AND PartitionKey = @partitionKey;
+               AND SeriesKey = ISNULL(@seriesKey, SeriesKey);
         DELETE dbo.ExtendedQueryTagPersonName
         WHERE  StudyKey = @studyKey
-               AND SeriesKey = ISNULL(@seriesKey, SeriesKey)
-               AND PartitionKey = @partitionKey;
+               AND SeriesKey = ISNULL(@seriesKey, SeriesKey);
     END
 IF NOT EXISTS (SELECT *
                FROM   dbo.Series WITH (HOLDLOCK, UPDLOCK)
@@ -1450,20 +1435,15 @@ IF NOT EXISTS (SELECT *
         WHERE  StudyKey = @studyKey
                AND PartitionKey = @partitionKey;
         DELETE dbo.ExtendedQueryTagString
-        WHERE  StudyKey = @studyKey
-               AND PartitionKey = @partitionKey;
+        WHERE  StudyKey = @studyKey;
         DELETE dbo.ExtendedQueryTagLong
-        WHERE  StudyKey = @studyKey
-               AND PartitionKey = @partitionKey;
+        WHERE  StudyKey = @studyKey;
         DELETE dbo.ExtendedQueryTagDouble
-        WHERE  StudyKey = @studyKey
-               AND PartitionKey = @partitionKey;
+        WHERE  StudyKey = @studyKey;
         DELETE dbo.ExtendedQueryTagDateTime
-        WHERE  StudyKey = @studyKey
-               AND PartitionKey = @partitionKey;
+        WHERE  StudyKey = @studyKey;
         DELETE dbo.ExtendedQueryTagPersonName
-        WHERE  StudyKey = @studyKey
-               AND PartitionKey = @partitionKey;
+        WHERE  StudyKey = @studyKey;
     END
 COMMIT TRANSACTION;
 
@@ -1819,7 +1799,7 @@ END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCore
-@partitionKey INT=1, @studyKey BIGINT, @seriesKey BIGINT, @instanceKey BIGINT, @watermark BIGINT, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
+@studyKey BIGINT, @seriesKey BIGINT, @instanceKey BIGINT, @watermark BIGINT, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
 BEGIN
     IF EXISTS (SELECT 1
@@ -1835,14 +1815,13 @@ BEGIN
                           dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
                           ON dbo.ExtendedQueryTag.TagKey = input.TagKey
                              AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                              AND T.PartitionKey = @partitionKey
                                                                               AND T.StudyKey = @studyKey
                                                                               AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
                                                                               AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
             WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
             SET T.Watermark = @watermark,
                 T.TagValue  = S.TagValue
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
+            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
         END
     IF EXISTS (SELECT 1
                FROM   @longExtendedQueryTags)
@@ -1857,14 +1836,13 @@ BEGIN
                           dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
                           ON dbo.ExtendedQueryTag.TagKey = input.TagKey
                              AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                              AND T.PartitionKey = @partitionKey
                                                                               AND T.StudyKey = @studyKey
                                                                               AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
                                                                               AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
             WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
             SET T.Watermark = @watermark,
                 T.TagValue  = S.TagValue
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
+            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
         END
     IF EXISTS (SELECT 1
                FROM   @doubleExtendedQueryTags)
@@ -1879,14 +1857,13 @@ BEGIN
                           dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
                           ON dbo.ExtendedQueryTag.TagKey = input.TagKey
                              AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                              AND T.PartitionKey = @partitionKey
                                                                               AND T.StudyKey = @studyKey
                                                                               AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
                                                                               AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
             WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
             SET T.Watermark = @watermark,
                 T.TagValue  = S.TagValue
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
+            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
         END
     IF EXISTS (SELECT 1
                FROM   @dateTimeExtendedQueryTags)
@@ -1902,7 +1879,6 @@ BEGIN
                           dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
                           ON dbo.ExtendedQueryTag.TagKey = input.TagKey
                              AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                              AND T.PartitionKey = @partitionKey
                                                                               AND T.StudyKey = @studyKey
                                                                               AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
                                                                               AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
@@ -1910,7 +1886,7 @@ BEGIN
             SET T.Watermark   = @watermark,
                 T.TagValue    = S.TagValue,
                 T.TagValueUtc = S.TagValueUtc
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark, TagValueUtc) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark, S.TagValueUtc);
+            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark, TagValueUtc) VALUES (S.TagKey, S.TagValue, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark, S.TagValueUtc);
         END
     IF EXISTS (SELECT 1
                FROM   @personNameExtendedQueryTags)
@@ -1925,14 +1901,13 @@ BEGIN
                           dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
                           ON dbo.ExtendedQueryTag.TagKey = input.TagKey
                              AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
-                                                                              AND T.PartitionKey = @partitionKey
                                                                               AND T.StudyKey = @studyKey
                                                                               AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
                                                                               AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
             WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
             SET T.Watermark = @watermark,
                 T.TagValue  = S.TagValue
-            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
+            WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, StudyKey, SeriesKey, InstanceKey, Watermark) VALUES (S.TagKey, S.TagValue, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark);
         END
 END
 
@@ -2236,13 +2211,11 @@ BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
-    DECLARE @partitionKey AS BIGINT;
     DECLARE @studyKey AS BIGINT;
     DECLARE @seriesKey AS BIGINT;
     DECLARE @instanceKey AS BIGINT;
     DECLARE @status AS TINYINT;
-    SELECT @partitionKey = PartitionKey,
-           @studyKey = StudyKey,
+    SELECT @studyKey = StudyKey,
            @seriesKey = SeriesKey,
            @instanceKey = InstanceKey,
            @status = Status
@@ -2253,7 +2226,7 @@ BEGIN
     IF @status <> 1
         THROW 50409, 'Instance has not yet been stored succssfully', 1;
     BEGIN TRY
-        EXECUTE dbo.IIndexInstanceCore @partitionKey, @studyKey, @seriesKey, @instanceKey, @watermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
+        EXECUTE dbo.IIndexInstanceCore @studyKey, @seriesKey, @instanceKey, @watermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
     END TRY
     BEGIN CATCH
         THROW;
