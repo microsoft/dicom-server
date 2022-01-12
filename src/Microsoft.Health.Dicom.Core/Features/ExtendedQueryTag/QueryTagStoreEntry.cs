@@ -6,18 +6,18 @@
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     /// <summary>
-    /// Representation of a extended query tag entry.
+    /// Representation of a workitem query tag entry.
     /// </summary>
-    public abstract class ExtendedQueryTagEntry : QueryTagEntry
+    public class WorkitemQueryTagStoreEntry : QueryTagEntry
     {
         /// <summary>
-        /// Identification code of private tag implementer.
+        /// Key of this extended query tag entry.
         /// </summary>
-        public string PrivateCreator { get; set; }
+        public int Key { get; }
 
-        public override string ToString()
-        {
-            return $"Path: {Path}, VR:{VR}, PrivateCreator:{PrivateCreator}";
-        }
+        /// <summary>
+        /// Query status of this tag.
+        /// </summary>
+        public QueryStatus QueryStatus { get; }
     }
 }

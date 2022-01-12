@@ -4,16 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using Dicom;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
@@ -26,17 +22,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     {
         private readonly bool _enableFullDicomItemValidation;
         private readonly IElementMinimumValidator _minimumValidator;
-        private readonly IQueryTagService _queryTagService;
 
-        public AddWorkitemDatasetValidator(IOptions<FeatureConfiguration> featureConfiguration, IElementMinimumValidator minimumValidator, IQueryTagService queryTagService)
+        public AddWorkitemDatasetValidator(IOptions<FeatureConfiguration> featureConfiguration, IElementMinimumValidator minimumValidator)
         {
             EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
             EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
-            EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
 
             _enableFullDicomItemValidation = featureConfiguration.Value.EnableFullDicomItemValidation;
             _minimumValidator = minimumValidator;
-            _queryTagService = queryTagService;
         }
 
         public void Validate(DicomDataset dicomDataset, string workitemInstanceUid)
@@ -49,11 +42,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             if (_enableFullDicomItemValidation)
             {
                 ValidateAllItems(dicomDataset);
-            }
-            else
-            {
-                // TODO Validate all the indexed items.
-                // ValidateIndexedItems(dicomDataset);
             }
         }
 
@@ -131,15 +119,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                         CultureInfo.InvariantCulture,
                         DicomCoreResource.MissingRequiredTag,
                         dicomTag.ToString()));
-            }
-        }
-
-        private void ValidateIndexedItems(DicomDataset dicomDataset)
-        {
-            IReadOnlyCollection<QueryTag> queryTags = QueryLimit.IndexedWorkItemQueryTags.Select(x => new QueryTag(x)).ToList();
-            foreach (QueryTag queryTag in queryTags)
-            {
-                dicomDataset.ValidateQueryTag(queryTag, _minimumValidator);
             }
         }
 

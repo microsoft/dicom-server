@@ -28,6 +28,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             { DicomVR.PN, new PersonNameValidation() },
             { DicomVR.SH, new ElementMaxLengthValidation(16) },
             { DicomVR.SL, new ElementRequiredLengthValidation(4) },
+            { DicomVR.SQ, new SequenceValidator() },
             { DicomVR.SS, new ElementRequiredLengthValidation(2) },
             { DicomVR.TM, new TimeValidation() },
             { DicomVR.UI, new UidValidation() },

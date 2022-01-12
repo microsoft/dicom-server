@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
@@ -14,6 +13,7 @@ using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Query;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -51,11 +51,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             {
                 int partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
-                // TODO: generate QueryTags list for workitem
-                var queryTags = new List<QueryTag>();
+                var queryTags = QueryLimit.IndexedWorkitemQueryTags;
 
                 long workitemKey = await _indexWorkitemStore
-                    .AddWorkitemAsync(partitionKey, dataset, queryTags, cancellationToken)
+                    .AddWorkitemAsync(partitionKey, dataset, QueryLimit.IndexedWorkitemQueryTags, cancellationToken)
                     .ConfigureAwait(false);
 
                 // TODO: this needs to be done before storing the dataset in the Blob Store.
