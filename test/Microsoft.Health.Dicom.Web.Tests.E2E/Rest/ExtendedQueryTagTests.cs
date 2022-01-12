@@ -20,20 +20,17 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
-    public class ExtendedQueryTagTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
+    public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture<Startup>>, IAsyncLifetime
     {
         private const string ErroneousDicomAttributesHeader = "erroneous-dicom-attributes";
         private readonly IDicomWebClient _client;
         private readonly DicomTagsManager _tagManager;
         private readonly DicomInstancesManager _instanceManager;
-        private readonly bool _isUsingInProcTestServer;
 
-        public ExtendedQueryTagTests(HttpIntegrationTestFixture<Startup> fixture)
+        public ExtendedQueryTagTests(WebJobsIntegrationTestFixture<Startup> fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
-            EnsureArg.IsNotNull(fixture.Client, nameof(fixture.Client));
-            _client = fixture.Client;
-            _isUsingInProcTestServer = fixture.IsUsingInProcTestServer;
+            _client = fixture.GetDicomWebClient();
             _tagManager = new DicomTagsManager(_client);
             _instanceManager = new DicomInstancesManager(_client);
         }
@@ -42,12 +39,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         // [Trait("Category", "bvt")] // TODO: Enable once functions are enabled in PAAS
         public async Task GivenExtendedQueryTag_WhenReindexing_ThenShouldSucceed()
         {
-            if (_isUsingInProcTestServer)
-            {
-                // AzureFunction doesn't have InProc test sever, skip this test.
-                return;
-            }
-
             DicomTag weightTag = DicomTag.PatientWeight;
             DicomTag sizeTag = DicomTag.PatientSize;
 
@@ -103,12 +94,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenExtendedQueryTagWithErrors_WhenReindexing_ThenShouldSucceedWithErrors()
         {
-            if (_isUsingInProcTestServer)
-            {
-                // AzureFunction doesn't have InProc test sever, skip this test.
-                return;
-            }
-
             // Define tags
             DicomTag tag = DicomTag.PatientAge;
             string tagValue = "053Y";
@@ -230,9 +215,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         public Task InitializeAsync()
-        {
-            return Task.CompletedTask;
-        }
+            => Task.CompletedTask;
 
         public async Task DisposeAsync()
         {

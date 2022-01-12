@@ -32,24 +32,10 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Context
             Assert.Equal(new Uri("https://localhost:30/studies"), dicomRequestContext.BaseUri);
         }
 
-        [Fact]
-        public async Task GivenAnHttpRequest_WhenExecutingDicomRequestContextMiddleware_ThenResponseSizeShouldBeSet()
-        {
-            long largeRequestLength = 2000000000; // 2gb
-            long headerSize = 2;
-            IDicomRequestContext dicomRequestContext = await SetupAsync(CreateHttpContext(), largeRequestLength);
-
-            Assert.Equal(largeRequestLength + headerSize, dicomRequestContext.ResponseSize);
-        }
-
-        private async Task<IDicomRequestContext> SetupAsync(HttpContext httpContext, long byteLength = 256)
+        private async Task<IDicomRequestContext> SetupAsync(HttpContext httpContext)
         {
             var dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-            var dicomContextMiddleware = new DicomRequestContextMiddleware(next: (innerHttpContext) =>
-            {
-                innerHttpContext.Response.Body.Write(new byte[byteLength]);
-                return Task.CompletedTask;
-            });
+            var dicomContextMiddleware = new DicomRequestContextMiddleware(next: (innerHttpContext) => Task.CompletedTask);
 
             await dicomContextMiddleware.Invoke(httpContext, dicomRequestContextAccessor);
 

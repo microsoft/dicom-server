@@ -3,14 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Azure.Cosmos.Table;
+using System;
+using Azure;
+using Azure.Data.Tables;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities
 {
     /// <summary>
     /// Entity used to check health of table storage
     /// </summary>
-    public class HealthEntity : TableEntity
+    public class HealthEntity : ITableEntity
     {
         public HealthEntity()
         {
@@ -23,5 +25,9 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Entities
         }
 
         public string Data { get; set; }
+        public string PartitionKey { get; set; }
+        public string RowKey { get; set; }
+        public DateTimeOffset? Timestamp { get; set; }
+        public ETag ETag { get; set; }
     }
 }

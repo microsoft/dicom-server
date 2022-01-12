@@ -12,15 +12,13 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Blob.Features.Storage;
+using Microsoft.Health.Dicom.Blob;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Features.Common;
-using Microsoft.Health.Dicom.Metadata.Features.Storage;
 using Microsoft.Health.Dicom.Tests.Common.Serialization;
 using Microsoft.IO;
 using NSubstitute;
 using Xunit;
-using BlobConstants = Microsoft.Health.Dicom.Blob.Constants;
-using MetadataConstants = Microsoft.Health.Dicom.Metadata.Constants;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
@@ -55,8 +53,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         public async Task InitializeAsync()
         {
             IOptionsMonitor<BlobContainerConfiguration> optionsMonitor = Substitute.For<IOptionsMonitor<BlobContainerConfiguration>>();
-            optionsMonitor.Get(BlobConstants.ContainerConfigurationName).Returns(_blobContainerConfiguration);
-            optionsMonitor.Get(MetadataConstants.ContainerConfigurationName).Returns(_metadataContainerConfiguration);
+            optionsMonitor.Get(Constants.BlobContainerConfigurationName).Returns(_blobContainerConfiguration);
+            optionsMonitor.Get(Constants.MetadataContainerConfigurationName).Returns(_metadataContainerConfiguration);
 
             IBlobClientTestProvider testProvider = new BlobClientReadWriteTestProvider(RecyclableMemoryStreamManager, NullLogger<BlobClientReadWriteTestProvider>.Instance);
 

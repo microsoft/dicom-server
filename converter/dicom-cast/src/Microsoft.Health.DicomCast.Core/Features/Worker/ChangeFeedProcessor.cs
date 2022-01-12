@@ -92,9 +92,9 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                     {
                         if (ex is FhirNonRetryableException || ex is DicomTagException || ex is TimeoutRejectedException)
                         {
-                            string studyUid = changeFeedEntry.StudyInstanceUid;
-                            string seriesUid = changeFeedEntry.SeriesInstanceUid;
-                            string instanceUid = changeFeedEntry.SopInstanceUid;
+                            string studyInstanceUid = changeFeedEntry.StudyInstanceUid;
+                            string seriesInstanceUid = changeFeedEntry.SeriesInstanceUid;
+                            string sopInstanceUid = changeFeedEntry.SopInstanceUid;
                             long changeFeedSequence = changeFeedEntry.Sequence;
 
                             ErrorType errorType = ErrorType.FhirError;
@@ -114,7 +114,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                                 errorType,
                                 cancellationToken);
 
-                            _logger.LogError("Failed to process DICOM event with SequenceID: {SequenceId}, StudyUid: {StudyUid}, SeriesUid: {SeriesUid}, instanceUid: {InstanceUid}  and will not be retried further. Continuing to next event.", changeFeedEntry.Sequence, studyUid, seriesUid, instanceUid);
+                            _logger.LogError("Failed to process DICOM event with SequenceID: {SequenceId}, StudyUid: {StudyInstanceUid}, SeriesUid: {SeriesInstanceUid}, instanceUid: {SopInstanceUid}  and will not be retried further. Continuing to next event.", changeFeedEntry.Sequence, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
                         }
                         else
                         {

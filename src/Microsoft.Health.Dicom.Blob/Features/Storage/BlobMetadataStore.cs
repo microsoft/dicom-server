@@ -23,7 +23,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.IO;
 
-namespace Microsoft.Health.Dicom.Metadata.Features.Storage
+namespace Microsoft.Health.Dicom.Blob.Features.Storage
 {
     /// <summary>
     /// Provides functionality for managing the DICOM instance metadata.
@@ -48,7 +48,8 @@ namespace Microsoft.Health.Dicom.Metadata.Features.Storage
             EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
             EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
 
-            BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor.Get(Constants.ContainerConfigurationName);
+            BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
+                .Get(Constants.MetadataContainerConfigurationName);
 
             _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
             _jsonSerializerOptions = jsonSerializerOptions.Value;

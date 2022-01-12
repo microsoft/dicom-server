@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
+    <Description>An example Azure Function app that supports Microsoft's Medical Imaging Server for DICOM.</Description>
     <FunctionsInDependencies>true</FunctionsInDependencies>
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>

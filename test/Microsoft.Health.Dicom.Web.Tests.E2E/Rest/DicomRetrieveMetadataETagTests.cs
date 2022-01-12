@@ -16,19 +16,22 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Serialization;
+using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.Net.Http.Headers;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
-    public class DicomRetrieveMetadataETagTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
+    public class DicomRetrieveMetadataETagTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
     {
         private readonly IDicomWebClient _client;
+        private readonly DicomInstancesManager _instancesManager;
 
         public DicomRetrieveMetadataETagTests(HttpIntegrationTestFixture<Startup> fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
-            _client = fixture.Client;
+            _client = fixture.GetDicomWebClient();
+            _instancesManager = new DicomInstancesManager(_client);
         }
 
         [Fact]
@@ -319,6 +322,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             ValidateResponseMetadataDataset(storedInstance, datasets[0]);
         }
 
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
+        {
+            await _instancesManager.DisposeAsync();
+        }
+
         private string GetEtagFromResponse(DicomWebAsyncEnumerableResponse<DicomDataset> response)
         {
             string eTag = null;
@@ -356,7 +366,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 dicomFile.Dataset.AddOrUpdate(dataSet);
             }
 
-            using DicomWebResponse<DicomDataset> response = await _client.StoreAsync(new[] { dicomFile });
+            using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile });
 
             return dicomFile.Dataset;
         }

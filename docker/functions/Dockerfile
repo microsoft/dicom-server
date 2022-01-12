@@ -13,7 +13,7 @@ RUN chown -R nonroot:nonroot /azure-functions-host
 USER nonroot
 
 # Copy the DICOM Server repository and build the Azure Functions project
-FROM mcr.microsoft.com/dotnet/sdk:6.0.100-alpine3.14@sha256:1d9d66775f0d67cb68af9c7a083d22b576ea96f3f7a6893660d48f536b73e59f AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0.101-alpine3.14@sha256:26b148be9e01d12985108fc3e02fbfd30e502baff4174755d2ce0dcbf22503f7 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /dicom-server
 COPY . .

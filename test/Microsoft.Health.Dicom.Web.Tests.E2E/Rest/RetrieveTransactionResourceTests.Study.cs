@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomFile inputDicomFile = DicomFile.Open(transcoderTestData.InputDicomFile);
             var instanceId = RandomizeInstanceIdentifier(inputDicomFile.Dataset);
 
-            await InternalStoreAsync(new[] { inputDicomFile });
+            await _instancesManager.StoreAsync(new[] { inputDicomFile });
             using DicomWebAsyncEnumerableResponse<DicomFile> response = await _client.RetrieveStudyAsync(instanceId.StudyInstanceUid, transferSyntax);
 
             Assert.Equal(DicomWebConstants.MultipartRelatedMediaType, response.ContentHeaders.ContentType.MediaType);
@@ -87,7 +87,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 TestUidGenerator.Generate(),
                 transferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID);
 
-            await InternalStoreAsync(new[] { dicomFile1, dicomFile2, dicomFile3 });
+            await _instancesManager.StoreAsync(new[] { dicomFile1, dicomFile2, dicomFile3 });
 
             using DicomWebAsyncEnumerableResponse<DicomFile> response = await _client.RetrieveStudyAsync(studyInstanceUid);
 
@@ -117,7 +117,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 transferSyntax: DicomTransferSyntax.MPEG2.UID.UID,
                 encode: false);
 
-            await InternalStoreAsync(new[] { dicomFile1, dicomFile2 });
+            await _instancesManager.StoreAsync(new[] { dicomFile1, dicomFile2 });
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveStudyAsync(studyInstanceUid, dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID));
             Assert.Equal(HttpStatusCode.NotAcceptable, exception.StatusCode);
         }
@@ -138,7 +138,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 transferSyntax: DicomTransferSyntax.MPEG2.UID.UID,
                 encode: false);
 
-            await InternalStoreAsync(new[] { dicomFile1, dicomFile2 });
+            await _instancesManager.StoreAsync(new[] { dicomFile1, dicomFile2 });
 
             using DicomWebAsyncEnumerableResponse<DicomFile> response = await _client.RetrieveStudyAsync(studyInstanceUid, dicomTransferSyntax: "*");
 
@@ -164,7 +164,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
             var studyInstanceUid = TestUidGenerator.Generate();
             DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUid);
-            await InternalStoreAsync(new[] { dicomFile1 });
+            await _instancesManager.StoreAsync(new[] { dicomFile1 });
 
             using DicomWebAsyncEnumerableResponse<DicomFile> response = await _client.RetrieveStudyAsync(studyInstanceUid, dicomTransferSyntax: "*");
 
