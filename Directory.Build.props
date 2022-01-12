@@ -17,7 +17,8 @@
     <Hl7FhirPackageVersion>3.6.0</Hl7FhirPackageVersion>
     <LangVersion>Latest</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Platform>x64</Platform>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
     <Product>Microsoft Health</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <SdkPackageVersion>6.0.0</SdkPackageVersion>

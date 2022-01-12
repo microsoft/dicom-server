@@ -10,12 +10,19 @@ namespace Microsoft.Health.Dicom.Tests.Common.Serialization
 {
     public static class AppSerializerOptions
     {
-        public static JsonSerializerOptions Json { get; private set; }
+        public static JsonSerializerOptions Json { get; } = CreateJsonSerializerOptions();
 
-        static AppSerializerOptions()
+        private static JsonSerializerOptions CreateJsonSerializerOptions()
         {
-            Json = new JsonSerializerOptions();
-            Json.Converters.Add(new DicomJsonConverter());
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            };
+
+            options.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false));
+
+            return options;
         }
     }
 }

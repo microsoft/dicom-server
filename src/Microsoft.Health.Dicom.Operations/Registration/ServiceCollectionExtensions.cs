@@ -55,7 +55,13 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddFellowOakDicomExtension()
                 .AddFunctionsOptions<QueryTagIndexingOptions>(configuration, QueryTagIndexingOptions.SectionName, bindNonPublicProperties: true)
                 .AddFunctionsOptions<PurgeHistoryOptions>(configuration, PurgeHistoryOptions.SectionName)
-                .AddJsonSerializerOptions());
+                .AddJsonSerializerOptions(o =>
+                {
+                    o.Converters.Add(new JsonStringEnumConverter());
+                    o.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false));
+                    o.PropertyNameCaseInsensitive = true;
+                    o.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                }));
         }
 
         /// <summary>
@@ -143,20 +149,15 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        private static IServiceCollection AddJsonSerializerOptions(this IServiceCollection services)
+        private static IServiceCollection AddJsonSerializerOptions(this IServiceCollection services, Action<JsonSerializerOptions> configure)
         {
             EnsureArg.IsNotNull(services, nameof(services));
+            EnsureArg.IsNotNull(configure, nameof(configure));
 
             // TODO: Configure System.Text.Json for Azure Functions MVC services when available
             //       and if we decide to expose HTTP services
             //builder.AddJsonOptions(o => configure(o.JsonSerializerOptions));
-            return services.Configure<JsonSerializerOptions>(o =>
-            {
-                o.Converters.Add(new JsonStringEnumConverter());
-                o.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false));
-                o.PropertyNameCaseInsensitive = true;
-                o.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-            });
+            return services.Configure(configure);
         }
 
         private sealed class FellowOakExtensionConfiguration : IExtensionConfigProvider
