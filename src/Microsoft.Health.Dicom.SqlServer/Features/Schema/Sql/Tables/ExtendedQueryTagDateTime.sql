@@ -24,7 +24,7 @@ CREATE TABLE dbo.ExtendedQueryTagDateTime (
     ResourceType            TINYINT              NOT NULL DEFAULT 0     
 ) WITH (DATA_COMPRESSION = PAGE)
 
--- Used in QIDO
+-- Used in QIDO, PartitionKey is moved down to support cross partition query in future
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryTagDateTime
 (
     ResourceType,
