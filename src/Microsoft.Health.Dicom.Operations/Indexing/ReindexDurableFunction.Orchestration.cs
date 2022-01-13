@@ -57,9 +57,9 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
             if (queryTags.Count > 0)
             {
                 IReadOnlyList<WatermarkRange> batches = await context.CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                    nameof(GetInstanceBatchesAsync),
+                    nameof(GetInstanceBatchesV2Async),
                     _options.ActivityRetryOptions,
-                    input.Completed?.Start - 1);
+                    BatchCreationArguments.FromOptions(input.Completed?.Start - 1, _options));
 
                 if (batches.Count > 0)
                 {
@@ -69,9 +69,9 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
                     logger.LogInformation("Beginning to re-index the range {Range}.", batchRange);
                     await Task.WhenAll(batches
                         .Select(x => context.CallActivityWithRetryAsync(
-                            nameof(ReindexBatchAsync),
+                            nameof(ReindexBatchV2Async),
                             _options.ActivityRetryOptions,
-                            new ReindexBatch { QueryTags = queryTags, WatermarkRange = x })));
+                            ReindexBatchArguments.FromOptions(queryTags, x, _options))));
 
                     // Create a new orchestration with the same instance ID to process the remaining data
                     logger.LogInformation("Completed re-indexing the range {Range}. Continuing with new execution...", batchRange);
@@ -80,12 +80,7 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
                         ? new WatermarkRange(batchRange.Start, input.Completed.Value.End)
                         : batchRange;
 
-                    context.ContinueAsNew(
-                        new ReindexInput
-                        {
-                            QueryTagKeys = queryTagKeys,
-                            Completed = completed,
-                        });
+                    context.ContinueAsNew(new ReindexInput { QueryTagKeys = queryTagKeys, Completed = completed });
                 }
                 else
                 {
