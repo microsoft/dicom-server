@@ -84,7 +84,8 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
         }
 
         [Fact]
-        public async Task GivenNoWatermark_WhenGettingInstanceBatches_ThenShouldInvokeCorrectMethod()
+        [Obsolete]
+        public async Task GivenLegacyActivityAndNoWatermark_WhenGettingInstanceBatches_ThenShouldInvokeCorrectMethod()
         {
             IReadOnlyList<WatermarkRange> expected = new List<WatermarkRange> { new WatermarkRange(12345, 678910) };
             _instanceStore
@@ -102,7 +103,8 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
         }
 
         [Fact]
-        public async Task GivenWatermark_WhenGettingInstanceBatches_ThenShouldInvokeCorrectMethod()
+        [Obsolete]
+        public async Task GivenLegacyActivityAndWatermark_WhenGettingInstanceBatches_ThenShouldInvokeCorrectMethod()
         {
             IReadOnlyList<WatermarkRange> expected = new List<WatermarkRange> { new WatermarkRange(10, 1000) };
             _instanceStore
@@ -120,7 +122,51 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
         }
 
         [Fact]
-        public async Task GivenBatch_WhenReindexing_ThenShouldReindexEachInstance()
+        public async Task GivenNoWatermark_WhenGettingInstanceBatches_ThenShouldInvokeCorrectMethod()
+        {
+            const int batchSize = 100;
+            const int maxParallelBatches = 3;
+
+            IReadOnlyList<WatermarkRange> expected = new List<WatermarkRange> { new WatermarkRange(12345, 678910) };
+            _instanceStore
+                .GetInstanceBatchesAsync(batchSize, maxParallelBatches, IndexStatus.Created, null, CancellationToken.None)
+                .Returns(expected);
+
+            IReadOnlyList<WatermarkRange> actual = await _reindexDurableFunction.GetInstanceBatchesV2Async(
+                new BatchCreationArguments(null, batchSize, maxParallelBatches),
+                NullLogger.Instance);
+
+            Assert.Same(expected, actual);
+            await _instanceStore
+                .Received(1)
+                .GetInstanceBatchesAsync(batchSize, maxParallelBatches, IndexStatus.Created, null, CancellationToken.None);
+        }
+
+        [Fact]
+        public async Task GivenWatermark_WhenGettingInstanceBatches_ThenShouldInvokeCorrectMethod()
+        {
+            const long watermark = 12345L;
+            const int batchSize = 100;
+            const int maxParallelBatches = 3;
+
+            IReadOnlyList<WatermarkRange> expected = new List<WatermarkRange> { new WatermarkRange(10, 1000) };
+            _instanceStore
+                .GetInstanceBatchesAsync(batchSize, maxParallelBatches, IndexStatus.Created, watermark, CancellationToken.None)
+                .Returns(expected);
+
+            IReadOnlyList<WatermarkRange> actual = await _reindexDurableFunction.GetInstanceBatchesV2Async(
+                new BatchCreationArguments(watermark, batchSize, maxParallelBatches),
+                NullLogger.Instance);
+
+            Assert.Same(expected, actual);
+            await _instanceStore
+                .Received(1)
+                .GetInstanceBatchesAsync(batchSize, maxParallelBatches, IndexStatus.Created, watermark, CancellationToken.None);
+        }
+
+        [Fact]
+        [Obsolete]
+        public async Task GivenLegacyActivity_WhenReindexing_ThenShouldReindexEachInstance()
         {
             var batch = new ReindexBatch
             {
@@ -165,6 +211,55 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
             foreach (VersionedInstanceIdentifier identifier in expected)
             {
                 await _instanceReindexer.Received(1).ReindexInstanceAsync(batch.QueryTags, identifier);
+            }
+        }
+
+        [Fact]
+        public async Task GivenBatch_WhenReindexing_ThenShouldReindexEachInstance()
+        {
+            const int threadCount = 7;
+            var args = new ReindexBatchArguments(
+                new List<ExtendedQueryTagStoreEntry>
+                {
+                    new ExtendedQueryTagStoreEntry(1, "01", "DT", "foo", QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding, QueryStatus.Enabled, 0),
+                    new ExtendedQueryTagStoreEntry(2, "02", "DT", null, QueryTagLevel.Series, ExtendedQueryTagStatus.Adding, QueryStatus.Enabled, 0),
+                    new ExtendedQueryTagStoreEntry(3, "03", "AS", "bar", QueryTagLevel.Study, ExtendedQueryTagStatus.Adding, QueryStatus.Enabled, 0),
+                },
+                new WatermarkRange(3, 10),
+                threadCount);
+
+            var expected = new List<VersionedInstanceIdentifier>
+            {
+                new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 3),
+                new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 4),
+                new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 5),
+                new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 6),
+                new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 7),
+                new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 8),
+                new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 9),
+            };
+
+            // Arrange input
+            _instanceStore
+                .GetInstanceIdentifiersByWatermarkRangeAsync(args.WatermarkRange, IndexStatus.Created, CancellationToken.None)
+                .Returns(expected);
+
+            foreach (VersionedInstanceIdentifier identifier in expected)
+            {
+                _instanceReindexer.ReindexInstanceAsync(args.QueryTags, identifier).Returns(true);
+            }
+
+            // Call the activity
+            await _reindexDurableFunction.ReindexBatchV2Async(args, NullLogger.Instance);
+
+            // Assert behavior
+            await _instanceStore
+                .Received(1)
+                .GetInstanceIdentifiersByWatermarkRangeAsync(args.WatermarkRange, IndexStatus.Created, CancellationToken.None);
+
+            foreach (VersionedInstanceIdentifier identifier in expected)
+            {
+                await _instanceReindexer.Received(1).ReindexInstanceAsync(args.QueryTags, identifier);
             }
         }
 
