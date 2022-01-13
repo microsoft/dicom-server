@@ -132,6 +132,17 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Fact]
+        public async Task GivenPartiallyDeletedExtendedQueryTag_WhenDeleteExtendedQueryTag_ThenTagShouldBeRemoved()
+        {
+            DicomTag tag = DicomTag.DeviceSerialNumber;
+            AddExtendedQueryTagEntry extendedQueryTagEntry = tag.BuildAddExtendedQueryTagEntry();
+            IReadOnlyList<int> keys = await AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { extendedQueryTagEntry });
+            await _extendedQueryTagStoreTestHelper.SetTagStatusAsync(keys.Single(), ExtendedQueryTagStatus.Deleting);
+            await _extendedQueryTagStore.DeleteExtendedQueryTagAsync(extendedQueryTagEntry.Path, extendedQueryTagEntry.VR);
+            await VerifyTagNotExistAsync(extendedQueryTagEntry.Path);
+        }
+
+        [Fact]
         public async Task GivenNonExistingExtendedQueryTag_WhenDeleteExtendedQueryTag_ThenShouldThrowException()
         {
             DicomTag tag = DicomTag.DeviceSerialNumber;

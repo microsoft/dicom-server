@@ -134,29 +134,63 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         public override async Task DeleteExtendedQueryTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default)
         {
-            using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
-            {
-                V2.DeleteExtendedQueryTag.PopulateCommand(sqlCommandWrapper, tagPath, (byte)ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[vr]);
+            using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
+            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
 
-                try
+            sqlCommandWrapper.CommandText = @"
+SET NOCOUNT     ON
+SET XACT_ABORT  ON
+
+BEGIN TRANSACTION
+
+    DECLARE @tagKey INT
+
+    SELECT @tagKey = TagKey
+    FROM dbo.ExtendedQueryTag
+    WHERE dbo.ExtendedQueryTag.TagPath = @tagPath
+
+    -- Check existence
+    IF @@ROWCOUNT = 0
+        THROW 50404, 'extended query tag not found', 1
+
+    -- Delete index data
+    IF @dataType = 0
+        DELETE FROM dbo.ExtendedQueryTagString WHERE TagKey = @tagKey
+    ELSE IF @dataType = 1
+        DELETE FROM dbo.ExtendedQueryTagLong WHERE TagKey = @tagKey
+    ELSE IF @dataType = 2
+        DELETE FROM dbo.ExtendedQueryTagDouble WHERE TagKey = @tagKey
+    ELSE IF @dataType = 3
+        DELETE FROM dbo.ExtendedQueryTagDateTime WHERE TagKey = @tagKey
+    ELSE
+        DELETE FROM dbo.ExtendedQueryTagPersonName WHERE TagKey = @tagKey
+
+    -- Delete tag
+    DELETE FROM dbo.ExtendedQueryTag
+    WHERE TagKey = @tagKey
+
+    DELETE FROM dbo.ExtendedQueryTagError
+    WHERE TagKey = @tagKey
+
+COMMIT TRANSACTION
+";
+
+            byte dataType = (byte)ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[vr];
+            sqlCommandWrapper.Parameters.Add(new SqlParameter("@tagPath", SqlDbType.VarChar, 64, ParameterDirection.Input, false, 0, 0, null, DataRowVersion.Current, tagPath));
+            sqlCommandWrapper.Parameters.Add(new SqlParameter("@dataType", SqlDbType.TinyInt, 0, ParameterDirection.Input, false, 0, 0, null, DataRowVersion.Current, dataType));
+
+            try
+            {
+                await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
+            }
+            catch (SqlException ex)
+            {
+                throw ex.Number switch
                 {
-                    await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
-                }
-                catch (SqlException ex)
-                {
-                    switch (ex.Number)
-                    {
-                        case SqlErrorCodes.NotFound:
-                            throw new ExtendedQueryTagNotFoundException(
-                                string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.ExtendedQueryTagNotFound, tagPath));
-                        case SqlErrorCodes.PreconditionFailed:
-                            throw new ExtendedQueryTagBusyException(
-                                string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.ExtendedQueryTagIsBusy, tagPath));
-                        default:
-                            throw new DataStoreException(ex);
-                    }
-                }
+                    SqlErrorCodes.NotFound => new ExtendedQueryTagNotFoundException(
+                        string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.ExtendedQueryTagNotFound, tagPath)),
+                    _ => new DataStoreException(ex),
+                };
             }
         }
 
