@@ -25,10 +25,10 @@ CREATE TABLE dbo.ExtendedQueryTagLong (
 -- Used in QIDO
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong ON dbo.ExtendedQueryTagLong
 (
+    ResourceType,
     TagKey,
     TagValue,
     PartitionKey,
-    ResourceType,
     SopInstanceKey1,
     SopInstanceKey2,
     SopInstanceKey3
@@ -37,9 +37,9 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong ON dbo.ExtendedQueryTagLo
 -- Used in IIndexInstanceCore
 CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagLong
 (
+    ResourceType,
     TagKey,
     PartitionKey,
-    ResourceType,
     SopInstanceKey1,
     SopInstanceKey2,
     SopInstanceKey3
@@ -53,8 +53,8 @@ WITH (DATA_COMPRESSION = PAGE)
 -- Used in DeleteInstance
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagLong
 (
-    PartitionKey,
     ResourceType,
+    PartitionKey,
     SopInstanceKey1,
     SopInstanceKey2,
     SopInstanceKey3
