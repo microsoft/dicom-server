@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V7
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -38,7 +38,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static DeleteDeletedInstanceProcedure DeleteDeletedInstance = new DeleteDeletedInstanceProcedure();
         internal readonly static DeleteDeletedInstanceV6Procedure DeleteDeletedInstanceV6 = new DeleteDeletedInstanceV6Procedure();
         internal readonly static DeleteExtendedQueryTagProcedure DeleteExtendedQueryTag = new DeleteExtendedQueryTagProcedure();
-        internal readonly static DeleteExtendedQueryTagV8Procedure DeleteExtendedQueryTagV8 = new DeleteExtendedQueryTagV8Procedure();
         internal readonly static DeleteInstanceProcedure DeleteInstance = new DeleteInstanceProcedure();
         internal readonly static DeleteInstanceV6Procedure DeleteInstanceV6 = new DeleteInstanceV6Procedure();
         internal readonly static GetChangeFeedProcedure GetChangeFeed = new GetChangeFeedProcedure();
@@ -874,24 +873,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.DeleteExtendedQueryTag";
-                _tagPath.AddParameter(command.Parameters, tagPath);
-                _dataType.AddParameter(command.Parameters, dataType);
-            }
-        }
-
-        internal class DeleteExtendedQueryTagV8Procedure : StoredProcedure
-        {
-            internal DeleteExtendedQueryTagV8Procedure() : base("dbo.DeleteExtendedQueryTagV8")
-            {
-            }
-
-            private readonly ParameterDefinition<System.String> _tagPath = new ParameterDefinition<System.String>("@tagPath", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.Byte> _dataType = new ParameterDefinition<System.Byte>("@dataType", global::System.Data.SqlDbType.TinyInt, false);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath, System.Byte dataType)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.DeleteExtendedQueryTagV8";
                 _tagPath.AddParameter(command.Parameters, tagPath);
                 _dataType.AddParameter(command.Parameters, dataType);
             }
