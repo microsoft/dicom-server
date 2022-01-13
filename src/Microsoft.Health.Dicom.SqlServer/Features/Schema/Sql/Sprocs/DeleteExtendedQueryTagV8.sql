@@ -52,11 +52,12 @@ BEGIN
         ELSE
             DELETE FROM dbo.ExtendedQueryTagPersonName WHERE TagKey = @tagKey
 
-        -- Delete tag
-        DELETE FROM dbo.ExtendedQueryTag
+        -- Delete errors
+        DELETE FROM dbo.ExtendedQueryTagError
         WHERE TagKey = @tagKey
 
-        DELETE FROM dbo.ExtendedQueryTagError
+        -- Delete tag
+        DELETE FROM dbo.ExtendedQueryTag
         WHERE TagKey = @tagKey
 
     COMMIT TRANSACTION

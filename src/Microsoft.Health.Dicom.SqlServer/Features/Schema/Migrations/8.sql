@@ -1184,10 +1184,8 @@ BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
-    DECLARE @tagStatus AS TINYINT;
     DECLARE @tagKey AS INT;
-    SELECT @tagKey = TagKey,
-           @tagStatus = TagStatus
+    SELECT @tagKey = TagKey
     FROM   dbo.ExtendedQueryTag WITH (XLOCK)
     WHERE  dbo.ExtendedQueryTag.TagPath = @tagPath;
     IF @@ROWCOUNT = 0
@@ -1215,9 +1213,9 @@ BEGIN
                 ELSE
                     DELETE dbo.ExtendedQueryTagPersonName
                     WHERE  TagKey = @tagKey;
-    DELETE dbo.ExtendedQueryTag
-    WHERE  TagKey = @tagKey;
     DELETE dbo.ExtendedQueryTagError
+    WHERE  TagKey = @tagKey;
+    DELETE dbo.ExtendedQueryTag
     WHERE  TagKey = @tagKey;
     COMMIT TRANSACTION;
 END
