@@ -73,3 +73,11 @@ updates:
       time: "09:00"
       timezone: "America/Los_Angeles"
     open-pull-requests-limit: 30
+
+  - package-ecosystem: "npm"
+    directory: "/tools/dicom-web-electron"
+    schedule:
+      interval: "daily"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 30
