@@ -92,7 +92,7 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
         /// A task representing the asynchronous get operation. The value of its <see cref="Task{TResult}.Result"/>
         /// property contains a list of batches as defined by their smallest and largest watermark.
         /// </returns>
-        [Obsolete("Please use GetInstanceBatchesAsyncV2 instead.")]
+        [Obsolete("Please use GetInstanceBatchesV2Async instead.")]
         [FunctionName(nameof(GetInstanceBatchesAsync))]
         public Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesAsync([ActivityTrigger] long? maxWatermark, ILogger logger)
             => GetInstanceBatchesV2Async(BatchCreationArguments.FromOptions(maxWatermark, _options), logger);
