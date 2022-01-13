@@ -1215,7 +1215,7 @@ BEGIN
         SopInstanceKey1,
         SopInstanceKey2,
         SopInstanceKey3
-    ) WITH (DROP_EXISTING = ON)
+    ) WITH (DROP_EXISTING = ON, ONLINE = ON)
 END
 
 IF EXISTS 
@@ -1300,7 +1300,7 @@ BEGIN
         SopInstanceKey1,
         SopInstanceKey2,
         SopInstanceKey3
-    ) WITH (DROP_EXISTING = ON)
+    ) WITH (DROP_EXISTING = ON, ONLINE = ON)
 END
 
 IF EXISTS 
@@ -1387,7 +1387,7 @@ BEGIN
         SopInstanceKey1,
         SopInstanceKey2,
         SopInstanceKey3
-    ) WITH (DROP_EXISTING = ON)
+    ) WITH (DROP_EXISTING = ON, ONLINE = ON)
 END
 
 IF EXISTS 
@@ -1473,7 +1473,7 @@ BEGIN
         SopInstanceKey1,
         SopInstanceKey2,
         SopInstanceKey3
-    ) WITH (DROP_EXISTING = ON)
+    ) WITH (DROP_EXISTING = ON, ONLINE = ON)
 END
 
 IF EXISTS 
@@ -1558,7 +1558,7 @@ BEGIN
         SopInstanceKey1,
         SopInstanceKey2,
         SopInstanceKey3
-    ) WITH (DROP_EXISTING = ON)
+    ) WITH (DROP_EXISTING = ON, ONLINE = ON)
 END
 
 IF EXISTS 
