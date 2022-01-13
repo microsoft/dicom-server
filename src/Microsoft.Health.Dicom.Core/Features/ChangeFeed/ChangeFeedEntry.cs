@@ -25,7 +25,8 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
             long originalVersion,
             long? currentVersion,
             ChangeFeedState state,
-            string partitionName = default)
+            string partitionName = default,
+            DicomDataset metadata = null)
         {
             EnsureArg.IsNotNull(studyInstanceUid);
             EnsureArg.IsNotNull(seriesInstanceUid);
@@ -41,6 +42,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
             OriginalVersion = originalVersion;
             CurrentVersion = currentVersion;
             PartitionName = partitionName;
+            Metadata = metadata;
         }
 
         public long Sequence { get; }
