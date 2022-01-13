@@ -31,7 +31,7 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---    DeleteExtendedQueryTag
+--    DeleteExtendedQueryTagV8
 --
 -- DESCRIPTION
 --    Delete specific extended query tag
