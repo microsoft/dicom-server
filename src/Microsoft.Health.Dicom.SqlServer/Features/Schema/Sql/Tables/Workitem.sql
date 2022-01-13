@@ -5,6 +5,7 @@ CREATE TABLE dbo.Workitem (
     WorkitemKey                 BIGINT                            NOT NULL,             --PK
     PartitionKey                INT                               NOT NULL DEFAULT 1,   --FK
     WorkitemUid                 VARCHAR(64)                       NOT NULL,
+    TransactionUid               VARCHAR(64)                      NULL,
     --audit columns
     CreatedDate                 DATETIME2(7)                      NOT NULL
 ) WITH (DATA_COMPRESSION = PAGE)
@@ -23,6 +24,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemUid_PartitionKey ON dbo.Wor
 )
 INCLUDE
 (
-    WorkitemKey
+    WorkitemKey,
+    TransactionUid
 )
 WITH (DATA_COMPRESSION = PAGE)

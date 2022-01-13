@@ -418,10 +418,11 @@ CREATE NONCLUSTERED INDEX IX_Study_PatientBirthDate_PartitionKey
     INCLUDE(StudyKey) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.Workitem (
-    WorkitemKey  BIGINT        NOT NULL,
-    PartitionKey INT           DEFAULT 1 NOT NULL,
-    WorkitemUid  VARCHAR (64)  NOT NULL,
-    CreatedDate  DATETIME2 (7) NOT NULL
+    WorkitemKey    BIGINT        NOT NULL,
+    PartitionKey   INT           DEFAULT 1 NOT NULL,
+    WorkitemUid    VARCHAR (64)  NOT NULL,
+    TransactionUid VARCHAR (64)  NULL,
+    CreatedDate    DATETIME2 (7) NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
@@ -430,13 +431,12 @@ CREATE UNIQUE CLUSTERED INDEX IXC_Workitem
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemUid_PartitionKey
     ON dbo.Workitem(WorkitemUid, PartitionKey)
-    INCLUDE(WorkitemKey) WITH (DATA_COMPRESSION = PAGE);
+    INCLUDE(WorkitemKey, TransactionUid) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.WorkitemQueryTag (
-    TagKey      INT          NOT NULL,
-    TagPath     VARCHAR (64) NOT NULL,
-    TagVR       VARCHAR (2)  NOT NULL,
-    QueryStatus TINYINT      DEFAULT 1 NOT NULL
+    TagKey  INT          NOT NULL,
+    TagPath VARCHAR (64) NOT NULL,
+    TagVR   VARCHAR (2)  NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
@@ -486,35 +486,32 @@ CREATE TYPE dbo.InsertPersonNameExtendedQueryTagTableType_1 AS TABLE (
 CREATE TYPE dbo.ExtendedQueryTagKeyTableType_1 AS TABLE (
     TagKey INT);
 
-INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '00100010', 'PN', 1);
+INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00100010', 'PN');
 
-INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '00100020', 'LO', 1);
+INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00100020', 'LO');
 
-INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '0040A370.00080050', 'SH', 1);
+INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '0040A370.00080050', 'SH');
 
-INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '0040A370.00401001', 'SH', 1);
+INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '0040A370.00401001', 'SH');
 
-INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404005', 'DT', 1);
+INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404005', 'DT');
 
-INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404025.00080100', 'SH', 1);
+INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404025.00080100', 'SH');
 
-INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404026.00080100', 'SH', 1);
+INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404026.00080100', 'SH');
 
-INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '00741000', 'CS', 1);
+INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00741000', 'CS');
 
-INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404027.00080100', 'SH', 1);
-
-INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR, QueryStatus)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '00081195', 'UI', 0);
+INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404027.00080100', 'SH');
 
 COMMIT
 GO
