@@ -10,8 +10,8 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
     /// </summary>
     public class WorkitemAlreadyExistsException : DicomServerException
     {
-        public WorkitemAlreadyExistsException()
-            : base(DicomCoreResource.WorkitemInstanceAlreadyExists)
+        public WorkitemAlreadyExistsException(string uid)
+            : base(string.Format(DicomCoreResource.WorkitemInstanceAlreadyExists, uid))
         {
         }
     }

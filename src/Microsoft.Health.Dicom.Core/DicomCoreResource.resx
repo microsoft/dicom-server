@@ -480,6 +480,7 @@ For details on valid range queries, please refer to Search Matching section in C
     <comment>{0} Actual value. {1} Comma-separated list of expected values.</comment>
   </data>
   <data name="WorkitemInstanceAlreadyExists" xml:space="preserve">
-    <value>The workitem instance already exists.</value>
+    <value>The workitem instance with UID: '{0}' already exists. Try creating using a different UID.</value>
+    <comment>{0} Workitem UID.</comment>
   </data>
 </root>

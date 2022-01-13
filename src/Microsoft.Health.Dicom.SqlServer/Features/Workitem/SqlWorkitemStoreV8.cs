@@ -43,10 +43,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                     rows.PersonNameRows
                 );
 
+                var workitemUid = dataset.GetString(DicomTag.SOPInstanceUID);
+
                 VLatest.AddWorkitem.PopulateCommand(
                     sqlCommandWrapper,
                     partitionKey,
-                    dataset.GetString(DicomTag.SOPInstanceUID),
+                    workitemUid,
                     parameters);
 
                 try
@@ -57,7 +59,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                 {
                     if (ex.Number == SqlErrorCodes.Conflict)
                     {
-                        throw new WorkitemAlreadyExistsException();
+                        throw new WorkitemAlreadyExistsException(workitemUid);
                     }
 
                     throw new DataStoreException(ex);
