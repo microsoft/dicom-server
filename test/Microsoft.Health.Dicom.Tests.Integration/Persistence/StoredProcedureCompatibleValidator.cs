@@ -81,6 +81,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             {
                 KeyValuePair.Create(nameof(V5.BeginAddInstance), 6),
                 KeyValuePair.Create(nameof(V5.EndAddInstance), 6),
+                KeyValuePair.Create(nameof(V7.AddInstance), 8),
+                KeyValuePair.Create(nameof(V7.AddInstanceV2), 8),
+                KeyValuePair.Create(nameof(V7.DeleteInstance), 8),
+                KeyValuePair.Create(nameof(V7.IIndexInstanceCore), 8),
+                KeyValuePair.Create(nameof(V7.IndexInstance), 8),
+                KeyValuePair.Create(nameof(V7.IndexInstanceV2), 8),
             }.ToImmutableDictionary();
     }
 }

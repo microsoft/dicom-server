@@ -200,9 +200,26 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                     .Append(" = ")
                     .AppendLine(VLatest.Study.PartitionKey, StudyTableAlias);
 
+                var sopInstanceKey1Name = $"{extendedQueryTagTableAlias}.StudyKey";
+                var sopInstanceKey2Name = $"{extendedQueryTagTableAlias}.SeriesKey";
+                var sopInstanceKey3Name = $"{extendedQueryTagTableAlias}.InstanceKey";
+
+                if ((int)_schemaVersion >= SchemaVersionConstants.SupportUpsRsSchemaVersion)
+                {
+                    sopInstanceKey1Name = $"{extendedQueryTagTableAlias}.SopInstanceKey1";
+                    sopInstanceKey2Name = $"{extendedQueryTagTableAlias}.SopInstanceKey2";
+                    sopInstanceKey3Name = $"{extendedQueryTagTableAlias}.SopInstanceKey3";
+
+                    _stringBuilder
+                        .Append("AND ")
+                        .Append($"{extendedQueryTagTableAlias}.ResourceType")
+                        .Append(" = ")
+                        .AppendLine($"{QueryTagResourceType.Image}");
+                }
+
                 _stringBuilder
                     .Append("AND ")
-                    .Append($"{extendedQueryTagTableAlias}.StudyKey")
+                    .Append(sopInstanceKey1Name)
                     .Append(" = ")
                     .AppendLine(VLatest.Study.StudyKey, StudyTableAlias);
 
@@ -212,7 +229,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                     {
                         _stringBuilder
                             .Append("AND ")
-                            .Append($"{extendedQueryTagTableAlias}.SeriesKey")
+                            .Append(sopInstanceKey2Name)
                             .Append(" = ")
                             .AppendLine(VLatest.Series.SeriesKey, SeriesTableAlias);
                     }
@@ -221,7 +238,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                     {
                         _stringBuilder
                             .Append("AND ")
-                            .Append($"{extendedQueryTagTableAlias}.InstanceKey")
+                            .Append(sopInstanceKey3Name)
                             .Append(" = ")
                             .AppendLine(VLatest.Instance.InstanceKey, InstanceTableAlias);
                     }

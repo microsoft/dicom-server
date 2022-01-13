@@ -3,21 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
+namespace Microsoft.Health.Dicom.Core.Exceptions
 {
     /// <summary>
-    /// Enum to keep track of available SQL schema versions.
+    /// Exception thrown when the Workitem instance already exists.
     /// </summary>
-    public enum SchemaVersion
+    public class WorkitemAlreadyExistsException : DicomServerException
     {
-        Unknown = 0,
-        V1 = 1,
-        V2 = 2,
-        V3 = 3,
-        V4 = 4,
-        V5 = 5,
-        V6 = 6,
-        V7 = 7,
-        V8 = 8
+        public WorkitemAlreadyExistsException(string uid)
+            : base(string.Format(DicomCoreResource.WorkitemInstanceAlreadyExists, uid))
+        {
+        }
     }
 }

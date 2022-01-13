@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************/
 -- STORED PROCEDURE
---    Index instance Core
+--    IIndexInstanceCoreV8
 --
 -- DESCRIPTION
 --    Adds or updates the various extended query tag indices for a given DICOM instance
@@ -28,10 +28,12 @@
 --         * DateTime extended query tag data
 --     @personNameExtendedQueryTags
 --         * PersonName extended query tag data
+--     @resourceType
+--         * The resource type that owns these tags: 0 = Image, 1 = Workitem. Default is Image
 -- RETURN VALUE
 --     None
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCore
+CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCoreV8
     @partitionKey                                                                INT = 1,
     @studyKey                                                                    BIGINT,
     @seriesKey                                                                   BIGINT,
@@ -44,6 +46,7 @@ CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCore
     @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
 BEGIN
+    DECLARE @resourceType TINYINT = 0
     -- String Key tags
     IF EXISTS (SELECT 1 FROM @stringExtendedQueryTags)
     BEGIN
@@ -55,21 +58,21 @@ BEGIN
             FROM @stringExtendedQueryTags input
             INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
             ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-            -- Only merge on extended query tag which is being adding.
+            -- Only merge on extended query tag which is being added
             AND dbo.ExtendedQueryTag.TagStatus <> 2
         ) AS S
         ON T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
-            AND T.StudyKey = @studyKey
+            AND T.SopInstanceKey1 = @studyKey
             -- Null SeriesKey indicates a Study level tag, no need to compare SeriesKey
-            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
+            AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
             -- Null InstanceKey indicates a Study/Series level tag, no to compare InstanceKey
-            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+            AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
             UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
         WHEN NOT MATCHED THEN
-            INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark)
+            INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType)
             VALUES
             (
                 S.TagKey,
@@ -80,7 +83,8 @@ BEGIN
                 (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
                 -- When TagLevel is Instance, we should fill InstanceKey
                 (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
-                @watermark
+                @watermark,
+                @resourceType
             );
     END
 
@@ -94,18 +98,19 @@ BEGIN
             FROM @longExtendedQueryTags input
             INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
             ON dbo.ExtendedQueryTag.TagKey = input.TagKey
+            -- Only merge on extended query tag which is being added
             AND dbo.ExtendedQueryTag.TagStatus <> 2
         ) AS S
         ON T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
-            AND T.StudyKey = @studyKey
-            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+            AND T.SopInstanceKey1 = @studyKey
+            AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
+            AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
             UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
         WHEN NOT MATCHED THEN
-            INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark)
+            INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType)
             VALUES
             (
                 S.TagKey,
@@ -114,7 +119,8 @@ BEGIN
                 @studyKey,
                 (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
                 (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
-                @watermark
+                @watermark,
+                @resourceType
             );
     END
 
@@ -128,18 +134,19 @@ BEGIN
             FROM @doubleExtendedQueryTags input
             INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
             ON dbo.ExtendedQueryTag.TagKey = input.TagKey
+            -- Only merge on extended query tag which is being added
             AND dbo.ExtendedQueryTag.TagStatus <> 2
         ) AS S
         ON T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
-            AND T.StudyKey = @studyKey
-            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+            AND T.SopInstanceKey1 = @studyKey
+            AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
+            AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
             UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
         WHEN NOT MATCHED THEN
-            INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark)
+            INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType)
             VALUES
             (
                 S.TagKey,
@@ -148,7 +155,8 @@ BEGIN
                 @studyKey,
                 (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
                 (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
-                @watermark
+                @watermark,
+                @resourceType
             );
     END
 
@@ -160,20 +168,21 @@ BEGIN
         (
             SELECT input.TagKey, input.TagValue, input.TagValueUtc, input.TagLevel
             FROM @dateTimeExtendedQueryTags input
-            INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
+           INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
             ON dbo.ExtendedQueryTag.TagKey = input.TagKey
+            -- Only merge on extended query tag which is being added
             AND dbo.ExtendedQueryTag.TagStatus <> 2
         ) AS S
         ON T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
-            AND T.StudyKey = @studyKey
-            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+            AND T.SopInstanceKey1 = @studyKey
+            AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
+            AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
-            UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue, T.TagValueUtc = S.TagValueUtc
+            UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
         WHEN NOT MATCHED THEN
-            INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark, TagValueUtc)
+            INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, TagValueUtc, ResourceType)
             VALUES
             (
                 S.TagKey,
@@ -183,7 +192,8 @@ BEGIN
                 (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
                 (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
                 @watermark,
-                S.TagValueUtc
+                S.TagValueUtc,
+                @resourceType
             );
     END
 
@@ -197,18 +207,19 @@ BEGIN
             FROM @personNameExtendedQueryTags input
             INNER JOIN dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
             ON dbo.ExtendedQueryTag.TagKey = input.TagKey
+            -- Only merge on extended query tag which is being added
             AND dbo.ExtendedQueryTag.TagStatus <> 2
         ) AS S
         ON T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
-            AND T.StudyKey = @studyKey
-            AND ISNULL(T.SeriesKey, @seriesKey) = @seriesKey
-            AND ISNULL(T.InstanceKey, @instanceKey) = @instanceKey
+            AND T.SopInstanceKey1 = @studyKey
+            AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
+            AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
             UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
         WHEN NOT MATCHED THEN
-            INSERT (TagKey, TagValue, PartitionKey, StudyKey, SeriesKey, InstanceKey, Watermark)
+            INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType)
             VALUES
             (
                 S.TagKey,
@@ -217,7 +228,8 @@ BEGIN
                 @studyKey,
                 (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END),
                 (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END),
-                @watermark
+                @watermark,
+                @resourceType
             );
     END
 END

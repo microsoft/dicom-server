@@ -6,38 +6,47 @@
             the Watermark is used to ensure that if there are different values between instances,
             the value on the instance with the highest watermark wins.
     Note: The primary key is designed on the assumption that tags only occur once in an instance.
+    
+            This table includes tags used by both Image SOP instances and UPS SOP instances, which are distinguished by resource type column.
+            - ResourceType = 0 means Image SOP instance, ResourceType = 1 means UPS SOP instance.
+            - SopInstanceKey1 refers to either StudyKey or WorkItemKey.
+            - SopInstanceKey2 refers to SeriesKey if ResourceType is Image else NULL.
+            - SopInstanceKey3 refers to InstanceKey if ResourceType is Image else NULL.
 **************************************************************/
 CREATE TABLE dbo.ExtendedQueryTagPersonName (
     TagKey                  INT                  NOT NULL,              --FK
     TagValue                NVARCHAR(200)        COLLATE SQL_Latin1_General_CP1_CI_AI NOT NULL,
-    StudyKey                BIGINT               NOT NULL,              --FK
-    SeriesKey               BIGINT               NULL,                  --FK
-    InstanceKey             BIGINT               NULL,                  --FK
+    SopInstanceKey1         BIGINT               NOT NULL,              --FK
+    SopInstanceKey2         BIGINT               NULL,                  --FK
+    SopInstanceKey3         BIGINT               NULL,                  --FK
     Watermark               BIGINT               NOT NULL,
     WatermarkAndTagKey      AS CONCAT(TagKey, '.', Watermark),          --PK
     TagValueWords           AS REPLACE(REPLACE(TagValue, '^', ' '), '=', ' ') PERSISTED,
-    PartitionKey            INT                  NOT NULL DEFAULT 1     --FK
+    PartitionKey            INT                  NOT NULL DEFAULT 1,    --FK
+    ResourceType            TINYINT              NOT NULL DEFAULT 0 
 ) WITH (DATA_COMPRESSION = PAGE)
 
--- Used in QIDO
+-- Used in QIDO, PartitionKey is moved down to support cross partition query in future
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName ON dbo.ExtendedQueryTagPersonName
 (
+    ResourceType,
     TagKey,
     TagValue,
     PartitionKey,
-    StudyKey,
-    SeriesKey,
-    InstanceKey
+    SopInstanceKey1,
+    SopInstanceKey2,
+    SopInstanceKey3
 )
 
 -- Used in IIndexInstanceCore
-CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_PartitionKey_TagKey_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagPersonName
+CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagPersonName
 (
+    ResourceType,
     TagKey,
     PartitionKey,
-    StudyKey,
-    SeriesKey,
-    InstanceKey
+    SopInstanceKey1,
+    SopInstanceKey2,
+    SopInstanceKey3
 )
 INCLUDE
 (
@@ -46,12 +55,13 @@ INCLUDE
 WITH (DATA_COMPRESSION = PAGE)
 
 -- Used in DeleteInstance
-CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_PartitionKey_StudyKey_SeriesKey_InstanceKey on dbo.ExtendedQueryTagPersonName
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagPersonName
 (
+    ResourceType,
     PartitionKey,
-    StudyKey,
-    SeriesKey,
-    InstanceKey
+    SopInstanceKey1,
+    SopInstanceKey2,
+    SopInstanceKey3
 )
 WITH (DATA_COMPRESSION = PAGE)
 

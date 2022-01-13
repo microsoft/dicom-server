@@ -60,7 +60,7 @@ BEGIN
         -- String Key tags
         BEGIN TRY
 
-            EXEC dbo.IIndexInstanceCore
+            EXEC dbo.IIndexInstanceCoreV8
                 @partitionKey,
                 @studyKey,
                 @seriesKey,
