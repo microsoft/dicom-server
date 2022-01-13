@@ -1,6 +1,6 @@
-﻿/*************************************************************
+﻿/*************************************************************************
     List of workitem query tags that are supported for UPS-RS queries
-**************************************************************/
+*************************************************************************/
 
 -- Patient name
 INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
@@ -18,22 +18,22 @@ VALUES (NEXT VALUE FOR TagKeySequence, '0040A370.00080050', 'SH')
 INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
 VALUES (NEXT VALUE FOR TagKeySequence, '0040A370.00401001', 'SH')
 
--- 	Scheduled​Procedure​Step​Start​Date​Time
+-- Scheduled​Procedure​Step​Start​Date​Time
 INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
 VALUES (NEXT VALUE FOR TagKeySequence, '00404005', 'DT')
 
--- 	ScheduledStationNameCodeSequence.CodeValue
+-- ScheduledStationNameCodeSequence.CodeValue
 INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
 VALUES (NEXT VALUE FOR TagKeySequence, '00404025.00080100', 'SH')
 
--- 	ScheduledStationClassCodeSequence.CodeValue
+-- ScheduledStationClassCodeSequence.CodeValue
 INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
 VALUES (NEXT VALUE FOR TagKeySequence, '00404026.00080100', 'SH')
 
--- 	Procedure​Step​State
+-- Procedure​Step​State
 INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
 VALUES (NEXT VALUE FOR TagKeySequence, '00741000', 'CS')
 
--- 	Scheduled​Station​Geographic​Location​Code​Sequence.CodeValue
+-- Scheduled​Station​Geographic​Location​Code​Sequence.CodeValue
 INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
 VALUES (NEXT VALUE FOR TagKeySequence, '00404027.00080100', 'SH')

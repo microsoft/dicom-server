@@ -33,7 +33,6 @@ BEGIN
         IF @@ROWCOUNT = 0
         THROW 50413, 'Workitem does not exists', 1;
 
-
         DELETE FROM dbo.ExtendedQueryTagString
         WHERE SopInstanceKey1 = @workitemKey
             AND PartitionKey = @partitionKey
@@ -58,7 +57,6 @@ BEGIN
         WHERE SopInstanceKey1 = @workitemKey
             AND PartitionKey = @partitionKey
             AND ResourceType = @workitemResourceType
-
 
         DELETE FROM dbo.Workitem
         WHERE WorkItemKey = @workitemKey

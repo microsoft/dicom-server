@@ -14,7 +14,6 @@ CREATE UNIQUE CLUSTERED INDEX IXC_WorkitemQueryTag ON dbo.WorkitemQueryTag
     TagKey
 )
 
-
 CREATE UNIQUE NONCLUSTERED INDEX IXC_WorkitemQueryTag_TagPath ON dbo.WorkitemQueryTag
 (
     TagPath

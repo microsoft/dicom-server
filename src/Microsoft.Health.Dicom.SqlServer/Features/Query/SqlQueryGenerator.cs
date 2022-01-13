@@ -210,7 +210,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                     sopInstanceKey2Name = $"{extendedQueryTagTableAlias}.SopInstanceKey2";
                     sopInstanceKey3Name = $"{extendedQueryTagTableAlias}.SopInstanceKey3";
 
-
                     _stringBuilder
                         .Append("AND ")
                         .Append($"{extendedQueryTagTableAlias}.ResourceType")
@@ -244,7 +243,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                             .AppendLine(VLatest.Instance.InstanceKey, InstanceTableAlias);
                     }
                 }
-
             }
         }
 

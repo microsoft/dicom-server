@@ -21,7 +21,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 {
     internal class SqlWorkitemStoreV8 : ISqlWorkitemStore
     {
-
         protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory;
 
         public SqlWorkitemStoreV8(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
@@ -64,7 +63,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
                     throw new DataStoreException(ex);
                 }
-
             }
         }
 
