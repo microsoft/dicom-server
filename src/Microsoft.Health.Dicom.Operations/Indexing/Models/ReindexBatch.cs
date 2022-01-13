@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -12,6 +13,7 @@ namespace Microsoft.Health.Dicom.Operations.Indexing.Models
     /// <summary>
     ///  Represents input to <see cref="ReindexDurableFunction.ReindexBatchAsync"/>
     /// </summary>
+    [Obsolete("Please use ReindexBatchArguments instead.")]
     public class ReindexBatch
     {
         /// <summary>
@@ -23,5 +25,8 @@ namespace Microsoft.Health.Dicom.Operations.Indexing.Models
         /// Gets or sets the tag entries.
         /// </summary>
         public IReadOnlyCollection<ExtendedQueryTagStoreEntry> QueryTags { get; set; }
+
+        internal ReindexBatchArguments ToArguments(int threadCount)
+            => new ReindexBatchArguments(QueryTags, WatermarkRange, threadCount);
     }
 }
