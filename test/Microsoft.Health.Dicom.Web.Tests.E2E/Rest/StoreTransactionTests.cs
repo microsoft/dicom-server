@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
+using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.IO;
@@ -142,8 +143,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
                 Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
-                ValidationHelpers.ValidateReferencedSopSequence(
-                    await response.GetValueAsync(),
+                await ValidateReferencedSopSequenceAsync(
+                    response,
                     ConvertToReferencedSopSequenceEntry(validFile.Dataset));
             }
             finally
@@ -176,8 +177,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-                ValidationHelpers.ValidateReferencedSopSequence(
-                    await response.GetValueAsync(),
+                await ValidateReferencedSopSequenceAsync(
+                    response,
                     ConvertToReferencedSopSequenceEntry(dicomFile.Dataset));
             }
             finally
@@ -233,8 +234,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
                 Assert.EndsWith($"studies/{studyInstanceUID1}", dataset.GetSingleValue<string>(DicomTag.RetrieveURL));
 
-                ValidationHelpers.ValidateReferencedSopSequence(
-                    dataset,
+                await ValidateReferencedSopSequenceAsync(
+                    response,
                     ConvertToReferencedSopSequenceEntry(dicomFile1.Dataset));
 
                 ValidationHelpers.ValidateFailedSopSequence(
@@ -281,8 +282,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
                 DicomDataset dataset = await response.GetValueAsync();
 
-                ValidationHelpers.ValidateReferencedSopSequence(
-                    dataset,
+                await ValidateReferencedSopSequenceAsync(
+                    response,
                     ConvertToReferencedSopSequenceEntry(dicomFile1.Dataset));
 
                 Assert.False(dataset.TryGetSequence(DicomTag.FailedSOPSequence, out DicomSequence _));
@@ -347,6 +348,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             await dicomFile.SaveAsync(stream);
 
             using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(stream, instanceId: DicomInstanceId.FromDicomFile(dicomFile));
+            Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
@@ -357,6 +359,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID);
 
             using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(dicomFile, studyInstanceUid: studyInstanceUID);
+            Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
@@ -373,6 +376,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task DisposeAsync()
         {
             await _instancesManager.DisposeAsync();
+        }
+
+        private static async Task ValidateReferencedSopSequenceAsync(DicomWebResponse<DicomDataset> response, params (string SopInstanceUid, string RetrieveUri, string SopClassUid)[] expectedValues)
+        {
+            Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
+            ValidationHelpers.ValidateReferencedSopSequence(await response.GetValueAsync(), expectedValues);
         }
 
         private (string SopInstanceUid, string RetrieveUri, string SopClassUid) ConvertToReferencedSopSequenceEntry(DicomDataset dicomDataset)

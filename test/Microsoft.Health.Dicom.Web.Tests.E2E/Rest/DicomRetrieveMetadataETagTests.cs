@@ -14,6 +14,7 @@ using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages;
+using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Serialization;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
@@ -294,7 +295,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             using (DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.RetrieveInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch))
             {
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                Assert.Equal("application/dicom+json", response.ContentHeaders.ContentType.MediaType);
+                Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
 
                 DicomDataset[] datasets = await response.ToArrayAsync();
 
@@ -314,7 +315,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.RetrieveInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("application/dicom+json", response.ContentHeaders.ContentType.MediaType);
+            Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
 
             DicomDataset[] datasets = await response.ToArrayAsync();
 
@@ -405,7 +406,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset storedInstance2)
         {
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("application/dicom+json", response.ContentHeaders.ContentType.MediaType);
+            Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
 
             DicomDataset[] datasets = await response.ToArrayAsync();
 

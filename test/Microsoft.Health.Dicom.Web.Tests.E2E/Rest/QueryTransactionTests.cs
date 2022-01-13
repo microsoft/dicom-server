@@ -12,6 +12,7 @@ using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Xunit;
@@ -128,6 +129,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QuerySeriesAsync("Modality=MRI");
 
+            Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
             DicomDataset[] datasets = await response.ToArrayAsync();
 
             Assert.NotNull(datasets);
@@ -152,6 +154,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryStudyInstanceAsync(studyId, "Modality=MRI");
 
+            Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
             DicomDataset[] datasets = await response.ToArrayAsync();
 
             Assert.Single(datasets);
@@ -173,6 +176,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryStudySeriesInstanceAsync(studyId, seriesId, $"SOPInstanceUID={instanceId}");
 
+            Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
             DicomDataset[] datasets = await response.ToArrayAsync();
 
             Assert.Single(datasets);
@@ -190,6 +194,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryInstancesAsync("Modality=XRAY");
 
+            Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
             DicomDataset[] datasets = await response.ToArrayAsync();
 
             Assert.NotNull(datasets);
@@ -223,6 +228,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             {
                 using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryStudyAsync(
                     $"PatientName={randomNamePart}&FuzzyMatching=true");
+
+                if (response.ContentHeaders.ContentType != null)
+                {
+                    Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
+                }
 
                 responseDatasets = await response.ToArrayAsync();
 
@@ -258,6 +268,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryStudyAsync(
                     $"ReferringPhysicianName={randomNamePart}&FuzzyMatching=true");
 
+                if (response.ContentHeaders.ContentType != null)
+                {
+                    Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
+                }
+
                 responseDatasets = await response.ToArrayAsync();
 
                 testDataResponse = responseDatasets?.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId);
@@ -275,6 +290,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             // client is checking the success response and throws exception otherwise
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryStudyAsync(ohifViewerQuery);
+            Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
         }
 
         private static string RandomString(int length)
