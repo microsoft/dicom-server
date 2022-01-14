@@ -290,7 +290,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             // client is checking the success response and throws exception otherwise
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryStudyAsync(ohifViewerQuery);
-            Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
         }
 
         private static string RandomString(int length)
