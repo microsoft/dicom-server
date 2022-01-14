@@ -61,6 +61,7 @@
 
   <!-- If this sql needs to be in a transaction, tag it TSqlScript otherwise use SqlScript -->
   <ItemGroup>
+    <SqlScript Include="Features\Schema\Sql\Scripts\DatabaseSettings.sql" />
     <SqlScript Include="Features\Schema\Sql\Scripts\FullText.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\*.sql" />
   </ItemGroup>
@@ -71,7 +72,6 @@
     <TSqlScript Include="Features\Schema\Sql\Types\*.sql" />
     <TSqlScript Include="Features\Schema\Sql\Scripts\WorkitemQueryTag.sql" />
   </ItemGroup>
-  
 
   <ItemGroup>
     <TInitSqlScript Include="Features\Schema\Sql\Scripts\TransactionCheck.sql" />

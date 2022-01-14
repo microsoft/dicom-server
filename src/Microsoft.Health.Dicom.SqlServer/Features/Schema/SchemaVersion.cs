@@ -18,6 +18,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
         V5 = 5,
         V6 = 6,
         V7 = 7,
-        V8 = 8
+        V8 = 8,
     }
 }

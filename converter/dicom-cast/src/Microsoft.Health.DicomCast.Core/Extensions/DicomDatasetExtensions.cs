@@ -4,8 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using Dicom;
 using EnsureThat;
+using FellowOakDicom;
 using Hl7.Fhir.Model;
 
 namespace Microsoft.Health.DicomCast.Core.Extensions

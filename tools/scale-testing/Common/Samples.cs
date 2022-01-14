@@ -7,10 +7,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Dicom;
-using Dicom.Imaging;
-using Dicom.IO.Buffer;
 using EnsureThat;
+using FellowOakDicom;
+using FellowOakDicom.Imaging;
+using FellowOakDicom.IO.Buffer;
 
 namespace Common
 {
@@ -178,15 +178,11 @@ namespace Common
         {
             var file = new DicomFile(CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
 
-#pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = false;
-#pragma warning restore CS0618 // Type or member is obsolete
+            DicomValidationBuilderExtension.SkipValidation(null);
 
             file.Dataset.Add(GenerateNewDataSetWithInvalidVr());
 
-#pragma warning disable CS0618 // Type or member is obsolete
-            DicomValidation.AutoValidation = true;
-#pragma warning restore CS0618 // Type or member is obsolete
+            DicomValidationBuilderExtension.DoValidation(null);
 
             return file;
         }

@@ -7,7 +7,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
+using FellowOakDicom;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -17,7 +17,7 @@ using Microsoft.Health.Dicom.Core.Messages.Store;
 using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
 using Xunit;
-using DicomValidationException = Dicom.DicomValidationException;
+using DicomValidationException = FellowOakDicom.DicomValidationException;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 {
@@ -52,7 +52,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
                 _storeResponseBuilder,
                 _dicomDatasetValidator,
                 _storeOrchestrator,
-                _minimumValidator,
                 NullLogger<StoreService>.Instance);
         }
 

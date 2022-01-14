@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Text.Json;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
@@ -23,7 +22,6 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
         private readonly IInstanceStore _instanceStore;
         private readonly IInstanceReindexer _instanceReindexer;
         private readonly ISchemaVersionResolver _schemaVersionResolver;
-        private readonly JsonSerializerOptions _jsonOptions;
         private readonly QueryTagIndexingOptions _options;
 
         public ReindexDurableFunction(
@@ -31,14 +29,12 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
             IInstanceStore instanceStore,
             IInstanceReindexer instanceReindexer,
             ISchemaVersionResolver schemaVersionResolver,
-            IOptions<JsonSerializerOptions> jsonOptions,
             IOptions<QueryTagIndexingOptions> configOptions)
         {
             _extendedQueryTagStore = EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
             _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
             _instanceReindexer = EnsureArg.IsNotNull(instanceReindexer, nameof(instanceReindexer));
             _schemaVersionResolver = EnsureArg.IsNotNull(schemaVersionResolver, nameof(schemaVersionResolver));
-            _jsonOptions = EnsureArg.IsNotNull(jsonOptions?.Value, nameof(jsonOptions));
             _options = EnsureArg.IsNotNull(configOptions?.Value, nameof(configOptions));
         }
     }

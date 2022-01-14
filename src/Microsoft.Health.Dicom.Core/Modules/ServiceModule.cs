@@ -37,6 +37,8 @@ namespace Microsoft.Health.Dicom.Core.Modules
         {
             EnsureArg.IsNotNull(services, nameof(services));
 
+            services.AddFellowOakDicomServices(skipValidation: true);
+
             services.Add<DicomInstanceEntryReaderManager>()
                 .Singleton()
                 .AsSelf()

@@ -5,11 +5,11 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
-using Dicom.Serialization;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -20,8 +20,8 @@ using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Tests.Common.Serialization;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence;
-using Newtonsoft.Json;
 using NSubstitute;
 using Xunit;
 
@@ -173,10 +173,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
         private static void ValidateResponseMetadataDataset(DicomDataset storedDataset, DicomDataset retrievedDataset)
         {
             // Compare result datasets by serializing.
-            var jsonDicomConverter = new JsonDicomConverter();
             Assert.Equal(
-                JsonConvert.SerializeObject(storedDataset, jsonDicomConverter),
-                JsonConvert.SerializeObject(retrievedDataset, jsonDicomConverter));
+                JsonSerializer.Serialize(storedDataset, AppSerializerOptions.Json),
+                JsonSerializer.Serialize(retrievedDataset, AppSerializerOptions.Json));
         }
     }
 }

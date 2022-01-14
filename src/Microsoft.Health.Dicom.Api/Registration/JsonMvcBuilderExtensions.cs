@@ -18,6 +18,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             builder.AddJsonOptions(o => configure(o.JsonSerializerOptions));
             builder.Services.Configure(configure);
+
             return builder;
         }
     }

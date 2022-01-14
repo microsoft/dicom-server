@@ -5,15 +5,15 @@
 
 using System;
 using System.IO;
-using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
-using Dicom;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -22,7 +22,6 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.IO;
-using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage
 {
@@ -33,20 +32,19 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
     {
         private const string GetInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(GetInstanceMetadataAsync);
         private const string StoreInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceMetadataAsync);
-        private static readonly Encoding MetadataEncoding = Encoding.UTF8;
 
         private readonly BlobContainerClient _container;
-        private readonly JsonSerializer _jsonSerializer;
+        private readonly JsonSerializerOptions _jsonSerializerOptions;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
         public BlobMetadataStore(
             BlobServiceClient client,
-            JsonSerializer jsonSerializer,
+            RecyclableMemoryStreamManager recyclableMemoryStreamManager,
             IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
-            RecyclableMemoryStreamManager recyclableMemoryStreamManager)
+            IOptions<JsonSerializerOptions> jsonSerializerOptions)
         {
             EnsureArg.IsNotNull(client, nameof(client));
-            EnsureArg.IsNotNull(jsonSerializer, nameof(jsonSerializer));
+            EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
             EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
             EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
 
@@ -54,7 +52,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
                 .Get(Constants.MetadataContainerConfigurationName);
 
             _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
-            _jsonSerializer = jsonSerializer;
+            _jsonSerializerOptions = jsonSerializerOptions.Value;
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
         }
 
@@ -74,18 +72,15 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             try
             {
                 await using (Stream stream = _recyclableMemoryStreamManager.GetStream(StoreInstanceMetadataStreamTagName))
-                await using (var streamWriter = new StreamWriter(stream, MetadataEncoding))
-                using (var jsonTextWriter = new JsonTextWriter(streamWriter))
+                await using (Utf8JsonWriter utf8Writer = new Utf8JsonWriter(stream))
                 {
-                    _jsonSerializer.Serialize(jsonTextWriter, dicomDatasetWithoutBulkData);
-                    jsonTextWriter.Flush();
+                    // TODO: Use SerializeAsync in .NET 6
+                    JsonSerializer.Serialize(utf8Writer, dicomDatasetWithoutBulkData, _jsonSerializerOptions);
+                    await utf8Writer.FlushAsync(cancellationToken);
                     stream.Seek(0, SeekOrigin.Begin);
                     await blob.UploadAsync(
                         stream,
-                        new BlobHttpHeaders()
-                        {
-                            ContentType = KnownContentTypes.ApplicationJson,
-                        },
+                        new BlobHttpHeaders { ContentType = KnownContentTypes.ApplicationJson },
                         metadata: null,
                         conditions: null,
                         accessTier: null,
@@ -105,18 +100,16 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
             BlockBlobClient blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
 
-            await ExecuteAsync(() => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken));
+            await ExecuteAsync(t => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken);
         }
 
         /// <inheritdoc />
-        public async Task<DicomDataset> GetInstanceMetadataAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+        public Task<DicomDataset> GetInstanceMetadataAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
             BlockBlobClient cloudBlockBlob = GetInstanceBlockBlob(versionedInstanceIdentifier);
 
-            DicomDataset dicomDataset = null;
-
-            await ExecuteAsync(async () =>
+            return ExecuteAsync(async t =>
             {
                 await using (Stream stream = _recyclableMemoryStreamManager.GetStream(GetInstanceMetadataStreamTagName))
                 {
@@ -124,15 +117,9 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
 
                     stream.Seek(0, SeekOrigin.Begin);
 
-                    using (var streamReader = new StreamReader(stream, MetadataEncoding))
-                    using (var jsonTextReader = new JsonTextReader(streamReader))
-                    {
-                        dicomDataset = _jsonSerializer.Deserialize<DicomDataset>(jsonTextReader);
-                    }
+                    return await JsonSerializer.DeserializeAsync<DicomDataset>(stream, _jsonSerializerOptions, t);
                 }
-            });
-
-            return dicomDataset;
+            }, cancellationToken);
         }
 
         private BlockBlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
@@ -142,11 +129,11 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             return _container.GetBlockBlobClient(blobName);
         }
 
-        private static async Task ExecuteAsync(Func<Task> action)
+        private static async Task<T> ExecuteAsync<T>(Func<CancellationToken, Task<T>> action, CancellationToken cancellationToken)
         {
             try
             {
-                await action();
+                return await action(cancellationToken);
             }
             catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
             {

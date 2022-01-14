@@ -6,16 +6,16 @@
 using System;
 using System.Linq;
 using System.Net;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Dicom;
-using Dicom.Serialization;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Tests.Common.Serialization;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
@@ -164,13 +164,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset retrievedDataset2 = datasets[1];
 
             // Compare result datasets by serializing.
-            var jsonDicomConverter = new JsonDicomConverter();
+            string serializedExpectedDataset1 = JsonSerializer.Serialize(expectedDataset1, AppSerializerOptions.Json);
+            string serializedExpectedDataset2 = JsonSerializer.Serialize(expectedDataset2, AppSerializerOptions.Json);
 
-            string serializedExpectedDataset1 = JsonConvert.SerializeObject(expectedDataset1, jsonDicomConverter);
-            string serializedExpectedDataset2 = JsonConvert.SerializeObject(expectedDataset2, jsonDicomConverter);
-
-            string serializedRetrievedDataset1 = JsonConvert.SerializeObject(retrievedDataset1, jsonDicomConverter);
-            string serializedRetrievedDataset2 = JsonConvert.SerializeObject(retrievedDataset2, jsonDicomConverter);
+            string serializedRetrievedDataset1 = JsonSerializer.Serialize(retrievedDataset1, AppSerializerOptions.Json);
+            string serializedRetrievedDataset2 = JsonSerializer.Serialize(retrievedDataset2, AppSerializerOptions.Json);
 
             if (string.Equals(serializedExpectedDataset1, serializedRetrievedDataset1, StringComparison.InvariantCultureIgnoreCase) && string.Equals(serializedExpectedDataset2, serializedRetrievedDataset2, StringComparison.InvariantCultureIgnoreCase))
             {
@@ -194,10 +192,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomDataset expectedDataset = storedDataset.CopyWithoutBulkDataItems();
 
             // Compare result datasets by serializing.
-            var jsonDicomConverter = new JsonDicomConverter();
             Assert.Equal(
-                JsonConvert.SerializeObject(expectedDataset, jsonDicomConverter),
-                JsonConvert.SerializeObject(retrievedDataset, jsonDicomConverter));
+                JsonSerializer.Serialize(expectedDataset, AppSerializerOptions.Json),
+                JsonSerializer.Serialize(retrievedDataset, AppSerializerOptions.Json));
             Assert.Equal(expectedDataset.Count(), retrievedDataset.Count());
         }
 

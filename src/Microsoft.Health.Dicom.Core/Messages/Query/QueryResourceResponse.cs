@@ -4,8 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using Dicom;
 using EnsureThat;
+using FellowOakDicom;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Query
 {

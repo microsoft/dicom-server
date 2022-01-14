@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Globalization;
-using Dicom;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
