@@ -34,7 +34,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         private const string ExtendedQueryTagDoubleTableAlias = "ctd";
         private const string ExtendedQueryTagPersonNameTableAlias = "ctpn";
         private const string ExtendedQueryTagStringTableAlias = "cts";
-        private const int ImageResourceType = 0;
 
         public SqlQueryGenerator(
             IndentedStringBuilder stringBuilder,
