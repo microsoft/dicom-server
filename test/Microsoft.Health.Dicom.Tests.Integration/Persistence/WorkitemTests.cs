@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [Fact]
         public async Task WhenValidWorkitemIsCreated_CreationSucceeds()
         {
-            string workitemUid = "2.25.1234";
+            string workitemUid = DicomUID.Generate().UID;
             DicomTag tag2 = DicomTag.PatientName;
 
             var dataset = new DicomDataset();
@@ -38,9 +38,43 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 new QueryTag(new ExtendedQueryTagStoreEntry(2, tag2.GetPath(), tag2.GetDefaultVR().Code, null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled,0)),
             };
 
-            long workitemKey = await _fixture.WorkitemStore.AddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
+            long workitemKey = await _fixture.IndexWorkitemStore.AddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
 
-            Assert.True(workitemKey > 0, "WorkitemKey not returned.");
+            Assert.True(workitemKey > 0);
+        }
+
+        [Fact]
+        public async Task WhenValidWorkitemIsDeleted_DeletionSucceeds()
+        {
+            string workitemUid = DicomUID.Generate().UID;
+            DicomTag tag2 = DicomTag.PatientName;
+
+            var dataset = new DicomDataset();
+            dataset.Add(DicomTag.SOPInstanceUID, workitemUid);
+            dataset.Add(DicomTag.PatientName, "Foo");
+
+            var queryTags = new List<QueryTag>()
+            {
+                new QueryTag(new ExtendedQueryTagStoreEntry(2, tag2.GetPath(), tag2.GetDefaultVR().Code, null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled,0)),
+            };
+
+            long workitemKey = await _fixture.IndexWorkitemStore.AddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
+
+            await _fixture.IndexWorkitemStore.DeleteWorkitemAsync(DefaultPartition.Key, workitemUid, CancellationToken.None);
+
+            // Try adding it back again, if this succeeds, then assume that Delete operation has succeeded.
+            workitemKey = await _fixture.IndexWorkitemStore.AddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
+            Assert.True(workitemKey > 0);
+
+            await _fixture.IndexWorkitemStore.DeleteWorkitemAsync(DefaultPartition.Key, workitemUid, CancellationToken.None);
+        }
+
+        [Fact]
+        public async Task WhenGetWorkitemQueryTagsIsExecuted_ReturnTagsSuccessfully()
+        {
+            var workitemQueryTags = await _fixture.IndexWorkitemStore.GetWorkitemQueryTagsAsync(CancellationToken.None);
+
+            Assert.NotEmpty(workitemQueryTags);
         }
     }
 }

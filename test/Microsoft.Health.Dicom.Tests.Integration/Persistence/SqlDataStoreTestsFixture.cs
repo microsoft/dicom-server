@@ -142,7 +142,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     new SqlExtendedQueryTagErrorStoreV6(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV6>.Instance),
                }));
 
-            WorkitemStore = new SqlWorkitemStore(new VersionedCache<ISqlWorkitemStore>(
+            IndexWorkitemStore = new SqlWorkitemStore(new VersionedCache<ISqlWorkitemStore>(
                 schemaResolver,
                 new[]
                 {
@@ -174,7 +174,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public IExtendedQueryTagErrorStore ExtendedQueryTagErrorStore { get; }
 
-        public IIndexWorkitemStore WorkitemStore { get; }
+        public IIndexWorkitemStore IndexWorkitemStore { get; }
 
         public SchemaUpgradeRunner SchemaUpgradeRunner { get; }
         public string TestConnectionString { get; }
