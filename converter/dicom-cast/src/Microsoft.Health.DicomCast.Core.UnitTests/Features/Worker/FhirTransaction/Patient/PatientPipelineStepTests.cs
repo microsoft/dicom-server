@@ -5,7 +5,7 @@
 
 using System.Net;
 using System.Threading;
-using Dicom;
+using FellowOakDicom;
 using Hl7.Fhir.Model;
 using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;

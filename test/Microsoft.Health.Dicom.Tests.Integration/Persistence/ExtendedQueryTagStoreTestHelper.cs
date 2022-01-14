@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
@@ -121,6 +122,23 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             }
 
             return results;
+        }
+
+        public async Task SetTagStatusAsync(int tagKey, ExtendedQueryTagStatus status, CancellationToken cancellationToken)
+        {
+            using var sqlConnection = new SqlConnection(_connectionString);
+            await sqlConnection.OpenAsync(cancellationToken);
+
+            using SqlCommand sqlCommand = sqlConnection.CreateCommand();
+            sqlCommand.CommandText = @"
+UPDATE dbo.ExtendedQueryTag
+SET TagStatus = @tagStatus
+WHERE dbo.ExtendedQueryTag.TagKey = @tagKey
+";
+
+            sqlCommand.Parameters.Add(new SqlParameter("@tagKey", tagKey));
+            sqlCommand.Parameters.Add(new SqlParameter("@tagStatus", (byte)status));
+            await sqlCommand.ExecuteNonQueryAsync(cancellationToken);
         }
 
         public async Task ClearExtendedQueryTagTablesAsync()

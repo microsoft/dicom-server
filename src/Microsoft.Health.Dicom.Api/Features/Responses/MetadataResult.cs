@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
+using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.Health.Dicom.Api.Features.Responses
@@ -42,6 +43,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
                 {
                     StatusCode = (int)HttpStatusCode.OK,
                 };
+
+                result.ContentTypes.Add(KnownContentTypes.ApplicationDicomJson);
             }
 
             // If response contains an ETag, add it to the headers.

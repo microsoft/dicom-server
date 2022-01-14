@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,8 +34,10 @@ namespace Microsoft.AspNetCore.Builder
 
             app.UseHealthChecksExtension(new PathString(KnownRoutes.HealthCheck));
 
-            IOptions<FeatureConfiguration> featureConfiguration = app.ApplicationServices.GetRequiredService<IOptions<FeatureConfiguration>>();
+            // Update Fellow Oak DICOM services to use ASP.NET Core's service container
+            DicomSetupBuilder.UseServiceProvider(app.ApplicationServices);
 
+            IOptions<FeatureConfiguration> featureConfiguration = app.ApplicationServices.GetRequiredService<IOptions<FeatureConfiguration>>();
             if (featureConfiguration.Value.EnableOhifViewer)
             {
                 // In order to make OHIF viewer work with direct link to studies, we need to rewrite any path under viewer

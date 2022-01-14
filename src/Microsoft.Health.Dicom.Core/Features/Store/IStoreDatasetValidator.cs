@@ -5,7 +5,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
+using FellowOakDicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store
 {

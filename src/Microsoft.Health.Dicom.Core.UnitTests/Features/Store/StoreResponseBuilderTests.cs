@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Linq;
-using Dicom;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Features.Store;

@@ -5,7 +5,7 @@
 
 using System;
 using System.Globalization;
-using Dicom;
+using FellowOakDicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Common
 {

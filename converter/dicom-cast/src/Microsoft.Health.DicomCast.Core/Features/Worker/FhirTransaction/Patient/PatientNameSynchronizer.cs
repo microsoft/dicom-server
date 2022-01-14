@@ -5,8 +5,8 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Dicom;
 using EnsureThat;
+using FellowOakDicom;
 using Hl7.Fhir.Model;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction

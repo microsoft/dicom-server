@@ -4,33 +4,33 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
+using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
 using EnsureThat;
+using FellowOakDicom;
+using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
-using System.Data;
-using Microsoft.Health.Dicom.Core.Features.Workitem;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 {
-    internal class SqlWorkitemStoreV8 : ISqlWorkitemStore
+    internal class SqlWorkitemStoreV9 : ISqlWorkitemStore
     {
         protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory;
 
-        public SqlWorkitemStoreV8(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+        public SqlWorkitemStoreV9(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
         {
             SqlConnectionWrapperFactory = EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
         }
 
-        public virtual SchemaVersion Version => SchemaVersion.V8;
+        public virtual SchemaVersion Version => SchemaVersion.V9;
 
         public virtual async Task<long> AddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {

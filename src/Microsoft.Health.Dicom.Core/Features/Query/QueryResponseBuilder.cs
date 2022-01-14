@@ -6,8 +6,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Dicom;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Messages;
 

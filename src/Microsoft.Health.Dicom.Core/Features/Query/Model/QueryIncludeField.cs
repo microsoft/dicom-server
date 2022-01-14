@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
-using Dicom;
+using FellowOakDicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {

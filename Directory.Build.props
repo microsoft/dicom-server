@@ -10,7 +10,7 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <FhirServerPackageVersion>2.0.55</FhirServerPackageVersion>
-    <FoDicomVersion>4.0.8</FoDicomVersion>
+    <FoDicomVersion>5.0.2</FoDicomVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <HealthcareSharedPackageVersion>4.0.8</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
@@ -23,6 +23,18 @@
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
+  </PropertyGroup>
+
+  <!--
+    The fo-dicom.Codecs package relies on native assemblies for
+    Linux x64, OSX, and Windows x64. Given that the core dicom
+    project takes a dependency on these codecs, every project
+    should also be compiled for x64, as other platforms like x86
+    would not be able to load these native assemblies.
+  -->
+  <PropertyGroup>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
   <Choose>

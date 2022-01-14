@@ -7,11 +7,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Client.Models;
-using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Client
 {
@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Client
         public async Task<DicomWebResponse<OperationReference>> AddExtendedQueryTagAsync(IEnumerable<AddExtendedQueryTagEntry> tagEntries, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(tagEntries, nameof(tagEntries));
-            string jsonString = JsonConvert.SerializeObject(tagEntries);
+            string jsonString = JsonSerializer.Serialize(tagEntries);
             var uri = new Uri($"/{_apiVersion}{DicomWebConstants.BaseExtendedQueryTagUri}", UriKind.Relative);
             using var request = new HttpRequestMessage(HttpMethod.Post, uri);
             {
@@ -97,7 +97,7 @@ namespace Microsoft.Health.Dicom.Client
             EnsureArg.IsNotNullOrWhiteSpace(tagPath, nameof(tagPath));
             EnsureArg.IsNotNull(newValue, nameof(newValue));
             EnsureArg.EnumIsDefined(newValue.QueryStatus, nameof(newValue));
-            string jsonString = JsonConvert.SerializeObject(newValue, _jsonSerializerSettings);
+            string jsonString = JsonSerializer.Serialize(newValue, _jsonSerializerOptions);
             var uri = new Uri($"/{_apiVersion}{DicomWebConstants.BaseExtendedQueryTagUri}/{tagPath}", UriKind.Relative);
 
             using var request = new HttpRequestMessage(HttpMethod.Patch, uri);

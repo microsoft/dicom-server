@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Text.Json;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
@@ -23,7 +22,6 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
         private readonly IInstanceStore _instanceStore;
         private readonly IInstanceReindexer _instanceReindexer;
         private readonly ISchemaVersionResolver _schemaVersionResolver;
-        private readonly JsonSerializerOptions _jsonSerializerOptions;
         private readonly QueryTagIndexingOptions _options;
 
         public ReindexDurableFunctionTests()
@@ -32,7 +30,6 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
             _instanceStore = Substitute.For<IInstanceStore>();
             _instanceReindexer = Substitute.For<IInstanceReindexer>();
             _schemaVersionResolver = Substitute.For<ISchemaVersionResolver>();
-            _jsonSerializerOptions = new JsonSerializerOptions();
             _options = new QueryTagIndexingOptions
             {
                 ActivityRetryOptions = new RetryOptions(TimeSpan.FromSeconds(5), 10),
@@ -42,7 +39,6 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
                 _instanceStore,
                 _instanceReindexer,
                 _schemaVersionResolver,
-                Options.Create(_jsonSerializerOptions),
                 Options.Create(_options));
         }
     }
