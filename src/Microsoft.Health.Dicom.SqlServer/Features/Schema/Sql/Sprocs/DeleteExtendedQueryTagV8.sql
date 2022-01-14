@@ -1,6 +1,6 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---    DeleteExtendedQueryTag
+--    DeleteExtendedQueryTagV8
 --
 -- DESCRIPTION
 --    Delete specific extended query tag
@@ -11,7 +11,7 @@
 --     @dataType
 --         * the data type of extended query tag. 0 -- String, 1 -- Long, 2 -- Double, 3 -- DateTime, 4 -- PersonName
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.DeleteExtendedQueryTag
+CREATE OR ALTER PROCEDURE dbo.DeleteExtendedQueryTagV8
     @tagPath VARCHAR(64),
     @dataType TINYINT
 AS
@@ -21,20 +21,15 @@ BEGIN
 
     BEGIN TRANSACTION
 
-        DECLARE @tagStatus TINYINT
         DECLARE @tagKey INT
 
-        SELECT @tagKey = TagKey, @tagStatus = TagStatus
+        SELECT @tagKey = TagKey
         FROM dbo.ExtendedQueryTag WITH(XLOCK)
         WHERE dbo.ExtendedQueryTag.TagPath = @tagPath
 
         -- Check existence
         IF @@ROWCOUNT = 0
             THROW 50404, 'extended query tag not found', 1
-
-        -- check if status is Ready or Adding
-        IF @tagStatus = 2
-            THROW 50412, 'extended query tag is not in Ready or Adding status', 1
 
         -- Update status to Deleting
         UPDATE dbo.ExtendedQueryTag
@@ -57,11 +52,12 @@ BEGIN
         ELSE
             DELETE FROM dbo.ExtendedQueryTagPersonName WHERE TagKey = @tagKey
 
-        -- Delete tag
-        DELETE FROM dbo.ExtendedQueryTag
+        -- Delete errors
+        DELETE FROM dbo.ExtendedQueryTagError
         WHERE TagKey = @tagKey
 
-        DELETE FROM dbo.ExtendedQueryTagError
+        -- Delete tag
+        DELETE FROM dbo.ExtendedQueryTag
         WHERE TagKey = @tagKey
 
     COMMIT TRANSACTION
