@@ -351,6 +351,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly BigIntColumn WorkitemKey = new BigIntColumn("WorkitemKey");
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly VarCharColumn WorkitemUid = new VarCharColumn("WorkitemUid", 64);
+            internal readonly NullableVarCharColumn TransactionUid = new NullableVarCharColumn("TransactionUid", 64);
             internal readonly DateTime2Column CreatedDate = new DateTime2Column("CreatedDate", 7);
             internal readonly Index IXC_Workitem = new Index("IXC_Workitem");
             internal readonly Index IX_Workitem_WorkitemUid_PartitionKey = new Index("IX_Workitem_WorkitemUid_PartitionKey");
@@ -365,7 +366,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly IntColumn TagKey = new IntColumn("TagKey");
             internal readonly VarCharColumn TagPath = new VarCharColumn("TagPath", 64);
             internal readonly VarCharColumn TagVR = new VarCharColumn("TagVR", 2);
-            internal readonly TinyIntColumn QueryStatus = new TinyIntColumn("QueryStatus");
             internal readonly Index IXC_WorkitemQueryTag = new Index("IXC_WorkitemQueryTag");
             internal readonly Index IXC_WorkitemQueryTag_TagPath = new Index("IXC_WorkitemQueryTag_TagPath");
         }

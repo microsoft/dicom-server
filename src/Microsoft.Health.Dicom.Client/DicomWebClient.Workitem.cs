@@ -8,10 +8,10 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
-using Dicom.Serialization;
+using FellowOakDicom;
 using EnsureThat;
-using Newtonsoft.Json;
+using FellowOakDicom.Serialization;
+using System.Text.Json;
 
 namespace Microsoft.Health.Dicom.Client
 {
@@ -24,8 +24,10 @@ namespace Microsoft.Health.Dicom.Client
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomDatasets, nameof(dicomDatasets));
+            JsonSerializerOptions serializerOptions = new JsonSerializerOptions();
+            serializerOptions.Converters.Add(new DicomJsonConverter());
 
-            string jsonString = JsonConvert.SerializeObject(dicomDatasets, new JsonDicomConverter());
+            string jsonString = JsonSerializer.Serialize(dicomDatasets, serializerOptions);
             using var request = new HttpRequestMessage(HttpMethod.Post, GenerateWorkitemAddRequestUri(partitionName, workitemUid));
             {
                 request.Content = new StringContent(jsonString);
