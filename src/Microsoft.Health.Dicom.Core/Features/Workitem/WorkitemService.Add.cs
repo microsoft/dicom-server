@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             IAddWorkitemDatasetValidator dicomDatasetValidator,
             IWorkitemOrchestrator storeOrchestrator,
             IElementMinimumValidator minimumValidator,
-            ILogger<StoreService> logger)
+            ILogger<WorkitemService> logger)
         {
             _responseBuilder = EnsureArg.IsNotNull(storeResponseBuilder, nameof(storeResponseBuilder));
             _validator = EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
@@ -77,7 +77,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
         private static void PrepareWorkitemDataset(DicomDataset dataset, ref string workitemInstanceUid)
         {
-            if (string.IsNullOrWhiteSpace(workitemInstanceUid) ||
+            if (string.IsNullOrWhiteSpace(workitemInstanceUid) &&
                 !dataset.TryGetSingleValue<string>(DicomTag.AffectedSOPInstanceUID, out workitemInstanceUid))
             {
                 // TODO: Double check to see if we need to generate UID

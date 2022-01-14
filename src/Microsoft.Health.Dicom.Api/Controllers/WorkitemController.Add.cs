@@ -17,6 +17,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
 using Microsoft.Health.Dicom.Core.Web;
+using Microsoft.Net.Http.Headers;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
@@ -87,8 +88,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
             if (response.Status == WorkitemResponseStatus.Success)
             {
-                Response.Headers.Add("Content-Location", response.Url.ToString());
-                // Response.AddLocationHeader(response.Url);
+                Response.Headers.Add(HeaderNames.ContentLocation, response.Url.ToString());
             }
 
             return StatusCode((int)response.Status.ToHttpStatusCode());
