@@ -6,8 +6,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Dicom;
 using EnsureThat;
+using FellowOakDicom;
 using Hl7.Fhir.Model;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.DicomCast.Core.Configurations;

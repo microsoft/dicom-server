@@ -4,8 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Globalization;
-using Dicom;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Exceptions

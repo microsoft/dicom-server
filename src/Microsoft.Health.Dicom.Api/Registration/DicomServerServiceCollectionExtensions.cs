@@ -5,7 +5,9 @@
 
 using System;
 using System.Reflection;
+using System.Text.Json;
 using EnsureThat;
+using FellowOakDicom.Serialization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
@@ -23,7 +25,6 @@ using Microsoft.Health.Api.Modules;
 using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 using Microsoft.Health.Dicom.Api.Features.Context;
-using Microsoft.Health.Dicom.Api.Features.Formatters;
 using Microsoft.Health.Dicom.Api.Features.Partition;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Api.Features.Swagger;
@@ -107,9 +108,14 @@ namespace Microsoft.AspNetCore.Builder
                 {
                     options.EnableEndpointRouting = false;
                     options.RespectBrowserAcceptHeader = true;
-                    options.OutputFormatters.Insert(0, new DicomJsonOutputFormatter());
                 })
-                .AddJsonSerializerOptions(o => o.Converters.Add(new StrictStringEnumConverterFactory()));
+                .AddJsonSerializerOptions(o =>
+                {
+                    o.Converters.Add(new StrictStringEnumConverterFactory());
+                    o.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false));
+                    o.PropertyNameCaseInsensitive = true;
+                    o.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                });
 
             services.AddApiVersioning(c =>
             {
@@ -140,9 +146,6 @@ namespace Microsoft.AspNetCore.Builder
 
             services.RegisterAssemblyModules(typeof(DicomMediatorExtensions).Assembly, dicomServerConfiguration.Features, dicomServerConfiguration.Services);
             services.AddTransient<IStartupFilter, DicomServerStartupFilter>();
-
-            // Register the Json Serializer to use
-            services.AddDicomJsonNetSerialization();
 
             services.TryAddSingleton<RecyclableMemoryStreamManager>();
 

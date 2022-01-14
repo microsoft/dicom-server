@@ -10,8 +10,8 @@ using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common

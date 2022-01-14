@@ -4,10 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using Dicom;
+using System.Text.Json.Serialization;
 using EnsureThat;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+using FellowOakDicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
 {
@@ -26,7 +25,8 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
             long originalVersion,
             long? currentVersion,
             ChangeFeedState state,
-            string partitionName = default)
+            string partitionName = default,
+            DicomDataset metadata = null)
         {
             EnsureArg.IsNotNull(studyInstanceUid);
             EnsureArg.IsNotNull(seriesInstanceUid);
@@ -42,6 +42,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
             OriginalVersion = originalVersion;
             CurrentVersion = currentVersion;
             PartitionName = partitionName;
+            Metadata = metadata;
         }
 
         public long Sequence { get; }
@@ -54,12 +55,12 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
 
         public string SopInstanceUid { get; }
 
-        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public ChangeFeedAction Action { get; }
 
         public DateTimeOffset Timestamp { get; }
 
-        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public ChangeFeedState State { get; }
 
         [JsonIgnore]

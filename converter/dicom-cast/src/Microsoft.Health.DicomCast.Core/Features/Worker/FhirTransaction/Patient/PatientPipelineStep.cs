@@ -6,8 +6,8 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Threading;
-using Dicom;
 using EnsureThat;
+using FellowOakDicom;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Utility;
 using Microsoft.Health.DicomCast.Core.Extensions;
