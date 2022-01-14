@@ -9,12 +9,12 @@ using Microsoft.Health.SqlServer.Features.Client;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 {
-    internal class SqlQueryStoreV8 : SqlQueryStoreV6
+    internal class SqlQueryStoreV9 : SqlQueryStoreV6
     {
-        // Overriding the version to ensure QueryGenerators receieves V8 schema version for workitem support.
-        public override SchemaVersion Version => SchemaVersion.V8;
+        // Overriding the version to ensure QueryGenerators receieves V9 schema version for workitem support.
+        public override SchemaVersion Version => SchemaVersion.V9;
 
-        public SqlQueryStoreV8(
+        public SqlQueryStoreV9(
             SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
             ILogger<ISqlQueryStore> logger)
             : base(sqlConnectionWrapperFactory, logger)
