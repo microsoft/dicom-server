@@ -4,11 +4,11 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using Microsoft.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Dicom;
 using EnsureThat;
-using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
@@ -21,7 +21,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 {
     internal class SqlWorkitemStoreV8 : ISqlWorkitemStore
     {
-
         protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory;
 
         public SqlWorkitemStoreV8(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
@@ -43,10 +42,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                     rows.PersonNameRows
                 );
 
+                var workitemUid = dataset.GetString(DicomTag.SOPInstanceUID);
+
                 VLatest.AddWorkitem.PopulateCommand(
                     sqlCommandWrapper,
                     partitionKey,
-                    dataset.GetString(DicomTag.SOPInstanceUID),
+                    workitemUid,
                     parameters);
 
                 try
@@ -57,12 +58,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                 {
                     if (ex.Number == SqlErrorCodes.Conflict)
                     {
-                        throw new WorkitemAlreadyExistsException();
+                        throw new WorkitemAlreadyExistsException(workitemUid);
                     }
 
                     throw new DataStoreException(ex);
                 }
-
             }
         }
 

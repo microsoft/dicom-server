@@ -34,6 +34,8 @@ CREATE SEQUENCE dbo.InstanceKeySequence
     NO CYCLE
     CACHE 1000000
 
+ -- used for both ExtendedQueryTag and WorkitemQueryTag to allow
+ -- ExtendedQueryTag* data tables to have TagKey references to both tables
 CREATE SEQUENCE dbo.TagKeySequence
     AS INT
     START WITH 1
@@ -49,7 +51,6 @@ CREATE SEQUENCE dbo.PartitionKeySequence
     MINVALUE 1
     NO CYCLE
     CACHE 10000
-
 
 CREATE SEQUENCE dbo.WorkitemKeySequence
     AS INT

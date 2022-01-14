@@ -211,12 +211,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                     sopInstanceKey2Name = $"{extendedQueryTagTableAlias}.SopInstanceKey2";
                     sopInstanceKey3Name = $"{extendedQueryTagTableAlias}.SopInstanceKey3";
 
-
                     _stringBuilder
                         .Append("AND ")
                         .Append($"{extendedQueryTagTableAlias}.ResourceType")
                         .Append(" = ")
-                        .AppendLine($"{ImageResourceType}");
+                        .AppendLine($"{QueryTagResourceType.Image}");
                 }
 
                 _stringBuilder

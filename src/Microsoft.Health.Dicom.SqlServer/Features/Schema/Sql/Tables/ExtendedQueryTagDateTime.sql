@@ -24,13 +24,13 @@ CREATE TABLE dbo.ExtendedQueryTagDateTime (
     ResourceType            TINYINT              NOT NULL DEFAULT 0     
 ) WITH (DATA_COMPRESSION = PAGE)
 
--- Used in QIDO
+-- Used in QIDO, PartitionKey is moved down to support cross partition query in future
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryTagDateTime
 (
+    ResourceType,
     TagKey,
     TagValue,
     PartitionKey,
-    ResourceType,
     SopInstanceKey1,
     SopInstanceKey2,
     SopInstanceKey3
@@ -39,9 +39,9 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryT
 -- Used in IIndexInstanceCore
 CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagDateTime
 (
+    ResourceType,
     TagKey,
     PartitionKey,
-    ResourceType,
     SopInstanceKey1,
     SopInstanceKey2,
     SopInstanceKey3
@@ -55,8 +55,8 @@ WITH (DATA_COMPRESSION = PAGE)
 -- Used in DeleteInstance
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagDateTime
 (
-    PartitionKey,
     ResourceType,
+    PartitionKey,
     SopInstanceKey1,
     SopInstanceKey2,
     SopInstanceKey3

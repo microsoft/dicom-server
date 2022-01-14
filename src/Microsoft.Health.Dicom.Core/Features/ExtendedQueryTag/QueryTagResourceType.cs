@@ -3,16 +3,21 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Exceptions
+namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     /// <summary>
-    /// Exception thrown when the Workitem instance already exists.
+    /// Resource type of a query tag.
     /// </summary>
-    public class WorkitemAlreadyExistsException : DicomServerException
+    public enum QueryTagResourceType
     {
-        public WorkitemAlreadyExistsException(string uid)
-            : base(string.Format(DicomCoreResource.WorkitemInstanceAlreadyExists, uid))
-        {
-        }
+        /// <summary>
+        /// The image instance resource type
+        /// </summary>
+        Image = 0,
+
+        /// <summary>
+        /// The workitem instance resource type
+        /// </summary>
+        Workitem = 1
     }
 }
