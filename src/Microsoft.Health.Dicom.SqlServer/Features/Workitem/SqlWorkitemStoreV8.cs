@@ -16,6 +16,7 @@ using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
+using System.Data;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 {
@@ -85,6 +86,32 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                     throw new DataStoreException(ex);
                 }
             }
+        }
+
+        public async Task<IReadOnlyList<WorkitemQueryTagStoreEntry>> GetWorkitemQueryTagsAsync(CancellationToken cancellationToken = default)
+        {
+            var results = new List<WorkitemQueryTagStoreEntry>();
+
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.GetWorkitemQueryTags.PopulateCommand(sqlCommandWrapper);
+
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                {
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        (int tagKey, string tagPath, string tagVR) = reader.ReadRow(
+                            VLatest.ExtendedQueryTag.TagKey,
+                            VLatest.ExtendedQueryTag.TagPath,
+                            VLatest.ExtendedQueryTag.TagVR);
+
+                        results.Add(new WorkitemQueryTagStoreEntry(tagKey, tagPath, tagVR));
+                    }
+                }
+            }
+
+            return results;
         }
     }
 }

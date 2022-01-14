@@ -6,18 +6,19 @@
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     /// <summary>
-    /// Representation of a extended query tag entry.
+    /// Representation of a query tag entry.
     /// </summary>
-    public abstract class ExtendedQueryTagEntry : QueryTagEntry
+    public abstract class QueryTagEntry
     {
         /// <summary>
-        /// Identification code of private tag implementer.
+        /// Path of this tag. Normally it's composed of groupid and elementid.
+        /// E.g: 00100020 is path of patient id.
         /// </summary>
-        public string PrivateCreator { get; set; }
+        public string Path { get; set; }
 
-        public override string ToString()
-        {
-            return $"Path: {Path}, VR:{VR}, PrivateCreator:{PrivateCreator}";
-        }
+        /// <summary>
+        /// VR of this tag.
+        /// </summary>
+        public string VR { get; set; }
     }
 }

@@ -1468,6 +1468,18 @@ BEGIN
 END
 
 GO
+CREATE OR ALTER PROCEDURE dbo.GetWorkitemQueryTags
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    SELECT TagKey,
+           TagPath,
+           TagVR
+    FROM   dbo.WorkItemQueryTag;
+END
+
+GO
 CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCoreV8
 @partitionKey INT=1, @studyKey BIGINT, @seriesKey BIGINT, @instanceKey BIGINT, @watermark BIGINT, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
