@@ -40,7 +40,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
         public static ExtendedQueryTagDataRows Build(
             DicomDataset instance,
             IEnumerable<QueryTag> queryTags,
-            SchemaVersion schemaVersion)
+            SchemaVersion schemaVersion,
+            bool isWorkitem = default)
         {
             EnsureArg.IsNotNull(instance, nameof(instance));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
@@ -52,7 +53,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             var dateTimeWithUtcRows = new List<InsertDateTimeExtendedQueryTagTableTypeV2Row>();
             var personNameRows = new List<InsertPersonNameExtendedQueryTagTableTypeV1Row>();
 
-            foreach (QueryTag queryTag in queryTags.Where(x => x.IsExtendedQueryTag))
+            foreach (QueryTag queryTag in queryTags.Where(x => x.IsExtendedQueryTag || isWorkitem))
             {
                 // Create row
                 ExtendedQueryTagDataType dataType = ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[queryTag.VR.Code];
@@ -72,6 +73,54 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
                         }
                         break;
                     case ExtendedQueryTagDataType.PersonNameData: AddPersonNameRow(instance, personNameRows, queryTag); break;
+                    default:
+                        Debug.Fail($"Not able to handle {dataType}");
+                        break;
+                }
+            }
+
+        }
+        public static ExtendedQueryTagDataRows BuildWorkitem(
+            DicomDataset dataset,
+            IEnumerable<QueryTag> queryTags)
+        {
+            EnsureArg.IsNotNull(dataset, nameof(dataset));
+            EnsureArg.IsNotNull(queryTags, nameof(queryTags));
+
+            var stringRows = new List<InsertStringExtendedQueryTagTableTypeV1Row>();
+            var longRows = new List<InsertLongExtendedQueryTagTableTypeV1Row>();
+            var doubleRows = new List<InsertDoubleExtendedQueryTagTableTypeV1Row>();
+            var dateTimeRows = new List<InsertDateTimeExtendedQueryTagTableTypeV1Row>();
+            var dateTimeWithUtcRows = new List<InsertDateTimeExtendedQueryTagTableTypeV2Row>();
+            var personNameRows = new List<InsertPersonNameExtendedQueryTagTableTypeV1Row>();
+
+            foreach (QueryTag queryTag in queryTags)
+            {
+                if (queryTag.Item is DicomSequence)
+                {
+                    if (dataset.TryGetLastPathElements((DicomSequence)queryTag.Item, out var pathElements))
+                    {
+
+                    }
+                }
+
+                ExtendedQueryTagDataType dataType = ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[queryTag.VR.Code];
+                switch (dataType)
+                {
+                    case ExtendedQueryTagDataType.StringData: AddStringRow(dataset, stringRows, queryTag); break;
+                    case ExtendedQueryTagDataType.LongData: AddLongRow(dataset, longRows, queryTag); break;
+                    case ExtendedQueryTagDataType.DoubleData: AddDoubleRow(dataset, doubleRows, queryTag); break;
+                    case ExtendedQueryTagDataType.DateTimeData:
+                        if ((int)schemaVersion < SchemaVersionConstants.SupportDTAndTMInExtendedQueryTagSchemaVersion)
+                        {
+                            AddDateTimeRow(dataset, dateTimeRows, queryTag);
+                        }
+                        else
+                        {
+                            AddDateTimeWithUtcRow(dataset, dateTimeWithUtcRows, queryTag);
+                        }
+                        break;
+                    case ExtendedQueryTagDataType.PersonNameData: AddPersonNameRow(dataset, personNameRows, queryTag); break;
                     default:
                         Debug.Fail($"Not able to handle {dataType}");
                         break;

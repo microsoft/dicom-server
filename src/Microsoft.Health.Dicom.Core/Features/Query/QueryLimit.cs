@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query

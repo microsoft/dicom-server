@@ -6,6 +6,7 @@
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Query;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
@@ -24,6 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         {
             EnsureArg.IsNotNull(tag, nameof(tag));
 
+            Item = new DicomValuelessItem(tag);
             Tag = tag;
             VR = tag.GetDefaultVR();
             Level = QueryLimit.GetQueryTagLevel(tag);
@@ -38,12 +40,35 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         public QueryTag(ExtendedQueryTagStoreEntry entry)
         {
             EnsureArg.IsNotNull(entry, nameof(entry));
+
             string fullPath = string.IsNullOrEmpty(entry.PrivateCreator) ? entry.Path : $"{entry.Path}:{entry.PrivateCreator}";
             Tag = DicomTag.Parse(fullPath);
+            Item = new DicomValuelessItem(Tag);
             VR = DicomVR.Parse(entry.VR);
             Level = entry.Level;
             ExtendedQueryTagStoreEntry = entry;
         }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="QueryTag"/> class.
+        /// </summary>
+        /// <remarks>Used for constructing from <see cref="DicomItem"/> (to model sequences).</remarks>
+        /// <param name="item">The Dicom item.</param>
+        public QueryTag(DicomItem item)
+        {
+            EnsureArg.IsNotNull(item, nameof(item));
+
+            Item = item;
+            Tag = Item.Tag;
+            VR = Item.ValueRepresentation;
+            Level = QueryLimit.GetQueryTagLevel(Tag);
+            ExtendedQueryTagStoreEntry = null;
+        }
+
+        /// <summary>
+        /// Get the DicomItem for this tag.
+        /// </summary>
+        public DicomItem Item { get; }
 
         /// <summary>
         /// Gets Dicom Tag.
@@ -68,7 +93,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// <summary>
         /// Gets the underlying extendedQueryTagStoreEntry for extended query tag.
         /// </summary>
-        public ExtendedQueryTagStoreEntry ExtendedQueryTagStoreEntry { get; }
+        public QueryTagEntry ExtendedQueryTagStoreEntry { get; }
 
         /// <summary>
         /// Gets name of this query tag.

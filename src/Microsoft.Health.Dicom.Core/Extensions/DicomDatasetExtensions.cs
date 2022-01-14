@@ -329,5 +329,33 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                 minimumValidator.Validate(dicomElement);
             }
         }
+
+        /// <summary>
+        /// Gets DicomElements from a DicomDataset by traversing a DicomSequence/>.
+        /// </summary>
+        /// <param name="dataset">The DicomDataset to be traversed.</param>
+        /// <param name="searchSequence">The DicomItem modelling the path.</param>
+        /// <param name="returnElements"></param>
+        /// <returns>The DicomElements specified by the tag path.</returns>
+        public static bool TryGetLastPathElements(this DicomDataset dataset, DicomSequence searchSequence, out IEnumerable<DicomElement> returnElements)
+        {
+            EnsureArg.IsNotNull(dataset, nameof(dataset));
+            EnsureArg.IsNotNull(searchSequence, nameof(searchSequence));
+
+            var foundElements = new List<DicomElement>();
+            returnElements = foundElements;
+
+            var foundSequence = dataset.GetDicomItem<DicomSequence>(searchSequence.Tag);
+            if (foundSequence == null) return false;
+
+            var searchDataset = searchSequence.Items.FirstOrDefault();
+
+            foreach (var childDataset in foundSequence.Items)
+            {
+                foundElements.AddRange(childDataset.Intersect(searchDataset).Select(x => (DicomElement)x));
+            }
+
+            return returnElements.Any();
+        }
     }
 }

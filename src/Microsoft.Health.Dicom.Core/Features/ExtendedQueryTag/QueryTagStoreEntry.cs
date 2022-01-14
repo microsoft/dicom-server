@@ -6,19 +6,18 @@
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     /// <summary>
-    /// Representation of a extended query tag entry.
+    /// Representation of a workitem query tag entry.
     /// </summary>
-    public abstract class QueryTagEntry
+    public class WorkitemQueryTagStoreEntry : QueryTagEntry
     {
         /// <summary>
-        /// Path of this tag. Normally it's composed of groupid and elementid.
-        /// E.g: 00100020 is path of patient id.
+        /// Key of this extended query tag entry.
         /// </summary>
-        public string Path { get; set; }
+        public int Key { get; }
 
         /// <summary>
-        /// VR of this tag.
+        /// Query status of this tag.
         /// </summary>
-        public string VR { get; set; }
+        public QueryStatus QueryStatus { get; }
     }
 }

@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                var rows = ExtendedQueryTagDataRowsBuilder.Build(dataset, queryTags, Version);
+                var rows = ExtendedQueryTagDataRowsBuilder.Build(dataset, queryTags, Version, true);
                 var parameters = new VLatest.AddWorkitemTableValuedParameters(
                     rows.StringRows,
                     rows.DateTimeWithUtcRows,
