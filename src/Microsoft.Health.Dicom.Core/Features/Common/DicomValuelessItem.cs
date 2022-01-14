@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Linq;
-using Dicom;
+using FellowOakDicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Common
 {
