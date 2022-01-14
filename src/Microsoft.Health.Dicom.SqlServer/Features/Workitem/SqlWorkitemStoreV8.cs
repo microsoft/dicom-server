@@ -17,6 +17,7 @@ using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
 using System.Data;
+using Microsoft.Health.Dicom.Core.Features.Workitem;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 {
