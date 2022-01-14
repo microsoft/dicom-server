@@ -5,9 +5,9 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Dicom;
-using Dicom.Imaging;
 using EnsureThat;
+using FellowOakDicom;
+using FellowOakDicom.Imaging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve

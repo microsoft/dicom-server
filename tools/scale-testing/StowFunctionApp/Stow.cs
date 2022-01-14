@@ -10,7 +10,7 @@ using System.Text;
 using System.Text.Json;
 using Common;
 using Common.ServiceBus;
-using Dicom;
+using FellowOakDicom;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Client;

@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using Dicom;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Client.Models;
 
 namespace Microsoft.Health.DicomCast.Core.UnitTests
@@ -43,12 +43,15 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests
                 state = ChangeFeedState.Current;
             }
 
-            var changeFeedEntry = new ChangeFeedEntry(sequence.Value, DateTime.UtcNow, action.Value, studyInstanceUid, seriesInstanceUid, sopInstanceUid, state.Value)
-            {
-                Metadata = metadata,
-            };
-
-            return changeFeedEntry;
+            return new ChangeFeedEntry(
+                sequence.Value,
+                DateTimeOffset.UtcNow,
+                action.Value,
+                studyInstanceUid,
+                seriesInstanceUid,
+                sopInstanceUid,
+                state.Value,
+                metadata: metadata);
         }
     }
 }

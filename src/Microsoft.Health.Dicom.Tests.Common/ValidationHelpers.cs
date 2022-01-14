@@ -5,12 +5,12 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Dicom;
-using Dicom.Serialization;
+using System.Text.Json;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Query;
-using Newtonsoft.Json;
+using Microsoft.Health.Dicom.Tests.Common.Serialization;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Common
@@ -126,10 +126,9 @@ namespace Microsoft.Health.Dicom.Tests.Common
             });
 
             // Compare result datasets by serializing.
-            var jsonDicomConverter = new JsonDicomConverter();
             Assert.Equal(
-                JsonConvert.SerializeObject(expectedDataset, jsonDicomConverter),
-                JsonConvert.SerializeObject(responseInstance, jsonDicomConverter));
+                JsonSerializer.Serialize(expectedDataset, AppSerializerOptions.Json),
+                JsonSerializer.Serialize(responseInstance, AppSerializerOptions.Json));
             Assert.Equal(expectedDataset.Count(), responseInstance.Count());
         }
     }

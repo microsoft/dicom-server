@@ -5,7 +5,7 @@
 
 using System;
 using System.Net;
-using Dicom;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query

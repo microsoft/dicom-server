@@ -6,13 +6,13 @@
 using System;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
-using Dicom;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Xunit;
@@ -79,9 +79,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             string patientName = $"Hall^{randomNamePart}^Tá";
             string patientNameWithNoAccent = $"Hall^{randomNamePart}^Ta";
 
-            DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()
+            await PostDicomFileAsync(new DicomDataset
             {
-                { DicomTag.PatientName, Encoding.UTF8, patientName },
+                { DicomTag.PatientName, patientName },
                 { DicomTag.SpecificCharacterSet, "ISO_IR 192" },
             });
 
@@ -129,6 +129,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QuerySeriesAsync("Modality=MRI");
 
+            Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
             DicomDataset[] datasets = await response.ToArrayAsync();
 
             Assert.NotNull(datasets);
@@ -153,6 +154,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryStudyInstanceAsync(studyId, "Modality=MRI");
 
+            Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
             DicomDataset[] datasets = await response.ToArrayAsync();
 
             Assert.Single(datasets);
@@ -174,6 +176,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryStudySeriesInstanceAsync(studyId, seriesId, $"SOPInstanceUID={instanceId}");
 
+            Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
             DicomDataset[] datasets = await response.ToArrayAsync();
 
             Assert.Single(datasets);
@@ -191,6 +194,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryInstancesAsync("Modality=XRAY");
 
+            Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
             DicomDataset[] datasets = await response.ToArrayAsync();
 
             Assert.NotNull(datasets);
@@ -225,6 +229,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryStudyAsync(
                     $"PatientName={randomNamePart}&FuzzyMatching=true");
 
+                if (response.ContentHeaders.ContentType != null)
+                {
+                    Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
+                }
+
                 responseDatasets = await response.ToArrayAsync();
 
                 testDataResponse1 = responseDatasets?.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId1);
@@ -258,6 +267,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             {
                 using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryStudyAsync(
                     $"ReferringPhysicianName={randomNamePart}&FuzzyMatching=true");
+
+                if (response.ContentHeaders.ContentType != null)
+                {
+                    Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
+                }
 
                 responseDatasets = await response.ToArrayAsync();
 

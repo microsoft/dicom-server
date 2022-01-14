@@ -7,6 +7,9 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using EnsureThat;
+using FellowOakDicom;
+using FellowOakDicom.Serialization;
+using Microsoft.Azure.WebJobs.Host.Config;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -24,8 +27,20 @@ using Microsoft.IO;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
+    /// <summary>
+    /// A <see langword="static"/> collection of methods for configuring DICOM Azure Functions.
+    /// </summary>
     public static class ServiceCollectionExtensions
     {
+        /// <summary>
+        /// Adds the core set of services required to run the DICOM operations as Azure Functions.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/>.</param>
+        /// <param name="configuration">The <see cref="IConfiguration"/> root.</param>
+        /// <returns>A corresponding <see cref="IDicomFunctionsBuilder"/> to add additional services.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="services"/> or <paramref name="configuration"/> is <see langword="null"/>.
+        /// </exception>
         public static IDicomFunctionsBuilder ConfigureFunctions(
             this IServiceCollection services,
             IConfiguration configuration)
@@ -37,12 +52,27 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return new DicomFunctionsBuilder(services
                 .AddRecyclableMemoryStreamManager()
-                .AddDicomJsonNetSerialization()
+                .AddFellowOakDicomExtension()
                 .AddFunctionsOptions<QueryTagIndexingOptions>(configuration, QueryTagIndexingOptions.SectionName, bindNonPublicProperties: true)
                 .AddFunctionsOptions<PurgeHistoryOptions>(configuration, PurgeHistoryOptions.SectionName)
-                .AddHttpServices());
+                .AddJsonSerializerOptions(o =>
+                {
+                    o.Converters.Add(new JsonStringEnumConverter());
+                    o.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false));
+                    o.PropertyNameCaseInsensitive = true;
+                    o.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                }));
         }
 
+        /// <summary>
+        /// Adds MSSQL Server implementations for indexing DICOM data and storing its metadata.
+        /// </summary>
+        /// <param name="builder">The <see cref="IDicomFunctionsBuilder"/>.</param>
+        /// <param name="configuration">The <see cref="IConfiguration"/> root.</param>
+        /// <returns>The <paramref name="builder"/> for additional methods calls.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="builder"/> or <paramref name="configuration"/> is <see langword="null"/>.
+        /// </exception>
         public static IDicomFunctionsBuilder AddSqlServer(this IDicomFunctionsBuilder builder, IConfiguration configuration)
         {
             EnsureArg.IsNotNull(builder, nameof(builder));
@@ -51,6 +81,15 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.AddSqlServer(c => configuration.GetSection(SqlServerDataStoreConfiguration.SectionName).Bind(c));
         }
 
+        /// <summary>
+        /// Adds Azure Storage implementations for storing DICOM metadata.
+        /// </summary>
+        /// <param name="builder">The <see cref="IDicomFunctionsBuilder"/>.</param>
+        /// <param name="configuration">The <see cref="IConfiguration"/> root.</param>
+        /// <returns>The <paramref name="builder"/> for additional methods calls.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="builder"/> or <paramref name="configuration"/> is <see langword="null"/>.
+        /// </exception>
         public static IDicomFunctionsBuilder AddMetadataStorageDataStore(this IDicomFunctionsBuilder builder, IConfiguration configuration)
         {
             EnsureArg.IsNotNull(builder, nameof(builder));
@@ -73,6 +112,16 @@ namespace Microsoft.Extensions.DependencyInjection
             // RecyclableMemoryStreamManager ctor overloads without help, so we instantiate it ourselves
             factory ??= () => new RecyclableMemoryStreamManager();
             services.TryAddSingleton(factory());
+
+            return services;
+        }
+
+        private static IServiceCollection AddFellowOakDicomExtension(this IServiceCollection services)
+        {
+            EnsureArg.IsNotNull(services, nameof(services));
+
+            services.AddFellowOakDicomServices(skipValidation: true);
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IExtensionConfigProvider, FellowOakExtensionConfiguration>());
 
             return services;
         }
@@ -100,26 +149,26 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        private static IServiceCollection AddHttpServices(this IServiceCollection services)
+        private static IServiceCollection AddJsonSerializerOptions(this IServiceCollection services, Action<JsonSerializerOptions> configure)
         {
             EnsureArg.IsNotNull(services, nameof(services));
-
-            services
-                .AddMvcCore()
-                .AddJsonSerializerOptions(x => x.Converters.Add(new JsonStringEnumConverter()));
-
-            return services;
-        }
-
-        private static IMvcCoreBuilder AddJsonSerializerOptions(this IMvcCoreBuilder builder, Action<JsonSerializerOptions> configure)
-        {
-            EnsureArg.IsNotNull(builder, nameof(builder));
             EnsureArg.IsNotNull(configure, nameof(configure));
 
-            // TODO: Configure System.Text.Json for Azure Functions when available
+            // TODO: Configure System.Text.Json for Azure Functions MVC services when available
+            //       and if we decide to expose HTTP services
             //builder.AddJsonOptions(o => configure(o.JsonSerializerOptions));
-            builder.Services.Configure(configure);
-            return builder;
+            return services.Configure(configure);
+        }
+
+        private sealed class FellowOakExtensionConfiguration : IExtensionConfigProvider
+        {
+            private readonly IServiceProvider _serviceProvider;
+
+            public FellowOakExtensionConfiguration(IServiceProvider serviceProvider)
+                => _serviceProvider = EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
+
+            public void Initialize(ExtensionConfigContext context)
+                => DicomSetupBuilder.UseServiceProvider(_serviceProvider);
         }
     }
 }

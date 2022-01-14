@@ -8,11 +8,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
 using EnsureThat;
-using Newtonsoft.Json;
+using FellowOakDicom;
 
 namespace Microsoft.Health.Dicom.Client
 {
@@ -143,7 +143,7 @@ namespace Microsoft.Health.Dicom.Client
                             statusCode,
                             responseHeaders,
                             contentHeaders,
-                            JsonConvert.DeserializeObject<DicomDataset>(responseBody, _jsonSerializerSettings));
+                            JsonSerializer.Deserialize<DicomDataset>(responseBody, _jsonSerializerOptions));
                     }
 
                     return false;

@@ -6,9 +6,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Dicom;
-using Dicom.StructuredReport;
 using EnsureThat;
+using FellowOakDicom;
+using FellowOakDicom.StructuredReport;
 using Hl7.Fhir.Model;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction

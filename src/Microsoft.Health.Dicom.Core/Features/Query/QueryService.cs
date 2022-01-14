@@ -9,8 +9,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Dicom;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
@@ -28,7 +28,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         private readonly IMetadataStore _metadataStore;
         private readonly IQueryTagService _queryTagService;
         private readonly IDicomRequestContextAccessor _contextAccessor;
-
 
         public QueryService(
             IQueryParser queryParser,
