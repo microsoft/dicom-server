@@ -6,7 +6,6 @@
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 
@@ -26,7 +25,6 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         {
             EnsureArg.IsNotNull(tag, nameof(tag));
 
-            Item = new DicomValuelessItem(tag);
             Tag = tag;
             VR = tag.GetDefaultVR();
             Level = QueryLimit.GetQueryTagLevel(tag);
@@ -44,7 +42,6 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
             string fullPath = string.IsNullOrEmpty(entry.PrivateCreator) ? entry.Path : $"{entry.Path}:{entry.PrivateCreator}";
             Tag = DicomTag.Parse(fullPath);
-            Item = new DicomValuelessItem(Tag);
             VR = DicomVR.Parse(entry.VR);
             Level = entry.Level;
             ExtendedQueryTagStoreEntry = entry;
@@ -60,16 +57,9 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             EnsureArg.IsNotNull(entry, nameof(entry));
 
             Tag = DicomTag.Parse(entry.Path);
-            Item = new DicomValuelessItem(Tag);
             VR = DicomVR.Parse(entry.VR);
-            ExtendedQueryTagStoreEntry = null;
             WorkitemQueryTagStoreEntry = entry;
         }
-
-        /// <summary>
-        /// Get the DicomItem for this tag.
-        /// </summary>
-        public DicomItem Item { get; }
 
         /// <summary>
         /// Gets Dicom Tag.
@@ -96,6 +86,9 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// </summary>
         public ExtendedQueryTagStoreEntry ExtendedQueryTagStoreEntry { get; }
 
+        /// <summary>
+        /// Gets the underlying workitemQueryTagStoreEntry for workitem query tag.
+        /// </summary>
         public WorkitemQueryTagStoreEntry WorkitemQueryTagStoreEntry { get; }
 
         /// <summary>

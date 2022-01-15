@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -19,6 +20,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Queryable dicom tags.</returns>
-        Task<IReadOnlyCollection<WorkitemQueryTagStoreEntry>> GetQueryTagsAsync(CancellationToken cancellationToken = default);
+        Task<IReadOnlyCollection<QueryTag>> GetQueryTagsAsync(CancellationToken cancellationToken = default);
     }
 }

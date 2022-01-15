@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
@@ -24,5 +25,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// Key of this extended query tag entry.
         /// </summary>
         public int Key { get; }
+
+        /// <summary>
+        /// Get the DicomItem that is the representation of the path for this tag
+        /// </summary>
+        public DicomItem Item { get; set; }
     }
 }
