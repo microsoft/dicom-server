@@ -3,15 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using FellowOakDicom;
-using FellowOakDicom.Serialization;
 using MediatR;
 using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -24,13 +19,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     public class AddWorkitemRequestHandler : BaseHandler, IRequestHandler<AddWorkitemRequest, AddWorkitemResponse>
     {
         private readonly IWorkitemService _workItemService;
+        private readonly IWorkitemSerializer _workitemSerializer;
 
         public AddWorkitemRequestHandler(
             IAuthorizationService<DataActions> authorizationService,
+            IWorkitemSerializer workitemSerializer,
             IWorkitemService workItemService)
             : base(authorizationService)
         {
             _workItemService = EnsureArg.IsNotNull(workItemService, nameof(workItemService));
+            _workitemSerializer = workitemSerializer;
         }
 
         /// <inheritdoc />
@@ -47,19 +45,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             request.Validate();
 
-            JsonSerializerOptions serializerOptions = new JsonSerializerOptions();
-            serializerOptions.Converters.Add(new DicomJsonConverter());
+            var workitems = await _workitemSerializer.DeserializeAsync(request.RequestBody, request.RequestContentType);
 
-            using (var streamReader = new StreamReader(request.RequestBody))
-            {
-                string json = await streamReader.ReadToEndAsync().ConfigureAwait(false);
-
-                IEnumerable<DicomDataset> dataset = JsonSerializer.Deserialize<IEnumerable<DicomDataset>>(json, serializerOptions);
-
-                return await _workItemService
-                    .ProcessAsync(dataset.FirstOrDefault(), request.WorkitemInstanceUid, cancellationToken)
-                    .ConfigureAwait(false);
-            }
+            return await _workItemService
+                .ProcessAsync(workitems.FirstOrDefault(), request.WorkitemInstanceUid, cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }

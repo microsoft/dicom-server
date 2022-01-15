@@ -13,18 +13,23 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 {
     public sealed class AddWorkitemResponseBuilderTests
     {
+        private readonly MockUrlResolver _urlResolver = new MockUrlResolver();
+        private readonly DicomDataset _dataset = new DicomDataset();
+        private readonly AddWorkitemResponseBuilder _target;
+
+        public AddWorkitemResponseBuilderTests()
+        {
+            _target = new AddWorkitemResponseBuilder(_urlResolver);
+        }
+
         [Fact]
         public void GivenBuildResponse_WhenNoFailure_ThenResponseStatusIsSuccess()
         {
-            var dataset = new DicomDataset();
-            var urlResolver = new MockUrlResolver();
-            var target = new AddWorkitemResponseBuilder(urlResolver);
+            _dataset.Add(DicomTag.RequestedSOPInstanceUID, DicomUID.Generate().UID);
 
-            dataset.Add(DicomTag.RequestedSOPInstanceUID, DicomUID.Generate().UID);
+            _target.AddSuccess(_dataset);
 
-            target.AddSuccess(dataset);
-
-            var response = target.BuildResponse();
+            var response = _target.BuildResponse();
 
             Assert.NotNull(response);
             Assert.Equal(WorkitemResponseStatus.Success, response.Status);
@@ -33,16 +38,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         [Fact]
         public void GivenBuildResponse_WhenNoFailure_ThenResponseUrlIncludesWorkitemInstanceUid()
         {
-            var dataset = new DicomDataset();
-            var urlResolver = new MockUrlResolver();
-            var target = new AddWorkitemResponseBuilder(urlResolver);
-
             var workitemInstanceUid = DicomUID.Generate().UID;
-            dataset.Add(DicomTag.RequestedSOPInstanceUID, workitemInstanceUid);
+            _dataset.Add(DicomTag.RequestedSOPInstanceUID, workitemInstanceUid);
 
-            target.AddSuccess(dataset);
+            _target.AddSuccess(_dataset);
 
-            var response = target.BuildResponse();
+            var response = _target.BuildResponse();
 
             Assert.NotNull(response);
             Assert.NotNull(response.Url);
@@ -52,16 +53,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         [Fact]
         public void GivenBuildResponse_WhenFailure_ThenFailureReasonTagIsAddedToDicomDataset()
         {
-            var dataset = new DicomDataset();
-            var urlResolver = new MockUrlResolver();
-            var target = new AddWorkitemResponseBuilder(urlResolver);
+            _target.AddFailure(_dataset, (ushort)WorkitemResponseStatus.Failure);
 
-            target.AddFailure(dataset, (ushort)WorkitemResponseStatus.Failure);
-
-            var response = target.BuildResponse();
+            var response = _target.BuildResponse();
 
             Assert.NotNull(response);
-            Assert.NotEmpty(dataset.GetString(DicomTag.FailureReason));
+            Assert.NotEmpty(_dataset.GetString(DicomTag.FailureReason));
             Assert.Null(response.Url);
             Assert.Equal(WorkitemResponseStatus.Failure, response.Status);
         }

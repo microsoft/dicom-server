@@ -19,122 +19,84 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 {
     public sealed class WorkitemServiceTests
     {
+        private readonly IAddWorkitemDatasetValidator _datasetValidator = Substitute.For<IAddWorkitemDatasetValidator>();
+        private readonly IAddWorkitemResponseBuilder _responseBuilder = Substitute.For<IAddWorkitemResponseBuilder>();
+        private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
+        private readonly IWorkitemOrchestrator _storeOrchestrator = Substitute.For<IWorkitemOrchestrator>();
+        private readonly ILogger<WorkitemService> _logger = Substitute.For<ILogger<WorkitemService>>();
+        private readonly DicomDataset _dataset = new DicomDataset();
+        private readonly WorkitemService _target;
+
+        public WorkitemServiceTests()
+        {
+            _target = new WorkitemService(_responseBuilder, _datasetValidator, _storeOrchestrator, _minimumValidator, _logger);
+        }
+
         [Fact]
         public async Task GivenNullDicomDataset_WhenProcessed_ThenArgumentNullExceptionIsThrown()
         {
-            var responseBuilder = Substitute.For<IAddWorkitemResponseBuilder>();
-            var datasetValidator = Substitute.For<IAddWorkitemDatasetValidator>();
-            var storeOrchestrator = Substitute.For<IWorkitemOrchestrator>();
-            var minimumValidator = Substitute.For<IElementMinimumValidator>();
-            var logger = Substitute.For<ILogger<WorkitemService>>();
-
-            var target = new WorkitemService(responseBuilder, datasetValidator, storeOrchestrator, minimumValidator, logger);
-
             await Assert.ThrowsAsync<ArgumentNullException>(
-                async () => await target.ProcessAsync(null, string.Empty, CancellationToken.None).ConfigureAwait(false));
+                async () => await _target.ProcessAsync(null, string.Empty, CancellationToken.None).ConfigureAwait(false));
         }
 
         [Fact]
         public async Task GivenValidWorkitemInstanceUid_WhenProcessed_ThenIsSetupForSOPInstanceUIDTagInTheDataset()
         {
-            var responseBuilder = Substitute.For<IAddWorkitemResponseBuilder>();
-            var datasetValidator = Substitute.For<IAddWorkitemDatasetValidator>();
-            var storeOrchestrator = Substitute.For<IWorkitemOrchestrator>();
-            var minimumValidator = Substitute.For<IElementMinimumValidator>();
-            var logger = Substitute.For<ILogger<WorkitemService>>();
             var workitemInstanceUid = DicomUID.Generate().UID;
 
-            var dataset = new DicomDataset();
+            await _target.ProcessAsync(_dataset, workitemInstanceUid, CancellationToken.None).ConfigureAwait(false);
 
-            var target = new WorkitemService(responseBuilder, datasetValidator, storeOrchestrator, minimumValidator, logger);
-
-            await target.ProcessAsync(dataset, workitemInstanceUid, CancellationToken.None).ConfigureAwait(false);
-
-            Assert.Equal(workitemInstanceUid, dataset.GetString(DicomTag.SOPInstanceUID));
+            Assert.Equal(workitemInstanceUid, _dataset.GetString(DicomTag.SOPInstanceUID));
         }
-
 
         [Fact]
         public async Task GivenValidWorkitemInstanceUidInDicomTagAffectedSOPInstanceUID_WhenProcessed_ThenIsSetupForSOPInstanceUIDTagInTheDataset()
         {
-            var responseBuilder = Substitute.For<IAddWorkitemResponseBuilder>();
-            var datasetValidator = Substitute.For<IAddWorkitemDatasetValidator>();
-            var storeOrchestrator = Substitute.For<IWorkitemOrchestrator>();
-            var minimumValidator = Substitute.For<IElementMinimumValidator>();
-            var logger = Substitute.For<ILogger<WorkitemService>>();
             var workitemInstanceUid = DicomUID.Generate().UID;
-            var dataset = new DicomDataset();
-            dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
 
-            var target = new WorkitemService(responseBuilder, datasetValidator, storeOrchestrator, minimumValidator, logger);
+            _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
 
-            await target.ProcessAsync(dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
+            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
-            Assert.Equal(workitemInstanceUid, dataset.GetString(DicomTag.SOPInstanceUID));
+            Assert.Equal(workitemInstanceUid, _dataset.GetString(DicomTag.SOPInstanceUID));
         }
 
         [Fact]
         public async Task GivenNoWorkitemInstanceUid_WhenProcessed_ThenNewUidIsSetupForSOPInstanceUIDTagInTheDataset()
         {
-            var responseBuilder = Substitute.For<IAddWorkitemResponseBuilder>();
-            var datasetValidator = Substitute.For<IAddWorkitemDatasetValidator>();
-            var storeOrchestrator = Substitute.For<IWorkitemOrchestrator>();
-            var minimumValidator = Substitute.For<IElementMinimumValidator>();
-            var logger = Substitute.For<ILogger<WorkitemService>>();
+            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
-            var dataset = new DicomDataset();
-
-            var target = new WorkitemService(responseBuilder, datasetValidator, storeOrchestrator, minimumValidator, logger);
-
-            await target.ProcessAsync(dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
-
-            Assert.False(string.IsNullOrWhiteSpace(dataset.GetString(DicomTag.SOPInstanceUID)));
+            Assert.False(string.IsNullOrWhiteSpace(_dataset.GetString(DicomTag.SOPInstanceUID)));
         }
 
         [Fact]
         public async Task GivenValidDicomDataset_WhenProcessed_ThenCallsValidate()
         {
-            var responseBuilder = Substitute.For<IAddWorkitemResponseBuilder>();
-            var datasetValidator = Substitute.For<IAddWorkitemDatasetValidator>();
-            var storeOrchestrator = Substitute.For<IWorkitemOrchestrator>();
-            var minimumValidator = Substitute.For<IElementMinimumValidator>();
-            var logger = Substitute.For<ILogger<WorkitemService>>();
-
             var workitemInstanceUid = DicomUID.Generate().UID;
-            var dataset = new DicomDataset();
-            dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
 
-            var target = new WorkitemService(responseBuilder, datasetValidator, storeOrchestrator, minimumValidator, logger);
+            _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
 
-            await target.ProcessAsync(dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
+            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
-            datasetValidator
+            _datasetValidator
                 .Received()
-                .Validate(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, dataset)), Arg.Is<string>(uid => uid == workitemInstanceUid));
+                .Validate(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Is<string>(uid => uid == workitemInstanceUid));
         }
 
         [Fact]
         public async Task GivenValidateThrowsDicomValidationException_WhenProcessed_ThenWorkitemOrchestratorAddWorkitemIsNotCalled()
         {
-            var responseBuilder = Substitute.For<IAddWorkitemResponseBuilder>();
-            var datasetValidator = Substitute.For<IAddWorkitemDatasetValidator>();
-            var storeOrchestrator = Substitute.For<IWorkitemOrchestrator>();
-            var minimumValidator = Substitute.For<IElementMinimumValidator>();
-            var logger = Substitute.For<ILogger<WorkitemService>>();
-
             var workitemInstanceUid = DicomUID.Generate().UID;
-            var dataset = new DicomDataset();
-            dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
 
-            datasetValidator
+            _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
+
+            _datasetValidator
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
                 .Throw(new DicomValidationException(string.Empty, DicomVR.UN, string.Empty));
 
-            var target = new WorkitemService(responseBuilder, datasetValidator, storeOrchestrator, minimumValidator, logger);
+            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
-            await target.ProcessAsync(dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
-
-            await storeOrchestrator
+            await _storeOrchestrator
                 .DidNotReceive()
                 .AddWorkitemAsync(Arg.Any<DicomDataset>(), Arg.Any<CancellationToken>());
         }
@@ -142,25 +104,17 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         [Fact]
         public async Task GivenValidateThrowsDatasetValidationException_WhenProcessed_ThenWorkitemOrchestratorAddWorkitemIsNotCalled()
         {
-            var responseBuilder = Substitute.For<IAddWorkitemResponseBuilder>();
-            var datasetValidator = Substitute.For<IAddWorkitemDatasetValidator>();
-            var storeOrchestrator = Substitute.For<IWorkitemOrchestrator>();
-            var minimumValidator = Substitute.For<IElementMinimumValidator>();
-            var logger = Substitute.For<ILogger<WorkitemService>>();
-
             var workitemInstanceUid = DicomUID.Generate().UID;
-            var dataset = new DicomDataset();
-            dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
 
-            datasetValidator
+            _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
+
+            _datasetValidator
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
                 .Throw(new DatasetValidationException(ushort.MinValue, string.Empty));
 
-            var target = new WorkitemService(responseBuilder, datasetValidator, storeOrchestrator, minimumValidator, logger);
+            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
-            await target.ProcessAsync(dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
-
-            await storeOrchestrator
+            await _storeOrchestrator
                 .DidNotReceive()
                 .AddWorkitemAsync(Arg.Any<DicomDataset>(), Arg.Any<CancellationToken>());
         }
@@ -168,182 +122,124 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         [Fact]
         public async Task GivenValidateThrowsDatasetValidationException_WhenProcessed_ThenResponseBuilderAddFailureIsCalled()
         {
-            var responseBuilder = Substitute.For<IAddWorkitemResponseBuilder>();
-            var datasetValidator = Substitute.For<IAddWorkitemDatasetValidator>();
-            var storeOrchestrator = Substitute.For<IWorkitemOrchestrator>();
-            var minimumValidator = Substitute.For<IElementMinimumValidator>();
-            var logger = Substitute.For<ILogger<WorkitemService>>();
-
             var failureCode = FailureReasonCodes.ValidationFailure;
             var workitemInstanceUid = DicomUID.Generate().UID;
-            var dataset = new DicomDataset();
-            dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
 
-            datasetValidator
+            _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
+
+            _datasetValidator
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
                 .Throw(new DatasetValidationException(failureCode, string.Empty));
 
-            var target = new WorkitemService(responseBuilder, datasetValidator, storeOrchestrator, minimumValidator, logger);
+            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
-            await target.ProcessAsync(dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
-
-            responseBuilder
+            _responseBuilder
                 .Received()
-                .AddFailure(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, dataset)), Arg.Is<ushort>(fc => fc == failureCode));
+                .AddFailure(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Is<ushort>(fc => fc == failureCode));
         }
 
         [Fact]
         public async Task GivenValidateThrowsDicomValidationException_WhenProcessed_ThenResponseBuilderAddFailureIsCalled()
         {
-            var responseBuilder = Substitute.For<IAddWorkitemResponseBuilder>();
-            var datasetValidator = Substitute.For<IAddWorkitemDatasetValidator>();
-            var storeOrchestrator = Substitute.For<IWorkitemOrchestrator>();
-            var minimumValidator = Substitute.For<IElementMinimumValidator>();
-            var logger = Substitute.For<ILogger<WorkitemService>>();
-
             var workitemInstanceUid = DicomUID.Generate().UID;
-            var dataset = new DicomDataset();
-            dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
 
-            datasetValidator
+            _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
+
+            _datasetValidator
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
                 .Throw(new DicomValidationException(string.Empty, DicomVR.UN, string.Empty));
 
-            var target = new WorkitemService(responseBuilder, datasetValidator, storeOrchestrator, minimumValidator, logger);
+            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
-            await target.ProcessAsync(dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
-
-            responseBuilder
+            _responseBuilder
                 .Received()
-                .AddFailure(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, dataset)), Arg.Is<ushort>(fc => fc == FailureReasonCodes.ValidationFailure));
+                .AddFailure(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Is<ushort>(fc => fc == FailureReasonCodes.ValidationFailure));
         }
 
         [Fact]
         public async Task GivenValidateThrowsException_WhenProcessed_ThenResponseBuilderAddFailureIsCalledWithProcessingFailureError()
         {
-            var responseBuilder = Substitute.For<IAddWorkitemResponseBuilder>();
-            var datasetValidator = Substitute.For<IAddWorkitemDatasetValidator>();
-            var storeOrchestrator = Substitute.For<IWorkitemOrchestrator>();
-            var minimumValidator = Substitute.For<IElementMinimumValidator>();
-            var logger = Substitute.For<ILogger<WorkitemService>>();
-
             var workitemInstanceUid = DicomUID.Generate().UID;
-            var dataset = new DicomDataset();
-            dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
 
-            datasetValidator
+            _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
+
+            _datasetValidator
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
                 .Throw(new Exception(workitemInstanceUid));
 
-            var target = new WorkitemService(responseBuilder, datasetValidator, storeOrchestrator, minimumValidator, logger);
+            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
-            await target.ProcessAsync(dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
-
-            responseBuilder
+            _responseBuilder
                 .Received()
-                .AddFailure(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, dataset)), Arg.Is<ushort>(fc => fc == FailureReasonCodes.ProcessingFailure));
+                .AddFailure(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Is<ushort>(fc => fc == FailureReasonCodes.ProcessingFailure));
         }
 
         [Fact]
         public async Task GivenWorkitemOrchestratorThrowsWorkitemAlreadyExistsException_WhenProcessed_ThenResponseBuilderAddFailureIsCalled()
         {
-            var responseBuilder = Substitute.For<IAddWorkitemResponseBuilder>();
-            var datasetValidator = Substitute.For<IAddWorkitemDatasetValidator>();
-            var storeOrchestrator = Substitute.For<IWorkitemOrchestrator>();
-            var minimumValidator = Substitute.For<IElementMinimumValidator>();
-            var logger = Substitute.For<ILogger<WorkitemService>>();
-
             var failureCode = FailureReasonCodes.SopInstanceAlreadyExists;
 
             var workitemInstanceUid = DicomUID.Generate().UID;
-            var dataset = new DicomDataset();
-            dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
 
-            storeOrchestrator
-                .When(orc => orc.AddWorkitemAsync(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, dataset)), Arg.Any<CancellationToken>()))
+            _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
+
+            _storeOrchestrator
+                .When(orc => orc.AddWorkitemAsync(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Any<CancellationToken>()))
                 .Throw(new WorkitemAlreadyExistsException(workitemInstanceUid));
 
-            var target = new WorkitemService(responseBuilder, datasetValidator, storeOrchestrator, minimumValidator, logger);
+            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
-            await target.ProcessAsync(dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
-
-            responseBuilder
+            _responseBuilder
                 .Received()
-                .AddFailure(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, dataset)), Arg.Is<ushort>(fc => fc == failureCode));
+                .AddFailure(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Is<ushort>(fc => fc == failureCode));
         }
-
 
         [Fact]
         public async Task GivenWorkitemOrchestratorThrowsException_WhenProcessed_ThenResponseBuilderAddFailureIsCalled()
         {
-            var responseBuilder = Substitute.For<IAddWorkitemResponseBuilder>();
-            var datasetValidator = Substitute.For<IAddWorkitemDatasetValidator>();
-            var storeOrchestrator = Substitute.For<IWorkitemOrchestrator>();
-            var minimumValidator = Substitute.For<IElementMinimumValidator>();
-            var logger = Substitute.For<ILogger<WorkitemService>>();
-
             var failureCode = FailureReasonCodes.ProcessingFailure;
 
             var workitemInstanceUid = DicomUID.Generate().UID;
-            var dataset = new DicomDataset();
-            dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
 
-            storeOrchestrator
-                .When(orc => orc.AddWorkitemAsync(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, dataset)), Arg.Any<CancellationToken>()))
+            _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
+
+            _storeOrchestrator
+                .When(orc => orc.AddWorkitemAsync(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Any<CancellationToken>()))
                 .Throw(new Exception(workitemInstanceUid));
 
-            var target = new WorkitemService(responseBuilder, datasetValidator, storeOrchestrator, minimumValidator, logger);
+            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
-            await target.ProcessAsync(dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
-
-            responseBuilder
+            _responseBuilder
                 .Received()
-                .AddFailure(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, dataset)), Arg.Is<ushort>(fc => fc == failureCode));
+                .AddFailure(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Is<ushort>(fc => fc == failureCode));
         }
 
         [Fact]
         public async Task GivenDicomDataset_WhenProcessed_ThenResponseBuilderBuildResponseIsAlwaysCalled()
         {
-            var responseBuilder = Substitute.For<IAddWorkitemResponseBuilder>();
-            var datasetValidator = Substitute.For<IAddWorkitemDatasetValidator>();
-            var storeOrchestrator = Substitute.For<IWorkitemOrchestrator>();
-            var minimumValidator = Substitute.For<IElementMinimumValidator>();
-            var logger = Substitute.For<ILogger<WorkitemService>>();
-
-            var target = new WorkitemService(responseBuilder, datasetValidator, storeOrchestrator, minimumValidator, logger);
-
-            datasetValidator
+            _datasetValidator
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
                 .Throw(new DicomValidationException(string.Empty, DicomVR.UN, string.Empty));
 
-            await target.ProcessAsync(new DicomDataset(), string.Empty, CancellationToken.None).ConfigureAwait(false);
+            await _target.ProcessAsync(new DicomDataset(), string.Empty, CancellationToken.None).ConfigureAwait(false);
 
-            responseBuilder.Received().BuildResponse();
+            _responseBuilder.Received().BuildResponse();
 
-            datasetValidator
+            _datasetValidator
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
                 .Throw(new DicomValidationException(string.Empty, DicomVR.UN, string.Empty));
 
-            await target.ProcessAsync(new DicomDataset(), string.Empty, CancellationToken.None).ConfigureAwait(false);
+            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
-            responseBuilder.Received().BuildResponse();
+            _responseBuilder.Received().BuildResponse();
         }
 
         [Fact]
         public async Task GivenWorkitemStoreSucceeded_WhenProcessed_ThenResponseBuilderAddSuccessIsCalled()
         {
-            var responseBuilder = Substitute.For<IAddWorkitemResponseBuilder>();
-            var datasetValidator = Substitute.For<IAddWorkitemDatasetValidator>();
-            var storeOrchestrator = Substitute.For<IWorkitemOrchestrator>();
-            var minimumValidator = Substitute.For<IElementMinimumValidator>();
-            var logger = Substitute.For<ILogger<WorkitemService>>();
-            var dataset = new DicomDataset();
+            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
-            var target = new WorkitemService(responseBuilder, datasetValidator, storeOrchestrator, minimumValidator, logger);
-
-            await target.ProcessAsync(dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
-
-            responseBuilder.Received().AddSuccess(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, dataset)));
+            _responseBuilder.Received().AddSuccess(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)));
         }
     }
 }
