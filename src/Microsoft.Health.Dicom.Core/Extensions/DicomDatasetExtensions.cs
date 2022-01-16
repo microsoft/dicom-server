@@ -331,19 +331,19 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         /// <summary>
-        /// Gets DicomElements from a DicomDataset by traversing a DicomSequence/>.
+        /// Gets DicomDatasets that matches a DicomSequence/>.
         /// </summary>
         /// <param name="dataset">The DicomDataset to be traversed.</param>
         /// <param name="searchSequence">The DicomItem modelling the path.</param>
-        /// <param name="returnElements"></param>
-        /// <returns>The DicomElements specified by the tag path.</returns>
-        public static bool TryGetLastPathElements(this DicomDataset dataset, DicomSequence searchSequence, out IEnumerable<DicomElement> returnElements)
+        /// <param name="returnDatasets"></param>
+        /// <returns>The DicomDatasets specified by the tag path.</returns>
+        public static bool TryGetMatchingDatasets(this DicomDataset dataset, DicomSequence searchSequence, out IEnumerable<DicomDataset> returnDatasets)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
             EnsureArg.IsNotNull(searchSequence, nameof(searchSequence));
 
-            var foundElements = new List<DicomElement>();
-            returnElements = foundElements;
+            var foundDatasets = new List<DicomDataset>();
+            returnDatasets = foundDatasets;
 
             var foundSequence = dataset.GetDicomItem<DicomSequence>(searchSequence.Tag);
             if (foundSequence == null) return false;
@@ -352,10 +352,14 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
             foreach (var childDataset in foundSequence.Items)
             {
-                foundElements.AddRange(childDataset.Intersect(searchDataset).Select(x => (DicomElement)x));
+                if (childDataset.Intersect(searchDataset).Any())
+                {
+                    foundDatasets.Add(new DicomDataset(childDataset.Intersect(searchDataset)));
+                }
             }
 
-            return returnElements.Any();
+
+            return foundDatasets.Any();
         }
     }
 }
