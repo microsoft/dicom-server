@@ -68,5 +68,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             await _fixture.IndexWorkitemStore.DeleteWorkitemAsync(DefaultPartition.Key, workitemUid, CancellationToken.None);
         }
+
+        [Fact]
+        public async Task WhenGetWorkitemQueryTagsIsExecuted_ReturnTagsSuccessfully()
+        {
+            var workitemQueryTags = await _fixture.IndexWorkitemStore.GetWorkitemQueryTagsAsync(CancellationToken.None);
+
+            Assert.NotEmpty(workitemQueryTags);
+        }
     }
 }

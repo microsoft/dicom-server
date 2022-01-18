@@ -7,6 +7,7 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Features.Workitem;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
@@ -46,6 +47,20 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="QueryTag"/> class.
+        /// </summary>
+        /// <remarks>Used for constructing from <see cref="WorkitemQueryTagStoreEntry"/> (to model sequences).</remarks>
+        /// <param name="entry">The WorkitemQueryTagStore entry.</param>
+        public QueryTag(WorkitemQueryTagStoreEntry entry)
+        {
+            EnsureArg.IsNotNull(entry, nameof(entry));
+
+            Tag = DicomTag.Parse(entry.Path);
+            VR = DicomVR.Parse(entry.VR);
+            WorkitemQueryTagStoreEntry = entry;
+        }
+
+        /// <summary>
         /// Gets Dicom Tag.
         /// </summary>
         public DicomTag Tag { get; }
@@ -69,6 +84,11 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         /// Gets the underlying extendedQueryTagStoreEntry for extended query tag.
         /// </summary>
         public ExtendedQueryTagStoreEntry ExtendedQueryTagStoreEntry { get; }
+
+        /// <summary>
+        /// Gets the underlying workitemQueryTagStoreEntry for workitem query tag.
+        /// </summary>
+        public WorkitemQueryTagStoreEntry WorkitemQueryTagStoreEntry { get; }
 
         /// <summary>
         /// Gets name of this query tag.

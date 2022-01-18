@@ -807,6 +807,29 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
+--     GetWorkitemQueryTags
+--
+-- DESCRIPTION
+--     Gets indexed workitem query tags
+--
+-- RETURN VALUE
+--     The set of query tags.
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.GetWorkitemQueryTags
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    SELECT TagKey,
+           TagPath,
+           TagVR
+    FROM dbo.WorkItemQueryTag
+END
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
 --    IIndexInstanceCoreV8
 --
 -- DESCRIPTION
@@ -1643,11 +1666,11 @@ BEGIN
 
         -- ReferencedRequestSequence.Accesionnumber
         INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
-        VALUES (NEXT VALUE FOR TagKeySequence, '0040A370.00080050', 'SH')
+        VALUES (NEXT VALUE FOR TagKeySequence, '0040A370.00080050', 'SQ')
 
         -- ReferencedRequestSequence.Requested​Procedure​ID
         INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
-        VALUES (NEXT VALUE FOR TagKeySequence, '0040A370.00401001', 'SH')
+        VALUES (NEXT VALUE FOR TagKeySequence, '0040A370.00401001', 'SQ')
 
         -- 	Scheduled​Procedure​Step​Start​Date​Time
         INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
@@ -1655,11 +1678,11 @@ BEGIN
 
         -- 	ScheduledStationNameCodeSequence.CodeValue
         INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
-        VALUES (NEXT VALUE FOR TagKeySequence, '00404025.00080100', 'SH')
+        VALUES (NEXT VALUE FOR TagKeySequence, '00404025.00080100', 'SQ')
 
         -- 	ScheduledStationClassCodeSequence.CodeValue
         INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
-        VALUES (NEXT VALUE FOR TagKeySequence, '00404026.00080100', 'SH')
+        VALUES (NEXT VALUE FOR TagKeySequence, '00404026.00080100', 'SQ')
 
         -- 	Procedure​Step​State
         INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
@@ -1667,7 +1690,7 @@ BEGIN
 
         -- 	Scheduled​Station​Geographic​Location​Code​Sequence.CodeValue
         INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
-        VALUES (NEXT VALUE FOR TagKeySequence, '00404027.00080100', 'SH')
+        VALUES (NEXT VALUE FOR TagKeySequence, '00404027.00080100', 'SQ')
 
     COMMIT TRANSACTION
 END 

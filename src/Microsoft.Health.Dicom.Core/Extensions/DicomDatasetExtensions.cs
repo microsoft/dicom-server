@@ -329,5 +329,38 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                 minimumValidator.Validate(dicomElement);
             }
         }
+
+        /// <summary>
+        /// Gets DicomDatasets that matches a DicomSequence/>.
+        /// </summary>
+        /// <param name="dataset">The DicomDataset to be traversed.</param>
+        /// <param name="searchSequence">The DicomItem modelling the path.</param>
+        /// <param name="returnDatasets"></param>
+        /// <returns>The DicomDatasets specified by the tag path.</returns>
+        public static bool TryGetMatchingDatasets(this DicomDataset dataset, DicomSequence searchSequence, out IEnumerable<DicomDataset> returnDatasets)
+        {
+            EnsureArg.IsNotNull(dataset, nameof(dataset));
+            EnsureArg.IsNotNull(searchSequence, nameof(searchSequence));
+
+            var foundDatasets = new List<DicomDataset>();
+            returnDatasets = foundDatasets;
+
+            var foundSequence = dataset.GetDicomItem<DicomSequence>(searchSequence.Tag);
+            if (foundSequence == null) return false;
+
+            var searchDataset = searchSequence.Items.FirstOrDefault();
+
+            foreach (var childDataset in foundSequence.Items)
+            {
+                var elements = childDataset.Intersect(searchDataset, new DicomTagComparer());
+                if (elements.Any())
+                {
+                    foundDatasets.Add(new DicomDataset(elements));
+                }
+            }
+
+
+            return foundDatasets.Any();
+        }
     }
 }

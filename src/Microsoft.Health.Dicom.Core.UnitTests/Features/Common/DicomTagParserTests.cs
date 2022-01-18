@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using FellowOakDicom;
+using System.Linq;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Xunit;
@@ -28,7 +29,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Common
             bool succeed = _dicomTagParser.TryParse(dicomTagPath, out tags, supportMultiple: false);
             Assert.True(succeed);
             Assert.Single(tags);
-            Assert.Equal(tags[0], expectedTag);
+            Assert.Equal(expectedTag, tags[0]);
         }
 
         [MemberData(nameof(GetInvalidTags))]
@@ -37,6 +38,38 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Common
         {
             DicomTag[] tags;
             bool succeed = _dicomTagParser.TryParse(dicomTagPath, out tags, supportMultiple: false);
+            Assert.False(succeed);
+        }
+
+        [MemberData(nameof(GetValidTags))]
+        [Theory]
+        public void GivenValidTag_WhenParseToDicomItem_ThenShouldReturnCorrectValue(string dicomTagPath, DicomTag expectedTag)
+        {
+            DicomItem item;
+            bool succeed = _dicomTagParser.TryParseToDicomItem(dicomTagPath, out item);
+            Assert.True(succeed);
+            Assert.Equal(expectedTag, item.Tag);
+        }
+
+        [MemberData(nameof(GetValidMultipleTags))]
+        [Theory]
+        public void GivenValidMultipleTagPath_WhenParseToDicomItem_ThenShouldReturnCorrectValue(string dicomTagPath, DicomItem expectedItem)
+        {
+            DicomItem item;
+            bool succeed = _dicomTagParser.TryParseToDicomItem(dicomTagPath, out item);
+            Assert.True(succeed);
+            var sequence = item as DicomSequence;
+            var expectedSequence = expectedItem as DicomSequence;
+            Assert.Equal(item, expectedItem);
+            Assert.Equal(sequence.Items.FirstOrDefault()?.FirstOrDefault(), expectedSequence.Items.FirstOrDefault()?.FirstOrDefault());
+        }
+
+        [MemberData(nameof(GetInvalidTags))]
+        [Theory]
+        public void GivenInValidTag_WhenParseToDicomItem_ThenShouldReturnFalse(string dicomTagPath)
+        {
+            DicomItem item;
+            bool succeed = _dicomTagParser.TryParseToDicomItem(dicomTagPath, out item);
             Assert.False(succeed);
         }
 
@@ -49,6 +82,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Common
             yield return new object[] { "24010010", DicomTag.Parse("24010010") }; // Private Identification code
         }
 
+        public static IEnumerable<object[]> GetValidMultipleTags()
+        {
+            yield return new object[] { "0040A370.00080050", new DicomSequence(DicomTag.ReferencedRequestSequence, new DicomDataset[] { new DicomDataset(new DicomValuelessItem(DicomTag.AccessionNumber)) }) }; // ReferencedRequestSequence.Accesionnumber
+            yield return new object[] { "0040A370.00401001", new DicomSequence(DicomTag.ReferencedRequestSequence, new DicomDataset[] { new DicomDataset(new DicomValuelessItem(DicomTag.Requested​Procedure​ID)) }) }; // ReferencedRequestSequence.Requested​Procedure​ID
+            yield return new object[] { "24010010.12051003", new DicomSequence(DicomTag.Parse("24010010"), new DicomDataset[] { new DicomDataset(new DicomValuelessItem(DicomTag.Parse("12051003"))) }) }; // Private
+        }
+
         public static IEnumerable<object[]> GetInvalidTags()
         {
             yield return new object[] { string.Empty }; // empty
@@ -58,6 +98,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Common
             yield return new object[] { "0018B001A1" }; // longer than 8.
             yield return new object[] { "Unknown" }; // bug https://microsofthealth.visualstudio.com/Health/_workitems/edit/80766
             yield return new object[] { "PrivateCreator" }; // Key word to Private Identification code.
+            yield return new object[] { "." }; // delimiter only
+            yield return new object[] { "asdasdas.asdasdasd" }; // invalid multiple tags
+            yield return new object[] { "0040A370.asdasdasd" }; // valid first level tag and invalid second level tag
         }
     }
 }

@@ -493,25 +493,25 @@ INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
 VALUES                           ( NEXT VALUE FOR TagKeySequence, '00100020', 'LO');
 
 INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '0040A370.00080050', 'SH');
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '0040A370.00080050', 'SQ');
 
 INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '0040A370.00401001', 'SH');
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '0040A370.00401001', 'SQ');
 
 INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
 VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404005', 'DT');
 
 INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404025.00080100', 'SH');
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404025.00080100', 'SQ');
 
 INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404026.00080100', 'SH');
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404026.00080100', 'SQ');
 
 INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
 VALUES                           ( NEXT VALUE FOR TagKeySequence, '00741000', 'CS');
 
 INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
-VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404027.00080100', 'SH');
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404027.00080100', 'SQ');
 
 COMMIT
 GO
@@ -1534,6 +1534,18 @@ BEGIN
            PartitionName,
            CreatedDate
     FROM   dbo.Partition;
+END
+
+GO
+CREATE OR ALTER PROCEDURE dbo.GetWorkitemQueryTags
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    SELECT TagKey,
+           TagPath,
+           TagVR
+    FROM   dbo.WorkItemQueryTag;
 END
 
 GO

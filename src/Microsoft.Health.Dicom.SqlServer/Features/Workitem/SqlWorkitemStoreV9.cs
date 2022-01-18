@@ -4,13 +4,15 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
+using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
-using FellowOakDicom;
 using EnsureThat;
+using FellowOakDicom;
+using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
@@ -85,6 +87,32 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                     throw new DataStoreException(ex);
                 }
             }
+        }
+
+        public async Task<IReadOnlyList<WorkitemQueryTagStoreEntry>> GetWorkitemQueryTagsAsync(CancellationToken cancellationToken = default)
+        {
+            var results = new List<WorkitemQueryTagStoreEntry>();
+
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.GetWorkitemQueryTags.PopulateCommand(sqlCommandWrapper);
+
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                {
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        (int tagKey, string tagPath, string tagVR) = reader.ReadRow(
+                            VLatest.ExtendedQueryTag.TagKey,
+                            VLatest.ExtendedQueryTag.TagPath,
+                            VLatest.ExtendedQueryTag.TagVR);
+
+                        results.Add(new WorkitemQueryTagStoreEntry(tagKey, tagPath, tagVR));
+                    }
+                }
+            }
+
+            return results;
         }
     }
 }
