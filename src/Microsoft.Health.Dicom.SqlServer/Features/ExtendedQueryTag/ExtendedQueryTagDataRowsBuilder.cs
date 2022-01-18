@@ -219,7 +219,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         private static int GetKeyFromQueryTag(QueryTag queryTag)
         {
-            return queryTag.IsExtendedQueryTag ? queryTag.ExtendedQueryTagStoreEntry.Key : queryTag.WorkitemQueryTagStoreEntry.Key;
+            return queryTag.WorkitemQueryTagStoreEntry != null ? queryTag.WorkitemQueryTagStoreEntry.Key : queryTag.ExtendedQueryTagStoreEntry.Key;
         }
     }
 }
