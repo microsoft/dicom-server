@@ -5,7 +5,6 @@
 
 using System;
 using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
@@ -20,7 +19,7 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.IO;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage
 {
@@ -30,20 +29,19 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
     public class BlobWorkitemStore : IWorkitemStore
     {
         private const string AddWorkitemStreamTagName = nameof(BlobWorkitemStore) + "." + nameof(AddWorkitemAsync);
-        private static readonly Encoding DataEncoding = Encoding.UTF8;
 
         private readonly BlobContainerClient _container;
-        private readonly JsonSerializer _jsonSerializer;
+        private readonly JsonSerializerOptions _jsonSerializerOptions;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
         public BlobWorkitemStore(
             BlobServiceClient client,
-            JsonSerializer jsonSerializer,
             IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
-            RecyclableMemoryStreamManager recyclableMemoryStreamManager)
+            RecyclableMemoryStreamManager recyclableMemoryStreamManager,
+            IOptions<JsonSerializerOptions> jsonSerializerOptions)
         {
             EnsureArg.IsNotNull(client, nameof(client));
-            EnsureArg.IsNotNull(jsonSerializer, nameof(jsonSerializer));
+            EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
             EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
             EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
 
@@ -51,7 +49,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
                 .Get(Constants.WorkitemContainerConfigurationName);
 
             _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
-            _jsonSerializer = jsonSerializer;
+            _jsonSerializerOptions = jsonSerializerOptions.Value;
             _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
         }
 
@@ -69,11 +67,10 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             try
             {
                 await using (Stream stream = _recyclableMemoryStreamManager.GetStream(AddWorkitemStreamTagName))
-                await using (var streamWriter = new StreamWriter(stream, DataEncoding))
-                using (var jsonTextWriter = new JsonTextWriter(streamWriter))
+                using (Utf8JsonWriter utf8Writer = new Utf8JsonWriter(stream))
                 {
-                    _jsonSerializer.Serialize(jsonTextWriter, dataset);
-                    jsonTextWriter.Flush();
+                    JsonSerializer.Serialize(utf8Writer, dataset, _jsonSerializerOptions);
+                    await utf8Writer.FlushAsync(cancellationToken);
                     stream.Seek(0, SeekOrigin.Begin);
 
                     await blob.UploadAsync(

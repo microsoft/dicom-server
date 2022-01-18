@@ -218,6 +218,11 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
+            services.Add<WorkitemSerializer>()
+               .Scoped()
+               .AsSelf()
+               .AsImplementedInterfaces();
+
             services.Add<WorkitemOrchestrator>()
                 .Scoped()
                 .AsSelf()
