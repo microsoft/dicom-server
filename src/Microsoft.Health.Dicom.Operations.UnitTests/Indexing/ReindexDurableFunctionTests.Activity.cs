@@ -142,26 +142,28 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
                 .GetInstanceBatchesAsync(batchSize, maxParallelBatches, IndexStatus.Created, null, CancellationToken.None);
         }
 
-        [Fact]
-        public async Task GivenWatermark_WhenGettingInstanceBatches_ThenShouldInvokeCorrectMethod()
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(10)]
+        public async Task GivenWatermark_WhenGettingInstanceBatches_ThenShouldInvokeCorrectMethod(long max)
         {
-            const long watermark = 12345L;
             const int batchSize = 100;
             const int maxParallelBatches = 3;
 
-            IReadOnlyList<WatermarkRange> expected = new List<WatermarkRange> { new WatermarkRange(10, 1000) };
+            IReadOnlyList<WatermarkRange> expected = new List<WatermarkRange> { new WatermarkRange(1, 2) }; // watermarks don't matter
             _instanceStore
-                .GetInstanceBatchesAsync(batchSize, maxParallelBatches, IndexStatus.Created, watermark, CancellationToken.None)
+                .GetInstanceBatchesAsync(batchSize, maxParallelBatches, IndexStatus.Created, max, CancellationToken.None)
                 .Returns(expected);
 
             IReadOnlyList<WatermarkRange> actual = await _reindexDurableFunction.GetInstanceBatchesV2Async(
-                new BatchCreationArguments(watermark, batchSize, maxParallelBatches),
+                new BatchCreationArguments(max, batchSize, maxParallelBatches),
                 NullLogger.Instance);
 
             Assert.Same(expected, actual);
             await _instanceStore
                 .Received(1)
-                .GetInstanceBatchesAsync(batchSize, maxParallelBatches, IndexStatus.Created, watermark, CancellationToken.None);
+                .GetInstanceBatchesAsync(batchSize, maxParallelBatches, IndexStatus.Created, max, CancellationToken.None);
         }
 
         [Fact]

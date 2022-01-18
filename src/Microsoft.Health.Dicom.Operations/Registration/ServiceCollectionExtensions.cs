@@ -9,6 +9,7 @@ using System.Text.Json.Serialization;
 using EnsureThat;
 using FellowOakDicom;
 using FellowOakDicom.Serialization;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Host.Config;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +22,7 @@ using Microsoft.Health.Dicom.Operations.Configuration;
 using Microsoft.Health.Dicom.Operations.Indexing;
 using Microsoft.Health.Dicom.Operations.Management;
 using Microsoft.Health.Dicom.Operations.Registration;
+using Microsoft.Health.Dicom.Operations.Serialization;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.Health.SqlServer.Configs;
 using Microsoft.IO;
@@ -55,6 +57,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddFellowOakDicomExtension()
                 .AddFunctionsOptions<QueryTagIndexingOptions>(configuration, QueryTagIndexingOptions.SectionName, bindNonPublicProperties: true)
                 .AddFunctionsOptions<PurgeHistoryOptions>(configuration, PurgeHistoryOptions.SectionName)
+                .ConfigureDurableFunctionSerialization()
                 .AddJsonSerializerOptions(o =>
                 {
                     o.Converters.Add(new JsonStringEnumConverter());
@@ -158,6 +161,13 @@ namespace Microsoft.Extensions.DependencyInjection
             //       and if we decide to expose HTTP services
             //builder.AddJsonOptions(o => configure(o.JsonSerializerOptions));
             return services.Configure(configure);
+        }
+
+        private static IServiceCollection ConfigureDurableFunctionSerialization(this IServiceCollection services)
+        {
+            EnsureArg.IsNotNull(services, nameof(services));
+
+            return services.Replace(ServiceDescriptor.Singleton<IMessageSerializerSettingsFactory, MessageSerializerSettingsFactory>());
         }
 
         private sealed class FellowOakExtensionConfiguration : IExtensionConfigProvider
