@@ -28,6 +28,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
         /// <summary>
         /// Get the DicomItem that is the representation of the path for this tag
+        /// This is populated while fetching query tag from the db
         /// </summary>
         public DicomItem Item { get; set; }
     }

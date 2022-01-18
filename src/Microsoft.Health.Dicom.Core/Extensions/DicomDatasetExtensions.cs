@@ -352,9 +352,10 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
             foreach (var childDataset in foundSequence.Items)
             {
-                if (childDataset.Intersect(searchDataset).Any())
+                var elements = childDataset.Intersect(searchDataset, new DicomTagComparer());
+                if (elements.Any())
                 {
-                    foundDatasets.Add(new DicomDataset(childDataset.Intersect(searchDataset)));
+                    foundDatasets.Add(new DicomDataset(elements));
                 }
             }
 
