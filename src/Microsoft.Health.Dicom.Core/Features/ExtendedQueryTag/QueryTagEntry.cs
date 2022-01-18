@@ -6,7 +6,7 @@
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 {
     /// <summary>
-    /// Representation of a extended query tag entry.
+    /// Representation of a query tag entry.
     /// </summary>
     public abstract class QueryTagEntry
     {

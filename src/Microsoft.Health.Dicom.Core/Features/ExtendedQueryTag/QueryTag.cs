@@ -39,7 +39,6 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         public QueryTag(ExtendedQueryTagStoreEntry entry)
         {
             EnsureArg.IsNotNull(entry, nameof(entry));
-
             string fullPath = string.IsNullOrEmpty(entry.PrivateCreator) ? entry.Path : $"{entry.Path}:{entry.PrivateCreator}";
             Tag = DicomTag.Parse(fullPath);
             VR = DicomVR.Parse(entry.VR);
