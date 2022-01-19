@@ -45,6 +45,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
                 { "TestAuthEnvironment:FilePath", "testauthenvironment.json" },
                 { "DicomServer:Security:Authentication:Authority", "https://inprochost" },
                 { "DicomServer:Security:Authorization:Enabled", "true" },
+                { "DicomServer:Security:Enabled", "true" },
             };
 
             var featureSettings = new Dictionary<string, string>
