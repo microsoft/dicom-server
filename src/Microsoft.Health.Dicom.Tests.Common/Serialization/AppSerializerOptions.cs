@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Text.Json;
-using FellowOakDicom.Serialization;
+using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Tests.Common.Serialization
 {
@@ -14,13 +14,8 @@ namespace Microsoft.Health.Dicom.Tests.Common.Serialization
 
         private static JsonSerializerOptions CreateJsonSerializerOptions()
         {
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            };
-
-            options.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false));
+            var options = new JsonSerializerOptions();
+            options.ConfigureDefaultDicomSettings();
 
             return options;
         }

@@ -5,22 +5,23 @@
 
 using System;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using EnsureThat;
 using FellowOakDicom;
-using FellowOakDicom.Serialization;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Host.Config;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Modules;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Operations.Configuration;
 using Microsoft.Health.Dicom.Operations.Indexing;
 using Microsoft.Health.Dicom.Operations.Management;
 using Microsoft.Health.Dicom.Operations.Registration;
+using Microsoft.Health.Dicom.Operations.Serialization;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.Health.SqlServer.Configs;
 using Microsoft.IO;
@@ -55,13 +56,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddFellowOakDicomExtension()
                 .AddFunctionsOptions<QueryTagIndexingOptions>(configuration, QueryTagIndexingOptions.SectionName, bindNonPublicProperties: true)
                 .AddFunctionsOptions<PurgeHistoryOptions>(configuration, PurgeHistoryOptions.SectionName)
-                .AddJsonSerializerOptions(o =>
-                {
-                    o.Converters.Add(new JsonStringEnumConverter());
-                    o.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false));
-                    o.PropertyNameCaseInsensitive = true;
-                    o.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-                }));
+                .ConfigureDurableFunctionSerialization()
+                .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings()));
         }
 
         /// <summary>
@@ -120,7 +116,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             EnsureArg.IsNotNull(services, nameof(services));
 
-            services.AddFellowOakDicomServices(skipValidation: true);
+            // Note: Fellow Oak Services have already been added as part of the ServiceModule
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IExtensionConfigProvider, FellowOakExtensionConfiguration>());
 
             return services;
@@ -158,6 +154,13 @@ namespace Microsoft.Extensions.DependencyInjection
             //       and if we decide to expose HTTP services
             //builder.AddJsonOptions(o => configure(o.JsonSerializerOptions));
             return services.Configure(configure);
+        }
+
+        private static IServiceCollection ConfigureDurableFunctionSerialization(this IServiceCollection services)
+        {
+            EnsureArg.IsNotNull(services, nameof(services));
+
+            return services.Replace(ServiceDescriptor.Singleton<IMessageSerializerSettingsFactory, MessageSerializerSettingsFactory>());
         }
 
         private sealed class FellowOakExtensionConfiguration : IExtensionConfigProvider
