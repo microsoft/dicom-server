@@ -25,9 +25,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         {
         }
 
-        protected HttpIntegrationTestFixture(string targetProjectParentDirectory, bool enableDataPartitions = false)
+        protected HttpIntegrationTestFixture(string targetProjectParentDirectory, bool enableDataPartitions = false, bool enableUpsRs = false)
         {
-            TestDicomWebServer = TestDicomWebServerFactory.GetTestDicomWebServer(typeof(TStartup), enableDataPartitions);
+            TestDicomWebServer = TestDicomWebServerFactory.GetTestDicomWebServer(typeof(TStartup), enableDataPartitions, enableUpsRs);
         }
 
         public bool IsInProcess => TestDicomWebServer is InProcTestDicomWebServer;
