@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.Client
             _apiVersion = apiVersion;
             _jsonSerializerOptions = new JsonSerializerOptions
             {
-                AllowTrailingCommas = false,
+                AllowTrailingCommas = true,
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                 DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
                 Encoder = null,
@@ -54,7 +54,7 @@ namespace Microsoft.Health.Dicom.Client
                 NumberHandling = JsonNumberHandling.Strict,
                 PropertyNameCaseInsensitive = true,
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                ReadCommentHandling = JsonCommentHandling.Disallow,
+                ReadCommentHandling = JsonCommentHandling.Skip,
                 WriteIndented = false,
             };
 

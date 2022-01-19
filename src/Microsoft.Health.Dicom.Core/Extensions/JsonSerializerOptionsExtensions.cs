@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             options.Converters.Add(new StrictStringEnumConverterFactory());
             options.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false));
 
-            options.AllowTrailingCommas = false;
+            options.AllowTrailingCommas = true;
             options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
             options.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
             options.Encoder = null;
@@ -42,7 +42,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             options.NumberHandling = JsonNumberHandling.Strict;
             options.PropertyNameCaseInsensitive = true;
             options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-            options.ReadCommentHandling = JsonCommentHandling.Disallow;
+            options.ReadCommentHandling = JsonCommentHandling.Skip;
             options.WriteIndented = false;
         }
     }
