@@ -56,15 +56,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             {
                 if (queryTag.VR == DicomVR.SQ)
                 {
-                    if (instance.TryGetMatchingDatasets(queryTag.WorkitemQueryTagStoreEntry.Item as DicomSequence, out var dicomDatasets))
+                    var dicomDatasets = instance.SearchSequencePath(queryTag.WorkitemQueryTagStoreEntry.Item as DicomSequence);
+                    foreach (var dataset in dicomDatasets)
                     {
-                        foreach (var dataset in dicomDatasets)
+                        foreach (var dicomItem in dataset)
                         {
-                            foreach (var dicomItem in dataset)
-                            {
-                                ExtendedQueryTagDataType dataType = ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[dicomItem.Tag.GetDefaultVR().Code];
-                                AddRows(dataset, dataType, new QueryTag(dicomItem.Tag), GetKeyFromQueryTag(queryTag));
-                            }
+                            ExtendedQueryTagDataType dataType = ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[dicomItem.Tag.GetDefaultVR().Code];
+                            AddRows(dataset, dataType, new QueryTag(dicomItem.Tag), GetKeyFromQueryTag(queryTag));
                         }
                     }
                 }

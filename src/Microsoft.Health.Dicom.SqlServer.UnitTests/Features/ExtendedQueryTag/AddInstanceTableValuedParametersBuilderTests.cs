@@ -71,6 +71,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
             {
                 case ExtendedQueryTagDataType.StringData:
                     Assert.Equal(expectedValue, parameters.StringRows.First().TagValue);
+                    Assert.Single(parameters.StringRows);
                     break;
                 case ExtendedQueryTagDataType.LongData:
                     Assert.Equal(expectedValue, parameters.LongRows.First().TagValue);
@@ -92,6 +93,28 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
                     Assert.Equal(expectedValue, parameters.PersonNameRows.First().TagValue);
                     break;
             }
+        }
+
+        [Fact]
+        public void GivenSupportedDicomSequenceElement_WhenRead_ThenShouldReturnMultipleExpectedValues()
+        {
+            DicomDataset dataset = new DicomDataset();
+            var item = new DicomSequence(
+                    DicomTag.ReferencedRequestSequence,
+                        new DicomDataset[] {
+                            new DicomDataset(
+                                new DicomShortString(
+                                DicomTag.AccessionNumber, "Foo"),
+                                new DicomShortString(
+                                DicomTag.RequestedProcedureID, "Bar"))});
+            dataset.Add(item);
+
+            QueryTag tag1 = new QueryTag(Tests.Common.Extensions.DicomTagExtensions.BuildWorkitemQueryTagStoreEntry("0040A370.00080050", 1, item.ValueRepresentation.Code));
+            QueryTag tag2 = new QueryTag(Tests.Common.Extensions.DicomTagExtensions.BuildWorkitemQueryTagStoreEntry("0040A370.00401001", 2, item.ValueRepresentation.Code));
+
+            var parameters = ExtendedQueryTagDataRowsBuilder.Build(dataset, new QueryTag[] { tag1, tag2 }, (SchemaVersion)SchemaVersionConstants.Max);
+
+            Assert.Equal(2, parameters.StringRows.Count());
         }
 
         public static IEnumerable<object[]> GetSupportedDicomElement()
@@ -132,6 +155,16 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
                             new DicomDataset(
                                 new DicomShortString(
                                 DicomTag.AccessionNumber, "Foo"))}),
+                    "0040A370.00080050", 1, schemaVersion, "Foo" };
+
+                yield return new object[] { new DicomSequence(
+                    DicomTag.ReferencedRequestSequence,
+                        new DicomDataset[] {
+                            new DicomDataset(
+                                new DicomShortString(
+                                DicomTag.AccessionNumber, "Foo"),
+                                new DicomShortString(
+                                DicomTag.PatientName, "Bar"))}),
                     "0040A370.00080050", 1, schemaVersion, "Foo" };
 
                 yield return new object[] { new DicomSequence(

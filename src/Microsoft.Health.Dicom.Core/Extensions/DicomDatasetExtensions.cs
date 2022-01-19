@@ -331,22 +331,20 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         /// <summary>
-        /// Gets DicomDatasets that matches a DicomSequence/>.
+        /// Gets DicomDatasets that matches a DicomSequence.
         /// </summary>
         /// <param name="dataset">The DicomDataset to be traversed.</param>
-        /// <param name="searchSequence">The DicomItem modelling the path.</param>
-        /// <param name="returnDatasets"></param>
-        /// <returns>The DicomDatasets specified by the tag path.</returns>
-        public static bool TryGetMatchingDatasets(this DicomDataset dataset, DicomSequence searchSequence, out IEnumerable<DicomDataset> returnDatasets)
+        /// <param name="searchSequence">The Dicom sequence modelling the path.</param>
+        /// <returns>Lists of DicomDataset that matches the search sequence.</returns>
+        public static IEnumerable<DicomDataset> SearchSequencePath(this DicomDataset dataset, DicomSequence searchSequence)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
             EnsureArg.IsNotNull(searchSequence, nameof(searchSequence));
 
             var foundDatasets = new List<DicomDataset>();
-            returnDatasets = foundDatasets;
 
             var foundSequence = dataset.GetDicomItem<DicomSequence>(searchSequence.Tag);
-            if (foundSequence == null) return false;
+            if (foundSequence == null) return foundDatasets;
 
             var searchDataset = searchSequence.Items.FirstOrDefault();
 
@@ -359,8 +357,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                 }
             }
 
-
-            return foundDatasets.Any();
+            return foundDatasets;
         }
     }
 }
