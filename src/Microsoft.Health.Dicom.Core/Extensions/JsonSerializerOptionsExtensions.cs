@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             options.IgnoreReadOnlyFields = false;
             options.IgnoreReadOnlyProperties = false;
             options.IncludeFields = false;
-            options.MaxDepth = 0;
+            options.MaxDepth = 0; // 0 indicates the max depth of 64
             options.NumberHandling = JsonNumberHandling.Strict;
             options.PropertyNameCaseInsensitive = true;
             options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;

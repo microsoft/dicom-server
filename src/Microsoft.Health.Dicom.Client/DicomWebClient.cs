@@ -50,7 +50,7 @@ namespace Microsoft.Health.Dicom.Client
                 IgnoreReadOnlyFields = false,
                 IgnoreReadOnlyProperties = false,
                 IncludeFields = false,
-                MaxDepth = 0,
+                MaxDepth = 0, // 0 indicates the max depth of 64
                 NumberHandling = JsonNumberHandling.Strict,
                 PropertyNameCaseInsensitive = true,
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
