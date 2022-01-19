@@ -40,13 +40,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         }
 
         [Fact]
-        public async Task GivenValidWorkitemInstanceUid_WhenProcessed_ThenIsSetupForSOPInstanceUIDTagInTheDataset()
+        public async Task GivenValidWorkitemInstanceUid_WhenProcessed_ThenIsSetupForAffectedSOPInstanceUIDTagInTheDataset()
         {
             var workitemInstanceUid = DicomUID.Generate().UID;
 
+            _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
+
             await _target.ProcessAsync(_dataset, workitemInstanceUid, CancellationToken.None).ConfigureAwait(false);
 
-            Assert.Equal(workitemInstanceUid, _dataset.GetString(DicomTag.SOPInstanceUID));
+            Assert.Equal(workitemInstanceUid, _dataset.GetString(DicomTag.AffectedSOPInstanceUID));
         }
 
         [Fact]
@@ -58,15 +60,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
             await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
-            Assert.Equal(workitemInstanceUid, _dataset.GetString(DicomTag.SOPInstanceUID));
-        }
-
-        [Fact]
-        public async Task GivenNoWorkitemInstanceUid_WhenProcessed_ThenNewUidIsSetupForSOPInstanceUIDTagInTheDataset()
-        {
-            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
-
-            Assert.False(string.IsNullOrWhiteSpace(_dataset.GetString(DicomTag.SOPInstanceUID)));
+            Assert.Equal(workitemInstanceUid, _dataset.GetString(DicomTag.AffectedSOPInstanceUID));
         }
 
         [Fact]
@@ -76,7 +70,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
             _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
 
-            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
+            await _target.ProcessAsync(_dataset, workitemInstanceUid, CancellationToken.None).ConfigureAwait(false);
 
             _datasetValidator
                 .Received()

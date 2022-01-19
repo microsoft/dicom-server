@@ -6,8 +6,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using FellowOakDicom;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
@@ -25,17 +25,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         private readonly IDicomRequestContextAccessor _contextAccessor;
         private readonly IIndexWorkitemStore _indexWorkitemStore;
         private readonly IWorkitemStore _workitemStore;
+        private readonly IWorkitemQueryTagService _workitemQueryTagService;
 
         public WorkitemOrchestrator(
             IDicomRequestContextAccessor contextAccessor,
             IWorkitemStore workitemStore,
             IIndexWorkitemStore indexWorkitemStore,
             IDeleteService deleteService,
-            IQueryTagService queryTagService)
+            IWorkitemQueryTagService workitemQueryTagService)
         {
             _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
             _indexWorkitemStore = EnsureArg.IsNotNull(indexWorkitemStore, nameof(indexWorkitemStore));
             _workitemStore = EnsureArg.IsNotNull(workitemStore, nameof(workitemStore));
+            _workitemQueryTagService = workitemQueryTagService;
         }
 
         /// <inheritdoc />
@@ -51,8 +53,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             {
                 int partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
-                // TODO: generate QueryTags list for workitem
-                var queryTags = new List<QueryTag>();
+                IReadOnlyCollection<QueryTag> queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken).ConfigureAwait(false);
 
                 long workitemKey = await _indexWorkitemStore
                     .AddWorkitemAsync(partitionKey, dataset, queryTags, cancellationToken)

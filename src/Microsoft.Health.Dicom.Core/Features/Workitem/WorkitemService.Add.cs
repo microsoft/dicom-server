@@ -65,26 +65,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
 
-            PrepareWorkitemDataset(dataset, ref workitemInstanceUid);
-
             if (Validate(dataset, workitemInstanceUid))
             {
                 await AddWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
             }
 
             return _responseBuilder.BuildResponse();
-        }
-
-        private static void PrepareWorkitemDataset(DicomDataset dataset, ref string workitemInstanceUid)
-        {
-            if (string.IsNullOrWhiteSpace(workitemInstanceUid) &&
-                !dataset.TryGetSingleValue<string>(DicomTag.AffectedSOPInstanceUID, out workitemInstanceUid))
-            {
-                // TODO: Double check to see if we need to generate UID
-                workitemInstanceUid = DicomUID.Generate().UID;
-            }
-
-            dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
         }
 
         private bool Validate(DicomDataset dataset, string workitemInstanceUid)
