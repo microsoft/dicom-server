@@ -116,7 +116,7 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
 
             if (arguments.MaxWatermark.HasValue)
             {
-                logger.LogInformation("Dividing up the instances into batches starting from {Watermark}.", arguments.MaxWatermark);
+                logger.LogInformation("Dividing up the instances into batches starting from the largest watermark {Watermark}.", arguments.MaxWatermark);
             }
             else
             {
