@@ -27,34 +27,34 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         private static void ValidateRequiredTags(DicomDataset dicomDataset, string workitemInstanceUid)
         {
             // Ensure required tags are present.
-            EnsureRequiredTagIsPresent(DicomTag.ScheduledProcedureStepPriority);
-            EnsureRequiredTagIsPresent(DicomTag.ProcedureStepLabel);
-            EnsureRequiredTagIsPresent(DicomTag.WorklistLabel);
-            EnsureRequiredTagIsPresent(DicomTag.ScheduledProcedureStepStartDateTime);
-            EnsureRequiredTagIsPresent(DicomTag.ExpectedCompletionDateTime);
-            EnsureRequiredTagIsPresent(DicomTag.InputReadinessState);
-            EnsureRequiredTagIsPresent(DicomTag.PatientName);
-            EnsureRequiredTagIsPresent(DicomTag.PatientID);
-            EnsureRequiredTagIsPresent(DicomTag.PatientBirthDate);
-            EnsureRequiredTagIsPresent(DicomTag.PatientSex);
-            EnsureRequiredTagIsPresent(DicomTag.AdmissionID);
-            EnsureRequiredTagIsPresent(DicomTag.AccessionNumber);
-            EnsureRequiredTagIsPresent(DicomTag.RequestedProcedureID);
-            EnsureRequiredTagIsPresent(DicomTag.RequestingService);
-            EnsureRequiredTagIsPresent(DicomTag.ProcedureStepState);
-            EnsureRequiredSequenceTagIsPresent(DicomTag.IssuerOfAdmissionIDSequence);
-            EnsureRequiredSequenceTagIsPresent(DicomTag.ReferencedRequestSequence);
-            EnsureRequiredSequenceTagIsPresent(DicomTag.IssuerOfAccessionNumberSequence);
-            EnsureRequiredSequenceTagIsPresent(DicomTag.ScheduledWorkitemCodeSequence);
-            EnsureRequiredSequenceTagIsPresent(DicomTag.ScheduledStationNameCodeSequence);
-            EnsureRequiredSequenceTagIsPresent(DicomTag.ScheduledStationClassCodeSequence);
-            EnsureRequiredSequenceTagIsPresent(DicomTag.ScheduledStationGeographicLocationCodeSequence);
-            EnsureRequiredSequenceTagIsPresent(DicomTag.ScheduledHumanPerformersSequence);
-            EnsureRequiredSequenceTagIsPresent(DicomTag.HumanPerformerCodeSequence);
-            EnsureRequiredSequenceTagIsPresent(DicomTag.ReplacedProcedureStepSequence);
+            EnsureRequiredTagIsPresent(dicomDataset, DicomTag.ScheduledProcedureStepPriority);
+            EnsureRequiredTagIsPresent(dicomDataset, DicomTag.ProcedureStepLabel);
+            EnsureRequiredTagIsPresent(dicomDataset, DicomTag.WorklistLabel);
+            EnsureRequiredTagIsPresent(dicomDataset, DicomTag.ScheduledProcedureStepStartDateTime);
+            EnsureRequiredTagIsPresent(dicomDataset, DicomTag.ExpectedCompletionDateTime);
+            EnsureRequiredTagIsPresent(dicomDataset, DicomTag.InputReadinessState);
+            EnsureRequiredTagIsPresent(dicomDataset, DicomTag.PatientName);
+            EnsureRequiredTagIsPresent(dicomDataset, DicomTag.PatientID);
+            EnsureRequiredTagIsPresent(dicomDataset, DicomTag.PatientBirthDate);
+            EnsureRequiredTagIsPresent(dicomDataset, DicomTag.PatientSex);
+            EnsureRequiredTagIsPresent(dicomDataset, DicomTag.AdmissionID);
+            EnsureRequiredTagIsPresent(dicomDataset, DicomTag.AccessionNumber);
+            EnsureRequiredTagIsPresent(dicomDataset, DicomTag.RequestedProcedureID);
+            EnsureRequiredTagIsPresent(dicomDataset, DicomTag.RequestingService);
+            EnsureRequiredTagIsPresent(dicomDataset, DicomTag.ProcedureStepState);
+            EnsureRequiredSequenceTagIsPresent(dicomDataset, DicomTag.IssuerOfAdmissionIDSequence);
+            EnsureRequiredSequenceTagIsPresent(dicomDataset, DicomTag.ReferencedRequestSequence);
+            EnsureRequiredSequenceTagIsPresent(dicomDataset, DicomTag.IssuerOfAccessionNumberSequence);
+            EnsureRequiredSequenceTagIsPresent(dicomDataset, DicomTag.ScheduledWorkitemCodeSequence);
+            EnsureRequiredSequenceTagIsPresent(dicomDataset, DicomTag.ScheduledStationNameCodeSequence);
+            EnsureRequiredSequenceTagIsPresent(dicomDataset, DicomTag.ScheduledStationClassCodeSequence);
+            EnsureRequiredSequenceTagIsPresent(dicomDataset, DicomTag.ScheduledStationGeographicLocationCodeSequence);
+            EnsureRequiredSequenceTagIsPresent(dicomDataset, DicomTag.ScheduledHumanPerformersSequence);
+            EnsureRequiredSequenceTagIsPresent(dicomDataset, DicomTag.HumanPerformerCodeSequence);
+            EnsureRequiredSequenceTagIsPresent(dicomDataset, DicomTag.ReplacedProcedureStepSequence);
 
             // The format of the identifiers will be validated by fo-dicom.
-            string workitemUid = EnsureRequiredTagIsPresent(DicomTag.AffectedSOPInstanceUID);
+            string workitemUid = EnsureRequiredTagIsPresent(dicomDataset, DicomTag.AffectedSOPInstanceUID);
 
             // If the workitemInstanceUid is specified, then the workitemUid must match.
             if (!string.IsNullOrWhiteSpace(workitemInstanceUid) &&
@@ -68,37 +68,37 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                         workitemUid,
                         workitemInstanceUid));
             }
+        }
 
-            string EnsureRequiredTagIsPresent(DicomTag dicomTag)
+        private static string EnsureRequiredTagIsPresent(DicomDataset dicomDataset, DicomTag dicomTag)
+        {
+            if (dicomDataset.TryGetSingleValue(dicomTag, out string value))
             {
-                if (dicomDataset.TryGetSingleValue(dicomTag, out string value))
-                {
-                    return value;
-                }
-
-                throw new DatasetValidationException(
-                    FailureReasonCodes.ValidationFailure,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        DicomCoreResource.MissingRequiredTag,
-                        dicomTag.ToString()));
+                return value;
             }
 
-            DicomSequence EnsureRequiredSequenceTagIsPresent(DicomTag dicomTag)
-            {
-                if (dicomTag.GetDefaultVR().Code == DicomVRCode.SQ)
-                {
-                    dicomDataset.TryGetSequence(dicomTag, out var sequence);
-                    return sequence;
-                }
+            throw new DatasetValidationException(
+                FailureReasonCodes.ValidationFailure,
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    DicomCoreResource.MissingRequiredTag,
+                    dicomTag.ToString()));
+        }
 
-                throw new DatasetValidationException(
-                    FailureReasonCodes.ValidationFailure,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        DicomCoreResource.MissingRequiredTag,
-                        dicomTag.ToString()));
+        private static DicomSequence EnsureRequiredSequenceTagIsPresent(DicomDataset dicomDataset, DicomTag dicomTag)
+        {
+            if (dicomTag.GetDefaultVR().Code == DicomVRCode.SQ)
+            {
+                dicomDataset.TryGetSequence(dicomTag, out var sequence);
+                return sequence;
             }
+
+            throw new DatasetValidationException(
+                FailureReasonCodes.ValidationFailure,
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    DicomCoreResource.MissingRequiredTag,
+                    dicomTag.ToString()));
         }
     }
 }
