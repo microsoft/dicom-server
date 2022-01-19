@@ -8,10 +8,10 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core
-{
-
-
+namespace Microsoft.Health.Dicom.Core {
+    using System;
+    
+    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -999,6 +999,15 @@ namespace Microsoft.Health.Dicom.Core
         internal static string UnsupportedVRCodeOnTag {
             get {
                 return ResourceManager.GetString("UnsupportedVRCodeOnTag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UPS-RS feature is disabled..
+        /// </summary>
+        internal static string UpsRsFeatureDisabled {
+            get {
+                return ResourceManager.GetString("UpsRsFeatureDisabled", resourceCulture);
             }
         }
         

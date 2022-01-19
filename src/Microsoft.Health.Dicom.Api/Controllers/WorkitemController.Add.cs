@@ -25,6 +25,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
     [ApiVersion("1.0-prerelease")]
     [QueryModelStateValidator]
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
+    [ServiceFilter(typeof(UpsRsFeatureFilterAttribute))]
     [ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
     public partial class WorkitemController : Controller
     {

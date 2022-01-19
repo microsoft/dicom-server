@@ -26,5 +26,10 @@ namespace Microsoft.Health.Dicom.Core.Configs
         /// Enables Data Partition feature.
         /// </summary>
         public bool EnableDataPartitions { get; set; }
+
+        /// <summary>
+        /// Enable UPS-RS feature
+        /// </summary>
+        public bool EnableUpsRs { get; set; }
     }
 }

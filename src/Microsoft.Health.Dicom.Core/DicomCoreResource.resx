@@ -486,4 +486,7 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="NestedSequencesNotSupported" xml:space="preserve">
     <value>Nested Dicom sequence tags are currently not supported.</value>
   </data>
+  <data name="UpsRsFeatureDisabled" xml:space="preserve">
+    <value>UPS-RS feature is disabled.</value>
+  </data>
 </root>
