@@ -5,10 +5,8 @@
 
 using System;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using EnsureThat;
 using FellowOakDicom;
-using FellowOakDicom.Serialization;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Host.Config;
 using Microsoft.Extensions.Configuration;
@@ -16,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Modules;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Operations.Configuration;
@@ -58,13 +57,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddFunctionsOptions<QueryTagIndexingOptions>(configuration, QueryTagIndexingOptions.SectionName, bindNonPublicProperties: true)
                 .AddFunctionsOptions<PurgeHistoryOptions>(configuration, PurgeHistoryOptions.SectionName)
                 .ConfigureDurableFunctionSerialization()
-                .AddJsonSerializerOptions(o =>
-                {
-                    o.Converters.Add(new JsonStringEnumConverter());
-                    o.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false));
-                    o.PropertyNameCaseInsensitive = true;
-                    o.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-                }));
+                .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings()));
         }
 
         /// <summary>
@@ -123,7 +116,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             EnsureArg.IsNotNull(services, nameof(services));
 
-            services.AddFellowOakDicomServices(skipValidation: true);
+            // Note: Fellow Oak Services have already been added as part of the ServiceModule
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IExtensionConfigProvider, FellowOakExtensionConfiguration>());
 
             return services;
