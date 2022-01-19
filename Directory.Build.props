@@ -14,7 +14,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <HealthcareSharedPackageVersion>4.0.8</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
-    <Hl7FhirPackageVersion>3.6.0</Hl7FhirPackageVersion>
+    <Hl7FhirPackageVersion>3.8.0</Hl7FhirPackageVersion>
     <LangVersion>Latest</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Product>Microsoft Health</Product>
