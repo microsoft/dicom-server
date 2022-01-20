@@ -15,7 +15,6 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing.Models
         [Fact]
         public void GivenBadValues_WhenContructing_ThenThrowExceptions()
         {
-            Assert.Throws<ArgumentOutOfRangeException>(() => new BatchCreationArguments(-1, 2, 3));
             Assert.Throws<ArgumentOutOfRangeException>(() => new BatchCreationArguments(1, -2, 3));
             Assert.Throws<ArgumentOutOfRangeException>(() => new BatchCreationArguments(1, 2, -3));
         }
