@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Operations.Client.DurableTask;
+using Microsoft.Health.Dicom.Operations.Client.Serialization;
 
 namespace Microsoft.Health.Dicom.Operations.Client
 {
@@ -49,6 +50,7 @@ namespace Microsoft.Health.Dicom.Operations.Client
             IServiceCollection services = dicomServerBuilder.Services;
             services.TryAddSingleton(GuidFactory.Default);
             services.AddDurableClientFactory(x => configuration.GetSection(ConfigSectionName).Bind(x));
+            services.Replace(ServiceDescriptor.Singleton<IMessageSerializerSettingsFactory, MessageSerializerSettingsFactory>());
             services.TryAddScoped<IDicomOperationsClient, DicomAzureFunctionsClient>();
 
             return dicomServerBuilder;
