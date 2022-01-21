@@ -18,7 +18,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
     /// <summary>
-    /// Provides functionality to orchestrate the storing of the DICOM instance entry.
+    /// Provides functionality to orchestrate the DICOM workitem instance add, retrieve, cancel, and update.
     /// </summary>
     public class WorkitemOrchestrator : IWorkitemOrchestrator
     {
@@ -60,7 +60,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                     .ConfigureAwait(false);
 
                 // TODO: this needs to be done before storing the dataset in the Blob Store.
-                string workitemInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
+                string workitemInstanceUid = dataset.GetString(DicomTag.AffectedSOPInstanceUID);
                 dataset.Add(DicomTag.RequestedSOPInstanceUID, workitemInstanceUid);
 
                 identifier = dataset.ToWorkitemInstanceIdentifier(workitemKey, partitionKey);
@@ -71,7 +71,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
             catch
             {
-                // TODO: implement cleanup to delete the index if blob storage fails
                 await TryDeleteWorkitemAsync(identifier, cancellationToken).ConfigureAwait(false);
 
                 throw;
