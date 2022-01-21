@@ -39,5 +39,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// The workitem instance does not belong to the specified workitem.
         /// </summary>
         public const ushort MismatchWorkitemInstanceUid = 45072;
+
+        /// <summary>
+        /// The workitem instance is not in a valid procedure step state.
+        /// </summary>
+        public const ushort InvalidProcedureStepState = 45073;
     }
 }

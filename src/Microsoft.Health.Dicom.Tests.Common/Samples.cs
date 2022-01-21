@@ -207,6 +207,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
         }
 
         public static DicomDataset CreateRandomWorkitemInstanceDataset(
+            string procedureStepState,
             string workitemUid = null,
             bool validateItems = true,
             DicomTransferSyntax dicomTransferSyntax = null)
@@ -243,7 +244,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
             ds.Add(DicomTag.RequestedProcedureID, Guid.NewGuid().ToString("N"));
             ds.Add(DicomTag.RequestingService, Guid.NewGuid().ToString("N"));
             ds.Add(DicomTag.ReplacedProcedureStepSequence, new DicomDataset());
-            ds.Add(DicomTag.ProcedureStepState, Guid.NewGuid().ToString("N"));
+            ds.Add(DicomTag.ProcedureStepState, procedureStepState);
 
             return ds;
         }

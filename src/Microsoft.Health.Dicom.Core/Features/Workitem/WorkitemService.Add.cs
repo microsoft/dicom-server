@@ -15,6 +15,7 @@ using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
 using DicomValidationException = FellowOakDicom.DicomValidationException;
+using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -65,12 +66,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
 
+            Prepare(dataset);
+
             if (Validate(dataset, workitemInstanceUid))
             {
                 await AddWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
             }
 
             return _responseBuilder.BuildResponse();
+        }
+
+        private static void Prepare(DicomDataset dataset)
+        {
+            if (!dataset.TryGetString(DicomTag.ProcedureStepState, out var _))
+            {
+                dataset.Add(DicomTag.ProcedureStepState, ProcedureStepState.Scheduled);
+            }
         }
 
         private bool Validate(DicomDataset dataset, string workitemInstanceUid)
