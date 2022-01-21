@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 
 namespace Microsoft.Health.Dicom.Core.Models
 {
@@ -34,6 +35,11 @@ namespace Microsoft.Health.Dicom.Core.Models
         /// </summary>
         public const string Canceled = @"CANCELED";
 
+        private static readonly HashSet<string> AllStates = new HashSet<string>
+        {
+            Scheduled, InProgress, Completed, Canceled
+        };
+
         /// <summary>
         /// 
         /// </summary>
@@ -42,8 +48,18 @@ namespace Microsoft.Health.Dicom.Core.Models
         /// <returns></returns>
         public static bool CanTransition(string currentState, string futureState)
         {
+            if (!AllStates.Contains(futureState) || (!string.IsNullOrWhiteSpace(currentState) && !AllStates.Contains(currentState)))
+            {
+                return false;
+            }
+
             // Starting state must be "Scheduled"
-            if (string.IsNullOrWhiteSpace(currentState) && string.Equals(currentState, Scheduled, StringComparison.Ordinal))
+            if (string.IsNullOrWhiteSpace(currentState) && string.Equals(futureState, Scheduled, StringComparison.Ordinal))
+            {
+                return true;
+            }
+
+            if (string.Equals(currentState, futureState, StringComparison.Ordinal))
             {
                 return true;
             }
@@ -60,6 +76,7 @@ namespace Microsoft.Health.Dicom.Core.Models
                 (string.Equals(futureState, Completed, StringComparison.Ordinal) ||
                  string.Equals(futureState, Canceled, StringComparison.Ordinal)))
             {
+
                 return true;
             }
 
