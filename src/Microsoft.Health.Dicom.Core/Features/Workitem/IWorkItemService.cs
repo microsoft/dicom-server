@@ -25,7 +25,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <param name="workitemInstanceUid">An optional value for the Work Item InstanceUID tag.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous process operation.</returns>
-        Task<AddWorkitemResponse> ProcessAsync(
+        Task<AddWorkitemResponse> ProcessAddAsync(
+            DicomDataset dataset,
+            string workitemInstanceUid,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dataset">The <see cref="DicomDataset"/> to process.</param>
+        /// <param name="workitemInstanceUid">An optional value for the Work Item InstanceUID tag.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task that represents the asynchronous process operation.</returns>
+        Task<CancelWorkitemResponse> ProcessCancelAsync(
             DicomDataset dataset,
             string workitemInstanceUid,
             CancellationToken cancellationToken);

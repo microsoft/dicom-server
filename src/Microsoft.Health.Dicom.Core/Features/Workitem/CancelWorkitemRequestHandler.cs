@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -16,12 +15,12 @@ using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
-    public class AddWorkitemRequestHandler : BaseHandler, IRequestHandler<AddWorkitemRequest, AddWorkitemResponse>
+    public class CancelWorkitemRequestHandler : BaseHandler, IRequestHandler<CancelWorkitemRequest, CancelWorkitemResponse>
     {
         private readonly IWorkitemService _workItemService;
         private readonly IWorkitemSerializer _workitemSerializer;
 
-        public AddWorkitemRequestHandler(
+        public CancelWorkitemRequestHandler(
             IAuthorizationService<DataActions> authorizationService,
             IWorkitemSerializer workitemSerializer,
             IWorkitemService workItemService)
@@ -32,8 +31,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         }
 
         /// <inheritdoc />
-        public async Task<AddWorkitemResponse> Handle(
-            AddWorkitemRequest request,
+        public async Task<CancelWorkitemResponse> Handle(
+            CancelWorkitemRequest request,
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(request, nameof(request));
@@ -43,13 +42,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 throw new UnauthorizedDicomActionException(DataActions.Write);
             }
 
-            request.Validate();
+            // request.Validate();
 
             var workitems = await _workitemSerializer.DeserializeAsync(request.RequestBody, request.RequestContentType);
 
-            return await _workItemService
-                .ProcessAddAsync(workitems.FirstOrDefault(), request.WorkitemInstanceUid, cancellationToken)
-                .ConfigureAwait(false);
+            return null;
+
+            //return await _workItemService
+            //    .ProcessCancelAsync(workitems.FirstOrDefault(), request.WorkitemInstanceUid, cancellationToken)
+            //    .ConfigureAwait(false);
         }
     }
 }

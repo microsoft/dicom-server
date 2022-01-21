@@ -41,27 +41,27 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 default,
                 "Successfully stored the DICOM instance work-item entry.");
 
-        private readonly IAddWorkitemResponseBuilder _responseBuilder;
+        private readonly IWorkitemResponseBuilder _responseBuilder;
         private readonly IAddWorkitemDatasetValidator _validator;
         private readonly IWorkitemOrchestrator _workitemOrchestrator;
         private readonly IElementMinimumValidator _minimumValidator;
         private readonly ILogger _logger;
 
         public WorkitemService(
-            IAddWorkitemResponseBuilder storeResponseBuilder,
+            IWorkitemResponseBuilder responseBuilder,
             IAddWorkitemDatasetValidator dicomDatasetValidator,
             IWorkitemOrchestrator storeOrchestrator,
             IElementMinimumValidator minimumValidator,
             ILogger<WorkitemService> logger)
         {
-            _responseBuilder = EnsureArg.IsNotNull(storeResponseBuilder, nameof(storeResponseBuilder));
+            _responseBuilder = EnsureArg.IsNotNull(responseBuilder, nameof(responseBuilder));
             _validator = EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
             _workitemOrchestrator = EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
             _minimumValidator = EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
-        public async Task<AddWorkitemResponse> ProcessAsync(DicomDataset dataset, string workitemInstanceUid, CancellationToken cancellationToken)
+        public async Task<AddWorkitemResponse> ProcessAddAsync(DicomDataset dataset, string workitemInstanceUid, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
 
@@ -70,7 +70,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 await AddWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
             }
 
-            return _responseBuilder.BuildResponse();
+            return _responseBuilder.BuildAddResponse();
         }
 
         private bool Validate(DicomDataset dataset, string workitemInstanceUid)

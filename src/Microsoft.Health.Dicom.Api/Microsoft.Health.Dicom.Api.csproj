@@ -42,6 +42,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="WorkitemController.*.cs">
+      <DependentUpon>WorkitemController.cs</DependentUpon>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Update="DicomApiResource.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>DicomApiResource.Designer.cs</LastGenOutput>

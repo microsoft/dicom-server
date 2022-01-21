@@ -5,8 +5,6 @@
 
 using System.Net;
 using System.Threading.Tasks;
-using EnsureThat;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Api.Features.Audit;
@@ -18,29 +16,11 @@ using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Net.Http.Headers;
-using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
-    [ApiVersion("1.0-prerelease")]
-    [QueryModelStateValidator]
-    [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
-    [ServiceFilter(typeof(UpsRsFeatureFilterAttribute))]
-    [ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
-    public partial class WorkitemController : Controller
+    public partial class WorkitemController
     {
-        private readonly IMediator _mediator;
-        private readonly ILogger<WorkitemController> _logger;
-
-        public WorkitemController(IMediator mediator, ILogger<WorkitemController> logger)
-        {
-            EnsureArg.IsNotNull(mediator, nameof(mediator));
-            EnsureArg.IsNotNull(logger, nameof(logger));
-
-            _mediator = mediator;
-            _logger = logger;
-        }
-
         /// <summary>
         /// This action requests the creation of a UPS Instance on the Origin-Server. It corresponds to the UPS DIMSE N-CREATE operation.
         /// </summary>
@@ -62,19 +42,19 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.UnsupportedMediaType)]
         [HttpPost]
-        [VersionedPartitionRoute(KnownRoutes.CreateWorkitemInstancesRoute, Name = KnownRouteNames.VersionedPartitionWorkitemInstance)]
-        [PartitionRoute(KnownRoutes.CreateWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedWorkitemInstance)]
-        [VersionedRoute(KnownRoutes.CreateWorkitemInstancesRoute, Name = KnownRouteNames.VersionedWorkitemInstance)]
-        [Route(KnownRoutes.CreateWorkitemInstancesRoute, Name = KnownRouteNames.WorkitemInstance)]
+        [VersionedPartitionRoute(KnownRoutes.AddWorkitemInstancesRoute, Name = KnownRouteNames.VersionedPartitionAddWorkitemInstance)]
+        [PartitionRoute(KnownRoutes.AddWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedAddWorkitemInstance)]
+        [VersionedRoute(KnownRoutes.AddWorkitemInstancesRoute, Name = KnownRouteNames.VersionedAddWorkitemInstance)]
+        [Route(KnownRoutes.AddWorkitemInstancesRoute, Name = KnownRouteNames.AddWorkitemInstance)]
         [AuditEventType(AuditEventSubType.Workitem)]
         public async Task<IActionResult> AddAsync(string workitemInstanceUid = null)
         {
-            return await PostAsync(workitemInstanceUid);
+            return await PostAddAsync(workitemInstanceUid);
         }
 
-        // TODO: Add a POST call to accept instance UID from the header
+        // TODO: DO WE NEED THIS??? ==> Add a POST call to accept instance UID from the header.
 
-        private async Task<IActionResult> PostAsync(string workitemInstanceUid)
+        private async Task<IActionResult> PostAddAsync(string workitemInstanceUid)
         {
             long fileSize = Request.ContentLength ?? 0;
             _logger.LogInformation("DICOM Web Store Workitem Transaction request received, with UPS instance UID {UPSInstanceUid}, and file size of {FileSize} bytes",

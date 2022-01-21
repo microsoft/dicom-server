@@ -12,15 +12,15 @@ using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
     /// <summary>
-    /// Provides functionality to build the response for the store transaction.
+    /// Provides functionality to build the response for the workitem transactions.
     /// </summary>
-    public class AddWorkitemResponseBuilder : IAddWorkitemResponseBuilder
+    public class WorkitemResponseBuilder : IWorkitemResponseBuilder
     {
         private readonly IUrlResolver _urlResolver;
 
         private DicomDataset _dataset;
 
-        public AddWorkitemResponseBuilder(IUrlResolver urlResolver)
+        public WorkitemResponseBuilder(IUrlResolver urlResolver)
         {
             EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
 
@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         }
 
         /// <inheritdoc />
-        public AddWorkitemResponse BuildResponse()
+        public AddWorkitemResponse BuildAddResponse()
         {
             Uri url = null;
             WorkitemResponseStatus status = WorkitemResponseStatus.Failure;
@@ -42,6 +42,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
 
             return new AddWorkitemResponse(status, url);
+        }
+
+        /// <inheritdoc />
+        public CancelWorkitemResponse BuildCancelResponse()
+        {
+            var status = WorkitemResponseStatus.Failure;
+
+            if (!_dataset.TryGetSingleValue<ushort>(DicomTag.FailureReason, out var _))
+            {
+                // There are only success.
+                status = WorkitemResponseStatus.Success;
+            }
+
+            return new CancelWorkitemResponse(status);
         }
 
         /// <inheritdoc />

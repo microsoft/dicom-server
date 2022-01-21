@@ -6,6 +6,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
+using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -21,5 +22,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous orchestration of the storing operation.</returns>
         Task AddWorkitemAsync(DicomDataset dataset, CancellationToken cancellationToken);
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="workitemInstanceUid"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task DeleteWorkitemAsync(string workitemInstanceUid, CancellationToken cancellationToken);
     }
 }

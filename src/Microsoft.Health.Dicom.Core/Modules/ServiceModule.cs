@@ -233,7 +233,7 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<AddWorkitemResponseBuilder>()
+            services.Add<WorkitemResponseBuilder>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
