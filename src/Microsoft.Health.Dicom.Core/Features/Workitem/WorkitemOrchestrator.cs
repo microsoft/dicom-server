@@ -59,7 +59,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                     .AddWorkitemAsync(partitionKey, dataset, queryTags, cancellationToken)
                     .ConfigureAwait(false);
 
-                // TODO: this needs to be done before storing the dataset in the Blob Store.
                 string workitemInstanceUid = dataset.GetString(DicomTag.AffectedSOPInstanceUID);
                 dataset.Add(DicomTag.RequestedSOPInstanceUID, workitemInstanceUid);
 
