@@ -41,5 +41,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <param name="cancellationToken"></param>
         /// <returns>A task that gets workitem query tags.</returns>
         Task<IReadOnlyList<WorkitemQueryTagStoreEntry>> GetWorkitemQueryTagsAsync(CancellationToken cancellationToken = default);
+
+        Task<QueryResult> QueryAsync(int partitionKey, QueryExpression query, CancellationToken cancellationToken = default);
     }
 }

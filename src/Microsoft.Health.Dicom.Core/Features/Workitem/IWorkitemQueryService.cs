@@ -3,14 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Query.Model;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Messages.Query;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public interface IQueryParser
+    public interface IWorkitemQueryService
     {
-        QueryExpression Parse(QueryParameters parameters, IReadOnlyCollection<QueryTag> queryTags, bool supportSequenceParsing = false);
+        Task<QueryResourceResponse> QueryAsync(QueryParameters parameters, CancellationToken cancellationToken = default);
     }
 }

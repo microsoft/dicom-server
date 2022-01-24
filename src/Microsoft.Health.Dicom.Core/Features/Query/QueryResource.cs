@@ -17,5 +17,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         AllInstances,
         StudyInstances,
         StudySeriesInstances,
+        WorkitemInstances,
     }
 }

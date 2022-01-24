@@ -4,9 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using System.Net;
 using FellowOakDicom;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Workitem;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
@@ -184,6 +187,29 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             {
                 throw new QueryParseException(DicomCoreResource.InvalidRangeValues);
             }
+        }
+
+        private static QueryFilterCondition ParseSequenceTagValue(QueryTag queryTag, string value)
+        {
+            var dicomSequence = queryTag.WorkitemQueryTagStoreEntry.Item as DicomSequence;
+
+            DicomItem item = dicomSequence?.Items.FirstOrDefault()?.FirstOrDefault();
+            if (item != null)
+            {
+                var entry = new WorkitemQueryTagStoreEntry(queryTag.WorkitemQueryTagStoreEntry.Key, item.Tag.GetPath(), item.ValueRepresentation.Code)
+                {
+                    Item = item
+                };
+
+                var searchableQueryTag = new QueryTag(entry);
+
+                if (ValueParsers.TryGetValue(searchableQueryTag.VR, out Func<QueryTag, string, QueryFilterCondition> valueParser))
+                {
+                    return valueParser(searchableQueryTag, value);
+                }
+            }
+
+            throw new QueryParseException(DicomCoreResource.InvalidRangeValues);
         }
     }
 }

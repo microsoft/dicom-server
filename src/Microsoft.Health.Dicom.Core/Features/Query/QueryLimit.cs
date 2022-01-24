@@ -67,6 +67,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             { QueryResource.StudySeries, ImmutableHashSet.Create(QueryTagLevel.Series)},
             { QueryResource.StudyInstances,  ImmutableHashSet.Create(QueryTagLevel.Series, QueryTagLevel.Instance) },
             { QueryResource.StudySeriesInstances,  ImmutableHashSet.Create(QueryTagLevel.Instance) },
+            { QueryResource.WorkitemInstances,  ImmutableHashSet.Create(QueryTagLevel.Instance) },
         };
 
         /// <summary>
