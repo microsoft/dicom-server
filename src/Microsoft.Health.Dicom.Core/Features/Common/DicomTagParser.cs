@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
 
             if (tags.Length > 2)
             {
-                throw new NotImplementedException(DicomCoreResource.NestedSequencesNotSupported);
+                throw new DicomValidationException(dicomTagPath, DicomVR.SQ, DicomCoreResource.NestedSequencesNotSupported);
             }
 
             var result = tags.All(x => x != null);
