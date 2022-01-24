@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Features.Common;
@@ -64,9 +65,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             foreach (var tag in workitemQueryTags)
             {
-                if (_dicomTagParser.TryParseToDicomItem(tag.Path, out var dicomItem))
+                if (_dicomTagParser.TryParse(tag.Path, out DicomTag[] dicomTags))
                 {
-                    tag.Item = dicomItem;
+                    tag.PathTags = Array.AsReadOnly(dicomTags);
                 }
             }
 

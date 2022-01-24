@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using FellowOakDicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Common
@@ -15,75 +16,41 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
     /// </summary>
     public class DicomTagParser : IDicomTagParser
     {
-        public bool TryParse(string dicomTagPath, out DicomTag[] dicomTags, bool supportMultiple = false)
+        public bool TryParse(string dicomTagPath, out DicomTag[] dicomTags)
         {
             dicomTags = null;
-            if (supportMultiple)
-            {
-                throw new NotImplementedException(DicomCoreResource.SequentialDicomTagsNotSupported);
-            }
-
             if (string.IsNullOrWhiteSpace(dicomTagPath))
             {
                 return false;
             }
 
-            DicomTag dicomTag = GetTagFromKeywordOrNumber(dicomTagPath);
+            DicomTag[] tags = ParseTag(dicomTagPath);
 
-            dicomTags = new DicomTag[] { dicomTag };
-            return dicomTag != null;
-        }
-
-        public bool TryParseToDicomItem(string dicomTagPath, out DicomItem dicomItem)
-        {
-            dicomItem = null;
-
-            if (string.IsNullOrWhiteSpace(dicomTagPath))
-            {
-                return false;
-            }
-
-            DicomTag[] dicomTags = ParseMultipleStandardTag(dicomTagPath);
-
-            if (dicomTags.Length == 1)
-            {
-                var tag = GetTagFromKeywordOrNumber(dicomTagPath);
-                if (tag != null) dicomItem = new DicomValuelessItem(tag);
-                return tag != null;
-            }
-
-            if (dicomTags.Length > 2)
+            if (tags.Length > 2)
             {
                 throw new NotImplementedException(DicomCoreResource.NestedSequencesNotSupported);
             }
 
-            if (dicomTags[0] != null && dicomTags[1] != null)
-            {
-                var sequenceItem = new DicomSequence(dicomTags[0]);
-                sequenceItem.Items.Add(new DicomDataset(new DicomValuelessItem(dicomTags[1])));
+            var result = tags.All(x => x != null);
+            dicomTags = result ? tags : null;
 
-                dicomItem = sequenceItem;
-            }
-
-
-            return dicomTags[0] != null && dicomTags[1] != null;
+            return result;
         }
 
-
-        private static DicomTag[] ParseMultipleStandardTag(string dicomTagPath)
+        private static DicomTag[] ParseTag(string dicomTagPath)
         {
             var paths = dicomTagPath.Split(".");
             var dicomTags = new List<DicomTag>();
 
             foreach (var path in paths)
             {
-                dicomTags.Add(GetTagFromKeywordOrNumber(path));
+                dicomTags.Add(ParseTagFromKeywordOrNumber(path));
             }
 
             return dicomTags.ToArray();
         }
 
-        private static DicomTag GetTagFromKeywordOrNumber(string dicomTagPath)
+        private static DicomTag ParseTagFromKeywordOrNumber(string dicomTagPath)
         {
             DicomTag dicomTag = ParseStardandDicomTagKeyword(dicomTagPath);
 

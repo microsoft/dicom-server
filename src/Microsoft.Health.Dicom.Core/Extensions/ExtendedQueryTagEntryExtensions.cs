@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         {
             DicomTagParser dicomTagParser = new DicomTagParser();
             DicomTag[] tags;
-            if (!dicomTagParser.TryParse(extendedQueryTagEntry.Path, out tags, supportMultiple: false))
+            if (!dicomTagParser.TryParse(extendedQueryTagEntry.Path, out tags))
             {
                 // not a valid dicom tag path
                 throw new ExtendedQueryTagEntryValidationException(
