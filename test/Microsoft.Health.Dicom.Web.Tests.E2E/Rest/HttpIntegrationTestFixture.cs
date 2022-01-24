@@ -91,7 +91,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             var httpClient = new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress };
 
-            var dicomWebClient = new DicomWebClient(httpClient, DicomApiVersions.V1Prerelease)
+            var dicomWebClient = new DicomWebClient(httpClient, DicomApiVersions.V1Release)
             {
                 GetMemoryStream = () => RecyclableMemoryStreamManager.GetStream(),
             };

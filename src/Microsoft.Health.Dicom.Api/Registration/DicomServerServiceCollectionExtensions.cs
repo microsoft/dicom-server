@@ -112,7 +112,7 @@ namespace Microsoft.AspNetCore.Builder
             {
                 c.ApiVersionReader = new UrlSegmentApiVersionReader();
                 c.AssumeDefaultVersionWhenUnspecified = true;
-                c.DefaultApiVersion = new ApiVersion(1, 0, "prerelease");
+                c.DefaultApiVersion = new ApiVersion(1, 0);
                 c.ReportApiVersions = true;
                 c.UseApiBehavior = false;
             });

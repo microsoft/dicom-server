@@ -17,6 +17,7 @@ Currently routes without a version are still supported (ex. `https://<service_ur
 
 Currently the supported versions are:
 - v1.0-prerelease
+- v1.0
 
 The OpenApi Doc for the supported versions can be found at the following url: `https://<service_url>/{version}/api.yaml`
 

@@ -86,12 +86,13 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Routing
                 });
         }
 
-        [Fact]
-        public void GivenAStudy_WhenRetrieveStudyUriWithPartitionIdAndVersionIsResolved_ThenCorrectUrlShouldBeReturned()
+        [Theory]
+        [InlineData("v1.0-prerelease")]
+        [InlineData("v1.0")]
+        public void GivenAStudy_WhenRetrieveStudyUriWithPartitionIdAndVersionIsResolved_ThenCorrectUrlShouldBeReturned(string version)
         {
             const string studyInstanceUid = "123.123";
             const string partitionName = "partition1";
-            const string version = "v1.0-prerelease";
             _httpContext.Request.RouteValues.Add(KnownActionParameterNames.PartitionName, partitionName);
             _httpContext.Request.RouteValues.Add(KnownActionParameterNames.Version, version);
 
