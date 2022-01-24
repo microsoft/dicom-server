@@ -10,6 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
+using FellowOakDicom.Log;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Features.Common;
@@ -21,13 +23,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         private readonly IIndexWorkitemStore _indexWorkitemStore;
         private readonly AsyncCache<IReadOnlyCollection<QueryTag>> _queryTagCache;
         private readonly IDicomTagParser _dicomTagParser;
+        private readonly ILogger _logger;
         private bool _disposed;
 
-        public WorkitemQueryTagService(IIndexWorkitemStore indexWorkitemStore, IDicomTagParser dicomTagParser)
+        public WorkitemQueryTagService(IIndexWorkitemStore indexWorkitemStore, IDicomTagParser dicomTagParser, ILogger<WorkitemQueryTagService> logger)
         {
             _indexWorkitemStore = EnsureArg.IsNotNull(indexWorkitemStore, nameof(indexWorkitemStore));
             _queryTagCache = new AsyncCache<IReadOnlyCollection<QueryTag>>(ResolveQueryTagsAsync);
             _dicomTagParser = EnsureArg.IsNotNull(dicomTagParser, nameof(dicomTagParser));
+            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
         public void Dispose()
@@ -68,6 +72,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 if (_dicomTagParser.TryParse(tag.Path, out DicomTag[] dicomTags))
                 {
                     tag.PathTags = Array.AsReadOnly(dicomTags);
+                }
+                else
+                {
+                    _logger.Error("Failed to parse dicom path '{tagPath}' to dicom tags.", tag.Path);
+                    throw new DataStoreException(DicomCoreResource.DataStoreOperationFailed);
                 }
             }
 
