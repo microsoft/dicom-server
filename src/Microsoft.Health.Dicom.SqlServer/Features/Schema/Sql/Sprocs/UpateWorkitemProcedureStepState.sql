@@ -39,7 +39,7 @@ BEGIN
 
     -- Step:0 - Get Tag Key from WorkitemQueryTag using @procedure​Step​StateTagPath
 
-    -- Step: 1 - Update ExtendedQueryTagString Set V
+    -- Step: 1 - Update ExtendedQueryTagString Set
 
     COMMIT TRANSACTION
 END
