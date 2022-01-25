@@ -34,6 +34,22 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Features/Workitem/WorkitemService.*.cs">
+      <DependentUpon>Features/Workitem/WorkitemService.cs</DependentUpon>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Features/Workitem/WorkitemDatasetValidator.*.cs">
+      <DependentUpon>Features/Workitem/WorkitemDatasetValidator.cs</DependentUpon>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Features\Workitem\WorkitemDatasetValidator.Cancel.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="DicomCoreResource.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

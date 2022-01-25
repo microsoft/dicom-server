@@ -21,6 +21,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
                    default,
                    "Storing DICOM instance workitem file with '{WorkitemInstanceIdentifier}'.");
 
+        private static readonly Action<ILogger, string, Exception> LogGetWorkitemDelegate =
+               LoggerMessage.Define<string>(
+                   LogLevel.Debug,
+                   default,
+                   "Retrieving DICOM instance workitem file with '{WorkitemInstanceIdentifier}'.");
+
         private static readonly Action<ILogger, Exception> LogOperationSucceededDelegate =
             LoggerMessage.Define(
                 LogLevel.Debug,
@@ -57,6 +63,28 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
                 await _workitemStore.AddWorkitemAsync(identifier, dataset, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
+            }
+            catch (Exception ex)
+            {
+                LogOperationFailedDelegate(_logger, ex);
+
+                throw;
+            }
+        }
+
+        public async Task<DicomDataset> GetWorkitemAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(identifier, nameof(identifier));
+
+            LogGetWorkitemDelegate(_logger, identifier.ToString(), null);
+
+            try
+            {
+                var dicomDataset = await _workitemStore.GetWorkitemAsync(identifier, cancellationToken).ConfigureAwait(false);
+
+                LogOperationSucceededDelegate(_logger, null);
+
+                return dicomDataset;
             }
             catch (Exception ex)
             {

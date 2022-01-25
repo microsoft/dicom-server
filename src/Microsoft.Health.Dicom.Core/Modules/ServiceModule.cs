@@ -242,6 +242,11 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
+            services.Add<CancelWorkitemDatasetValidator>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
         }
     }
 }

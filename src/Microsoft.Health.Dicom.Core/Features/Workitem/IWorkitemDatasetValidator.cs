@@ -8,7 +8,7 @@ using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
-    public interface IAddWorkitemDatasetValidator
+    public interface IWorkitemDatasetValidator
     {
         /// <summary>
         /// Validates the <paramref name="dicomDataset"/>.

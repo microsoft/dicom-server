@@ -3,10 +3,10 @@
 **************************************************************/
 --
 -- STORED PROCEDURE
---     UpateWorkitemProcedureStepState
+--     UpateWorkitem
 --
 -- DESCRIPTION
---     Update a UPS-RS Workitem Procedure Step State.
+--     Update a UPS-RS Workitem.
 --
 -- PARAMETERS
 --     @partitionKey
@@ -16,7 +16,7 @@
 --     @procedure​Step​StateTagPath
 --         * Procedure Step State Tag Path
 ------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.UpateWorkitemProcedureStepState
+CREATE OR ALTER PROCEDURE dbo.UpateWorkitem
     @partitionKey                   INT,
     @workitemUid                    VARCHAR(64),
     @procedureStepStateTagPath      VARCHAR(64)

@@ -949,6 +949,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; DicomTag is not expected for &apos;{1}&apos; operation. [WorkitemInstanceUID &apos;{2}&apos;].
+        /// </summary>
+        internal static string UnexpectedTag {
+            get {
+                return ResourceManager.GetString("UnexpectedTag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expected value &apos;{0}&apos; to be one of the following values: [{1}].
         /// </summary>
         internal static string UnexpectedValue {

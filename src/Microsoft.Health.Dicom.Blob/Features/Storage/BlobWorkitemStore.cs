@@ -20,6 +20,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.IO;
 using System.Text.Json;
+using Azure;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage
 {
@@ -29,6 +30,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
     public class BlobWorkitemStore : IWorkitemStore
     {
         private const string AddWorkitemStreamTagName = nameof(BlobWorkitemStore) + "." + nameof(AddWorkitemAsync);
+        private const string GetWorkitemStreamTagName = nameof(BlobWorkitemStore) + "." + nameof(GetWorkitemAsync);
 
         private readonly BlobContainerClient _container;
         private readonly JsonSerializerOptions _jsonSerializerOptions;
@@ -92,11 +94,46 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             }
         }
 
+        public async Task<DicomDataset> GetWorkitemAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(identifier, nameof(identifier));
+
+            BlockBlobClient blob = GetBlockBlobClient(identifier);
+
+            return await ExecuteAsync(async t =>
+            {
+                await using (Stream stream = _recyclableMemoryStreamManager.GetStream(GetWorkitemStreamTagName))
+                {
+                    await blob.DownloadToAsync(stream, cancellationToken);
+
+                    stream.Seek(0, SeekOrigin.Begin);
+
+                    return await JsonSerializer.DeserializeAsync<DicomDataset>(stream, _jsonSerializerOptions, t);
+                }
+            }, cancellationToken).ConfigureAwait(false);
+        }
+
         private BlockBlobClient GetBlockBlobClient(WorkitemInstanceIdentifier identifier)
         {
             var blobName = $"{identifier.WorkitemUid}_{identifier.WorkitemKey}_workitem.json";
 
             return _container.GetBlockBlobClient(blobName);
+        }
+
+        private static async Task<T> ExecuteAsync<T>(Func<CancellationToken, Task<T>> action, CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await action(cancellationToken);
+            }
+            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
+            {
+                throw new ItemNotFoundException(ex);
+            }
+            catch (Exception ex)
+            {
+                throw new DataStoreException(ex);
+            }
         }
     }
 }

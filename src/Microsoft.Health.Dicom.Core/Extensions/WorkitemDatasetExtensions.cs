@@ -22,11 +22,17 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-            // Note: Here we 'GetSingleValueOrDefault' and let the constructor validate the identifier.
-            return new WorkitemInstanceIdentifier(
-                dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
-                workitemKey,
-                partitionKey);
+            var workitemInstanceUid = dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, null as string)
+                ?? dicomDataset.GetSingleValueOrDefault(DicomTag.AffectedSOPInstanceUID, string.Empty);
+
+            return ToWorkitemInstanceIdentifier(workitemInstanceUid, workitemKey, partitionKey);
+        }
+
+        public static WorkitemInstanceIdentifier ToWorkitemInstanceIdentifier(string workitemInstanceUid, long workitemKey = default, int partitionKey = default)
+        {
+            EnsureArg.IsNotNull(workitemInstanceUid, nameof(workitemInstanceUid));
+
+            return new WorkitemInstanceIdentifier(workitemInstanceUid, workitemKey, partitionKey);
         }
     }
 }

@@ -16,5 +16,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
     public interface IWorkitemStore
     {
         Task AddWorkitemAsync(WorkitemInstanceIdentifier identifier, DicomDataset dataset, CancellationToken cancellationToken);
+
+
+        Task<DicomDataset> GetWorkitemAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken);
     }
 }

@@ -495,4 +495,8 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="MismatchWorkitemInstanceUid" xml:space="preserve">
     <value>AffectedSOPInstanceUID '{0}' in the payload does not match the specified WorkitemInstanceUID '{1}'.</value>
   </data>
+  <data name="UnexpectedTag" xml:space="preserve">
+    <value>'{0}' DicomTag is not expected for '{1}' operation. [WorkitemInstanceUID '{2}']</value>
+    <comment>{0} Dicom Tag. {1} Action/Operation. {2} WorkitemInstanceUID.</comment>
+  </data>
 </root>

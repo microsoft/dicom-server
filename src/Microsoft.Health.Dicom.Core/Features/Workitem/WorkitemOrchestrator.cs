@@ -82,9 +82,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             try
             {
+                // Get the WorkitemKey
+                long workitemKey = 0;
+
                 int partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
-                // TODO: Need to implement
+                var workitemInstanceIdentifier = WorkitemDatasetExtensions
+                    .ToWorkitemInstanceIdentifier(workitemInstanceUid, workitemKey, partitionKey);
+
+                var dicomDataset = await _workitemStore.GetWorkitemAsync(workitemInstanceIdentifier, cancellationToken).ConfigureAwait(false);
+
+                // If there is a reason provided for cancelation, read the Blob from Blob store.
+                // Add the reason
+
                 await Task.FromResult(0);
             }
             catch
@@ -113,6 +123,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             {
             }
         }
+
+        private async Task<DicomDataset> GetWorkitemBlobAsync(
+            WorkitemInstanceIdentifier identifier,
+            CancellationToken cancellationToken)
+            => await _workitemStore
+                .GetWorkitemAsync(identifier, cancellationToken)
+                .ConfigureAwait(false);
 
         private async Task StoreWorkitemBlobAsync(
             WorkitemInstanceIdentifier identifier,

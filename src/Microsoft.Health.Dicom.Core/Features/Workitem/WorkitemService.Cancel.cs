@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
@@ -20,35 +20,36 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     /// </summary>
     public partial class WorkitemService
     {
+        private static readonly Action<ILogger, ushort, Exception> LogFailedToCancelDelegate =
+            LoggerMessage.Define<ushort>(
+                LogLevel.Warning,
+                default,
+                "Failed to cancel the work-item entry. Failure code: {FailureCode}.");
+
+        private static readonly Action<ILogger, Exception> LogSuccessfullyCanceledDelegate =
+            LoggerMessage.Define(
+                LogLevel.Information,
+                default,
+                "Successfully canceled the work-item entry.");
+
         public async Task<CancelWorkitemResponse> ProcessCancelAsync(DicomDataset dataset, string workitemInstanceUid, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
 
-            // Validate ProcedureStepState - Must be in SCHEDULED state
-            // Validate No Transaction UID exists in the dataset
-            // 
+            GetValidator<CancelWorkitemDatasetValidator>().Validate(dataset, workitemInstanceUid);
 
-            // if (Validate(dataset, workitemInstanceUid))
-            // {
-            await CancelWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
-            // }
+            await CancelWorkitemAsync(dataset, workitemInstanceUid, cancellationToken).ConfigureAwait(false);
 
-            return null;
-
-            // return _responseBuilder.BuildCancelResponse();
+            return _responseBuilder.BuildCancelResponse();
         }
 
-        private async Task CancelWorkitemAsync(DicomDataset dataset, CancellationToken cancellationToken)
+        private async Task CancelWorkitemAsync(DicomDataset dataset, string workitemInstanceUid, CancellationToken cancellationToken)
         {
             try
             {
-                // DB - Update the State
-                // If there is a reason provided for cancelation, read the Blob from Blob store.
-                // Add the reason
+                await _workitemOrchestrator.CancelWorkitemAsync(workitemInstanceUid, cancellationToken).ConfigureAwait(false);
 
-                await _workitemOrchestrator.AddWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
-
-                LogSuccessfullyAddedDelegate(_logger, null);
+                LogSuccessfullyCanceledDelegate(_logger, null);
 
                 _responseBuilder.AddSuccess(dataset);
             }
@@ -56,14 +57,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             {
                 ushort failureCode = FailureReasonCodes.ProcessingFailure;
 
-                switch (ex)
-                {
-                    case WorkitemAlreadyExistsException _:
-                        failureCode = FailureReasonCodes.SopInstanceAlreadyExists;
-                        break;
-                }
-
-                LogFailedToAddDelegate(_logger, failureCode, ex);
+                LogFailedToCancelDelegate(_logger, failureCode, ex);
 
                 _responseBuilder.AddFailure(dataset, failureCode);
             }

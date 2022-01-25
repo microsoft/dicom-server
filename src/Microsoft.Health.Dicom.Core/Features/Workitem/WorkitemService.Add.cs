@@ -6,30 +6,23 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using FellowOakDicom;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
-using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
-using DicomValidationException = FellowOakDicom.DicomValidationException;
 using Microsoft.Health.Dicom.Core.Models;
+using DicomValidationException = FellowOakDicom.DicomValidationException;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
     /// <summary>
     /// Provides functionality to process the list of <see cref="IDicomInstanceEntry"/>.
     /// </summary>
-    public partial class WorkitemService : IWorkitemService
+    public partial class WorkitemService
     {
-        private static readonly Action<ILogger, ushort, Exception> LogValidationFailedDelegate =
-            LoggerMessage.Define<ushort>(
-                LogLevel.Information,
-                default,
-                "Validation failed for the DICOM instance work-item entry. Failure code: {FailureCode}.");
-
         private static readonly Action<ILogger, ushort, Exception> LogFailedToAddDelegate =
             LoggerMessage.Define<ushort>(
                 LogLevel.Warning,
@@ -41,26 +34,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 LogLevel.Information,
                 default,
                 "Successfully stored the DICOM instance work-item entry.");
-
-        private readonly IWorkitemResponseBuilder _responseBuilder;
-        private readonly IAddWorkitemDatasetValidator _validator;
-        private readonly IWorkitemOrchestrator _workitemOrchestrator;
-        private readonly IElementMinimumValidator _minimumValidator;
-        private readonly ILogger _logger;
-
-        public WorkitemService(
-            IWorkitemResponseBuilder responseBuilder,
-            IAddWorkitemDatasetValidator dicomDatasetValidator,
-            IWorkitemOrchestrator storeOrchestrator,
-            IElementMinimumValidator minimumValidator,
-            ILogger<WorkitemService> logger)
-        {
-            _responseBuilder = EnsureArg.IsNotNull(responseBuilder, nameof(responseBuilder));
-            _validator = EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
-            _workitemOrchestrator = EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
-            _minimumValidator = EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
-            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-        }
 
         public async Task<AddWorkitemResponse> ProcessAddAsync(DicomDataset dataset, string workitemInstanceUid, CancellationToken cancellationToken)
         {
@@ -88,7 +61,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             try
             {
-                _validator.Validate(dataset, workitemInstanceUid);
+                GetValidator<AddWorkitemDatasetValidator>().Validate(dataset, workitemInstanceUid);
                 return true;
             }
             catch (Exception ex)

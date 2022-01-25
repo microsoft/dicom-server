@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 {
     public sealed class WorkitemServiceTests
     {
-        private readonly IAddWorkitemDatasetValidator _datasetValidator = Substitute.For<IAddWorkitemDatasetValidator>();
+        private readonly IWorkitemDatasetValidator _datasetValidator = Substitute.For<IWorkitemDatasetValidator>();
         private readonly IWorkitemResponseBuilder _responseBuilder = Substitute.For<IWorkitemResponseBuilder>();
         private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
         private readonly IWorkitemOrchestrator _storeOrchestrator = Substitute.For<IWorkitemOrchestrator>();
@@ -29,7 +29,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
         public WorkitemServiceTests()
         {
-            _target = new WorkitemService(_responseBuilder, _datasetValidator, _storeOrchestrator, _minimumValidator, _logger);
+            _target = new WorkitemService(
+                _responseBuilder,
+                new[] { _datasetValidator },
+                _storeOrchestrator,
+                _minimumValidator,
+                _logger);
         }
 
         [Fact]
