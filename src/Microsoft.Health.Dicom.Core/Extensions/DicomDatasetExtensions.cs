@@ -344,7 +344,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
             if (dicomTags.Count != 2)
             {
-                throw new NotImplementedException(DicomCoreResource.NestedSequencesNotSupported);
+                throw new DicomValidationException(string.Join(",", dicomTags.Select(x => x.GetPath())), DicomVR.SQ, DicomCoreResource.NestedSequencesNotSupported);
             }
 
             var foundDatasets = new List<DicomDataset>();
