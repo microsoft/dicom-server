@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         {
             DicomTag[] tags;
             string numericalTagPath;
-            if (_dicomTagParser.TryParse(tagPath, out tags, supportMultiple: false))
+            if (_dicomTagParser.TryParse(tagPath, out tags))
             {
                 if (tags.Length > 1)
                 {

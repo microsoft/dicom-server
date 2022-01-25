@@ -199,7 +199,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
 
         private DicomTag ParseTag(string path)
         {
-            if (!_dicomTagParser.TryParse(path, out DicomTag[] result, supportMultiple: false))
+            if (!_dicomTagParser.TryParse(path, out DicomTag[] result))
             {
                 throw new ExtendedQueryTagEntryValidationException(
                       string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidExtendedQueryTag, path));

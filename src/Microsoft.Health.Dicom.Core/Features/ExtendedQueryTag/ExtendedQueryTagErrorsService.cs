@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         public async Task<GetExtendedQueryTagErrorsResponse> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, int offset, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(tagPath, nameof(tagPath));
-            string numericalTagPath = _dicomTagParser.TryParse(tagPath, out DicomTag[] tags, supportMultiple: false)
+            string numericalTagPath = _dicomTagParser.TryParse(tagPath, out DicomTag[] tags)
                 ? tags[0].GetPath()
                 : throw new InvalidExtendedQueryTagPathException(string.Format(DicomCoreResource.InvalidExtendedQueryTag, tagPath ?? string.Empty));
 

@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -32,9 +33,9 @@ namespace Microsoft.Health.Dicom.Tests.Common.Extensions
         {
             var dicomTagParser = new DicomTagParser();
             var entry = new WorkitemQueryTagStoreEntry(key, path, vr);
-            if (dicomTagParser.TryParseToDicomItem(path, out var dicomItem))
+            if (dicomTagParser.TryParse(path, out var dicomTags))
             {
-                entry.Item = dicomItem;
+                entry.PathTags = Array.AsReadOnly(dicomTags);
             }
 
             return entry;

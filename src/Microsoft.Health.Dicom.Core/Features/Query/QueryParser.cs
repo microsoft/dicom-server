@@ -197,7 +197,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         private bool TryParseDicomAttributeId(string attributeId, out DicomTag dicomTag)
         {
-            if (_dicomTagPathParser.TryParse(attributeId, out DicomTag[] result, supportMultiple: false))
+            if (_dicomTagPathParser.TryParse(attributeId, out DicomTag[] result))
             {
                 dicomTag = result[0];
                 return true;
