@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using FellowOakDicom.Log;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
@@ -75,7 +75,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 }
                 else
                 {
-                    _logger.Error("Failed to parse dicom path '{tagPath}' to dicom tags.", tag.Path);
+                    _logger.LogError("Failed to parse dicom path '{TagPath}' to dicom tags.", tag.Path);
                     throw new DataStoreException(DicomCoreResource.DataStoreOperationFailed);
                 }
             }
