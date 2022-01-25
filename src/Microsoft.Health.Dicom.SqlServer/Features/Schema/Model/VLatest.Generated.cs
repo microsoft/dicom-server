@@ -67,6 +67,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static IndexInstanceV6Procedure IndexInstanceV6 = new IndexInstanceV6Procedure();
         internal readonly static RetrieveDeletedInstanceProcedure RetrieveDeletedInstance = new RetrieveDeletedInstanceProcedure();
         internal readonly static RetrieveDeletedInstanceV6Procedure RetrieveDeletedInstanceV6 = new RetrieveDeletedInstanceV6Procedure();
+        internal readonly static UpateWorkitemProcedureStepStateProcedure UpateWorkitemProcedureStepState = new UpateWorkitemProcedureStepStateProcedure();
         internal readonly static UpdateExtendedQueryTagQueryStatusProcedure UpdateExtendedQueryTagQueryStatus = new UpdateExtendedQueryTagQueryStatusProcedure();
         internal readonly static UpdateInstanceStatusProcedure UpdateInstanceStatus = new UpdateInstanceStatusProcedure();
         internal readonly static UpdateInstanceStatusV6Procedure UpdateInstanceStatusV6 = new UpdateInstanceStatusV6Procedure();
@@ -1486,6 +1487,26 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 command.CommandText = "dbo.RetrieveDeletedInstanceV6";
                 _count.AddParameter(command.Parameters, count);
                 _maxRetries.AddParameter(command.Parameters, maxRetries);
+            }
+        }
+
+        internal class UpateWorkitemProcedureStepStateProcedure : StoredProcedure
+        {
+            internal UpateWorkitemProcedureStepStateProcedure() : base("dbo.UpateWorkitemProcedureStepState")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.String> _workitemUid = new ParameterDefinition<System.String>("@workitemUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _procedureStepStateTagPath = new ParameterDefinition<System.String>("@procedureStepStateTagPath", global::System.Data.SqlDbType.VarChar, false, 64);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String workitemUid, System.String procedureStepStateTagPath)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.UpateWorkitemProcedureStepState";
+                _partitionKey.AddParameter(command.Parameters, partitionKey);
+                _workitemUid.AddParameter(command.Parameters, workitemUid);
+                _procedureStepStateTagPath.AddParameter(command.Parameters, procedureStepStateTagPath);
             }
         }
 

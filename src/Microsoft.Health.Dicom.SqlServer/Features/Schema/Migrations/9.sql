@@ -1824,6 +1824,24 @@ BEGIN
 END
 
 GO
+CREATE OR ALTER PROCEDURE dbo.UpateWorkitemProcedureStepState
+@partitionKey INT, @workitemUid VARCHAR (64), @procedureStepStateTagPath VARCHAR (64)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+    DECLARE @workitemKey AS BIGINT;
+    SELECT @workitemKey = WorkitemKey
+    FROM   dbo.Workitem
+    WHERE  PartitionKey = @partitionKey
+           AND WorkitemUid = @workitemUid;
+    IF @@ROWCOUNT = 0
+        THROW 50413, 'Workitem does not exists', 1;
+    COMMIT TRANSACTION;
+END
+
+GO
 CREATE OR ALTER PROCEDURE dbo.UpdateExtendedQueryTagQueryStatus
 @tagPath VARCHAR (64), @queryStatus TINYINT
 AS

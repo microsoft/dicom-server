@@ -35,19 +35,12 @@ namespace Microsoft.Health.Dicom.Operations.Indexing.Models
         /// <param name="batchSize">The number of DICOM instances processed by a single activity.</param>
         /// <param name="maxParallelBatches">The maximum number of concurrent batches processed at a given time.</param>
         /// <exception cref="ArgumentOutOfRangeException">
-        /// <para><paramref name="maxWatermark"/> is less than <c>1</c>.</para>
-        /// <para>-or-</para>
         /// <para><paramref name="batchSize"/> is less than <c>1</c>.</para>
         /// <para>-or-</para>
         /// <para><paramref name="maxParallelBatches"/> is less than <c>1</c>.</para>
         /// </exception>
         public BatchCreationArguments(long? maxWatermark, int batchSize, int maxParallelBatches)
         {
-            if (maxWatermark.HasValue)
-            {
-                EnsureArg.IsGte(maxWatermark.GetValueOrDefault(), 1, nameof(maxWatermark));
-            }
-
             EnsureArg.IsGte(batchSize, 1, nameof(batchSize));
             EnsureArg.IsGte(maxParallelBatches, 1, nameof(maxParallelBatches));
 

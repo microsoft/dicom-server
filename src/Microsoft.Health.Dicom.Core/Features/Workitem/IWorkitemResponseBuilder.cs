@@ -10,7 +10,7 @@ using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
     /// <summary>
-    /// Provides functionality to build the response for the workitem store transaction.
+    /// Provides functionality to build the response for the add workitem transaction.
     /// </summary>
     public interface IWorkitemResponseBuilder
     {

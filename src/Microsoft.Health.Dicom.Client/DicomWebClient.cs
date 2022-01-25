@@ -43,8 +43,19 @@ namespace Microsoft.Health.Dicom.Client
             _apiVersion = apiVersion;
             _jsonSerializerOptions = new JsonSerializerOptions
             {
+                AllowTrailingCommas = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
+                Encoder = null,
+                IgnoreReadOnlyFields = false,
+                IgnoreReadOnlyProperties = false,
+                IncludeFields = false,
+                MaxDepth = 0, // 0 indicates the max depth of 64
+                NumberHandling = JsonNumberHandling.Strict,
                 PropertyNameCaseInsensitive = true,
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                ReadCommentHandling = JsonCommentHandling.Skip,
+                WriteIndented = false,
             };
 
             _jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());

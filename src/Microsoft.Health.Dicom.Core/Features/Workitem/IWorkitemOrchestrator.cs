@@ -6,7 +6,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
-using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -25,11 +24,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
 
         /// <summary>
-        /// 
+        /// Asynchronously orchestrate the canceling of a UPS-RS workitem.
         /// </summary>
-        /// <param name="workitemInstanceUid"></param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="workitemInstanceUid">The workitem instance UID</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        Task DeleteWorkitemAsync(string workitemInstanceUid, CancellationToken cancellationToken);
+        Task CancelWorkitemAsync(string workitemInstanceUid, CancellationToken cancellationToken);
     }
 }

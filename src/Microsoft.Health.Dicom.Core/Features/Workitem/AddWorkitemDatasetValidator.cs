@@ -10,6 +10,7 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -22,10 +23,44 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-            ValidateRequiredTags(dicomDataset, workitemInstanceUid);
+            ValidateAffectedSOPInstanceUID(dicomDataset, workitemInstanceUid);
+
+            ValidateProcedureStepState(dicomDataset, workitemInstanceUid);
+
+            ValidateRequiredTags(dicomDataset);
         }
 
-        private static void ValidateRequiredTags(DicomDataset dicomDataset, string workitemInstanceUid)
+        private static void ValidateRequiredTags(DicomDataset dicomDataset)
+        {
+            // Ensure required tags are present.
+            foreach (DicomTag tag in GetWorkitemRequiredTags())
+            {
+                EnsureRequiredTagIsPresent(dicomDataset, tag);
+            }
+
+            // Ensure required sequence tags are present
+            foreach (DicomTag tag in GetWorkitemRequiredSequenceTags())
+            {
+                EnsureRequiredSequenceTagIsPresent(dicomDataset, tag);
+            }
+        }
+
+        private static void ValidateProcedureStepState(DicomDataset dicomDataset, string workitemInstanceUid)
+        {
+            if (dicomDataset.TryGetString(DicomTag.ProcedureStepState, out var currentState) &&
+                !ProcedureStepState.CanTransition(currentState, ProcedureStepState.Scheduled))
+            {
+                throw new DatasetValidationException(
+                    FailureReasonCodes.InvalidProcedureStepState,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.InvalidProcedureStepState,
+                        currentState,
+                        workitemInstanceUid));
+            }
+        }
+
+        private static void ValidateAffectedSOPInstanceUID(DicomDataset dicomDataset, string workitemInstanceUid)
         {
             // The format of the identifiers will be validated by fo-dicom.
             string workitemUid = EnsureRequiredTagIsPresent(dicomDataset, DicomTag.AffectedSOPInstanceUID);
@@ -41,18 +76,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                         DicomCoreResource.MismatchWorkitemInstanceUid,
                         workitemUid,
                         workitemInstanceUid));
-            }
-
-            // Ensure required tags are present.
-            foreach (DicomTag tag in GetWorkitemRequiredTags())
-            {
-                EnsureRequiredTagIsPresent(dicomDataset, tag);
-            }
-
-            // Ensure required sequence tags are present
-            foreach (DicomTag tag in GetWorkitemRequiredSequenceTags())
-            {
-                EnsureRequiredSequenceTagIsPresent(dicomDataset, tag);
             }
         }
 

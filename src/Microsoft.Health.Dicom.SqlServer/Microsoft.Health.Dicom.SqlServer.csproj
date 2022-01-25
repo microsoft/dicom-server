@@ -14,7 +14,7 @@
   <ItemGroup>
     <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="fo-dicom" Version="$(FoDicomVersion)" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="4.0.0" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="4.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(SdkPackageVersion)" />
@@ -25,7 +25,7 @@
     <PackageReference Include="Microsoft.Health.SqlServer" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.SqlServer.Api" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Tools.Sql.Tasks" Version="$(HealthcareSharedPackageVersion)" />
-    <PackageReference Include="Polly" Version="7.2.2" />
+    <PackageReference Include="Polly" Version="7.2.3" />
     <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
     <PackageReference Include="Scrutor" Version="3.3.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.3" PrivateAssets="All" />
@@ -70,7 +70,7 @@
     <TSqlScript Include="Features\Schema\Sql\Scripts\Sequences.sql" />
     <TSqlScript Include="Features\Schema\Sql\Tables\*.sql" />
     <TSqlScript Include="Features\Schema\Sql\Types\*.sql" />
-    <None Remove="Features\Schema\Sql\Sprocs\CancelWorkitem.sql" />
+    <None Remove="Features\Schema\Sql\Sprocs\UpateWorkitemProcedureStepState.sql" />
     <TSqlScript Include="Features\Schema\Sql\Scripts\WorkitemQueryTag.sql" />
   </ItemGroup>
 

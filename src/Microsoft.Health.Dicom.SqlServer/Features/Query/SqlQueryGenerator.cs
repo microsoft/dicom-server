@@ -214,7 +214,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                         .Append("AND ")
                         .Append($"{extendedQueryTagTableAlias}.ResourceType")
                         .Append(" = ")
-                        .AppendLine($"{QueryTagResourceType.Image}");
+                        .AppendLine($"{(int)QueryTagResourceType.Image}");
                 }
 
                 _stringBuilder

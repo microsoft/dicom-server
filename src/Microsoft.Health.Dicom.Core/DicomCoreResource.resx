@@ -489,4 +489,10 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="UpsRsFeatureDisabled" xml:space="preserve">
     <value>UPS-RS feature is disabled.</value>
   </data>
+  <data name="InvalidProcedureStepState" xml:space="preserve">
+    <value>'{0}' is not a valid procedure step state for the specified WorkitemInstanceUID '{1}'.</value>
+  </data>
+  <data name="MismatchWorkitemInstanceUid" xml:space="preserve">
+    <value>AffectedSOPInstanceUID '{0}' in the payload does not match the specified WorkitemInstanceUID '{1}'.</value>
+  </data>
 </root>

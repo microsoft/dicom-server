@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        // [Trait("Category", "bvt")] // TODO: Enable once functions are enabled in PAAS
+        [Trait("Category", "bvt")]
         public async Task GivenExtendedQueryTag_WhenReindexing_ThenShouldSucceed()
         {
             DicomTag weightTag = DicomTag.PatientWeight;
@@ -97,6 +97,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
+        [Trait("Category", "bvt")]
         public async Task GivenExtendedQueryTagWithErrors_WhenReindexing_ThenShouldSucceedWithErrors()
         {
             // Define tags

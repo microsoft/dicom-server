@@ -1,31 +1,25 @@
 ﻿/*************************************************************
-    Stored procedure for adding a workitem.
+    Stored procedure to update a workitem procedure step state.
 **************************************************************/
 --
 -- STORED PROCEDURE
---     AddWorkitem
+--     UpateWorkitemProcedureStepState
 --
 -- DESCRIPTION
---     Adds a UPS-RS workitem.
+--     Update a UPS-RS Workitem Procedure Step State.
 --
 -- PARAMETERS
 --     @partitionKey
 --         * The system identifier of the data partition.
 --     @workitemUid
 --         * The workitem UID.
---     @stringExtendedQueryTags
---         * String extended query tag data
---     @dateTimeExtendedQueryTags
---         * DateTime extended query tag data
---     @personNameExtendedQueryTags
---         * PersonName extended query tag data
--- RETURN VALUE
---     The WorkitemKey
+--     @procedure​Step​StateTagPath
+--         * Procedure Step State Tag Path
 ------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.CancelWorkitem
+CREATE OR ALTER PROCEDURE dbo.UpateWorkitemProcedureStepState
     @partitionKey                   INT,
     @workitemUid                    VARCHAR(64),
-    @procedure​Step​StateTagPath      VARCHAR(64)
+    @procedureStepStateTagPath      VARCHAR(64)
 AS
 BEGIN
     SET NOCOUNT ON
@@ -33,8 +27,6 @@ BEGIN
     SET XACT_ABORT ON
     BEGIN TRANSACTION
 
-    DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
-    DECLARE @workitemResourceType TINYINT = 1
     DECLARE @workitemKey BIGINT
 
     SELECT @workitemKey = WorkitemKey
@@ -48,7 +40,6 @@ BEGIN
     -- Step:0 - Get Tag Key from WorkitemQueryTag using @procedure​Step​StateTagPath
 
     -- Step: 1 - Update ExtendedQueryTagString Set V
-
 
     COMMIT TRANSACTION
 END

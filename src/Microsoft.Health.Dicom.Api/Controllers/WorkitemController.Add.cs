@@ -52,8 +52,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return await PostAddAsync(workitemInstanceUid);
         }
 
-        // TODO: DO WE NEED THIS??? ==> Add a POST call to accept instance UID from the header.
-
         private async Task<IActionResult> PostAddAsync(string workitemInstanceUid)
         {
             long fileSize = Request.ContentLength ?? 0;

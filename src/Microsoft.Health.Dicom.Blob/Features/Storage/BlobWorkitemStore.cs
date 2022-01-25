@@ -24,7 +24,7 @@ using System.Text.Json;
 namespace Microsoft.Health.Dicom.Blob.Features.Storage
 {
     /// <summary>
-    /// Provides functionality for managing the DICOM instance metadata.
+    /// Provides functionality for managing the DICOM workitem instance.
     /// </summary>
     public class BlobWorkitemStore : IWorkitemStore
     {

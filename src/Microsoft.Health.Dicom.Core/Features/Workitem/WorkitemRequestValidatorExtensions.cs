@@ -17,7 +17,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// </summary>
         /// <param name="request">The request to validate.</param>
         /// <exception cref="BadRequestException">Thrown when request body is missing.</exception>
-        /// <exception cref="UidValidation">Thrown when the specified StudyInstanceUID is not a valid identifier.</exception>
+        /// <exception cref="UidValidation">Thrown when the specified WorkitemInstanceUID is not a valid identifier.</exception>
         internal static void Validate(this AddWorkitemRequest request)
         {
             EnsureArg.IsNotNull(request, nameof(request));

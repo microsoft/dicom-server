@@ -586,6 +586,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid procedure step state for the specified WorkitemInstanceUID &apos;{1}&apos;..
+        /// </summary>
+        internal static string InvalidProcedureStepState {
+            get {
+                return ResourceManager.GetString("InvalidProcedureStepState", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The query string included invalid characters..
         /// </summary>
         internal static string InvalidQueryString {
@@ -670,7 +679,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The AffectedSOPInstanceUID &apos;{0}&apos; in the payload does not match the specified WorkimteInstanceUID &apos;{1}&apos;..
+        ///   Looks up a localized string similar to AffectedSOPInstanceUID &apos;{0}&apos; in the payload does not match the specified WorkitemInstanceUID &apos;{1}&apos;..
         /// </summary>
         internal static string MismatchWorkitemInstanceUid {
             get {
