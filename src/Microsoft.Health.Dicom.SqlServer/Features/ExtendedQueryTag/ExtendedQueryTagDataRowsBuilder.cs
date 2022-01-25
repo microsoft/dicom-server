@@ -56,7 +56,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             {
                 if (queryTag.VR == DicomVR.SQ)
                 {
-                    var dicomDatasets = instance.SearchSequencePath(queryTag.WorkitemQueryTagStoreEntry.Item as DicomSequence);
+                    var dicomDatasets = instance.GetSequencePathValues(queryTag.WorkitemQueryTagStoreEntry.PathTags);
                     foreach (var dataset in dicomDatasets)
                     {
                         foreach (var dicomItem in dataset)
