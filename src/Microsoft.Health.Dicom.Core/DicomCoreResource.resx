@@ -495,4 +495,8 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="MismatchWorkitemInstanceUid" xml:space="preserve">
     <value>AffectedSOPInstanceUID '{0}' in the payload does not match the specified WorkitemInstanceUID '{1}'.</value>
   </data>
+  <data name="DuplicateTagValueNotSupported" xml:space="preserve">
+    <value>Duplicate value '{0}' for tag '{1}' not supported in a sequence.</value>
+    <comment>{0} String Value. {1} DicomTag.</comment>
+  </data>
 </root>

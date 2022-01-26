@@ -44,5 +44,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// The workitem instance is not in a valid procedure step state.
         /// </summary>
         public const ushort InvalidProcedureStepState = 45073;
+
+        /// <summary>
+        /// Duplicate Tag Value is not supported in a Sequence
+        /// </summary>
+        public const ushort DuplicateTagValueNotSupportedInSequence = 45074;
     }
 }
