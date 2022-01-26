@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Api.Extensions
 {
     public static class WorkitemResponseStatusExtensions
     {
-        private static readonly IReadOnlyDictionary<WorkitemResponseStatus, HttpStatusCode> StoreResponseStatusToHttpStatusCodeMapping =
+        private static readonly IReadOnlyDictionary<WorkitemResponseStatus, HttpStatusCode> ResponseStatusToHttpStatusCodeMapping =
             new Dictionary<WorkitemResponseStatus, HttpStatusCode>()
             {
                 { WorkitemResponseStatus.None, HttpStatusCode.NoContent },
@@ -25,6 +25,6 @@ namespace Microsoft.Health.Dicom.Api.Extensions
         /// <param name="status">The status to convert.</param>
         /// <returns>The converted <see cref="HttpStatusCode"/>.</returns>
         public static HttpStatusCode ToHttpStatusCode(this WorkitemResponseStatus status)
-            => StoreResponseStatusToHttpStatusCodeMapping[status];
+            => ResponseStatusToHttpStatusCodeMapping[status];
     }
 }

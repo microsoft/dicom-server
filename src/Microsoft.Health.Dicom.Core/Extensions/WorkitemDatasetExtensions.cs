@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
             // Note: Here we 'GetSingleValueOrDefault' and let the constructor validate the identifier.
             return new WorkitemInstanceIdentifier(
-                dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
+                dicomDataset.GetSingleValueOrDefault(DicomTag.AffectedSOPInstanceUID, string.Empty),
                 workitemKey,
                 partitionKey);
         }
