@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             Uri url = null;
             WorkitemResponseStatus status = WorkitemResponseStatus.Failure;
 
-            if (_dataset.TryGetSingleValue<string>(DicomTag.RequestedSOPInstanceUID, out var workitemInstanceUid)
+            if (_dataset.TryGetSingleValue<string>(DicomTag.AffectedSOPInstanceUID, out var workitemInstanceUid)
                 && !_dataset.TryGetSingleValue<ushort>(DicomTag.FailureReason, out var _))
             {
                 // There are only success.

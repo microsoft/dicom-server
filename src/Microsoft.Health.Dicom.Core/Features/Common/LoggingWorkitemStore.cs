@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
                LoggerMessage.Define<string>(
                    LogLevel.Debug,
                    default,
-                   "Storing DICOM instance workitem file with '{WorkitemInstanceIdentifier}'.");
+                   "Adding DICOM instance workitem file with '{WorkitemInstanceIdentifier}'.");
 
         private static readonly Action<ILogger, Exception> LogOperationSucceededDelegate =
             LoggerMessage.Define(
