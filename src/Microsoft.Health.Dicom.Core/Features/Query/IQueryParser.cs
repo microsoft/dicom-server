@@ -11,6 +11,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 {
     public interface IQueryParser
     {
-        QueryExpression Parse(QueryParameters parameters, IReadOnlyCollection<QueryTag> queryTags, bool supportSequenceParsing = false);
+        QueryExpression Parse(QueryParameters parameters, IReadOnlyCollection<QueryTag> queryTags);
     }
 }

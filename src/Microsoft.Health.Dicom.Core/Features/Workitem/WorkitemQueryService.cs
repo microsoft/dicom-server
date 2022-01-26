@@ -49,7 +49,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             var queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
 
-            QueryExpression queryExpression = _queryParser.Parse(parameters, queryTags, supportSequenceParsing: true);
+            QueryExpression queryExpression = _queryParser.Parse(parameters, queryTags);
 
             var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 

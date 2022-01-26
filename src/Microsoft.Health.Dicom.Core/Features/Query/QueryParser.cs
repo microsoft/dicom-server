@@ -12,6 +12,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
+using Microsoft.Health.Dicom.Core.Features.Workitem;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
@@ -47,9 +48,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             { DicomVR.US, ParseLongTagValue },
 
             { DicomVR.FL, ParseDoubleTagValue },
-            { DicomVR.FD, ParseDoubleTagValue },
-
-            { DicomVR.SQ, ParseSequenceTagValue },
+            { DicomVR.FD, ParseDoubleTagValue }
         };
 
         public const string DateTagValueFormat = "yyyyMMdd";
@@ -79,7 +78,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         public QueryParser(IDicomTagParser dicomTagPathParser)
             => _dicomTagPathParser = EnsureArg.IsNotNull(dicomTagPathParser, nameof(dicomTagPathParser));
 
-        public QueryExpression Parse(QueryParameters parameters, IReadOnlyCollection<QueryTag> queryTags, bool supportSequenceParsing = false)
+        public QueryExpression Parse(QueryParameters parameters, IReadOnlyCollection<QueryTag> queryTags)
         {
             EnsureArg.IsNotNull(parameters, nameof(parameters));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
@@ -93,7 +92,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             foreach (KeyValuePair<string, string> filter in parameters.Filters)
             {
                 // filter conditions with attributeId as key
-                if (!ParseFilterCondition(filter, queryTags, parameters.FuzzyMatching, out QueryFilterCondition condition, supportSequenceParsing))
+                if (!ParseFilterCondition(filter, queryTags, parameters.FuzzyMatching, out QueryFilterCondition condition))
                 {
                     throw new QueryParseException(string.Format(DicomCoreResource.UnknownQueryParameter, filter.Key));
                 }
@@ -158,32 +157,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             KeyValuePair<string, string> queryParameter,
             IEnumerable<QueryTag> queryTags,
             bool fuzzyMatching,
-            out QueryFilterCondition condition,
-            bool supportSequenceParsing = false)
+            out QueryFilterCondition condition)
         {
             condition = null;
-            DicomItem dicomItem = null;
 
             // parse tag
-            if (!TryParseDicomAttributeId(queryParameter.Key, out DicomTag dicomTag) || supportSequenceParsing)
+            if (!TryParseDicomAttributeId(queryParameter.Key, out DicomTag[] dicomTags))
             {
-                if (!TryParseDicomAttributeIdToDicomItem(queryParameter.Key, out dicomItem))
-                {
-                    return false;
-                }
+                return false;
             }
 
             // QueryTag could be either core or extended query tag or workitem query tag.
-            QueryTag queryTag;
-
-            if (dicomItem != null)
-            {
-                queryTag = GetMatchingQueryTag(dicomItem, queryParameter.Key, queryTags);
-            }
-            else
-            {
-                queryTag = GetMatchingQueryTag(dicomTag, queryParameter.Key, queryTags);
-            }
+            QueryTag queryTag = dicomTags.Length > 1 ? GetMatchingQueryTag(dicomTags, queryParameter.Key, queryTags) :
+                GetMatchingQueryTag(dicomTags.FirstOrDefault(), queryParameter.Key, queryTags);
 
             // check if tag is disabled
             if (queryTag.IsExtendedQueryTag && queryTag.ExtendedQueryTagStoreEntry.QueryStatus == QueryStatus.Disabled)
@@ -211,26 +197,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return true;
         }
 
-        private bool TryParseDicomAttributeId(string attributeId, out DicomTag dicomTag)
+        private bool TryParseDicomAttributeId(string attributeId, out DicomTag[] dicomTags)
         {
             if (_dicomTagPathParser.TryParse(attributeId, out DicomTag[] result))
             {
-                dicomTag = result[0];
+                dicomTags = result;
                 return true;
             }
 
-            dicomTag = null;
-            return false;
-        }
-
-        private bool TryParseDicomAttributeIdToDicomItem(string attributeId, out DicomItem dicomItem)
-        {
-            if (_dicomTagPathParser.TryParseToDicomItem(attributeId, out dicomItem))
-            {
-                return true;
-            }
-
-            dicomItem = null;
+            dicomTags = null;
             return false;
         }
 
@@ -255,11 +230,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             return queryTag;
         }
 
-        private static QueryTag GetMatchingQueryTag(DicomItem dicomItem, string attributeId, IEnumerable<QueryTag> queryTags)
+        private static QueryTag GetMatchingQueryTag(DicomTag[] dicomTags, string attributeId, IEnumerable<QueryTag> queryTags)
         {
+            if (dicomTags.Length != 2)
+            {
+                throw new QueryParseException(string.Format(DicomCoreResource.NestedSequencesNotSupported, attributeId));
+            }
+
             QueryTag queryTag = queryTags.FirstOrDefault(item =>
             {
-                return DicomItem.Equals(dicomItem, item.WorkitemQueryTagStoreEntry.Item);
+                return Enumerable.SequenceEqual(dicomTags, item.WorkitemQueryTagStoreEntry.PathTags);
             });
 
             if (queryTag == null)
@@ -267,7 +247,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 throw new QueryParseException(string.Format(DicomCoreResource.UnsupportedSearchParameter, attributeId));
             }
 
-            return queryTag;
+            // Currently only 2 level of sequence tags are supported, so always taking the last element to create a new query tag
+            var dicomTag = dicomTags.LastOrDefault();
+            var entry = new WorkitemQueryTagStoreEntry(queryTag.WorkitemQueryTagStoreEntry.Key, dicomTag.GetPath(), dicomTag.GetDefaultVR().Code)
+            {
+                PathTags = Array.AsReadOnly(new DicomTag[] { dicomTag })
+            };
+
+            return new QueryTag(entry);
         }
 
         private QueryIncludeField ParseIncludeFields(IReadOnlyList<string> includeFields)
@@ -286,12 +273,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             var fields = new List<DicomTag>(includeFields.Count);
             foreach (string field in includeFields)
             {
-                if (!TryParseDicomAttributeId(field, out DicomTag dicomTag))
+                if (!TryParseDicomAttributeId(field, out DicomTag[] dicomTags))
                 {
                     throw new QueryParseException(string.Format(DicomCoreResource.IncludeFieldUnknownAttribute, field));
                 }
 
-                fields.Add(dicomTag);
+                fields.Add(dicomTags.FirstOrDefault());
             }
 
             return new QueryIncludeField(fields);
