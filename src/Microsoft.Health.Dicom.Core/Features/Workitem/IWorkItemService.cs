@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     public interface IWorkitemService
     {
         /// <summary>
-        /// Asynchronously processes the ...
+        /// Asynchronously processes the workitem dataset
         /// </summary>
         /// <remarks>
         /// If the <paramref name="workitemInstanceUid"/> is not specified, a new workitemInstanceUid is created.

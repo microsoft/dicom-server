@@ -232,6 +232,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Duplicate value &apos;{0}&apos; for tag &apos;{1}&apos; not supported in a sequence..
+        /// </summary>
+        internal static string DuplicateTagValueNotSupported {
+            get {
+                return ResourceManager.GetString("DuplicateTagValueNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Value cannot be parsed as a valid date..
         /// </summary>
         internal static string ErrorMessageDateIsInvalid {

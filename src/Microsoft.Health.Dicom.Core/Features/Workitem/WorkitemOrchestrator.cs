@@ -3,11 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
@@ -26,18 +28,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         private readonly IIndexWorkitemStore _indexWorkitemStore;
         private readonly IWorkitemStore _workitemStore;
         private readonly IWorkitemQueryTagService _workitemQueryTagService;
+        private readonly ILogger<WorkitemOrchestrator> _logger;
 
         public WorkitemOrchestrator(
             IDicomRequestContextAccessor contextAccessor,
             IWorkitemStore workitemStore,
             IIndexWorkitemStore indexWorkitemStore,
             IDeleteService deleteService,
-            IWorkitemQueryTagService workitemQueryTagService)
+            IWorkitemQueryTagService workitemQueryTagService,
+            ILogger<WorkitemOrchestrator> logger)
         {
             _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
             _indexWorkitemStore = EnsureArg.IsNotNull(indexWorkitemStore, nameof(indexWorkitemStore));
             _workitemStore = EnsureArg.IsNotNull(workitemStore, nameof(workitemStore));
             _workitemQueryTagService = workitemQueryTagService;
+            _logger = logger;
         }
 
         /// <inheritdoc />
@@ -62,7 +67,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 string workitemInstanceUid = dataset.GetString(DicomTag.AffectedSOPInstanceUID);
                 dataset.Add(DicomTag.RequestedSOPInstanceUID, workitemInstanceUid);
 
-                identifier = dataset.ToWorkitemInstanceIdentifier(workitemKey, partitionKey);
+                identifier = new WorkitemInstanceIdentifier(
+                    dataset.GetSingleValueOrDefault(DicomTag.AffectedSOPInstanceUID, string.Empty),
+                    workitemKey,
+                    partitionKey);
 
                 // We have successfully created the index, store the file.
                 await StoreWorkitemBlobAsync(identifier, dataset, cancellationToken)
@@ -87,8 +95,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
                 int partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
-                var workitemInstanceIdentifier = WorkitemDatasetExtensions
-                    .ToWorkitemInstanceIdentifier(workitemInstanceUid, workitemKey, partitionKey);
+                var workitemInstanceIdentifier = new WorkitemInstanceIdentifier(workitemInstanceUid, workitemKey, partitionKey);
 
                 var dicomDataset = await _workitemStore.GetWorkitemAsync(workitemInstanceIdentifier, cancellationToken).ConfigureAwait(false);
 
@@ -119,8 +126,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                     .DeleteWorkitemAsync(identifier.PartitionKey, identifier.WorkitemUid, cancellationToken)
                     .ConfigureAwait(false);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogWarning(
+                    ex,
+                    @"Failed to cleanup workitem [WorkitemUid: '{WorkitemUid}'] [PartitionKey: '{PartitionKey}'] [WorkitemKey: '{WorkitemKey}'].",
+                    identifier.WorkitemUid,
+                    identifier.PartitionKey,
+                    identifier.WorkitemKey);
             }
         }
 

@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
     /// </summary>
     public class InProcTestDicomWebServer : TestDicomWebServer
     {
-        public InProcTestDicomWebServer(Type startupType, bool enableDataPartitions, bool enableUpsRs)
+        public InProcTestDicomWebServer(Type startupType, bool enableDataPartitions)
             : base(new Uri("http://localhost/"), CreateWebJobsHost<DicomFunctionsStartup>("src"))
         {
             string contentRoot = GetProjectPath("src", startupType);
@@ -53,7 +53,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
                 { "DicomServer:Features:EnableExtendedQueryTags", "true" },
                 { "DicomServer:Features:EnableDataPartitions", enableDataPartitions.ToString() },
                 { "DicomServer:Features:EnableExtendedQueryTags", "true" },
-                { "DicomServer:Features:EnableUpsRs", enableUpsRs.ToString() }
+                { "DicomServer:Features:EnableUpsRs", "true" }
             };
 
             string dbName = enableDataPartitions ? "DicomWithPartitions" : "Dicom";

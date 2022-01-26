@@ -4,8 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
@@ -19,11 +23,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
+            ValidateRequiredTags(dicomDataset);
+
             ValidateAffectedSOPInstanceUID(dicomDataset, workitemInstanceUid);
 
             ValidateProcedureStepState(dicomDataset, workitemInstanceUid, ProcedureStepState.Scheduled);
 
-            ValidateRequiredTags(dicomDataset);
+            ValidateForDuplicateTagValuesInSequence(dicomDataset);
         }
 
         private static void ValidateRequiredTags(DicomDataset dicomDataset)
@@ -38,6 +44,36 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             foreach (DicomTag tag in GetWorkitemRequiredSequenceTags())
             {
                 EnsureRequiredSequenceTagIsPresent(dicomDataset, tag);
+            }
+        }
+
+        private static void ValidateForDuplicateTagValuesInSequence(DicomDataset dicomDataset)
+        {
+            var sequenceList = dicomDataset.Where(t => t.ValueRepresentation == DicomVR.SQ).Cast<DicomSequence>();
+
+            var tagValueMap = new Dictionary<string, string>();
+            foreach (var sequence in sequenceList)
+            {
+                tagValueMap.Clear();
+
+                foreach (var item in sequence.Items.SelectMany(ds => ds))
+                {
+                    var tagPath = item.Tag.GetPath();
+                    var tagValue = dicomDataset.GetString(item.Tag);
+
+                    if (tagValueMap.ContainsKey(tagPath) && tagValue == tagValueMap[tagPath])
+                    {
+                        throw new DatasetValidationException(
+                            FailureReasonCodes.DuplicateTagValueNotSupportedInSequence,
+                            string.Format(
+                                CultureInfo.InvariantCulture,
+                                DicomCoreResource.DuplicateTagValueNotSupported,
+                                tagValue,
+                                tagPath));
+                    }
+
+                    tagValueMap[tagPath] = tagValue;
+                }
             }
         }
 

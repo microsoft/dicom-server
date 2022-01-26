@@ -70,7 +70,6 @@
     <TSqlScript Include="Features\Schema\Sql\Scripts\Sequences.sql" />
     <TSqlScript Include="Features\Schema\Sql\Tables\*.sql" />
     <TSqlScript Include="Features\Schema\Sql\Types\*.sql" />
-    <None Remove="Features\Schema\Sql\Sprocs\IIndexWorkitemInstanceCore - Copy.sql" />
     <None Remove="Features\Schema\Sql\Sprocs\UpateWorkitem.sql" />
     <TSqlScript Include="Features\Schema\Sql\Scripts\WorkitemQueryTag.sql" />
   </ItemGroup>

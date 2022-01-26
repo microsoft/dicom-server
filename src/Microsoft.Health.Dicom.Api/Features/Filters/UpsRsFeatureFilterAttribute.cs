@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
         {
             EnsureArg.IsNotNull(context, nameof(context));
 
-            if (_isUpsRsEnabled)
+            if (!_isUpsRsEnabled)
             {
                 throw new UpsRsFeatureDisabledException();
             }
