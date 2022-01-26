@@ -117,7 +117,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
                     }
                     else
                     {
-                        arguments.Add(Substitute.For(new[] { parameter.ParameterType }, null));
+                        arguments.Add(Substitute.For(new[] { parameter.ParameterType }, Array.Empty<object>()));
                     }
                 }
             }

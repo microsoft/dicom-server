@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Tests.Common.Extensions
         {
             var dicomTagParser = new DicomTagParser();
             var entry = new WorkitemQueryTagStoreEntry(key, path, vr);
-            if (dicomTagParser.TryParse(path, out var dicomTags))
+            if (dicomTagParser.TryParse(path, out var dicomTags, true))
             {
                 entry.PathTags = Array.AsReadOnly(dicomTags);
             }

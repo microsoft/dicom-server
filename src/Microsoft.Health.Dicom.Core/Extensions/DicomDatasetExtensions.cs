@@ -344,28 +344,22 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
             if (dicomTags.Count != 2)
             {
-                throw new DicomValidationException(string.Join(",", dicomTags.Select(x => x.GetPath())), DicomVR.SQ, DicomCoreResource.NestedSequencesNotSupported);
+                throw new DicomValidationException(string.Join(", ", dicomTags.Select(x => x.GetPath())), DicomVR.SQ, DicomCoreResource.NestedSequencesNotSupported);
             }
-
-            var foundDatasets = new List<DicomDataset>();
 
             var foundSequence = dataset.GetSequence(dicomTags[0]);
-            if (foundSequence == null)
+            if (foundSequence != null)
             {
-                return foundDatasets;
-            }
-
-            foreach (var childDataset in foundSequence.Items)
-            {
-                var item = childDataset.GetDicomItem<DicomItem>(dicomTags[1]);
-
-                if (item != null)
+                foreach (var childDataset in foundSequence.Items)
                 {
-                    foundDatasets.Add(new DicomDataset(item));
+                    var item = childDataset.GetDicomItem<DicomItem>(dicomTags[1]);
+
+                    if (item != null)
+                    {
+                        yield return new DicomDataset(item);
+                    }
                 }
             }
-
-            return foundDatasets;
         }
     }
 }
