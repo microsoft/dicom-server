@@ -243,7 +243,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                             .AppendLine(VLatest.Instance.InstanceKey, InstanceTableAlias);
                     }
                 }
-
             }
         }
 
