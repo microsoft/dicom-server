@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
     /// </summary>
     public class DicomTagParser : IDicomTagParser
     {
-        public bool TryParse(string dicomTagPath, out DicomTag[] dicomTags)
+        public bool TryParse(string dicomTagPath, out DicomTag[] dicomTags, bool supportMultiple = false)
         {
             dicomTags = null;
             if (string.IsNullOrWhiteSpace(dicomTagPath))
@@ -27,6 +27,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
                      .Split('.')
                      .Select(ParseTagFromKeywordOrNumber)
                      .ToArray();
+
+            if (!supportMultiple && tags.Length > 1)
+            {
+                throw new DicomValidationException(dicomTagPath, DicomVR.SQ, DicomCoreResource.SequentialDicomTagsNotSupported);
+            }
 
             if (tags.Length > 2)
             {

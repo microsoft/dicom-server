@@ -50,7 +50,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             foreach (var tag in workitemQueryTags)
             {
-                if (_dicomTagParser.TryParse(tag.Path, out DicomTag[] dicomTags))
+                if (_dicomTagParser.TryParse(tag.Path, out DicomTag[] dicomTags, true))
                 {
                     tag.PathTags = Array.AsReadOnly(dicomTags);
                 }
