@@ -18,13 +18,12 @@ using Microsoft.Health.Dicom.Features.Common;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
-    public class WorkitemQueryTagService : IWorkitemQueryTagService, IDisposable
+    public sealed class WorkitemQueryTagService : IWorkitemQueryTagService, IDisposable
     {
         private readonly IIndexWorkitemStore _indexWorkitemStore;
         private readonly AsyncCache<IReadOnlyCollection<QueryTag>> _queryTagCache;
         private readonly IDicomTagParser _dicomTagParser;
         private readonly ILogger _logger;
-        private bool _disposed;
 
         public WorkitemQueryTagService(IIndexWorkitemStore indexWorkitemStore, IDicomTagParser dicomTagParser, ILogger<WorkitemQueryTagService> logger)
         {
@@ -36,30 +35,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
         public void Dispose()
         {
-            Dispose(disposing: true);
+            _queryTagCache.Dispose();
             GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                if (disposing)
-                {
-                    _queryTagCache.Dispose();
-                }
-
-                _disposed = true;
-            }
         }
 
         public async Task<IReadOnlyCollection<QueryTag>> GetQueryTagsAsync(CancellationToken cancellationToken = default)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(nameof(WorkitemQueryTagService));
-            }
-
             return await _queryTagCache.GetAsync(cancellationToken: cancellationToken);
         }
 

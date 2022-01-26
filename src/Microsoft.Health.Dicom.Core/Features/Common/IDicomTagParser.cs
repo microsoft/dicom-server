@@ -13,11 +13,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
     public interface IDicomTagParser
     {
         /// <summary>
-        /// Parse dicom tag path. Can support multiple dicom tags like '00101002.00100024'. 
+        /// Parse dicom tag path. 
         /// </summary>
         /// <param name="dicomTagPath">The dicom tag path.</param>
         /// <param name="dicomTags">The parsed dicom tags.</param>
         /// <returns>True if succeed.</returns>
+        /// <remarks>Can support multiple dicom tags like '00101002.00100024'</remarks>
         bool TryParse(string dicomTagPath, out DicomTag[] dicomTags);
     }
 }

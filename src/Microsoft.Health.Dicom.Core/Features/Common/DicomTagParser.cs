@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using FellowOakDicom;
@@ -24,7 +23,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
                 return false;
             }
 
-            DicomTag[] tags = ParseTag(dicomTagPath);
+            DicomTag[] tags = dicomTagPath
+                     .Split('.')
+                     .Select(ParseTagFromKeywordOrNumber)
+                     .ToArray();
 
             if (tags.Length > 2)
             {
@@ -37,29 +39,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
             return result;
         }
 
-        private static DicomTag[] ParseTag(string dicomTagPath)
-        {
-            var paths = dicomTagPath.Split(".");
-            var dicomTags = new List<DicomTag>();
-
-            foreach (var path in paths)
-            {
-                dicomTags.Add(ParseTagFromKeywordOrNumber(path));
-            }
-
-            return dicomTags.ToArray();
-        }
-
         private static DicomTag ParseTagFromKeywordOrNumber(string dicomTagPath)
         {
-            DicomTag dicomTag = ParseStardandDicomTagKeyword(dicomTagPath);
-
-            if (dicomTag == null)
-            {
-                dicomTag = ParseDicomTagNumber(dicomTagPath);
-            }
-
-            return dicomTag;
+            return ParseStardandDicomTagKeyword(dicomTagPath) ?? ParseDicomTagNumber(dicomTagPath);
         }
 
         private static DicomTag ParseStardandDicomTagKeyword(string keyword)
