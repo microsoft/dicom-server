@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         protected DataPartitionEnabledHttpIntegrationTestFixture(string targetProjectParentDirectory)
-            : base(targetProjectParentDirectory, enableDataPartitions: true, enableUpsRs: true)
+            : base(targetProjectParentDirectory, enableDataPartitions: true)
         {
         }
     }
