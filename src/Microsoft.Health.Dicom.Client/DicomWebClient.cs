@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Client
         /// </summary>
         /// <param name="httpClient">HttpClient</param>
         /// <param name="apiVersion">Pin the DicomWebClient to a specific server API version.</param>
-        public DicomWebClient(HttpClient httpClient, string apiVersion = DicomApiVersions.V1Release)
+        public DicomWebClient(HttpClient httpClient, string apiVersion = DicomApiVersions.V1)
         {
             EnsureArg.IsNotNull(httpClient, nameof(httpClient));
 

@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: Medical Imaging Server for DICOM
-  version: '1.0'
+  version: 1.0
 paths:
   /v1/changefeed:
     get:

@@ -212,7 +212,7 @@
 	"variable": [
 		{
 			"key": "baseUrl",
-			"value": "http://{service-name}.azurewebsites.net/v1.0-prerelease"
+			"value": "http://{service-name}.azurewebsites.net/v1"
 		},
 		{
 			"key": "study1",

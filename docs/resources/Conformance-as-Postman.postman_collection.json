@@ -850,7 +850,7 @@
 	"variable": [
 		{
 			"key": "baseUrl",
-			"value": "http://{service-name}.azurewebsites.net/v1.0"
+			"value": "http://{service-name}.azurewebsites.net/v1"
 		},
 		{
 			"key": "study1",

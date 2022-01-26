@@ -10,14 +10,14 @@ The version of the REST API should be explicitly specified in the request URL as
 
 `https://<service_url>/v<version>/studies`
 
-Currently routes without a version are still supported (ex. `https://<service_url>/studies`) and has the same behavior as specifying the version as v1.0-prerelease. However, we strongly recommended to specify the version in all requests via the URL.
+Currently routes without a version are still supported (ex. `https://<service_url>/studies`) and has the same behavior as specifying the version as v1. However, we strongly recommended to specify the version in all requests via the URL as routes without a version will not be supported after General Availability.
 
 
 ### Supported Versions
 
 Currently the supported versions are:
-- v1.0-prerelease
-- v1.0
+- v1-prerelease
+- v1
 
 The OpenApi Doc for the supported versions can be found at the following url: `https://<service_url>/{version}/api.yaml`
 
@@ -28,7 +28,7 @@ An API version with the label "prerelease" indicates that the version is not rea
 
 ### How Versions Are Incremented
 
-We currently only increment the major version whenever there is a breaking change which is considered to be not backwards compatible. All minor versions are implied to be `0`. All versions are in the format `Major.0`
+We currently only increment the major version whenever there is a breaking change which is considered to be not backwards compatible. All minor versions are implied to be `0`. All versions are in the format `Major.0`. Given the implicit nature of versions, just specifying `Major` version in the route would suffice.
 
 Some Examples of a breaking change (Major version is incremented):
 1. Renaming or removing endpoints
