@@ -3,7 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.ObjectModel;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
@@ -24,5 +26,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// Key of this extended query tag entry.
         /// </summary>
         public int Key { get; }
+
+        /// <summary>
+        /// Get the DicomTags that is the representation of the path for this tag
+        /// This is populated while fetching query tag from the db
+        /// </summary>
+        public ReadOnlyCollection<DicomTag> PathTags { get; set; }
     }
 }

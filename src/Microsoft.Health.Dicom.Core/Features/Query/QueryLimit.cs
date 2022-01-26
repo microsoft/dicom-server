@@ -43,6 +43,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             DicomTag.SOPInstanceUID,
         };
 
+        private static readonly HashSet<DicomTag> CoreWorkitemTags = new HashSet<DicomTag>()
+        {
+            DicomTag.RequestedProcedureID,
+            DicomTag.CodeValue
+        };
+
         public static readonly HashSet<DicomTag> CoreTags = new HashSet<DicomTag>(
             CoreStudyTags.Union(CoreSeriesTags).Union(CoreInstanceTags));
 
@@ -81,6 +87,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 return QueryTagLevel.Series;
             }
             if (CoreInstanceTags.Contains(coreTag))
+            {
+                return QueryTagLevel.Instance;
+            }
+            if (CoreWorkitemTags.Contains(coreTag))
             {
                 return QueryTagLevel.Instance;
             }

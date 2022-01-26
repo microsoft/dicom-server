@@ -6,6 +6,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using NSubstitute;
 using Xunit;
@@ -16,11 +18,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
     {
         private readonly IIndexWorkitemStore _indexWorkitemStore;
         private readonly IWorkitemQueryTagService _queryTagService;
+        private readonly IDicomTagParser _dicomTagParser;
 
         public WorkitemQueryTagServiceTests()
         {
             _indexWorkitemStore = Substitute.For<IIndexWorkitemStore>();
-            _queryTagService = new WorkitemQueryTagService(_indexWorkitemStore);
+            _dicomTagParser = Substitute.For<IDicomTagParser>();
+            _queryTagService = new WorkitemQueryTagService(_indexWorkitemStore, _dicomTagParser, NullLogger<WorkitemQueryTagService>.Instance);
         }
 
         [Fact]

@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             EnsureArg.IsNotNull(tagPath, nameof(tagPath));
             EnsureArg.IsNotNull(newValue?.QueryStatus, nameof(newValue));
             EnsureArg.EnumIsDefined(newValue.QueryStatus, nameof(UpdateExtendedQueryTagEntry.QueryStatus));
-            if (!_dicomTagParser.TryParse(tagPath, out DicomTag[] tags, supportMultiple: false))
+            if (!_dicomTagParser.TryParse(tagPath, out DicomTag[] tags))
             {
                 throw new InvalidExtendedQueryTagPathException(
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidExtendedQueryTag, tagPath ?? string.Empty));

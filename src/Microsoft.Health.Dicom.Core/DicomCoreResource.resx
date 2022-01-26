@@ -483,4 +483,7 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>The workitem instance with UID: '{0}' already exists. Try creating using a different UID.</value>
     <comment>{0} Workitem UID.</comment>
   </data>
+  <data name="NestedSequencesNotSupported" xml:space="preserve">
+    <value>Nested Dicom sequence tags are currently not supported.</value>
+  </data>
 </root>
