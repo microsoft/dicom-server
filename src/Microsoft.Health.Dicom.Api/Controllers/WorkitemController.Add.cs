@@ -5,8 +5,6 @@
 
 using System.Net;
 using System.Threading.Tasks;
-using EnsureThat;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Api.Features.Audit;
@@ -18,29 +16,11 @@ using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Net.Http.Headers;
-using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
-    [ApiVersion("1.0-prerelease")]
-    [QueryModelStateValidator]
-    [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
-    [ServiceFilter(typeof(UpsRsFeatureFilterAttribute))]
-    [ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
-    public partial class WorkitemController : Controller
+    public partial class WorkitemController
     {
-        private readonly IMediator _mediator;
-        private readonly ILogger<WorkitemController> _logger;
-
-        public WorkitemController(IMediator mediator, ILogger<WorkitemController> logger)
-        {
-            EnsureArg.IsNotNull(mediator, nameof(mediator));
-            EnsureArg.IsNotNull(logger, nameof(logger));
-
-            _mediator = mediator;
-            _logger = logger;
-        }
-
         /// <summary>
         /// This action requests the creation of a UPS Instance on the Origin-Server. It corresponds to the UPS DIMSE N-CREATE operation.
         /// </summary>

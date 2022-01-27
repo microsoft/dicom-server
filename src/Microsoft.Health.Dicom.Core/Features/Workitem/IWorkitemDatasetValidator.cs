@@ -11,8 +11,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     /// <summary>
     /// Peforms validation on incoming dataset that will be added as a workitem
     /// </summary>
-    public interface IAddWorkitemDatasetValidator
+    public interface IWorkitemDatasetValidator
     {
+        string Name { get; }
+
         /// <summary>
         /// Validates the <paramref name="dicomDataset"/>.
         /// </summary>

@@ -19,8 +19,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 {
     public sealed class WorkitemServiceTests
     {
-        private readonly IAddWorkitemDatasetValidator _datasetValidator = Substitute.For<IAddWorkitemDatasetValidator>();
-        private readonly IAddWorkitemResponseBuilder _responseBuilder = Substitute.For<IAddWorkitemResponseBuilder>();
+        private readonly IWorkitemDatasetValidator _datasetValidator = Substitute.For<IWorkitemDatasetValidator>();
+        private readonly IWorkitemResponseBuilder _responseBuilder = Substitute.For<IWorkitemResponseBuilder>();
         private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
         private readonly IWorkitemOrchestrator _storeOrchestrator = Substitute.For<IWorkitemOrchestrator>();
         private readonly ILogger<WorkitemService> _logger = Substitute.For<ILogger<WorkitemService>>();
@@ -29,14 +29,16 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
         public WorkitemServiceTests()
         {
-            _target = new WorkitemService(_responseBuilder, _datasetValidator, _storeOrchestrator, _minimumValidator, _logger);
+            _datasetValidator.Name.Returns(typeof(AddWorkitemDatasetValidator).Name);
+
+            _target = new WorkitemService(_responseBuilder, new[] { _datasetValidator }, _storeOrchestrator, _minimumValidator, _logger);
         }
 
         [Fact]
         public async Task GivenNullDicomDataset_WhenProcessed_ThenArgumentNullExceptionIsThrown()
         {
             await Assert.ThrowsAsync<ArgumentNullException>(
-                async () => await _target.ProcessAsync(null, string.Empty, CancellationToken.None).ConfigureAwait(false));
+                async () => await _target.ProcessAddAsync(null, string.Empty, CancellationToken.None).ConfigureAwait(false));
         }
 
         [Fact]
@@ -46,7 +48,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
             _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
 
-            await _target.ProcessAsync(_dataset, workitemInstanceUid, CancellationToken.None).ConfigureAwait(false);
+            await _target.ProcessAddAsync(_dataset, workitemInstanceUid, CancellationToken.None).ConfigureAwait(false);
 
             Assert.Equal(workitemInstanceUid, _dataset.GetString(DicomTag.AffectedSOPInstanceUID));
         }
@@ -58,7 +60,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
             _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
 
-            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
+            await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
             Assert.Equal(workitemInstanceUid, _dataset.GetString(DicomTag.AffectedSOPInstanceUID));
         }
@@ -70,7 +72,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
             _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
 
-            await _target.ProcessAsync(_dataset, workitemInstanceUid, CancellationToken.None).ConfigureAwait(false);
+            await _target.ProcessAddAsync(_dataset, workitemInstanceUid, CancellationToken.None).ConfigureAwait(false);
 
             _datasetValidator
                 .Received()
@@ -88,7 +90,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
                 .Throw(new DicomValidationException(string.Empty, DicomVR.UN, string.Empty));
 
-            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
+            await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
             await _storeOrchestrator
                 .DidNotReceive()
@@ -106,7 +108,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
                 .Throw(new DatasetValidationException(ushort.MinValue, string.Empty));
 
-            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
+            await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
             await _storeOrchestrator
                 .DidNotReceive()
@@ -125,7 +127,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
                 .Throw(new DatasetValidationException(failureCode, string.Empty));
 
-            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
+            await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
             _responseBuilder
                 .Received()
@@ -143,7 +145,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
                 .Throw(new DicomValidationException(string.Empty, DicomVR.UN, string.Empty));
 
-            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
+            await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
             _responseBuilder
                 .Received()
@@ -161,7 +163,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
                 .Throw(new Exception(workitemInstanceUid));
 
-            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
+            await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
             _responseBuilder
                 .Received()
@@ -181,7 +183,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
                 .When(orc => orc.AddWorkitemAsync(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Any<CancellationToken>()))
                 .Throw(new WorkitemAlreadyExistsException(workitemInstanceUid));
 
-            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
+            await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
             _responseBuilder
                 .Received()
@@ -201,7 +203,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
                 .When(orc => orc.AddWorkitemAsync(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Any<CancellationToken>()))
                 .Throw(new Exception(workitemInstanceUid));
 
-            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
+            await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
             _responseBuilder
                 .Received()
@@ -215,23 +217,23 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
                 .Throw(new DicomValidationException(string.Empty, DicomVR.UN, string.Empty));
 
-            await _target.ProcessAsync(new DicomDataset(), string.Empty, CancellationToken.None).ConfigureAwait(false);
+            await _target.ProcessAddAsync(new DicomDataset(), string.Empty, CancellationToken.None).ConfigureAwait(false);
 
-            _responseBuilder.Received().BuildResponse();
+            _responseBuilder.Received().BuildAddResponse();
 
             _datasetValidator
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
                 .Throw(new DicomValidationException(string.Empty, DicomVR.UN, string.Empty));
 
-            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
+            await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
-            _responseBuilder.Received().BuildResponse();
+            _responseBuilder.Received().BuildAddResponse();
         }
 
         [Fact]
         public async Task GivenWorkitemStoreSucceeded_WhenProcessed_ThenResponseBuilderAddSuccessIsCalled()
         {
-            await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
+            await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
             _responseBuilder.Received().AddSuccess(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)));
         }

@@ -15,11 +15,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
     {
         private readonly MockUrlResolver _urlResolver = new MockUrlResolver();
         private readonly DicomDataset _dataset = new DicomDataset();
-        private readonly AddWorkitemResponseBuilder _target;
+        private readonly WorkitemResponseBuilder _target;
 
         public AddWorkitemResponseBuilderTests()
         {
-            _target = new AddWorkitemResponseBuilder(_urlResolver);
+            _target = new WorkitemResponseBuilder(_urlResolver);
         }
 
         [Fact]
@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
             _target.AddSuccess(_dataset);
 
-            var response = _target.BuildResponse();
+            var response = _target.BuildAddResponse();
 
             Assert.NotNull(response);
             Assert.Equal(WorkitemResponseStatus.Success, response.Status);
@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
             _target.AddSuccess(_dataset);
 
-            var response = _target.BuildResponse();
+            var response = _target.BuildAddResponse();
 
             Assert.NotNull(response);
             Assert.NotNull(response.Uri);
@@ -55,7 +55,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         {
             _target.AddFailure(_dataset, (ushort)WorkitemResponseStatus.Failure);
 
-            var response = _target.BuildResponse();
+            var response = _target.BuildAddResponse();
 
             Assert.NotNull(response);
             Assert.NotEmpty(_dataset.GetString(DicomTag.FailureReason));

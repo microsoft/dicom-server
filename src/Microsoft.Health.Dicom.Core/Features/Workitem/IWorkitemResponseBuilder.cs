@@ -12,13 +12,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     /// <summary>
     /// Provides functionality to build the response for the add workitem transaction.
     /// </summary>
-    public interface IAddWorkitemResponseBuilder
+    public interface IWorkitemResponseBuilder
     {
         /// <summary>
         /// Builds the response.
         /// </summary>
         /// <returns>An instance of <see cref="AddWorkitemResponse"/> representing the response.</returns>
-        AddWorkitemResponse BuildResponse();
+        AddWorkitemResponse BuildAddResponse();
 
         /// <summary>
         /// Adds a successful entry to the response.
