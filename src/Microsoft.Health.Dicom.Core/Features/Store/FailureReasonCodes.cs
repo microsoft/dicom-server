@@ -34,5 +34,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// The DICOM instance is being created.
         /// </summary>
         public const ushort PendingSopInstance = 45071;
+
+        /// <summary>
+        /// The workitem instance includes conflicting uids
+        /// </summary>
+        public const ushort MismatchWorkitemInstanceUid = 45072;
+
+        /// <summary>
+        /// The workitem instance is not in a valid procedure step state.
+        /// </summary>
+        public const ushort InvalidProcedureStepState = 45073;
+
+        /// <summary>
+        /// Duplicate Tag Value is not supported in a Sequence
+        /// </summary>
+        public const ushort DuplicateTagValueNotSupportedInSequence = 45074;
     }
 }

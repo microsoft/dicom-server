@@ -8,10 +8,10 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core
-{
-
-
+namespace Microsoft.Health.Dicom.Core {
+    using System;
+    
+    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -228,6 +228,15 @@ namespace Microsoft.Health.Dicom.Core
         internal static string DuplicateRoleNames {
             get {
                 return ResourceManager.GetString("DuplicateRoleNames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Duplicate value &apos;{0}&apos; for tag &apos;{1}&apos; not supported in a sequence..
+        /// </summary>
+        internal static string DuplicateTagValueNotSupported {
+            get {
+                return ResourceManager.GetString("DuplicateTagValueNotSupported", resourceCulture);
             }
         }
         
@@ -586,6 +595,15 @@ namespace Microsoft.Health.Dicom.Core
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid procedure step state for the specified WorkitemInstanceUID &apos;{1}&apos;..
+        /// </summary>
+        internal static string InvalidProcedureStepState {
+            get {
+                return ResourceManager.GetString("InvalidProcedureStepState", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The query string included invalid characters..
         /// </summary>
         internal static string InvalidQueryString {
@@ -666,6 +684,15 @@ namespace Microsoft.Health.Dicom.Core
         internal static string MismatchStudyInstanceUid {
             get {
                 return ResourceManager.GetString("MismatchStudyInstanceUid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AffectedSOPInstanceUID &apos;{0}&apos; in the payload does not match the specified WorkitemInstanceUID &apos;{1}&apos;..
+        /// </summary>
+        internal static string MismatchWorkitemInstanceUid {
+            get {
+                return ResourceManager.GetString("MismatchWorkitemInstanceUid", resourceCulture);
             }
         }
         
@@ -990,6 +1017,15 @@ namespace Microsoft.Health.Dicom.Core
         internal static string UnsupportedVRCodeOnTag {
             get {
                 return ResourceManager.GetString("UnsupportedVRCodeOnTag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UPS-RS feature is disabled..
+        /// </summary>
+        internal static string UpsRsFeatureDisabled {
+            get {
+                return ResourceManager.GetString("UpsRsFeatureDisabled", resourceCulture);
             }
         }
         

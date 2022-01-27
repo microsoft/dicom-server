@@ -49,5 +49,12 @@ namespace Microsoft.Health.Dicom.Tests.Common
 
             return new Uri(studyInstanceUid, UriKind.Relative);
         }
+
+        public Uri ResolveRetrieveWorkitemUri(string workitemInstanceUid)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(workitemInstanceUid, nameof(workitemInstanceUid));
+
+            return new Uri("/" + workitemInstanceUid, UriKind.Relative);
+        }
     }
 }

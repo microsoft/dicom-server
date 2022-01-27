@@ -212,6 +212,36 @@ namespace Microsoft.Health.Dicom.Core.Modules
                     .AsSelf()
                     .AsImplementedInterfaces();
             }
+
+            SetupWorkitemTypes(services);
+        }
+
+        private static void SetupWorkitemTypes(IServiceCollection services)
+        {
+            services.Add<WorkitemService>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<WorkitemSerializer>()
+               .Scoped()
+               .AsSelf()
+               .AsImplementedInterfaces();
+
+            services.Add<WorkitemOrchestrator>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<AddWorkitemResponseBuilder>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<AddWorkitemDatasetValidator>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
         }
     }
 }
