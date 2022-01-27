@@ -29,6 +29,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
         public WorkitemServiceTests()
         {
+            _datasetValidator.Name.Returns(typeof(AddWorkitemDatasetValidator).Name);
+
             _target = new WorkitemService(
                 _responseBuilder,
                 new[] { _datasetValidator },

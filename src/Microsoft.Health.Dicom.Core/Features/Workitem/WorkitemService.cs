@@ -42,7 +42,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
         private IWorkitemDatasetValidator GetValidator<T>() where T : IWorkitemDatasetValidator
         {
-            var validator = _validators.FirstOrDefault(o => o is T);
+            var validator = _validators.FirstOrDefault(o => string.Equals(o.Name, typeof(T).Name, StringComparison.Ordinal));
 
             return validator;
         }
