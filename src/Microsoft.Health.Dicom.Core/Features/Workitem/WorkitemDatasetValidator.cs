@@ -5,7 +5,6 @@
 
 using System;
 using System.Globalization;
-using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -85,9 +84,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-            if (dicomTag.GetDefaultVR().Code == DicomVRCode.SQ &&
-                dicomDataset.TryGetSequence(dicomTag, out var sequence) &&
-                (sequence?.Items?.Any()).GetValueOrDefault())
+            if (dicomTag.GetDefaultVR().Code == DicomVRCode.SQ && dicomDataset.TryGetSequence(dicomTag, out var sequence))
             {
                 return sequence;
             }
