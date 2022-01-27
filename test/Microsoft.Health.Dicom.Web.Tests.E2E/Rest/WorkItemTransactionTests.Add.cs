@@ -10,7 +10,6 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
-using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
@@ -27,7 +26,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task WhenAddingWorkitem_TheServerShouldCreateWorkitemSuccessfully()
         {
-            DicomDataset dicomDataset = Samples.CreateRandomWorkitemInstanceDataset(ProcedureStepState.Scheduled);
+            DicomDataset dicomDataset = Samples.CreateRandomWorkitemInstanceDataset();
             var workitemUid = dicomDataset.GetSingleValue<string>(DicomTag.AffectedSOPInstanceUID);
 
             using DicomWebResponse response = await _client.AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);

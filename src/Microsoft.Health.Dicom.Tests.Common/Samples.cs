@@ -207,7 +207,6 @@ namespace Microsoft.Health.Dicom.Tests.Common
         }
 
         public static DicomDataset CreateRandomWorkitemInstanceDataset(
-            string procedureStepState,
             string workitemUid = null,
             bool validateItems = true,
             DicomTransferSyntax dicomTransferSyntax = null)
@@ -231,20 +230,20 @@ namespace Microsoft.Health.Dicom.Tests.Common
             ds.Add(DicomTag.ScheduledProcedureStepStartDateTime, DateTime.Now);
             ds.Add(DicomTag.ExpectedCompletionDateTime, DateTime.Now);
             ds.Add(DicomTag.ScheduledWorkitemCodeSequence, new DicomDataset());
-            ds.Add(DicomTag.InputReadinessState, Guid.NewGuid().ToString("N"));
+            ds.Add(DicomTag.InputReadinessState, Guid.NewGuid().ToString("N").Substring(0, 15));
             ds.Add(DicomTag.PatientName, Guid.NewGuid().ToString("N"));
             ds.Add(DicomTag.PatientID, TestUidGenerator.Generate());
             ds.Add(DicomTag.PatientBirthDate, DateTime.Now.ToShortDateString());
-            ds.Add(DicomTag.PatientSex, Guid.NewGuid().ToString("N"));
+            ds.Add(DicomTag.PatientSex, Guid.NewGuid().ToString("N").Substring(0, 15));
             ds.Add(DicomTag.AdmissionID, Guid.NewGuid().ToString("N"));
             ds.Add(DicomTag.IssuerOfAdmissionIDSequence, new DicomDataset());
             ds.Add(DicomTag.ReferencedRequestSequence, new DicomDataset());
-            ds.Add(DicomTag.AccessionNumber, Guid.NewGuid().ToString("N"));
+            ds.Add(DicomTag.AccessionNumber, Guid.NewGuid().ToString("N").Substring(0, 15));
             ds.Add(DicomTag.IssuerOfAccessionNumberSequence, new DicomDataset());
-            ds.Add(DicomTag.RequestedProcedureID, Guid.NewGuid().ToString("N"));
+            ds.Add(DicomTag.RequestedProcedureID, Guid.NewGuid().ToString("N").Substring(0, 15));
             ds.Add(DicomTag.RequestingService, Guid.NewGuid().ToString("N"));
             ds.Add(DicomTag.ReplacedProcedureStepSequence, new DicomDataset());
-            ds.Add(DicomTag.ProcedureStepState, procedureStepState);
+            ds.Add(DicomTag.ProcedureStepState, string.Empty);
 
             return ds;
         }

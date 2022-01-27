@@ -11,7 +11,6 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Store;
-using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -50,8 +49,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
         private static void ValidateProcedureStepState(DicomDataset dicomDataset, string workitemInstanceUid)
         {
-            if (dicomDataset.TryGetString(DicomTag.ProcedureStepState, out var currentState) &&
-                !ProcedureStepState.CanTransition(currentState, ProcedureStepState.Scheduled))
+            // ProcedureStepState should be empty for create
+            if (dicomDataset.TryGetString(DicomTag.ProcedureStepState, out var currentState) && !string.IsNullOrEmpty(currentState))
             {
                 throw new DatasetValidationException(
                     FailureReasonCodes.InvalidProcedureStepState,
@@ -159,7 +158,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             yield return DicomTag.AccessionNumber;
             yield return DicomTag.RequestedProcedureID;
             yield return DicomTag.RequestingService;
-            yield return DicomTag.ProcedureStepState;
         }
 
         internal static IEnumerable<DicomTag> GetWorkitemRequiredSequenceTags()

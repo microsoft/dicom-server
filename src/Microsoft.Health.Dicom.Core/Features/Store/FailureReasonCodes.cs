@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         public const ushort PendingSopInstance = 45071;
 
         /// <summary>
-        /// The workitem instance does not belong to the specified workitem.
+        /// The workitem instance includes conflicting uids
         /// </summary>
         public const ushort MismatchWorkitemInstanceUid = 45072;
 

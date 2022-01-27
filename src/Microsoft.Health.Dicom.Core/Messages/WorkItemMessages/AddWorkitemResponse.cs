@@ -9,14 +9,14 @@ namespace Microsoft.Health.Dicom.Core.Messages.WorkitemMessages
 {
     public sealed class AddWorkitemResponse
     {
-        public AddWorkitemResponse(WorkitemResponseStatus status, Uri url)
+        public AddWorkitemResponse(WorkitemResponseStatus status, Uri uri)
         {
             Status = status;
-            Url = url;
+            Uri = uri;
         }
 
         public WorkitemResponseStatus Status { get; }
 
-        public Uri Url { get; }
+        public Uri Uri { get; }
     }
 }

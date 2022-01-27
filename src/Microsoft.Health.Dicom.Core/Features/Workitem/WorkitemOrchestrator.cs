@@ -64,9 +64,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                     .AddWorkitemAsync(partitionKey, dataset, queryTags, cancellationToken)
                     .ConfigureAwait(false);
 
-                string workitemInstanceUid = dataset.GetString(DicomTag.AffectedSOPInstanceUID);
-                dataset.Add(DicomTag.RequestedSOPInstanceUID, workitemInstanceUid);
-
                 identifier = new WorkitemInstanceIdentifier(
                     dataset.GetSingleValueOrDefault(DicomTag.AffectedSOPInstanceUID, string.Empty),
                     workitemKey,

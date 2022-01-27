@@ -11,7 +11,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 namespace Microsoft.Health.Dicom.Core.Features.Common
 {
     /// <summary>
-    /// Provides functionalities managing the DICOM instance work-item.
+    /// Provides functionality to manage UPS-RS workitems.
     /// </summary>
     public interface IWorkitemStore
     {
