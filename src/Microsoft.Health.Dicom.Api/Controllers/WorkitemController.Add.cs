@@ -88,6 +88,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             if (response.Status == WorkitemResponseStatus.Success)
             {
                 Response.Headers.Add(HeaderNames.ContentLocation, response.Uri.ToString());
+                Response.Headers.Add(HeaderNames.Location, response.Uri.ToString());
             }
 
             return StatusCode((int)response.Status.ToHttpStatusCode());

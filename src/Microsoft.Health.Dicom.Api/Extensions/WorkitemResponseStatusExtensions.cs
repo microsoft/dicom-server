@@ -15,8 +15,9 @@ namespace Microsoft.Health.Dicom.Api.Extensions
             new Dictionary<WorkitemResponseStatus, HttpStatusCode>()
             {
                 { WorkitemResponseStatus.None, HttpStatusCode.NoContent },
-                { WorkitemResponseStatus.Success, HttpStatusCode.OK },
-                { WorkitemResponseStatus.Failure, HttpStatusCode.Conflict },
+                { WorkitemResponseStatus.Success, HttpStatusCode.Created },
+                { WorkitemResponseStatus.Failure, HttpStatusCode.BadRequest },
+                { WorkitemResponseStatus.Conflict, HttpStatusCode.Conflict },
             };
 
         /// <summary>
