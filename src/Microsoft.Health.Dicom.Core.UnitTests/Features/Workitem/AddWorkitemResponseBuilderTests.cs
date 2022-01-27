@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
     {
         private readonly MockUrlResolver _urlResolver = new MockUrlResolver();
         private readonly DicomDataset _dataset = new DicomDataset();
-        private readonly IWorkitemResponseBuilder _target;
+        private readonly WorkitemResponseBuilder _target;
 
         public AddWorkitemResponseBuilderTests()
         {
