@@ -28,7 +28,6 @@
     <PackageReference Include="Polly" Version="7.2.3" />
     <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
     <PackageReference Include="Scrutor" Version="3.3.0" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.3" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
