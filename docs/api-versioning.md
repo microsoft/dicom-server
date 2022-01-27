@@ -16,7 +16,7 @@ Currently routes without a version are still supported (ex. `https://<service_ur
 ### Supported Versions
 
 Currently the supported versions are:
-- v1-prerelease
+- v1.0-prerelease
 - v1
 
 The OpenApi Doc for the supported versions can be found at the following url: `https://<service_url>/{version}/api.yaml`
@@ -28,7 +28,7 @@ An API version with the label "prerelease" indicates that the version is not rea
 
 ### How Versions Are Incremented
 
-We currently only increment the major version whenever there is a breaking change which is considered to be not backwards compatible. All minor versions are implied to be `0`. All versions are in the format `Major.0`. Given the implicit nature of versions, just specifying `Major` version in the route would suffice.
+We currently only increment the major version whenever there is a breaking change which is considered to be not backwards compatible.
 
 Some Examples of a breaking change (Major version is incremented):
 1. Renaming or removing endpoints
@@ -54,7 +54,7 @@ Non-breaking changes (Version is not incremented):
 Example:
 
 ```
-[ApiVersion("1.0")]
+[ApiVersion("1")]
 [ApiVersion("1.0-prerelease", Deprecated = true)]
 ```
 

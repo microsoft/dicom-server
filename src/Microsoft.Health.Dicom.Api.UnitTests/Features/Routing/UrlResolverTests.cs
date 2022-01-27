@@ -88,7 +88,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Routing
 
         [Theory]
         [InlineData("v1.0-prerelease")]
-        [InlineData("v1.0")]
+        [InlineData("v1")]
         public void GivenAStudy_WhenRetrieveStudyUriWithPartitionIdAndVersionIsResolved_ThenCorrectUrlShouldBeReturned(string version)
         {
             const string studyInstanceUid = "123.123";
