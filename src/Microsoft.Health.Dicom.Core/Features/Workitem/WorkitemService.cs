@@ -20,7 +20,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 default,
                 "Validation failed for the DICOM instance work-item entry. Failure code: {FailureCode}.");
 
-
         private readonly IWorkitemResponseBuilder _responseBuilder;
         private readonly IEnumerable<IWorkitemDatasetValidator> _validators;
         private readonly IWorkitemOrchestrator _workitemOrchestrator;

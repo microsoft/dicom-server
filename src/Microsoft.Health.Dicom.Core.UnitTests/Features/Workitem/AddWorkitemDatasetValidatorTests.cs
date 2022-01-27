@@ -29,8 +29,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         [Fact]
         public void GivenValidate_WhenWorkitemInstanceUidIsNull_DoesNotThrowException()
         {
-            DicomDataset dicomDataset = new DicomDataset();
-            string workitemInstanceUid = null;
+            string workitemInstanceUid = DicomUID.Generate().UID;
+            DicomDataset dicomDataset = CreateDicomDataset(workitemInstanceUid);
 
             var target = new AddWorkitemDatasetValidator();
 
@@ -43,10 +43,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         {
             string workitemInstanceUid = DicomUID.Generate().UID;
             var dicomDataset = CreateDicomDataset(workitemInstanceUid);
-            var target = new AddWorkitemDatasetValidator();
-
             dicomDataset.Remove(dicomTag);
 
+            var target = new AddWorkitemDatasetValidator();
             Assert.Throws<DatasetValidationException>(() => target.Validate(dicomDataset, workitemInstanceUid));
         }
 
@@ -89,7 +88,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             ds.Add(DicomTag.RequestedProcedureID, Guid.NewGuid().ToString("N").Substring(0, 16).ToUpper());
             ds.Add(DicomTag.RequestingService, Guid.NewGuid().ToString("N").Substring(0, 16).ToUpper());
             ds.Add(DicomTag.ReplacedProcedureStepSequence, new DicomDataset());
-            ds.Add(DicomTag.ProcedureStepState, Guid.NewGuid().ToString("N").Substring(0, 16).ToUpper());
 
             return ds;
         }
@@ -110,7 +108,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             yield return new object[] { DicomTag.AccessionNumber };
             yield return new object[] { DicomTag.RequestedProcedureID };
             yield return new object[] { DicomTag.RequestingService };
-            yield return new object[] { DicomTag.ProcedureStepState };
+
             yield return new object[] { DicomTag.IssuerOfAdmissionIDSequence };
             yield return new object[] { DicomTag.ReferencedRequestSequence };
             yield return new object[] { DicomTag.IssuerOfAccessionNumberSequence };

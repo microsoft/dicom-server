@@ -46,8 +46,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             var response = _target.BuildAddResponse();
 
             Assert.NotNull(response);
-            Assert.NotNull(response.Url);
-            Assert.Contains(workitemInstanceUid, response.Url.ToString());
+            Assert.NotNull(response.Uri);
+            Assert.Contains(workitemInstanceUid, response.Uri.ToString());
         }
 
         [Fact]
@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
             Assert.NotNull(response);
             Assert.NotEmpty(_dataset.GetString(DicomTag.FailureReason));
-            Assert.Null(response.Url);
+            Assert.Null(response.Uri);
             Assert.Equal(WorkitemResponseStatus.Failure, response.Status);
         }
     }

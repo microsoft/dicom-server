@@ -79,10 +79,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
         internal static IEnumerable<DicomTag> GetWorkitemRequiredTags()
         {
-            yield return DicomTag.ScheduledProcedureStepPriority;
-            yield return DicomTag.ProcedureStepLabel;
             yield return DicomTag.WorklistLabel;
-            yield return DicomTag.ScheduledProcedureStepStartDateTime;
             yield return DicomTag.ExpectedCompletionDateTime;
             yield return DicomTag.InputReadinessState;
             yield return DicomTag.PatientName;
@@ -93,7 +90,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             yield return DicomTag.AccessionNumber;
             yield return DicomTag.RequestedProcedureID;
             yield return DicomTag.RequestingService;
-            yield return DicomTag.ProcedureStepState;
+            yield return DicomTag.ProcedureStepLabel;
+            yield return DicomTag.ScheduledProcedureStepPriority;
+            yield return DicomTag.ScheduledProcedureStepStartDateTime;
+            // yield return DicomTag.ProcedureStepState;
         }
 
         internal static IEnumerable<DicomTag> GetWorkitemRequiredSequenceTags()
