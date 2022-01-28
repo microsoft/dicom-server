@@ -16,24 +16,16 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
     public partial class WorkItemTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
     {
         private readonly IDicomWebClient _client;
-        private readonly HttpIntegrationTestFixture<Startup> _fixture;
 
         public WorkItemTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
         {
             EnsureArg.IsNotNull(fixture, nameof(fixture));
             _client = fixture.GetDicomWebClient();
-            _fixture = fixture;
         }
 
         [Fact]
         public async Task WhenAddingWorkitem_TheServerShouldCreateWorkitemSuccessfully()
         {
-            if (!_fixture.IsInProcess)
-            {
-                // This test only works with the in-proc server
-                return;
-            }
-
             DicomDataset dicomDataset = Samples.CreateRandomWorkitemInstanceDataset();
             var workitemUid = dicomDataset.GetSingleValue<string>(DicomTag.AffectedSOPInstanceUID);
 
