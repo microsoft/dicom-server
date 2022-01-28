@@ -111,7 +111,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             yield return DicomTag.ProcedureStepLabel;
             yield return DicomTag.ScheduledProcedureStepPriority;
             yield return DicomTag.ScheduledProcedureStepStartDateTime;
-            // yield return DicomTag.ProcedureStepState;
         }
 
         internal static IEnumerable<DicomTag> GetWorkitemRequiredSequenceTags()
