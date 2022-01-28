@@ -46,9 +46,9 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
                     Arg.Is(controller.HttpContext.RequestAborted))
                 .Returns(new AddWorkitemResponse(WorkitemResponseStatus.Failure, new Uri("https://www.microsoft.com")));
 
-            StatusCodeResult result = await controller.AddAsync(id.ToString()) as StatusCodeResult;
+            ObjectResult result = await controller.AddAsync(id.ToString()) as ObjectResult;
 
-            Assert.IsType<StatusCodeResult>(result);
+            Assert.IsType<ObjectResult>(result);
             Assert.Equal(HttpStatusCode.BadRequest, (HttpStatusCode)result.StatusCode);
             Assert.False(controller.Response.Headers.ContainsKey(HeaderNames.ContentLocation));
         }
@@ -67,9 +67,9 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
                     Arg.Is(controller.HttpContext.RequestAborted))
                 .Returns(new AddWorkitemResponse(WorkitemResponseStatus.Conflict, new Uri("https://www.microsoft.com")));
 
-            StatusCodeResult result = await controller.AddAsync(id.ToString()) as StatusCodeResult;
+            ObjectResult result = await controller.AddAsync(id.ToString()) as ObjectResult;
 
-            Assert.IsType<StatusCodeResult>(result);
+            Assert.IsType<ObjectResult>(result);
             Assert.Equal(HttpStatusCode.Conflict, (HttpStatusCode)result.StatusCode);
             Assert.False(controller.Response.Headers.ContainsKey(HeaderNames.ContentLocation));
         }
@@ -90,9 +90,9 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
                     Arg.Is(controller.HttpContext.RequestAborted))
                 .Returns(new AddWorkitemResponse(WorkitemResponseStatus.Success, new Uri(url)));
 
-            StatusCodeResult result = await controller.AddAsync(id.ToString()) as StatusCodeResult;
+            ObjectResult result = await controller.AddAsync(id.ToString()) as ObjectResult;
 
-            Assert.IsType<StatusCodeResult>(result);
+            Assert.IsType<ObjectResult>(result);
             Assert.Equal(HttpStatusCode.Created, (HttpStatusCode)result.StatusCode);
             Assert.True(controller.Response.Headers.ContainsKey(HeaderNames.ContentLocation));
             Assert.Equal(url, controller.Response.Headers[HeaderNames.ContentLocation]);
