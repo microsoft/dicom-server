@@ -118,9 +118,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 foreach (var item in sequence.Items.SelectMany(ds => ds))
                 {
                     var tagPath = item.Tag.GetPath();
-                    var tagValue = dicomDataset.GetString(item.Tag);
 
-                    if (tagValueMap.ContainsKey(tagPath) && tagValue == tagValueMap[tagPath])
+                    if (dicomDataset.TryGetString(item.Tag, out var tagValue) &&
+                        tagValueMap.ContainsKey(tagPath) &&
+                        string.Equals(tagValue, tagValueMap[tagPath], StringComparison.Ordinal))
                     {
                         throw new DatasetValidationException(
                             FailureReasonCodes.DuplicateTagValueNotSupportedInSequence,
