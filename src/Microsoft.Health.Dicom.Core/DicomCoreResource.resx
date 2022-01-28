@@ -505,7 +505,7 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>'{0}' DicomTag is not expected for '{1}' operation. [WorkitemInstanceUID '{2}']</value>
     <comment>{0} Dicom Tag. {1} Action/Operation. {2} WorkitemInstanceUID.</comment>
   </data>
-</root>
+  
   <data name="InvalidTransactionUID" xml:space="preserve">
     <value>'{0}' is not a valid transactionUID for the specified WorkitemInstanceUID '{1}'.</value>
     <comment>{0} TransactionUID. {1} WorkitemInstanceUID.</comment>

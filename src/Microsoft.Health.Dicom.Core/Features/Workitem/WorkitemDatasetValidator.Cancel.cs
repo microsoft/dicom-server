@@ -6,7 +6,6 @@
 using System.Globalization;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Store;
-using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -14,12 +13,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     {
         protected override void OnValidate(DicomDataset dicomDataset, string workitemInstanceUid)
         {
-            ValidateProcedureStepState(dicomDataset, workitemInstanceUid, ProcedureStepState.Canceled);
+            ValidateProcedureStepState(dicomDataset, workitemInstanceUid);
 
             if (dicomDataset.TryGetString(DicomTag.TransactionUID, out var _))
             {
                 throw new DatasetValidationException(
-                    FailureReasonCodes.InvalidProcedureStepState,
+                    FailureReasonCodes.ValidationFailure,
                     string.Format(
                         CultureInfo.InvariantCulture,
                         DicomCoreResource.UnexpectedTag,
