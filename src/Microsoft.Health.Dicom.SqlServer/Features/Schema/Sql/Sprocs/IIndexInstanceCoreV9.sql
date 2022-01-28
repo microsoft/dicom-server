@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************/
 -- STORED PROCEDURE
---    IIndexInstanceCoreV8
+--    IIndexInstanceCoreV9
 --
 -- DESCRIPTION
 --    Adds or updates the various extended query tag indices for a given DICOM instance
@@ -33,7 +33,7 @@
 -- RETURN VALUE
 --     None
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCoreV8
+CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCoreV9
     @partitionKey                                                                INT = 1,
     @studyKey                                                                    BIGINT,
     @seriesKey                                                                   BIGINT,
@@ -61,7 +61,8 @@ BEGIN
             -- Only merge on extended query tag which is being added
             AND dbo.ExtendedQueryTag.TagStatus <> 2
         ) AS S
-        ON T.TagKey = S.TagKey
+        ON T.ResourceType = @resourceType
+            AND T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
             AND T.SopInstanceKey1 = @studyKey
             -- Null SeriesKey indicates a Study level tag, no need to compare SeriesKey
@@ -101,7 +102,8 @@ BEGIN
             -- Only merge on extended query tag which is being added
             AND dbo.ExtendedQueryTag.TagStatus <> 2
         ) AS S
-        ON T.TagKey = S.TagKey
+        ON T.ResourceType = @resourceType
+            AND T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
             AND T.SopInstanceKey1 = @studyKey
             AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
@@ -137,7 +139,8 @@ BEGIN
             -- Only merge on extended query tag which is being added
             AND dbo.ExtendedQueryTag.TagStatus <> 2
         ) AS S
-        ON T.TagKey = S.TagKey
+        ON T.ResourceType = @resourceType
+            AND T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
             AND T.SopInstanceKey1 = @studyKey
             AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
@@ -173,7 +176,8 @@ BEGIN
             -- Only merge on extended query tag which is being added
             AND dbo.ExtendedQueryTag.TagStatus <> 2
         ) AS S
-        ON T.TagKey = S.TagKey
+        ON T.ResourceType = @resourceType
+            AND T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
             AND T.SopInstanceKey1 = @studyKey
             AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
@@ -210,7 +214,8 @@ BEGIN
             -- Only merge on extended query tag which is being added
             AND dbo.ExtendedQueryTag.TagStatus <> 2
         ) AS S
-        ON T.TagKey = S.TagKey
+        ON T.ResourceType = @resourceType
+            AND T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
             AND T.SopInstanceKey1 = @studyKey
             AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
