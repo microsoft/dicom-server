@@ -595,7 +595,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid procedure step state for the specified WorkitemInstanceUID &apos;{1}&apos;..
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid procedure step state for the specified WorkitemInstanceUID &apos;{1}&apos;. {2}.
         /// </summary>
         internal static string InvalidProcedureStepState {
             get {
@@ -648,6 +648,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string InvalidTimeValue {
             get {
                 return ResourceManager.GetString("InvalidTimeValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid transactionUID for the specified WorkitemInstanceUID &apos;{1}&apos;..
+        /// </summary>
+        internal static string InvalidTransactionUID {
+            get {
+                return ResourceManager.GetString("InvalidTransactionUID", resourceCulture);
             }
         }
         

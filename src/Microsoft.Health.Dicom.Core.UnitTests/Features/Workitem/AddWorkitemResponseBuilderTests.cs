@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using FellowOakDicom;
+using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -61,6 +62,19 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             Assert.NotEmpty(_dataset.GetString(DicomTag.FailureReason));
             Assert.Null(response.Uri);
             Assert.Equal(WorkitemResponseStatus.Failure, response.Status);
+        }
+
+        [Fact]
+        public void GivenBuildResponse_WhenConflict_ThenFailureReasonTagIsAddedToDicomDataset()
+        {
+            _target.AddFailure(_dataset, FailureReasonCodes.SopInstanceAlreadyExists);
+
+            var response = _target.BuildAddResponse();
+
+            Assert.NotNull(response);
+            Assert.NotEmpty(_dataset.GetString(DicomTag.FailureReason));
+            Assert.Null(response.Uri);
+            Assert.Equal(WorkitemResponseStatus.Conflict, response.Status);
         }
     }
 }

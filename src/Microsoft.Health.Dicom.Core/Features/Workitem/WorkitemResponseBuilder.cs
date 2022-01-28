@@ -8,6 +8,7 @@ using FellowOakDicom;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
+using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -17,8 +18,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     public class WorkitemResponseBuilder : IWorkitemResponseBuilder
     {
         private readonly IUrlResolver _urlResolver;
-
         private DicomDataset _dataset;
+        private string _failureMessage;
 
         public WorkitemResponseBuilder(IUrlResolver urlResolver)
         {
@@ -33,15 +34,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             Uri url = null;
             WorkitemResponseStatus status = WorkitemResponseStatus.Failure;
 
-            if (_dataset.TryGetSingleValue<string>(DicomTag.AffectedSOPInstanceUID, out var workitemInstanceUid)
-                && !_dataset.TryGetSingleValue<ushort>(DicomTag.FailureReason, out var _))
+            if (!_dataset.TryGetSingleValue<ushort>(DicomTag.FailureReason, out var failureReason))
             {
                 // There are only success.
                 status = WorkitemResponseStatus.Success;
-                url = _urlResolver.ResolveRetrieveWorkitemUri(workitemInstanceUid);
+                url = _urlResolver.ResolveRetrieveWorkitemUri(_dataset.GetString(DicomTag.AffectedSOPInstanceUID));
+            }
+            else if (failureReason == FailureReasonCodes.SopInstanceAlreadyExists)
+            {
+                status = WorkitemResponseStatus.Conflict;
             }
 
-            return new AddWorkitemResponse(status, url);
+            return new AddWorkitemResponse(status, url, _failureMessage);
         }
 
         /// <inheritdoc />
@@ -67,8 +71,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         }
 
         /// <inheritdoc />
-        public void AddFailure(DicomDataset dicomDataset, ushort failureReasonCode)
+        public void AddFailure(DicomDataset dicomDataset = null,
+            ushort failureReasonCode = FailureReasonCodes.ProcessingFailure,
+            string message = null)
         {
+            _failureMessage = message;
             _dataset = dicomDataset ?? new DicomDataset();
 
             _dataset.Add(DicomTag.FailureReason, failureReasonCode);

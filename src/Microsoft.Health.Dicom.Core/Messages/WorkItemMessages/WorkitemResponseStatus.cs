@@ -11,18 +11,23 @@ namespace Microsoft.Health.Dicom.Core.Messages.WorkitemMessages
     public enum WorkitemResponseStatus
     {
         /// <summary>
-        /// There is no DICOM instance to store.
+        /// There is no DICOM instance to add.
         /// </summary>
         None,
 
         /// <summary>
-        /// All DICOM work-item instance(s) have been stored successfully.
+        /// All DICOM work-item instance(s) have been add successfully.
         /// </summary>
         Success,
 
         /// <summary>
-        /// All DICOM work-item instance(s) have failed to be stored.
+        /// All DICOM work-item instance(s) have failed to add.
         /// </summary>
         Failure,
+
+        /// <summary>
+        /// Workitem instance already exist.
+        /// </summary>
+        Conflict,
     }
 }

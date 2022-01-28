@@ -60,7 +60,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetPartitionProcedure GetPartition = new GetPartitionProcedure();
         internal readonly static GetPartitionsProcedure GetPartitions = new GetPartitionsProcedure();
         internal readonly static GetWorkitemQueryTagsProcedure GetWorkitemQueryTags = new GetWorkitemQueryTagsProcedure();
-        internal readonly static IIndexInstanceCoreV8Procedure IIndexInstanceCoreV8 = new IIndexInstanceCoreV8Procedure();
+        internal readonly static IIndexInstanceCoreV9Procedure IIndexInstanceCoreV9 = new IIndexInstanceCoreV9Procedure();
         internal readonly static IIndexWorkitemInstanceCoreProcedure IIndexWorkitemInstanceCore = new IIndexWorkitemInstanceCoreProcedure();
         internal readonly static IncrementDeletedInstanceRetryProcedure IncrementDeletedInstanceRetry = new IncrementDeletedInstanceRetryProcedure();
         internal readonly static IncrementDeletedInstanceRetryV6Procedure IncrementDeletedInstanceRetryV6 = new IncrementDeletedInstanceRetryV6Procedure();
@@ -1190,9 +1190,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class IIndexInstanceCoreV8Procedure : StoredProcedure
+        internal class IIndexInstanceCoreV9Procedure : StoredProcedure
         {
-            internal IIndexInstanceCoreV8Procedure() : base("dbo.IIndexInstanceCoreV8")
+            internal IIndexInstanceCoreV9Procedure() : base("dbo.IIndexInstanceCoreV9")
             {
             }
 
@@ -1210,7 +1210,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             public void PopulateCommand(SqlCommandWrapper command, System.Nullable<System.Int32> partitionKey, System.Int64 studyKey, System.Int64 seriesKey, System.Int64 instanceKey, System.Int64 watermark, global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> stringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> longExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> dateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNameExtendedQueryTags)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.IIndexInstanceCoreV8";
+                command.CommandText = "dbo.IIndexInstanceCoreV9";
                 _partitionKey.AddParameter(command.Parameters, partitionKey);
                 _studyKey.AddParameter(command.Parameters, studyKey);
                 _seriesKey.AddParameter(command.Parameters, seriesKey);
@@ -1223,15 +1223,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _personNameExtendedQueryTags.AddParameter(command.Parameters, personNameExtendedQueryTags);
             }
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Nullable<System.Int32> partitionKey, System.Int64 studyKey, System.Int64 seriesKey, System.Int64 instanceKey, System.Int64 watermark, IIndexInstanceCoreV8TableValuedParameters tableValuedParameters)
+            public void PopulateCommand(SqlCommandWrapper command, System.Nullable<System.Int32> partitionKey, System.Int64 studyKey, System.Int64 seriesKey, System.Int64 instanceKey, System.Int64 watermark, IIndexInstanceCoreV9TableValuedParameters tableValuedParameters)
             {
                 PopulateCommand(command, partitionKey: partitionKey, studyKey: studyKey, seriesKey: seriesKey, instanceKey: instanceKey, watermark: watermark, stringExtendedQueryTags: tableValuedParameters.StringExtendedQueryTags, longExtendedQueryTags: tableValuedParameters.LongExtendedQueryTags, doubleExtendedQueryTags: tableValuedParameters.DoubleExtendedQueryTags, dateTimeExtendedQueryTags: tableValuedParameters.DateTimeExtendedQueryTags, personNameExtendedQueryTags: tableValuedParameters.PersonNameExtendedQueryTags);
             }
         }
 
-        internal class IIndexInstanceCoreV8TvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, IIndexInstanceCoreV8TableValuedParameters>
+        internal class IIndexInstanceCoreV9TvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, IIndexInstanceCoreV9TableValuedParameters>
         {
-            public IIndexInstanceCoreV8TvpGenerator(ITableValuedParameterRowGenerator<TInput, InsertStringExtendedQueryTagTableTypeV1Row> InsertStringExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertLongExtendedQueryTagTableTypeV1Row> InsertLongExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertDoubleExtendedQueryTagTableTypeV1Row> InsertDoubleExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertDateTimeExtendedQueryTagTableTypeV2Row> InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertPersonNameExtendedQueryTagTableTypeV1Row> InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator)
+            public IIndexInstanceCoreV9TvpGenerator(ITableValuedParameterRowGenerator<TInput, InsertStringExtendedQueryTagTableTypeV1Row> InsertStringExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertLongExtendedQueryTagTableTypeV1Row> InsertLongExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertDoubleExtendedQueryTagTableTypeV1Row> InsertDoubleExtendedQueryTagTableTypeV1RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertDateTimeExtendedQueryTagTableTypeV2Row> InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator, ITableValuedParameterRowGenerator<TInput, InsertPersonNameExtendedQueryTagTableTypeV1Row> InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator)
             {
                 this.InsertStringExtendedQueryTagTableTypeV1RowGenerator = InsertStringExtendedQueryTagTableTypeV1RowGenerator;
                 this.InsertLongExtendedQueryTagTableTypeV1RowGenerator = InsertLongExtendedQueryTagTableTypeV1RowGenerator;
@@ -1246,15 +1246,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ITableValuedParameterRowGenerator<TInput, InsertDateTimeExtendedQueryTagTableTypeV2Row> InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator;
             private readonly ITableValuedParameterRowGenerator<TInput, InsertPersonNameExtendedQueryTagTableTypeV1Row> InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator;
 
-            public IIndexInstanceCoreV8TableValuedParameters Generate(TInput input)
+            public IIndexInstanceCoreV9TableValuedParameters Generate(TInput input)
             {
-                return new IIndexInstanceCoreV8TableValuedParameters(InsertStringExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertLongExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertDoubleExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator.GenerateRows(input), InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input));
+                return new IIndexInstanceCoreV9TableValuedParameters(InsertStringExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertLongExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertDoubleExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input), InsertDateTimeExtendedQueryTagTableTypeV2RowGenerator.GenerateRows(input), InsertPersonNameExtendedQueryTagTableTypeV1RowGenerator.GenerateRows(input));
             }
         }
 
-        internal struct IIndexInstanceCoreV8TableValuedParameters
+        internal struct IIndexInstanceCoreV9TableValuedParameters
         {
-            internal IIndexInstanceCoreV8TableValuedParameters(global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> StringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> LongExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> DoubleExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> DateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameExtendedQueryTags)
+            internal IIndexInstanceCoreV9TableValuedParameters(global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> StringExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertLongExtendedQueryTagTableTypeV1Row> LongExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDoubleExtendedQueryTagTableTypeV1Row> DoubleExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> DateTimeExtendedQueryTags, global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameExtendedQueryTags)
             {
                 this.StringExtendedQueryTags = StringExtendedQueryTags;
                 this.LongExtendedQueryTags = LongExtendedQueryTags;

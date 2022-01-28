@@ -9,7 +9,6 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Store;
-using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -36,7 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 !workitemUid.Equals(workitemInstanceUid, StringComparison.OrdinalIgnoreCase))
             {
                 throw new DatasetValidationException(
-                    FailureReasonCodes.MismatchWorkitemInstanceUid,
+                    FailureReasonCodes.ValidationFailure,
                     string.Format(
                         CultureInfo.InvariantCulture,
                         DicomCoreResource.MismatchWorkitemInstanceUid,
@@ -45,20 +44,24 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
         }
 
-        protected static void ValidateProcedureStepState(DicomDataset dicomDataset, string workitemInstanceUid, string futureState)
+        protected static void ValidateProcedureStepState(DicomDataset dicomDataset, string workitemInstanceUid)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-            if (dicomDataset.TryGetString(DicomTag.ProcedureStepState, out var currentState) &&
-                !ProcedureStepState.CanTransition(currentState, futureState))
+            if (dicomDataset.TryGetString(DicomTag.ProcedureStepState, out var currentState))
             {
-                throw new DatasetValidationException(
-                    FailureReasonCodes.InvalidProcedureStepState,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        DicomCoreResource.InvalidProcedureStepState,
-                        currentState,
-                        workitemInstanceUid));
+                var result = ProcedureStepState.GetTransitionState(WorkitemStateEvents.NCreate, currentState);
+                if (result.IsError)
+                {
+                    throw new DatasetValidationException(
+                        FailureReasonCodes.ValidationFailure,
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            DicomCoreResource.InvalidProcedureStepState,
+                            currentState,
+                            workitemInstanceUid,
+                            result.Code));
+                }
             }
         }
 

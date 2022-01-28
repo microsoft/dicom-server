@@ -32,6 +32,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             _datasetValidator.Name.Returns(typeof(AddWorkitemDatasetValidator).Name);
 
             _target = new WorkitemService(_responseBuilder, new[] { _datasetValidator }, _storeOrchestrator, _minimumValidator, _logger);
+
+            _dataset.Add(DicomTag.ProcedureStepState, string.Empty);
         }
 
         [Fact]
@@ -120,18 +122,22 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         {
             var failureCode = FailureReasonCodes.ValidationFailure;
             var workitemInstanceUid = DicomUID.Generate().UID;
+            var errorMessage = @"Unit Test - Failed validation";
 
             _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
 
             _datasetValidator
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
-                .Throw(new DatasetValidationException(failureCode, string.Empty));
+                .Throw(new DatasetValidationException(failureCode, errorMessage));
 
             await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
             _responseBuilder
                 .Received()
-                .AddFailure(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Is<ushort>(fc => fc == failureCode));
+                .AddFailure(
+                    Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)),
+                    Arg.Is<ushort>(fc => fc == failureCode),
+                    Arg.Is<string>(msg => msg == errorMessage));
         }
 
         [Fact]
@@ -149,25 +155,32 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
             _responseBuilder
                 .Received()
-                .AddFailure(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Is<ushort>(fc => fc == FailureReasonCodes.ValidationFailure));
+                .AddFailure(
+                    Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)),
+                    Arg.Is<ushort>(fc => fc == FailureReasonCodes.ValidationFailure),
+                    Arg.Any<string>());
         }
 
         [Fact]
         public async Task GivenValidateThrowsException_WhenProcessed_ThenResponseBuilderAddFailureIsCalledWithProcessingFailureError()
         {
             var workitemInstanceUid = DicomUID.Generate().UID;
+            var errorMessage = @"Unit Test - Failed validation";
 
             _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
 
             _datasetValidator
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
-                .Throw(new Exception(workitemInstanceUid));
+                .Throw(new Exception(errorMessage));
 
             await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
             _responseBuilder
                 .Received()
-                .AddFailure(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Is<ushort>(fc => fc == FailureReasonCodes.ProcessingFailure));
+                .AddFailure(
+                    Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)),
+                    Arg.Is<ushort>(fc => fc == FailureReasonCodes.ProcessingFailure),
+                    Arg.Is<string>(msg => msg == errorMessage));
         }
 
         [Fact]
@@ -187,7 +200,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
             _responseBuilder
                 .Received()
-                .AddFailure(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Is<ushort>(fc => fc == failureCode));
+                .AddFailure(
+                    Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)),
+                    Arg.Is<ushort>(fc => fc == failureCode),
+                    Arg.Is<string>(msg => msg == string.Format(DicomCoreResource.WorkitemInstanceAlreadyExists, workitemInstanceUid)));
         }
 
         [Fact]
@@ -207,7 +223,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
             _responseBuilder
                 .Received()
-                .AddFailure(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Is<ushort>(fc => fc == failureCode));
+                .AddFailure(
+                    Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)),
+                    Arg.Is<ushort>(fc => fc == failureCode),
+                    Arg.Is<string>(msg => msg == workitemInstanceUid));
         }
 
         [Fact]
