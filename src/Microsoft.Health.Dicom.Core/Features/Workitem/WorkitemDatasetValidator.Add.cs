@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -10,7 +11,6 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Store;
-using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -27,7 +27,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             ValidateAffectedSOPInstanceUID(dicomDataset, workitemInstanceUid);
 
-            ValidateProcedureStepState(dicomDataset, workitemInstanceUid, ProcedureStepState.Scheduled);
+            ValidateProcedureStepState(dicomDataset, workitemInstanceUid);
+
+            ValidateTransactionUID(dicomDataset, workitemInstanceUid);
 
             ValidateForDuplicateTagValuesInSequence(dicomDataset);
         }
@@ -59,12 +61,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 foreach (var item in sequence.Items.SelectMany(ds => ds))
                 {
                     var tagPath = item.Tag.GetPath();
-                    var tagValue = dicomDataset.GetString(item.Tag);
 
-                    if (tagValueMap.ContainsKey(tagPath) && tagValue == tagValueMap[tagPath])
+                    if (dicomDataset.TryGetString(item.Tag, out var tagValue) &&
+                        tagValueMap.ContainsKey(tagPath) &&
+                        string.Equals(tagValue, tagValueMap[tagPath], StringComparison.Ordinal))
                     {
                         throw new DatasetValidationException(
-                            FailureReasonCodes.DuplicateTagValueNotSupportedInSequence,
+                            FailureReasonCodes.ValidationFailure,
                             string.Format(
                                 CultureInfo.InvariantCulture,
                                 DicomCoreResource.DuplicateTagValueNotSupported,
@@ -74,6 +77,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
                     tagValueMap[tagPath] = tagValue;
                 }
+            }
+        }
+
+        private static void ValidateTransactionUID(DicomDataset dicomDataset, string workitemInstanceUid)
+        {
+            // ProcedureStepState should be empty for create
+            if (dicomDataset.TryGetString(DicomTag.TransactionUID, out var transactionUID) && !string.IsNullOrEmpty(transactionUID))
+            {
+                throw new DatasetValidationException(
+                    FailureReasonCodes.ValidationFailure,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.InvalidTransactionUID,
+                        transactionUID,
+                        workitemInstanceUid));
             }
         }
 

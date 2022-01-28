@@ -13,7 +13,6 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
-using Microsoft.Health.Dicom.Core.Models;
 using DicomValidationException = FellowOakDicom.DicomValidationException;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
@@ -39,10 +38,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
 
-            Prepare(dataset);
-
             if (Validate(dataset, workitemInstanceUid))
             {
+                Prepare(dataset);
+
                 await AddWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
             }
 
@@ -51,10 +50,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
         private static void Prepare(DicomDataset dataset)
         {
-            if (!dataset.TryGetString(DicomTag.ProcedureStepState, out var _))
-            {
-                dataset.Add(DicomTag.ProcedureStepState, ProcedureStepState.Scheduled);
-            }
+            var result = ProcedureStepState.GetTransitionState(WorkitemStateEvents.NCreate, dataset.GetString(DicomTag.ProcedureStepState));
+            dataset.AddOrUpdate(DicomTag.ProcedureStepState, result.State);
         }
 
         private bool Validate(DicomDataset dataset, string workitemInstanceUid)
@@ -85,7 +82,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
                 LogValidationFailedDelegate(_logger, failureCode, ex);
 
-                _responseBuilder.AddFailure(dataset, failureCode);
+                _responseBuilder.AddFailure(dataset, failureCode, ex.Message);
 
                 return false;
             }
@@ -114,7 +111,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
                 LogFailedToAddDelegate(_logger, failureCode, ex);
 
-                _responseBuilder.AddFailure(dataset, failureCode);
+                // TODO: This can return the Database Error as is. We need to abstract that detail.
+                _responseBuilder.AddFailure(dataset, failureCode, ex.Message);
             }
         }
     }

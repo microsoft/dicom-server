@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
         }
 
         [Fact]
-        public async Task GivenWorkitemInstanceUid_WhenHandlerFails_ThenReturnConflict()
+        public async Task GivenWorkitemInstanceUid_WhenHandlerFails_ThenReturnBadRequest()
         {
             var id = Guid.NewGuid();
             var mediator = Substitute.For<IMediator>();
@@ -44,18 +44,39 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
                 .Send(
                     Arg.Is<AddWorkitemRequest>(x => x.WorkitemInstanceUid == id.ToString()),
                     Arg.Is(controller.HttpContext.RequestAborted))
-                .Returns(new AddWorkitemResponse(WorkitemResponseStatus.Failure, new Uri("https://www.git.com")));
+                .Returns(new AddWorkitemResponse(WorkitemResponseStatus.Failure, new Uri("https://www.microsoft.com")));
 
-            StatusCodeResult result = await controller.AddAsync(id.ToString()) as StatusCodeResult;
+            ObjectResult result = await controller.AddAsync(id.ToString()) as ObjectResult;
 
-            Assert.IsType<StatusCodeResult>(result);
+            Assert.IsType<ObjectResult>(result);
+            Assert.Equal(HttpStatusCode.BadRequest, (HttpStatusCode)result.StatusCode);
+            Assert.False(controller.Response.Headers.ContainsKey(HeaderNames.ContentLocation));
+        }
+
+        [Fact]
+        public async Task GivenWorkitemInstanceUid_WhenItAlreadyExists_ThenReturnConflict()
+        {
+            var id = Guid.NewGuid();
+            var mediator = Substitute.For<IMediator>();
+            var controller = new WorkitemController(mediator, NullLogger<WorkitemController>.Instance);
+            controller.ControllerContext.HttpContext = new DefaultHttpContext();
+
+            mediator
+                .Send(
+                    Arg.Is<AddWorkitemRequest>(x => x.WorkitemInstanceUid == id.ToString()),
+                    Arg.Is(controller.HttpContext.RequestAborted))
+                .Returns(new AddWorkitemResponse(WorkitemResponseStatus.Conflict, new Uri("https://www.microsoft.com")));
+
+            ObjectResult result = await controller.AddAsync(id.ToString()) as ObjectResult;
+
+            Assert.IsType<ObjectResult>(result);
             Assert.Equal(HttpStatusCode.Conflict, (HttpStatusCode)result.StatusCode);
             Assert.False(controller.Response.Headers.ContainsKey(HeaderNames.ContentLocation));
         }
 
 
         [Fact]
-        public async Task GivenWorkitemInstanceUid_WhenHandlerSucceeds_ThenReturnOk()
+        public async Task GivenWorkitemInstanceUid_WhenHandlerSucceeds_ThenReturnCreated()
         {
             const string url = "https://www.git.com/";
             var id = Guid.NewGuid();
@@ -69,12 +90,13 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
                     Arg.Is(controller.HttpContext.RequestAborted))
                 .Returns(new AddWorkitemResponse(WorkitemResponseStatus.Success, new Uri(url)));
 
-            StatusCodeResult result = await controller.AddAsync(id.ToString()) as StatusCodeResult;
+            ObjectResult result = await controller.AddAsync(id.ToString()) as ObjectResult;
 
-            Assert.IsType<StatusCodeResult>(result);
-            Assert.Equal(HttpStatusCode.OK, (HttpStatusCode)result.StatusCode);
+            Assert.IsType<ObjectResult>(result);
+            Assert.Equal(HttpStatusCode.Created, (HttpStatusCode)result.StatusCode);
             Assert.True(controller.Response.Headers.ContainsKey(HeaderNames.ContentLocation));
             Assert.Equal(url, controller.Response.Headers[HeaderNames.ContentLocation]);
+            Assert.Equal(url, controller.Response.Headers[HeaderNames.Location]);
         }
     }
 }
