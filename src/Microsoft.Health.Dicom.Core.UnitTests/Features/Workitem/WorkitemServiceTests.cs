@@ -10,7 +10,6 @@ using FellowOakDicom;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store;
-using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using NSubstitute;
 using Xunit;
@@ -21,7 +20,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
     {
         private readonly IAddWorkitemDatasetValidator _datasetValidator = Substitute.For<IAddWorkitemDatasetValidator>();
         private readonly IAddWorkitemResponseBuilder _responseBuilder = Substitute.For<IAddWorkitemResponseBuilder>();
-        private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
         private readonly IWorkitemOrchestrator _storeOrchestrator = Substitute.For<IWorkitemOrchestrator>();
         private readonly ILogger<WorkitemService> _logger = Substitute.For<ILogger<WorkitemService>>();
         private readonly DicomDataset _dataset = new DicomDataset();
@@ -29,7 +27,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
         public WorkitemServiceTests()
         {
-            _target = new WorkitemService(_responseBuilder, _datasetValidator, _storeOrchestrator, _minimumValidator, _logger);
+            _target = new WorkitemService(_responseBuilder, _datasetValidator, _storeOrchestrator, _logger);
+            _dataset.Add(DicomTag.ProcedureStepState, string.Empty);
         }
 
         [Fact]

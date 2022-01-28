@@ -29,6 +29,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             ValidateProcedureStepState(dicomDataset, workitemInstanceUid);
 
+            ValidateTransactionUID(dicomDataset, workitemInstanceUid);
+
             ValidateForDuplicateTagValuesInSequence(dicomDataset);
         }
 
@@ -49,15 +51,38 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
         private static void ValidateProcedureStepState(DicomDataset dicomDataset, string workitemInstanceUid)
         {
+            if (dicomDataset.TryGetString(DicomTag.ProcedureStepState, out var currentState))
+            {
+                var result = ProcedureStepState.GetTransitionState(WorkitemStateEvents.NCreate, currentState);
+                if (result.IsError)
+                {
+                    throw new DatasetValidationException(
+                        FailureReasonCodes.InvalidProcedureStepState,
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            DicomCoreResource.InvalidProcedureStepState,
+                            currentState,
+                            workitemInstanceUid,
+                            result.Code));
+                }
+            }
+            else
+            {
+
+            }
+        }
+
+        private static void ValidateTransactionUID(DicomDataset dicomDataset, string workitemInstanceUid)
+        {
             // ProcedureStepState should be empty for create
-            if (dicomDataset.TryGetString(DicomTag.ProcedureStepState, out var currentState) && !string.IsNullOrEmpty(currentState))
+            if (dicomDataset.TryGetString(DicomTag.TransactionUID, out var transactionUID) && !string.IsNullOrEmpty(transactionUID))
             {
                 throw new DatasetValidationException(
                     FailureReasonCodes.InvalidProcedureStepState,
                     string.Format(
                         CultureInfo.InvariantCulture,
-                        DicomCoreResource.InvalidProcedureStepState,
-                        currentState,
+                        DicomCoreResource.InvalidTransactionUID,
+                        transactionUID,
                         workitemInstanceUid));
             }
         }

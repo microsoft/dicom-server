@@ -12,7 +12,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
-using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
 using DicomValidationException = FellowOakDicom.DicomValidationException;
 
@@ -44,20 +43,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         private readonly IAddWorkitemResponseBuilder _responseBuilder;
         private readonly IAddWorkitemDatasetValidator _validator;
         private readonly IWorkitemOrchestrator _workitemOrchestrator;
-        private readonly IElementMinimumValidator _minimumValidator;
         private readonly ILogger _logger;
 
         public WorkitemService(
             IAddWorkitemResponseBuilder storeResponseBuilder,
             IAddWorkitemDatasetValidator dicomDatasetValidator,
             IWorkitemOrchestrator storeOrchestrator,
-            IElementMinimumValidator minimumValidator,
             ILogger<WorkitemService> logger)
         {
             _responseBuilder = EnsureArg.IsNotNull(storeResponseBuilder, nameof(storeResponseBuilder));
             _validator = EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
             _workitemOrchestrator = EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
-            _minimumValidator = EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
@@ -65,10 +61,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
 
-            Prepare(dataset);
-
             if (Validate(dataset, workitemInstanceUid))
             {
+                Prepare(dataset);
+
                 await AddWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
             }
 
@@ -77,10 +73,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
         private static void Prepare(DicomDataset dataset)
         {
-            if (!dataset.TryGetString(DicomTag.ProcedureStepState, out var _))
-            {
-                dataset.Add(DicomTag.ProcedureStepState, ProcedureStepState.Scheduled);
-            }
+            var result = ProcedureStepState.GetTransitionState(WorkitemStateEvents.NCreate, dataset.GetString(DicomTag.ProcedureStepState));
+            dataset.Remove(DicomTag.ProcedureStepState);
+            dataset.Add(DicomTag.ProcedureStepState, result.State);
         }
 
         private bool Validate(DicomDataset dataset, string workitemInstanceUid)

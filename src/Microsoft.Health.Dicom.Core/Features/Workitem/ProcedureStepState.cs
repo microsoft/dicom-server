@@ -3,7 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
+using System.Globalization;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -46,10 +46,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         public const string Canceled = @"CANCELED";
 
 
-        public static bool CanTransition(WorkitemStateEvents action, string state, out string errorOrWarningCode)
+        public static WorkitemStateTransitionResult GetTransitionState(WorkitemStateEvents action, string state)
         {
-            errorOrWarningCode = GetStateCode(action, state);
-            return string.IsNullOrEmpty(errorOrWarningCode);
+            return CheckProcedureStepStateTransitionTable(action, state ?? string.Empty);
         }
 
         /// <summary>
@@ -59,63 +58,68 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <param name="action"></param>
         /// <param name="state"></param>
         /// <returns></returns>
-        private static string GetStateCode(WorkitemStateEvents action, string state) => (action, state) switch
+        private static WorkitemStateTransitionResult CheckProcedureStepStateTransitionTable(WorkitemStateEvents action, string state) => (action, state) switch
         {
-            (WorkitemStateEvents.NCreate, "") => string.Empty,
-            (WorkitemStateEvents.NCreate, Scheduled) => Error0111,
-            (WorkitemStateEvents.NCreate, InProgress) => Error0111,
-            (WorkitemStateEvents.NCreate, Completed) => Error0111,
-            (WorkitemStateEvents.NCreate, Canceled) => Error0111,
+            (WorkitemStateEvents.NCreate, "") => new WorkitemStateTransitionResult(Scheduled, null, false),
+            (WorkitemStateEvents.NCreate, Scheduled) => new WorkitemStateTransitionResult(null, Error0111, true),
+            (WorkitemStateEvents.NCreate, InProgress) => new WorkitemStateTransitionResult(null, Error0111, true),
+            (WorkitemStateEvents.NCreate, Completed) => new WorkitemStateTransitionResult(null, Error0111, true),
+            (WorkitemStateEvents.NCreate, Canceled) => new WorkitemStateTransitionResult(null, Error0111, true),
 
-            (WorkitemStateEvents.NActionToInProgressWithCorrectTransactionUID, "") => ErrorC307,
-            (WorkitemStateEvents.NActionToInProgressWithCorrectTransactionUID, Scheduled) => string.Empty,
-            (WorkitemStateEvents.NActionToInProgressWithCorrectTransactionUID, InProgress) => ErrorC302,
-            (WorkitemStateEvents.NActionToInProgressWithCorrectTransactionUID, Completed) => ErrorC300,
-            (WorkitemStateEvents.NActionToInProgressWithCorrectTransactionUID, Canceled) => ErrorC300,
+            (WorkitemStateEvents.NActionToInProgressWithCorrectTransactionUID, "") => new WorkitemStateTransitionResult(null, ErrorC307, true),
+            (WorkitemStateEvents.NActionToInProgressWithCorrectTransactionUID, Scheduled) => new WorkitemStateTransitionResult(InProgress, null, false),
+            (WorkitemStateEvents.NActionToInProgressWithCorrectTransactionUID, InProgress) => new WorkitemStateTransitionResult(null, ErrorC302, true),
+            (WorkitemStateEvents.NActionToInProgressWithCorrectTransactionUID, Completed) => new WorkitemStateTransitionResult(null, ErrorC300, true),
+            (WorkitemStateEvents.NActionToInProgressWithCorrectTransactionUID, Canceled) => new WorkitemStateTransitionResult(null, ErrorC300, true),
 
-            (WorkitemStateEvents.NActionToInProgressWithoutCorrectTransactionUID, "") => ErrorC307,
-            (WorkitemStateEvents.NActionToInProgressWithoutCorrectTransactionUID, Scheduled) => ErrorC301,
-            (WorkitemStateEvents.NActionToInProgressWithoutCorrectTransactionUID, InProgress) => ErrorC301,
-            (WorkitemStateEvents.NActionToInProgressWithoutCorrectTransactionUID, Completed) => ErrorC301,
-            (WorkitemStateEvents.NActionToInProgressWithoutCorrectTransactionUID, Canceled) => ErrorC301,
+            (WorkitemStateEvents.NActionToInProgressWithoutCorrectTransactionUID, "") => new WorkitemStateTransitionResult(null, ErrorC307, true),
+            (WorkitemStateEvents.NActionToInProgressWithoutCorrectTransactionUID, Scheduled) => new WorkitemStateTransitionResult(null, ErrorC301, true),
+            (WorkitemStateEvents.NActionToInProgressWithoutCorrectTransactionUID, InProgress) => new WorkitemStateTransitionResult(null, ErrorC301, true),
+            (WorkitemStateEvents.NActionToInProgressWithoutCorrectTransactionUID, Completed) => new WorkitemStateTransitionResult(null, ErrorC301, true),
+            (WorkitemStateEvents.NActionToInProgressWithoutCorrectTransactionUID, Canceled) => new WorkitemStateTransitionResult(null, ErrorC301, true),
 
-            (WorkitemStateEvents.NActionToScheduled, "") => ErrorC307,
-            (WorkitemStateEvents.NActionToScheduled, Scheduled) => ErrorC303,
-            (WorkitemStateEvents.NActionToScheduled, InProgress) => ErrorC303,
-            (WorkitemStateEvents.NActionToScheduled, Completed) => ErrorC303,
-            (WorkitemStateEvents.NActionToScheduled, Canceled) => ErrorC303,
+            (WorkitemStateEvents.NActionToScheduled, "") => new WorkitemStateTransitionResult(null, ErrorC307, true),
+            (WorkitemStateEvents.NActionToScheduled, Scheduled) => new WorkitemStateTransitionResult(null, ErrorC303, true),
+            (WorkitemStateEvents.NActionToScheduled, InProgress) => new WorkitemStateTransitionResult(null, ErrorC303, true),
+            (WorkitemStateEvents.NActionToScheduled, Completed) => new WorkitemStateTransitionResult(null, ErrorC303, true),
+            (WorkitemStateEvents.NActionToScheduled, Canceled) => new WorkitemStateTransitionResult(null, ErrorC303, true),
 
-            (WorkitemStateEvents.NActionToCompletedWithCorrectTransactionUID, "") => ErrorC307,
-            (WorkitemStateEvents.NActionToCompletedWithCorrectTransactionUID, Scheduled) => ErrorC310,
-            (WorkitemStateEvents.NActionToCompletedWithCorrectTransactionUID, InProgress) => string.Empty,
-            (WorkitemStateEvents.NActionToCompletedWithCorrectTransactionUID, Completed) => WarningB306,
-            (WorkitemStateEvents.NActionToCompletedWithCorrectTransactionUID, Canceled) => ErrorC300,
+            (WorkitemStateEvents.NActionToCompletedWithCorrectTransactionUID, "") => new WorkitemStateTransitionResult(null, ErrorC307, true),
+            (WorkitemStateEvents.NActionToCompletedWithCorrectTransactionUID, Scheduled) => new WorkitemStateTransitionResult(null, ErrorC310, true),
+            (WorkitemStateEvents.NActionToCompletedWithCorrectTransactionUID, InProgress) => new WorkitemStateTransitionResult(Completed, null, false),
+            (WorkitemStateEvents.NActionToCompletedWithCorrectTransactionUID, Completed) => new WorkitemStateTransitionResult(null, WarningB306, false),
+            (WorkitemStateEvents.NActionToCompletedWithCorrectTransactionUID, Canceled) => new WorkitemStateTransitionResult(null, ErrorC300, true),
 
-            (WorkitemStateEvents.NActionToCompletedWithoutCorrectTransactionUID, "") => ErrorC307,
-            (WorkitemStateEvents.NActionToCompletedWithoutCorrectTransactionUID, Scheduled) => ErrorC301,
-            (WorkitemStateEvents.NActionToCompletedWithoutCorrectTransactionUID, InProgress) => ErrorC301,
-            (WorkitemStateEvents.NActionToCompletedWithoutCorrectTransactionUID, Completed) => ErrorC301,
-            (WorkitemStateEvents.NActionToCompletedWithoutCorrectTransactionUID, Canceled) => ErrorC301,
+            (WorkitemStateEvents.NActionToCompletedWithoutCorrectTransactionUID, "") => new WorkitemStateTransitionResult(null, ErrorC307, true),
+            (WorkitemStateEvents.NActionToCompletedWithoutCorrectTransactionUID, Scheduled) => new WorkitemStateTransitionResult(null, ErrorC301, true),
+            (WorkitemStateEvents.NActionToCompletedWithoutCorrectTransactionUID, InProgress) => new WorkitemStateTransitionResult(null, ErrorC301, true),
+            (WorkitemStateEvents.NActionToCompletedWithoutCorrectTransactionUID, Completed) => new WorkitemStateTransitionResult(null, ErrorC301, true),
+            (WorkitemStateEvents.NActionToCompletedWithoutCorrectTransactionUID, Canceled) => new WorkitemStateTransitionResult(null, ErrorC301, true),
 
-            (WorkitemStateEvents.NActionToRequestCancel, "") => ErrorC307,
-            (WorkitemStateEvents.NActionToRequestCancel, Scheduled) => string.Empty,
-            (WorkitemStateEvents.NActionToRequestCancel, InProgress) => string.Empty,
-            (WorkitemStateEvents.NActionToRequestCancel, Completed) => ErrorC311,
-            (WorkitemStateEvents.NActionToRequestCancel, Canceled) => WarningB304,
+            (WorkitemStateEvents.NActionToRequestCancel, "") => new WorkitemStateTransitionResult(null, ErrorC307, true),
+            (WorkitemStateEvents.NActionToRequestCancel, Scheduled) => new WorkitemStateTransitionResult(Canceled, null, false),
+            (WorkitemStateEvents.NActionToRequestCancel, InProgress) => new WorkitemStateTransitionResult(null, string.Empty, false),
+            (WorkitemStateEvents.NActionToRequestCancel, Completed) => new WorkitemStateTransitionResult(null, ErrorC311, true),
+            (WorkitemStateEvents.NActionToRequestCancel, Canceled) => new WorkitemStateTransitionResult(null, WarningB304, false),
 
-            (WorkitemStateEvents.NActionToCanceledWithCorrectTransactionUID, "") => ErrorC307,
-            (WorkitemStateEvents.NActionToCanceledWithCorrectTransactionUID, Scheduled) => ErrorC310,
-            (WorkitemStateEvents.NActionToCanceledWithCorrectTransactionUID, InProgress) => string.Empty,
-            (WorkitemStateEvents.NActionToCanceledWithCorrectTransactionUID, Completed) => ErrorC300,
-            (WorkitemStateEvents.NActionToCanceledWithCorrectTransactionUID, Canceled) => WarningB304,
+            (WorkitemStateEvents.NActionToCanceledWithCorrectTransactionUID, "") => new WorkitemStateTransitionResult(null, ErrorC307, true),
+            (WorkitemStateEvents.NActionToCanceledWithCorrectTransactionUID, Scheduled) => new WorkitemStateTransitionResult(null, ErrorC310, true),
+            (WorkitemStateEvents.NActionToCanceledWithCorrectTransactionUID, InProgress) => new WorkitemStateTransitionResult(null, string.Empty, false),
+            (WorkitemStateEvents.NActionToCanceledWithCorrectTransactionUID, Completed) => new WorkitemStateTransitionResult(null, ErrorC300, true),
+            (WorkitemStateEvents.NActionToCanceledWithCorrectTransactionUID, Canceled) => new WorkitemStateTransitionResult(null, WarningB304, false),
 
-            (WorkitemStateEvents.NActionToCanceledWithoutCorrectTransactionUID, "") => string.Empty,
-            (WorkitemStateEvents.NActionToCanceledWithoutCorrectTransactionUID, Scheduled) => ErrorC301,
-            (WorkitemStateEvents.NActionToCanceledWithoutCorrectTransactionUID, InProgress) => ErrorC301,
-            (WorkitemStateEvents.NActionToCanceledWithoutCorrectTransactionUID, Completed) => ErrorC301,
-            (WorkitemStateEvents.NActionToCanceledWithoutCorrectTransactionUID, Canceled) => ErrorC301,
+            (WorkitemStateEvents.NActionToCanceledWithoutCorrectTransactionUID, "") => new WorkitemStateTransitionResult(null, ErrorC307, true),
+            (WorkitemStateEvents.NActionToCanceledWithoutCorrectTransactionUID, Scheduled) => new WorkitemStateTransitionResult(null, ErrorC301, true),
+            (WorkitemStateEvents.NActionToCanceledWithoutCorrectTransactionUID, InProgress) => new WorkitemStateTransitionResult(null, ErrorC301, true),
+            (WorkitemStateEvents.NActionToCanceledWithoutCorrectTransactionUID, Completed) => new WorkitemStateTransitionResult(null, ErrorC301, true),
+            (WorkitemStateEvents.NActionToCanceledWithoutCorrectTransactionUID, Canceled) => new WorkitemStateTransitionResult(null, ErrorC301, true),
 
-            _ => throw new NotImplementedException()
+            _ => throw new Exceptions.NotSupportedException(string.Format(
+                            CultureInfo.InvariantCulture,
+                            DicomCoreResource.InvalidProcedureStepState,
+                            state,
+                            string.Empty,
+                            string.Empty))
         };
     }
 }
