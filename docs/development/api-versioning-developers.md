@@ -5,7 +5,7 @@ This guide gives an overview of the API versioning of the REST endpoints for DIC
 ## Routes
 
 API Version number are set within the route. Example:
-`/v1-prerelease/studies`
+`/v1/studies`
 
 To add a route, use the `[VersionedRoute]` attribute to automatically add the version number to the route. Example:
 ```C#   
