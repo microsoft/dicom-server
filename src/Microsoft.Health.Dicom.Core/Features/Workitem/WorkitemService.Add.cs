@@ -74,8 +74,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         private static void Prepare(DicomDataset dataset)
         {
             var result = ProcedureStepState.GetTransitionState(WorkitemStateEvents.NCreate, dataset.GetString(DicomTag.ProcedureStepState));
-            dataset.Remove(DicomTag.ProcedureStepState);
-            dataset.Add(DicomTag.ProcedureStepState, result.State);
+            dataset.AddOrUpdate(DicomTag.ProcedureStepState, result.State);
         }
 
         private bool Validate(DicomDataset dataset, string workitemInstanceUid)

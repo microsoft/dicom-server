@@ -57,7 +57,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 if (result.IsError)
                 {
                     throw new DatasetValidationException(
-                        FailureReasonCodes.InvalidProcedureStepState,
+                        FailureReasonCodes.ValidationFailure,
                         string.Format(
                             CultureInfo.InvariantCulture,
                             DicomCoreResource.InvalidProcedureStepState,
@@ -65,10 +65,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                             workitemInstanceUid,
                             result.Code));
                 }
-            }
-            else
-            {
-
             }
         }
 
@@ -78,7 +74,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             if (dicomDataset.TryGetString(DicomTag.TransactionUID, out var transactionUID) && !string.IsNullOrEmpty(transactionUID))
             {
                 throw new DatasetValidationException(
-                    FailureReasonCodes.InvalidProcedureStepState,
+                    FailureReasonCodes.ValidationFailure,
                     string.Format(
                         CultureInfo.InvariantCulture,
                         DicomCoreResource.InvalidTransactionUID,
@@ -97,7 +93,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 !workitemUid.Equals(workitemInstanceUid, StringComparison.OrdinalIgnoreCase))
             {
                 throw new DatasetValidationException(
-                    FailureReasonCodes.MismatchWorkitemInstanceUid,
+                    FailureReasonCodes.ValidationFailure,
                     string.Format(
                         CultureInfo.InvariantCulture,
                         DicomCoreResource.MismatchWorkitemInstanceUid,
@@ -124,7 +120,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                         string.Equals(tagValue, tagValueMap[tagPath], StringComparison.Ordinal))
                     {
                         throw new DatasetValidationException(
-                            FailureReasonCodes.DuplicateTagValueNotSupportedInSequence,
+                            FailureReasonCodes.ValidationFailure,
                             string.Format(
                                 CultureInfo.InvariantCulture,
                                 DicomCoreResource.DuplicateTagValueNotSupported,
