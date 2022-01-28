@@ -105,7 +105,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
                 LogValidationFailedDelegate(_logger, failureCode, ex);
 
-                _responseBuilder.AddFailure(dataset, failureCode);
+                _responseBuilder.AddFailure(dataset, failureCode, ex.Message);
 
                 return false;
             }
@@ -134,7 +134,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
                 LogFailedToAddDelegate(_logger, failureCode, ex);
 
-                _responseBuilder.AddFailure(dataset, failureCode);
+                // TODO: This can return the Database Error as is. We need to abstract that detail.
+                _responseBuilder.AddFailure(dataset, failureCode, ex.Message);
             }
         }
     }

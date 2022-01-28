@@ -18,8 +18,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     public class AddWorkitemResponseBuilder : IAddWorkitemResponseBuilder
     {
         private readonly IUrlResolver _urlResolver;
-
         private DicomDataset _dataset;
+        private string _failureMessage;
 
         public AddWorkitemResponseBuilder(IUrlResolver urlResolver)
         {
@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 status = WorkitemResponseStatus.Conflict;
             }
 
-            return new AddWorkitemResponse(status, url);
+            return new AddWorkitemResponse(status, url, _failureMessage);
         }
 
         /// <inheritdoc />
@@ -57,8 +57,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         }
 
         /// <inheritdoc />
-        public void AddFailure(DicomDataset dicomDataset, ushort failureReasonCode)
+        public void AddFailure(DicomDataset dicomDataset = null,
+            ushort failureReasonCode = FailureReasonCodes.ProcessingFailure,
+            string message = null)
         {
+            _failureMessage = message;
             _dataset = dicomDataset ?? new DicomDataset();
 
             _dataset.Add(DicomTag.FailureReason, failureReasonCode);
