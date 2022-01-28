@@ -29,6 +29,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             ValidateProcedureStepState(dicomDataset, workitemInstanceUid);
 
+            ValidateTransactionUID(dicomDataset, workitemInstanceUid);
+
             ValidateForDuplicateTagValuesInSequence(dicomDataset);
         }
 
@@ -49,15 +51,34 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
         private static void ValidateProcedureStepState(DicomDataset dicomDataset, string workitemInstanceUid)
         {
+            if (dicomDataset.TryGetString(DicomTag.ProcedureStepState, out var currentState))
+            {
+                var result = ProcedureStepState.GetTransitionState(WorkitemStateEvents.NCreate, currentState);
+                if (result.IsError)
+                {
+                    throw new DatasetValidationException(
+                        FailureReasonCodes.ValidationFailure,
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            DicomCoreResource.InvalidProcedureStepState,
+                            currentState,
+                            workitemInstanceUid,
+                            result.Code));
+                }
+            }
+        }
+
+        private static void ValidateTransactionUID(DicomDataset dicomDataset, string workitemInstanceUid)
+        {
             // ProcedureStepState should be empty for create
-            if (dicomDataset.TryGetString(DicomTag.ProcedureStepState, out var currentState) && !string.IsNullOrEmpty(currentState))
+            if (dicomDataset.TryGetString(DicomTag.TransactionUID, out var transactionUID) && !string.IsNullOrEmpty(transactionUID))
             {
                 throw new DatasetValidationException(
-                    FailureReasonCodes.InvalidProcedureStepState,
+                    FailureReasonCodes.ValidationFailure,
                     string.Format(
                         CultureInfo.InvariantCulture,
-                        DicomCoreResource.InvalidProcedureStepState,
-                        currentState,
+                        DicomCoreResource.InvalidTransactionUID,
+                        transactionUID,
                         workitemInstanceUid));
             }
         }
@@ -72,7 +93,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 !workitemUid.Equals(workitemInstanceUid, StringComparison.OrdinalIgnoreCase))
             {
                 throw new DatasetValidationException(
-                    FailureReasonCodes.MismatchWorkitemInstanceUid,
+                    FailureReasonCodes.ValidationFailure,
                     string.Format(
                         CultureInfo.InvariantCulture,
                         DicomCoreResource.MismatchWorkitemInstanceUid,
@@ -93,12 +114,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 foreach (var item in sequence.Items.SelectMany(ds => ds))
                 {
                     var tagPath = item.Tag.GetPath();
-                    var tagValue = dicomDataset.GetString(item.Tag);
 
-                    if (tagValueMap.ContainsKey(tagPath) && tagValue == tagValueMap[tagPath])
+                    if (dicomDataset.TryGetString(item.Tag, out var tagValue) &&
+                        tagValueMap.ContainsKey(tagPath) &&
+                        string.Equals(tagValue, tagValueMap[tagPath], StringComparison.Ordinal))
                     {
                         throw new DatasetValidationException(
-                            FailureReasonCodes.DuplicateTagValueNotSupportedInSequence,
+                            FailureReasonCodes.ValidationFailure,
                             string.Format(
                                 CultureInfo.InvariantCulture,
                                 DicomCoreResource.DuplicateTagValueNotSupported,

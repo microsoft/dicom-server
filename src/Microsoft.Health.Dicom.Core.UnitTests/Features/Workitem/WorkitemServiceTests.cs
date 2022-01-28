@@ -10,7 +10,6 @@ using FellowOakDicom;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store;
-using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using NSubstitute;
 using Xunit;
@@ -21,7 +20,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
     {
         private readonly IAddWorkitemDatasetValidator _datasetValidator = Substitute.For<IAddWorkitemDatasetValidator>();
         private readonly IAddWorkitemResponseBuilder _responseBuilder = Substitute.For<IAddWorkitemResponseBuilder>();
-        private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
         private readonly IWorkitemOrchestrator _storeOrchestrator = Substitute.For<IWorkitemOrchestrator>();
         private readonly ILogger<WorkitemService> _logger = Substitute.For<ILogger<WorkitemService>>();
         private readonly DicomDataset _dataset = new DicomDataset();
@@ -29,7 +27,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
         public WorkitemServiceTests()
         {
-            _target = new WorkitemService(_responseBuilder, _datasetValidator, _storeOrchestrator, _minimumValidator, _logger);
+            _target = new WorkitemService(_responseBuilder, _datasetValidator, _storeOrchestrator, _logger);
+            _dataset.Add(DicomTag.ProcedureStepState, string.Empty);
         }
 
         [Fact]
@@ -118,18 +117,22 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         {
             var failureCode = FailureReasonCodes.ValidationFailure;
             var workitemInstanceUid = DicomUID.Generate().UID;
+            var errorMessage = @"Unit Test - Failed validation";
 
             _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
 
             _datasetValidator
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
-                .Throw(new DatasetValidationException(failureCode, string.Empty));
+                .Throw(new DatasetValidationException(failureCode, errorMessage));
 
             await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
             _responseBuilder
                 .Received()
-                .AddFailure(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Is<ushort>(fc => fc == failureCode));
+                .AddFailure(
+                    Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)),
+                    Arg.Is<ushort>(fc => fc == failureCode),
+                    Arg.Is<string>(msg => msg == errorMessage));
         }
 
         [Fact]
@@ -147,25 +150,32 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
             _responseBuilder
                 .Received()
-                .AddFailure(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Is<ushort>(fc => fc == FailureReasonCodes.ValidationFailure));
+                .AddFailure(
+                    Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)),
+                    Arg.Is<ushort>(fc => fc == FailureReasonCodes.ValidationFailure),
+                    Arg.Any<string>());
         }
 
         [Fact]
         public async Task GivenValidateThrowsException_WhenProcessed_ThenResponseBuilderAddFailureIsCalledWithProcessingFailureError()
         {
             var workitemInstanceUid = DicomUID.Generate().UID;
+            var errorMessage = @"Unit Test - Failed validation";
 
             _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
 
             _datasetValidator
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
-                .Throw(new Exception(workitemInstanceUid));
+                .Throw(new Exception(errorMessage));
 
             await _target.ProcessAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
             _responseBuilder
                 .Received()
-                .AddFailure(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Is<ushort>(fc => fc == FailureReasonCodes.ProcessingFailure));
+                .AddFailure(
+                    Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)),
+                    Arg.Is<ushort>(fc => fc == FailureReasonCodes.ProcessingFailure),
+                    Arg.Is<string>(msg => msg == errorMessage));
         }
 
         [Fact]
@@ -185,7 +195,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
             _responseBuilder
                 .Received()
-                .AddFailure(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Is<ushort>(fc => fc == failureCode));
+                .AddFailure(
+                    Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)),
+                    Arg.Is<ushort>(fc => fc == failureCode),
+                    Arg.Is<string>(msg => msg == string.Format(DicomCoreResource.WorkitemInstanceAlreadyExists, workitemInstanceUid)));
         }
 
         [Fact]
@@ -205,7 +218,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
             _responseBuilder
                 .Received()
-                .AddFailure(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Is<ushort>(fc => fc == failureCode));
+                .AddFailure(
+                    Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)),
+                    Arg.Is<ushort>(fc => fc == failureCode),
+                    Arg.Is<string>(msg => msg == workitemInstanceUid));
         }
 
         [Fact]
