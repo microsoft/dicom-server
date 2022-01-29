@@ -6,8 +6,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using FellowOakDicom;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -20,14 +20,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     /// <summary>
     /// Provides functionality to process the list of <see cref="IDicomInstanceEntry"/>.
     /// </summary>
-    public partial class WorkitemService : IWorkitemService
+    public partial class WorkitemService
     {
-        private static readonly Action<ILogger, ushort, Exception> LogValidationFailedDelegate =
-            LoggerMessage.Define<ushort>(
-                LogLevel.Information,
-                default,
-                "Validation failed for the DICOM instance work-item entry. Failure code: {FailureCode}.");
-
         private static readonly Action<ILogger, ushort, Exception> LogFailedToAddDelegate =
             LoggerMessage.Define<ushort>(
                 LogLevel.Warning,
@@ -40,24 +34,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 default,
                 "Successfully stored the DICOM instance work-item entry.");
 
-        private readonly IAddWorkitemResponseBuilder _responseBuilder;
-        private readonly IAddWorkitemDatasetValidator _validator;
-        private readonly IWorkitemOrchestrator _workitemOrchestrator;
-        private readonly ILogger _logger;
-
-        public WorkitemService(
-            IAddWorkitemResponseBuilder storeResponseBuilder,
-            IAddWorkitemDatasetValidator dicomDatasetValidator,
-            IWorkitemOrchestrator storeOrchestrator,
-            ILogger<WorkitemService> logger)
-        {
-            _responseBuilder = EnsureArg.IsNotNull(storeResponseBuilder, nameof(storeResponseBuilder));
-            _validator = EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
-            _workitemOrchestrator = EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
-            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-        }
-
-        public async Task<AddWorkitemResponse> ProcessAsync(DicomDataset dataset, string workitemInstanceUid, CancellationToken cancellationToken)
+        public async Task<AddWorkitemResponse> ProcessAddAsync(DicomDataset dataset, string workitemInstanceUid, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
 
@@ -68,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 await AddWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
             }
 
-            return _responseBuilder.BuildResponse();
+            return _responseBuilder.BuildAddResponse();
         }
 
         private static void Prepare(DicomDataset dataset)
@@ -81,7 +58,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             try
             {
-                _validator.Validate(dataset, workitemInstanceUid);
+                GetValidator<AddWorkitemDatasetValidator>().Validate(dataset, workitemInstanceUid);
                 return true;
             }
             catch (Exception ex)

@@ -15,13 +15,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     /// <summary>
     /// Provides functionality to build the response for the store transaction.
     /// </summary>
-    public class AddWorkitemResponseBuilder : IAddWorkitemResponseBuilder
+    public class WorkitemResponseBuilder : IWorkitemResponseBuilder
     {
         private readonly IUrlResolver _urlResolver;
         private DicomDataset _dataset;
         private string _failureMessage;
 
-        public AddWorkitemResponseBuilder(IUrlResolver urlResolver)
+        public WorkitemResponseBuilder(IUrlResolver urlResolver)
         {
             EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
 
@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         }
 
         /// <inheritdoc />
-        public AddWorkitemResponse BuildResponse()
+        public AddWorkitemResponse BuildAddResponse()
         {
             Uri url = null;
             WorkitemResponseStatus status = WorkitemResponseStatus.Failure;

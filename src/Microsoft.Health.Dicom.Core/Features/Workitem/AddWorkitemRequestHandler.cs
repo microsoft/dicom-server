@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             var workitems = await _workitemSerializer.DeserializeAsync(request.RequestBody, request.RequestContentType);
 
             return await _workItemService
-                .ProcessAsync(workitems.FirstOrDefault(), request.WorkitemInstanceUid, cancellationToken)
+                .ProcessAddAsync(workitems.FirstOrDefault(), request.WorkitemInstanceUid, cancellationToken)
                 .ConfigureAwait(false);
         }
     }

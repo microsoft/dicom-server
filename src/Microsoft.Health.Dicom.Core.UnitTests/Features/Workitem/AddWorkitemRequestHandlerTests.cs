@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             var response = new AddWorkitemResponse(WorkitemResponseStatus.Success, new Uri(@"https://www.microsoft.com"));
 
             _workitemService
-                .ProcessAsync(Arg.Any<DicomDataset>(), workitemInstanceUid, CancellationToken.None)
+                .ProcessAddAsync(Arg.Any<DicomDataset>(), workitemInstanceUid, CancellationToken.None)
                 .Returns(response);
 
             Assert.Same(response, await _target.Handle(request, CancellationToken.None));
