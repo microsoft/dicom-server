@@ -38,8 +38,9 @@ namespace Microsoft.Health.Dicom.Tests.Common.Comparers
             IEqualityComparer<DicomItem> dicomItemComparer = new DicomItemEqualityComparer();
 
             ISet<DicomTag> ignoredSet = new HashSet<DicomTag>(_ignoredTags);
-            Dictionary<DicomTag, DicomItem> xDict = x.ToDictionary(item => item.Tag);
-            Dictionary<DicomTag, DicomItem> yDict = y.ToDictionary(item => item.Tag);
+            IDictionary<DicomTag, DicomItem> xDict = x.ToDictionary(item => item.Tag);
+            IDictionary<DicomTag, DicomItem> yDict = y.ToDictionary(item => item.Tag);
+
             if (xDict.Count != yDict.Count)
             {
                 return false;

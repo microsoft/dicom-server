@@ -30,6 +30,17 @@ namespace Microsoft.Health.Dicom.Blob.Utilities
     /// <summary>
     /// 
     /// </summary>
+    internal sealed class WorkitemStoreConfigurationSection : StoreConfigurationSection
+    {
+        public WorkitemStoreConfigurationSection()
+            : base(Constants.WorkitemStoreConfigurationSection, Constants.WorkitemContainerConfigurationName)
+        {
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
     internal class StoreConfigurationSection : IStoreConfigurationSection
     {
         internal StoreConfigurationSection(string sectionName, string name)

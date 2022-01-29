@@ -384,7 +384,7 @@ BEGIN
 
     BEGIN TRY
 
-        EXEC dbo.IIndexInstanceCoreV8
+        EXEC dbo.IIndexInstanceCoreV9
             @partitionKey,
             @studyKey,
             @seriesKey,
@@ -830,7 +830,7 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---    IIndexInstanceCoreV8
+--    IIndexInstanceCoreV9
 --
 -- DESCRIPTION
 --    Adds or updates the various extended query tag indices for a given DICOM instance
@@ -863,7 +863,7 @@ GO
 -- RETURN VALUE
 --     None
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCoreV8
+CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCoreV9
     @partitionKey                                                                INT = 1,
     @studyKey                                                                    BIGINT,
     @seriesKey                                                                   BIGINT,
@@ -891,7 +891,8 @@ BEGIN
             -- Only merge on extended query tag which is being added
             AND dbo.ExtendedQueryTag.TagStatus <> 2
         ) AS S
-        ON T.TagKey = S.TagKey
+        ON T.ResourceType = @resourceType
+            AND T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
             AND T.SopInstanceKey1 = @studyKey
             -- Null SeriesKey indicates a Study level tag, no need to compare SeriesKey
@@ -931,7 +932,8 @@ BEGIN
             -- Only merge on extended query tag which is being added
             AND dbo.ExtendedQueryTag.TagStatus <> 2
         ) AS S
-        ON T.TagKey = S.TagKey
+        ON T.ResourceType = @resourceType
+            AND T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
             AND T.SopInstanceKey1 = @studyKey
             AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
@@ -967,7 +969,8 @@ BEGIN
             -- Only merge on extended query tag which is being added
             AND dbo.ExtendedQueryTag.TagStatus <> 2
         ) AS S
-        ON T.TagKey = S.TagKey
+        ON T.ResourceType = @resourceType
+            AND T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
             AND T.SopInstanceKey1 = @studyKey
             AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
@@ -1003,7 +1006,8 @@ BEGIN
             -- Only merge on extended query tag which is being added
             AND dbo.ExtendedQueryTag.TagStatus <> 2
         ) AS S
-        ON T.TagKey = S.TagKey
+        ON T.ResourceType = @resourceType
+            AND T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
             AND T.SopInstanceKey1 = @studyKey
             AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
@@ -1040,7 +1044,8 @@ BEGIN
             -- Only merge on extended query tag which is being added
             AND dbo.ExtendedQueryTag.TagStatus <> 2
         ) AS S
-        ON T.TagKey = S.TagKey
+        ON T.ResourceType = @resourceType
+            AND T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
             AND T.SopInstanceKey1 = @studyKey
             AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
@@ -1196,7 +1201,7 @@ BEGIN
         -- String Key tags
         BEGIN TRY
 
-            EXEC dbo.IIndexInstanceCoreV8
+            EXEC dbo.IIndexInstanceCoreV9
                 @partitionKey,
                 @studyKey,
                 @seriesKey,
@@ -1260,7 +1265,7 @@ IF NOT EXISTS
         AND Object_id = OBJECT_ID('dbo.ExtendedQueryTagDateTime')
 )
 BEGIN
-    CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagDateTime
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagDateTime
     (
         ResourceType,
         TagKey,
@@ -1345,7 +1350,7 @@ IF NOT EXISTS
         AND Object_id = OBJECT_ID('dbo.ExtendedQueryTagDouble')
 )
 BEGIN
-    CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagDouble
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagDouble
     (
         ResourceType,
         TagKey,
@@ -1432,7 +1437,7 @@ IF NOT EXISTS
         AND Object_id = OBJECT_ID('dbo.ExtendedQueryTagLong')
 )
 BEGIN
-    CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagLong
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagLong
     (
         ResourceType,
         TagKey,
@@ -1518,7 +1523,7 @@ IF NOT EXISTS
         AND Object_id = OBJECT_ID('dbo.ExtendedQueryTagPersonName')
 )
 BEGIN
-    CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagPersonName
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagPersonName
     (
         ResourceType,
         TagKey,
@@ -1603,7 +1608,7 @@ IF NOT EXISTS
         AND Object_id = OBJECT_ID('dbo.ExtendedQueryTagString')
 )
 BEGIN
-    CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagString_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagString
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagString_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagString
     (
         ResourceType,
         TagKey,

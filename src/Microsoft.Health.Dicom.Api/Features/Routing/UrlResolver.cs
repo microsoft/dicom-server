@@ -97,6 +97,24 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         }
 
         /// <inheritdoc />
+        public Uri ResolveRetrieveWorkitemUri(string workitemInstanceUid)
+        {
+            EnsureArg.IsNotNull(workitemInstanceUid, nameof(workitemInstanceUid));
+            var routeValues = new RouteValueDictionary
+            {
+                { KnownActionParameterNames.WorkItemInstanceUid, workitemInstanceUid },
+            };
+
+            AddRouteValues(routeValues, out bool hasVersion, out bool hasPartition);
+
+            var routeName = hasPartition
+                ? (hasVersion ? KnownRouteNames.VersionedPartitionWorkitemInstance : KnownRouteNames.PartitionedWorkitemInstance)
+                : hasVersion ? KnownRouteNames.VersionedWorkitemInstance : KnownRouteNames.WorkitemInstance;
+
+            return RouteUri(routeName, routeValues);
+        }
+
+        /// <inheritdoc />
         public Uri ResolveRetrieveInstanceUri(InstanceIdentifier instanceIdentifier)
         {
             EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));

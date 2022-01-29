@@ -12,5 +12,8 @@ namespace Microsoft.Health.Dicom.Blob
 
         public const string MetadataStoreConfigurationSection = "DicomWeb:MetadataStore";
         public const string MetadataContainerConfigurationName = "dicomMetadata";
+
+        public const string WorkitemStoreConfigurationSection = "DicomWeb:WorkitemStore";
+        public const string WorkitemContainerConfigurationName = "dicomWorkitem";
     }
 }

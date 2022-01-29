@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using FellowOakDicom;
@@ -16,7 +15,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
     /// </summary>
     public class DicomTagParser : IDicomTagParser
     {
-        public bool TryParse(string dicomTagPath, out DicomTag[] dicomTags)
+        public bool TryParse(string dicomTagPath, out DicomTag[] dicomTags, bool supportMultiple = false)
         {
             dicomTags = null;
             if (string.IsNullOrWhiteSpace(dicomTagPath))
@@ -24,7 +23,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
                 return false;
             }
 
-            DicomTag[] tags = ParseTag(dicomTagPath);
+            DicomTag[] tags = dicomTagPath
+                     .Split('.')
+                     .Select(ParseTagFromKeywordOrNumber)
+                     .ToArray();
+
+            if (!supportMultiple && tags.Length > 1)
+            {
+                throw new DicomValidationException(dicomTagPath, DicomVR.SQ, DicomCoreResource.SequentialDicomTagsNotSupported);
+            }
 
             if (tags.Length > 2)
             {
@@ -37,29 +44,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
             return result;
         }
 
-        private static DicomTag[] ParseTag(string dicomTagPath)
-        {
-            var paths = dicomTagPath.Split(".");
-            var dicomTags = new List<DicomTag>();
-
-            foreach (var path in paths)
-            {
-                dicomTags.Add(ParseTagFromKeywordOrNumber(path));
-            }
-
-            return dicomTags.ToArray();
-        }
-
         private static DicomTag ParseTagFromKeywordOrNumber(string dicomTagPath)
         {
-            DicomTag dicomTag = ParseStardandDicomTagKeyword(dicomTagPath);
-
-            if (dicomTag == null)
-            {
-                dicomTag = ParseDicomTagNumber(dicomTagPath);
-            }
-
-            return dicomTag;
+            return ParseStardandDicomTagKeyword(dicomTagPath) ?? ParseDicomTagNumber(dicomTagPath);
         }
 
         private static DicomTag ParseStardandDicomTagKeyword(string keyword)

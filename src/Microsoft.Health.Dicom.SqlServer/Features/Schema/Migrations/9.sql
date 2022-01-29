@@ -139,7 +139,7 @@ WITH (DATA_COMPRESSION = PAGE);
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime
     ON dbo.ExtendedQueryTagDateTime(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
     ON dbo.ExtendedQueryTagDateTime(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
     INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
@@ -161,7 +161,7 @@ WITH (DATA_COMPRESSION = PAGE);
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble
     ON dbo.ExtendedQueryTagDouble(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
     ON dbo.ExtendedQueryTagDouble(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
     INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
@@ -200,7 +200,7 @@ WITH (DATA_COMPRESSION = PAGE);
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong
     ON dbo.ExtendedQueryTagLong(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
     ON dbo.ExtendedQueryTagLong(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
     INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
@@ -236,7 +236,7 @@ WITH (DATA_COMPRESSION = PAGE);
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName
     ON dbo.ExtendedQueryTagPersonName(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
     ON dbo.ExtendedQueryTagPersonName(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
     INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
@@ -261,7 +261,7 @@ WITH (DATA_COMPRESSION = PAGE);
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString
     ON dbo.ExtendedQueryTagString(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_ExtendedQueryTagString_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagString_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
     ON dbo.ExtendedQueryTagString(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
     INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
@@ -734,7 +734,7 @@ BEGIN
     INSERT  INTO dbo.Instance (PartitionKey, StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
     VALUES                   (@partitionKey, @studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate);
     BEGIN TRY
-        EXECUTE dbo.IIndexInstanceCoreV8 @partitionKey, @studyKey, @seriesKey, @instanceKey, @newWatermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
+        EXECUTE dbo.IIndexInstanceCoreV9 @partitionKey, @studyKey, @seriesKey, @instanceKey, @newWatermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
     END TRY
     BEGIN CATCH
         THROW;
@@ -1549,7 +1549,7 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCoreV8
+CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCoreV9
 @partitionKey INT=1, @studyKey BIGINT, @seriesKey BIGINT, @instanceKey BIGINT, @watermark BIGINT, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
 BEGIN
@@ -1566,7 +1566,8 @@ BEGIN
                           INNER JOIN
                           dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
                           ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
+                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.ResourceType = @resourceType
+                                                                              AND T.TagKey = S.TagKey
                                                                               AND T.PartitionKey = @partitionKey
                                                                               AND T.SopInstanceKey1 = @studyKey
                                                                               AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
@@ -1588,7 +1589,8 @@ BEGIN
                           INNER JOIN
                           dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
                           ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
+                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.ResourceType = @resourceType
+                                                                              AND T.TagKey = S.TagKey
                                                                               AND T.PartitionKey = @partitionKey
                                                                               AND T.SopInstanceKey1 = @studyKey
                                                                               AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
@@ -1610,7 +1612,8 @@ BEGIN
                           INNER JOIN
                           dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
                           ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
+                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.ResourceType = @resourceType
+                                                                              AND T.TagKey = S.TagKey
                                                                               AND T.PartitionKey = @partitionKey
                                                                               AND T.SopInstanceKey1 = @studyKey
                                                                               AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
@@ -1633,7 +1636,8 @@ BEGIN
                           INNER JOIN
                           dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
                           ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
+                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.ResourceType = @resourceType
+                                                                              AND T.TagKey = S.TagKey
                                                                               AND T.PartitionKey = @partitionKey
                                                                               AND T.SopInstanceKey1 = @studyKey
                                                                               AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
@@ -1655,7 +1659,8 @@ BEGIN
                           INNER JOIN
                           dbo.ExtendedQueryTag WITH (REPEATABLEREAD)
                           ON dbo.ExtendedQueryTag.TagKey = input.TagKey
-                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.TagKey = S.TagKey
+                             AND dbo.ExtendedQueryTag.TagStatus <> 2) AS S ON T.ResourceType = @resourceType
+                                                                              AND T.TagKey = S.TagKey
                                                                               AND T.PartitionKey = @partitionKey
                                                                               AND T.SopInstanceKey1 = @studyKey
                                                                               AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
@@ -1784,7 +1789,7 @@ BEGIN
     IF @status <> 1
         THROW 50409, 'Instance has not yet been stored succssfully', 1;
     BEGIN TRY
-        EXECUTE dbo.IIndexInstanceCoreV8 @partitionKey, @studyKey, @seriesKey, @instanceKey, @watermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
+        EXECUTE dbo.IIndexInstanceCoreV9 @partitionKey, @studyKey, @seriesKey, @instanceKey, @watermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
     END TRY
     BEGIN CATCH
         THROW;

@@ -52,6 +52,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E
             {
                 { "DicomServer:Features:EnableExtendedQueryTags", "true" },
                 { "DicomServer:Features:EnableDataPartitions", enableDataPartitions.ToString() },
+                { "DicomServer:Features:EnableUpsRs", "true" }
             };
 
             string dbName = enableDataPartitions ? "DicomWithPartitions" : "Dicom";
