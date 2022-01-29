@@ -46,7 +46,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [PartitionRoute(KnownRoutes.CreateWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedWorkitemInstance)]
         [VersionedRoute(KnownRoutes.CreateWorkitemInstancesRoute, Name = KnownRouteNames.VersionedWorkitemInstance)]
         [Route(KnownRoutes.CreateWorkitemInstancesRoute, Name = KnownRouteNames.WorkitemInstance)]
-        [AuditEventType(AuditEventSubType.Workitem)]
+        [AuditEventType(AuditEventSubType.AddWorkitem)]
         public async Task<IActionResult> AddAsync(string workitemInstanceUid = null)
         {
             return await PostAsync(workitemInstanceUid);
