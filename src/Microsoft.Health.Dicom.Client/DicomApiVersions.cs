@@ -8,6 +8,7 @@ namespace Microsoft.Health.Dicom.Client
     public static class DicomApiVersions
     {
         public const string V1Prerelease = "v1.0-prerelease";
-        public const string Latest = "v1.0-prerelease";
+        public const string V1 = "v1";
+        public const string Latest = "v1";
     }
 }

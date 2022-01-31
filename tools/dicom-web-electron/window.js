@@ -8,7 +8,7 @@ $(() => {
     let displayServerEdit = false
     let serverAddressInput = $("#server-address-input")
     let bearerTokenInput = $('#bearer-token-input')
-    let serverVersionInput = $('#server-version-input')
+    let serverVersionInput = $("[name='version']")
     let serverAddressButton = $("#set-server-address")
     let selectFileButton = $("#select-file")
     let postFileButton = $("#post-file")
@@ -39,7 +39,8 @@ $(() => {
     }
 
     let baseUrl = () => {
-        return serverAddressInput.val() + "/" + serverVersionInput.val()
+        var version = $("[name='version']:checked").val()
+        return serverAddressInput.val() + "/" + version
     }
 
     let partitionUrl = () => {
@@ -125,6 +126,10 @@ $(() => {
             partitionNameInput.prop('disabled', false)
         }
         displayServerEdit = !displayServerEdit
+    })
+
+    serverVersionInput.change(() => {
+        serverAddressDisplay.html(getPostUrl())
     })
 
     selectFileButton.click(() => {
