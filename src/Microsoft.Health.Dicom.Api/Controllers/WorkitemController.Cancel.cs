@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [PartitionRoute(KnownRoutes.CancelWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedCancelWorkitemInstance)]
         [VersionedRoute(KnownRoutes.CancelWorkitemInstancesRoute, Name = KnownRouteNames.VersionedCancelWorkitemInstance)]
         [Route(KnownRoutes.CancelWorkitemInstancesRoute, Name = KnownRouteNames.CancelWorkitemInstance)]
-        [AuditEventType(AuditEventSubType.Workitem)]
+        [AuditEventType(AuditEventSubType.CancelWorkitem)]
         public async Task<IActionResult> CancelAsync(string workitemInstanceUid = null)
         {
             return await PostCancelAsync(workitemInstanceUid).ConfigureAwait(false);

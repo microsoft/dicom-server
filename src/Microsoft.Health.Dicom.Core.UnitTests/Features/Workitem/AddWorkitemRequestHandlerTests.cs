@@ -11,7 +11,7 @@ using FellowOakDicom;
 using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
-using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
+using Microsoft.Health.Dicom.Core.Messages.Workitem;
 using NSubstitute;
 using Xunit;
 

@@ -13,9 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
-using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -34,15 +32,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             IDicomRequestContextAccessor contextAccessor,
             IWorkitemStore workitemStore,
             IIndexWorkitemStore indexWorkitemStore,
-            IDeleteService deleteService,
             IWorkitemQueryTagService workitemQueryTagService,
             ILogger<WorkitemOrchestrator> logger)
         {
             _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
             _indexWorkitemStore = EnsureArg.IsNotNull(indexWorkitemStore, nameof(indexWorkitemStore));
             _workitemStore = EnsureArg.IsNotNull(workitemStore, nameof(workitemStore));
-            _workitemQueryTagService = workitemQueryTagService;
-            _logger = logger;
+            _workitemQueryTagService = EnsureArg.IsNotNull(workitemQueryTagService, nameof(workitemQueryTagService));
+            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
         /// <inheritdoc />

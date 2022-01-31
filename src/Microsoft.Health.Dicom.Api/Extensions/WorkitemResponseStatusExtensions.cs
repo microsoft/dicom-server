@@ -5,7 +5,7 @@
 
 using System.Collections.Generic;
 using System.Net;
-using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
+using Microsoft.Health.Dicom.Core.Messages.Workitem;
 
 namespace Microsoft.Health.Dicom.Api.Extensions
 {

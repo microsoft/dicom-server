@@ -3,7 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Messages.WorkitemMessages
+namespace Microsoft.Health.Dicom.Core.Messages.Workitem
 {
     /// <summary>
     /// Represents the add work-item response status.
