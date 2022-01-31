@@ -6,7 +6,7 @@
 using System.IO;
 using MediatR;
 
-namespace Microsoft.Health.Dicom.Core.Messages.WorkitemMessages
+namespace Microsoft.Health.Dicom.Core.Messages.Workitem
 {
     public class AddWorkitemRequest : IRequest<AddWorkitemResponse>
     {

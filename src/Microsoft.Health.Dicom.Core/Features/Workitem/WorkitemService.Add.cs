@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
-using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
+using Microsoft.Health.Dicom.Core.Messages.Workitem;
 using DicomValidationException = FellowOakDicom.DicomValidationException;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
@@ -26,13 +26,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             LoggerMessage.Define<ushort>(
                 LogLevel.Warning,
                 default,
-                "Failed to store the DICOM instance work-item entry. Failure code: {FailureCode}.");
+                "Failed to add the DICOM instance work-item entry. Failure code: {FailureCode}.");
 
         private static readonly Action<ILogger, Exception> LogSuccessfullyAddedDelegate =
             LoggerMessage.Define(
                 LogLevel.Information,
                 default,
-                "Successfully stored the DICOM instance work-item entry.");
+                "Successfully added the DICOM instance work-item entry.");
 
         public async Task<AddWorkitemResponse> ProcessAddAsync(DicomDataset dataset, string workitemInstanceUid, CancellationToken cancellationToken)
         {

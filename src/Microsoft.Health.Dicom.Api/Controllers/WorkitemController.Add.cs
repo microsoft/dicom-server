@@ -13,7 +13,7 @@ using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
-using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
+using Microsoft.Health.Dicom.Core.Messages.Workitem;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Net.Http.Headers;
 
@@ -46,7 +46,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [PartitionRoute(KnownRoutes.CreateWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedWorkitemInstance)]
         [VersionedRoute(KnownRoutes.CreateWorkitemInstancesRoute, Name = KnownRouteNames.VersionedWorkitemInstance)]
         [Route(KnownRoutes.CreateWorkitemInstancesRoute, Name = KnownRouteNames.WorkitemInstance)]
-        [AuditEventType(AuditEventSubType.Workitem)]
+        [AuditEventType(AuditEventSubType.AddWorkitem)]
         public async Task<IActionResult> AddAsync(string workitemInstanceUid = null)
         {
             return await PostAsync(workitemInstanceUid);

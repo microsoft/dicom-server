@@ -27,12 +27,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         public WorkitemService(
             IWorkitemResponseBuilder responseBuilder,
             IEnumerable<IWorkitemDatasetValidator> dicomDatasetValidators,
-            IWorkitemOrchestrator storeOrchestrator,
+            IWorkitemOrchestrator workitemOrchestrator,
             ILogger<WorkitemService> logger)
         {
             _responseBuilder = EnsureArg.IsNotNull(responseBuilder, nameof(responseBuilder));
             _validators = EnsureArg.IsNotNull(dicomDatasetValidators, nameof(dicomDatasetValidators));
-            _workitemOrchestrator = EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
+            _workitemOrchestrator = EnsureArg.IsNotNull(workitemOrchestrator, nameof(workitemOrchestrator));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
