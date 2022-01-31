@@ -9,7 +9,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 {
     public class StringSingleValueMatchCondition : SingleValueMatchCondition<string>
     {
-        internal StringSingleValueMatchCondition(QueryTag tag, string value)
+        public StringSingleValueMatchCondition(QueryTag tag, string value)
             : base(tag, value)
         {
         }

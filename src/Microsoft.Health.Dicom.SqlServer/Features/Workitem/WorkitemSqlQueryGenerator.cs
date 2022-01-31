@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Linq;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
@@ -35,6 +36,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             _stringBuilder = stringBuilder;
             _queryExpression = queryExpression;
             _schemaVersion = schemaVersion;
+
+            if ((int)_schemaVersion < SchemaVersionConstants.SupportUpsRsSchemaVersion)
+            {
+                throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+            }
 
             Build();
         }

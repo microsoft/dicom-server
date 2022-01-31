@@ -3,13 +3,18 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Features.Query.Model;
+using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
@@ -35,7 +40,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var queryTags = new List<QueryTag>()
             {
-                new QueryTag(new ExtendedQueryTagStoreEntry(2, tag2.GetPath(), tag2.GetDefaultVR().Code, null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled,0)),
+                new QueryTag(new WorkitemQueryTagStoreEntry(2, tag2.GetPath(), tag2.GetDefaultVR().Code)),
             };
 
             long workitemKey = await _fixture.IndexWorkitemStore.AddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
@@ -55,7 +60,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var queryTags = new List<QueryTag>()
             {
-                new QueryTag(new ExtendedQueryTagStoreEntry(2, tag2.GetPath(), tag2.GetDefaultVR().Code, null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled,0)),
+                new QueryTag(new WorkitemQueryTagStoreEntry(2, tag2.GetPath(), tag2.GetDefaultVR().Code)),
             };
 
             long workitemKey = await _fixture.IndexWorkitemStore.AddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
@@ -75,6 +80,39 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var workitemQueryTags = await _fixture.IndexWorkitemStore.GetWorkitemQueryTagsAsync(CancellationToken.None);
 
             Assert.NotEmpty(workitemQueryTags);
+        }
+
+        [Fact]
+        public async Task WhenWorkitemIsQueried_ThenReturnsMatchingWorkitems()
+        {
+            string workitemUid = DicomUID.Generate().UID;
+            DicomTag tag = DicomTag.PatientID;
+
+            var dataset = new DicomDataset();
+            dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemUid);
+            dataset.Add(tag, "FOO");
+
+            var queryTags = new List<QueryTag>()
+            {
+                new QueryTag(new WorkitemQueryTagStoreEntry(2, tag.GetPath(), tag.GetDefaultVR().Code)),
+            };
+
+            long workitemKey = await _fixture.IndexWorkitemStore.AddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
+
+            var includeField = new QueryIncludeField(new List<DicomTag> { tag });
+            var queryTag = new QueryTag(new WorkitemQueryTagStoreEntry(2, tag.GetPath(), tag.GetDefaultVR().Code));
+            var filters = new List<QueryFilterCondition>()
+            {
+                new StringSingleValueMatchCondition(queryTag, "FOO"),
+            };
+
+            var query = new QueryExpression(QueryResource.WorkitemInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
+
+            var result = await _fixture.IndexWorkitemStore.QueryAsync(DefaultPartition.Key, query, CancellationToken.None);
+
+            Assert.True(result.WorkitemInstances.Any());
+
+            Assert.Equal(workitemKey, result.WorkitemInstances.FirstOrDefault().WorkitemKey);
         }
     }
 }
