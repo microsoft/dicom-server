@@ -85,6 +85,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             referencedSopSequence.Items.Add(referencedSop);
         }
 
+        /// <inheritdoc/>
+        public void AddWarning(DicomDataset dicomDataset, ushort warningReasonCode)
+        {
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+
+            CreateDatasetIfNeeded();
+
+            if (!dicomDataset.TryGetSequence(DicomTag.WarningReason, out DicomSequence _))
+            {
+                dicomDataset.Add(DicomTag.WarningReason, warningReasonCode);
+            }
+        }
+
         /// <inheritdoc />
         public void AddFailure(DicomDataset dicomDataset, ushort failureReasonCode)
         {

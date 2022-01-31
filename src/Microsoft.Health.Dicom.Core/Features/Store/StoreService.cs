@@ -28,6 +28,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 default,
                 "Validation failed for the DICOM instance entry at index '{DicomInstanceEntryIndex}'. Failure code: {FailureCode}.");
 
+        private static readonly Action<ILogger, int, ushort, Exception> LogValidationSucceededWithWarningDelegate =
+            LoggerMessage.Define<int, ushort>(
+                LogLevel.Warning,
+                default,
+                "Validation succeeded with warning(s) for the DICOM instance entry at index '{DicomInstanceEntryIndex}'. {WarningCode}");
+
         private static readonly Action<ILogger, int, ushort, Exception> LogFailedToStoreDelegate =
             LoggerMessage.Define<int, ushort>(
                 LogLevel.Warning,
@@ -107,7 +113,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 // Open and validate the DICOM instance.
                 dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
-                await _dicomDatasetValidator.ValidateAsync(dicomDataset, _requiredStudyInstanceUid, cancellationToken);
+                var isValid = await _dicomDatasetValidator.ValidateAsync(dicomDataset, _requiredStudyInstanceUid, cancellationToken);
+                if (!isValid)
+                {
+                    LogValidationSucceededWithWarningDelegate(_logger, index, FailureReasonCodes.DataSetDoesNotMatchSOPClass, null);
+
+                    _storeResponseBuilder.AddWarning(dicomDataset, FailureReasonCodes.DataSetDoesNotMatchSOPClass);
+                }
             }
             catch (Exception ex)
             {
