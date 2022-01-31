@@ -20,6 +20,7 @@ using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.IO;
 using System.Text.Json;
+using Azure;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage
 {
@@ -29,6 +30,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
     public class BlobWorkitemStore : IWorkitemStore
     {
         private const string AddWorkitemStreamTagName = nameof(BlobWorkitemStore) + "." + nameof(AddWorkitemAsync);
+        private const string GetWorkitemStreamTagName = nameof(BlobWorkitemStore) + "." + nameof(GetWorkitemAsync);
 
         private readonly BlobContainerClient _container;
         private readonly JsonSerializerOptions _jsonSerializerOptions;
@@ -85,6 +87,33 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
                         progressHandler: null,
                         cancellationToken);
                 }
+            }
+            catch (Exception ex)
+            {
+                throw new DataStoreException(ex);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<DicomDataset> GetWorkitemAsync(WorkitemInstanceIdentifier workitemInstanceIdentifier, CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(workitemInstanceIdentifier, nameof(workitemInstanceIdentifier));
+            BlockBlobClient cloudBlockBlob = GetBlockBlobClient(workitemInstanceIdentifier);
+
+            try
+            {
+                await using (Stream stream = _recyclableMemoryStreamManager.GetStream(GetWorkitemStreamTagName))
+                {
+                    await cloudBlockBlob.DownloadToAsync(stream, cancellationToken);
+
+                    stream.Seek(0, SeekOrigin.Begin);
+
+                    return await JsonSerializer.DeserializeAsync<DicomDataset>(stream, _jsonSerializerOptions, cancellationToken);
+                }
+            }
+            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
+            {
+                throw new ItemNotFoundException(ex);
             }
             catch (Exception ex)
             {

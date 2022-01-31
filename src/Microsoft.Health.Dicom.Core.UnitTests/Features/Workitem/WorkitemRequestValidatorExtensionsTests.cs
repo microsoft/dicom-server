@@ -7,7 +7,7 @@ using System;
 using System.IO;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
-using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
+using Microsoft.Health.Dicom.Core.Messages.Workitem;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem

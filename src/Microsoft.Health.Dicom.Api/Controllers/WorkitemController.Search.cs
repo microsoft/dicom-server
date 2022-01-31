@@ -31,8 +31,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// </summary>
         /// <returns>List of DicomDataset</returns>
         [HttpGet]
-        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
-        [Produces(KnownContentTypes.ApplicationDicomJson)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationJson }, allowSingle: true, allowMultiple: false)]
+        [Produces(KnownContentTypes.ApplicationJson)]
         [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
@@ -40,10 +40,10 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [PartitionRoute(KnownRoutes.SearchWorkitemInstancesRoute)]
         [VersionedRoute(KnownRoutes.SearchWorkitemInstancesRoute)]
         [Route(KnownRoutes.SearchWorkitemInstancesRoute)]
-        [AuditEventType(AuditEventSubType.Query)]
-        public async Task<IActionResult> SearchWorkitemsAsync([FromQuery] QueryOptions options)
+        [AuditEventType(AuditEventSubType.QueryWorkitem)]
+        public async Task<IActionResult> QueryWorkitemsAsync([FromQuery] QueryOptions options)
         {
-            _logger.LogInformation("Workitem search request received. QueryString {RequestQueryString}.", Request.QueryString);
+            _logger.LogInformation("Query workitem request received. QueryString {RequestQueryString}.", Request.QueryString);
 
             EnsureArg.IsNotNull(options);
             var response = await _mediator.QueryWorkitemsAsync(

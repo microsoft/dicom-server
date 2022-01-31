@@ -53,8 +53,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
         private void AppendFilterTable(string filterAlias)
         {
             _stringBuilder.AppendLine("( SELECT ");
-            _stringBuilder.AppendLine(VLatest.Workitem.WorkitemUid, WorkitemTableAlias);
-            _stringBuilder.AppendLine(VLatest.Workitem.WorkitemKey, WorkitemTableAlias);
+            _stringBuilder.AppendLine(VLatest.Workitem.WorkitemUid, WorkitemTableAlias).AppendLine(",");
+            _stringBuilder.AppendLine(VLatest.Workitem.WorkitemKey, WorkitemTableAlias).AppendLine();
             _stringBuilder.AppendLine($"FROM {VLatest.Workitem.TableName} {WorkitemTableAlias}");
 
             AppendExtendedQueryTagTables();
@@ -144,7 +144,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             _stringBuilder
                 .AppendLine("SELECT ")
                 .Append(VLatest.Workitem.WorkitemKey, tableAlias).AppendLine(",")
-                .Append(VLatest.Workitem.WorkitemUid, tableAlias).AppendLine(",")
+                .Append(VLatest.Workitem.WorkitemUid, tableAlias).AppendLine()
                 .AppendLine("FROM");
         }
 

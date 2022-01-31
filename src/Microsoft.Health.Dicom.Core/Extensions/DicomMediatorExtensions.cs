@@ -20,7 +20,7 @@ using Microsoft.Health.Dicom.Core.Messages.Partition;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Store;
-using Microsoft.Health.Dicom.Core.Messages.WorkitemMessages;
+using Microsoft.Health.Dicom.Core.Messages.Workitem;
 
 namespace Microsoft.Health.Dicom.Core.Extensions
 {
@@ -225,14 +225,14 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             return mediator.Send(new AddWorkitemRequest(requestBody, requestContentType, workitemInstanceUid), cancellationToken);
         }
 
-        public static Task<QueryResourceResponse> QueryWorkitemsAsync(
+        public static Task<QueryWorkitemResourceResponse> QueryWorkitemsAsync(
             this IMediator mediator,
             QueryParameters parameters,
             CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
             EnsureArg.IsNotNull(parameters, nameof(parameters));
-            return mediator.Send(new QueryResourceRequest(parameters), cancellationToken);
+            return mediator.Send(new QueryWorkitemResourceRequest(parameters), cancellationToken);
         }
     }
 }

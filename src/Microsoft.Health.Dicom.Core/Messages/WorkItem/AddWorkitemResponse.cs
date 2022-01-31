@@ -5,7 +5,7 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Core.Messages.WorkitemMessages
+namespace Microsoft.Health.Dicom.Core.Messages.Workitem
 {
     public sealed class AddWorkitemResponse
     {
