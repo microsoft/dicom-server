@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new WorkitemSqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
+            new WorkitemSqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V9, DefaultPartition.Key);
 
             string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagString cts1
 ON cts1.PartitionKey = w.PartitionKey
