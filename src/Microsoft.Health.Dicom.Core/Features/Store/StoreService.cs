@@ -106,6 +106,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         {
             IDicomInstanceEntry dicomInstanceEntry = _dicomInstanceEntries[index];
 
+            var warningReasonCode = (ushort?)null;
             DicomDataset dicomDataset = null;
 
             try
@@ -116,9 +117,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 var isValid = await _dicomDatasetValidator.ValidateAsync(dicomDataset, _requiredStudyInstanceUid, cancellationToken);
                 if (!isValid)
                 {
-                    LogValidationSucceededWithWarningDelegate(_logger, index, FailureReasonCodes.DataSetDoesNotMatchSOPClass, null);
+                    warningReasonCode = FailureReasonCodes.DataSetDoesNotMatchSOPClass;
 
-                    _storeResponseBuilder.AddWarning(dicomDataset, FailureReasonCodes.DataSetDoesNotMatchSOPClass);
+                    LogValidationSucceededWithWarningDelegate(_logger, index, FailureReasonCodes.DataSetDoesNotMatchSOPClass, null);
                 }
             }
             catch (Exception ex)
@@ -156,7 +157,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
                 LogSuccessfullyStoredDelegate(_logger, index, null);
 
-                _storeResponseBuilder.AddSuccess(dicomDataset);
+                _storeResponseBuilder.AddSuccess(dicomDataset, warningReasonCode);
             }
             catch (Exception ex)
             {

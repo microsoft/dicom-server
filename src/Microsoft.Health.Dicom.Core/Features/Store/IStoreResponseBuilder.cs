@@ -24,14 +24,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// Adds a Success entry to the response.
         /// </summary>
         /// <param name="dicomDataset">The DICOM dataset that was successfully stored.</param>
-        void AddSuccess(DicomDataset dicomDataset);
-
-        /// <summary>
-        /// Adds a Warning entry to the response.
-        /// </summary>
-        /// <param name="dicomDataset">The DICOM dataset that was successfully stored.</param>
         /// <param name="warningReasonCode">The warning reason code.</param>
-        void AddWarning(DicomDataset dicomDataset, ushort warningReasonCode);
+        void AddSuccess(DicomDataset dicomDataset, ushort? warningReasonCode = null);
 
         /// <summary>
         /// Adds a failed entry to the response.
