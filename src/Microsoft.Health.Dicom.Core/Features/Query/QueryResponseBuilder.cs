@@ -81,34 +81,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             DicomTag.NumberOfFrames,
         };
 
-        private static readonly HashSet<DicomTag> DefaultWorkitemTags = new HashSet<DicomTag>()
-        {
-            DicomTag.WorklistLabel,
-            DicomTag.ExpectedCompletionDateTime,
-            DicomTag.InputReadinessState,
-            DicomTag.PatientName,
-            DicomTag.PatientID,
-            DicomTag.PatientBirthDate,
-            DicomTag.PatientSex,
-            DicomTag.AdmissionID,
-            DicomTag.AccessionNumber,
-            DicomTag.RequestedProcedureID,
-            DicomTag.RequestingService,
-            DicomTag.ProcedureStepLabel,
-            DicomTag.ScheduledProcedureStepPriority,
-            DicomTag.ScheduledProcedureStepStartDateTime,
-            DicomTag.IssuerOfAdmissionIDSequence,
-            DicomTag.ReferencedRequestSequence,
-            DicomTag.IssuerOfAccessionNumberSequence,
-            DicomTag.ScheduledWorkitemCodeSequence,
-            DicomTag.ScheduledStationNameCodeSequence,
-            DicomTag.ScheduledStationClassCodeSequence,
-            DicomTag.ScheduledStationGeographicLocationCodeSequence,
-            DicomTag.ScheduledHumanPerformersSequence,
-            DicomTag.HumanPerformerCodeSequence,
-            DicomTag.ReplacedProcedureStepSequence
-        };
-
         private static readonly HashSet<DicomTag> AllInstancesTags = new HashSet<DicomTag>(DefaultInstancesTags);
 
         private static readonly HashSet<DicomTag> DefaultStudySeriesTags = new HashSet<DicomTag>(DefaultStudyTags.Union(DefaultSeriesTags));
@@ -122,8 +94,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
         private static readonly HashSet<DicomTag> DefaultSeriesInstanceTags = new HashSet<DicomTag>(DefaultSeriesTags.Union(DefaultInstancesTags));
 
         private static readonly HashSet<DicomTag> AllSeriesInstanceTags = new HashSet<DicomTag>(AllSeriesTags.Union(AllInstancesTags));
-
-        private static readonly HashSet<DicomTag> AllWorkitemTags = new HashSet<DicomTag>(DefaultWorkitemTags);
 
         private HashSet<DicomTag> _tagsToReturn;
 
@@ -169,7 +139,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                     _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllInstancesTags : DefaultInstancesTags);
                     break;
                 case QueryResource.WorkitemInstances:
-                    _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllWorkitemTags : DefaultWorkitemTags);
+                    _tagsToReturn = new HashSet<DicomTag>(QueryLimit.AllRequiredWorkitemTags);
                     break;
                 default:
                     Debug.Fail("A newly added queryResource is not implemeted here");
