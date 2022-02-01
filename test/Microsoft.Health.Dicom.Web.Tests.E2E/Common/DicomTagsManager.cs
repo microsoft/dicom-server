@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -14,6 +13,7 @@ using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Extensions;
 using Polly;
 using Polly.Retry;
+using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
 {
@@ -57,11 +57,20 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
 
             DicomWebResponse<OperationReference> response = await _dicomWebClient.AddExtendedQueryTagAsync(entries, cancellationToken);
             OperationReference operation = await response.GetValueAsync();
-            return await GetOperationStatusRetryPolicy.ExecuteAsync(async () =>
+
+            OperationStatus result = await GetOperationStatusRetryPolicy.ExecuteAsync(async () =>
             {
                 var operationStatus = await _dicomWebClient.GetOperationStatusAsync(operation.Id);
                 return await operationStatus.GetValueAsync();
             });
+
+            // Check reference
+            DicomWebResponse<OperationStatus> actualResponse = await _dicomWebClient.ResolveReferenceAsync(operation, cancellationToken);
+            OperationStatus actual = await actualResponse.GetValueAsync();
+            Assert.Equal(result.OperationId, actual.OperationId);
+            Assert.Equal(result.Status, actual.Status);
+
+            return result;
         }
 
         public async Task<GetExtendedQueryTagEntry> GetTagAsync(string tagPath, CancellationToken cancellationToken = default)
@@ -78,7 +87,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
             EnsureArg.IsGte(offset, 0, nameof(offset));
 
             var response = await _dicomWebClient.GetExtendedQueryTagsAsync(limit, offset, cancellationToken);
-            return (await response.GetValueAsync()).ToList();
+            return await response.GetValueAsync();
         }
 
         public async Task<IReadOnlyList<ExtendedQueryTagError>> GetTagErrorsAsync(string tagPath, int limit, int offset, CancellationToken cancellationToken = default)
@@ -88,7 +97,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
             EnsureArg.IsGte(offset, 0, nameof(offset));
 
             var response = await _dicomWebClient.GetExtendedQueryTagErrorsAsync(tagPath, limit, offset, cancellationToken);
-            return (await response.GetValueAsync()).ToList();
+            return await response.GetValueAsync();
         }
 
         public async Task<GetExtendedQueryTagEntry> UpdateExtendedQueryTagAsync(string tagPath, UpdateExtendedQueryTagEntry newValue, CancellationToken cancellationToken = default)

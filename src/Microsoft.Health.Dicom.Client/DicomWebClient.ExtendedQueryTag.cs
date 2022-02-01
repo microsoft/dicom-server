@@ -49,7 +49,7 @@ namespace Microsoft.Health.Dicom.Client
             return new DicomWebResponse(response);
         }
 
-        public async Task<DicomWebResponse<IEnumerable<GetExtendedQueryTagEntry>>> GetExtendedQueryTagsAsync(int limit, int offset, CancellationToken cancellationToken)
+        public async Task<DicomWebResponse<IReadOnlyList<GetExtendedQueryTagEntry>>> GetExtendedQueryTagsAsync(int limit, int offset, CancellationToken cancellationToken)
         {
             EnsureArg.IsGte(limit, 1, nameof(limit));
             EnsureArg.IsGte(offset, 0, nameof(offset));
@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.Client
             using var request = new HttpRequestMessage(HttpMethod.Get, uri);
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
             await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
-            return new DicomWebResponse<IEnumerable<GetExtendedQueryTagEntry>>(response, ValueFactory<IEnumerable<GetExtendedQueryTagEntry>>);
+            return new DicomWebResponse<IReadOnlyList<GetExtendedQueryTagEntry>>(response, ValueFactory<IReadOnlyList<GetExtendedQueryTagEntry>>);
         }
 
         public async Task<DicomWebResponse<GetExtendedQueryTagEntry>> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken)
@@ -73,7 +73,7 @@ namespace Microsoft.Health.Dicom.Client
             return new DicomWebResponse<GetExtendedQueryTagEntry>(response, ValueFactory<GetExtendedQueryTagEntry>);
         }
 
-        public async Task<DicomWebResponse<IEnumerable<ExtendedQueryTagError>>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, int offset, CancellationToken cancellationToken)
+        public async Task<DicomWebResponse<IReadOnlyList<ExtendedQueryTagError>>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, int offset, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrWhiteSpace(tagPath, nameof(tagPath));
             EnsureArg.IsGte(limit, 1, nameof(limit));
@@ -89,7 +89,7 @@ namespace Microsoft.Health.Dicom.Client
             using var request = new HttpRequestMessage(HttpMethod.Get, uri);
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
             await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
-            return new DicomWebResponse<IEnumerable<ExtendedQueryTagError>>(response, ValueFactory<IEnumerable<ExtendedQueryTagError>>);
+            return new DicomWebResponse<IReadOnlyList<ExtendedQueryTagError>>(response, ValueFactory<IReadOnlyList<ExtendedQueryTagError>>);
         }
 
         public async Task<DicomWebResponse<GetExtendedQueryTagEntry>> UpdateExtendedQueryTagAsync(string tagPath, UpdateExtendedQueryTagEntry newValue, CancellationToken cancellationToken)
@@ -97,7 +97,7 @@ namespace Microsoft.Health.Dicom.Client
             EnsureArg.IsNotNullOrWhiteSpace(tagPath, nameof(tagPath));
             EnsureArg.IsNotNull(newValue, nameof(newValue));
             EnsureArg.EnumIsDefined(newValue.QueryStatus, nameof(newValue));
-            string jsonString = JsonSerializer.Serialize(newValue, _jsonSerializerOptions);
+            string jsonString = JsonSerializer.Serialize(newValue, JsonSerializerOptions);
             var uri = new Uri($"/{_apiVersion}{DicomWebConstants.BaseExtendedQueryTagUri}/{tagPath}", UriKind.Relative);
 
             using var request = new HttpRequestMessage(HttpMethod.Patch, uri);
