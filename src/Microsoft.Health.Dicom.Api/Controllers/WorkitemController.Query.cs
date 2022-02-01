@@ -50,7 +50,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers
                 options.ToParameters(Request.Query, QueryResource.WorkitemInstances),
                 cancellationToken: HttpContext.RequestAborted);
 
-            Response.TryAddErroneousAttributesHeader(response.ErroneousTags);
             if (!response.ResponseDataset.Any())
             {
                 return NoContent();

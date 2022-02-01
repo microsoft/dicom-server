@@ -114,5 +114,55 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             Assert.Equal(workitemKey, result.WorkitemInstances.FirstOrDefault().WorkitemKey);
         }
+
+        [Fact]
+        public async Task WhenWorkitemIsQueriedWithOffsetAndLimit_ThenReturnsMatchingWorkitems()
+        {
+            string workitemUid1 = DicomUID.Generate().UID;
+            string workitemUid2 = DicomUID.Generate().UID;
+            DicomTag tag = DicomTag.PatientID;
+
+            var dataset1 = CreateSampleDataset(workitemUid1, tag);
+            var dataset2 = CreateSampleDataset(workitemUid2, tag);
+
+            var queryTags = new List<QueryTag>()
+            {
+                new QueryTag(new WorkitemQueryTagStoreEntry(2, tag.GetPath(), tag.GetDefaultVR().Code)),
+            };
+
+            long workitemKey1 = await _fixture.IndexWorkitemStore.AddWorkitemAsync(DefaultPartition.Key, dataset1, queryTags, CancellationToken.None);
+            long workitemKey2 = await _fixture.IndexWorkitemStore.AddWorkitemAsync(DefaultPartition.Key, dataset2, queryTags, CancellationToken.None);
+
+            var includeField = new QueryIncludeField(new List<DicomTag> { tag });
+            var queryTag = new QueryTag(new WorkitemQueryTagStoreEntry(2, tag.GetPath(), tag.GetDefaultVR().Code));
+            var filters = new List<QueryFilterCondition>()
+            {
+                new StringSingleValueMatchCondition(queryTag, "FOO"),
+            };
+
+            var query = new QueryExpression(QueryResource.WorkitemInstances, includeField, false, 1, 0, filters, Array.Empty<string>());
+
+            var result = await _fixture.IndexWorkitemStore.QueryAsync(DefaultPartition.Key, query, CancellationToken.None);
+
+            Assert.Single(result.WorkitemInstances);
+
+            Assert.Equal(workitemKey2, result.WorkitemInstances.FirstOrDefault().WorkitemKey);
+
+            query = new QueryExpression(QueryResource.WorkitemInstances, includeField, false, 1, 1, filters, Array.Empty<string>());
+
+            result = await _fixture.IndexWorkitemStore.QueryAsync(DefaultPartition.Key, query, CancellationToken.None);
+
+            Assert.Single(result.WorkitemInstances);
+
+            Assert.Equal(workitemKey1, result.WorkitemInstances.FirstOrDefault().WorkitemKey);
+        }
+
+        private DicomDataset CreateSampleDataset(string workitemUid, DicomTag tag)
+        {
+            var dataset = new DicomDataset();
+            dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemUid);
+            dataset.Add(tag, "FOO");
+            return dataset;
+        }
     }
 }

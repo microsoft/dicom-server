@@ -58,10 +58,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
         private void AppendFilterTable(string filterAlias)
         {
-            _stringBuilder.AppendLine("( SELECT ");
-            _stringBuilder.AppendLine(VLatest.Workitem.WorkitemUid, WorkitemTableAlias).AppendLine(",");
-            _stringBuilder.AppendLine(VLatest.Workitem.WorkitemKey, WorkitemTableAlias).AppendLine();
-            _stringBuilder.AppendLine($"FROM {VLatest.Workitem.TableName} {WorkitemTableAlias}");
+            _stringBuilder
+                .AppendLine("( SELECT ")
+                .Append(VLatest.Workitem.WorkitemUid, WorkitemTableAlias).AppendLine(",")
+                .Append(VLatest.Workitem.WorkitemKey, WorkitemTableAlias).AppendLine()
+                .AppendLine($"FROM {VLatest.Workitem.TableName} {WorkitemTableAlias}");
 
             AppendExtendedQueryTagTables();
 

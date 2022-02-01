@@ -436,6 +436,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
                 .Parse(CreateParameters(GetSingleton(key, value), QueryResource.AllSeries), QueryTagService.CoreQueryTags));
         }
 
+        [Theory]
+        [InlineData("ReferencedRequestSequence.Requested​Procedure​ID", "Foo")]
+        public void GivenSequenceTag_WithMultipleTagsNotSupported_ThenThrow(string key, string value)
+        {
+            Assert.Throws<DicomValidationException>(() => _queryParser
+                .Parse(CreateParameters(GetSingleton(key, value), QueryResource.AllSeries), QueryTagService.CoreQueryTags));
+        }
+
         [Fact]
         public void GivenStudyInstanceUID_WithUrl_CheckFilterCondition()
         {
@@ -516,6 +524,31 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 
             var exp = Assert.Throws<QueryParseException>(() => _queryParser.Parse(parameters, tags));
             Assert.Equal($"Query is disabled on specified attribute '{tag1.GetFriendlyName()}'.", exp.Message);
+        }
+
+        [Theory]
+        [InlineData("0040A370.00080050", "Foo")]
+        public void GivenWorkitemQueryTag_WithValidValue_ThenReturnsSuccessfully(string key, string value)
+        {
+            EnsureArg.IsNotNull(key, nameof(key));
+            EnsureArg.IsNotNull(value, nameof(value));
+            var item = new DicomSequence(
+                    DicomTag.ReferencedRequestSequence,
+                        new DicomDataset[] {
+                            new DicomDataset(
+                                new DicomShortString(
+                                DicomTag.AccessionNumber, "Foo"),
+                                new DicomShortString(
+                                DicomTag.RequestedProcedureID, "Bar"))});
+            QueryTag[] tags = new QueryTag[]
+            {
+              new QueryTag(Tests.Common.Extensions.DicomTagExtensions.BuildWorkitemQueryTagStoreEntry("0040A370.00080050", 1, item.ValueRepresentation.Code))
+            };
+
+            var expectedQueryTag = new QueryTag(Tests.Common.Extensions.DicomTagExtensions.BuildWorkitemQueryTagStoreEntry("00080050", 1, DicomTag.AccessionNumber.GetDefaultVR().Code));
+            QueryExpression queryExpression = _queryParser
+                 .Parse(CreateParameters(GetSingleton(key, value), QueryResource.WorkitemInstances), tags);
+            Assert.Equal(expectedQueryTag.Tag, queryExpression.FilterConditions.First().QueryTag.Tag);
         }
 
         private void VerifyIncludeFieldsForValidAttributeIds(params string[] values)
