@@ -26,7 +26,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         [Fact]
         public void GivenBuildResponse_WhenNoFailure_ThenResponseStatusIsSuccess()
         {
-            _dataset.Add(DicomTag.AffectedSOPInstanceUID, DicomUID.Generate().UID);
+            _dataset.Add(DicomTag.SOPInstanceUID, DicomUID.Generate().UID);
 
             _target.AddSuccess(_dataset);
 
@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         public void GivenBuildResponse_WhenNoFailure_ThenResponseUrlIncludesWorkitemInstanceUid()
         {
             var workitemInstanceUid = DicomUID.Generate().UID;
-            _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
+            _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
 
             _target.AddSuccess(_dataset);
 

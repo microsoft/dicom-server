@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             DicomTag tag2 = DicomTag.PatientName;
 
             var dataset = new DicomDataset();
-            dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemUid);
+            dataset.Add(DicomTag.SOPInstanceUID, workitemUid);
             dataset.Add(DicomTag.PatientName, "Foo");
 
             var queryTags = new List<QueryTag>()
@@ -50,7 +50,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             DicomTag tag2 = DicomTag.PatientName;
 
             var dataset = new DicomDataset();
-            dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemUid);
+            dataset.Add(DicomTag.SOPInstanceUID, workitemUid);
             dataset.Add(DicomTag.PatientName, "Foo");
 
             var queryTags = new List<QueryTag>()

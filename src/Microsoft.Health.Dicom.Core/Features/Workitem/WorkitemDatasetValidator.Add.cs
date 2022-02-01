@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             ValidateRequiredTags(dicomDataset);
 
-            ValidateAffectedSOPInstanceUID(dicomDataset, workitemInstanceUid);
+            ValidateWorkitemInstanceUid(dicomDataset, workitemInstanceUid);
 
             ValidateProcedureStepState(dicomDataset, workitemInstanceUid);
 

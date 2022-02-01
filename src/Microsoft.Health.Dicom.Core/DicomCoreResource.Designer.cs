@@ -688,20 +688,29 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to AffectedSOPInstanceUID &apos;{0}&apos; in the payload does not match the specified WorkitemInstanceUID &apos;{1}&apos;..
+        /// </summary>
+        internal static string MismatchAffectedSopInstanceWorkitemInstanceUid {
+            get {
+                return ResourceManager.GetString("MismatchAffectedSopInstanceWorkitemInstanceUid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SOPInstanceUID &apos;{0}&apos; in the payload does not match the specified WorkitemInstanceUID &apos;{1}&apos;..
+        /// </summary>
+        internal static string MismatchSopInstanceWorkitemInstanceUid {
+            get {
+                return ResourceManager.GetString("MismatchSopInstanceWorkitemInstanceUid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The StudyInstanceUid &apos;{0}&apos; in the payload does not match the specified StudyInstanceUid &apos;{1}&apos;..
         /// </summary>
         internal static string MismatchStudyInstanceUid {
             get {
                 return ResourceManager.GetString("MismatchStudyInstanceUid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to AffectedSOPInstanceUID &apos;{0}&apos; in the payload does not match the specified WorkitemInstanceUID &apos;{1}&apos;..
-        /// </summary>
-        internal static string MismatchWorkitemInstanceUid {
-            get {
-                return ResourceManager.GetString("MismatchWorkitemInstanceUid", resourceCulture);
             }
         }
         
@@ -756,6 +765,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string MissingVRCode {
             get {
                 return ResourceManager.GetString("MissingVRCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to WorkitemInstanceUID is missing..
+        /// </summary>
+        internal static string MissingWorkitemInstanceUid {
+            get {
+                return ResourceManager.GetString("MissingWorkitemInstanceUid", resourceCulture);
             }
         }
         

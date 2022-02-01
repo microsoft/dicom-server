@@ -493,10 +493,18 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>'{0}' is not a valid procedure step state for the specified WorkitemInstanceUID '{1}'. {2}</value>
     <comment>{0} ProcedureStepState. {1} WorkitemInstanceUID. {2} Error code</comment>
   </data>
-  <data name="MismatchWorkitemInstanceUid" xml:space="preserve">
+  <data name="MismatchSopInstanceWorkitemInstanceUid" xml:space="preserve">
+    <value>SOPInstanceUID '{0}' in the payload does not match the specified WorkitemInstanceUID '{1}'.</value>
+    <comment>{0} SOPInstanceUID. {1} WorkitemInstanceUID.</comment>
+  </data>
+  <data name="MismatchAffectedSopInstanceWorkitemInstanceUid" xml:space="preserve">
     <value>AffectedSOPInstanceUID '{0}' in the payload does not match the specified WorkitemInstanceUID '{1}'.</value>
     <comment>{0} AffectedSOPInstanceUID. {1} WorkitemInstanceUID.</comment>
   </data>
+  <data name="MissingWorkitemInstanceUid" xml:space="preserve">
+    <value>WorkitemInstanceUID is missing.</value>
+  </data>
+
   <data name="DuplicateTagValueNotSupported" xml:space="preserve">
     <value>Duplicate value '{0}' for tag '{1}' not supported in a sequence.</value>
     <comment>{0} String Value. {1} DicomTag.</comment>

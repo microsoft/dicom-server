@@ -25,23 +25,68 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
         protected abstract void OnValidate(DicomDataset dicomDataset, string workitemInstanceUid);
 
-        protected static void ValidateAffectedSOPInstanceUID(DicomDataset dicomDataset, string workitemInstanceUid)
+        protected static void ValidateWorkitemInstanceUid(DicomDataset dicomDataset, string workitemInstanceUid)
         {
-            // The format of the identifiers will be validated by fo-dicom.
-            string workitemUid = EnsureRequiredTagIsPresent(dicomDataset, DicomTag.AffectedSOPInstanceUID);
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-            // If the workitemInstanceUid is specified, then the workitemUid must match.
-            if (!string.IsNullOrWhiteSpace(workitemInstanceUid) &&
-                !workitemUid.Equals(workitemInstanceUid, StringComparison.OrdinalIgnoreCase))
+            // The format of the identifiers will be validated by fo-dicom.
+            var hasSopInstanceUid = dicomDataset.TryGetString(DicomTag.SOPInstanceUID, out var sopInstanceUid);
+            var hasAffectedSopInstanceUid = dicomDataset.TryGetString(DicomTag.AffectedSOPInstanceUID, out var affectedSopInstanceUid);
+
+            // if the workitemInstanceUid is available in SOPInstanceUid, check against the WorkitemInstanceUid that came in the Url
+            if (hasSopInstanceUid && !string.IsNullOrWhiteSpace(workitemInstanceUid) && !AreSame(workitemInstanceUid, sopInstanceUid))
             {
                 throw new DatasetValidationException(
                     FailureReasonCodes.ValidationFailure,
                     string.Format(
                         CultureInfo.InvariantCulture,
-                        DicomCoreResource.MismatchWorkitemInstanceUid,
-                        workitemUid,
+                        DicomCoreResource.MismatchSopInstanceWorkitemInstanceUid,
+                        sopInstanceUid,
                         workitemInstanceUid));
             }
+
+            // if the workitemInstanceUid is available in AffectedSOPInstanceUid, check against the WorkitemInstanceUid that came in the Url
+            if (hasAffectedSopInstanceUid && !string.IsNullOrWhiteSpace(workitemInstanceUid) && !AreSame(workitemInstanceUid, affectedSopInstanceUid))
+            {
+                throw new DatasetValidationException(
+                    FailureReasonCodes.ValidationFailure,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.MismatchAffectedSopInstanceWorkitemInstanceUid,
+                        affectedSopInstanceUid,
+                        workitemInstanceUid));
+            }
+
+            if (string.IsNullOrWhiteSpace(workitemInstanceUid))
+            {
+                var workitemUid = hasSopInstanceUid
+                    ? sopInstanceUid
+                    : hasAffectedSopInstanceUid ? affectedSopInstanceUid : null;
+
+                if (string.IsNullOrWhiteSpace(workitemUid))
+                {
+                    throw new DatasetValidationException(
+                        FailureReasonCodes.ValidationFailure,
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            DicomCoreResource.MissingWorkitemInstanceUid));
+                }
+            }
+        }
+
+        private static bool AreSame(string valueX, string valueY)
+        {
+            if (string.IsNullOrWhiteSpace(valueX) && string.IsNullOrWhiteSpace(valueY))
+            {
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(valueX) && !string.IsNullOrWhiteSpace(valueY))
+            {
+                return false;
+            }
+
+            return string.Equals(valueX, valueY, StringComparison.Ordinal);
         }
 
         protected static void ValidateProcedureStepState(DicomDataset dicomDataset, string workitemInstanceUid)
