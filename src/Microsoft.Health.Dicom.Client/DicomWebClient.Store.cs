@@ -143,7 +143,7 @@ namespace Microsoft.Health.Dicom.Client
                             statusCode,
                             responseHeaders,
                             contentHeaders,
-                            JsonSerializer.Deserialize<DicomDataset>(responseBody, _jsonSerializerOptions));
+                            JsonSerializer.Deserialize<DicomDataset>(responseBody, JsonSerializerOptions));
                     }
 
                     return false;

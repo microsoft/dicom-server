@@ -57,10 +57,10 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Debug|x64.ActiveCfg = Debug|x64
-		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Debug|x64.Build.0 = Debug|x64
-		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Release|x64.ActiveCfg = Release|x64
-		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Release|x64.Build.0 = Release|x64
+		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Debug|x64.Build.0 = Debug|Any CPU
+		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Release|x64.ActiveCfg = Release|Any CPU
+		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Release|x64.Build.0 = Release|Any CPU
 		{B0570D75-E376-44AC-870B-87ECB54F0AE3}.Debug|x64.ActiveCfg = Debug|x64
 		{B0570D75-E376-44AC-870B-87ECB54F0AE3}.Debug|x64.Build.0 = Debug|x64
 		{B0570D75-E376-44AC-870B-87ECB54F0AE3}.Release|x64.ActiveCfg = Release|x64
@@ -153,7 +153,7 @@ Global
 		{1D0ECFDA-2AF2-4796-995D-A7C6E18C9CD1} = {8C9A0050-5D22-4398-9F93-DDCD80B3BA51}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_SortFileContentOnSave = True
 		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
+		RESX_SortFileContentOnSave = True
 	EndGlobalSection
 EndGlobal

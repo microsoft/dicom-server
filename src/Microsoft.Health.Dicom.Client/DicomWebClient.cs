@@ -27,8 +27,8 @@ namespace Microsoft.Health.Dicom.Client
 {
     public partial class DicomWebClient : IDicomWebClient
     {
-        private readonly JsonSerializerOptions _jsonSerializerOptions;
         private readonly string _apiVersion;
+        internal static readonly JsonSerializerOptions JsonSerializerOptions = CreateJsonSerializerOptions();
 
         /// <summary>
         /// New instance of DicomWebClient to talk to the server
@@ -41,26 +41,6 @@ namespace Microsoft.Health.Dicom.Client
 
             HttpClient = httpClient;
             _apiVersion = apiVersion;
-            _jsonSerializerOptions = new JsonSerializerOptions
-            {
-                AllowTrailingCommas = true,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-                DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
-                Encoder = null,
-                IgnoreReadOnlyFields = false,
-                IgnoreReadOnlyProperties = false,
-                IncludeFields = false,
-                MaxDepth = 0, // 0 indicates the max depth of 64
-                NumberHandling = JsonNumberHandling.Strict,
-                PropertyNameCaseInsensitive = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                ReadCommentHandling = JsonCommentHandling.Skip,
-                WriteIndented = false,
-            };
-
-            _jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-            _jsonSerializerOptions.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: true, autoValidate: false));
-
             GetMemoryStream = () => new MemoryStream();
         }
 
@@ -74,10 +54,10 @@ namespace Microsoft.Health.Dicom.Client
         /// </remarks>
         public Func<MemoryStream> GetMemoryStream { get; set; }
 
-        private async Task<T> ValueFactory<T>(HttpContent content)
+        private static async Task<T> ValueFactory<T>(HttpContent content)
         {
             string contentText = await content.ReadAsStringAsync().ConfigureAwait(false);
-            return JsonSerializer.Deserialize<T>(contentText, _jsonSerializerOptions);
+            return JsonSerializer.Deserialize<T>(contentText, JsonSerializerOptions);
         }
 
         [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Callers will dispose of the StreamContent")]
@@ -223,7 +203,7 @@ namespace Microsoft.Health.Dicom.Client
             }
         }
 
-        private async IAsyncEnumerable<T> DeserializeAsAsyncEnumerable<T>(HttpContent content)
+        private static async IAsyncEnumerable<T> DeserializeAsAsyncEnumerable<T>(HttpContent content)
         {
             string contentText = await content.ReadAsStringAsync().ConfigureAwait(false);
 
@@ -232,10 +212,35 @@ namespace Microsoft.Health.Dicom.Client
                 yield break;
             }
 
-            foreach (T item in JsonSerializer.Deserialize<IReadOnlyList<T>>(contentText, _jsonSerializerOptions))
+            foreach (T item in JsonSerializer.Deserialize<IReadOnlyList<T>>(contentText, JsonSerializerOptions))
             {
                 yield return item;
             }
+        }
+
+        private static JsonSerializerOptions CreateJsonSerializerOptions()
+        {
+            var options = new JsonSerializerOptions
+            {
+                AllowTrailingCommas = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
+                Encoder = null,
+                IgnoreReadOnlyFields = false,
+                IgnoreReadOnlyProperties = false,
+                IncludeFields = false,
+                MaxDepth = 0, // 0 indicates the max depth of 64
+                NumberHandling = JsonNumberHandling.Strict,
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                ReadCommentHandling = JsonCommentHandling.Skip,
+                WriteIndented = false,
+            };
+
+            options.Converters.Add(new JsonStringEnumConverter());
+            options.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: true, autoValidate: false));
+
+            return options;
         }
     }
 }
