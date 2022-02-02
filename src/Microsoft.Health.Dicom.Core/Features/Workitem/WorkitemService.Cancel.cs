@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
@@ -56,6 +57,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             catch (Exception ex)
             {
                 ushort failureCode = FailureReasonCodes.ProcessingFailure;
+
+                switch (ex)
+                {
+                    case WorkitemNotFoundException _:
+                        // TODO: Should this also be treated as FailureReasonCodes.ValidationFailure???
+                        failureCode = FailureReasonCodes.ProcessingFailure;
+                        break;
+                    case DatasetValidationException _:
+                        failureCode = FailureReasonCodes.ValidationFailure;
+                        break;
+                }
 
                 LogFailedToCancelDelegate(_logger, failureCode, ex);
 

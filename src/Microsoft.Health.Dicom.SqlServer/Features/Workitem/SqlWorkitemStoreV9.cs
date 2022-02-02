@@ -13,6 +13,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
+using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
@@ -74,7 +75,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 var rows = ExtendedQueryTagDataRowsBuilder.Build(dataset, queryTags, Version);
-                var parameters = new VLatest.AddWorkitemTableValuedParameters(
+                var parameters = new VLatest.UpdateWorkitemTableValuedParameters(
                     rows.StringRows,
                     rows.DateTimeWithUtcRows,
                     rows.PersonNameRows
@@ -84,7 +85,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                     sqlCommandWrapper,
                     partitionKey,
                     workitemUid,
-                    parameters); ;
+                    parameters);
 
                 try
                 {
@@ -142,6 +143,37 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             }
 
             return results;
+        }
+
+        public async Task<WorkitemDetail> GetWorkitemDetailAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
+        {
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.GetWorkitemDetail.PopulateCommand(sqlCommandWrapper, partitionKey, workitemUid);
+
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                {
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        (string wiUid, long workitemKey, int pkey, string procedureStepState) = reader.ReadRow(
+                            new Health.SqlServer.Features.Schema.Model.VarCharColumn("WorkitemUid", 64),
+                            new Health.SqlServer.Features.Schema.Model.BigIntColumn("WorkitemKey"),
+                            new Health.SqlServer.Features.Schema.Model.IntColumn("PartitionKey"),
+                            new Health.SqlServer.Features.Schema.Model.NVarCharColumn("ProcedureStepState", 64));
+
+                        return new WorkitemDetail
+                        {
+                            WorkitemKey = workitemKey,
+                            WorkitemUid = wiUid,
+                            PartitionKey = pkey,
+                            ProcedureStepState = procedureStepState
+                        };
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -52,5 +53,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <param name="cancellationToken"></param>
         /// <returns>A task that gets workitem query tags.</returns>
         Task<IReadOnlyList<WorkitemQueryTagStoreEntry>> GetWorkitemQueryTagsAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Asynchronously gets workitem detail
+        /// </summary>
+        /// <param name="partitionKey">The partition key.</param>
+        /// <param name="workitemUid">Workitem instance UID</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>A task that gets workitem query tags.</returns>
+        Task<WorkitemDetail> GetWorkitemDetailAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default);
     }
 }

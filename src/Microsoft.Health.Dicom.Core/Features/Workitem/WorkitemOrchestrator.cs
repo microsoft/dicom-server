@@ -5,15 +5,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -86,8 +89,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             try
             {
                 var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
-                var queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken).ConfigureAwait(false);
 
+                // TODO: Need to find a way to move this out of Orchestrator. Should be part of the main validator???
+                await ValidateProcedureStepStateInStore(workitemInstanceUid, partitionKey, cancellationToken);
+
+                var queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken).ConfigureAwait(false);
                 var workitemKey = await _indexWorkitemStore
                     .UpdateWorkitemAsync(partitionKey, workitemInstanceUid, dataset, queryTags, cancellationToken)
                     .ConfigureAwait(false);
@@ -107,6 +113,31 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             catch
             {
                 throw;
+            }
+        }
+
+        private async Task ValidateProcedureStepStateInStore(string workitemInstanceUid, int partitionKey, CancellationToken cancellationToken)
+        {
+            var workitemDetail = await _indexWorkitemStore
+                .GetWorkitemDetailAsync(partitionKey, workitemInstanceUid, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (workitemDetail == null)
+            {
+                throw new WorkitemNotFoundException(workitemInstanceUid);
+            }
+
+            var transitionStateResult = ProcedureStepState.GetTransitionState(WorkitemStateEvents.NActionToRequestCancel, workitemDetail.ProcedureStepState);
+            if (transitionStateResult.IsError)
+            {
+                throw new DatasetValidationException(
+                    FailureReasonCodes.ValidationFailure,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.InvalidProcedureStepState,
+                        workitemDetail.ProcedureStepState,
+                        workitemInstanceUid,
+                        transitionStateResult.Code));
             }
         }
 

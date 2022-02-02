@@ -56,10 +56,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task AddWorkitemAsync(
-            WorkitemInstanceIdentifier identifier,
-            DicomDataset dataset,
-            CancellationToken cancellationToken)
+        public async Task AddWorkitemAsync(WorkitemInstanceIdentifier identifier, DicomDataset dataset, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(identifier, nameof(identifier));
             EnsureArg.IsNotNull(dataset, nameof(dataset));
@@ -75,6 +72,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
                     await utf8Writer.FlushAsync(cancellationToken);
                     stream.Seek(0, SeekOrigin.Begin);
 
+                    // Uploads the blob. Overwrites the blob if it exists, otherwise creates a new one.
                     await blob.UploadAsync(
                         stream,
                         new BlobHttpHeaders()

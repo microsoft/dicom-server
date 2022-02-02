@@ -1,9 +1,9 @@
 ﻿/*************************************************************
-    Stored procedure to update a workitem procedure step state.
+    Stored procedure to UpdateWorkitem a workitem procedure step state.
 **************************************************************/
 --
 -- STORED PROCEDURE
---     UpateWorkitem
+--     UpdateWorkitem
 --
 -- DESCRIPTION
 --     Update a UPS-RS Workitem.
@@ -13,8 +13,6 @@
 --         * The system identifier of the data partition.
 --     @workitemUid
 --         * The workitem UID.
---     @procedure​Step​StateTagPath
---         * Procedure Step State Tag Path
 --     @stringExtendedQueryTags
 --         * String extended query tag data
 --     @dateTimeExtendedQueryTags
@@ -24,10 +22,9 @@
 -- RETURN VALUE
 --     None
 ------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.UpateWorkitem
+CREATE OR ALTER PROCEDURE dbo.UpdateWorkitem
     @partitionKey                   INT,
     @workitemUid                    VARCHAR(64),
-    @procedureStepStateTagPath      VARCHAR(64),
 
     @stringExtendedQueryTags        dbo.InsertStringExtendedQueryTagTableType_1 READONLY,
     @dateTimeExtendedQueryTags      dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY,

@@ -11,6 +11,7 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
+using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 {
@@ -45,6 +46,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
         {
             ISqlWorkitemStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
             return await store.GetWorkitemQueryTagsAsync(cancellationToken);
+        }
+
+        public async Task<WorkitemDetail> GetWorkitemDetailAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
+        {
+            ISqlWorkitemStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+
+            return await store.GetWorkitemDetailAsync(partitionKey, workitemUid, cancellationToken);
         }
     }
 }

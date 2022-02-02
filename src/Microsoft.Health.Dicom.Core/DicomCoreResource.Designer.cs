@@ -1055,5 +1055,14 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("WorkitemInstanceAlreadyExists", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; is not found..
+        /// </summary>
+        internal static string WorkitemInstanceNotFound {
+            get {
+                return ResourceManager.GetString("WorkitemInstanceNotFound", resourceCulture);
+            }
+        }
     }
 }
