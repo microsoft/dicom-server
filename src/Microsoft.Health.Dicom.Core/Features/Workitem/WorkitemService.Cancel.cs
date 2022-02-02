@@ -47,7 +47,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             try
             {
-                await _workitemOrchestrator.CancelWorkitemAsync(workitemInstanceUid, cancellationToken).ConfigureAwait(false);
+                await _workitemOrchestrator.CancelWorkitemAsync(workitemInstanceUid, dataset, cancellationToken).ConfigureAwait(false);
 
                 LogSuccessfullyCanceledDelegate(_logger, null);
 

@@ -68,6 +68,35 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             }
         }
 
+        public async Task<long> UpdateWorkitemAsync(int partitionKey, string workitemUid, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
+        {
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                var rows = ExtendedQueryTagDataRowsBuilder.Build(dataset, queryTags, Version);
+                var parameters = new VLatest.AddWorkitemTableValuedParameters(
+                    rows.StringRows,
+                    rows.DateTimeWithUtcRows,
+                    rows.PersonNameRows
+                );
+
+                VLatest.UpdateWorkitem.PopulateCommand(
+                    sqlCommandWrapper,
+                    partitionKey,
+                    workitemUid,
+                    parameters); ;
+
+                try
+                {
+                    return (long)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+                }
+                catch (SqlException ex)
+                {
+                    throw new DataStoreException(ex);
+                }
+            }
+        }
+
         public async Task DeleteWorkitemAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))

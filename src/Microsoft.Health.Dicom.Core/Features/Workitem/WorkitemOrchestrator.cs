@@ -78,25 +78,31 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
         }
 
-        public async Task CancelWorkitemAsync(string workitemInstanceUid, CancellationToken cancellationToken)
+        public async Task CancelWorkitemAsync(string workitemInstanceUid, DicomDataset dataset, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(dataset, nameof(dataset));
             EnsureArg.IsNotNull(workitemInstanceUid, nameof(workitemInstanceUid));
 
             try
             {
-                // Get the WorkitemKey
-                long workitemKey = 0;
+                var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
+                var queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken).ConfigureAwait(false);
 
-                int partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
+                var workitemKey = await _indexWorkitemStore
+                    .UpdateWorkitemAsync(partitionKey, workitemInstanceUid, dataset, queryTags, cancellationToken)
+                    .ConfigureAwait(false);
 
                 var workitemInstanceIdentifier = new WorkitemInstanceIdentifier(workitemInstanceUid, workitemKey, partitionKey);
 
-                var dicomDataset = await _workitemStore.GetWorkitemAsync(workitemInstanceIdentifier, cancellationToken).ConfigureAwait(false);
+                dataset.TryGetString(DicomTag.ReasonForCancellation, out var cancellationReason);
+                if (!string.IsNullOrWhiteSpace(cancellationReason))
+                {
+                    var blobDicomDataset = await GetWorkitemBlobAsync(workitemInstanceIdentifier, cancellationToken).ConfigureAwait(false);
 
-                // If there is a reason provided for cancelation, read the Blob from Blob store.
-                // Add the reason
+                    blobDicomDataset.AddOrUpdate(DicomTag.ReasonForCancellation, cancellationReason);
 
-                await Task.FromResult(0);
+                    await StoreWorkitemBlobAsync(workitemInstanceIdentifier, blobDicomDataset, cancellationToken).ConfigureAwait(false);
+                }
             }
             catch
             {
@@ -105,9 +111,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         }
 
         /// <inheritdoc />
-        private async Task TryDeleteWorkitemAsync(
-            WorkitemInstanceIdentifier identifier,
-            CancellationToken cancellationToken)
+        private async Task TryDeleteWorkitemAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken)
         {
             if (null == identifier)
             {

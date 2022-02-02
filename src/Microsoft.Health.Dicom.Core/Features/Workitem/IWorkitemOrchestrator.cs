@@ -27,8 +27,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// Asynchronously orchestrate the canceling of a UPS-RS workitem.
         /// </summary>
         /// <param name="workitemInstanceUid">The workitem instance UID</param>
+        /// <param name="dataset">The workitem dataset to add.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        Task CancelWorkitemAsync(string workitemInstanceUid, CancellationToken cancellationToken);
+        Task CancelWorkitemAsync(string workitemInstanceUid, DicomDataset dataset, CancellationToken cancellationToken);
     }
 }

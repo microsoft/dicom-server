@@ -1830,12 +1830,15 @@ END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.UpateWorkitem
-@partitionKey INT, @workitemUid VARCHAR (64), @procedureStepStateTagPath VARCHAR (64)
+@partitionKey INT, @workitemUid VARCHAR (64), @procedureStepStateTagPath VARCHAR (64), @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
+    DECLARE @workitemResourceType AS TINYINT = 1;
+    DECLARE @newWatermark AS BIGINT;
+    SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
     DECLARE @workitemKey AS BIGINT;
     SELECT @workitemKey = WorkitemKey
     FROM   dbo.Workitem
@@ -1843,6 +1846,48 @@ BEGIN
            AND WorkitemUid = @workitemUid;
     IF @@ROWCOUNT = 0
         THROW 50413, 'Workitem does not exists', 1;
+    IF EXISTS (SELECT 1
+               FROM   @stringExtendedQueryTags)
+        BEGIN
+            UPDATE dbo.ExtendedQueryTagString
+            SET    TagValue  = input.TagValue,
+                   Watermark = @newWatermark
+            WHERE  dbo.ExtendedQueryTagString.SopInstanceKey1 = @workitemKey
+                   AND PartitionKey = @partitionKey
+                   AND TagKey = (SELECT input.TagKey
+                                 FROM   @stringExtendedQueryTags AS input
+                                        INNER JOIN
+                                        dbo.WorkitemQueryTag
+                                        ON dbo.WorkitemQueryTag.TagKey = input.TagKey);
+        END
+    IF EXISTS (SELECT 1
+               FROM   @dateTimeExtendedQueryTags)
+        BEGIN
+            UPDATE dbo.ExtendedQueryTagDateTime
+            SET    TagValue  = input.TagValue,
+                   Watermark = @newWatermark
+            WHERE  dbo.ExtendedQueryTagDateTime.SopInstanceKey1 = @workitemKey
+                   AND PartitionKey = @partitionKey
+                   AND TagKey = (SELECT input.TagKey
+                                 FROM   @dateTimeExtendedQueryTags AS input
+                                        INNER JOIN
+                                        dbo.WorkitemQueryTag
+                                        ON dbo.WorkitemQueryTag.TagKey = input.TagKey);
+        END
+    IF EXISTS (SELECT 1
+               FROM   @personNameExtendedQueryTags)
+        BEGIN
+            UPDATE dbo.ExtendedQueryTagPersonName
+            SET    TagValue  = input.TagValue,
+                   Watermark = @newWatermark
+            WHERE  dbo.ExtendedQueryTagPersonName.SopInstanceKey1 = @workitemKey
+                   AND PartitionKey = @partitionKey
+                   AND TagKey = (SELECT input.TagKey
+                                 FROM   @personNameExtendedQueryTags AS input
+                                        INNER JOIN
+                                        dbo.WorkitemQueryTag
+                                        ON dbo.WorkitemQueryTag.TagKey = input.TagKey);
+        END
     COMMIT TRANSACTION;
 END
 
