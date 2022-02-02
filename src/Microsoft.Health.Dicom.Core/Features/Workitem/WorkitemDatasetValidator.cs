@@ -30,11 +30,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
             // The format of the identifiers will be validated by fo-dicom.
+            var hasWorkitemInstanceUid = !string.IsNullOrEmpty(workitemInstanceUid);
             var hasSopInstanceUid = dicomDataset.TryGetString(DicomTag.SOPInstanceUID, out var sopInstanceUid);
-            var hasAffectedSopInstanceUid = dicomDataset.TryGetString(DicomTag.AffectedSOPInstanceUID, out var affectedSopInstanceUid);
+            var hasAffectedSOPInstanceUID = dicomDataset.TryGetString(DicomTag.AffectedSOPInstanceUID, out var affectedSopInstanceUid);
+
+            if (string.IsNullOrWhiteSpace(workitemInstanceUid))
+            {
+                throw new DatasetValidationException(
+                    FailureReasonCodes.ValidationFailure,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.MissingWorkitemInstanceUid));
+            }
 
             // if the workitemInstanceUid is available in SOPInstanceUid, check against the WorkitemInstanceUid that came in the Url
-            if (hasSopInstanceUid && !string.IsNullOrWhiteSpace(workitemInstanceUid) && !AreSame(workitemInstanceUid, sopInstanceUid))
+            if (hasSopInstanceUid && hasWorkitemInstanceUid && !AreSame(workitemInstanceUid, sopInstanceUid))
             {
                 throw new DatasetValidationException(
                     FailureReasonCodes.ValidationFailure,
@@ -46,7 +56,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
 
             // if the workitemInstanceUid is available in AffectedSOPInstanceUid, check against the WorkitemInstanceUid that came in the Url
-            if (hasAffectedSopInstanceUid && !string.IsNullOrWhiteSpace(workitemInstanceUid) && !AreSame(workitemInstanceUid, affectedSopInstanceUid))
+            if (hasAffectedSOPInstanceUID && hasWorkitemInstanceUid && !AreSame(workitemInstanceUid, affectedSopInstanceUid))
             {
                 throw new DatasetValidationException(
                     FailureReasonCodes.ValidationFailure,
@@ -55,22 +65,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                         DicomCoreResource.MismatchAffectedSopInstanceWorkitemInstanceUid,
                         affectedSopInstanceUid,
                         workitemInstanceUid));
-            }
-
-            if (string.IsNullOrWhiteSpace(workitemInstanceUid))
-            {
-                var workitemUid = hasSopInstanceUid
-                    ? sopInstanceUid
-                    : hasAffectedSopInstanceUid ? affectedSopInstanceUid : null;
-
-                if (string.IsNullOrWhiteSpace(workitemUid))
-                {
-                    throw new DatasetValidationException(
-                        FailureReasonCodes.ValidationFailure,
-                        string.Format(
-                            CultureInfo.InvariantCulture,
-                            DicomCoreResource.MissingWorkitemInstanceUid));
-                }
             }
         }
 
