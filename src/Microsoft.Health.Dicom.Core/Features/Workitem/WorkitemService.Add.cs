@@ -39,15 +39,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             EnsureArg.IsNotNull(dataset, nameof(dataset));
 
             // The format of the identifiers will be validated by fo-dicom.
-            var hasWorkitemInstanceUid = !string.IsNullOrEmpty(workitemInstanceUid);
-            var hasSopInstanceUid = dataset.TryGetString(DicomTag.SOPInstanceUID, out var sopInstanceUid);
-            var hasAffectedSopInstanceUid = dataset.TryGetString(DicomTag.AffectedSOPInstanceUID, out var affectedSopInstanceUid);
-
-            var workitemUid = hasWorkitemInstanceUid
-                ? workitemInstanceUid
-                : (hasSopInstanceUid
+            var workitemUid = string.IsNullOrEmpty(workitemInstanceUid)
+                ? (dataset.TryGetString(DicomTag.SOPInstanceUID, out var sopInstanceUid)
                     ? sopInstanceUid
-                    : hasAffectedSopInstanceUid ? affectedSopInstanceUid : null);
+                    : dataset.TryGetString(DicomTag.AffectedSOPInstanceUID, out var affectedSopInstanceUid) ? affectedSopInstanceUid : null)
+                : workitemInstanceUid;
 
             if (Validate(dataset, workitemUid))
             {
