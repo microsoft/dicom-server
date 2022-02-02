@@ -5,7 +5,6 @@
 
 using System.Collections.Generic;
 using FellowOakDicom;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
@@ -16,24 +15,24 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
     {
         [Theory]
         [MemberData(nameof(GetExplicitVRTransferSyntax))]
-        public void GivenDicomDatasetWithNonImplicitVR_WhenValidating_ThenItShouldSucceed(DicomTransferSyntax transferSyntax)
+        public void GivenDicomDatasetWithNonImplicitVR_WhenValidating_ReturnsTrue(DicomTransferSyntax transferSyntax)
         {
             var dicomDataset = Samples
                 .CreateRandomInstanceDataset(dicomTransferSyntax: transferSyntax)
                 .NotValidated();
 
-            ImplicitValueRepresentationValidator.Validate(dicomDataset);
+            Assert.False(ImplicitValueRepresentationValidator.IsImplicitVR(dicomDataset));
         }
 
         [Theory]
         [MemberData(nameof(GetNonExplicitVRTransferSyntax))]
-        public void GivenDicomDatasetWithImplicitVR_WhenValidating_ThenItShouldThrowNotAcceptableException(DicomTransferSyntax transferSyntax)
+        public void GivenDicomDatasetWithImplicitVR_WhenValidating_ReturnsFalse(DicomTransferSyntax transferSyntax)
         {
             var dicomDataset = Samples
                 .CreateRandomInstanceDataset(dicomTransferSyntax: transferSyntax)
                 .NotValidated();
 
-            Assert.Throws<NotAcceptableException>(() => ImplicitValueRepresentationValidator.Validate(dicomDataset));
+            Assert.True(ImplicitValueRepresentationValidator.IsImplicitVR(dicomDataset));
         }
 
         public static IEnumerable<object[]> GetExplicitVRTransferSyntax()
