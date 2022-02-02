@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
     {
 
         [Fact]
-        public void GivenStringExtendedQueryTagFilter_WhenIELevelStudy_ValidateExtendedQueryTagFilter()
+        public void GivenWorkitemQueryTagFilter_ValidateGeneratedSqlFilters()
         {
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
             var includeField = new QueryIncludeField(new List<DicomTag>());

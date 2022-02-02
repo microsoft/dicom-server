@@ -5,12 +5,12 @@
 
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using FellowOakDicom;
 using EnsureThat;
+using FellowOakDicom;
 using FellowOakDicom.Serialization;
-using System.Text.Json;
 
 namespace Microsoft.Health.Dicom.Client
 {
