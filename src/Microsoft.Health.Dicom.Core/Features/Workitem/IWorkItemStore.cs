@@ -6,9 +6,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
-using Microsoft.Health.Dicom.Core.Features.Workitem;
 
-namespace Microsoft.Health.Dicom.Core.Features.Common
+namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
     /// <summary>
     /// Provides functionality to manage UPS-RS workitems.
@@ -18,11 +17,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         /// <summary>
         /// Asynchronously adds a workitem instance.
         /// </summary>
-        /// <param name="identifier"></param>
-        /// <param name="dataset"></param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="identifier">The workitem instance identifier.</param>
+        /// <param name="dataset">The dicom dataset</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous add operation.</returns>
-        Task AddWorkitemAsync(WorkitemInstanceIdentifier identifier, DicomDataset dataset, CancellationToken cancellationToken);
+        Task AddWorkitemAsync(WorkitemInstanceIdentifier identifier, DicomDataset dataset, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously gets a workitem instance.

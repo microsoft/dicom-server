@@ -39,9 +39,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             IWorkitemStore workitemStore,
             IIndexWorkitemStore indexWorkitemStore,
             IWorkitemQueryTagService workitemQueryTagService,
-            ILogger<WorkitemOrchestrator> logger,
             IQueryParser queryParser,
-            IQueryStore queryStore)
+            IQueryStore queryStore,
+            ILogger<WorkitemOrchestrator> logger)
         {
             _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
             _indexWorkitemStore = EnsureArg.IsNotNull(indexWorkitemStore, nameof(indexWorkitemStore));

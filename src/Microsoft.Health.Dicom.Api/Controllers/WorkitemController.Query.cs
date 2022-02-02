@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// This transaction searches the Worklist for Workitems that match the specified Query Parameters and returns a list of matching Workitems.
         /// Each Workitem in the returned list includes return Attributes specified in the request. The transaction corresponds to the UPS DIMSE C-FIND operation.
         /// </summary>
-        /// <returns>List of DicomDataset</returns>
+        /// <returns>ObjectResult which contains list of dicomdataset</returns>
         [HttpGet]
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationJson }, allowSingle: true, allowMultiple: false)]
         [Produces(KnownContentTypes.ApplicationJson)]
@@ -41,6 +41,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [VersionedRoute(KnownRoutes.SearchWorkitemInstancesRoute)]
         [Route(KnownRoutes.SearchWorkitemInstancesRoute)]
         [AuditEventType(AuditEventSubType.QueryWorkitem)]
+        [QueryModelStateValidator]
         public async Task<IActionResult> QueryWorkitemsAsync([FromQuery] QueryOptions options)
         {
             _logger.LogInformation("Query workitem request received. QueryString {RequestQueryString}.", Request.QueryString);
@@ -50,12 +51,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
                 options.ToParameters(Request.Query, QueryResource.WorkitemInstances),
                 cancellationToken: HttpContext.RequestAborted);
 
-            if (!response.ResponseDataset.Any())
-            {
-                return NoContent();
-            }
-
-            return StatusCode((int)HttpStatusCode.OK, response.ResponseDataset);
+            return response.ResponseDatasets.Any() ? StatusCode((int)HttpStatusCode.OK, response.ResponseDatasets) : NoContent();
         }
     }
 }

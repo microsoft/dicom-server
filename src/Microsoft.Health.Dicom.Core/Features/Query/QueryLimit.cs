@@ -49,7 +49,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             DicomTag.CodeValue
         };
 
-        public static readonly HashSet<DicomTag> RequiredWorkitemSingleTags = new HashSet<DicomTag>()
+        public static readonly HashSet<DicomTag> RequiredWorkitemSingleTags = new HashSet<DicomTag>
         {
             DicomTag.WorklistLabel,
             DicomTag.ExpectedCompletionDateTime,
@@ -67,7 +67,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             DicomTag.ScheduledProcedureStepStartDateTime
         };
 
-        public static readonly HashSet<DicomTag> RequiredWorkitemSequenceTags = new HashSet<DicomTag>()
+        public static readonly HashSet<DicomTag> RequiredWorkitemSequenceTags = new HashSet<DicomTag>
         {
             DicomTag.IssuerOfAdmissionIDSequence,
             DicomTag.ReferencedRequestSequence,

@@ -34,9 +34,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <summary>
         /// Asynchronously process the searching of a UPS-RS workitem
         /// </summary>
-        /// <param name="parameters"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <param name="parameters">Query parameters that contains filters</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task that represents the asynchronous process operation.</returns>
         Task<QueryWorkitemResourceResponse> ProcessQueryAsync(QueryParameters parameters, CancellationToken cancellationToken = default);
     }
 }

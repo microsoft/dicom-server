@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             { DicomVR.US, ParseLongTagValue },
 
             { DicomVR.FL, ParseDoubleTagValue },
-            { DicomVR.FD, ParseDoubleTagValue }
+            { DicomVR.FD, ParseDoubleTagValue },
         };
 
         public const string DateTagValueFormat = "yyyyMMdd";

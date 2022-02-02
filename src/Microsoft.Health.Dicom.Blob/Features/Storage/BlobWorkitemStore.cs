@@ -17,7 +17,6 @@ using FellowOakDicom;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.IO;
@@ -29,9 +28,6 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
     /// </summary>
     public class BlobWorkitemStore : IWorkitemStore
     {
-        private const string AddWorkitemStreamTagName = nameof(BlobWorkitemStore) + "." + nameof(AddWorkitemAsync);
-        private const string GetWorkitemStreamTagName = nameof(BlobWorkitemStore) + "." + nameof(GetWorkitemAsync);
-
         private readonly BlobContainerClient _container;
         private readonly JsonSerializerOptions _jsonSerializerOptions;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
@@ -59,16 +55,17 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         public async Task AddWorkitemAsync(
             WorkitemInstanceIdentifier identifier,
             DicomDataset dataset,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(identifier, nameof(identifier));
             EnsureArg.IsNotNull(dataset, nameof(dataset));
 
+            var addWorkitemStreamTagName = nameof(BlobWorkitemStore) + "." + nameof(AddWorkitemAsync);
             var blob = GetBlockBlobClient(identifier);
 
             try
             {
-                await using (Stream stream = _recyclableMemoryStreamManager.GetStream(AddWorkitemStreamTagName))
+                await using (Stream stream = _recyclableMemoryStreamManager.GetStream(addWorkitemStreamTagName))
                 using (Utf8JsonWriter utf8Writer = new Utf8JsonWriter(stream))
                 {
                     JsonSerializer.Serialize(utf8Writer, dataset, _jsonSerializerOptions);
@@ -95,14 +92,16 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task<DicomDataset> GetWorkitemAsync(WorkitemInstanceIdentifier workitemInstanceIdentifier, CancellationToken cancellationToken)
+        public async Task<DicomDataset> GetWorkitemAsync(WorkitemInstanceIdentifier workitemInstanceIdentifier, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(workitemInstanceIdentifier, nameof(workitemInstanceIdentifier));
+            var getWorkitemStreamTagName = nameof(BlobWorkitemStore) + "." + nameof(GetWorkitemAsync);
+
             BlockBlobClient cloudBlockBlob = GetBlockBlobClient(workitemInstanceIdentifier);
 
             try
             {
-                await using (Stream stream = _recyclableMemoryStreamManager.GetStream(GetWorkitemStreamTagName))
+                await using (Stream stream = _recyclableMemoryStreamManager.GetStream(getWorkitemStreamTagName))
                 {
                     await cloudBlockBlob.DownloadToAsync(stream, cancellationToken);
 

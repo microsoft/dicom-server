@@ -143,14 +143,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
             {
-                (long workitemKey, string wokritemInstanceUid) = reader.ReadRow(
+                (long workitemKey, string workitemInstanceUid) = reader.ReadRow(
                    VLatest.Workitem.WorkitemKey,
                    VLatest.Workitem.WorkitemUid);
 
                 results.Add(new WorkitemInstanceIdentifier(
-                        wokritemInstanceUid,
-                        workitemKey,
-                        partitionKey));
+                    workitemInstanceUid,
+                    workitemKey,
+                    partitionKey));
             }
 
             return new WorkitemQueryResult(results);
