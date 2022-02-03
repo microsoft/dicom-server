@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -41,7 +42,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         {
             using (var stream = new MemoryStream(await GetWorkitemBytesAsync()))
             {
-                var datasets = await _target.DeserializeAsync<DicomDataset>(stream, KnownContentTypes.ApplicationJson);
+                var datasets = await _target.DeserializeAsync<IEnumerable<DicomDataset>>(stream, KnownContentTypes.ApplicationJson);
 
                 Assert.NotNull(datasets);
                 Assert.True(datasets.Any());

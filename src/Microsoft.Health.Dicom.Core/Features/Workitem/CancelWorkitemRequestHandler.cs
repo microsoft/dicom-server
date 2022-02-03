@@ -32,9 +32,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         }
 
         /// <inheritdoc />
-        public async Task<CancelWorkitemResponse> Handle(
-            CancelWorkitemRequest request,
-            CancellationToken cancellationToken)
+        public async Task<CancelWorkitemResponse> Handle(CancelWorkitemRequest request, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(request, nameof(request));
 
