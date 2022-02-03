@@ -5,7 +5,6 @@
 
 using System.Linq;
 using System.Threading.Tasks;
-using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -13,16 +12,8 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
-    public partial class WorkItemTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
+    public partial class WorkItemTransactionTests
     {
-        private readonly IDicomWebClient _client;
-
-        public WorkItemTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
-        {
-            EnsureArg.IsNotNull(fixture, nameof(fixture));
-            _client = fixture.GetDicomWebClient();
-        }
-
         [Fact]
         public async Task WhenAddingWorkitem_TheServerShouldCreateWorkitemSuccessfully()
         {

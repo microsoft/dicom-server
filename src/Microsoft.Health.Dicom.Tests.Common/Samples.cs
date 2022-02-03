@@ -248,6 +248,18 @@ namespace Microsoft.Health.Dicom.Tests.Common
             return ds;
         }
 
+        public static DicomDataset CreateCancelWorkitemInstanceDataset(string workitemUid, string cancellationReason)
+        {
+            var ds = new DicomDataset
+            {
+                { DicomTag.SOPInstanceUID, workitemUid },
+                { DicomTag.AffectedSOPInstanceUID, workitemUid },
+                { DicomTag.ReasonForCancellation, cancellationReason }
+            };
+
+            return ds;
+        }
+
         private static IByteBuffer CreateRandomPixelData(int pixelDataSize)
         {
             var result = new byte[pixelDataSize];

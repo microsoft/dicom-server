@@ -34,6 +34,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Rest/WorkItemTransactionTests.*.cs">
+      <DependentUpon>Rest/WorkItemTransactionTests.cs</DependentUpon>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="TestFiles\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
