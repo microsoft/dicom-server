@@ -418,11 +418,13 @@ CREATE NONCLUSTERED INDEX IX_Study_PatientBirthDate_PartitionKey
     INCLUDE(StudyKey) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.Workitem (
-    WorkitemKey    BIGINT        NOT NULL,
-    PartitionKey   INT           DEFAULT 1 NOT NULL,
-    WorkitemUid    VARCHAR (64)  NOT NULL,
-    TransactionUid VARCHAR (64)  NULL,
-    CreatedDate    DATETIME2 (7) NOT NULL
+    WorkitemKey           BIGINT        NOT NULL,
+    PartitionKey          INT           DEFAULT 1 NOT NULL,
+    WorkitemUid           VARCHAR (64)  NOT NULL,
+    TransactionUid        VARCHAR (64)  NULL,
+    Status                TINYINT       NOT NULL,
+    CreatedDate           DATETIME2 (7) NOT NULL,
+    LastStatusUpdatedDate DATETIME2 (7) NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
@@ -431,7 +433,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_Workitem
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemUid_PartitionKey
     ON dbo.Workitem(WorkitemUid, PartitionKey)
-    INCLUDE(WorkitemKey, TransactionUid) WITH (DATA_COMPRESSION = PAGE);
+    INCLUDE(WorkitemKey, Status, TransactionUid) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.WorkitemQueryTag (
     TagKey  INT          NOT NULL,
@@ -764,14 +766,13 @@ END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.AddWorkitem
-@partitionKey INT, @workitemUid VARCHAR (64), @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
+@partitionKey INT, @workitemUid VARCHAR (64), @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY, @initialStatus TINYINT
 AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
     DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
-    DECLARE @workitemResourceType AS TINYINT = 1;
     DECLARE @workitemKey AS BIGINT;
     SELECT @workitemKey = WorkitemKey
     FROM   dbo.Workitem
@@ -780,8 +781,8 @@ BEGIN
     IF @@ROWCOUNT <> 0
         THROW 50409, 'Workitem already exists', 1;
     SET @workitemKey =  NEXT VALUE FOR dbo.WorkitemKeySequence;
-    INSERT  INTO dbo.Workitem (WorkitemKey, PartitionKey, WorkitemUid, CreatedDate)
-    VALUES                   (@workitemKey, @partitionKey, @workitemUid, @currentDate);
+    INSERT  INTO dbo.Workitem (WorkitemKey, PartitionKey, WorkitemUid, Status, CreatedDate, LastStatusUpdatedDate)
+    VALUES                   (@workitemKey, @partitionKey, @workitemUid, @initialStatus, @currentDate, @currentDate);
     BEGIN TRY
         EXECUTE dbo.IIndexWorkitemInstanceCore @partitionKey, @workitemKey, @stringExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
     END TRY
@@ -1902,6 +1903,25 @@ BEGIN
            AND StudyInstanceUid = @studyInstanceUid
            AND SeriesInstanceUid = @seriesInstanceUid
            AND SopInstanceUid = @sopInstanceUid;
+    COMMIT TRANSACTION;
+END
+
+GO
+CREATE OR ALTER PROCEDURE dbo.UpdateWorkitemStatus
+@partitionKey INT, @workitemKey BIGINT, @status TINYINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+    UPDATE dbo.Workitem
+    SET    Status                = @status,
+           LastStatusUpdatedDate = @currentDate
+    WHERE  PartitionKey = @partitionKey
+           AND WorkitemKey = @workitemKey;
+    IF @@ROWCOUNT = 0
+        THROW 50404, 'Workitem instance does not exist', 1;
     COMMIT TRANSACTION;
 END
 
