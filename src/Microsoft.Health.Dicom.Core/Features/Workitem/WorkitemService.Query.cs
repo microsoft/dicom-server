@@ -20,18 +20,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     /// </summary>
     public partial class WorkitemService
     {
-        private static readonly Action<ILogger, ushort, Exception> LogFailedToQueryDelegate =
-            LoggerMessage.Define<ushort>(
-                LogLevel.Warning,
-                default,
-                "Failed to query the DICOM instance work-item entry. Failure code: {FailureCode}.");
-
-        private static readonly Action<ILogger, Exception> LogSuccessfullyQueriedDelegate =
-            LoggerMessage.Define(
-                LogLevel.Information,
-                default,
-                "Successfully queried the DICOM instance work-item entry.");
-
         public async Task<QueryWorkitemResourceResponse> ProcessQueryAsync(BaseQueryParameters parameters, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(parameters, nameof(parameters));
@@ -40,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             {
                 var result = await _workitemOrchestrator.QueryAsync(parameters, cancellationToken).ConfigureAwait(false);
 
-                LogSuccessfullyQueriedDelegate(_logger, null);
+                _logger.LogInformation("Successfully queried the DICOM instance work-item entry.");
 
                 return result;
             }
@@ -48,7 +36,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             {
                 ushort failureCode = FailureReasonCodes.ProcessingFailure;
 
-                LogFailedToQueryDelegate(_logger, failureCode, ex);
+                _logger.LogWarning(ex, "Failed to query the DICOM instance work-item entry. Failure code: {FailureCode}.", failureCode);
 
                 throw;
             }

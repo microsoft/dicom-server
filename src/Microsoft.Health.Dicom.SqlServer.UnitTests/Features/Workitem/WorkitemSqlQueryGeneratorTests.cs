@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
             {
                 filter,
             };
-            var query = new QueryExpression(QueryResource.WorkitemInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
+            var query = new BaseQueryExpression(includeField, false, 0, 0, filters);
 
             SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
             var parm = new SqlQueryParameterManager(sqlParameterCollection);

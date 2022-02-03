@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -106,7 +105,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 new StringSingleValueMatchCondition(queryTag, "FOO"),
             };
 
-            var query = new QueryExpression(QueryResource.WorkitemInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
+            var query = new BaseQueryExpression(includeField, false, 0, 0, filters);
 
             var result = await _fixture.IndexWorkitemStore.QueryAsync(DefaultPartition.Key, query, CancellationToken.None);
 
@@ -140,7 +139,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 new StringSingleValueMatchCondition(queryTag, "FOO"),
             };
 
-            var query = new QueryExpression(QueryResource.WorkitemInstances, includeField, false, 1, 0, filters, Array.Empty<string>());
+            var query = new BaseQueryExpression(includeField, false, 1, 0, filters);
 
             var result = await _fixture.IndexWorkitemStore.QueryAsync(DefaultPartition.Key, query, CancellationToken.None);
 
@@ -148,7 +147,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             Assert.Equal(workitemKey2, result.WorkitemInstances.FirstOrDefault().WorkitemKey);
 
-            query = new QueryExpression(QueryResource.WorkitemInstances, includeField, false, 1, 1, filters, Array.Empty<string>());
+            query = new BaseQueryExpression(includeField, false, 1, 1, filters);
 
             result = await _fixture.IndexWorkitemStore.QueryAsync(DefaultPartition.Key, query, CancellationToken.None);
 

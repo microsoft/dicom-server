@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 // filter conditions with attributeId as key
                 if (!ParseFilterCondition(filter, queryTags, parameters.FuzzyMatching, out QueryFilterCondition condition))
                 {
-                    throw new QueryParseException(string.Format(DicomCoreResource.UnknownQueryParameter, filter.Key));
+                    throw new QueryParseException(string.Format(DicomCoreResource.UnsupportedWorkitemSearchParameter, filter.Key));
                 }
 
                 if (!filterConditions.TryAdd(condition.QueryTag.Tag, condition))

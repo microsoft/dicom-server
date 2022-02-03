@@ -124,7 +124,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
         public virtual async Task<WorkitemQueryResult> QueryAsync(
             int partitionKey,
-            QueryExpression query,
+            BaseQueryExpression query,
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(query, nameof(query));

@@ -21,13 +21,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
     internal class WorkitemSqlQueryGenerator : BaseSqlQueryGenerator
     {
         private readonly IndentedStringBuilder _stringBuilder;
-        private readonly QueryExpression _queryExpression;
+        private readonly BaseQueryExpression _queryExpression;
         private readonly SchemaVersion _schemaVersion;
         private const string WorkitemTableAlias = "w";
 
         public WorkitemSqlQueryGenerator(
             IndentedStringBuilder stringBuilder,
-            QueryExpression queryExpression,
+            BaseQueryExpression queryExpression,
             SqlQueryParameterManager sqlQueryParameterManager,
             SchemaVersion schemaVersion,
             int partitionKey)

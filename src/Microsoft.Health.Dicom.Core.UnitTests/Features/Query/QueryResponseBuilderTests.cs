@@ -143,25 +143,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             Assert.Contains<DicomTag>(DicomTag.SOPInstanceUID, tags); // Valid instance tag
         }
 
-        [Fact]
-        public void GivenWorkitemInstanceLevel_WithIncludeField_ValidReturned()
-        {
-            var includeField = new QueryIncludeField(new List<DicomTag> { DicomTag.PatientID });
-            var filters = new List<QueryFilterCondition>()
-            {
-                new StringSingleValueMatchCondition(new QueryTag(DicomTag.PatientName), "Foo"),
-            };
-            var query = new QueryExpression(QueryResource.WorkitemInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
-            var responseBuilder = new QueryResponseBuilder(query);
-
-            DicomDataset responseDataset = responseBuilder.GenerateResponseDataset(Samples.CreateRandomWorkitemInstanceDataset());
-            var tags = responseDataset.Select(i => i.Tag).ToList();
-
-            Assert.Contains<DicomTag>(DicomTag.PatientID, tags); // Valid inlcude
-            Assert.Contains<DicomTag>(DicomTag.PatientName, tags); // Valid filter
-            Assert.DoesNotContain<DicomTag>(DicomTag.TransactionUID, tags);
-        }
-
         private DicomDataset GenerateTestDataSet()
         {
             return new DicomDataset()

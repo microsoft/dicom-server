@@ -17,6 +17,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         public static DicomDataset GenerateResponseDataset(DicomDataset dicomDataset, BaseQueryExpression queryExpression)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(queryExpression, nameof(queryExpression));
 
             var tagsToReturn = new HashSet<DicomTag>(QueryLimit.AllRequiredWorkitemTags);
 
