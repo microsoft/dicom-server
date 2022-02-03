@@ -46,6 +46,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
 ON cts1.PartitionKey = w.PartitionKey
 AND cts1.ResourceType = 1
 AND cts1.SopInstanceKey1 = w.WorkitemKey
+AND w.Status = 1
 WHERE";
 
             string expectedFilters = @"AND cts1.TagKey=@p0
