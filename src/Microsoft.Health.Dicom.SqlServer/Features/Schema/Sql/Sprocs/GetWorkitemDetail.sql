@@ -21,6 +21,8 @@ CREATE OR ALTER PROCEDURE dbo.GetWorkitemDetail
     @workitemUid                    VARCHAR(64)
 AS
 BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
 
     SELECT
 	    wi.WorkitemUid,
