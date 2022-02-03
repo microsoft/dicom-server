@@ -26,8 +26,15 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// </summary>
         /// <remarks>
         /// This resource records a request that the specified UPS Instance be canceled.
+        /// 
+        /// This transaction allows a user agent that does not own a Workitem to request that it be canceled.
+        /// It corresponds to the UPS DIMSE N-ACTION operation "Request UPS Cancel". See Section CC.2.2 in PS3.4 .
+        /// 
+        /// To cancel a Workitem that the user agent owns, i.e., that is in the IN PROGRESS state,
+        /// the user agent uses the Change Workitem State transaction as described in Section 11.7.
+        /// 
         /// </remarks>
-        /// <param name="workitemInstanceUid"></param>
+        /// <param name="workitemInstanceUid">The workitem Uid</param>
         /// <returns></returns>
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationJson }, allowSingle: true, allowMultiple: false)]
         [Produces(KnownContentTypes.ApplicationJson)]
