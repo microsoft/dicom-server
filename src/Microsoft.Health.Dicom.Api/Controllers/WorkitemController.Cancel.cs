@@ -53,7 +53,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         private async Task<IActionResult> PostCancelAsync(string workitemInstanceUid)
         {
             long fileSize = Request.ContentLength ?? 0;
-            _logger.LogInformation("DICOM Web Store Workitem Transaction request received, with UPS instance UID {UPSInstanceUid}, and file size of {FileSize} bytes",
+            _logger.LogInformation("DICOM Web Store Workitem Transaction request received, with Workitem instance UID {WorkitemInstanceUid}, and file size of {FileSize} bytes",
                 workitemInstanceUid ?? string.Empty,
                 fileSize);
 

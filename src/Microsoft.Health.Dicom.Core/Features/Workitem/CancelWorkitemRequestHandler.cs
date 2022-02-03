@@ -6,6 +6,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using FellowOakDicom;
 using MediatR;
 using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -42,15 +43,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 throw new UnauthorizedDicomActionException(DataActions.Write);
             }
 
-            // request.Validate();
+            request.Validate();
 
-            var workitems = await _workitemSerializer.DeserializeAsync(request.RequestBody, request.RequestContentType);
+            var workitem = await _workitemSerializer
+                .DeserializeAsync<DicomDataset>(request.RequestBody, request.RequestContentType)
+                .ConfigureAwait(false);
 
-            return null;
-
-            //return await _workItemService
-            //    .ProcessCancelAsync(workitems.FirstOrDefault(), request.WorkitemInstanceUid, cancellationToken)
-            //    .ConfigureAwait(false);
+            return await _workItemService
+                .ProcessCancelAsync(workitem, request.WorkitemInstanceUid, cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }

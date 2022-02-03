@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using FellowOakDicom;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Core.Web;
@@ -26,13 +27,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         [Fact]
         public async Task GivenUnsupportedContentType_WhenHandled_ThenUnsupportedMediaTypeExceptionShouldBeThrown()
         {
-            await Assert.ThrowsAsync<UnsupportedMediaTypeException>(() => _target.DeserializeAsync(Stream.Null, @"invalid"));
+            await Assert.ThrowsAsync<UnsupportedMediaTypeException>(() => _target.DeserializeAsync<DicomDataset>(Stream.Null, @"invalid"));
         }
 
         [Fact]
         public async Task GivenNullStream_WhenDeserialized_ThrowsArgumentNullException()
         {
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _target.DeserializeAsync(null, KnownContentTypes.ApplicationJson));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _target.DeserializeAsync<DicomDataset>(null, KnownContentTypes.ApplicationJson));
         }
 
         [Fact]
@@ -40,7 +41,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         {
             using (var stream = new MemoryStream(await GetWorkitemBytesAsync()))
             {
-                var datasets = await _target.DeserializeAsync(stream, KnownContentTypes.ApplicationJson);
+                var datasets = await _target.DeserializeAsync<DicomDataset>(stream, KnownContentTypes.ApplicationJson);
 
                 Assert.NotNull(datasets);
                 Assert.True(datasets.Any());
