@@ -11,9 +11,9 @@ namespace Microsoft.Health.Dicom.Core.Messages.Workitem
 {
     public class QueryWorkitemResourceRequest : IRequest<QueryWorkitemResourceResponse>
     {
-        public QueryWorkitemResourceRequest(QueryParameters parameters)
+        public QueryWorkitemResourceRequest(BaseQueryParameters parameters)
             => Parameters = EnsureArg.IsNotNull(parameters, nameof(parameters));
 
-        public QueryParameters Parameters { get; }
+        public BaseQueryParameters Parameters { get; }
     }
 }

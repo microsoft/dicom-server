@@ -227,7 +227,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
         public static Task<QueryWorkitemResourceResponse> QueryWorkitemsAsync(
             this IMediator mediator,
-            QueryParameters parameters,
+            BaseQueryParameters parameters,
             CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));

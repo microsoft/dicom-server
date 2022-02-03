@@ -50,6 +50,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <param name="query">Query expression that matches the filters</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that gets workitem that matches the query filters</returns>
-        Task<WorkitemQueryResult> QueryAsync(int partitionKey, QueryExpression query, CancellationToken cancellationToken = default);
+        Task<WorkitemQueryResult> QueryAsync(int partitionKey, BaseQueryExpression query, CancellationToken cancellationToken = default);
     }
 }

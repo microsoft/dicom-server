@@ -37,6 +37,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <param name="parameters">Query parameters that contains filters</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous process operation.</returns>
-        Task<QueryWorkitemResourceResponse> ProcessQueryAsync(QueryParameters parameters, CancellationToken cancellationToken = default);
+        Task<QueryWorkitemResourceResponse> ProcessQueryAsync(BaseQueryParameters parameters, CancellationToken cancellationToken = default);
     }
 }

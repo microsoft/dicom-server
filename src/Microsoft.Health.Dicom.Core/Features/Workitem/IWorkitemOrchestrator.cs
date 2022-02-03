@@ -30,6 +30,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <param name="parameters"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<QueryWorkitemResourceResponse> QueryAsync(QueryParameters parameters, CancellationToken cancellationToken = default);
+        Task<QueryWorkitemResourceResponse> QueryAsync(BaseQueryParameters parameters, CancellationToken cancellationToken = default);
     }
 }

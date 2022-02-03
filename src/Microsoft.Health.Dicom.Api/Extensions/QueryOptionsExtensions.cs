@@ -21,12 +21,24 @@ namespace Microsoft.Health.Dicom.Api.Extensions
             nameof(QueryOptions.Limit),
             nameof(QueryOptions.Offset));
 
-        public static QueryParameters ToParameters(
+        public static QueryParameters ToQueryParameters(
             this QueryOptions options,
             IEnumerable<KeyValuePair<string, StringValues>> queryString,
             QueryResource resourceType,
             string studyInstanceUid = null,
             string seriesInstanceUid = null)
+        {
+            var parameters = ToBaseQueryParameters(options, queryString) as QueryParameters;
+            parameters.QueryResourceType = resourceType;
+            parameters.SeriesInstanceUid = seriesInstanceUid;
+            parameters.StudyInstanceUid = studyInstanceUid;
+
+            return parameters;
+        }
+
+        public static BaseQueryParameters ToBaseQueryParameters(
+            this QueryOptions options,
+            IEnumerable<KeyValuePair<string, StringValues>> queryString)
         {
             // Parse the remaining query-string parameters into a dictionary
             var filters = new Dictionary<string, string>();
@@ -45,16 +57,13 @@ namespace Microsoft.Health.Dicom.Api.Extensions
                 }
             }
 
-            return new QueryParameters
+            return new BaseQueryParameters
             {
                 Filters = filters,
                 FuzzyMatching = options.FuzzyMatching,
                 IncludeField = options.IncludeField,
                 Limit = options.Limit,
                 Offset = options.Offset,
-                QueryResourceType = resourceType,
-                SeriesInstanceUid = seriesInstanceUid,
-                StudyInstanceUid = studyInstanceUid,
             };
         }
     }

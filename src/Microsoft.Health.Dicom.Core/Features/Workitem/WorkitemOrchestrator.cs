@@ -12,7 +12,6 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
@@ -31,23 +30,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         private readonly IWorkitemStore _workitemStore;
         private readonly IWorkitemQueryTagService _workitemQueryTagService;
         private readonly ILogger<WorkitemOrchestrator> _logger;
-        private readonly IQueryParser _queryParser;
-        private readonly IQueryStore _queryStore;
+        private readonly IQueryParser<BaseQueryExpression, BaseQueryParameters> _queryParser;
 
         public WorkitemOrchestrator(
             IDicomRequestContextAccessor contextAccessor,
             IWorkitemStore workitemStore,
             IIndexWorkitemStore indexWorkitemStore,
             IWorkitemQueryTagService workitemQueryTagService,
-            IQueryParser queryParser,
-            IQueryStore queryStore,
+            IQueryParser<BaseQueryExpression, BaseQueryParameters> queryParser,
             ILogger<WorkitemOrchestrator> logger)
         {
             _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
             _indexWorkitemStore = EnsureArg.IsNotNull(indexWorkitemStore, nameof(indexWorkitemStore));
             _workitemStore = EnsureArg.IsNotNull(workitemStore, nameof(workitemStore));
             _queryParser = EnsureArg.IsNotNull(queryParser, nameof(queryParser));
-            _queryStore = EnsureArg.IsNotNull(queryStore, nameof(queryStore));
             _workitemQueryTagService = EnsureArg.IsNotNull(workitemQueryTagService, nameof(workitemQueryTagService));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
@@ -90,31 +86,25 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
         /// <inheritdoc />
         public async Task<QueryWorkitemResourceResponse> QueryAsync(
-            QueryParameters parameters,
+            BaseQueryParameters parameters,
             CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(parameters);
 
             var queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
 
-            QueryExpression queryExpression = _queryParser.Parse(parameters, queryTags);
+            BaseQueryExpression queryExpression = _queryParser.Parse(parameters, queryTags);
 
             var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
             WorkitemQueryResult queryResult = await _indexWorkitemStore.QueryAsync(partitionKey, queryExpression, cancellationToken);
 
-            if (!queryResult.WorkitemInstances.Any())
-            {
-                return new QueryWorkitemResourceResponse(Array.Empty<DicomDataset>(), queryExpression.ErroneousTags);
-            }
-
             IEnumerable<DicomDataset> workitems = await Task.WhenAll(
                 queryResult.WorkitemInstances.Select(x => _workitemStore.GetWorkitemAsync(x, cancellationToken)));
 
-            var responseBuilder = new QueryResponseBuilder(queryExpression);
-            IEnumerable<DicomDataset> workitemResponses = workitems.Select(m => responseBuilder.GenerateResponseDataset(m));
+            IEnumerable<DicomDataset> workitemResponses = workitems.Select(m => WorkitemQueryResponseBuilder.GenerateResponseDataset(m, queryExpression));
 
-            return new QueryWorkitemResourceResponse(workitemResponses, queryExpression.ErroneousTags);
+            return new QueryWorkitemResourceResponse(workitemResponses);
         }
 
         /// <inheritdoc />

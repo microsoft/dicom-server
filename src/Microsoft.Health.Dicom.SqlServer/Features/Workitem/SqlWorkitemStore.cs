@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             return await store.GetWorkitemQueryTagsAsync(cancellationToken);
         }
 
-        public async Task<WorkitemQueryResult> QueryAsync(int partitionKey, QueryExpression query, CancellationToken cancellationToken = default)
+        public async Task<WorkitemQueryResult> QueryAsync(int partitionKey, BaseQueryExpression query, CancellationToken cancellationToken = default)
         {
             ISqlWorkitemStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
             return await store.QueryAsync(partitionKey, query, cancellationToken);

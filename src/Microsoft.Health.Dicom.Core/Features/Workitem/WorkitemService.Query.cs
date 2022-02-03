@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 default,
                 "Successfully queried the DICOM instance work-item entry.");
 
-        public async Task<QueryWorkitemResourceResponse> ProcessQueryAsync(QueryParameters parameters, CancellationToken cancellationToken)
+        public async Task<QueryWorkitemResourceResponse> ProcessQueryAsync(BaseQueryParameters parameters, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(parameters, nameof(parameters));
 

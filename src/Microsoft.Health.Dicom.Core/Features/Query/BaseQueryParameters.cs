@@ -4,15 +4,19 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Query.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public interface IQueryParser<TQueryExpression, TQueryParameters>
-         where TQueryExpression : BaseQueryExpression
-         where TQueryParameters : BaseQueryParameters
+    public class BaseQueryParameters
     {
-        TQueryExpression Parse(TQueryParameters parameters, IReadOnlyCollection<QueryTag> queryTags);
+        public IReadOnlyDictionary<string, string> Filters { get; set; }
+
+        public int Offset { get; set; }
+
+        public int Limit { get; set; } = 100;
+
+        public bool FuzzyMatching { get; set; }
+
+        public IReadOnlyList<string> IncludeField { get; set; }
     }
 }

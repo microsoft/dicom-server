@@ -28,7 +28,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(exception.ResponseMessage, string.Format(DicomCoreResource.UnsupportedWorkitemSearchParameter, "Modality"));
         }
 
-
         [Fact]
         public async Task GivenSearchRequest_WithValidParamsAndNoMatchingResult_ReturnNoContent()
         {
@@ -118,7 +117,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             Assert.NotNull(testDataResponse);
             Assert.Equal(dicomDataset.GetSingleValue<string>(DicomTag.PatientName), testDataResponse.GetSingleValue<string>(DicomTag.PatientName));
-
         }
     }
 }

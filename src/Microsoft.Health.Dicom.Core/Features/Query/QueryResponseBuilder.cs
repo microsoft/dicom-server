@@ -138,9 +138,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 case QueryResource.StudySeriesInstances:
                     _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllInstancesTags : DefaultInstancesTags);
                     break;
-                case QueryResource.WorkitemInstances:
-                    _tagsToReturn = new HashSet<DicomTag>(QueryLimit.AllRequiredWorkitemTags);
-                    break;
                 default:
                     Debug.Fail("A newly added queryResource is not implemeted here");
                     break;

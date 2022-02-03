@@ -11,14 +11,11 @@ namespace Microsoft.Health.Dicom.Core.Messages.Workitem
 {
     public sealed class QueryWorkitemResourceResponse
     {
-        public QueryWorkitemResourceResponse(IEnumerable<DicomDataset> responseDataset, IReadOnlyCollection<string> erroneousTags)
+        public QueryWorkitemResourceResponse(IEnumerable<DicomDataset> responseDataset)
         {
             ResponseDatasets = EnsureArg.IsNotNull(responseDataset, nameof(responseDataset));
-            ErroneousTags = EnsureArg.IsNotNull(erroneousTags, nameof(erroneousTags));
         }
 
         public IEnumerable<DicomDataset> ResponseDatasets { get; }
-
-        public IReadOnlyCollection<string> ErroneousTags { get; }
     }
 }

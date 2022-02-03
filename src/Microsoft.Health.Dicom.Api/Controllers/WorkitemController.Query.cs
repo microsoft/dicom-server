@@ -18,7 +18,6 @@ using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Api.Models;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
-using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
@@ -48,7 +47,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
             EnsureArg.IsNotNull(options);
             var response = await _mediator.QueryWorkitemsAsync(
-                options.ToParameters(Request.Query, QueryResource.WorkitemInstances),
+                options.ToBaseQueryParameters(Request.Query),
                 cancellationToken: HttpContext.RequestAborted);
 
             return response.ResponseDatasets.Any() ? StatusCode((int)HttpStatusCode.OK, response.ResponseDatasets) : NoContent();

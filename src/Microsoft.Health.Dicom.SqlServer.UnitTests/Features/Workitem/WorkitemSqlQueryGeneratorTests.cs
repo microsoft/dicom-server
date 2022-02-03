@@ -22,7 +22,6 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
 {
     public class WorkitemSqlQueryGeneratorTests
     {
-
         [Fact]
         public void GivenWorkitemQueryTagFilter_ValidateGeneratedSqlFilters()
         {
