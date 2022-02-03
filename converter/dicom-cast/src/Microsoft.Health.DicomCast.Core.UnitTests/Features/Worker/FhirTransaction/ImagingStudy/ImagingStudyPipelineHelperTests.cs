@@ -66,7 +66,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         public async Task SyncPropertiesAsync_PartialValidationNotEnabled_ThrowsError()
         {
             ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
-            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(DicomCastDatasetGenerator.CreateDicomDataset());
+            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
 
             Action<ImagingStudy, FhirTransactionContext> actionSubstitute = Substitute.For<Action<ImagingStudy, FhirTransactionContext>>();
             actionSubstitute.When(x => x.Invoke(imagingStudy, context)).Do(x => throw new InvalidDicomTagValueException("invalid tag", "invalid tag"));
@@ -78,7 +78,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         public async Task SyncPropertiesAsync_PartialValidationEnabledAndPropertyRequired_ThrowsError()
         {
             ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
-            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(DicomCastDatasetGenerator.CreateDicomDataset());
+            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
 
             Action<ImagingStudy, FhirTransactionContext> actionSubstitute = Substitute.For<Action<ImagingStudy, FhirTransactionContext>>();
             actionSubstitute.When(x => x.Invoke(imagingStudy, context)).Do(x => throw new InvalidDicomTagValueException("invalid tag", "invalid tag"));
@@ -90,7 +90,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         public async Task SyncPropertiesAsync_PartialValidationEnabledAndPropertyNotRequired_NoError()
         {
             ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
-            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(DicomCastDatasetGenerator.CreateDicomDataset());
+            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
 
             Action<ImagingStudy, FhirTransactionContext> actionSubstitute = Substitute.For<Action<ImagingStudy, FhirTransactionContext>>();
             actionSubstitute.When(x => x.Invoke(imagingStudy, context)).Do(x => throw new InvalidDicomTagValueException("invalid tag", "invalid tag"));

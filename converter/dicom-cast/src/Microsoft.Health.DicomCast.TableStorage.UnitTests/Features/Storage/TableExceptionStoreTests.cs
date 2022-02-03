@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.DicomCast.Core.UnitTests;
+using Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction;
 using Microsoft.Health.DicomCast.TableStorage.Features.Storage;
 using NSubstitute;
 using Xunit;
@@ -31,7 +32,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.UnitTests.Features.Storage
         public async Task GivenTableExceptionSToreWithNoDicomCastName_WhenExceptionsAreThrown_AreStoredInTablesSuccessfully()
         {
 
-            await _tableExceptionStore.WriteExceptionAsync(ChangeFeedGenerator.Generate(1, metadata: DicomCastDatasetGenerator.CreateDicomDataset()), new Exception("new Exception"), Core.Features.ExceptionStorage.ErrorType.FhirError, string.Empty, CancellationToken.None);
+            await _tableExceptionStore.WriteExceptionAsync(ChangeFeedGenerator.Generate(1, metadata: FhirTransactionContextBuilder.CreateDicomDataset()), new Exception("new Exception"), Core.Features.ExceptionStorage.ErrorType.FhirError, string.Empty, CancellationToken.None);
         }
 
     }

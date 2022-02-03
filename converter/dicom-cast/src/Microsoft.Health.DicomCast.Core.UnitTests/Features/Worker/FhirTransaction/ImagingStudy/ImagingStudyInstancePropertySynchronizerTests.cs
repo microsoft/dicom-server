@@ -39,7 +39,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [Fact]
         public async Task GivenATransactionContexAndImagingStudy_WhenprocessedForInstance_ThenDicomPropertiesAreCorrectlyMappedtoInstanceWithinImagingStudyAsync()
         {
-            DicomDataset dataset = DicomCastDatasetGenerator.CreateDicomDataset();
+            DicomDataset dataset = FhirTransactionContextBuilder.CreateDicomDataset();
 
             ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(StudyInstanceUid, new List<string>() { SeriesInstanceUid }, new List<string>() { SopInstanceUid }, PatientResourceId);
             FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(dataset);
@@ -60,7 +60,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [Fact]
         public async Task GivenATransactionContextWithUpdatedInstanceNumber_WhenprocessedForInstance_ThenDicomPropertyValuesAreUpdatedCorrectlyAsync()
         {
-            DicomDataset dataset = DicomCastDatasetGenerator.CreateDicomDataset();
+            DicomDataset dataset = FhirTransactionContextBuilder.CreateDicomDataset();
 
             ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(StudyInstanceUid, new List<string>() { SeriesInstanceUid }, new List<string>() { SopInstanceUid }, PatientResourceId);
             FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(dataset);
@@ -72,7 +72,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
             Assert.Equal(1, instance.Number);
 
-            FhirTransactionContext newContext = FhirTransactionContextBuilder.DefaultFhirTransactionContext(DicomCastDatasetGenerator.CreateDicomDataset(instanceNumber: "2"));
+            FhirTransactionContext newContext = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset(instanceNumber: "2"));
 
             await _imagingStudyInstancePropertySynchronizer.SynchronizeAsync(newContext, instance, DefaultCancellationToken);
             Assert.Equal(2, instance.Number);
@@ -81,7 +81,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
         [Fact]
         public async Task GivenATransactionContextWithNoDicomPropertyValueChange_WhenprocessedForInstancee_ThenDicomPropertyValuesUpdateIsSkippedAsync()
         {
-            DicomDataset dataset = DicomCastDatasetGenerator.CreateDicomDataset();
+            DicomDataset dataset = FhirTransactionContextBuilder.CreateDicomDataset();
 
             ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(StudyInstanceUid, new List<string>() { SeriesInstanceUid }, new List<string>() { SopInstanceUid }, PatientResourceId);
             FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(dataset);
