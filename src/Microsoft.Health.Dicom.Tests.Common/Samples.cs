@@ -254,7 +254,11 @@ namespace Microsoft.Health.Dicom.Tests.Common
             {
                 { DicomTag.SOPInstanceUID, workitemUid },
                 { DicomTag.AffectedSOPInstanceUID, workitemUid },
-                { DicomTag.ReasonForCancellation, cancellationReason }
+                { DicomTag.ReasonForCancellation, cancellationReason },
+                { DicomTag.ReferencedRequestSequence, new DicomDataset() },
+                { DicomTag.ScheduledStationNameCodeSequence, new DicomDataset() },
+                { DicomTag.ScheduledStationClassCodeSequence, new DicomDataset() },
+                { DicomTag.ScheduledStationGeographicLocationCodeSequence, new DicomDataset() }
             };
 
             return ds;
