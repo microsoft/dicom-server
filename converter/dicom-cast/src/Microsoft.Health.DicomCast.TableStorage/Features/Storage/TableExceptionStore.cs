@@ -84,8 +84,9 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             string seriesInstanceUid = dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
             string sopInstanceUid = dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
             long changeFeedSequence = changeFeedEntry.Sequence;
+            string tableName = $"{dicomcastName}{Constants.TransientRetryTableName}";
 
-            var tableClient = _tableServiceClient.GetTableClient($"{dicomcastName}{Constants.TransientRetryTableName}");
+            var tableClient = _tableServiceClient.GetTableClient(tableName);
             var entity = new RetryableEntity(studyInstanceUid, seriesInstanceUid, sopInstanceUid, changeFeedSequence, retryNum, exceptionToStore);
 
             try
