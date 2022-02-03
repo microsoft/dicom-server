@@ -62,7 +62,7 @@ $(() => {
         successDisplay.toggle(false)
     }
 
-    partitionInput.change((value) => {
+    partitionInput.on("change",(value) => {
         let checked = value.target.checked;
         serverAddressDisplay.html(getPostUrl())
         if (checked) {
@@ -72,7 +72,7 @@ $(() => {
         }
     })
 
-    fileUploadMenu.click(() => {
+    fileUploadMenu.on("click",() => {
         fileUploadSection.toggle(true)
         selectedFilesSection.toggle(true)
         serverSettingsSection.toggle(false)
@@ -84,7 +84,7 @@ $(() => {
         hideErrorSuccess()
     })
 
-    serverSettingsMenu.click(() => {
+    serverSettingsMenu.on("click",() => {
         fileUploadSection.toggle(false)
         selectedFilesSection.toggle(false)
         serverSettingsSection.toggle(true)
@@ -96,7 +96,7 @@ $(() => {
         hideErrorSuccess()
     })
 
-    changeFeedMenu.click(() => {
+    changeFeedMenu.on("click",() => {
         fileUploadSection.toggle(false)
         selectedFilesSection.toggle(false)
         serverSettingsSection.toggle(false)
@@ -108,7 +108,7 @@ $(() => {
         hideErrorSuccess()
     })
 
-    serverAddressButton.click(() => {
+    serverAddressButton.on("click",() => {
         if (displayServerEdit) {
             serverAddressDisplay.html(getPostUrl())
             serverAddressInput.prop('disabled', true);
@@ -128,15 +128,15 @@ $(() => {
         displayServerEdit = !displayServerEdit
     })
 
-    serverVersionInput.change(() => {
+    serverVersionInput.on("change", () => {
         serverAddressDisplay.html(getPostUrl())
     })
 
-    selectFileButton.click(() => {
+    selectFileButton.on("click", () => {
         window.api.send("selectFile");
     })
 
-    postFileButton.click(() => {
+    postFileButton.on("click",() => {
         let url = getPostUrl()
         let bearerToken = bearerTokenInput.val()
 
@@ -180,7 +180,7 @@ $(() => {
         hideErrorSuccess()
     })
 
-    changeFeedButton.click(() => {
+    changeFeedButton.on("click", () => {
         errorDisplay.toggle(false)
 
         offset = offsetInput.val()
@@ -195,6 +195,7 @@ $(() => {
 
     window.api.receive("changeFeedRetrieved", (data) => {
 
+        console.log(data)
         let html = ''
         if (!Array.isArray(data) || !data.length) {
             html = "<p>No results</p>"
@@ -204,8 +205,8 @@ $(() => {
                 if (i % 2 == 0) {
                     backgroundClass = 'has-background-white-ter'
                 }
-                html += "<div class='card " + backgroundClass + "'><div class='card-content'><div class='columns'><div class='column is-1'><h1>" + item.Sequence + "</h1></div><div class='column'><div class='level'><div class='level-left'><div class='level-item'>" + item.Action + "</div><div class='level-item'>" + item.State + "</div></div><div class='level-right'><div class='level-item'>" + item.Timestamp + "</div></div></div><p>StudyInstanceUid: " + item.StudyInstanceUid + "<br />SeriesInstanceUid: " + item.SeriesInstanceUid + "<br />SopInstanceUid: " + item.SopInstanceUid + "</p></div></div></div></div>"
-                offset = item.Sequence
+                html += "<div class='card " + backgroundClass + "'><div class='card-content'><div class='columns'><div class='column is-1'><h1>" + item.sequence + "</h1></div><div class='column'><div class='level'><div class='level-left'><div class='level-item'>" + item.action + "</div><div class='level-item'>" + item.state + "</div></div><div class='level-right'><div class='level-item'>" + item.timestamp + "</div></div></div><p>StudyInstanceUid: " + item.studyInstanceUid + "<br />SeriesInstanceUid: " + item.seriesInstanceUid + "<br />SopInstanceUid: " + item.sopInstanceUid + "</p></div></div></div></div>"
+                offset = item.sequence
             }
         }
 
