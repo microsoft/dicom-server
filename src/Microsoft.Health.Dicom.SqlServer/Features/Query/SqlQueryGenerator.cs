@@ -8,7 +8,6 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Models;
-using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer;
@@ -39,6 +38,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             _schemaVersion = schemaVersion;
 
             Build();
+        }
+
+        protected override int? GetKeyFromQueryTag(QueryTag queryTag)
+        {
+            return queryTag.IsExtendedQueryTag ? queryTag.ExtendedQueryTagStoreEntry.Key : null;
+        }
+
+        protected override bool IsIndexedQueryTag(QueryTag queryTag)
+        {
+            return queryTag.IsExtendedQueryTag;
         }
 
         private void Build()
@@ -145,39 +154,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
         {
             foreach (QueryFilterCondition condition in _queryExpression.FilterConditions.Where(x => x.QueryTag.IsExtendedQueryTag))
             {
-                QueryTag queryTag = condition.QueryTag;
-                int tagKey = queryTag.ExtendedQueryTagStoreEntry.Key;
-                ExtendedQueryTagDataType dataType = ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[queryTag.VR.Code];
-                string extendedQueryTagTableAlias = null;
-                _stringBuilder.Append("INNER JOIN ");
-                switch (dataType)
-                {
-                    case ExtendedQueryTagDataType.StringData:
-                        extendedQueryTagTableAlias = ExtendedQueryTagStringTableAlias + tagKey;
-                        _stringBuilder.AppendLine($"{VLatest.ExtendedQueryTagString.TableName} {extendedQueryTagTableAlias}");
-
-                        break;
-                    case ExtendedQueryTagDataType.LongData:
-                        extendedQueryTagTableAlias = ExtendedQueryTagLongTableAlias + tagKey;
-                        _stringBuilder.AppendLine($"{VLatest.ExtendedQueryTagLong.TableName} {extendedQueryTagTableAlias}");
-
-                        break;
-                    case ExtendedQueryTagDataType.DoubleData:
-                        extendedQueryTagTableAlias = ExtendedQueryTagDoubleTableAlias + tagKey;
-                        _stringBuilder.AppendLine($"{VLatest.ExtendedQueryTagDouble.TableName} {extendedQueryTagTableAlias}");
-
-                        break;
-                    case ExtendedQueryTagDataType.DateTimeData:
-                        extendedQueryTagTableAlias = ExtendedQueryTagDateTimeTableAlias + tagKey;
-                        _stringBuilder.AppendLine($"{VLatest.ExtendedQueryTagDateTime.TableName} {extendedQueryTagTableAlias}");
-
-                        break;
-                    case ExtendedQueryTagDataType.PersonNameData:
-                        extendedQueryTagTableAlias = ExtendedQueryTagPersonNameTableAlias + tagKey;
-                        _stringBuilder.AppendLine($"{VLatest.ExtendedQueryTagPersonName.TableName} {extendedQueryTagTableAlias}");
-
-                        break;
-                }
+                AppendLongSchemaQueryTables(condition, out string extendedQueryTagTableAlias);
 
                 _stringBuilder
                     .Append("ON ")
@@ -210,7 +187,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
                 using (IndentedStringBuilder.DelimitedScope delimited = _stringBuilder.BeginDelimitedOnClause())
                 {
-                    if ((_queryExpression.IsSeriesIELevel() || _queryExpression.IsInstanceIELevel()) && queryTag.Level < QueryTagLevel.Study)
+                    if ((_queryExpression.IsSeriesIELevel() || _queryExpression.IsInstanceIELevel()) && condition.QueryTag.Level < QueryTagLevel.Study)
                     {
                         _stringBuilder
                             .Append("AND ")
@@ -219,7 +196,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                             .AppendLine(VLatest.Series.SeriesKey, SeriesTableAlias);
                     }
 
-                    if (_queryExpression.IsInstanceIELevel() && queryTag.Level < QueryTagLevel.Series)
+                    if (_queryExpression.IsInstanceIELevel() && condition.QueryTag.Level < QueryTagLevel.Series)
                     {
                         _stringBuilder
                             .Append("AND ")

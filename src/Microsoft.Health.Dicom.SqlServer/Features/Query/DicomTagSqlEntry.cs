@@ -71,9 +71,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
         public bool IsIndexedQueryTag { get; }
 
-        public static DicomTagSqlEntry GetDicomTagSqlEntry(QueryTag queryTag)
+        public static DicomTagSqlEntry GetDicomTagSqlEntry(QueryTag queryTag, bool isLongSchemaTable)
         {
-            return queryTag.IsExtendedQueryTag || queryTag.IsWorkitemQueryTag ? ExtendedQueryTagVRToSqlMapping[queryTag.VR] : CoreQueryTagToSqlMapping[queryTag.Tag];
+            return isLongSchemaTable ? ExtendedQueryTagVRToSqlMapping[queryTag.VR] : CoreQueryTagToSqlMapping[queryTag.Tag];
         }
     }
 }

@@ -8,7 +8,6 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
-using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Query;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
@@ -45,6 +44,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             Build();
         }
 
+        protected override int? GetKeyFromQueryTag(QueryTag queryTag)
+        {
+            return queryTag.IsWorkitemQueryTag ? queryTag.WorkitemQueryTagStoreEntry.Key : null;
+        }
+
+        protected override bool IsIndexedQueryTag(QueryTag queryTag)
+        {
+            return queryTag.IsWorkitemQueryTag;
+        }
+
         private void Build()
         {
             string projectionTableAlias = "f";
@@ -64,7 +73,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                 .Append(VLatest.Workitem.WorkitemKey, WorkitemTableAlias).AppendLine()
                 .AppendLine($"FROM {VLatest.Workitem.TableName} {WorkitemTableAlias}");
 
-            AppendExtendedQueryTagTables();
+            AppendLongSchemaQueryTables();
 
             _stringBuilder.AppendLine("WHERE 1 = 1");
 
@@ -88,43 +97,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             }
         }
 
-        private void AppendExtendedQueryTagTables()
+        private void AppendLongSchemaQueryTables()
         {
             foreach (QueryFilterCondition condition in _queryExpression.FilterConditions.Where(x => x.QueryTag.IsWorkitemQueryTag))
             {
-                QueryTag queryTag = condition.QueryTag;
-                int tagKey = queryTag.WorkitemQueryTagStoreEntry.Key;
-                ExtendedQueryTagDataType dataType = ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[queryTag.VR.Code];
-                string extendedQueryTagTableAlias = null;
-                _stringBuilder.Append("INNER JOIN ");
-                switch (dataType)
-                {
-                    case ExtendedQueryTagDataType.StringData:
-                        extendedQueryTagTableAlias = ExtendedQueryTagStringTableAlias + tagKey;
-                        _stringBuilder.AppendLine($"{VLatest.ExtendedQueryTagString.TableName} {extendedQueryTagTableAlias}");
-
-                        break;
-                    case ExtendedQueryTagDataType.LongData:
-                        extendedQueryTagTableAlias = ExtendedQueryTagLongTableAlias + tagKey;
-                        _stringBuilder.AppendLine($"{VLatest.ExtendedQueryTagLong.TableName} {extendedQueryTagTableAlias}");
-
-                        break;
-                    case ExtendedQueryTagDataType.DoubleData:
-                        extendedQueryTagTableAlias = ExtendedQueryTagDoubleTableAlias + tagKey;
-                        _stringBuilder.AppendLine($"{VLatest.ExtendedQueryTagDouble.TableName} {extendedQueryTagTableAlias}");
-
-                        break;
-                    case ExtendedQueryTagDataType.DateTimeData:
-                        extendedQueryTagTableAlias = ExtendedQueryTagDateTimeTableAlias + tagKey;
-                        _stringBuilder.AppendLine($"{VLatest.ExtendedQueryTagDateTime.TableName} {extendedQueryTagTableAlias}");
-
-                        break;
-                    case ExtendedQueryTagDataType.PersonNameData:
-                        extendedQueryTagTableAlias = ExtendedQueryTagPersonNameTableAlias + tagKey;
-                        _stringBuilder.AppendLine($"{VLatest.ExtendedQueryTagPersonName.TableName} {extendedQueryTagTableAlias}");
-
-                        break;
-                }
+                AppendLongSchemaQueryTables(condition, out string extendedQueryTagTableAlias);
 
                 _stringBuilder
                     .Append("ON ")

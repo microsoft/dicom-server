@@ -28,12 +28,18 @@ namespace Microsoft.Health.Dicom.Api.Extensions
             string studyInstanceUid = null,
             string seriesInstanceUid = null)
         {
-            var parameters = ToBaseQueryParameters(options, queryString) as QueryParameters;
-            parameters.QueryResourceType = resourceType;
-            parameters.SeriesInstanceUid = seriesInstanceUid;
-            parameters.StudyInstanceUid = studyInstanceUid;
-
-            return parameters;
+            var parameters = ToBaseQueryParameters(options, queryString);
+            return new QueryParameters
+            {
+                Filters = parameters.Filters,
+                FuzzyMatching = parameters.FuzzyMatching,
+                IncludeField = parameters.IncludeField,
+                Limit = parameters.Limit,
+                Offset = parameters.Offset,
+                QueryResourceType = resourceType,
+                SeriesInstanceUid = seriesInstanceUid,
+                StudyInstanceUid = studyInstanceUid,
+            };
         }
 
         public static BaseQueryParameters ToBaseQueryParameters(
