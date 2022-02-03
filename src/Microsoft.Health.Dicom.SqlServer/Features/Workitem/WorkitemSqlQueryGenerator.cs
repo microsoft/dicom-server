@@ -71,9 +71,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                 .AppendLine($"FROM {VLatest.Workitem.TableName} {WorkitemTableAlias}");
 
             AppendLongSchemaQueryTables();
-            AppendStatusClause(WorkitemTableAlias);
 
             StringBuilder.AppendLine("WHERE 1 = 1");
+
+            AppendStatusClause(WorkitemTableAlias);
 
             AppendPartitionWhereClause(WorkitemTableAlias);
 
