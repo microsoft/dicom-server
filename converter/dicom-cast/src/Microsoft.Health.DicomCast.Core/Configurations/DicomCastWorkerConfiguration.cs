@@ -21,5 +21,10 @@ namespace Microsoft.Health.DicomCast.Core.Configurations
         /// The period of time to wait before polling new changes feed from DICOMWeb when previous poll indicates there are potentially new changes.
         /// </summary>
         public TimeSpan PollIntervalDuringCatchup { get; set; } = TimeSpan.Zero;
+
+        /// <summary>
+        /// The cast Name. Default is empty.
+        /// </summary>
+        public string CastName { get; set; } = string.Empty;
     }
 }

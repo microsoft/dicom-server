@@ -242,7 +242,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
                 pollIntervalDuringCatchup = TimeSpan.Zero;
             }
 
-            await _changeFeedProcessor.ProcessAsync(pollIntervalDuringCatchup.Value, DefaultCancellationToken);
+            await _changeFeedProcessor.ProcessAsync(pollIntervalDuringCatchup.Value, string.Empty, DefaultCancellationToken);
         }
     }
 }

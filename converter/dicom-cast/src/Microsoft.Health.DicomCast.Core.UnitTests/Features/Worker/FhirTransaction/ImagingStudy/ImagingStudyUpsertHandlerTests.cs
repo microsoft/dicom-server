@@ -77,7 +77,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             Assert.Collection(
                 imagingStudy.Identifier,
                 identifier => ValidationUtility.ValidateIdentifier("urn:dicom:uid", $"urn:oid:{studyInstanceUid}", identifier),
-                identifier => ValidationUtility.ValidateAccessionNumber(null, FhirTransactionContextBuilder.DefaultAccessionNumber, identifier));
+                identifier => ValidationUtility.ValidateAccessionNumber(null, DicomCastDatasetGenerator.DefaultAccessionNumber, identifier));
 
             Assert.Collection(
                 imagingStudy.Series,
@@ -228,7 +228,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
                 studyInstanceUid: studyInstanceUid,
                 seriesInstanceUid: seriesInstanceUid,
                 sopInstanceUid: sopInstanceUid,
-                metadata: addMetadata ? FhirTransactionContextBuilder.CreateDicomDataset() : null);
+                metadata: addMetadata ? DicomCastDatasetGenerator.CreateDicomDataset() : null);
 
             return await PrepareRequestAsync(changeFeedEntry, patientResourceId);
         }

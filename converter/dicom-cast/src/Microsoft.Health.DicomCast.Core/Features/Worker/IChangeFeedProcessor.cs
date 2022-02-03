@@ -18,8 +18,9 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
         /// Asynchronously processes the change feed.
         /// </summary>
         /// <param name="pollIntervalDuringCatchup">The delay between polls during catchup phase.</param>
+        /// <param name="castName">The Dicomcast name.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task representing the asynchronous processing operation.</returns>
-        Task ProcessAsync(TimeSpan pollIntervalDuringCatchup, CancellationToken cancellationToken);
+        Task ProcessAsync(TimeSpan pollIntervalDuringCatchup, string castName, CancellationToken cancellationToken);
     }
 }

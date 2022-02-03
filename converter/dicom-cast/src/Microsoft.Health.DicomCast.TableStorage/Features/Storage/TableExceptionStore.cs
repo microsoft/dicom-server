@@ -35,16 +35,16 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         }
 
         /// <inheritdoc/>
-        public async Task WriteExceptionAsync(ChangeFeedEntry changeFeedEntry, Exception exceptionToStore, ErrorType errorType, CancellationToken cancellationToken)
+        public async Task WriteExceptionAsync(ChangeFeedEntry changeFeedEntry, Exception exceptionToStore, ErrorType errorType, string dicomcastName, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(changeFeedEntry, nameof(changeFeedEntry));
 
             string tableName = errorType switch
             {
-                ErrorType.FhirError => Constants.FhirExceptionTableName,
-                ErrorType.DicomError => Constants.DicomExceptionTableName,
-                ErrorType.DicomValidationError => Constants.DicomValidationTableName,
-                ErrorType.TransientFailure => Constants.TransientFailureTableName,
+                ErrorType.FhirError => $"{dicomcastName}{Constants.FhirExceptionTableName}",
+                ErrorType.DicomError => $"{dicomcastName}{Constants.DicomExceptionTableName}",
+                ErrorType.DicomValidationError => $"{dicomcastName}{Constants.DicomValidationTableName}",
+                ErrorType.TransientFailure => $"{dicomcastName}{Constants.TransientFailureTableName}",
                 _ => null,
             };
 
@@ -75,7 +75,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         }
 
         /// <inheritdoc/>
-        public async Task WriteRetryableExceptionAsync(ChangeFeedEntry changeFeedEntry, int retryNum, TimeSpan nextDelayTimeSpan, Exception exceptionToStore, CancellationToken cancellationToken)
+        public async Task WriteRetryableExceptionAsync(ChangeFeedEntry changeFeedEntry, int retryNum, TimeSpan nextDelayTimeSpan, Exception exceptionToStore, string dicomcastName, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(changeFeedEntry, nameof(changeFeedEntry));
 
@@ -85,7 +85,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             string sopInstanceUid = dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
             long changeFeedSequence = changeFeedEntry.Sequence;
 
-            var tableClient = _tableServiceClient.GetTableClient(Constants.TransientRetryTableName);
+            var tableClient = _tableServiceClient.GetTableClient($"{dicomcastName}{Constants.TransientRetryTableName}");
             var entity = new RetryableEntity(studyInstanceUid, seriesInstanceUid, sopInstanceUid, changeFeedSequence, retryNum, exceptionToStore);
 
             try

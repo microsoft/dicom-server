@@ -27,7 +27,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
         private readonly IAsyncPolicy _retryPolicy;
         private readonly IAsyncPolicy _timeoutPolicy;
 
-        public RetryableFhirTransactionPipeline(IFhirTransactionPipeline fhirTransactionPipeline, IExceptionStore exceptionStore, IOptions<RetryConfiguration> retryConfiguration)
+        public RetryableFhirTransactionPipeline(IFhirTransactionPipeline fhirTransactionPipeline, IExceptionStore exceptionStore, IOptions<RetryConfiguration> retryConfiguration, string castName)
         {
             EnsureArg.IsNotNull(fhirTransactionPipeline, nameof(fhirTransactionPipeline));
             EnsureArg.IsNotNull(exceptionStore, nameof(exceptionStore));
@@ -51,7 +51,8 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                             changeFeedEntry,
                             retryCount,
                             timeSpan,
-                            exception);
+                            exception,
+                            castName);
                     });
         }
 

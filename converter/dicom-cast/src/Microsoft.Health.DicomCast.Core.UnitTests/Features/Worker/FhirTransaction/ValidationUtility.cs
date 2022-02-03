@@ -109,7 +109,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
             ValidateResourceReference(patientResourceId, updatedImagingStudy.Subject);
 
             Action<Identifier> studyIdValidaion = identifier => ValidateIdentifier("urn:dicom:uid", $"urn:oid:{studyInstanceUid}", identifier);
-            Action<Identifier> accessionNumberValidation = identifier => ValidateAccessionNumber(null, FhirTransactionContextBuilder.DefaultAccessionNumber, identifier);
+            Action<Identifier> accessionNumberValidation = identifier => ValidateAccessionNumber(null, DicomCastDatasetGenerator.DefaultAccessionNumber, identifier);
             Assert.Collection(
                 updatedImagingStudy.Identifier,
                 hasAccessionNumber ? new[] { studyIdValidaion, accessionNumberValidation } : new[] { studyIdValidaion });

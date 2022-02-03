@@ -61,6 +61,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                             context.ChangeFeedEntry,
                             ex,
                             ErrorType.DicomValidationError,
+                             _dicomCastconfiguration.CastName,
                             cancellationToken);
                     }
                     else

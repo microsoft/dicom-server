@@ -34,11 +34,11 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
         }
 
         /// <inheritdoc/>
-        public async Task ProcessAsync(TimeSpan pollIntervalDuringCatchup, CancellationToken cancellationToken)
+        public async Task ProcessAsync(TimeSpan pollIntervalDuringCatchup, string castName, CancellationToken cancellationToken)
         {
             using (LogProcessingDelegate(_logger))
             {
-                await _changeFeedProcessor.ProcessAsync(pollIntervalDuringCatchup, cancellationToken);
+                await _changeFeedProcessor.ProcessAsync(pollIntervalDuringCatchup, castName, cancellationToken);
             }
         }
     }

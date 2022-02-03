@@ -82,7 +82,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                 {
                     try
                     {
-                        await _changeFeedProcessor.ProcessAsync(_dicomCastWorkerConfiguration.PollIntervalDuringCatchup, cancellationToken);
+                        await _changeFeedProcessor.ProcessAsync(_dicomCastWorkerConfiguration.PollIntervalDuringCatchup, _dicomCastWorkerConfiguration.CastName, cancellationToken);
 
                         await Task.Delay(_dicomCastWorkerConfiguration.PollInterval, cancellationToken);
                     }
