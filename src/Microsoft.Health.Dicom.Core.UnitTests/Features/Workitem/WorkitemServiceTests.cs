@@ -44,27 +44,27 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         }
 
         [Fact]
-        public async Task GivenValidWorkitemInstanceUid_WhenProcessed_ThenIsSetupForAffectedSOPInstanceUIDTagInTheDataset()
+        public async Task GivenValidWorkitemInstanceUid_WhenProcessed_ThenIsSetupForSOPInstanceUIDTagInTheDataset()
         {
             var workitemInstanceUid = DicomUID.Generate().UID;
 
-            _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
+            _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
 
             await _target.ProcessAddAsync(_dataset, workitemInstanceUid, CancellationToken.None).ConfigureAwait(false);
 
-            Assert.Equal(workitemInstanceUid, _dataset.GetString(DicomTag.AffectedSOPInstanceUID));
+            Assert.Equal(workitemInstanceUid, _dataset.GetString(DicomTag.SOPInstanceUID));
         }
 
         [Fact]
-        public async Task GivenValidWorkitemInstanceUidInDicomTagAffectedSOPInstanceUID_WhenProcessed_ThenIsSetupForSOPInstanceUIDTagInTheDataset()
+        public async Task GivenValidWorkitemInstanceUidInDicomTagSOPInstanceUID_WhenProcessed_ThenIsSetupForSOPInstanceUIDTagInTheDataset()
         {
             var workitemInstanceUid = DicomUID.Generate().UID;
 
-            _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
+            _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
 
             await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
-            Assert.Equal(workitemInstanceUid, _dataset.GetString(DicomTag.AffectedSOPInstanceUID));
+            Assert.Equal(workitemInstanceUid, _dataset.GetString(DicomTag.SOPInstanceUID));
         }
 
         [Fact]
@@ -72,7 +72,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         {
             var workitemInstanceUid = DicomUID.Generate().UID;
 
-            _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
+            _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
 
             await _target.ProcessAddAsync(_dataset, workitemInstanceUid, CancellationToken.None).ConfigureAwait(false);
 
@@ -86,7 +86,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         {
             var workitemInstanceUid = DicomUID.Generate().UID;
 
-            _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
+            _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
 
             _datasetValidator
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
@@ -104,7 +104,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         {
             var workitemInstanceUid = DicomUID.Generate().UID;
 
-            _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
+            _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
 
             _datasetValidator
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
@@ -124,7 +124,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             var workitemInstanceUid = DicomUID.Generate().UID;
             var errorMessage = @"Unit Test - Failed validation";
 
-            _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
+            _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
 
             _datasetValidator
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
@@ -145,7 +145,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         {
             var workitemInstanceUid = DicomUID.Generate().UID;
 
-            _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
+            _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
 
             _datasetValidator
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
@@ -167,7 +167,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             var workitemInstanceUid = DicomUID.Generate().UID;
             var errorMessage = @"Unit Test - Failed validation";
 
-            _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
+            _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
 
             _datasetValidator
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
@@ -190,7 +190,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
             var workitemInstanceUid = DicomUID.Generate().UID;
 
-            _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
+            _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
 
             _storeOrchestrator
                 .When(orc => orc.AddWorkitemAsync(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Any<CancellationToken>()))
@@ -213,7 +213,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
             var workitemInstanceUid = DicomUID.Generate().UID;
 
-            _dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
+            _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
 
             _storeOrchestrator
                 .When(orc => orc.AddWorkitemAsync(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Any<CancellationToken>()))

@@ -68,7 +68,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                     .ConfigureAwait(false);
 
                 identifier = new WorkitemInstanceIdentifier(
-                    dataset.GetSingleValueOrDefault(DicomTag.AffectedSOPInstanceUID, string.Empty),
+                    dataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
                     workitemKey,
                     partitionKey);
 

@@ -38,9 +38,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
 
-            if (Validate(dataset, workitemInstanceUid))
+            // The format of the identifiers will be validated by fo-dicom.
+            var workitemUid = string.IsNullOrEmpty(workitemInstanceUid)
+                ? (dataset.TryGetString(DicomTag.SOPInstanceUID, out var sopInstanceUid)
+                    ? sopInstanceUid
+                    : dataset.TryGetString(DicomTag.AffectedSOPInstanceUID, out var affectedSopInstanceUid) ? affectedSopInstanceUid : null)
+                : workitemInstanceUid;
+
+            if (Validate(dataset, workitemUid))
             {
-                Prepare(dataset);
+                Prepare(dataset, workitemUid);
 
                 await AddWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
             }
@@ -48,10 +55,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             return _responseBuilder.BuildAddResponse();
         }
 
-        private static void Prepare(DicomDataset dataset)
+        private static void Prepare(DicomDataset dataset, string workitemUid)
         {
             var result = ProcedureStepState.GetTransitionState(WorkitemStateEvents.NCreate, dataset.GetString(DicomTag.ProcedureStepState));
             dataset.AddOrUpdate(DicomTag.ProcedureStepState, result.State);
+
+            dataset.AddOrUpdate(DicomTag.SOPInstanceUID, workitemUid);
         }
 
         private bool Validate(DicomDataset dataset, string workitemInstanceUid)
