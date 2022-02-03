@@ -20,14 +20,14 @@ namespace Microsoft.Health.Dicom.Api.Controllers
     public partial class WorkitemController
     {
         /// <summary>
-        /// This action requests the creation of a UPS Instance on the Origin-Server. It corresponds to the UPS DIMSE N-CREATE operation.
+        /// RequestUPSCancellation
+        /// This action requests the cancellation of a UPS Instance managed by the Origin-Server.
+        /// It corresponds to the UPS DIMSE N-ACTION operation "Request UPS Cancel".
         /// </summary>
         /// <remarks>
-        /// The request body contains all the metadata to be stored in DICOM PS 3.18 JSON metadata.
-        /// Any binary data contained in the message shall be inline.
-        ///
-        /// DICOM PS 3.19 XML metadata is not supported.
+        /// This resource records a request that the specified UPS Instance be canceled.
         /// </remarks>
+        /// <param name="workitemInstanceUid"></param>
         /// <returns></returns>
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationJson }, allowSingle: true, allowMultiple: false)]
         [Produces(KnownContentTypes.ApplicationJson)]
@@ -45,15 +45,11 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [VersionedRoute(KnownRoutes.CancelWorkitemInstancesRoute, Name = KnownRouteNames.VersionedCancelWorkitemInstance)]
         [Route(KnownRoutes.CancelWorkitemInstancesRoute, Name = KnownRouteNames.CancelWorkitemInstance)]
         [AuditEventType(AuditEventSubType.CancelWorkitem)]
-        public async Task<IActionResult> CancelAsync(string workitemInstanceUid = null)
-        {
-            return await PostCancelAsync(workitemInstanceUid).ConfigureAwait(false);
-        }
-
-        private async Task<IActionResult> PostCancelAsync(string workitemInstanceUid)
+        public async Task<IActionResult> CancelAsync(string workitemInstanceUid)
         {
             long fileSize = Request.ContentLength ?? 0;
-            _logger.LogInformation("DICOM Web Store Workitem Transaction request received, with Workitem instance UID {WorkitemInstanceUid}, and file size of {FileSize} bytes",
+
+            _logger.LogInformation("DICOM Web Cancel Workitem Transaction request received, with Workitem instance UID {WorkitemInstanceUid}, and file size of {FileSize} bytes",
                 workitemInstanceUid ?? string.Empty,
                 fileSize);
 
