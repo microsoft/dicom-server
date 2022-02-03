@@ -1945,48 +1945,66 @@ BEGIN
     WHERE  PartitionKey = @partitionKey
            AND WorkitemUid = @workitemUid;
     IF @@ROWCOUNT = 0
-        THROW 50413, 'Workitem does not exists', 1;
+        THROW 50413, 'Workitem does not exist', 1;
     IF EXISTS (SELECT 1
                FROM   @stringExtendedQueryTags)
         BEGIN
+            WITH InputCTE
+            AS   (SELECT input.TagValue,
+                         input.TagKey
+                  FROM   @stringExtendedQueryTags AS input
+                         INNER JOIN
+                         dbo.WorkitemQueryTag
+                         ON dbo.WorkitemQueryTag.TagKey = input.TagKey)
             UPDATE dbo.ExtendedQueryTagString
-            SET    TagValue  = input.TagValue,
+            SET    TagValue  = cte.TagValue,
                    Watermark = @newWatermark
-            WHERE  dbo.ExtendedQueryTagString.SopInstanceKey1 = @workitemKey
-                   AND PartitionKey = @partitionKey
-                   AND TagKey = (SELECT input.TagKey
-                                 FROM   @stringExtendedQueryTags AS input
-                                        INNER JOIN
-                                        dbo.WorkitemQueryTag
-                                        ON dbo.WorkitemQueryTag.TagKey = input.TagKey);
+            FROM   dbo.ExtendedQueryTagString AS t
+                   INNER JOIN
+                   InputCTE AS cte
+                   ON cte.TagKey = t.TagKey
+            WHERE  SopInstanceKey1 = @workitemKey
+                   AND PartitionKey = @partitionKey;
         END
     IF EXISTS (SELECT 1
                FROM   @dateTimeExtendedQueryTags)
         BEGIN
+            WITH InputCTE
+            AS   (SELECT input.TagValue,
+                         input.TagKey
+                  FROM   @dateTimeExtendedQueryTags AS input
+                         INNER JOIN
+                         dbo.WorkitemQueryTag
+                         ON dbo.WorkitemQueryTag.TagKey = input.TagKey)
             UPDATE dbo.ExtendedQueryTagDateTime
-            SET    TagValue  = input.TagValue,
+            SET    TagValue  = cte.TagValue,
                    Watermark = @newWatermark
-            WHERE  dbo.ExtendedQueryTagDateTime.SopInstanceKey1 = @workitemKey
-                   AND PartitionKey = @partitionKey
-                   AND TagKey = (SELECT input.TagKey
-                                 FROM   @dateTimeExtendedQueryTags AS input
-                                        INNER JOIN
-                                        dbo.WorkitemQueryTag
-                                        ON dbo.WorkitemQueryTag.TagKey = input.TagKey);
+            FROM   dbo.ExtendedQueryTagDateTime AS t
+                   INNER JOIN
+                   InputCTE AS cte
+                   ON cte.TagKey = t.TagKey
+            WHERE  SopInstanceKey1 = @workitemKey
+                   AND PartitionKey = @partitionKey;
         END
     IF EXISTS (SELECT 1
                FROM   @personNameExtendedQueryTags)
         BEGIN
+            WITH InputCTE
+            AS   (SELECT input.TagValue,
+                         input.TagKey
+                  FROM   @personNameExtendedQueryTags AS input
+                         INNER JOIN
+                         dbo.WorkitemQueryTag
+                         ON dbo.WorkitemQueryTag.TagKey = input.TagKey)
             UPDATE dbo.ExtendedQueryTagPersonName
-            SET    TagValue  = input.TagValue,
+            SET    TagValue  = cte.TagValue,
                    Watermark = @newWatermark
-            WHERE  dbo.ExtendedQueryTagPersonName.SopInstanceKey1 = @workitemKey
-                   AND PartitionKey = @partitionKey
-                   AND TagKey = (SELECT input.TagKey
-                                 FROM   @personNameExtendedQueryTags AS input
-                                        INNER JOIN
-                                        dbo.WorkitemQueryTag
-                                        ON dbo.WorkitemQueryTag.TagKey = input.TagKey);
+            FROM   dbo.ExtendedQueryTagPersonName AS t
+                   INNER JOIN
+                   InputCTE AS cte
+                   ON cte.TagKey = t.TagKey
+            WHERE  SopInstanceKey1 = @workitemKey
+                   AND PartitionKey = @partitionKey;
         END
     COMMIT TRANSACTION;
     SELECT @workitemKey;
