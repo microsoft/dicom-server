@@ -38,10 +38,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task WhenQueryingWorkitem_TheServerShouldReturnWorkitemSuccessfully()
         {
-            DicomDataset dicomDataset = Samples.CreateRandomWorkitemInstanceDataset();
+            var workitemUid = TestUidGenerator.Generate();
+            DicomDataset dicomDataset = Samples.CreateRandomWorkitemInstanceDataset(workitemUid);
             dicomDataset.AddOrUpdate(DicomTag.PatientName, "Foo");
-
-            var workitemUid = dicomDataset.GetSingleValue<string>(DicomTag.AffectedSOPInstanceUID);
 
             using DicomWebResponse response = await _client.AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);
 
@@ -60,13 +59,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task WhenQueryingWorkitemWithSequenceMatching_TheServerShouldReturnWorkitemSuccessfully()
         {
-            DicomDataset dicomDataset = Samples.CreateRandomWorkitemInstanceDataset();
+            var workitemUid = TestUidGenerator.Generate();
+            DicomDataset dicomDataset = Samples.CreateRandomWorkitemInstanceDataset(workitemUid);
             var accessionNumber = Guid.NewGuid().ToString("N").Substring(0, 14).ToUpper();
             var dataset = new DicomDataset();
             dataset.Add(DicomTag.AccessionNumber, accessionNumber);
             dicomDataset.AddOrUpdate(DicomTag.ReferencedRequestSequence, dataset);
-
-            var workitemUid = dicomDataset.GetSingleValue<string>(DicomTag.AffectedSOPInstanceUID);
 
             using DicomWebResponse response = await _client.AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);
 
@@ -89,11 +87,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Fact]
         public async Task GivenSearchRequest_PatientNameFuzzyMatch_MatchResult()
         {
+            var workitemUid = TestUidGenerator.Generate();
             var randomNamePart = Guid.NewGuid().ToString("N").Substring(0, 14).ToUpper();
-            DicomDataset dicomDataset = Samples.CreateRandomWorkitemInstanceDataset();
+            DicomDataset dicomDataset = Samples.CreateRandomWorkitemInstanceDataset(workitemUid);
             dicomDataset.AddOrUpdate(DicomTag.PatientName, $"Jonathan^{randomNamePart}^Stone Hall^^");
-
-            var workitemUid = dicomDataset.GetSingleValue<string>(DicomTag.AffectedSOPInstanceUID);
 
             using DicomWebResponse response = await _client.AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);
 
