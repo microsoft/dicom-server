@@ -71,7 +71,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
                 LogFailedToCancelDelegate(_logger, failureCode, ex);
 
-                _responseBuilder.AddFailure(dataset, failureCode);
+                _responseBuilder.AddFailure(dataset, failureCode, ex.Message);
             }
         }
     }

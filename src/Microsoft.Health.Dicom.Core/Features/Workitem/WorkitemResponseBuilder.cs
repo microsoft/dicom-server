@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 status = WorkitemResponseStatus.Success;
             }
 
-            return new CancelWorkitemResponse(status);
+            return new CancelWorkitemResponse(status, _failureMessage);
         }
 
         /// <inheritdoc />

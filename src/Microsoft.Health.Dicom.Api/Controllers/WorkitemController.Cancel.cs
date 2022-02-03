@@ -64,7 +64,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
                     HttpContext.RequestAborted)
                 .ConfigureAwait(false);
 
-            return StatusCode((int)response.Status.ToHttpStatusCode());
+            return StatusCode((int)response.Status.ToHttpStatusCodeForCancel(), response.Message);
         }
     }
 }
