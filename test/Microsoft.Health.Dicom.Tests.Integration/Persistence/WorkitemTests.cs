@@ -87,9 +87,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             string workitemUid = DicomUID.Generate().UID;
             DicomTag tag = DicomTag.PatientID;
 
-            var dataset = new DicomDataset();
-            dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemUid);
-            dataset.Add(tag, "FOO");
+            var dataset = CreateSampleDataset(workitemUid, tag);
 
             var queryTags = new List<QueryTag>()
             {
@@ -159,7 +157,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         private DicomDataset CreateSampleDataset(string workitemUid, DicomTag tag)
         {
             var dataset = new DicomDataset();
-            dataset.Add(DicomTag.AffectedSOPInstanceUID, workitemUid);
+            dataset.Add(DicomTag.SOPInstanceUID, workitemUid);
             dataset.Add(tag, "FOO");
             return dataset;
         }
