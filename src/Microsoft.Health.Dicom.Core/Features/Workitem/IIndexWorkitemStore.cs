@@ -18,14 +18,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     public interface IIndexWorkitemStore
     {
         /// <summary>
-        /// Asynchronously creates a workitem instance.
+        /// Asynchronously begin the creation of a workitem instance.
         /// </summary>
         /// <param name="partitionKey">The partition key.</param>
         /// <param name="dataset">The DICOM dataset to index.</param>
         /// <param name="queryTags">Queryable workitem tags</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that gets the workitem key.</returns>
-        Task<long> AddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
+        Task<long> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Asynchronously completes the creation of a workitem instance.
+        /// </summary>
+        /// <param name="partitionKey">The partition key.</param>
+        /// <param name="workitemKey">The workitem instance key.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task that represents the asynchronous update operation.</returns>
+        Task EndAddWorkitemAsync(int partitionKey, long workitemKey, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously deletes a workitem instance.

@@ -64,7 +64,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 IReadOnlyCollection<QueryTag> queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken).ConfigureAwait(false);
 
                 long workitemKey = await _indexWorkitemStore
-                    .AddWorkitemAsync(partitionKey, dataset, queryTags, cancellationToken)
+                    .BeginAddWorkitemAsync(partitionKey, dataset, queryTags, cancellationToken)
                     .ConfigureAwait(false);
 
                 identifier = new WorkitemInstanceIdentifier(
@@ -75,6 +75,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 // We have successfully created the index, store the file.
                 await StoreWorkitemBlobAsync(identifier, dataset, cancellationToken)
                     .ConfigureAwait(false);
+
+                await _indexWorkitemStore.EndAddWorkitemAsync(partitionKey, workitemKey, cancellationToken);
             }
             catch
             {

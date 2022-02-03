@@ -44,9 +44,11 @@ BEGIN
         WorkitemKey                 BIGINT                            NOT NULL,             --PK
         PartitionKey                INT                               NOT NULL DEFAULT 1,   --FK
         WorkitemUid                 VARCHAR(64)                       NOT NULL,
-        TransactionUid               VARCHAR(64)                      NULL,
+        TransactionUid              VARCHAR(64)                       NULL,
+        Status                      TINYINT                           NOT NULL,
         --audit columns
-        CreatedDate                 DATETIME2(7)                      NOT NULL
+        CreatedDate                 DATETIME2(7)                      NOT NULL,
+        LastStatusUpdatedDate       DATETIME2(7)                      NOT NULL,
     ) WITH (DATA_COMPRESSION = PAGE)
 
     -- Ordering workitems by partition and then by WorkitemKey for partition-specific retrieval
@@ -64,6 +66,7 @@ BEGIN
     INCLUDE
     (
         WorkitemKey,
+        Status,
         TransactionUid
     )
     WITH (DATA_COMPRESSION = PAGE)
@@ -430,6 +433,8 @@ GO
 --         * DateTime extended query tag data
 --     @personNameExtendedQueryTags
 --         * PersonName extended query tag data
+--     @initialStatus
+--         * New status of the workitem, Either 0(Creating) or 1(Created)
 -- RETURN VALUE
 --     The WorkitemKey
 ------------------------------------------------------------------------
@@ -438,7 +443,8 @@ CREATE OR ALTER PROCEDURE dbo.AddWorkitem
     @workitemUid                    VARCHAR(64),
     @stringExtendedQueryTags        dbo.InsertStringExtendedQueryTagTableType_1 READONLY,
     @dateTimeExtendedQueryTags      dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY,
-    @personNameExtendedQueryTags    dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
+    @personNameExtendedQueryTags    dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY,
+    @initialStatus                  TINYINT
 AS
 BEGIN
     SET NOCOUNT ON
@@ -447,7 +453,6 @@ BEGIN
     BEGIN TRANSACTION
 
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
-    DECLARE @workitemResourceType TINYINT = 1
     DECLARE @workitemKey BIGINT
 
     SELECT @workitemKey = WorkitemKey
@@ -461,9 +466,9 @@ BEGIN
     -- The workitem does not exist, insert it.
     SET @workitemKey = NEXT VALUE FOR dbo.WorkitemKeySequence
     INSERT INTO dbo.Workitem
-        (WorkitemKey, PartitionKey, WorkitemUid, CreatedDate)
+        (WorkitemKey, PartitionKey, WorkitemUid, Status, CreatedDate, LastStatusUpdatedDate)
     VALUES
-        (@workitemKey, @partitionKey, @workitemUid, @currentDate)
+        (@workitemKey, @partitionKey, @workitemUid, @initialStatus, @currentDate, @currentDate)
 
     BEGIN TRY
 
@@ -1219,6 +1224,52 @@ BEGIN
             THROW
 
         END CATCH
+
+    COMMIT TRANSACTION
+END
+GO
+
+/*************************************************************
+    Stored procedure for updating a workitem status.
+**************************************************************/
+--
+-- STORED PROCEDURE
+--     UpdateWorkitemStatus
+--
+-- DESCRIPTION
+--     Updates a workitem status.
+--
+-- PARAMETERS
+--     @partitionKey
+--         * The system identifier of the data partition.
+--     @workitemKey
+--         * The workitem key.
+--     @status
+--         * Initial status of the workitem status, Either 0(Creating) or 1(Created)
+-- RETURN VALUE
+--     The WorkitemKey
+------------------------------------------------------------------------
+CREATE OR ALTER PROCEDURE dbo.UpdateWorkitemStatus
+    @partitionKey                   INT,
+    @workitemKey                    BIGINT,
+    @status                         TINYINT
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    SET XACT_ABORT ON
+    BEGIN TRANSACTION
+
+    DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
+
+    UPDATE dbo.Workitem
+    SET Status = @status, LastStatusUpdatedDate = @currentDate
+    WHERE PartitionKey = @partitionKey
+        AND WorkitemKey = @workitemKey
+
+    -- The workitem instance does not exist. Perhaps it was deleted?
+    IF @@ROWCOUNT = 0
+        THROW 50404, 'Workitem instance does not exist', 1
 
     COMMIT TRANSACTION
 END
