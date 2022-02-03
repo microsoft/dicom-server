@@ -14,6 +14,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
+using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
@@ -33,7 +34,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
         public virtual SchemaVersion Version => SchemaVersion.V9;
 
-        public virtual async Task<long> AddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+        public virtual async Task<long> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
@@ -51,6 +52,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                     sqlCommandWrapper,
                     partitionKey,
                     workitemUid,
+                    (byte)IndexStatus.Creating,
                     parameters);
 
                 try
@@ -119,7 +121,29 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             }
         }
 
-        public async Task<IReadOnlyList<WorkitemQueryTagStoreEntry>> GetWorkitemQueryTagsAsync(CancellationToken cancellationToken = default)
+        public virtual async Task EndAddWorkitemAsync(int partitionKey, long workitemKey, CancellationToken cancellationToken = default)
+        {
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.UpdateWorkitemStatus.PopulateCommand(
+                    sqlCommandWrapper,
+                    partitionKey,
+                    workitemKey,
+                    (byte)IndexStatus.Created); ;
+
+                try
+                {
+                    await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+                }
+                catch (SqlException ex)
+                {
+                    throw new DataStoreException(ex);
+                }
+            }
+        }
+
+        public virtual async Task<IReadOnlyList<WorkitemQueryTagStoreEntry>> GetWorkitemQueryTagsAsync(CancellationToken cancellationToken = default)
         {
             var results = new List<WorkitemQueryTagStoreEntry>();
 

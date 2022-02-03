@@ -19,6 +19,8 @@
 --         * DateTime extended query tag data
 --     @personNameExtendedQueryTags
 --         * PersonName extended query tag data
+--     @initialStatus
+--         * Initial status of the workitem status, Either 0(Creating) or 1(Created)
 -- RETURN VALUE
 --     The WorkitemKey
 ------------------------------------------------------------------------
@@ -27,7 +29,8 @@ CREATE OR ALTER PROCEDURE dbo.AddWorkitem
     @workitemUid                    VARCHAR(64),
     @stringExtendedQueryTags        dbo.InsertStringExtendedQueryTagTableType_1 READONLY,
     @dateTimeExtendedQueryTags      dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY,
-    @personNameExtendedQueryTags    dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
+    @personNameExtendedQueryTags    dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY,
+    @initialStatus                  TINYINT
 AS
 BEGIN
     SET NOCOUNT ON
@@ -36,7 +39,6 @@ BEGIN
     BEGIN TRANSACTION
 
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
-    DECLARE @workitemResourceType TINYINT = 1
     DECLARE @workitemKey BIGINT
 
     SELECT @workitemKey = WorkitemKey
@@ -50,9 +52,9 @@ BEGIN
     -- The workitem does not exist, insert it.
     SET @workitemKey = NEXT VALUE FOR dbo.WorkitemKeySequence
     INSERT INTO dbo.Workitem
-        (WorkitemKey, PartitionKey, WorkitemUid, CreatedDate)
+        (WorkitemKey, PartitionKey, WorkitemUid, Status, CreatedDate, LastStatusUpdatedDate)
     VALUES
-        (@workitemKey, @partitionKey, @workitemUid, @currentDate)
+        (@workitemKey, @partitionKey, @workitemUid, @initialStatus, @currentDate, @currentDate)
 
     BEGIN TRY
 

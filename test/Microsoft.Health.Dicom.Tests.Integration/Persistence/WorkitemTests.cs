@@ -38,9 +38,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 new QueryTag(new ExtendedQueryTagStoreEntry(2, tag2.GetPath(), tag2.GetDefaultVR().Code, null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled,0)),
             };
 
-            long workitemKey = await _fixture.IndexWorkitemStore.AddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
+            long workitemKey = await _fixture.IndexWorkitemStore.BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
 
             Assert.True(workitemKey > 0);
+
+            await _fixture.IndexWorkitemStore.EndAddWorkitemAsync(DefaultPartition.Key, workitemKey, CancellationToken.None);
         }
 
         [Fact]
@@ -58,12 +60,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 new QueryTag(new ExtendedQueryTagStoreEntry(2, tag2.GetPath(), tag2.GetDefaultVR().Code, null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled,0)),
             };
 
-            long workitemKey = await _fixture.IndexWorkitemStore.AddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
+            long workitemKey = await _fixture.IndexWorkitemStore.BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
 
             await _fixture.IndexWorkitemStore.DeleteWorkitemAsync(DefaultPartition.Key, workitemUid, CancellationToken.None);
 
             // Try adding it back again, if this succeeds, then assume that Delete operation has succeeded.
-            workitemKey = await _fixture.IndexWorkitemStore.AddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
+            workitemKey = await _fixture.IndexWorkitemStore.BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
             Assert.True(workitemKey > 0);
 
             await _fixture.IndexWorkitemStore.DeleteWorkitemAsync(DefaultPartition.Key, workitemUid, CancellationToken.None);
