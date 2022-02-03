@@ -46,6 +46,7 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
 ON cts1.PartitionKey = w.PartitionKey
 AND cts1.ResourceType = 1
 AND cts1.SopInstanceKey1 = w.WorkitemKey
+AND w.Status = 1 
 WHERE";
 
             string expectedFilters = @"AND cts1.TagKey=@p0
@@ -56,6 +57,31 @@ AND cts1.TagValue=@p1";
             Assert.Equal(filter.Value.ToString(), sqlParameterCollection[1].Value.ToString());
             Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
             Assert.Contains(expectedFilters, builtString);
+        }
+
+        [Fact]
+        public void GivenPatientNameFilter_WithFuzzyMatchMultiWord_ValidateContainsFilterGenerated()
+        {
+            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+            var includeField = new QueryIncludeField(new List<DicomTag>());
+            var filters = new List<QueryFilterCondition>()
+            {
+                new PersonNameFuzzyMatchCondition(
+                    new QueryTag(
+                        DicomTagExtensions.BuildWorkitemQueryTagStoreEntry("00100010", 1, "PN")),
+                    "Fall 6"),
+            };
+            var query = new BaseQueryExpression(includeField, true, 10, 0, filters);
+            SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
+            var parm = new SqlQueryParameterManager(sqlParameterCollection);
+            new WorkitemSqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V9, DefaultPartition.Key);
+
+            string expectedParam = $"\"Fall 6*\"";
+
+            string expectedFilters = @"AND CONTAINS(ctpn1.TagValueWords, @p1)";
+
+            Assert.Equal(expectedParam, sqlParameterCollection[1].Value.ToString());
+            Assert.Contains(expectedFilters, stringBuilder.ToString());
         }
 
         private SqlParameterCollection CreateSqlParameterCollection()

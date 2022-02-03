@@ -20,9 +20,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 {
     internal class WorkitemSqlQueryGenerator : BaseSqlQueryGenerator
     {
-        private readonly IndentedStringBuilder _stringBuilder;
         private readonly BaseQueryExpression _queryExpression;
-        private readonly SchemaVersion _schemaVersion;
         private const string WorkitemTableAlias = "w";
 
         public WorkitemSqlQueryGenerator(
@@ -31,13 +29,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             SqlQueryParameterManager sqlQueryParameterManager,
             SchemaVersion schemaVersion,
             int partitionKey)
-            : base(stringBuilder, sqlQueryParameterManager, partitionKey)
+            : base(stringBuilder, queryExpression, sqlQueryParameterManager, schemaVersion, partitionKey)
         {
-            _stringBuilder = stringBuilder;
             _queryExpression = queryExpression;
-            _schemaVersion = schemaVersion;
 
-            if ((int)_schemaVersion < SchemaVersionConstants.SupportUpsRsSchemaVersion)
+            if ((int)schemaVersion < SchemaVersionConstants.SupportUpsRsSchemaVersion)
             {
                 throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
             }
@@ -68,7 +64,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
         private void AppendFilterTable(string filterAlias)
         {
-            _stringBuilder
+            StringBuilder
                 .AppendLine("( SELECT ")
                 .Append(VLatest.Workitem.WorkitemUid, WorkitemTableAlias).AppendLine(",")
                 .Append(VLatest.Workitem.WorkitemKey, WorkitemTableAlias).AppendLine()
@@ -77,26 +73,18 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             AppendLongSchemaQueryTables();
             AppendStatusClause(WorkitemTableAlias);
 
-            _stringBuilder.AppendLine("WHERE 1 = 1");
+            StringBuilder.AppendLine("WHERE 1 = 1");
 
             AppendPartitionWhereClause(WorkitemTableAlias);
 
-            using (IndentedStringBuilder.DelimitedScope delimited = _stringBuilder.BeginDelimitedWhereClause())
+            using (IndentedStringBuilder.DelimitedScope delimited = StringBuilder.BeginDelimitedWhereClause())
             {
                 AppendFilterClause();
             }
 
             AppendFilterPaging();
 
-            _stringBuilder.AppendLine($") {filterAlias}");
-        }
-
-        private void AppendPartitionWhereClause(string tableAlias)
-        {
-            if ((int)_schemaVersion >= SchemaVersionConstants.SupportDataPartitionSchemaVersion)
-            {
-                _stringBuilder.AppendLine($"AND {tableAlias}.{VLatest.Partition.PartitionKey} = {PartitionKey}");
-            }
+            StringBuilder.AppendLine($") {filterAlias}");
         }
 
         private void AppendLongSchemaQueryTables()
@@ -105,19 +93,19 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             {
                 AppendLongSchemaQueryTables(condition, out string extendedQueryTagTableAlias);
 
-                _stringBuilder
+                StringBuilder
                     .Append("ON ")
                     .Append($"{extendedQueryTagTableAlias}.PartitionKey")
                     .Append(" = ")
                     .AppendLine(VLatest.Workitem.PartitionKey, WorkitemTableAlias);
 
-                _stringBuilder
+                StringBuilder
                     .Append("AND ")
                     .Append($"{extendedQueryTagTableAlias}.ResourceType")
                     .Append(" = ")
                     .AppendLine($"{(int)QueryTagResourceType.Workitem}");
 
-                _stringBuilder
+                StringBuilder
                     .Append("AND ")
                     .Append($"{extendedQueryTagTableAlias}.SopInstanceKey1")
                     .Append(" = ")
@@ -127,7 +115,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
         private void AppendSelect(string tableAlias)
         {
-            _stringBuilder
+            StringBuilder
                 .AppendLine("SELECT ")
                 .Append(VLatest.Workitem.WorkitemKey, tableAlias).AppendLine(",")
                 .Append(VLatest.Workitem.WorkitemUid, tableAlias).AppendLine()
@@ -137,18 +125,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
         private void AppendStatusClause(string tableAlias)
         {
             byte validStatus = (byte)IndexStatus.Created;
-            _stringBuilder
+            StringBuilder
                 .Append("AND ")
                 .Append(VLatest.Workitem.Status, tableAlias)
                 .AppendLine($" = {validStatus} ");
-        }
-
-        private void AppendFilterClause()
-        {
-            foreach (var filterCondition in _queryExpression.FilterConditions)
-            {
-                filterCondition.Accept(this);
-            }
         }
 
         private void AppendFilterPaging()
@@ -156,12 +136,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             BigIntColumn orderColumn = VLatest.Workitem.WorkitemKey;
             string tableAlias = WorkitemTableAlias;
 
-            _stringBuilder.Append($"ORDER BY ")
+            StringBuilder.Append($"ORDER BY ")
                 .Append(orderColumn, tableAlias)
                 .Append(" DESC")
                 .AppendLine();
-            _stringBuilder.AppendLine($"OFFSET {_queryExpression.Offset} ROWS");
-            _stringBuilder.AppendLine($"FETCH NEXT {_queryExpression.EvaluatedLimit} ROWS ONLY");
+            StringBuilder.AppendLine($"OFFSET {_queryExpression.Offset} ROWS");
+            StringBuilder.AppendLine($"FETCH NEXT {_queryExpression.EvaluatedLimit} ROWS ONLY");
         }
     }
 }
