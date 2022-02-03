@@ -97,6 +97,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             };
 
             long workitemKey = await _fixture.IndexWorkitemStore.BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
+            await _fixture.IndexWorkitemStore.EndAddWorkitemAsync(DefaultPartition.Key, workitemKey, CancellationToken.None);
 
             var includeField = new QueryIncludeField(new List<DicomTag> { tag });
             var queryTag = new QueryTag(new WorkitemQueryTagStoreEntry(2, tag.GetPath(), tag.GetDefaultVR().Code));
@@ -130,7 +131,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             };
 
             long workitemKey1 = await _fixture.IndexWorkitemStore.BeginAddWorkitemAsync(DefaultPartition.Key, dataset1, queryTags, CancellationToken.None);
+            await _fixture.IndexWorkitemStore.EndAddWorkitemAsync(DefaultPartition.Key, workitemKey1, CancellationToken.None);
             long workitemKey2 = await _fixture.IndexWorkitemStore.BeginAddWorkitemAsync(DefaultPartition.Key, dataset2, queryTags, CancellationToken.None);
+            await _fixture.IndexWorkitemStore.EndAddWorkitemAsync(DefaultPartition.Key, workitemKey2, CancellationToken.None);
 
             var includeField = new QueryIncludeField(new List<DicomTag> { tag });
             var queryTag = new QueryTag(new WorkitemQueryTagStoreEntry(2, tag.GetPath(), tag.GetDefaultVR().Code));

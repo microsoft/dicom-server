@@ -8,6 +8,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
+using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.Query;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
@@ -74,6 +75,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                 .AppendLine($"FROM {VLatest.Workitem.TableName} {WorkitemTableAlias}");
 
             AppendLongSchemaQueryTables();
+            AppendStatusClause(WorkitemTableAlias);
 
             _stringBuilder.AppendLine("WHERE 1 = 1");
 
@@ -130,6 +132,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                 .Append(VLatest.Workitem.WorkitemKey, tableAlias).AppendLine(",")
                 .Append(VLatest.Workitem.WorkitemUid, tableAlias).AppendLine()
                 .AppendLine("FROM");
+        }
+
+        private void AppendStatusClause(string tableAlias)
+        {
+            byte validStatus = (byte)IndexStatus.Created;
+            _stringBuilder
+                .Append("AND ")
+                .Append(VLatest.Workitem.Status, tableAlias)
+                .AppendLine($" = {validStatus} ");
         }
 
         private void AppendFilterClause()
