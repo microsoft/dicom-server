@@ -102,7 +102,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             IEnumerable<DicomDataset> workitems = await Task.WhenAll(
                 queryResult.WorkitemInstances.Select(x => _workitemStore.GetWorkitemAsync(x, cancellationToken)));
 
-            IEnumerable<DicomDataset> workitemResponses = workitems.Select(m => WorkitemQueryResponseBuilder.GenerateResponseDataset(m, queryExpression));
+            var workitemResponses = workitems.Select(m => WorkitemQueryResponseBuilder.GenerateResponseDataset(m, queryExpression)).ToList();
 
             return new QueryWorkitemResourceResponse(workitemResponses);
         }

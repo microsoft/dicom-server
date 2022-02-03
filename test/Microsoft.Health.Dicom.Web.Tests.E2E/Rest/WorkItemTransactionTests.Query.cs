@@ -118,5 +118,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.NotNull(testDataResponse);
             Assert.Equal(dicomDataset.GetSingleValue<string>(DicomTag.PatientName), testDataResponse.GetSingleValue<string>(DicomTag.PatientName));
         }
+
+        [Fact]
+        public async Task GivenSearchRequest_WithHigherLimit_ReturnBadRequest()
+        {
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
+                () => _client.QueryWorkitemAsync("PatientName=Foo&limit=500"));
+
+            Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
+            Assert.Equal(exception.ResponseMessage, string.Format(DicomCoreResource.InvalidQueryStringValue, "Limit", "The field Limit must be between 1 and 200."));
+        }
     }
 }
