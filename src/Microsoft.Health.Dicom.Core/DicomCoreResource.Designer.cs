@@ -1064,5 +1064,14 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("WorkitemInstanceNotFound", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; is already in the final state &apos;{1}&apos;. {2}..
+        /// </summary>
+        internal static string WorkitemIsInFinalState {
+            get {
+                return ResourceManager.GetString("WorkitemIsInFinalState", resourceCulture);
+            }
+        }
     }
 }

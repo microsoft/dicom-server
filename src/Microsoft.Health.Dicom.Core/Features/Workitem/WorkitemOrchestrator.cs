@@ -91,7 +91,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
                 // TODO: Need to find a way to move this out of Orchestrator. Should be part of the main validator???
-                await ValidateProcedureStepStateInStore(workitemInstanceUid, partitionKey, cancellationToken);
+                var futureProcedureStepState = await ValidateProcedureStepStateInStoreAsync(workitemInstanceUid, partitionKey, cancellationToken);
+
+                dataset.AddOrUpdate(DicomTag.ProcedureStepState, futureProcedureStepState);
 
                 var queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken).ConfigureAwait(false);
                 var workitemKey = await _indexWorkitemStore
@@ -105,7 +107,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 {
                     var blobDicomDataset = await GetWorkitemBlobAsync(workitemInstanceIdentifier, cancellationToken).ConfigureAwait(false);
 
-                    blobDicomDataset.AddOrUpdate(DicomTag.ReasonForCancellation, cancellationReason);
+                    dataset.CopyTo(blobDicomDataset);
 
                     await StoreWorkitemBlobAsync(workitemInstanceIdentifier, blobDicomDataset, cancellationToken).ConfigureAwait(false);
                 }
@@ -116,7 +118,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
         }
 
-        private async Task ValidateProcedureStepStateInStore(string workitemInstanceUid, int partitionKey, CancellationToken cancellationToken)
+        private async Task<string> ValidateProcedureStepStateInStoreAsync(string workitemInstanceUid, int partitionKey, CancellationToken cancellationToken)
         {
             var workitemDetail = await _indexWorkitemStore
                 .GetWorkitemDetailAsync(partitionKey, workitemInstanceUid, cancellationToken)
@@ -139,6 +141,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                         workitemInstanceUid,
                         transitionStateResult.Code));
             }
+
+
+            // If the Future state is Empty, then assume that workitem is already in the final state.
+            if (string.IsNullOrWhiteSpace(transitionStateResult.State))
+            {
+                throw new DatasetValidationException(
+                    FailureReasonCodes.ValidationFailure,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.WorkitemIsInFinalState,
+                        workitemInstanceUid,
+                        workitemDetail.ProcedureStepState,
+                        transitionStateResult.Code));
+            }
+
+            return transitionStateResult.State;
         }
 
         /// <inheritdoc />
