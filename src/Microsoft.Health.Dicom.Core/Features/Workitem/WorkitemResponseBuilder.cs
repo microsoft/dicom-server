@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             {
                 // There are only success.
                 status = WorkitemResponseStatus.Success;
-                url = _urlResolver.ResolveRetrieveWorkitemUri(_dataset.GetString(DicomTag.AffectedSOPInstanceUID));
+                url = _urlResolver.ResolveRetrieveWorkitemUri(_dataset.GetString(DicomTag.SOPInstanceUID));
             }
             else if (failureReason == FailureReasonCodes.SopInstanceAlreadyExists)
             {

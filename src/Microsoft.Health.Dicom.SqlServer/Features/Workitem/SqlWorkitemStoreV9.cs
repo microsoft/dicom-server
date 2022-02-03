@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                     rows.PersonNameRows
                 );
 
-                string workitemUid = dataset.GetString(DicomTag.AffectedSOPInstanceUID);
+                string workitemUid = dataset.GetString(DicomTag.SOPInstanceUID);
 
                 VLatest.AddWorkitem.PopulateCommand(
                     sqlCommandWrapper,

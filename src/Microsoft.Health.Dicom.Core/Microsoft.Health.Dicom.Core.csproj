@@ -34,8 +34,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="WorkitemService.*.cs">
-      <DependentUpon>WorkitemService.cs</DependentUpon>
+    <None Include="Features/Workitem/WorkitemDatasetValidator.*.cs">
+      <DependentUpon>Features/Workitem/WorkitemDatasetValidator.cs</DependentUpon>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Features/Workitem/WorkitemService.*.cs">
+      <DependentUpon>Features/Workitem/WorkitemService.cs</DependentUpon>
     </None>
   </ItemGroup>
 

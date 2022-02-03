@@ -218,7 +218,7 @@ namespace Microsoft.Health.Dicom.Tests.Common
                 ds = ds.NotValidated();
             }
 
-            ds.Add(DicomTag.AffectedSOPInstanceUID, workitemUid ?? TestUidGenerator.Generate());
+            ds.Add(DicomTag.SOPInstanceUID, workitemUid ?? TestUidGenerator.Generate());
             ds.Add(DicomTag.ScheduledProcedureStepPriority, Guid.NewGuid().ToString("N").Substring(0, 14).ToUpper());
             ds.Add(DicomTag.ProcedureStepLabel, Guid.NewGuid().ToString("N"));
             ds.Add(DicomTag.WorklistLabel, Guid.NewGuid().ToString("N"));
