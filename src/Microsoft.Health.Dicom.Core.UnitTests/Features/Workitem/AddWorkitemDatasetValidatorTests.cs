@@ -119,7 +119,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             yield return new object[] { DicomTag.ScheduledHumanPerformersSequence };
             yield return new object[] { DicomTag.HumanPerformerCodeSequence };
             yield return new object[] { DicomTag.ReplacedProcedureStepSequence };
-            yield return new object[] { DicomTag.AffectedSOPInstanceUID };
         }
     }
 }
