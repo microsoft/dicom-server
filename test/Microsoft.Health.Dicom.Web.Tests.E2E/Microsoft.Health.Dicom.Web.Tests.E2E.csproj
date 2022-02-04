@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -31,12 +31,6 @@
     <ProjectReference Include="..\..\src\Microsoft.Health.Dicom.Functions\Microsoft.Health.Dicom.Functions.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.Health.Dicom.Tests.Common\Microsoft.Health.Dicom.Tests.Common.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.Health.Dicom.Web\Microsoft.Health.Dicom.Web.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Rest/WorkItemTransactionTests.*.cs">
-      <DependentUpon>Rest/WorkItemTransactionTests.cs</DependentUpon>
-    </None>
   </ItemGroup>
 
   <ItemGroup>

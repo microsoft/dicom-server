@@ -34,14 +34,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Features/Workitem/WorkitemDatasetValidator.*.cs">
-      <DependentUpon>Features/Workitem/WorkitemDatasetValidator.cs</DependentUpon>
+    <None Include="Features\Workitem\WorkitemDatasetValidator.*.cs">
+      <DependentUpon>Features\Workitem\WorkitemDatasetValidator.cs</DependentUpon>
     </None>
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Features/Workitem/WorkitemService.*.cs">
-      <DependentUpon>Features/Workitem/WorkitemService.cs</DependentUpon>
+    <None Include="Features\Workitem\WorkitemService.*.cs">
+      <DependentUpon>Features\Workitem\WorkitemService.cs</DependentUpon>
     </None>
   </ItemGroup>
 
@@ -58,18 +58,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>DicomCoreResource.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Features/Workitem/WorkitemService.*.cs">
-      <DependentUpon>Features/Workitem/WorkitemService.cs</DependentUpon>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Features/Workitem/WorkitemDatasetValidator.*.cs">
-      <DependentUpon>Features/Workitem/WorkitemDatasetValidator.cs</DependentUpon>
-    </None>
   </ItemGroup>
 
 </Project>
