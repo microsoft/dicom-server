@@ -70,8 +70,8 @@
     <TSqlScript Include="Features\Schema\Sql\Scripts\Sequences.sql" />
     <TSqlScript Include="Features\Schema\Sql\Tables\*.sql" />
     <TSqlScript Include="Features\Schema\Sql\Types\*.sql" />
-    <None Remove="Features\Schema\Sql\Sprocs\GetWorkitemDetail.sql" />
-    <None Remove="Features\Schema\Sql\Sprocs\UpdateWorkitem.sql" />
+    <None Remove="Features\Schema\Sql\Sprocs\GetWorkitemMetadata.sql" />
+    <None Remove="Features\Schema\Sql\Sprocs\UpdateWorkitemProcedureStepState.sql" />
     <TSqlScript Include="Features\Schema\Sql\Scripts\WorkitemQueryTag.sql" />
   </ItemGroup>
 

@@ -5,18 +5,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -43,6 +41,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             _workitemStore = EnsureArg.IsNotNull(workitemStore, nameof(workitemStore));
             _workitemQueryTagService = EnsureArg.IsNotNull(workitemQueryTagService, nameof(workitemQueryTagService));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+        }
+
+        /// <inheritdoc />
+        public async Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(string workitemInstanceUid, CancellationToken cancellationToken)
+        {
+            var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
+
+            var workitemMetadata = await _indexWorkitemStore
+                .GetWorkitemMetadataAsync(partitionKey, workitemInstanceUid, cancellationToken)
+                .ConfigureAwait(false);
+
+            return workitemMetadata;
         }
 
         /// <inheritdoc />
@@ -83,82 +93,84 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
         }
 
-        public async Task CancelWorkitemAsync(string workitemInstanceUid, DicomDataset dataset, CancellationToken cancellationToken)
+        public async Task CancelWorkitemAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, string targetProcedureStepState, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
-            EnsureArg.IsNotNull(workitemInstanceUid, nameof(workitemInstanceUid));
+            EnsureArg.IsNotNull(workitemMetadata, nameof(workitemMetadata));
+
+            if (workitemMetadata.Status != WorkitemStoreStatus.ReadWrite)
+            {
+                return;
+            }
+
+            WorkitemInstanceIdentifier workitemInstanceIdentifier = null;
+            DicomDataset storeDicomDataset = null;
 
             try
             {
-                var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
-
-                // TODO: Need to find a way to move this out of Orchestrator. Should be part of the main validator???
-                var futureProcedureStepState = await ValidateProcedureStepStateInStoreAsync(workitemInstanceUid, partitionKey, cancellationToken);
-
-                dataset.AddOrUpdate(DicomTag.ProcedureStepState, futureProcedureStepState);
-
-                var queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken).ConfigureAwait(false);
-                var workitemKey = await _indexWorkitemStore
-                    .UpdateWorkitemAsync(partitionKey, workitemInstanceUid, dataset, queryTags, cancellationToken)
+                // soft-lock the workitem
+                await _indexWorkitemStore
+                    .BeginUpdateWorkitemAsync(workitemMetadata, cancellationToken)
                     .ConfigureAwait(false);
 
-                var workitemInstanceIdentifier = new WorkitemInstanceIdentifier(workitemInstanceUid, workitemKey, partitionKey);
+                // Get the workitem from blob store
+                workitemInstanceIdentifier = new WorkitemInstanceIdentifier(workitemMetadata.WorkitemUid, workitemMetadata.WorkitemKey, workitemMetadata.PartitionKey);
+                storeDicomDataset = await GetWorkitemBlobAsync(workitemInstanceIdentifier, cancellationToken).ConfigureAwait(false);
 
+                // update the procedure step state
+                var updatedDicomDataset = new DicomDataset(storeDicomDataset);
+                updatedDicomDataset.AddOrUpdate(DicomTag.ProcedureStepState, targetProcedureStepState);
+
+                // if there is a reason for cancellation, update the workitem in the blob store
                 dataset.TryGetString(DicomTag.ReasonForCancellation, out var cancellationReason);
                 if (!string.IsNullOrWhiteSpace(cancellationReason))
                 {
-                    var blobDicomDataset = await GetWorkitemBlobAsync(workitemInstanceIdentifier, cancellationToken).ConfigureAwait(false);
+                    updatedDicomDataset.AddOrUpdate(DicomTag.ReasonForCancellation, cancellationReason);
 
-                    dataset.CopyTo(blobDicomDataset);
-
-                    await StoreWorkitemBlobAsync(workitemInstanceIdentifier, blobDicomDataset, cancellationToken).ConfigureAwait(false);
+                    await StoreWorkitemBlobAsync(workitemInstanceIdentifier, updatedDicomDataset, cancellationToken).ConfigureAwait(false);
                 }
+
+                // Update the workitem tags in the store
+                var queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken).ConfigureAwait(false);
+                await _indexWorkitemStore
+                    .EndUpdateWorkitemAsync(workitemMetadata, updatedDicomDataset, queryTags, cancellationToken)
+                    .ConfigureAwait(false);
             }
             catch
             {
+                // Cleanup cancel action
+                await TryCleanupCancelAsync(workitemMetadata, workitemInstanceIdentifier, storeDicomDataset, cancellationToken);
+
                 throw;
             }
         }
 
-        private async Task<string> ValidateProcedureStepStateInStoreAsync(string workitemInstanceUid, int partitionKey, CancellationToken cancellationToken)
+        private async Task TryCleanupCancelAsync(WorkitemMetadataStoreEntry workitemMetada, WorkitemInstanceIdentifier identifier, DicomDataset dataset, CancellationToken cancellationToken)
         {
-            var workitemDetail = await _indexWorkitemStore
-                .GetWorkitemDetailAsync(partitionKey, workitemInstanceUid, cancellationToken)
-                .ConfigureAwait(false);
-
-            if (workitemDetail == null)
+            if (null == identifier && null == dataset)
             {
-                throw new WorkitemNotFoundException(workitemInstanceUid);
+                return;
             }
 
-            var transitionStateResult = ProcedureStepState.GetTransitionState(WorkitemStateEvents.NActionToRequestCancel, workitemDetail.ProcedureStepState);
-            if (transitionStateResult.IsError)
+            try
             {
-                throw new DatasetValidationException(
-                    FailureReasonCodes.ValidationFailure,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        DicomCoreResource.InvalidProcedureStepState,
-                        workitemDetail.ProcedureStepState,
-                        workitemInstanceUid,
-                        transitionStateResult.Code));
+                // Upload the original blobl back in the store
+                await StoreWorkitemBlobAsync(identifier, dataset, cancellationToken).ConfigureAwait(false);
+
+                // release the workitem (soft) lock
+                await _indexWorkitemStore
+                    .UnlockWorkitemAsync(workitemMetada, cancellationToken)
+                    .ConfigureAwait(false);
             }
-
-
-            // If the Future state is Empty, then assume that workitem is already in the final state.
-            if (string.IsNullOrWhiteSpace(transitionStateResult.State))
+            catch (Exception ex)
             {
-                throw new DatasetValidationException(
-                    FailureReasonCodes.ValidationFailure,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        DicomCoreResource.WorkitemIsInFinalState,
-                        workitemInstanceUid,
-                        workitemDetail.ProcedureStepState,
-                        transitionStateResult.Code));
+                _logger.LogWarning(
+                    ex,
+                    @"Failed to revert the workitem blob for [WorkitemUid: '{WorkitemUid}'] [PartitionKey: '{PartitionKey}'] [WorkitemKey: '{WorkitemKey}'].",
+                    identifier.WorkitemUid,
+                    identifier.PartitionKey,
+                    identifier.WorkitemKey);
             }
-
-            return transitionStateResult.State;
         }
 
         /// <inheritdoc />

@@ -37,15 +37,38 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         Task EndAddWorkitemAsync(int partitionKey, long workitemKey, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Asynchronously deletes a workitem instance.
+        /// Asynchronously begins deleting a workitem instance.
         /// </summary>
-        /// <param name="partitionKey">The partition key.</param>
-        /// <param name="workitemUid">Workitem instance UID</param>
+        /// <param name="workitemMetadata">The Workitem metadata.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A Task representing the method status.</returns>
+        Task BeginUpdateWorkitemAsync(WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Asynchronously completes the deletion of a workitem instance.
+        /// </summary>
+        /// <param name="workitemMetadata">The Workitem metadata.</param>
         /// <param name="dataset">The DICOM dataset to index.</param>
         /// <param name="queryTags">Queryable workitem tags</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A Task representing the method status.</returns>
-        Task<long> UpdateWorkitemAsync(int partitionKey, string workitemUid, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
+        Task EndUpdateWorkitemAsync(WorkitemMetadataStoreEntry workitemMetadata, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Asynchronously (soft) locks the workitem instance.
+        /// </summary>
+        /// <param name="workitemMetadata">The Workitem metadata.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        Task LockWorkitemAsync(WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Asynchronously unlocks the workitem instance.
+        /// </summary>
+        /// <param name="workitemMetadata">The Workitem metadata.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        Task UnlockWorkitemAsync(WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously deletes a workitem instance.
@@ -64,12 +87,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         Task<IReadOnlyList<WorkitemQueryTagStoreEntry>> GetWorkitemQueryTagsAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Asynchronously gets workitem detail
+        /// Asynchronously gets workitem metadata
         /// </summary>
         /// <param name="partitionKey">The partition key.</param>
         /// <param name="workitemUid">Workitem instance UID</param>
         /// <param name="cancellationToken"></param>
         /// <returns>A task that gets workitem query tags.</returns>
-        Task<WorkitemDetail> GetWorkitemDetailAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default);
+        Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default);
     }
 }

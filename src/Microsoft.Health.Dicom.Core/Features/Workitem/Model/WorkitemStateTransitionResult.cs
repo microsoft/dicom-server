@@ -22,5 +22,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         public string Code { get; }
 
         public bool IsError { get; }
+
+        public bool HasWarningWithCode => !IsError && !string.IsNullOrWhiteSpace(Code);
     }
 }

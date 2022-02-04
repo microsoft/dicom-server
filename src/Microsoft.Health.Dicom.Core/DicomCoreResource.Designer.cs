@@ -595,11 +595,11 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid procedure step state for the specified WorkitemInstanceUID &apos;{1}&apos;. {2}.
+        ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; can not transition to &apos;{1}&apos; state: {2}..
         /// </summary>
-        internal static string InvalidProcedureStepState {
+        internal static string InvalidProcedureStepStateTransition {
             get {
-                return ResourceManager.GetString("InvalidProcedureStepState", resourceCulture);
+                return ResourceManager.GetString("InvalidProcedureStepStateTransition", resourceCulture);
             }
         }
         
@@ -1066,6 +1066,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; has been cancelled..
+        /// </summary>
+        internal static string WorkitemCancelRequestSuccess {
+            get {
+                return ResourceManager.GetString("WorkitemCancelRequestSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; already exists. Try creating using a different UID..
         /// </summary>
         internal static string WorkitemInstanceAlreadyExists {
@@ -1089,6 +1098,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string WorkitemIsInFinalState {
             get {
                 return ResourceManager.GetString("WorkitemIsInFinalState", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; can not be updated currently..
+        /// </summary>
+        internal static string WorkitemUpdateIsNotAllowed {
+            get {
+                return ResourceManager.GetString("WorkitemUpdateIsNotAllowed", resourceCulture);
             }
         }
     }

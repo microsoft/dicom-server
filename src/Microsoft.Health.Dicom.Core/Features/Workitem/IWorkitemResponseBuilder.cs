@@ -33,6 +33,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         void AddSuccess(DicomDataset dicomDataset);
 
         /// <summary>
+        /// Adds a successful entry to the response with a status message
+        /// </summary>
+        /// <param name="message">The message related to the status</param>
+        void AddSuccess(string message);
+
+        /// <summary>
         /// Adds a failed entry to the response.
         /// </summary>
         /// <param name="dicomDataset">The DICOM dataset that failed to be stored.</param>

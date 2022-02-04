@@ -96,9 +96,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                         FailureReasonCodes.ValidationFailure,
                         string.Format(
                             CultureInfo.InvariantCulture,
-                            DicomCoreResource.InvalidProcedureStepState,
-                            currentState,
+                            DicomCoreResource.InvalidProcedureStepStateTransition,
                             workitemInstanceUid,
+                            currentState,
                             result.Code));
                 }
             }

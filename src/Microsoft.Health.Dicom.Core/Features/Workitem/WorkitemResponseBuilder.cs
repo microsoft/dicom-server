@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     {
         private readonly IUrlResolver _urlResolver;
         private DicomDataset _dataset;
-        private string _failureMessage;
+        private string _message;
 
         public WorkitemResponseBuilder(IUrlResolver urlResolver)
         {
@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 status = WorkitemResponseStatus.Conflict;
             }
 
-            return new AddWorkitemResponse(status, url, _failureMessage);
+            return new AddWorkitemResponse(status, url, _message);
         }
 
         /// <inheritdoc />
@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 status = WorkitemResponseStatus.Success;
             }
 
-            return new CancelWorkitemResponse(status, _failureMessage);
+            return new CancelWorkitemResponse(status, _message);
         }
 
         /// <inheritdoc />
@@ -71,11 +71,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         }
 
         /// <inheritdoc />
+        public void AddSuccess(string message)
+        {
+            EnsureArg.IsNotNull(message, nameof(message));
+
+            _dataset = new DicomDataset();
+            _message = message;
+        }
+
+        /// <inheritdoc />
         public void AddFailure(DicomDataset dicomDataset = null,
             ushort failureReasonCode = FailureReasonCodes.ProcessingFailure,
             string message = null)
         {
-            _failureMessage = message;
+            _message = message;
             _dataset = dicomDataset ?? new DicomDataset();
 
             _dataset.Add(DicomTag.FailureReason, failureReasonCode);

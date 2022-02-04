@@ -1538,19 +1538,23 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.GetWorkitemDetail
-@partitionKey INT, @workitemUid VARCHAR (64)
+CREATE OR ALTER PROCEDURE dbo.GetWorkitemMetadata
+@partitionKey INT, @workitemUid VARCHAR (64), @procedureStepStateTagPath VARCHAR (64)
 AS
 BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
     SELECT wi.WorkitemUid,
            wi.WorkitemKey,
            wi.PartitionKey,
+           wi.[Status],
+           wi.TransactionUid,
            eqt.TagValue AS ProcedureStepState
     FROM   dbo.ExtendedQueryTagString AS eqt
            INNER JOIN
            dbo.WorkitemQueryTag AS wqt
            ON wqt.TagKey = eqt.TagKey
-              AND wqt.TagPath = '00741000'
+              AND wqt.TagPath = @procedureStepStateTagPath
            INNER JOIN
            dbo.Workitem AS wi
            ON wi.WorkitemKey = eqt.SopInstanceKey1
@@ -1931,84 +1935,220 @@ END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.UpdateWorkitem
-@partitionKey INT, @workitemUid VARCHAR (64), @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
+@partitionKey INT, @workitemUid VARCHAR (64), @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY, @status TINYINT
 AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
-    DECLARE @workitemResourceType AS TINYINT = 1;
-    DECLARE @newWatermark AS BIGINT;
-    SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
     DECLARE @workitemKey AS BIGINT;
+    DECLARE @newWatermark AS BIGINT;
+    DECLARE @workitemResourceType AS TINYINT = 1;
+    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
     SELECT @workitemKey = WorkitemKey
     FROM   dbo.Workitem
     WHERE  PartitionKey = @partitionKey
            AND WorkitemUid = @workitemUid;
     IF @@ROWCOUNT = 0
         THROW 50413, 'Workitem does not exist', 1;
+    SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
     IF EXISTS (SELECT 1
                FROM   @stringExtendedQueryTags)
         BEGIN
             WITH InputCTE
-            AS   (SELECT input.TagValue,
-                         input.TagKey
-                  FROM   @stringExtendedQueryTags AS input
+            AS   (SELECT wqt.TagKey,
+                         wqt.TagPath,
+                         eqts.TagValue AS OldTagValue,
+                         input.TagValue AS NewTagValue,
+                         eqts.ResourceType,
+                         wi.PartitionKey,
+                         wi.WorkitemKey,
+                         wi.WorkitemUid,
+                         wi.TransactionUid,
+                         eqts.Watermark
+                  FROM   dbo.WorkitemQueryTag AS wqt
                          INNER JOIN
-                         dbo.WorkitemQueryTag
-                         ON dbo.WorkitemQueryTag.TagKey = input.TagKey)
-            UPDATE dbo.ExtendedQueryTagString
-            SET    TagValue  = cte.TagValue,
-                   Watermark = @newWatermark
-            FROM   dbo.ExtendedQueryTagString AS t
+                         @stringExtendedQueryTags AS input
+                         ON input.TagKey = wqt.TagKey
+                         INNER JOIN
+                         dbo.ExtendedQueryTagString AS eqts
+                         ON eqts.TagKey = wqt.TagKey
+                            AND eqts.ResourceType = 1
+                         INNER JOIN
+                         dbo.Workitem AS wi
+                         ON wi.PartitionKey = eqts.PartitionKey
+                            AND wi.WorkitemKey = eqts.SopInstanceKey1
+                  WHERE  wi.PartitionKey = @partitionKey
+                         AND wi.WorkitemKey = @workitemKey)
+            UPDATE targetTbl
+            SET    targetTbl.TagValue  = cte.NewTagValue,
+                   targetTbl.Watermark = @newWatermark
+            FROM   dbo.ExtendedQueryTagString AS targetTbl
                    INNER JOIN
                    InputCTE AS cte
-                   ON cte.TagKey = t.TagKey
-            WHERE  SopInstanceKey1 = @workitemKey
-                   AND PartitionKey = @partitionKey;
+                   ON targetTbl.ResourceType = cte.ResourceType
+                      AND cte.PartitionKey = targetTbl.PartitionKey
+                      AND cte.WorkitemKey = targetTbl.SopInstanceKey1
+                      AND cte.TagKey = targetTbl.TagKey
+                      AND cte.OldTagValue = targetTbl.TagValue
+                      AND cte.Watermark = targetTbl.Watermark;
         END
     IF EXISTS (SELECT 1
                FROM   @dateTimeExtendedQueryTags)
         BEGIN
             WITH InputCTE
-            AS   (SELECT input.TagValue,
-                         input.TagKey
-                  FROM   @dateTimeExtendedQueryTags AS input
+            AS   (SELECT wqt.TagKey,
+                         wqt.TagPath,
+                         eqts.TagValue AS OldTagValue,
+                         input.TagValue AS NewTagValue,
+                         eqts.ResourceType,
+                         wi.PartitionKey,
+                         wi.WorkitemKey,
+                         wi.WorkitemUid,
+                         wi.TransactionUid,
+                         eqts.Watermark
+                  FROM   dbo.WorkitemQueryTag AS wqt
                          INNER JOIN
-                         dbo.WorkitemQueryTag
-                         ON dbo.WorkitemQueryTag.TagKey = input.TagKey)
-            UPDATE dbo.ExtendedQueryTagDateTime
-            SET    TagValue  = cte.TagValue,
-                   Watermark = @newWatermark
-            FROM   dbo.ExtendedQueryTagDateTime AS t
+                         @dateTimeExtendedQueryTags AS input
+                         ON input.TagKey = wqt.TagKey
+                         INNER JOIN
+                         dbo.ExtendedQueryTagDateTime AS eqts
+                         ON eqts.TagKey = wqt.TagKey
+                            AND eqts.ResourceType = 1
+                         INNER JOIN
+                         dbo.Workitem AS wi
+                         ON wi.PartitionKey = eqts.PartitionKey
+                            AND wi.WorkitemKey = eqts.SopInstanceKey1
+                  WHERE  wi.PartitionKey = @partitionKey
+                         AND wi.WorkitemKey = @workitemKey)
+            UPDATE targetTbl
+            SET    targetTbl.TagValue  = cte.NewTagValue,
+                   targetTbl.Watermark = @newWatermark
+            FROM   dbo.ExtendedQueryTagDateTime AS targetTbl
                    INNER JOIN
                    InputCTE AS cte
-                   ON cte.TagKey = t.TagKey
-            WHERE  SopInstanceKey1 = @workitemKey
-                   AND PartitionKey = @partitionKey;
+                   ON targetTbl.ResourceType = cte.ResourceType
+                      AND cte.PartitionKey = targetTbl.PartitionKey
+                      AND cte.WorkitemKey = targetTbl.SopInstanceKey1
+                      AND cte.TagKey = targetTbl.TagKey
+                      AND cte.OldTagValue = targetTbl.TagValue
+                      AND cte.Watermark = targetTbl.Watermark;
         END
     IF EXISTS (SELECT 1
                FROM   @personNameExtendedQueryTags)
         BEGIN
             WITH InputCTE
-            AS   (SELECT input.TagValue,
-                         input.TagKey
-                  FROM   @personNameExtendedQueryTags AS input
+            AS   (SELECT wqt.TagKey,
+                         wqt.TagPath,
+                         eqts.TagValue AS OldTagValue,
+                         input.TagValue AS NewTagValue,
+                         eqts.ResourceType,
+                         wi.PartitionKey,
+                         wi.WorkitemKey,
+                         wi.WorkitemUid,
+                         wi.TransactionUid,
+                         eqts.Watermark
+                  FROM   dbo.WorkitemQueryTag AS wqt
                          INNER JOIN
-                         dbo.WorkitemQueryTag
-                         ON dbo.WorkitemQueryTag.TagKey = input.TagKey)
-            UPDATE dbo.ExtendedQueryTagPersonName
-            SET    TagValue  = cte.TagValue,
-                   Watermark = @newWatermark
-            FROM   dbo.ExtendedQueryTagPersonName AS t
+                         @personNameExtendedQueryTags AS input
+                         ON input.TagKey = wqt.TagKey
+                         INNER JOIN
+                         dbo.ExtendedQueryTagPersonName AS eqts
+                         ON eqts.TagKey = wqt.TagKey
+                            AND eqts.ResourceType = 1
+                         INNER JOIN
+                         dbo.Workitem AS wi
+                         ON wi.PartitionKey = eqts.PartitionKey
+                            AND wi.WorkitemKey = eqts.SopInstanceKey1
+                  WHERE  wi.PartitionKey = @partitionKey
+                         AND wi.WorkitemKey = @workitemKey)
+            UPDATE targetTbl
+            SET    targetTbl.TagValue  = cte.NewTagValue,
+                   targetTbl.Watermark = @newWatermark
+            FROM   dbo.ExtendedQueryTagPersonName AS targetTbl
                    INNER JOIN
                    InputCTE AS cte
-                   ON cte.TagKey = t.TagKey
-            WHERE  SopInstanceKey1 = @workitemKey
-                   AND PartitionKey = @partitionKey;
+                   ON targetTbl.ResourceType = cte.ResourceType
+                      AND cte.PartitionKey = targetTbl.PartitionKey
+                      AND cte.WorkitemKey = targetTbl.SopInstanceKey1
+                      AND cte.TagKey = targetTbl.TagKey
+                      AND cte.OldTagValue = targetTbl.TagValue
+                      AND cte.Watermark = targetTbl.Watermark;
         END
+    UPDATE dbo.Workitem
+    SET    [Status]              = @status,
+           LastStatusUpdatedDate = @currentDate
+    WHERE  PartitionKey = @partitionKey
+           AND WorkitemUid = @workitemUid;
     COMMIT TRANSACTION;
     SELECT @workitemKey;
+END
+
+GO
+CREATE OR ALTER PROCEDURE dbo.UpdateWorkitemProcedureStepState
+@partitionKey INT, @workitemUid VARCHAR (64), @procedureStepStateTagPath VARCHAR (64), @procedureStepState VARCHAR (64), @status TINYINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+    DECLARE @workitemKey AS BIGINT;
+    DECLARE @newWatermark AS BIGINT;
+    DECLARE @currentProcedureStepStateTagValue AS VARCHAR (64);
+    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+    SELECT @workitemKey = WorkitemKey
+    FROM   dbo.Workitem
+    WHERE  PartitionKey = @partitionKey
+           AND WorkitemUid = @workitemUid;
+    IF @@ROWCOUNT = 0
+        THROW 50409, 'Workitem does not exist', 1;
+    SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
+    BEGIN TRY
+        WITH TagKeyCTE
+        AS   (SELECT wqt.TagKey,
+                     wqt.TagPath,
+                     eqts.TagValue AS OldTagValue,
+                     eqts.ResourceType,
+                     wi.PartitionKey,
+                     wi.WorkitemKey,
+                     wi.WorkitemUid,
+                     wi.TransactionUid,
+                     eqts.Watermark
+              FROM   dbo.WorkitemQueryTag AS wqt
+                     INNER JOIN
+                     dbo.ExtendedQueryTagString AS eqts
+                     ON eqts.TagKey = wqt.TagKey
+                        AND eqts.ResourceType = 1
+                     INNER JOIN
+                     dbo.Workitem AS wi
+                     ON wi.PartitionKey = eqts.PartitionKey
+                        AND wi.WorkitemKey = eqts.SopInstanceKey1
+              WHERE  wi.PartitionKey = @partitionKey
+                     AND wi.WorkitemKey = @workitemKey)
+        UPDATE targetTbl
+        SET    targetTbl.TagValue  = @procedureStepState,
+               targetTbl.Watermark = @newWatermark
+        FROM   dbo.ExtendedQueryTagString AS targetTbl
+               INNER JOIN
+               TagKeyCTE AS cte
+               ON targetTbl.ResourceType = cte.ResourceType
+                  AND cte.PartitionKey = targetTbl.PartitionKey
+                  AND cte.WorkitemKey = targetTbl.SopInstanceKey1
+                  AND cte.TagKey = targetTbl.TagKey
+                  AND cte.OldTagValue = targetTbl.TagValue
+                  AND cte.Watermark = targetTbl.Watermark
+        WHERE  cte.TagPath = @procedureStepStateTagPath;
+        UPDATE dbo.Workitem
+        SET    [Status]              = @status,
+               LastStatusUpdatedDate = @currentDate
+        WHERE  PartitionKey = @partitionKey
+               AND WorkitemKey = @workitemKey;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
+    SELECT @workitemKey;
+    COMMIT TRANSACTION;
 END
 
 GO

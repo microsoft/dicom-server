@@ -22,6 +22,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         private const string ErrorC307 = "C307";
         private const string ErrorC310 = "C310";
         private const string ErrorC311 = "C311";
+        private const string ErrorC312 = "C312";
 
         /// <summary>
         /// The UPS is scheduled to be performed.
@@ -98,7 +99,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             (WorkitemStateEvents.NActionToRequestCancel, "") => new WorkitemStateTransitionResult(null, ErrorC307, true),
             (WorkitemStateEvents.NActionToRequestCancel, Scheduled) => new WorkitemStateTransitionResult(Canceled, null, false),
-            (WorkitemStateEvents.NActionToRequestCancel, InProgress) => new WorkitemStateTransitionResult(null, string.Empty, false),
+
+            // This case returns Error, with a message, because we do not support notifying the owner of the workitem instance about the cancellation request.
+            (WorkitemStateEvents.NActionToRequestCancel, InProgress) => new WorkitemStateTransitionResult(null, ErrorC312, true),
             (WorkitemStateEvents.NActionToRequestCancel, Completed) => new WorkitemStateTransitionResult(null, ErrorC311, true),
             (WorkitemStateEvents.NActionToRequestCancel, Canceled) => new WorkitemStateTransitionResult(null, WarningB304, false),
 
@@ -116,9 +119,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             _ => throw new Exceptions.NotSupportedException(string.Format(
                             CultureInfo.InvariantCulture,
-                            DicomCoreResource.InvalidProcedureStepState,
-                            state,
+                            DicomCoreResource.InvalidProcedureStepStateTransition,
                             string.Empty,
+                            state,
                             string.Empty))
         };
     }

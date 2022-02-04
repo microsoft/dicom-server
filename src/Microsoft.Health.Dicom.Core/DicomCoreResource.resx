@@ -489,9 +489,9 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="UpsRsFeatureDisabled" xml:space="preserve">
     <value>UPS-RS feature is disabled.</value>
   </data>
-  <data name="InvalidProcedureStepState" xml:space="preserve">
-    <value>'{0}' is not a valid procedure step state for the specified WorkitemInstanceUID '{1}'. {2}</value>
-    <comment>{0} ProcedureStepState. {1} WorkitemInstanceUID. {2} Error code</comment>
+  <data name="InvalidProcedureStepStateTransition" xml:space="preserve">
+    <value>The workitem instance with UID: '{0}' can not transition to '{1}' state: {2}.</value>
+    <comment>{0} WorkitemInstanceUID. {1} ProcedureStepState. {2} Error code</comment>
   </data>
   <data name="MismatchSopInstanceWorkitemInstanceUid" xml:space="preserve">
     <value>SOPInstanceUID '{0}' in the payload does not match the specified WorkitemInstanceUID '{1}'.</value>
@@ -504,7 +504,6 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="MissingWorkitemInstanceUid" xml:space="preserve">
     <value>WorkitemInstanceUID is missing.</value>
   </data>
-
   <data name="DuplicateTagValueNotSupported" xml:space="preserve">
     <value>Duplicate value '{0}' for tag '{1}' not supported in a sequence.</value>
     <comment>{0} String Value. {1} DicomTag.</comment>
@@ -524,5 +523,13 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="WorkitemIsInFinalState" xml:space="preserve">
     <value>The workitem instance with UID: '{0}' is already in the final state '{1}'. {2}.</value>
     <comment>{0} Workitem UID. {1} Procedure Step State. {2} Error or Warning Code.</comment>
+  </data>
+  <data name="WorkitemUpdateIsNotAllowed" xml:space="preserve">
+    <value>The workitem instance with UID: '{0}' can not be updated currently.</value>
+    <comment>{0} Workitem UID.</comment>
+  </data>
+  <data name="WorkitemCancelRequestSuccess" xml:space="preserve">
+    <value>The workitem instance with UID: '{0}' has been cancelled.</value>
+    <comment>{0} Workitem UID.</comment>
   </data>
 </root>

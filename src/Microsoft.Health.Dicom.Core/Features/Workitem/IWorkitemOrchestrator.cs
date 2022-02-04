@@ -6,6 +6,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
+using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -14,6 +15,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     /// </summary>
     public interface IWorkitemOrchestrator
     {
+        /// <summary>
+        /// Gets Workitem metadata from the store
+        /// </summary>
+        /// <param name="workitemInstanceUid">The workitem instance UID</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(string workitemInstanceUid, CancellationToken cancellationToken);
+
         /// <summary>
         /// Asynchronously orchestrate the adding of a UPS-RS workitem.
         /// </summary>
@@ -26,10 +35,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <summary>
         /// Asynchronously orchestrate the canceling of a UPS-RS workitem.
         /// </summary>
-        /// <param name="workitemInstanceUid">The workitem instance UID</param>
         /// <param name="dataset">The workitem dataset to add.</param>
+        /// <param name="workitemMetadata">The workitem metadata</param>
+        /// <param name="targetProcedureStepState">The target procedure step state</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        Task CancelWorkitemAsync(string workitemInstanceUid, DicomDataset dataset, CancellationToken cancellationToken);
+        Task CancelWorkitemAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, string targetProcedureStepState, CancellationToken cancellationToken);
     }
 }

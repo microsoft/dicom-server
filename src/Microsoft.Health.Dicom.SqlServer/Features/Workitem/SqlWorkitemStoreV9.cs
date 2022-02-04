@@ -11,6 +11,7 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
@@ -25,6 +26,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 {
     internal class SqlWorkitemStoreV9 : ISqlWorkitemStore
     {
+        private static readonly Health.SqlServer.Features.Schema.Model.NVarCharColumn ProcedureStepStateColumn =
+            new Health.SqlServer.Features.Schema.Model.NVarCharColumn("ProcedureStepState", 64);
+
         protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory;
 
         public SqlWorkitemStoreV9(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
@@ -71,33 +75,46 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             }
         }
 
-        public async Task<long> UpdateWorkitemAsync(int partitionKey, string workitemUid, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
+        public virtual async Task EndAddWorkitemAsync(int partitionKey, long workitemKey, CancellationToken cancellationToken = default)
         {
-            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
-            {
-                var rows = ExtendedQueryTagDataRowsBuilder.Build(dataset, queryTags, Version);
-                var parameters = new VLatest.UpdateWorkitemTableValuedParameters(
-                    rows.StringRows,
-                    rows.DateTimeWithUtcRows,
-                    rows.PersonNameRows
-                );
+            await UpdateWorkitemStatusAsync(partitionKey, workitemKey, WorkitemStoreStatus.ReadWrite, cancellationToken);
+        }
 
-                VLatest.UpdateWorkitem.PopulateCommand(
-                    sqlCommandWrapper,
-                    partitionKey,
-                    workitemUid,
-                    parameters);
+        public async Task BeginUpdateWorkitemAsync(WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken = default)
+        {
+            await UpdateWorkitemStatusAsync(workitemMetadata.PartitionKey, workitemMetadata.WorkitemKey, WorkitemStoreStatus.Read, cancellationToken);
+        }
 
-                try
-                {
-                    return (long)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
-                }
-                catch (SqlException ex)
-                {
-                    throw new DataStoreException(ex);
-                }
-            }
+        public async Task EndUpdateWorkitemAsync(WorkitemMetadataStoreEntry workitemMetadata,
+            DicomDataset dataset,
+            IEnumerable<QueryTag> queryTags,
+            CancellationToken cancellationToken = default)
+        {
+            // await UpdateWorkitemAsync(workitemMetadata, dataset, queryTags, cancellationToken)
+            //    .ConfigureAwait(false);
+
+            await UpdateWorkitemProcedureStepStateAsync(
+                    workitemMetadata.PartitionKey,
+                    workitemMetadata.WorkitemUid,
+                    dataset.GetString(DicomTag.ProcedureStepState),
+                    WorkitemStoreStatus.ReadWrite,
+                    cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        public async Task EndUpdateWorkitemAsync(WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken = default)
+        {
+            await UpdateWorkitemStatusAsync(workitemMetadata.PartitionKey, workitemMetadata.WorkitemKey, WorkitemStoreStatus.ReadWrite, cancellationToken);
+        }
+
+        public async Task LockWorkitemAsync(WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken = default)
+        {
+            await UpdateWorkitemStatusAsync(workitemMetadata.PartitionKey, workitemMetadata.WorkitemKey, WorkitemStoreStatus.Read, cancellationToken);
+        }
+
+        public async Task UnlockWorkitemAsync(WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken = default)
+        {
+            await UpdateWorkitemStatusAsync(workitemMetadata.PartitionKey, workitemMetadata.WorkitemKey, WorkitemStoreStatus.ReadWrite, cancellationToken);
         }
 
         public async Task DeleteWorkitemAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
@@ -109,28 +126,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                     sqlCommandWrapper,
                     partitionKey,
                     workitemUid); ;
-
-                try
-                {
-                    await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
-                }
-                catch (SqlException ex)
-                {
-                    throw new DataStoreException(ex);
-                }
-            }
-        }
-
-        public virtual async Task EndAddWorkitemAsync(int partitionKey, long workitemKey, CancellationToken cancellationToken = default)
-        {
-            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
-            {
-                VLatest.UpdateWorkitemStatus.PopulateCommand(
-                    sqlCommandWrapper,
-                    partitionKey,
-                    workitemKey,
-                    (byte)IndexStatus.Created); ;
 
                 try
                 {
@@ -169,28 +164,35 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             return results;
         }
 
-        public async Task<WorkitemDetail> GetWorkitemDetailAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
+        public async Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.GetWorkitemDetail.PopulateCommand(sqlCommandWrapper, partitionKey, workitemUid);
+                var procedureStepStateTagPath = DicomTag.ProcedureStepState.GetPath();
+
+                VLatest.GetWorkitemMetadata.PopulateCommand(sqlCommandWrapper, partitionKey, workitemUid, procedureStepStateTagPath);
 
                 using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        (string wiUid, long workitemKey, int pkey, string procedureStepState) = reader.ReadRow(
-                            new Health.SqlServer.Features.Schema.Model.VarCharColumn("WorkitemUid", 64),
-                            new Health.SqlServer.Features.Schema.Model.BigIntColumn("WorkitemKey"),
-                            new Health.SqlServer.Features.Schema.Model.IntColumn("PartitionKey"),
-                            new Health.SqlServer.Features.Schema.Model.NVarCharColumn("ProcedureStepState", 64));
+                        (string wiUid, long workitemKey, int pkey, byte status, string transactionUid, string procedureStepState) = reader
+                            .ReadRow(
+                                VLatest.Workitem.WorkitemUid,
+                                VLatest.Workitem.WorkitemKey,
+                                VLatest.Workitem.PartitionKey,
+                                VLatest.Workitem.Status,
+                                VLatest.Workitem.TransactionUid,
+                                ProcedureStepStateColumn);
 
-                        return new WorkitemDetail
+                        return new WorkitemMetadataStoreEntry
                         {
                             WorkitemKey = workitemKey,
                             WorkitemUid = wiUid,
                             PartitionKey = pkey,
+                            Status = (WorkitemStoreStatus)status,
+                            TransactionUid = transactionUid,
                             ProcedureStepState = procedureStepState
                         };
                     }
@@ -199,5 +201,89 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
             return null;
         }
+
+        private async Task UpdateWorkitemStatusAsync(int partitionKey, long workitemKey, WorkitemStoreStatus status, CancellationToken cancellationToken = default)
+        {
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.UpdateWorkitemStatus.PopulateCommand(
+                    sqlCommandWrapper,
+                    partitionKey,
+                    workitemKey,
+                    (byte)status);
+
+                try
+                {
+                    await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
+                }
+                catch (SqlException ex)
+                {
+                    throw new DataStoreException(ex);
+                }
+            }
+        }
+
+        private async Task UpdateWorkitemAsync(WorkitemMetadataStoreEntry workitemMetadata,
+            DicomDataset dataset,
+            IEnumerable<QueryTag> queryTags,
+            CancellationToken cancellationToken = default)
+        {
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                var rows = ExtendedQueryTagDataRowsBuilder.Build(dataset, queryTags, Version);
+                var parameters = new VLatest.UpdateWorkitemTableValuedParameters(
+                    rows.StringRows,
+                    rows.DateTimeWithUtcRows,
+                    rows.PersonNameRows
+                );
+
+                VLatest.UpdateWorkitem.PopulateCommand(
+                    sqlCommandWrapper,
+                    workitemMetadata.PartitionKey,
+                    workitemMetadata.WorkitemUid,
+                    (byte)WorkitemStoreStatus.ReadWrite,
+                    parameters);
+
+                try
+                {
+                    await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
+                }
+                catch (SqlException ex)
+                {
+                    throw new DataStoreException(ex);
+                }
+            }
+        }
+
+        private async Task UpdateWorkitemProcedureStepStateAsync(int partitionKey,
+            string workitemInstanceUid,
+            string procedureStepState,
+            WorkitemStoreStatus workitemStoreStatus,
+            CancellationToken cancellationToken = default)
+        {
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            {
+                VLatest.UpdateWorkitemProcedureStepState.PopulateCommand(
+                    sqlCommandWrapper,
+                    partitionKey,
+                    workitemInstanceUid,
+                    DicomTag.ProcedureStepState.GetPath(),
+                    procedureStepState,
+                    (byte)workitemStoreStatus);
+
+                try
+                {
+                    await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
+                }
+                catch (SqlException ex)
+                {
+                    throw new DataStoreException(ex);
+                }
+            }
+        }
+
     }
 }

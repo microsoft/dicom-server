@@ -1,24 +1,33 @@
 ﻿/*************************************************************
-    Stored procedure for getting a workitem detail.
+    Stored procedure for getting a workitem metadata.
 **************************************************************/
 --
 -- STORED PROCEDURE
---     GetWorkitemDetail
+--     GetWorkitemMetadata
 --
 -- DESCRIPTION
---     Gets a UPS-RS workitem.
+--     Gets a UPS-RS workitem metadata.
 --
 -- PARAMETERS
 --     @partitionKey
 --         * The system identifier of the data partition.
 --     @workitemUid
 --         * The workitem UID.
+--     @procedureStepStateTagPath
+--         * The Procedure Step State Tag Path.
 -- RETURN VALUE
---     The WorkitemKey
+--     Recordset with the following columns
+--          * WorkitemUid
+--          * WorkitemKey
+--          * PartitionKey
+--          * Status
+--          * TransactionUid
+--          * ProcedureStepState Tag Value
 ------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.GetWorkitemDetail
+CREATE OR ALTER PROCEDURE dbo.GetWorkitemMetadata
     @partitionKey                   INT,
-    @workitemUid                    VARCHAR(64)
+    @workitemUid                    VARCHAR(64),
+    @procedureStepStateTagPath      VARCHAR(64)
 AS
 BEGIN
     SET NOCOUNT     ON
@@ -28,11 +37,13 @@ BEGIN
 	    wi.WorkitemUid,
 	    wi.WorkitemKey,
 	    wi.PartitionKey,
+        wi.[Status],
+        wi.TransactionUid,
 	    eqt.TagValue AS ProcedureStepState
     FROM 
 	    dbo.ExtendedQueryTagString eqt
 	    INNER JOIN dbo.WorkitemQueryTag wqt
-            ON wqt.TagKey = eqt.TagKey AND wqt.TagPath = '00741000' -- TagPath for Procedure Step State
+            ON wqt.TagKey = eqt.TagKey AND wqt.TagPath = @procedureStepStateTagPath
 	    INNER JOIN dbo.Workitem wi
             ON wi.WorkitemKey = eqt.SopInstanceKey1 AND wi.PartitionKey = eqt.PartitionKey
     WHERE
