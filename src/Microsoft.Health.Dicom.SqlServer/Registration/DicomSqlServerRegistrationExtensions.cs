@@ -13,6 +13,7 @@ using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
@@ -22,6 +23,7 @@ using Microsoft.Health.Dicom.SqlServer.Features.Query;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Store;
+using Microsoft.Health.Dicom.SqlServer.Features.Workitem;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.Health.SqlServer.Api.Registration;
 using Microsoft.Health.SqlServer.Configs;
@@ -53,13 +55,14 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // Add SQL-specific implementations
             services
-                .AddSqlChangeFeedStore()
-                .AddSqlIndexDataStores()
-                .AddSqlQueryStore()
-                .AddSqlInstanceStores()
+                .AddSqlChangeFeedStores()
                 .AddSqlExtendedQueryTagStores()
                 .AddSqlExtendedQueryTagErrorStores()
-                .AddSqlPartitionStore();
+                .AddSqlIndexDataStores()
+                .AddSqlInstanceStores()
+                .AddSqlPartitionStores()
+                .AddSqlQueryStores()
+                .AddSqlWorkitemStores();
 
             return dicomServerBuilder;
         }
@@ -80,11 +83,11 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // Add SQL-specific implementations
             services
-                .AddSqlIndexDataStores()
-                .AddSqlInstanceStores()
                 .AddSqlExtendedQueryTagStores()
                 .AddSqlExtendedQueryTagErrorStores()
-                .AddSqlPartitionStore();
+                .AddSqlIndexDataStores()
+                .AddSqlInstanceStores()
+                .AddSqlPartitionStores();
 
             return dicomFunctionsBuilder;
         }
@@ -112,32 +115,12 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        private static IServiceCollection AddSqlPartitionStore(this IServiceCollection services)
-        {
-            services.TryAddScoped<IPartitionStore, SqlPartitionStore>();
-            services.TryAddScoped<VersionedCache<ISqlPartitionStore>>();
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlPartitionStore, SqlPartitionStoreV4>());
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlPartitionStore, SqlPartitionStoreV6>());
-
-            return services;
-        }
-
-        private static IServiceCollection AddSqlChangeFeedStore(this IServiceCollection services)
+        private static IServiceCollection AddSqlChangeFeedStores(this IServiceCollection services)
         {
             services.TryAddScoped<IChangeFeedStore, SqlChangeFeedStore>();
             services.TryAddScoped<VersionedCache<ISqlChangeFeedStore>>();
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlChangeFeedStore, SqlChangeFeedStoreV4>());
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlChangeFeedStore, SqlChangeFeedStoreV6>());
-
-            return services;
-        }
-
-        private static IServiceCollection AddSqlQueryStore(this IServiceCollection services)
-        {
-            services.TryAddScoped<IQueryStore, SqlQueryStore>();
-            services.TryAddScoped<VersionedCache<ISqlQueryStore>>();
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlQueryStore, SqlQueryStoreV4>());
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlQueryStore, SqlQueryStoreV6>());
 
             return services;
         }
@@ -165,17 +148,6 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        private static IServiceCollection AddSqlInstanceStores(this IServiceCollection services)
-        {
-            services.TryAddScoped<IInstanceStore, SqlInstanceStore>();
-            services.TryAddScoped<VersionedCache<ISqlInstanceStore>>();
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV1>());
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV4>());
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV6>());
-
-            return services;
-        }
-
         private static IServiceCollection AddSqlIndexDataStores(this IServiceCollection services)
         {
             services.TryAddScoped<IIndexDataStore, SqlIndexDataStore>();
@@ -191,6 +163,47 @@ namespace Microsoft.Extensions.DependencyInjection
             // However, the current implementation of the decorate method requires the concrete type to be already registered,
             // so we need to register here. Need to some more investigation to see how we might be able to do this.
             services.Decorate<ISqlIndexDataStore, SqlLoggingIndexDataStore>();
+
+            return services;
+        }
+
+        private static IServiceCollection AddSqlInstanceStores(this IServiceCollection services)
+        {
+            services.TryAddScoped<IInstanceStore, SqlInstanceStore>();
+            services.TryAddScoped<VersionedCache<ISqlInstanceStore>>();
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV1>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV4>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV6>());
+
+            return services;
+        }
+
+        private static IServiceCollection AddSqlPartitionStores(this IServiceCollection services)
+        {
+            services.TryAddScoped<IPartitionStore, SqlPartitionStore>();
+            services.TryAddScoped<VersionedCache<ISqlPartitionStore>>();
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlPartitionStore, SqlPartitionStoreV4>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlPartitionStore, SqlPartitionStoreV6>());
+
+            return services;
+        }
+
+        private static IServiceCollection AddSqlQueryStores(this IServiceCollection services)
+        {
+            services.TryAddScoped<IQueryStore, SqlQueryStore>();
+            services.TryAddScoped<VersionedCache<ISqlQueryStore>>();
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlQueryStore, SqlQueryStoreV4>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlQueryStore, SqlQueryStoreV6>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlQueryStore, SqlQueryStoreV9>());
+
+            return services;
+        }
+
+        private static IServiceCollection AddSqlWorkitemStores(this IServiceCollection services)
+        {
+            services.TryAddScoped<IIndexWorkitemStore, SqlWorkitemStore>();
+            services.TryAddScoped<VersionedCache<ISqlWorkitemStore>>();
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlWorkitemStore, SqlWorkitemStoreV9>());
 
             return services;
         }

@@ -34,6 +34,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Controllers\WorkitemController.*.cs">
+      <DependentUpon>Controllers\WorkitemController.cs</DependentUpon>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="DicomApiResource.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

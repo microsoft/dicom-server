@@ -237,7 +237,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.DeleteInstance.PopulateCommand(
+                V8.DeleteInstance.PopulateCommand(
                     sqlCommandWrapper,
                     cleanupAfter,
                     (byte)IndexStatus.Created,

@@ -131,6 +131,16 @@ namespace Microsoft.Health.Dicom.Client
             return GenerateRequestUri(string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid), partitionName);
         }
 
+        private Uri GenerateWorkitemAddRequestUri(string partitionName = default, string workitemUid = default)
+        {
+            if (string.IsNullOrEmpty(workitemUid))
+            {
+                return GenerateRequestUri(DicomWebConstants.WorkitemUriString, partitionName);
+            }
+
+            return GenerateRequestUri(string.Format(DicomWebConstants.BaseWorkitemUriFormat, workitemUid), partitionName);
+        }
+
         private async IAsyncEnumerable<Stream> ReadMultipartResponseAsStreamsAsync(HttpContent httpContent, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(httpContent, nameof(httpContent));

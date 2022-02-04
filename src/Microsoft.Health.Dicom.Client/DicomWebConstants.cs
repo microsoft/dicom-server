@@ -11,6 +11,7 @@ namespace Microsoft.Health.Dicom.Client
     {
         public const string BasePartitionUriFormat = "/partitions/{0}";
         public const string BaseStudyUriFormat = "/studies/{0}";
+        public const string BaseWorkitemUriFormat = "/workitems/{0}";
         public const string BaseRetrieveStudyMetadataUriFormat = BaseStudyUriFormat + "/metadata";
         public const string BaseSeriesUriFormat = BaseStudyUriFormat + "/series/{1}";
         public const string BaseRetrieveSeriesMetadataUriFormat = BaseSeriesUriFormat + "/metadata";
@@ -32,6 +33,7 @@ namespace Microsoft.Health.Dicom.Client
         public const string BaseExtendedQueryTagUri = "/extendedquerytags";
         public const string BaseOperationUri = "/operations";
         public const string BaseErrorsUriFormat = BaseExtendedQueryTagUri + "/{0}/errors";
+        public const string WorkitemUriString = "/workitems";
 
         public const string LimitParameter = "limit";
         public const string OffsetParameter = "offset";
@@ -57,5 +59,6 @@ namespace Microsoft.Health.Dicom.Client
         public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicom = new MediaTypeWithQualityHeaderValue(ApplicationDicomMediaType);
         public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationOctetStream = new MediaTypeWithQualityHeaderValue(ApplicationOctetStreamMediaType);
         public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicomJson = new MediaTypeWithQualityHeaderValue(ApplicationDicomJsonMediaType);
+        public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationJson = new MediaTypeWithQualityHeaderValue(ApplicationJsonMediaType);
     }
 }

@@ -15,10 +15,12 @@ using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Validation;
+using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Health.Dicom.Core.Modules
@@ -121,7 +123,8 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.AddTransient<IQueryParser, QueryParser>();
+            services.AddTransient<IQueryParser<QueryExpression, QueryParameters>, QueryParser>();
+            services.AddTransient<IQueryParser<BaseQueryExpression, BaseQueryParameters>, WorkitemQueryParser>();
 
             services.Add<DeleteService>()
                 .Scoped()
@@ -160,6 +163,11 @@ namespace Microsoft.Health.Dicom.Core.Modules
             services.AddSingleton<PartitionCache>();
 
             services.Add<PartitionService>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<WorkitemQueryTagService>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
@@ -206,6 +214,36 @@ namespace Microsoft.Health.Dicom.Core.Modules
                     .AsSelf()
                     .AsImplementedInterfaces();
             }
+
+            SetupWorkitemTypes(services);
+        }
+
+        private static void SetupWorkitemTypes(IServiceCollection services)
+        {
+            services.Add<WorkitemService>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<WorkitemSerializer>()
+               .Scoped()
+               .AsSelf()
+               .AsImplementedInterfaces();
+
+            services.Add<WorkitemOrchestrator>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<WorkitemResponseBuilder>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            services.Add<AddWorkitemDatasetValidator>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
         }
     }
 }

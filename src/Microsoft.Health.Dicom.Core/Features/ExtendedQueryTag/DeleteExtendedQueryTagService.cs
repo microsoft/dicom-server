@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         public async Task DeleteExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken)
         {
             DicomTag[] tags;
-            if (!_dicomTagParser.TryParse(tagPath, out tags, supportMultiple: false))
+            if (!_dicomTagParser.TryParse(tagPath, out tags))
             {
                 throw new InvalidExtendedQueryTagPathException(
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidExtendedQueryTag, tagPath ?? string.Empty));

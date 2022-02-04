@@ -62,7 +62,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
             EnsureArg.IsNotNull(options);
             var response = await _mediator.QueryDicomResourcesAsync(
-                options.ToParameters(Request.Query, QueryResource.AllStudies),
+                options.ToQueryParameters(Request.Query, QueryResource.AllStudies),
                 cancellationToken: HttpContext.RequestAborted);
 
             return CreateResult(response);
@@ -85,7 +85,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
             EnsureArg.IsNotNull(options);
             var response = await _mediator.QueryDicomResourcesAsync(
-                options.ToParameters(Request.Query, QueryResource.AllSeries),
+                options.ToQueryParameters(Request.Query, QueryResource.AllSeries),
                 cancellationToken: HttpContext.RequestAborted);
 
             return CreateResult(response);
@@ -108,7 +108,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
             EnsureArg.IsNotNull(options);
             var response = await _mediator.QueryDicomResourcesAsync(
-                options.ToParameters(Request.Query, QueryResource.StudySeries, studyInstanceUid: studyInstanceUid),
+                options.ToQueryParameters(Request.Query, QueryResource.StudySeries, studyInstanceUid: studyInstanceUid),
                 cancellationToken: HttpContext.RequestAborted);
 
             return CreateResult(response);
@@ -131,7 +131,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
             EnsureArg.IsNotNull(options);
             var response = await _mediator.QueryDicomResourcesAsync(
-                options.ToParameters(Request.Query, QueryResource.AllInstances),
+                options.ToQueryParameters(Request.Query, QueryResource.AllInstances),
                 cancellationToken: HttpContext.RequestAborted);
 
             return CreateResult(response);
@@ -154,7 +154,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
             EnsureArg.IsNotNull(options);
             var response = await _mediator.QueryDicomResourcesAsync(
-                options.ToParameters(Request.Query, QueryResource.StudyInstances, studyInstanceUid: studyInstanceUid),
+                options.ToQueryParameters(Request.Query, QueryResource.StudyInstances, studyInstanceUid: studyInstanceUid),
                 cancellationToken: HttpContext.RequestAborted);
 
             return CreateResult(response);
@@ -177,7 +177,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
             EnsureArg.IsNotNull(options);
             var response = await _mediator.QueryDicomResourcesAsync(
-                options.ToParameters(Request.Query, QueryResource.StudySeriesInstances, studyInstanceUid: studyInstanceUid, seriesInstanceUid: seriesInstanceUid),
+                options.ToQueryParameters(Request.Query, QueryResource.StudySeriesInstances, studyInstanceUid: studyInstanceUid, seriesInstanceUid: seriesInstanceUid),
                 cancellationToken: HttpContext.RequestAborted);
 
             return CreateResult(response);

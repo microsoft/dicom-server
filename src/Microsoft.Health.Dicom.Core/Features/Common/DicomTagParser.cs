@@ -5,6 +5,7 @@
 
 using System;
 using System.Globalization;
+using System.Linq;
 using FellowOakDicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Common
@@ -17,26 +18,35 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         public bool TryParse(string dicomTagPath, out DicomTag[] dicomTags, bool supportMultiple = false)
         {
             dicomTags = null;
-            if (supportMultiple)
-            {
-                throw new NotImplementedException(DicomCoreResource.SequentialDicomTagsNotSupported);
-            }
-
             if (string.IsNullOrWhiteSpace(dicomTagPath))
             {
                 return false;
             }
 
+            DicomTag[] tags = dicomTagPath
+                     .Split('.')
+                     .Select(ParseTagFromKeywordOrNumber)
+                     .ToArray();
 
-            DicomTag dicomTag = ParseStardandDicomTagKeyword(dicomTagPath);
-
-            if (dicomTag == null)
+            if (!supportMultiple && tags.Length > 1)
             {
-                dicomTag = ParseDicomTagNumber(dicomTagPath);
+                throw new DicomValidationException(dicomTagPath, DicomVR.SQ, DicomCoreResource.SequentialDicomTagsNotSupported);
             }
 
-            dicomTags = new DicomTag[] { dicomTag };
-            return dicomTag != null;
+            if (tags.Length > 2)
+            {
+                throw new DicomValidationException(dicomTagPath, DicomVR.SQ, DicomCoreResource.NestedSequencesNotSupported);
+            }
+
+            var result = tags.All(x => x != null);
+            dicomTags = result ? tags : null;
+
+            return result;
+        }
+
+        private static DicomTag ParseTagFromKeywordOrNumber(string dicomTagPath)
+        {
+            return ParseStardandDicomTagKeyword(dicomTagPath) ?? ParseDicomTagNumber(dicomTagPath);
         }
 
         private static DicomTag ParseStardandDicomTagKeyword(string keyword)
@@ -44,7 +54,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
             // Try Keyword match, returns null if not found
             DicomTag dicomTag = DicomDictionary.Default[keyword];
 
-            // We don't accept private tag from keywrod
+            // We don't accept private tag from keyword
             return (dicomTag != null && dicomTag.IsPrivate) ? null : dicomTag;
         }
 

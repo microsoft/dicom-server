@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using EnsureThat;
@@ -327,6 +328,37 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                 }
 
                 minimumValidator.Validate(dicomElement);
+            }
+        }
+
+        /// <summary>
+        /// Gets DicomDatasets that matches a list of tags reprenting a tag path.
+        /// </summary>
+        /// <param name="dataset">The DicomDataset to be traversed.</param>
+        /// <param name="dicomTags">The Dicom tags modelling the path.</param>
+        /// <returns>Lists of DicomDataset that matches the list of tags.</returns>
+        public static IEnumerable<DicomDataset> GetSequencePathValues(this DicomDataset dataset, ReadOnlyCollection<DicomTag> dicomTags)
+        {
+            EnsureArg.IsNotNull(dataset, nameof(dataset));
+            EnsureArg.IsNotNull(dicomTags, nameof(dicomTags));
+
+            if (dicomTags.Count != 2)
+            {
+                throw new DicomValidationException(string.Join(", ", dicomTags.Select(x => x.GetPath())), DicomVR.SQ, DicomCoreResource.NestedSequencesNotSupported);
+            }
+
+            var foundSequence = dataset.GetSequence(dicomTags[0]);
+            if (foundSequence != null)
+            {
+                foreach (var childDataset in foundSequence.Items)
+                {
+                    var item = childDataset.GetDicomItem<DicomItem>(dicomTags[1]);
+
+                    if (item != null)
+                    {
+                        yield return new DicomDataset(item);
+                    }
+                }
             }
         }
     }

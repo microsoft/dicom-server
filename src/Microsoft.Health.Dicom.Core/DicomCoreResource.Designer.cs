@@ -8,10 +8,10 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core
-{
-
-
+namespace Microsoft.Health.Dicom.Core {
+    using System;
+    
+    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -228,6 +228,15 @@ namespace Microsoft.Health.Dicom.Core
         internal static string DuplicateRoleNames {
             get {
                 return ResourceManager.GetString("DuplicateRoleNames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Duplicate value &apos;{0}&apos; for tag &apos;{1}&apos; not supported in a sequence..
+        /// </summary>
+        internal static string DuplicateTagValueNotSupported {
+            get {
+                return ResourceManager.GetString("DuplicateTagValueNotSupported", resourceCulture);
             }
         }
         
@@ -586,6 +595,15 @@ namespace Microsoft.Health.Dicom.Core
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid procedure step state for the specified WorkitemInstanceUID &apos;{1}&apos;. {2}.
+        /// </summary>
+        internal static string InvalidProcedureStepState {
+            get {
+                return ResourceManager.GetString("InvalidProcedureStepState", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The query string included invalid characters..
         /// </summary>
         internal static string InvalidQueryString {
@@ -634,6 +652,15 @@ namespace Microsoft.Health.Dicom.Core
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid transactionUID for the specified WorkitemInstanceUID &apos;{1}&apos;..
+        /// </summary>
+        internal static string InvalidTransactionUID {
+            get {
+                return ResourceManager.GetString("InvalidTransactionUID", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified Transfer Syntax value is not valid..
         /// </summary>
         internal static string InvalidTransferSyntaxValue {
@@ -657,6 +684,24 @@ namespace Microsoft.Health.Dicom.Core
         internal static string ItemNotFound {
             get {
                 return ResourceManager.GetString("ItemNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AffectedSOPInstanceUID &apos;{0}&apos; in the payload does not match the specified WorkitemInstanceUID &apos;{1}&apos;..
+        /// </summary>
+        internal static string MismatchAffectedSopInstanceWorkitemInstanceUid {
+            get {
+                return ResourceManager.GetString("MismatchAffectedSopInstanceWorkitemInstanceUid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SOPInstanceUID &apos;{0}&apos; in the payload does not match the specified WorkitemInstanceUID &apos;{1}&apos;..
+        /// </summary>
+        internal static string MismatchSopInstanceWorkitemInstanceUid {
+            get {
+                return ResourceManager.GetString("MismatchSopInstanceWorkitemInstanceUid", resourceCulture);
             }
         }
         
@@ -720,6 +765,24 @@ namespace Microsoft.Health.Dicom.Core
         internal static string MissingVRCode {
             get {
                 return ResourceManager.GetString("MissingVRCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to WorkitemInstanceUID is missing..
+        /// </summary>
+        internal static string MissingWorkitemInstanceUid {
+            get {
+                return ResourceManager.GetString("MissingWorkitemInstanceUid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nested Dicom sequence tags are currently not supported..
+        /// </summary>
+        internal static string NestedSequencesNotSupported {
+            get {
+                return ResourceManager.GetString("NestedSequencesNotSupported", resourceCulture);
             }
         }
         
@@ -981,6 +1044,33 @@ namespace Microsoft.Health.Dicom.Core
         internal static string UnsupportedVRCodeOnTag {
             get {
                 return ResourceManager.GetString("UnsupportedVRCodeOnTag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid workitem query. AttributeId {0} is not queryable.  If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters and attributes..
+        /// </summary>
+        internal static string UnsupportedWorkitemSearchParameter {
+            get {
+                return ResourceManager.GetString("UnsupportedWorkitemSearchParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UPS-RS feature is disabled..
+        /// </summary>
+        internal static string UpsRsFeatureDisabled {
+            get {
+                return ResourceManager.GetString("UpsRsFeatureDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; already exists. Try creating using a different UID..
+        /// </summary>
+        internal static string WorkitemInstanceAlreadyExists {
+            get {
+                return ResourceManager.GetString("WorkitemInstanceAlreadyExists", resourceCulture);
             }
         }
     }

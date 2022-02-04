@@ -108,37 +108,37 @@ AS
     -- Deleting indexed instance tags
     DELETE
     FROM    dbo.ExtendedQueryTagString
-    WHERE   StudyKey = @studyKey
-    AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
-    AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
+    WHERE   SopInstanceKey1 = @studyKey
+    AND     SopInstanceKey2 = ISNULL(@seriesKey, SopInstanceKey2)
+    AND     SopInstanceKey3 = ISNULL(@instanceKey, SopInstanceKey3)
     AND     PartitionKey = @partitionKey
 
     DELETE
     FROM    dbo.ExtendedQueryTagLong
-    WHERE   StudyKey = @studyKey
-    AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
-    AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
+    WHERE   SopInstanceKey1 = @studyKey
+    AND     SopInstanceKey2 = ISNULL(@seriesKey, SopInstanceKey2)
+    AND     SopInstanceKey3 = ISNULL(@instanceKey, SopInstanceKey3)
     AND     PartitionKey = @partitionKey
 
     DELETE
     FROM    dbo.ExtendedQueryTagDouble
-    WHERE   StudyKey = @studyKey
-    AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
-    AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
+    WHERE   SopInstanceKey1 = @studyKey
+    AND     SopInstanceKey2 = ISNULL(@seriesKey, SopInstanceKey2)
+    AND     SopInstanceKey3 = ISNULL(@instanceKey, SopInstanceKey3)
     AND     PartitionKey = @partitionKey
 
     DELETE
     FROM    dbo.ExtendedQueryTagDateTime
-    WHERE   StudyKey = @studyKey
-    AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
-    AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
+    WHERE   SopInstanceKey1 = @studyKey
+    AND     SopInstanceKey2 = ISNULL(@seriesKey, SopInstanceKey2)
+    AND     SopInstanceKey3 = ISNULL(@instanceKey, SopInstanceKey3)
     AND     PartitionKey = @partitionKey
 
     DELETE
     FROM    dbo.ExtendedQueryTagPersonName
-    WHERE   StudyKey = @studyKey
-    AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
-    AND     InstanceKey = ISNULL(@instanceKey, InstanceKey)
+    WHERE   SopInstanceKey1 = @studyKey
+    AND     SopInstanceKey2 = ISNULL(@seriesKey, SopInstanceKey2)
+    AND     SopInstanceKey3 = ISNULL(@instanceKey, SopInstanceKey3)
     AND     PartitionKey = @partitionKey
 
     INSERT INTO dbo.DeletedInstance
@@ -176,32 +176,32 @@ AS
         -- Deleting indexed series tags
         DELETE
         FROM    dbo.ExtendedQueryTagString
-        WHERE   StudyKey = @studyKey
-        AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+        WHERE   SopInstanceKey1 = @studyKey
+        AND     SopInstanceKey2 = ISNULL(@seriesKey, SopInstanceKey2)
         AND     PartitionKey = @partitionKey
 
         DELETE
         FROM    dbo.ExtendedQueryTagLong
-        WHERE   StudyKey = @studyKey
-        AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+        WHERE   SopInstanceKey1 = @studyKey
+        AND     SopInstanceKey2 = ISNULL(@seriesKey, SopInstanceKey2)
         AND     PartitionKey = @partitionKey
 
         DELETE
         FROM    dbo.ExtendedQueryTagDouble
-        WHERE   StudyKey = @studyKey
-        AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+        WHERE   SopInstanceKey1 = @studyKey
+        AND     SopInstanceKey2 = ISNULL(@seriesKey, SopInstanceKey2)
         AND     PartitionKey = @partitionKey
 
         DELETE
         FROM    dbo.ExtendedQueryTagDateTime
-        WHERE   StudyKey = @studyKey
-        AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+        WHERE   SopInstanceKey1 = @studyKey
+        AND     SopInstanceKey2 = ISNULL(@seriesKey, SopInstanceKey2)
         AND     PartitionKey = @partitionKey
 
         DELETE
         FROM    dbo.ExtendedQueryTagPersonName
-        WHERE   StudyKey = @studyKey
-        AND     SeriesKey = ISNULL(@seriesKey, SeriesKey)
+        WHERE   SopInstanceKey1 = @studyKey
+        AND     SopInstanceKey2 = ISNULL(@seriesKey, SopInstanceKey2)
         AND     PartitionKey = @partitionKey
     END
 
@@ -219,27 +219,27 @@ AS
         -- Deleting indexed study tags
         DELETE
         FROM    dbo.ExtendedQueryTagString
-        WHERE   StudyKey = @studyKey
+        WHERE   SopInstanceKey1 = @studyKey
         AND     PartitionKey = @partitionKey
 
         DELETE
         FROM    dbo.ExtendedQueryTagLong
-        WHERE   StudyKey = @studyKey
+        WHERE   SopInstanceKey1 = @studyKey
         AND     PartitionKey = @partitionKey
 
         DELETE
         FROM    dbo.ExtendedQueryTagDouble
-        WHERE   StudyKey = @studyKey
+        WHERE   SopInstanceKey1 = @studyKey
         AND     PartitionKey = @partitionKey
 
         DELETE
         FROM    dbo.ExtendedQueryTagDateTime
-        WHERE   StudyKey = @studyKey
+        WHERE   SopInstanceKey1 = @studyKey
         AND     PartitionKey = @partitionKey
 
         DELETE
         FROM    dbo.ExtendedQueryTagPersonName
-        WHERE   StudyKey = @studyKey
+        WHERE   SopInstanceKey1 = @studyKey
         AND     PartitionKey = @partitionKey
     END
 
