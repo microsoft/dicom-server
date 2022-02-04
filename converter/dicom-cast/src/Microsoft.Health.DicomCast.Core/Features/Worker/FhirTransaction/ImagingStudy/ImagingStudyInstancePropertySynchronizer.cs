@@ -53,7 +53,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
 
             foreach (var property in _propertiesToSync)
             {
-                await ImagingStudyPipelineHelper.SynchronizePropertiesAsync(instance, context, property.PropertyAction, property.RequiredProperty, _dicomCastConfiguration.Features.EnforceValidationOfTagValues, _exceptionStore, _dicomCastConfiguration.CastName, cancellationToken);
+                await ImagingStudyPipelineHelper.SynchronizePropertiesAsync(instance, context, property.PropertyAction, property.RequiredProperty, _dicomCastConfiguration.Features.EnforceValidationOfTagValues, _exceptionStore, cancellationToken);
             }
         }
 

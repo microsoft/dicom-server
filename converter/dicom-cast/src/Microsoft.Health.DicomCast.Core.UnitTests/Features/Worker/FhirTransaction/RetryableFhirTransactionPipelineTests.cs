@@ -36,8 +36,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
             _retryableFhirTransactionPipeline = new RetryableFhirTransactionPipeline(
                 _fhirTransactionPipeline,
                 _exceptionStore,
-                Options.Create(config),
-                string.Empty);
+                Options.Create(config));
         }
 
         [Fact]

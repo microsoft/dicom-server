@@ -137,7 +137,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
             }
         }
 
-        public static async Task SynchronizePropertiesAsync<T>(T component, FhirTransactionContext context, Action<T, FhirTransactionContext> synchronizeAction, bool requiredProperty, bool enforceAllFields, IExceptionStore exceptionStore, string castName, CancellationToken cancellationToken = default)
+        public static async Task SynchronizePropertiesAsync<T>(T component, FhirTransactionContext context, Action<T, FhirTransactionContext> synchronizeAction, bool requiredProperty, bool enforceAllFields, IExceptionStore exceptionStore, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(context, nameof(context));
             EnsureArg.IsNotNull(synchronizeAction, nameof(synchronizeAction));
@@ -155,7 +155,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
                         context.ChangeFeedEntry,
                         ex,
                         ErrorType.DicomValidationError,
-                        castName,
                         cancellationToken);
                 }
                 else

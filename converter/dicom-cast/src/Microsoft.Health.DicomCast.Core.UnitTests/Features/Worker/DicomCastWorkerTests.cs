@@ -52,7 +52,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
         {
             int invocationCount = 0;
 
-            _changeFeedProcessor.When(processor => processor.ProcessAsync(_dicomCastWorkerConfiguration.PollIntervalDuringCatchup, string.Empty, _cancellationToken))
+            _changeFeedProcessor.When(processor => processor.ProcessAsync(_dicomCastWorkerConfiguration.PollIntervalDuringCatchup, _cancellationToken))
                 .Do(_ =>
                 {
                     if (invocationCount++ == DefaultNumberOfInvocations)
@@ -65,7 +65,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
 
             await _dicomCastWorker.ExecuteAsync(_cancellationToken);
 
-            await _changeFeedProcessor.Received(invocationCount).ProcessAsync(_dicomCastWorkerConfiguration.PollIntervalDuringCatchup, string.Empty, _cancellationToken);
+            await _changeFeedProcessor.Received(invocationCount).ProcessAsync(_dicomCastWorkerConfiguration.PollIntervalDuringCatchup, _cancellationToken);
         }
 
         [Fact(Skip = "Flaky test, bug: https://microsofthealth.visualstudio.com/Health/_boards/board/t/Medical%20Imaging/Stories/?workitem=78349")]
@@ -79,7 +79,7 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
 
             var stopwatch = new Stopwatch();
 
-            _changeFeedProcessor.When(processor => processor.ProcessAsync(_dicomCastWorkerConfiguration.PollIntervalDuringCatchup, string.Empty, _cancellationToken))
+            _changeFeedProcessor.When(processor => processor.ProcessAsync(_dicomCastWorkerConfiguration.PollIntervalDuringCatchup, _cancellationToken))
                 .Do(_ =>
                 {
                     if (invocationCount++ == 0)

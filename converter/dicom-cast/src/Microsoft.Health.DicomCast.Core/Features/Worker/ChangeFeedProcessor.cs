@@ -53,7 +53,7 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
         }
 
         /// <inheritdoc/>
-        public async Task ProcessAsync(TimeSpan pollIntervalDuringCatchup, string castName, CancellationToken cancellationToken)
+        public async Task ProcessAsync(TimeSpan pollIntervalDuringCatchup, CancellationToken cancellationToken)
         {
             SyncState state = await _syncStateService.GetSyncStateAsync(cancellationToken);
 
@@ -112,7 +112,6 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker
                                 changeFeedEntry,
                                 ex,
                                 errorType,
-                                castName,
                                 cancellationToken);
 
                             _logger.LogError("Failed to process DICOM event with SequenceID: {SequenceId}, StudyUid: {StudyInstanceUid}, SeriesUid: {SeriesInstanceUid}, instanceUid: {SopInstanceUid}  and will not be retried further. Continuing to next event.", changeFeedEntry.Sequence, studyInstanceUid, seriesInstanceUid, sopInstanceUid);

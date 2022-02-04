@@ -10,8 +10,6 @@ namespace Microsoft.Health.DicomCast.Core.Configurations
     /// </summary>
     public class DicomCastConfiguration
     {
-        public string CastName { get; set; } = string.Empty;
-
         public FeatureConfiguration Features { get; } = new FeatureConfiguration();
     }
 }
