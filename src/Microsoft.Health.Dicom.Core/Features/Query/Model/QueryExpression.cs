@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Linq;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Messages;
 
@@ -13,7 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
     /// <summary>
     /// Valid parsed object representing query parameters for a QIDO-RS request
     /// </summary>
-    public class QueryExpression
+    public class QueryExpression : BaseQueryExpression
     {
         public QueryExpression(
             QueryResource resourceType,
@@ -23,13 +22,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
             int offset,
             IReadOnlyCollection<QueryFilterCondition> filterConditions,
             IReadOnlyCollection<string> erroneousTags)
+            : base(includeFields, fuzzyMatching, limit, offset, filterConditions)
         {
             QueryResource = resourceType;
-            IncludeFields = includeFields;
-            FuzzyMatching = fuzzyMatching;
-            Limit = limit;
-            Offset = offset;
-            FilterConditions = EnsureArg.IsNotNull(filterConditions, nameof(filterConditions));
             ErroneousTags = EnsureArg.IsNotNull(erroneousTags, nameof(erroneousTags));
             SetIELevel();
         }
@@ -45,57 +40,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Query.Model
         public ResourceType IELevel { get; private set; }
 
         /// <summary>
-        /// Dicom tags to include in query result
-        /// </summary>
-        public QueryIncludeField IncludeFields { get; }
-
-        /// <summary>
-        /// If true do Fuzzy matching of PN tag types
-        /// </summary>
-        public bool FuzzyMatching { get; }
-
-        /// <summary>
-        /// Query result count
-        /// </summary>
-        public int Limit { get; }
-
-        /// <summary>
-        /// Query result skip offset count
-        /// </summary>
-        public int Offset { get; }
-
-        /// <summary>
-        /// List of filter conditions to find the DICOM objects
-        /// </summary>
-        public IReadOnlyCollection<QueryFilterCondition> FilterConditions { get; }
-
-        /// <summary>
         /// List of erroneous tags.
         /// </summary>
         public IReadOnlyCollection<string> ErroneousTags { get; }
-
-        /// <summary>
-        /// Request query was empty
-        /// </summary>
-        public bool HasFilters
-        {
-            get
-            {
-                return FilterConditions.Any();
-            }
-        }
-
-        /// <summary>
-        /// evaluted result count for this request
-        /// </summary>
-        public int EvaluatedLimit
-        {
-            get
-            {
-                return Limit > 0 && Limit <= QueryLimit.MaxQueryResultCount ?
-                    Limit : QueryLimit.DefaultQueryResultCount;
-            }
-        }
 
         public bool IsInstanceIELevel()
         {

@@ -513,4 +513,8 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>'{0}' is not a valid transactionUID for the specified WorkitemInstanceUID '{1}'.</value>
     <comment>{0} TransactionUID. {1} WorkitemInstanceUID.</comment>
   </data>
+  <data name="UnsupportedWorkitemSearchParameter" xml:space="preserve">
+    <value>Invalid workitem query. AttributeId {0} is not queryable.  If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters and attributes.</value>
+    <comment>{0} AttributeId name.</comment>
+  </data>
 </root>

@@ -4,17 +4,75 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Query.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
     /// <summary>
     /// Value parsers
     /// </summary>
-    public partial class QueryParser
+    public abstract class BaseQueryParser<TQueryExpression, TQueryParameters> : IQueryParser<TQueryExpression, TQueryParameters>
+         where TQueryExpression : BaseQueryExpression
+         where TQueryParameters : BaseQueryParameters
     {
+        protected const string IncludeFieldValueAll = "all";
+
+        protected readonly static Dictionary<DicomVR, Func<QueryTag, string, QueryFilterCondition>> ValueParsers = new Dictionary<DicomVR, Func<QueryTag, string, QueryFilterCondition>>
+        {
+            { DicomVR.DA, ParseDateOrTimeTagValue },
+            { DicomVR.DT, ParseDateOrTimeTagValue },
+            { DicomVR.TM, ParseTimeTagValue },
+
+            { DicomVR.UI, ParseStringTagValue },
+            { DicomVR.LO, ParseStringTagValue },
+            { DicomVR.SH, ParseStringTagValue },
+            { DicomVR.PN, ParseStringTagValue },
+            { DicomVR.CS, ParseStringTagValue },
+
+            { DicomVR.AE, ParseStringTagValue },
+            { DicomVR.AS, ParseStringTagValue },
+            { DicomVR.DS, ParseStringTagValue },
+            { DicomVR.IS, ParseStringTagValue },
+
+            { DicomVR.SL, ParseLongTagValue },
+            { DicomVR.SS, ParseLongTagValue },
+            { DicomVR.UL, ParseLongTagValue },
+            { DicomVR.US, ParseLongTagValue },
+
+            { DicomVR.FL, ParseDoubleTagValue },
+            { DicomVR.FD, ParseDoubleTagValue },
+        };
+
+        public const string DateTagValueFormat = "yyyyMMdd";
+
+        public static readonly string[] DateTimeTagValueFormats =
+        {
+            "yyyyMMddHHmmss.FFFFFF",
+            "yyyyMMddHHmmss",
+            "yyyyMMddHHmm",
+            "yyyyMMddHH",
+            "yyyyMMdd",
+            "yyyyMM",
+            "yyyy"
+        };
+
+        public static readonly string[] DateTimeTagValueWithOffsetFormats =
+        {
+            "yyyyMMddHHmmss.FFFFFFzzz",
+            "yyyyMMddHHmmsszzz",
+            "yyyyMMddHHmmzzz",
+            "yyyyMMddHHzzz",
+            "yyyyMMddzzz",
+            "yyyyMMzzz",
+            "yyyyzzz"
+        };
+
+        public abstract TQueryExpression Parse(TQueryParameters parameters, IReadOnlyCollection<QueryTag> queryTags);
+
         private static QueryFilterCondition ParseDateOrTimeTagValue(QueryTag queryTag, string value)
         {
             QueryFilterCondition queryFilterCondition = null;

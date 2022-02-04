@@ -13,6 +13,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
+using Microsoft.Health.Dicom.SqlServer.Extensions;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer;
@@ -48,7 +49,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             var sqlQueryGenerator = new SqlQueryGenerator(stringBuilder, query, new SqlQueryParameterManager(sqlCommandWrapper.Parameters), Version, partitionKey);
 
             sqlCommandWrapper.CommandText = stringBuilder.ToString();
-            LogSqlCommand(sqlCommandWrapper);
+            sqlCommandWrapper.LogSqlCommand(Logger);
 
             using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
             while (await reader.ReadAsync(cancellationToken))

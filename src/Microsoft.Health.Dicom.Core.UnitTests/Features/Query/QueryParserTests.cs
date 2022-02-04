@@ -436,6 +436,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
                 .Parse(CreateParameters(GetSingleton(key, value), QueryResource.AllSeries), QueryTagService.CoreQueryTags));
         }
 
+        [Theory]
+        [InlineData("ReferencedRequestSequence.Requested​Procedure​ID", "Foo")]
+        public void GivenSequenceTag_WithMultipleTagsNotSupported_ThenThrow(string key, string value)
+        {
+            Assert.Throws<DicomValidationException>(() => _queryParser
+                .Parse(CreateParameters(GetSingleton(key, value), QueryResource.AllSeries), QueryTagService.CoreQueryTags));
+        }
+
         [Fact]
         public void GivenStudyInstanceUID_WithUrl_CheckFilterCondition()
         {

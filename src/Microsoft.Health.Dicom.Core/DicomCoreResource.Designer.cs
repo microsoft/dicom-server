@@ -1048,6 +1048,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid workitem query. AttributeId {0} is not queryable.  If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters and attributes..
+        /// </summary>
+        internal static string UnsupportedWorkitemSearchParameter {
+            get {
+                return ResourceManager.GetString("UnsupportedWorkitemSearchParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to UPS-RS feature is disabled..
         /// </summary>
         internal static string UpsRsFeatureDisabled {

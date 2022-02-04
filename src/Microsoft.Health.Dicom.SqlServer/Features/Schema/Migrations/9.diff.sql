@@ -434,7 +434,7 @@ GO
 --     @personNameExtendedQueryTags
 --         * PersonName extended query tag data
 --     @initialStatus
---         * Initial status of the workitem status, Either 0(Creating) or 1(Created)
+--         * New status of the workitem, Either 0(Creating) or 1(Created)
 -- RETURN VALUE
 --     The WorkitemKey
 ------------------------------------------------------------------------
