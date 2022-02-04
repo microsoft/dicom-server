@@ -20,7 +20,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters
         {
             EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
 
-            _isUpsRsEnabled = featureConfiguration.Value.EnableUpsRs;
+            // UPS-RS can be enabled independently, but will be enabled if data partitions are enabled
+            _isUpsRsEnabled = featureConfiguration.Value.EnableUpsRs || featureConfiguration.Value.EnableDataPartitions;
         }
 
         public async override Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
