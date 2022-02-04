@@ -1270,7 +1270,6 @@ BEGIN
     SET XACT_ABORT ON
     BEGIN TRANSACTION
 
-    DECLARE @workitemResourceType TINYINT = 1
     DECLARE @newWatermark BIGINT
 
     SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence
@@ -1531,13 +1530,7 @@ BEGIN
     END
 
     -- Update the Workitem status
-    UPDATE dbo.Workitem
-    SET
-        [Status] = @status,
-        LastStatusUpdatedDate = @currentDate
-    WHERE
-        PartitionKey = @partitionKey
-        AND WorkitemUid = @workitemUid
+    EXEC dbo.UpdateWorkitemStatus @partitionKey, @workitemKey, @status
 
     COMMIT TRANSACTION
 
@@ -1591,7 +1584,7 @@ BEGIN
     FROM 
 	    dbo.WorkitemQueryTag wqt
 	    INNER JOIN dbo.ExtendedQueryTagString eqt
-			ON eqt.ResourceType = 1
+			ON eqt.ResourceType = 1 -- Workitem Resource Type
 			AND eqt.TagKey = wqt.TagKey
 			AND wqt.TagPath = @procedureStepStateTagPath
 		INNER JOIN dbo.Workitem wi

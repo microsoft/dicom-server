@@ -42,7 +42,6 @@ BEGIN
 
     DECLARE @workitemKey BIGINT
     DECLARE @newWatermark BIGINT
-    DECLARE @workitemResourceType TINYINT = 1
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
 
     -- Get the workitem key
@@ -196,13 +195,7 @@ BEGIN
     END
 
     -- Update the Workitem status
-    UPDATE dbo.Workitem
-    SET
-        [Status] = @status,
-        LastStatusUpdatedDate = @currentDate
-    WHERE
-        PartitionKey = @partitionKey
-        AND WorkitemUid = @workitemUid
+    EXEC dbo.UpdateWorkitemStatus @partitionKey, @workitemKey, @status
 
     COMMIT TRANSACTION
 
