@@ -1550,17 +1550,17 @@ BEGIN
            wi.[Status],
            wi.TransactionUid,
            eqt.TagValue AS ProcedureStepState
-    FROM   dbo.ExtendedQueryTagString AS eqt
+    FROM   dbo.WorkitemQueryTag AS wqt
            INNER JOIN
-           dbo.WorkitemQueryTag AS wqt
-           ON wqt.TagKey = eqt.TagKey
+           dbo.ExtendedQueryTagString AS eqt
+           ON eqt.ResourceType = 1
+              AND eqt.TagKey = wqt.TagKey
               AND wqt.TagPath = @procedureStepStateTagPath
            INNER JOIN
            dbo.Workitem AS wi
            ON wi.WorkitemKey = eqt.SopInstanceKey1
               AND wi.PartitionKey = eqt.PartitionKey
-    WHERE  eqt.ResourceType = 1
-           AND wi.PartitionKey = @partitionKey
+    WHERE  wi.PartitionKey = @partitionKey
            AND wi.WorkitemUid = @workitemUid;
 END
 
@@ -2138,11 +2138,7 @@ BEGIN
                   AND cte.OldTagValue = targetTbl.TagValue
                   AND cte.Watermark = targetTbl.Watermark
         WHERE  cte.TagPath = @procedureStepStateTagPath;
-        UPDATE dbo.Workitem
-        SET    [Status]              = @status,
-               LastStatusUpdatedDate = @currentDate
-        WHERE  PartitionKey = @partitionKey
-               AND WorkitemKey = @workitemKey;
+        EXECUTE dbo.UpdateWorkitemStatus @partitionKey, @workitemKey, @status;
     END TRY
     BEGIN CATCH
         THROW;
