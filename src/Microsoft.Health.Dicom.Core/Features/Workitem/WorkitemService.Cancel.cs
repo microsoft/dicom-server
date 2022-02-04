@@ -23,18 +23,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     /// </summary>
     public partial class WorkitemService
     {
-        private static readonly Action<ILogger, ushort, Exception> LogFailedToCancelDelegate =
-            LoggerMessage.Define<ushort>(
-                LogLevel.Warning,
-                default,
-                "Failed to cancel the work-item entry. Failure code: {FailureCode}.");
-
-        private static readonly Action<ILogger, Exception> LogSuccessfullyCanceledDelegate =
-            LoggerMessage.Define(
-                LogLevel.Information,
-                default,
-                "Successfully canceled the work-item entry.");
-
         public async Task<CancelWorkitemResponse> ProcessCancelAsync(DicomDataset dataset, string workitemInstanceUid, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
@@ -117,7 +105,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             {
                 await _workitemOrchestrator.CancelWorkitemAsync(dataset, workitemMetadata, targetProcedureStepState, cancellationToken).ConfigureAwait(false);
 
-                LogSuccessfullyCanceledDelegate(_logger, null);
+                _logger.LogInformation("Successfully canceled the work-item entry.");
 
                 _responseBuilder.AddSuccess(
                     string.Format(
@@ -137,7 +125,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                         break;
                 }
 
-                LogFailedToCancelDelegate(_logger, failureCode, ex);
+                _logger.LogWarning(ex, "Failed to cancel the work-item entry. Failure code: {FailureCode}.", failureCode);
 
                 _responseBuilder.AddFailure(dataset, failureCode, ex.Message);
             }
