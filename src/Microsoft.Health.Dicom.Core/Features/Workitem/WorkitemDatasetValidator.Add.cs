@@ -95,38 +95,5 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                         workitemInstanceUid));
             }
         }
-
-        internal static IEnumerable<DicomTag> GetWorkitemRequiredTags()
-        {
-            yield return DicomTag.WorklistLabel;
-            yield return DicomTag.ExpectedCompletionDateTime;
-            yield return DicomTag.InputReadinessState;
-            yield return DicomTag.PatientName;
-            yield return DicomTag.PatientID;
-            yield return DicomTag.PatientBirthDate;
-            yield return DicomTag.PatientSex;
-            yield return DicomTag.AdmissionID;
-            yield return DicomTag.AccessionNumber;
-            yield return DicomTag.RequestedProcedureID;
-            yield return DicomTag.RequestingService;
-
-            yield return DicomTag.ProcedureStepLabel;
-            yield return DicomTag.ScheduledProcedureStepPriority;
-            yield return DicomTag.ScheduledProcedureStepStartDateTime;
-        }
-
-        internal static IEnumerable<DicomTag> GetWorkitemRequiredSequenceTags()
-        {
-            yield return DicomTag.IssuerOfAdmissionIDSequence;
-            yield return DicomTag.ReferencedRequestSequence;
-            yield return DicomTag.IssuerOfAccessionNumberSequence;
-            yield return DicomTag.ScheduledWorkitemCodeSequence;
-            yield return DicomTag.ScheduledStationNameCodeSequence;
-            yield return DicomTag.ScheduledStationClassCodeSequence;
-            yield return DicomTag.ScheduledStationGeographicLocationCodeSequence;
-            yield return DicomTag.ScheduledHumanPerformersSequence;
-            yield return DicomTag.HumanPerformerCodeSequence;
-            yield return DicomTag.ReplacedProcedureStepSequence;
-        }
     }
 }

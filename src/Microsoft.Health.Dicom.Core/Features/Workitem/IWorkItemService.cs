@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             CancellationToken cancellationToken);
 
         /// <summary>
-        /// 
+        /// Asynchronously processes the Cancel workitem dataset
         /// </summary>
         /// <param name="dataset">The <see cref="DicomDataset"/> to process.</param>
         /// <param name="workitemInstanceUid">An optional value for the Work Item InstanceUID tag.</param>
