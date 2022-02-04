@@ -39,7 +39,7 @@ BEGIN
 	    wi.PartitionKey,
         wi.[Status],
         wi.TransactionUid,
-	    eqt.TagValue AS ProcedureStepState
+        eqt.TagValue AS ProcedureStepState
     FROM 
 	    dbo.WorkitemQueryTag wqt
 	    INNER JOIN dbo.ExtendedQueryTagString eqt
