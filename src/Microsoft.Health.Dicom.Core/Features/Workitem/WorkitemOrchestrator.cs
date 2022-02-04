@@ -151,7 +151,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
         }
 
-        private async Task TryCleanupCancelAsync(WorkitemMetadataStoreEntry workitemMetada, WorkitemInstanceIdentifier identifier, DicomDataset dataset, CancellationToken cancellationToken)
+        private async Task TryCleanupCancelAsync(WorkitemMetadataStoreEntry workitemMetadata, WorkitemInstanceIdentifier identifier, DicomDataset dataset, CancellationToken cancellationToken)
         {
             if (null == identifier && null == dataset)
             {
@@ -165,7 +165,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
                 // release the workitem (soft) lock
                 await _indexWorkitemStore
-                    .UnlockWorkitemAsync(workitemMetada, cancellationToken)
+                    .UnlockWorkitemAsync(workitemMetadata, cancellationToken)
                     .ConfigureAwait(false);
             }
             catch (Exception ex)
