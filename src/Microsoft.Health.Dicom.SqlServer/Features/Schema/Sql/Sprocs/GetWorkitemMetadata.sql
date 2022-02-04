@@ -41,14 +41,16 @@ BEGIN
         wi.TransactionUid,
 	    eqt.TagValue AS ProcedureStepState
     FROM 
-	    dbo.ExtendedQueryTagString eqt
-	    INNER JOIN dbo.WorkitemQueryTag wqt
-            ON wqt.TagKey = eqt.TagKey AND wqt.TagPath = @procedureStepStateTagPath
-	    INNER JOIN dbo.Workitem wi
-            ON wi.WorkitemKey = eqt.SopInstanceKey1 AND wi.PartitionKey = eqt.PartitionKey
+	    dbo.WorkitemQueryTag wqt
+	    INNER JOIN dbo.ExtendedQueryTagString eqt
+			ON eqt.ResourceType = 1
+			AND eqt.TagKey = wqt.TagKey
+			AND wqt.TagPath = @procedureStepStateTagPath
+		INNER JOIN dbo.Workitem wi
+			ON wi.WorkitemKey = eqt.SopInstanceKey1
+			AND wi.PartitionKey = eqt.PartitionKey
     WHERE
-        eqt.ResourceType = 1
-	    AND wi.PartitionKey = @partitionKey
+	    wi.PartitionKey = @partitionKey
 	    AND wi.WorkitemUid = @workitemUid
 
 END

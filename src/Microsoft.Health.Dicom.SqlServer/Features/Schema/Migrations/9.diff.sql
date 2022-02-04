@@ -1589,14 +1589,16 @@ BEGIN
         wi.TransactionUid,
 	    eqt.TagValue AS ProcedureStepState
     FROM 
-	    dbo.ExtendedQueryTagString eqt
-	    INNER JOIN dbo.WorkitemQueryTag wqt
-            ON wqt.TagKey = eqt.TagKey AND wqt.TagPath = @procedureStepStateTagPath
-	    INNER JOIN dbo.Workitem wi
-            ON wi.WorkitemKey = eqt.SopInstanceKey1 AND wi.PartitionKey = eqt.PartitionKey
+	    dbo.WorkitemQueryTag wqt
+	    INNER JOIN dbo.ExtendedQueryTagString eqt
+			ON eqt.ResourceType = 1
+			AND eqt.TagKey = wqt.TagKey
+			AND wqt.TagPath = @procedureStepStateTagPath
+		INNER JOIN dbo.Workitem wi
+			ON wi.WorkitemKey = eqt.SopInstanceKey1
+			AND wi.PartitionKey = eqt.PartitionKey
     WHERE
-        eqt.ResourceType = 1
-	    AND wi.PartitionKey = @partitionKey
+	    wi.PartitionKey = @partitionKey
 	    AND wi.WorkitemUid = @workitemUid
 
 END
@@ -1649,7 +1651,7 @@ END
 GO
 
 /*************************************************************
-    Stored procedure for adding a workitem.
+ Stored procedure for Updating a workitem procedure step state.
 **************************************************************/
 --
 -- STORED PROCEDURE
@@ -1769,13 +1771,7 @@ BEGIN
             cte.TagPath = @procedureStepStateTagPath
 
         -- Update the Workitem status
-        UPDATE dbo.Workitem
-        SET
-            [Status] = @status,
-            LastStatusUpdatedDate = @currentDate
-        WHERE
-            PartitionKey = @partitionKey
-            AND WorkitemKey = @workitemKey
+        EXEC dbo.UpdateWorkitemStatus @partitionKey, @workitemKey, @status
 
     END TRY
     BEGIN CATCH

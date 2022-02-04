@@ -1,5 +1,6 @@
-﻿/*************************************************************
-    Stored procedure for adding a workitem.
+﻿
+/*************************************************************
+ Stored procedure for Updating a workitem procedure step state.
 **************************************************************/
 --
 -- STORED PROCEDURE
@@ -119,13 +120,7 @@ BEGIN
             cte.TagPath = @procedureStepStateTagPath
 
         -- Update the Workitem status
-        UPDATE dbo.Workitem
-        SET
-            [Status] = @status,
-            LastStatusUpdatedDate = @currentDate
-        WHERE
-            PartitionKey = @partitionKey
-            AND WorkitemKey = @workitemKey
+        EXEC dbo.UpdateWorkitemStatus @partitionKey, @workitemKey, @status
 
     END TRY
     BEGIN CATCH
