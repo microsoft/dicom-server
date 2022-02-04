@@ -160,7 +160,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             try
             {
-                // Upload the original blobl back in the store
+                // Upload the original blob back in the store
                 await StoreWorkitemBlobAsync(identifier, dataset, cancellationToken).ConfigureAwait(false);
 
                 // release the workitem (soft) lock
