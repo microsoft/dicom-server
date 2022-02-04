@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
     public class QueryServiceTests
     {
         private readonly QueryService _queryService;
-        private readonly IQueryParser _queryParser;
+        private readonly IQueryParser<QueryExpression, QueryParameters> _queryParser;
         private readonly IQueryStore _queryStore;
         private readonly IMetadataStore _metadataStore;
         private readonly IQueryTagService _queryTagService;
@@ -33,7 +33,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
 
         public QueryServiceTests()
         {
-            _queryParser = Substitute.For<IQueryParser>();
+            _queryParser = Substitute.For<IQueryParser<QueryExpression, QueryParameters>>();
             _queryStore = Substitute.For<IQueryStore>();
             _metadataStore = Substitute.For<IMetadataStore>();
             _queryTagService = Substitute.For<IQueryTagService>();

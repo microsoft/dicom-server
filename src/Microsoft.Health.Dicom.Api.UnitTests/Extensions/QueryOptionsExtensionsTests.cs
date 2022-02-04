@@ -22,7 +22,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
                 KeyValuePair.Create("PatientName", new StringValues(new string[] { "Foo", "Bar", "Baz" })),
             };
 
-            Assert.Throws<QueryParseException>(() => new QueryOptions().ToParameters(qsp, QueryResource.AllStudies));
+            Assert.Throws<QueryParseException>(() => new QueryOptions().ToQueryParameters(qsp, QueryResource.AllStudies));
         }
 
         [Fact]
@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
                 KeyValuePair.Create("IncludeField", new StringValues("ManufacturerModelName")),
             };
 
-            IReadOnlyDictionary<string, string> actual = new QueryOptions().ToParameters(qsp, QueryResource.AllStudies).Filters;
+            IReadOnlyDictionary<string, string> actual = new QueryOptions().ToQueryParameters(qsp, QueryResource.AllStudies).Filters;
 
             Assert.Equal(3, actual.Count);
             Assert.Equal("Joe", actual["PatientName"]);
@@ -67,7 +67,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions
                 KeyValuePair.Create("ReferringPhysicianName\r\n", new StringValues("dr")),
             };
 
-            QueryParameters actual = options.ToParameters(qsp, QueryResource.StudySeriesInstances, study, series);
+            QueryParameters actual = options.ToQueryParameters(qsp, QueryResource.StudySeriesInstances, study, series);
             Assert.Equal(2, actual.Filters.Count);
             Assert.Equal("Will", actual.Filters["PatientName"]);
             Assert.Equal("dr", actual.Filters["ReferringPhysicianName"]);

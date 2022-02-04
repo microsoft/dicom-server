@@ -5,7 +5,6 @@
 
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +13,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
+using Microsoft.Health.Dicom.SqlServer.Extensions;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer;
@@ -28,8 +28,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
         protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory;
 
-        private readonly ILogger<ISqlQueryStore> _logger;
-        private const string DefaultRedactedValue = "***";
+        protected readonly ILogger<ISqlQueryStore> Logger;
 
         public SqlQueryStoreV4(
             SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
@@ -39,7 +38,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             SqlConnectionWrapperFactory = sqlConnectionWrapperFactory;
-            _logger = logger;
+            Logger = logger;
         }
 
         public virtual async Task<QueryResult> QueryAsync(
@@ -58,7 +57,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             var sqlQueryGenerator = new SqlQueryGenerator(stringBuilder, query, new SqlQueryParameterManager(sqlCommandWrapper.Parameters), Version, partitionKey);
 
             sqlCommandWrapper.CommandText = stringBuilder.ToString();
-            LogSqlCommand(sqlCommandWrapper);
+            sqlCommandWrapper.LogSqlCommand(Logger);
 
             using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
@@ -77,29 +76,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             }
 
             return new QueryResult(results);
-        }
-
-        [SuppressMessage("Usage", "CA2254:Template should be a static expression", Justification = "Template does not contain placeholders.")]
-        protected void LogSqlCommand(SqlCommandWrapper sqlCommandWrapper)
-        {
-            var sb = new StringBuilder();
-            foreach (SqlParameter p in sqlCommandWrapper.Parameters)
-            {
-                sb.Append("DECLARE ")
-                    .Append(p)
-                    .Append(' ')
-                    .Append(p.SqlDbType)
-                    .Append(p.Value is string ? $"({p.Size})" : p.Value is decimal ? $"({p.Precision},{p.Scale})" : null)
-                    .Append(" = ")
-                    .Append(DefaultRedactedValue)
-                    .Append(';')
-                    .AppendLine();
-            }
-
-            sb.AppendLine();
-
-            sb.AppendLine(sqlCommandWrapper.CommandText);
-            _logger.LogInformation(sb.ToString());
         }
     }
 }

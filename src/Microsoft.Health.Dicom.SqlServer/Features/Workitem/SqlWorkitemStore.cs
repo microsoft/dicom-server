@@ -12,6 +12,7 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
+using Microsoft.Health.Dicom.Core.Features.Query.Model;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 {
@@ -80,6 +81,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             ISqlWorkitemStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
 
             return await store.GetWorkitemMetadataAsync(partitionKey, workitemUid, cancellationToken);
+        }
+
+        public async Task<WorkitemQueryResult> QueryAsync(int partitionKey, BaseQueryExpression query, CancellationToken cancellationToken = default)
+        {
+            ISqlWorkitemStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+            return await store.QueryAsync(partitionKey, query, cancellationToken);
         }
     }
 }

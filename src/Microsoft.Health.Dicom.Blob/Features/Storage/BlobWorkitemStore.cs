@@ -5,22 +5,21 @@
 
 using System;
 using System.IO;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
-using FellowOakDicom;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.IO;
-using System.Text.Json;
-using Azure;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage
 {
@@ -56,7 +55,10 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task AddWorkitemAsync(WorkitemInstanceIdentifier identifier, DicomDataset dataset, CancellationToken cancellationToken)
+        public async Task AddWorkitemAsync(
+            WorkitemInstanceIdentifier identifier,
+            DicomDataset dataset,
+            CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(identifier, nameof(identifier));
             EnsureArg.IsNotNull(dataset, nameof(dataset));
@@ -92,23 +94,32 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             }
         }
 
-        public async Task<DicomDataset> GetWorkitemAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken)
+        /// <inheritdoc />
+        public async Task<DicomDataset> GetWorkitemAsync(WorkitemInstanceIdentifier workitemInstanceIdentifier, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNull(identifier, nameof(identifier));
+            EnsureArg.IsNotNull(workitemInstanceIdentifier, nameof(workitemInstanceIdentifier));
 
-            BlockBlobClient blob = GetBlockBlobClient(identifier);
+            BlockBlobClient cloudBlockBlob = GetBlockBlobClient(workitemInstanceIdentifier);
 
-            return await ExecuteAsync(async t =>
+            try
             {
                 await using (Stream stream = _recyclableMemoryStreamManager.GetStream(GetWorkitemStreamTagName))
                 {
-                    await blob.DownloadToAsync(stream, cancellationToken);
+                    await cloudBlockBlob.DownloadToAsync(stream, cancellationToken);
 
                     stream.Seek(0, SeekOrigin.Begin);
 
-                    return await JsonSerializer.DeserializeAsync<DicomDataset>(stream, _jsonSerializerOptions, t);
+                    return await JsonSerializer.DeserializeAsync<DicomDataset>(stream, _jsonSerializerOptions, cancellationToken);
                 }
-            }, cancellationToken).ConfigureAwait(false);
+            }
+            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
+            {
+                throw new ItemNotFoundException(ex);
+            }
+            catch (Exception ex)
+            {
+                throw new DataStoreException(ex);
+            }
         }
 
         private BlockBlobClient GetBlockBlobClient(WorkitemInstanceIdentifier identifier)

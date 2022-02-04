@@ -7,6 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
+using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Messages.Workitem;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -41,5 +43,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
         Task CancelWorkitemAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, string targetProcedureStepState, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Asynchronously orchestrate the searching of a UPS-RS workitem
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task<QueryWorkitemResourceResponse> QueryAsync(BaseQueryParameters parameters, CancellationToken cancellationToken = default);
     }
 }

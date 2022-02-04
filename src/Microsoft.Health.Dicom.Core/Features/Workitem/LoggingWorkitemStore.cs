@@ -9,23 +9,22 @@ using System.Threading.Tasks;
 using FellowOakDicom;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Dicom.Core.Features.Workitem;
 
-namespace Microsoft.Health.Dicom.Core.Features.Common
+namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
     public class LoggingWorkitemStore : IWorkitemStore
     {
-        private static readonly Action<ILogger, string, Exception> LogAddWorkitemDelegate =
-               LoggerMessage.Define<string>(
+        private static readonly Action<ILogger, WorkitemInstanceIdentifier, Exception> LogAddWorkitemDelegate =
+               LoggerMessage.Define<WorkitemInstanceIdentifier>(
                    LogLevel.Debug,
                    default,
                    "Adding workitem '{WorkitemInstanceIdentifier}'.");
 
-        private static readonly Action<ILogger, string, Exception> LogGetWorkitemDelegate =
-               LoggerMessage.Define<string>(
+        private static readonly Action<ILogger, WorkitemInstanceIdentifier, Exception> LogQueryWorkitemDelegate =
+               LoggerMessage.Define<WorkitemInstanceIdentifier>(
                    LogLevel.Debug,
                    default,
-                   "Retrieving DICOM instance workitem file with '{WorkitemInstanceIdentifier}'.");
+                   "Querying workitem '{WorkitemInstanceIdentifier}'.");
 
         private static readonly Action<ILogger, Exception> LogOperationSucceededDelegate =
             LoggerMessage.Define(
@@ -42,7 +41,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         private readonly IWorkitemStore _workitemStore;
         private readonly ILogger _logger;
 
-        public LoggingWorkitemStore(IWorkitemStore workitemStore, ILogger<LoggingMetadataStore> logger)
+        public LoggingWorkitemStore(IWorkitemStore workitemStore, ILogger<LoggingWorkitemStore> logger)
         {
             EnsureArg.IsNotNull(workitemStore, nameof(workitemStore));
             EnsureArg.IsNotNull(logger, nameof(logger));
@@ -56,7 +55,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         {
             EnsureArg.IsNotNull(identifier, nameof(identifier));
 
-            LogAddWorkitemDelegate(_logger, identifier.ToString(), null);
+            LogAddWorkitemDelegate(_logger, identifier, null);
 
             try
             {
@@ -72,19 +71,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
             }
         }
 
-        public async Task<DicomDataset> GetWorkitemAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken)
+        public async Task<DicomDataset> GetWorkitemAsync(WorkitemInstanceIdentifier workitemInstanceIdentifier, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNull(identifier, nameof(identifier));
+            EnsureArg.IsNotNull(workitemInstanceIdentifier, nameof(workitemInstanceIdentifier));
 
-            LogGetWorkitemDelegate(_logger, identifier.ToString(), null);
+            LogQueryWorkitemDelegate(_logger, workitemInstanceIdentifier, null);
 
             try
             {
-                var dicomDataset = await _workitemStore.GetWorkitemAsync(identifier, cancellationToken).ConfigureAwait(false);
+                var result = await _workitemStore.GetWorkitemAsync(workitemInstanceIdentifier, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
 
-                return dicomDataset;
+                return result;
             }
             catch (Exception ex)
             {

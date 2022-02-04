@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -52,6 +52,12 @@
     <Content Include="..\..\testauthenvironment.json" Link="testauthenvironment.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Rest\WorkItemTransactionTests.*.cs">
+      <DependentUpon>Rest\WorkItemTransactionTests.cs</DependentUpon>
+    </None>
   </ItemGroup>
 
   <Target Name="VerifyExactSdkVersion" BeforeTargets="Build">

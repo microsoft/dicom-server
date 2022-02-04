@@ -5,16 +5,19 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
+using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Features.Query.Model;
+using Microsoft.Health.Dicom.Core.Messages.Workitem;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -28,17 +31,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         private readonly IWorkitemStore _workitemStore;
         private readonly IWorkitemQueryTagService _workitemQueryTagService;
         private readonly ILogger<WorkitemOrchestrator> _logger;
+        private readonly IQueryParser<BaseQueryExpression, BaseQueryParameters> _queryParser;
 
         public WorkitemOrchestrator(
             IDicomRequestContextAccessor contextAccessor,
             IWorkitemStore workitemStore,
             IIndexWorkitemStore indexWorkitemStore,
             IWorkitemQueryTagService workitemQueryTagService,
+            IQueryParser<BaseQueryExpression, BaseQueryParameters> queryParser,
             ILogger<WorkitemOrchestrator> logger)
         {
             _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
             _indexWorkitemStore = EnsureArg.IsNotNull(indexWorkitemStore, nameof(indexWorkitemStore));
             _workitemStore = EnsureArg.IsNotNull(workitemStore, nameof(workitemStore));
+            _queryParser = EnsureArg.IsNotNull(queryParser, nameof(queryParser));
             _workitemQueryTagService = EnsureArg.IsNotNull(workitemQueryTagService, nameof(workitemQueryTagService));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
@@ -174,7 +180,32 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         }
 
         /// <inheritdoc />
-        private async Task TryDeleteWorkitemAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken)
+        public async Task<QueryWorkitemResourceResponse> QueryAsync(
+            BaseQueryParameters parameters,
+            CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(parameters);
+
+            var queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
+
+            BaseQueryExpression queryExpression = _queryParser.Parse(parameters, queryTags);
+
+            var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
+
+            WorkitemQueryResult queryResult = await _indexWorkitemStore.QueryAsync(partitionKey, queryExpression, cancellationToken);
+
+            IEnumerable<DicomDataset> workitems = await Task.WhenAll(
+                queryResult.WorkitemInstances.Select(x => _workitemStore.GetWorkitemAsync(x, cancellationToken)));
+
+            var workitemResponses = workitems.Select(m => WorkitemQueryResponseBuilder.GenerateResponseDataset(m, queryExpression)).ToList();
+
+            return new QueryWorkitemResourceResponse(workitemResponses);
+        }
+
+        /// <inheritdoc />
+        private async Task TryDeleteWorkitemAsync(
+            WorkitemInstanceIdentifier identifier,
+            CancellationToken cancellationToken)
         {
             if (null == identifier)
             {

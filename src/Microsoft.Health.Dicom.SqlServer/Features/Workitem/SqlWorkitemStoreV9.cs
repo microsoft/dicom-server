@@ -5,20 +5,25 @@
 
 using System.Collections.Generic;
 using System.Data;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.SqlServer.Extensions;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
+using Microsoft.Health.SqlServer;
 using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
 
@@ -30,10 +35,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             new Health.SqlServer.Features.Schema.Model.NVarCharColumn("ProcedureStepState", 64);
 
         protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory;
+        protected readonly ILogger<ISqlWorkitemStore> Logger;
 
-        public SqlWorkitemStoreV9(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+        public SqlWorkitemStoreV9(SqlConnectionWrapperFactory sqlConnectionWrapperFactory, ILogger<ISqlWorkitemStore> logger)
         {
             SqlConnectionWrapperFactory = EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
+            Logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
         public virtual SchemaVersion Version => SchemaVersion.V9;
@@ -285,5 +292,38 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             }
         }
 
+        public virtual async Task<WorkitemQueryResult> QueryAsync(
+            int partitionKey,
+            BaseQueryExpression query,
+            CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(query, nameof(query));
+
+            var results = new List<WorkitemInstanceIdentifier>(query.EvaluatedLimit);
+
+            using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
+            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
+
+            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+            var sqlQueryGenerator = new WorkitemSqlQueryGenerator(stringBuilder, query, new SqlQueryParameterManager(sqlCommandWrapper.Parameters), Version, partitionKey);
+
+            sqlCommandWrapper.CommandText = stringBuilder.ToString();
+            sqlCommandWrapper.LogSqlCommand(Logger);
+
+            using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                (long workitemKey, string workitemInstanceUid) = reader.ReadRow(
+                   VLatest.Workitem.WorkitemKey,
+                   VLatest.Workitem.WorkitemUid);
+
+                results.Add(new WorkitemInstanceIdentifier(
+                    workitemInstanceUid,
+                    workitemKey,
+                    partitionKey));
+            }
+
+            return new WorkitemQueryResult(results);
+        }
     }
 }

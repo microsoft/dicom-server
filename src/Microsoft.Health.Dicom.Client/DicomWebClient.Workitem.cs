@@ -6,12 +6,12 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using FellowOakDicom;
 using EnsureThat;
+using FellowOakDicom;
 using FellowOakDicom.Serialization;
-using System.Text.Json;
 
 namespace Microsoft.Health.Dicom.Client
 {
@@ -31,10 +31,10 @@ namespace Microsoft.Health.Dicom.Client
             using var request = new HttpRequestMessage(HttpMethod.Post, GenerateWorkitemAddRequestUri(partitionName, workitemUid));
             {
                 request.Content = new StringContent(jsonString);
-                request.Content.Headers.ContentType = new MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType);
+                request.Content.Headers.ContentType = DicomWebConstants.MediaTypeApplicationJson;
             }
 
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(DicomWebConstants.ApplicationJsonMediaType));
+            request.Headers.Accept.Add(DicomWebConstants.MediaTypeApplicationJson);
 
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
                 .ConfigureAwait(false);
@@ -63,6 +63,24 @@ namespace Microsoft.Health.Dicom.Client
             await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
 
             return new DicomWebResponse(response);
+        }
+
+        public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryWorkitemAsync(string queryString, string partitionName = default, CancellationToken cancellationToken = default)
+        {
+            var requestUri = GenerateRequestUri(DicomWebConstants.WorkitemUriString + GetQueryParamUriString(queryString), partitionName);
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+
+            request.Headers.Accept.Add(DicomWebConstants.MediaTypeApplicationJson);
+
+            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+
+            await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+
+            return new DicomWebAsyncEnumerableResponse<DicomDataset>(
+                response,
+                DeserializeAsAsyncEnumerable<DicomDataset>(response.Content));
         }
     }
 }

@@ -15,5 +15,6 @@ namespace Microsoft.Health.Dicom.Client
         Task<DicomWebResponse> AddWorkitemAsync(IEnumerable<DicomDataset> dicomDatasets, string workitemUid = default, string partitionName = default, CancellationToken cancellationToken = default);
 
         Task<DicomWebResponse> CancelWorkitemAsync(DicomDataset dicomDataset, string workitemUid = default, string partitionName = default, CancellationToken cancellationToken = default);
+        Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryWorkitemAsync(string queryString, string partitionName = default, CancellationToken cancellationToken = default);
     }
 }

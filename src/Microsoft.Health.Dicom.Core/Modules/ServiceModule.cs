@@ -15,6 +15,7 @@ using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
@@ -122,7 +123,8 @@ namespace Microsoft.Health.Dicom.Core.Modules
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.AddTransient<IQueryParser, QueryParser>();
+            services.AddTransient<IQueryParser<QueryExpression, QueryParameters>, QueryParser>();
+            services.AddTransient<IQueryParser<BaseQueryExpression, BaseQueryParameters>, WorkitemQueryParser>();
 
             services.Add<DeleteService>()
                 .Scoped()

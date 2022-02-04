@@ -4,11 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using NSubstitute;
@@ -253,6 +255,25 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
             _responseBuilder.Received().AddSuccess(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)));
+        }
+
+        private QueryParameters CreateParameters(
+            Dictionary<string, string> filters,
+            QueryResource resourceType,
+            string studyInstanceUid = null,
+            string seriesInstanceUid = null,
+            bool fuzzyMatching = false,
+            string[] includeField = null)
+        {
+            return new QueryParameters
+            {
+                Filters = filters,
+                FuzzyMatching = fuzzyMatching,
+                IncludeField = includeField ?? Array.Empty<string>(),
+                QueryResourceType = resourceType,
+                SeriesInstanceUid = seriesInstanceUid,
+                StudyInstanceUid = studyInstanceUid,
+            };
         }
     }
 }

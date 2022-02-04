@@ -91,6 +91,11 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
         public WorkitemQueryTagStoreEntry WorkitemQueryTagStoreEntry { get; }
 
         /// <summary>
+        /// Gets whether this is workitem query tag or not.
+        /// </summary>
+        public bool IsWorkitemQueryTag => WorkitemQueryTagStoreEntry != null;
+
+        /// <summary>
         /// Gets name of this query tag.
         /// </summary>
         /// <returns></returns>

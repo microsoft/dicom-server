@@ -10,6 +10,7 @@ using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
@@ -37,13 +38,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         private static void ValidateRequiredTags(DicomDataset dicomDataset)
         {
             // Ensure required tags are present.
-            foreach (DicomTag tag in GetWorkitemRequiredTags())
+            foreach (DicomTag tag in QueryLimit.RequiredWorkitemSingleTags)
             {
                 EnsureRequiredTagIsPresent(dicomDataset, tag);
             }
 
             // Ensure required sequence tags are present
-            foreach (DicomTag tag in GetWorkitemRequiredSequenceTags())
+            foreach (DicomTag tag in QueryLimit.RequiredWorkitemSequenceTags)
             {
                 EnsureRequiredSequenceTagIsPresent(dicomDataset, tag);
             }

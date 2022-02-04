@@ -78,7 +78,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
         [Fact]
         public async Task GivenWorkitemInstanceUid_WhenHandlerSucceeds_ThenReturnCreated()
         {
-            const string url = "https://www.git.com/";
+            const string url = "https://www.microsoft.com/";
             var id = Guid.NewGuid();
             var mediator = Substitute.For<IMediator>();
             var controller = new WorkitemController(mediator, NullLogger<WorkitemController>.Instance);
