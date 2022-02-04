@@ -71,7 +71,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
                 Response.Headers.Add(HeaderNames.Location, response.Uri.ToString());
             }
 
-            return StatusCode((int)response.Status.ToHttpStatusCode(), response.Message);
+            return StatusCode((int)response.Status.AddResponseToHttpStatusCode(), response.Message);
         }
     }
 }

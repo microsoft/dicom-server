@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Api.Extensions
         /// </summary>
         /// <param name="status">The status to convert.</param>
         /// <returns>The converted <see cref="HttpStatusCode"/>.</returns>
-        public static HttpStatusCode ToHttpStatusCode(this WorkitemResponseStatus status)
+        public static HttpStatusCode AddResponseToHttpStatusCode(this WorkitemResponseStatus status)
             => AddResponseStatusToHttpStatusCodeMapping[status];
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace Microsoft.Health.Dicom.Api.Extensions
         /// </summary>
         /// <param name="status">The status to convert.</param>
         /// <returns>The converted <see cref="HttpStatusCode"/>.</returns>
-        public static HttpStatusCode ToHttpStatusCodeForCancel(this WorkitemResponseStatus status)
+        public static HttpStatusCode CancelResponseToHttpStatusCode(this WorkitemResponseStatus status)
             => CancelResponseStatusToHttpStatusCodeMapping[status];
     }
 }

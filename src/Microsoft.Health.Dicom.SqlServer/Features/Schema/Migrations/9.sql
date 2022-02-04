@@ -1943,7 +1943,6 @@ BEGIN
     BEGIN TRANSACTION;
     DECLARE @workitemKey AS BIGINT;
     DECLARE @newWatermark AS BIGINT;
-    DECLARE @workitemResourceType AS TINYINT = 1;
     DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
     SELECT @workitemKey = WorkitemKey
     FROM   dbo.Workitem
@@ -2075,11 +2074,7 @@ BEGIN
                       AND cte.OldTagValue = targetTbl.TagValue
                       AND cte.Watermark = targetTbl.Watermark;
         END
-    UPDATE dbo.Workitem
-    SET    [Status]              = @status,
-           LastStatusUpdatedDate = @currentDate
-    WHERE  PartitionKey = @partitionKey
-           AND WorkitemUid = @workitemUid;
+    EXECUTE dbo.UpdateWorkitemStatus @partitionKey, @workitemKey, @status;
     COMMIT TRANSACTION;
     SELECT @workitemKey;
 END

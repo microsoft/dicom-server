@@ -38,17 +38,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         Task EndAddWorkitemAsync(int partitionKey, long workitemKey, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Asynchronously begins deleting a workitem instance.
+        /// Asynchronously begins canceling a workitem instance.
         /// </summary>
-        /// <param name="workitemMetadata">The Workitem metadata.</param>
+        /// <param name="workitemMetadata">Workitem attributes that are indexed in a store.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A Task representing the method status.</returns>
         Task BeginUpdateWorkitemAsync(WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Asynchronously completes the deletion of a workitem instance.
+        /// Asynchronously completes the cancellation of a workitem instance.
         /// </summary>
-        /// <param name="workitemMetadata">The Workitem metadata.</param>
+        /// <param name="workitemMetadata">Workitem attributes that are indexed in a store.</param>
         /// <param name="dataset">The DICOM dataset to index.</param>
         /// <param name="queryTags">Queryable workitem tags</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -58,7 +58,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <summary>
         /// Asynchronously (soft) locks the workitem instance.
         /// </summary>
-        /// <param name="workitemMetadata">The Workitem metadata.</param>
+        /// <param name="workitemMetadata">Workitem attributes that are indexed in a store.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
         Task LockWorkitemAsync(WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken = default);
@@ -66,7 +66,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <summary>
         /// Asynchronously unlocks the workitem instance.
         /// </summary>
-        /// <param name="workitemMetadata">The Workitem metadata.</param>
+        /// <param name="workitemMetadata">Workitem attributes that are indexed in a store.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
         Task UnlockWorkitemAsync(WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken = default);
@@ -93,7 +93,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <param name="partitionKey">The partition key.</param>
         /// <param name="workitemUid">Workitem instance UID</param>
         /// <param name="cancellationToken"></param>
-        /// <returns>A task that gets workitem query tags.</returns>
+        /// <returns>Returns the Workitem attributes that are indexed in a store.</returns>
         Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default);
 
         /// <summary>

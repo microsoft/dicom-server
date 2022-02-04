@@ -35,15 +35,14 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// 
         /// </remarks>
         /// <param name="workitemInstanceUid">The workitem Uid</param>
-        /// <returns></returns>
+        /// <returns>Returns a string status report.</returns>
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationJson }, allowSingle: true, allowMultiple: false)]
         [Produces(KnownContentTypes.ApplicationJson)]
         [Consumes(KnownContentTypes.ApplicationJson)]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.Accepted)]
-        [ProducesResponseType((int)HttpStatusCode.Conflict)]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.Accepted)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.Conflict)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.UnsupportedMediaType)]
         [HttpPost]
@@ -67,7 +66,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
                     HttpContext.RequestAborted)
                 .ConfigureAwait(false);
 
-            return StatusCode((int)response.Status.ToHttpStatusCodeForCancel(), response.Message);
+            return StatusCode((int)response.Status.CancelResponseToHttpStatusCode(), response.Message);
         }
     }
 }

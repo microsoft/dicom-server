@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             var workitemInstanceUid = string.Empty;
             var request = new AddWorkitemRequest(Stream.Null, @"application/json", workitemInstanceUid);
 
-            var response = new AddWorkitemResponse(WorkitemResponseStatus.Success, new Uri(@"https://www.git.com"));
+            var response = new AddWorkitemResponse(WorkitemResponseStatus.Success, new Uri(@"https://www.microsoft.com"));
 
             _workitemService
                 .ProcessAddAsync(Arg.Any<DicomDataset>(), workitemInstanceUid, CancellationToken.None)

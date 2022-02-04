@@ -35,7 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// Asynchronously processes the Cancel workitem dataset
         /// </summary>
         /// <param name="dataset">The <see cref="DicomDataset"/> to process.</param>
-        /// <param name="workitemInstanceUid">An optional value for the Work Item InstanceUID tag.</param>
+        /// <param name="workitemInstanceUid">The Work Item InstanceUID tag.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous process operation.</returns>
         Task<CancelWorkitemResponse> ProcessCancelAsync(
@@ -49,6 +49,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <param name="parameters">Query parameters that contains filters</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous process operation.</returns>
-        Task<QueryWorkitemResourceResponse> ProcessQueryAsync(BaseQueryParameters parameters, CancellationToken cancellationToken = default);
+        Task<QueryWorkitemResourceResponse> ProcessQueryAsync(
+            BaseQueryParameters parameters,
+            CancellationToken cancellationToken = default);
     }
 }

@@ -226,10 +226,10 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         }
 
         public static Task<CancelWorkitemResponse> CancelWorkitemAsync(
-            this IMediator mediator, Stream requestBody, string requestContentType, string upsInstanceUid, CancellationToken cancellationToken)
+            this IMediator mediator, Stream requestBody, string requestContentType, string workitemUid, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
-            return mediator.Send(new CancelWorkitemRequest(requestBody, requestContentType, upsInstanceUid), cancellationToken);
+            return mediator.Send(new CancelWorkitemRequest(requestBody, requestContentType, workitemUid), cancellationToken);
         }
 
         public static Task<QueryWorkitemResourceResponse> QueryWorkitemsAsync(
