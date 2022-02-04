@@ -6,6 +6,7 @@
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Extensions;
@@ -31,15 +32,17 @@ namespace Microsoft.Health.DicomCast.Core.Modules
         {
             EnsureArg.IsNotNull(services, nameof(services));
 
-            DicomWebConfiguration dicomWebConfiguration = services.Configure<DicomWebConfiguration>(
-                _configuration,
-                DicomWebConfigurationSectionName);
+            var dicomWebConfiguration = new DicomWebConfiguration();
+            IConfigurationSection dicomWebConfigurationSection = _configuration.GetSection(DicomWebConfigurationSectionName);
+            dicomWebConfigurationSection.Bind(dicomWebConfiguration);
+
+            services.AddSingleton(Options.Create(dicomWebConfiguration));
 
             services.AddHttpClient<IDicomWebClient, DicomWebClient>(sp =>
                 {
                     sp.BaseAddress = dicomWebConfiguration.Endpoint;
                 })
-                .AddAuthenticationHandler(services, dicomWebConfiguration.Authentication, DicomWebConfigurationSectionName);
+                .AddAuthenticationHandler(services, dicomWebConfigurationSection.GetSection(AuthenticationConfiguration.SectionName), DicomWebConfigurationSectionName);
 
             services.Add<ChangeFeedRetrieveService>()
                 .Singleton()
