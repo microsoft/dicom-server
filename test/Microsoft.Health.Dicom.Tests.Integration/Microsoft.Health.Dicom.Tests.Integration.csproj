@@ -14,7 +14,7 @@
     <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="MediatR" Version="10.0.1" />
     <PackageReference Include="fo-dicom" Version="$(FoDicomVersion)" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="4.0.1" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="4.1.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="$(SdkPackageVersion)" />
@@ -28,9 +28,7 @@
     <PackageReference Include="Polly" Version="7.2.3" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
-    <!-- TODO: Replace with stable version once available. Preview needed to fix issue in .NET 6 -->
-    <PackageReference Include="Microsoft.SqlServer.DACFx" Version="160.5332.1-preview" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.3" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SqlServer.DACFx" Version="160.5400.1" />
   </ItemGroup>
 
   <ItemGroup>

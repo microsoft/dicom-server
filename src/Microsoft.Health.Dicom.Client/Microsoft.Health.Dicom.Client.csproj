@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Defines a RESTful client for interacting with DICOMweb APIs.</Description>
@@ -15,14 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="IDicomWebClient.*.cs">
-      <DependentUpon>IDicomWebClient.cs</DependentUpon>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="DicomWebClient.*.cs">
       <DependentUpon>DicomWebClient.cs</DependentUpon>
+    </None>
+    <None Include="IDicomWebClient.*.cs">
+      <DependentUpon>IDicomWebClient.cs</DependentUpon>
     </None>
   </ItemGroup>
 

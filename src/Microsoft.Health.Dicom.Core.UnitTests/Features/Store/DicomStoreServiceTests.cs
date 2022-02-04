@@ -82,7 +82,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             await ExecuteAndValidateAsync(dicomInstanceEntry);
 
-            _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1);
+            _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1, Arg.Is<ushort?>(v => v.Value == FailureReasonCodes.DataSetDoesNotMatchSOPClass));
             _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(default);
         }
 
@@ -180,7 +180,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             await ExecuteAndValidateAsync(dicomInstanceEntryToSucceed, dicomInstanceEntryToFail);
 
-            _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1);
+            _storeResponseBuilder.Received(0).AddSuccess(_dicomDataset1);
             _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, TestConstants.ProcessingFailureReasonCode);
         }
 

@@ -3,12 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Client.Models;
+
 namespace Microsoft.Health.Dicom.Client
 {
-    public static class DicomApiVersions
+    public partial interface IDicomWebClient
     {
-        public const string V1Prerelease = "v1.0-prerelease";
-        public const string V1 = "v1";
-        public const string Latest = "v1";
+        Task<DicomWebResponse<T>> ResolveReferenceAsync<T>(IResourceReference<T> resourceReference, CancellationToken cancellationToken = default);
     }
 }
