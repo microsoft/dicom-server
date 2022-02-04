@@ -41,7 +41,6 @@ namespace Microsoft.Health.DicomCast.Core.Modules
             services.AddHttpClient<IDicomWebClient, DicomWebClient>(sp =>
                 {
                     sp.BaseAddress = dicomWebConfiguration.Endpoint;
-
                 })
                 .AddAuthenticationHandler(services, dicomWebConfigurationSection.GetSection(AuthenticationConfiguration.SectionName), DicomWebConfigurationSectionName);
 
