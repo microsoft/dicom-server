@@ -34,8 +34,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Controllers/WorkitemController.*.cs">
-      <DependentUpon>Controllers/WorkitemController.cs</DependentUpon>
+    <None Include="Controllers\WorkitemController.*.cs">
+      <DependentUpon>Controllers\WorkitemController.cs</DependentUpon>
     </None>
   </ItemGroup>
 
