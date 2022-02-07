@@ -18,7 +18,7 @@ This transaction uses the POST method to create a new Workitem.
 | POST   | `../workitems?{workitem}` | Creates a Workitem with the specified UID. |
 
 
-If not specified in the URI, the payload dataset must contain the Workitem SOPInstanceUid.
+If not specified in the URI, the payload dataset must contain the Workitem in either the SOPInstanceUid or AffectedSOPInstanceUID attributes.
 
 The `Accept` and `Content-Type` headers are required in the request, and must both have the value `application/json`.
 
@@ -46,7 +46,7 @@ handled diferently in DICOMWeb&trade;. SOP Instance UID **should be present** in
 A success response will have no payload. The `Location` and `Content-Location` response headers will contain
 a URI reference to the created Workitem.
 
-A failure response payload will contain a message describing the failures.
+A failure response payload will contain a message describing the failure.
 
 ## Search
 
@@ -67,7 +67,7 @@ The following parameters for each query are supported:
 | Key              | Support Value(s)              | Allowed Count | Description |
 | :--------------- | :---------------------------- | :------------ | :---------- |
 | `{attributeID}=` | {value}                       | 0...N         | Search for attribute/ value matching in query. |
-| `includefield=`  | `{attributeID}`<br/>`all`   | 0...N         | The additional attributes to return in the response. Both public and private tags are supported.<br/>When `all` is provided, please see [Search Response](###Search-Response) for more information about which attributes will be returned for each query type.<br/>If a mixture of {attributeID} and 'all' is provided, the server will default to using 'all'. |
+| `includefield=`  | `{attributeID}`<br/>`all`   | 0...N         | The additional attributes to return in the response. Only top-level attributes can be specified to be included - not attributes that are part of sequences. Both public and private tags are supported. <br/>When `all` is provided, please see [Search Response](###Search-Response) for more information about which attributes will be returned for each query type.<br/>If a mixture of {attributeID} and 'all' is provided, the server will default to using 'all'. |
 | `limit=`         | {value}                       | 0...1          | Integer value to limit the number of values returned in the response.<br/>Value can be between the range 1 >= x <= 200. Defaulted to 100. |
 | `offset=`        | {value}                       | 0...1          | Skip {value} results.<br/>If an offset is provided larger than the number of search query results, a 204 (no content) response will be returned. |
 | `fuzzymatching=` | `true` \| `false`             | 0...1          | If true fuzzy matching is applied to any attributes with the Person Name (PN) Value Representation (VR). It will do a prefix word match of any name part inside these attributes. For example, if PatientName is "John^Doe", then "joh", "do", "jo do", "Doe" and "John Doe" will all match. However "ohn" will not match. |
@@ -87,7 +87,6 @@ We support searching on these attributes:
 | ScheduledStationClassCodeSequence.CodeValue |
 | Scheduled​Station​Geographic​Location​Code​Sequence.CodeValue |
 | Procedure​Step​State |
-| SOPInstanceUID |
 
 #### Search Matching
 
@@ -98,6 +97,8 @@ We support these matching types:
 | Range Query | Scheduled​Procedure​Step​Start​Date​Time | {attributeID}={value1}-{value2}. For date/ time values, we support an inclusive range on the tag. This will be mapped to `attributeID >= {value1} AND attributeID <= {value2}`. If {value1} is not specified, all occurrences of dates/times prior to and including {value2} will be matched. Likewise, if {value2} is not specified, all occurrences of {value1} and subsequent dates/times will be matched. However, one of these values has to be present. `{attributeID}={value1}-` and `{attributeID}=-{value2}` are valid, however, `{attributeID}=-` is invalid. |
 | Exact Match | All supported attributes | {attributeID}={value1} |
 | Fuzzy Match | PatientName | Matches any component of the name which starts with the value. |
+
+> Note: While we do not support full sequence matching, we do support exact match on the attributes listed above that are contained in a sequence.
 
 #### Attribute ID
 
@@ -127,7 +128,6 @@ The query API will return one of the following status codes in the response:
 | :------------------------ | :---------- |
 | 200 (OK)                  | The response payload contains all the matching resource. |
 | 204 (No Content)          | The search completed successfully but returned no results. |
-| 206 (Partial Content)     | Only some of the search results were returned, and the rest can be requested through the appropriate request. |
 | 400 (Bad Request)         | The was a problem with the request. For example, invalid Query Parameter syntax. Response body contains details of the failure. |
 | 401 (Unauthorized)        | The client is not authenticated. |
 | 503 (Service Unavailable) | The service is unavailable or busy. Please try again later. |
