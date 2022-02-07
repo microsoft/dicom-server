@@ -22,16 +22,21 @@ namespace Microsoft.Health.DicomCast.TableStorage.UnitTests.Features.Storage
     public class TableExceptionStoreTests
     {
         private readonly TableExceptionStore _tableExceptionStore;
+        private readonly TableDataStoreConfiguration _tableStorageConfiguration = new TableDataStoreConfiguration();
 
         public TableExceptionStoreTests()
         {
             Dictionary<string, string> _tableNames = new Dictionary<string, string>();
             _tableNames.Add("FhirFailToStoreExceptionTable", "FhirFailToStoreExceptionTable");
 
-            TableServiceClientProvider tableServiceClientProvider = new TableServiceClientProvider
-                (Substitute.For<TableServiceClient>(), Substitute.For<ITableServiceClientInitializer>(), Substitute.For<IOptions<TableDataStoreConfiguration>>(), NullLogger<TableServiceClientProvider>.Instance);
+            _tableStorageConfiguration.TableNamePrefix = "";
 
-            tableServiceClientProvider.TableList.Returns(_tableNames);
+
+
+            TableServiceClientProvider tableServiceClientProvider = new TableServiceClientProvider
+                (Substitute.For<TableServiceClient>(), Substitute.For<ITableServiceClientInitializer>(), Options.Create(_tableStorageConfiguration), NullLogger<TableServiceClientProvider>.Instance);
+
+
 
             _tableExceptionStore = new TableExceptionStore(tableServiceClientProvider, NullLogger<TableExceptionStore>.Instance);
         }
