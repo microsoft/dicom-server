@@ -13,6 +13,7 @@ using Microsoft.Health.Client;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.IO;
+using NSubstitute;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
@@ -65,7 +66,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                             testUser.UserId,
                             testUser.Password);
 
-                        credentialProvider = new OAuth2UserPasswordCredentialProvider(Options.Create(credentialConfiguration), new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress });
+                        var optionsMonitor = Substitute.For<IOptionsMonitor<OAuth2UserPasswordCredentialConfiguration>>();
+                        optionsMonitor.CurrentValue.Returns(credentialConfiguration);
+                        credentialProvider = new OAuth2UserPasswordCredentialProvider(optionsMonitor, new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress });
                     }
                     else
                     {
@@ -76,7 +79,9 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                             clientApplication.ClientId,
                             clientApplication.ClientSecret);
 
-                        credentialProvider = new OAuth2ClientCredentialProvider(Options.Create(credentialConfiguration), new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress });
+                        var optionsMonitor = Substitute.For<IOptionsMonitor<OAuth2ClientCredentialConfiguration>>();
+                        optionsMonitor.CurrentValue.Returns(credentialConfiguration);
+                        credentialProvider = new OAuth2ClientCredentialProvider(optionsMonitor, new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress });
                     }
 
                     var authHandler = new AuthenticationHttpMessageHandler(credentialProvider)
