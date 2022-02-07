@@ -66,8 +66,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                             testUser.UserId,
                             testUser.Password);
 
-                        var optionsMonitor = Substitute.For<IOptionsMonitor<OAuth2UserPasswordCredentialConfiguration>>();
-                        optionsMonitor.CurrentValue.Returns(credentialConfiguration);
+                        IOptionsMonitor<OAuth2UserPasswordCredentialConfiguration> optionsMonitor = CreateOptionsMonitor(credentialConfiguration);
                         credentialProvider = new OAuth2UserPasswordCredentialProvider(optionsMonitor, new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress });
                     }
                     else
@@ -79,8 +78,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                             clientApplication.ClientId,
                             clientApplication.ClientSecret);
 
-                        var optionsMonitor = Substitute.For<IOptionsMonitor<OAuth2ClientCredentialConfiguration>>();
-                        optionsMonitor.CurrentValue.Returns(credentialConfiguration);
+                        IOptionsMonitor<OAuth2ClientCredentialConfiguration> optionsMonitor = CreateOptionsMonitor(credentialConfiguration);
                         credentialProvider = new OAuth2ClientCredentialProvider(optionsMonitor, new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress });
                     }
 
@@ -115,6 +113,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             {
                 TestDicomWebServer.Dispose();
             }
+        }
+
+        private static IOptionsMonitor<T> CreateOptionsMonitor<T>(T configuration)
+        {
+            var optionsMonitor = Substitute.For<IOptionsMonitor<T>>();
+            optionsMonitor.CurrentValue.Returns(configuration);
+            optionsMonitor.Get(default).ReturnsForAnyArgs(configuration);
+
+            return optionsMonitor;
         }
     }
 }
