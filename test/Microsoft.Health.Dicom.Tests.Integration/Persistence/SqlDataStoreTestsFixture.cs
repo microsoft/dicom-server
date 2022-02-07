@@ -81,7 +81,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var sqlConnectionStringProvider = new DefaultSqlConnectionStringProvider(configOptions);
 
-            var sqlConnectionFactory = new DefaultSqlConnectionFactory(sqlConnectionStringProvider);
+            var sqlConnectionFactory = new DefaultSqlConnectionBuilder(sqlConnectionStringProvider, configOptions);
 
             var schemaManagerDataStore = new SchemaManagerDataStore(sqlConnectionFactory, configOptions, NullLogger<SchemaManagerDataStore>.Instance);
 

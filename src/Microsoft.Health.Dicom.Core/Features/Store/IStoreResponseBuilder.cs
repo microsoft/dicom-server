@@ -21,10 +21,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         StoreResponse BuildResponse(string studyInstanceUid);
 
         /// <summary>
-        /// Adds a successful entry to the response.
+        /// Adds a Success entry to the response.
         /// </summary>
         /// <param name="dicomDataset">The DICOM dataset that was successfully stored.</param>
-        void AddSuccess(DicomDataset dicomDataset);
+        /// <param name="warningReasonCode">The warning reason code.</param>
+        void AddSuccess(DicomDataset dicomDataset, ushort? warningReasonCode = null);
 
         /// <summary>
         /// Adds a failed entry to the response.

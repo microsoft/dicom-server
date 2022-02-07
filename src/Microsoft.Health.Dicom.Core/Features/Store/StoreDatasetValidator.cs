@@ -38,7 +38,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             _queryTagService = queryTagService;
         }
 
-        public async Task ValidateAsync(DicomDataset dicomDataset, string requiredStudyInstanceUid, CancellationToken cancellationToken)
+        /// <inheritdoc/>
+        public async Task<bool> ValidateAsync(DicomDataset dicomDataset, string requiredStudyInstanceUid, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
@@ -53,13 +54,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
             {
                 await ValidateIndexedItems(dicomDataset, cancellationToken);
             }
+
+            // Validate for Implicit VR at the end
+            if (ImplicitValueRepresentationValidator.IsImplicitVR(dicomDataset))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private static void ValidateCoreTags(DicomDataset dicomDataset, string requiredStudyInstanceUid)
         {
-            // Validate for Implicit VR
-            ImplicitValueRepresentationValidator.Validate(dicomDataset);
-
             // Ensure required tags are present.
             EnsureRequiredTagIsPresent(DicomTag.PatientID);
             EnsureRequiredTagIsPresent(DicomTag.SOPClassUID);

@@ -156,6 +156,7 @@ An example response with `Accept` header `application/dicom+json`:
 | 43265 | The provided instance StudyInstanceUID did not match the specified StudyInstanceUID in the store request. |
 | 45070 | A DICOM instance with the same StudyInstanceUID, SeriesInstanceUID and SopInstanceUID has already been stored. If you wish to update the contents, delete this instance first. |
 | 45071 | A DICOM instance is being created by another process, or the previous attempt to create has failed and the cleanup process has not had chance to clean up yet. Please delete the instance first before attempting to create again. |
+| 45063 | A DICOM instance Data Set does not match SOP Class. The Studies Store Transaction (Section 10.5) observed that the Data Set did not match the constraints of the SOP Class during storage of the instance. |
 
 ## Retrieve (WADO-RS)
 

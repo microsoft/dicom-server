@@ -4,13 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 
 namespace Microsoft.Health.Dicom.Client.Models
 {
     /// <summary>
     /// Represents a reference to a one or more extended query tag errors.
     /// </summary>
-    public class ExtendedQueryTagErrorReference
+    public class ExtendedQueryTagErrorReference : IResourceReference<IReadOnlyList<ExtendedQueryTagError>>
     {
         /// <summary>
         /// Gets or sets the number of errors.

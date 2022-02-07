@@ -33,15 +33,16 @@ namespace Microsoft.Health.DicomCast.Core.Modules
         {
             EnsureArg.IsNotNull(services, nameof(services));
 
-            FhirConfiguration fhirConfiguration = services.Configure<FhirConfiguration>(
-                _configuration,
-                FhirConfigurationSectionName);
+            var fhirConfiguration = new FhirConfiguration();
+            IConfigurationSection fhirConfigurationSection = _configuration.GetSection(FhirConfigurationSectionName);
+
+            fhirConfigurationSection.Bind(fhirConfiguration);
 
             services.AddHttpClient<IFhirClient, FhirClient>(sp =>
                 {
                     sp.BaseAddress = fhirConfiguration.Endpoint;
                 })
-                .AddAuthenticationHandler(services, fhirConfiguration.Authentication, FhirConfigurationSectionName);
+                .AddAuthenticationHandler(services, fhirConfigurationSection.GetSection(AuthenticationConfiguration.SectionName), FhirConfigurationSectionName);
 
             services.Add<FhirResourceValidator>()
                 .Singleton()

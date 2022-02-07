@@ -8,7 +8,7 @@ By default, the Medical Imaging Server for DICOM supports querying on the DICOM 
 
 ## APIs
 
-### Version: v1.0-prerelease
+### Version: v1-prerelease, v1
 
 To help manage the supported tags in a given DICOM server instance, the following API endpoints have been added.
 

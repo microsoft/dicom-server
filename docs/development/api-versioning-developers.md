@@ -5,7 +5,7 @@ This guide gives an overview of the API versioning of the REST endpoints for DIC
 ## Routes
 
 API Version number are set within the route. Example:
-`/v1.0-prerelease/studies`
+`/v1/studies`
 
 To add a route, use the `[VersionedRoute]` attribute to automatically add the version number to the route. Example:
 ```C#   
@@ -52,7 +52,7 @@ Currently we have a test in our pr and ci pipeline that checks to make sure that
 ### How to increment the version
 
 1. Add a new controller to hold the endpoints for the new version, and annotate with `[ApiVersion("<desiredVersion>")]`. All existing endpoints must get the new version.
-2. Add the new version number to `test/Microsoft.Health.Dicom.Web.Tests.E2E/Rest/VersionAPIData.cs` to test the new endpoints.
+2. Add the new version number to `test/Microsoft.Health.Dicom.Api.UnitTests/Features/Routing/UrlResolverTests.cs` to test the new endpoints.
 3. Test to verify the breaking changes were not added to the previous version(s).
 4. Do the following to add the checks in the pr and ci pipeline to verify that developers do not accidentally create breaking changes.
     1. Add the new version to the arguments in `build/versioning.yml`. The powershell script takes in an array of versions so the new version can just be added to the argument.
