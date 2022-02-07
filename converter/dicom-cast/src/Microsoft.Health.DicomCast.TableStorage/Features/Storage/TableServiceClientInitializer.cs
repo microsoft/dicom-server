@@ -32,9 +32,9 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             {
                 _logger.LogInformation("Initializing Table Storage and tables");
 
-                foreach (string tableName in tableList.Keys)
+                foreach (string tableName in tableList.Values)
                 {
-                    if (await tableServiceClient.CreateTableIfNotExistsAsync(tableList[tableName]) != null)
+                    if (await tableServiceClient.CreateTableIfNotExistsAsync(tableName) != null)
                     {
                         _logger.LogInformation("Created Table named '{TableName}'", tableName);
                     }

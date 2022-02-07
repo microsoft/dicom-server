@@ -24,6 +24,9 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         private readonly RetryableInitializationOperation _initializationOperation;
         private readonly TableDataStoreConfiguration _tableDataStoreConfiguration;
 
+        // This table holds the full table names.
+        // Key contains list of Constants.alltables
+        // Values contains  list of fulltable names computed as "tablenameprefix+key". TableNameprefix is dicomcastname provisioned. Its defualt value is empty.
         public Dictionary<string, string> TableList { get; }
 
         public TableServiceClientProvider(
