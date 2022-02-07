@@ -23,5 +23,10 @@ namespace Microsoft.Health.DicomCast.TableStorage.Configs
         /// Optional parameter to use to specify the clientId of the managed identity to use.
         /// </summary>
         public string ClientId { get; set; }
+
+        /// <summary>
+        ///The prefix to the table name. Default value is empty.
+        /// </summary>
+        public string TableNamePrefix { get; set; } = string.Empty;
     }
 }
