@@ -1,5 +1,5 @@
 # Start from the sdk image
-FROM mcr.microsoft.com/dotnet/sdk:6.0.101-alpine3.14@sha256:26b148be9e01d12985108fc3e02fbfd30e502baff4174755d2ce0dcbf22503f7 AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0.102-alpine3.14@sha256:8d15f73dcd72485cc89e59cf0fa2e97ef016c4500164dd26b71cea6d532b8134 AS build
 
 # Set the working directory to where the source is located
 WORKDIR /dicom-cast/src
