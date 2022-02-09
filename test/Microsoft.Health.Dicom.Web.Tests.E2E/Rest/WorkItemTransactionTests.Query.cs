@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             using DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryWorkitemAsync("PatientName=Foo");
 
-            Assert.Equal(KnownContentTypes.ApplicationJson, queryResponse.ContentHeaders.ContentType.MediaType);
+            Assert.Equal(KnownContentTypes.ApplicationDicomJson, queryResponse.ContentHeaders.ContentType.MediaType);
             DicomDataset[] datasets = await queryResponse.ToArrayAsync();
 
             Assert.NotNull(datasets);
@@ -73,7 +73,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             using DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryWorkitemAsync($"ReferencedRequestSequence.AccessionNumber={accessionNumber}");
 
             Assert.Equal(HttpStatusCode.OK, queryResponse.StatusCode);
-            Assert.Equal(KnownContentTypes.ApplicationJson, queryResponse.ContentHeaders.ContentType.MediaType);
+            Assert.Equal(KnownContentTypes.ApplicationDicomJson, queryResponse.ContentHeaders.ContentType.MediaType);
             DicomDataset[] datasets = await queryResponse.ToArrayAsync();
 
             Assert.NotNull(datasets);

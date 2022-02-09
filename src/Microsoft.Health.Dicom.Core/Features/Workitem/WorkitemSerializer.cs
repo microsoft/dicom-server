@@ -27,7 +27,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             EnsureArg.IsNotNull(stream, nameof(stream));
             EnsureArg.IsNotEmptyOrWhiteSpace(contentType, nameof(contentType));
 
-            if (!string.Equals(contentType, KnownContentTypes.ApplicationJson, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(contentType, KnownContentTypes.ApplicationJson, StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(contentType, KnownContentTypes.ApplicationDicomJson, StringComparison.OrdinalIgnoreCase))
             {
                 throw new UnsupportedMediaTypeException(contentType);
             }
