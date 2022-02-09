@@ -30,8 +30,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             var workitemMetadata = await _workitemOrchestrator.GetWorkitemMetadataAsync(workitemInstanceUid, cancellationToken).ConfigureAwait(false);
 
             // Get the state transition result
-            var transitionStateResult = ProcedureStepState.GetTransitionState(WorkitemStateEvents.NActionToRequestCancel,
-                workitemMetadata?.ProcedureStepState ?? string.Empty);
+            var transitionStateResult = workitemMetadata?
+                .ProcedureStepState
+                .GetTransitionState(WorkitemStateEvents.NActionToRequestCancel);
 
             if (ValidateCancelRequest(workitemInstanceUid, workitemMetadata, dataset, transitionStateResult))
             {
@@ -99,7 +100,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
         }
 
-        private async Task CancelWorkitemAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, string targetProcedureStepState, CancellationToken cancellationToken)
+        private async Task CancelWorkitemAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, ProcedureStepState targetProcedureStepState, CancellationToken cancellationToken)
         {
             try
             {

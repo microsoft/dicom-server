@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
+using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
 using DicomValidationException = FellowOakDicom.DicomValidationException;
 
@@ -57,9 +58,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
         private static void PrepareAddRequest(DicomDataset dataset, string workitemUid)
         {
-            var result = ProcedureStepState.GetTransitionState(WorkitemStateEvents.NCreate, dataset.GetString(DicomTag.ProcedureStepState));
-            dataset.AddOrUpdate(DicomTag.ProcedureStepState, result.State);
+            var currentProcedureStepState = dataset.GetProcedureState();
+            var result = currentProcedureStepState.GetTransitionState(WorkitemStateEvents.NCreate);
 
+            dataset.AddOrUpdate(DicomTag.ProcedureStepState, result.State);
             dataset.AddOrUpdate(DicomTag.SOPInstanceUID, workitemUid);
         }
 

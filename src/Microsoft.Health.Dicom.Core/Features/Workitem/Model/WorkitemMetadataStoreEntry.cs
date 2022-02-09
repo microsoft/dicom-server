@@ -17,6 +17,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem.Model
 
         public string TransactionUid { get; set; }
 
-        public string ProcedureStepState { get; set; }
+        public string ProcedureStepStateStringValue => ProcedureStepState.GetStringValue();
+
+        public ProcedureStepState ProcedureStepState { get; set; }
     }
 }

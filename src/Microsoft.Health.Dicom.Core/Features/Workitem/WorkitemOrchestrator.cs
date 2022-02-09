@@ -99,7 +99,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
         }
 
-        public async Task CancelWorkitemAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, string targetProcedureStepState, CancellationToken cancellationToken)
+        public async Task CancelWorkitemAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, ProcedureStepState targetProcedureStepState, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
             EnsureArg.IsNotNull(workitemMetadata, nameof(workitemMetadata));
@@ -125,16 +125,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
                 // update the procedure step state
                 var updatedDicomDataset = new DicomDataset(storeDicomDataset);
-                updatedDicomDataset.AddOrUpdate(DicomTag.ProcedureStepState, targetProcedureStepState);
 
-                // if there is a reason for cancellation, update the workitem in the blob store
+                // if there is a reason for cancellation, set it in the blob
                 dataset.TryGetString(DicomTag.ReasonForCancellation, out var cancellationReason);
                 if (!string.IsNullOrWhiteSpace(cancellationReason))
                 {
                     updatedDicomDataset.AddOrUpdate(DicomTag.ReasonForCancellation, cancellationReason);
-
-                    await StoreWorkitemBlobAsync(workitemInstanceIdentifier, updatedDicomDataset, cancellationToken).ConfigureAwait(false);
                 }
+
+                // Add/Update the procedure step state in the blob
+                updatedDicomDataset.AddOrUpdate(DicomTag.ProcedureStepState, targetProcedureStepState.GetStringValue());
+
+                // update the workitem in the blob store
+                await StoreWorkitemBlobAsync(workitemInstanceIdentifier, updatedDicomDataset, cancellationToken).ConfigureAwait(false);
 
                 // Update the workitem tags in the store
                 var queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken).ConfigureAwait(false);

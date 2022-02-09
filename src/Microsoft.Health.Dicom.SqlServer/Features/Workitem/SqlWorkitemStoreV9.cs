@@ -200,7 +200,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                             PartitionKey = pkey,
                             Status = (WorkitemStoreStatus)status,
                             TransactionUid = transactionUid,
-                            ProcedureStepState = procedureStepState
+                            ProcedureStepState = ProcedureStepStateExtensions.GetProcedureStepState(procedureStepState)
                         };
                     }
                 }

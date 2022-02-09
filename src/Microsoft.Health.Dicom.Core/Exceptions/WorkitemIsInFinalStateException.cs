@@ -10,8 +10,8 @@ namespace Microsoft.Health.Dicom.Core.Exceptions
     /// </summary>
     public class WorkitemIsInFinalStateException : DicomServerException
     {
-        public WorkitemIsInFinalStateException(string workitemUid, string currentProcedureStepState)
-            : base(string.Format(DicomCoreResource.WorkitemIsInFinalState, workitemUid, currentProcedureStepState))
+        public WorkitemIsInFinalStateException(string workitemUid, string procedureStepState)
+            : base(string.Format(DicomCoreResource.WorkitemIsInFinalState, workitemUid, procedureStepState))
         {
         }
     }

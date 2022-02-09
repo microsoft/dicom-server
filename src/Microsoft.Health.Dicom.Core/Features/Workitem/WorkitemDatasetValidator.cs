@@ -9,6 +9,7 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -87,20 +88,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-            if (dicomDataset.TryGetString(DicomTag.ProcedureStepState, out var currentState))
+            var procedureStepState = dicomDataset.GetProcedureState();
+            var result = procedureStepState.GetTransitionState(WorkitemStateEvents.NCreate);
+            if (result.IsError)
             {
-                var result = ProcedureStepState.GetTransitionState(WorkitemStateEvents.NCreate, currentState);
-                if (result.IsError)
-                {
-                    throw new DatasetValidationException(
-                        FailureReasonCodes.ValidationFailure,
-                        string.Format(
-                            CultureInfo.InvariantCulture,
-                            DicomCoreResource.InvalidProcedureStepStateTransition,
-                            workitemInstanceUid,
-                            currentState,
-                            result.Code));
-                }
+                throw new DatasetValidationException(
+                    FailureReasonCodes.ValidationFailure,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.InvalidProcedureStepStateTransition,
+                        workitemInstanceUid,
+                        procedureStepState,
+                        result.Code));
             }
         }
 
