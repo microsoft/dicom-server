@@ -4,14 +4,11 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.ComponentModel.DataAnnotations;
 using System.Globalization;
-using System.Linq;
-using System.Reflection;
 using EnsureThat;
 using FellowOakDicom;
 
-namespace Microsoft.Health.Dicom.Core.Features.Workitem.Model
+namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
     /// <summary>
     /// The Procedure Step State Extension (Helper methods)
@@ -38,7 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem.Model
         /// <returns></returns>
         public static WorkitemStateTransitionResult GetTransitionState(this ProcedureStepState state, WorkitemStateEvents action)
         {
-            return CheckProcedureStepStateTransitionTable(state, action);
+            return state.CheckProcedureStepStateTransitionTable(action);
         }
 
         /// <summary>
@@ -48,13 +45,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem.Model
         /// <returns>Returns the display name of the state</returns>
         public static string GetStringValue(this ProcedureStepState state)
         {
-            var name = typeof(ProcedureStepState)
-                        .GetMember(state.ToString())
-                        .First()
-                        .GetCustomAttribute<DisplayAttribute>()
-                        .GetName();
+            //var name = typeof(ProcedureStepState)
+            //            .GetMember(state.ToString())
+            //            .First()
+            //            .GetCustomAttribute<DisplayAttribute>()
+            //            .GetName();
 
-            return name;
+            return state switch
+            {
+                ProcedureStepState.None => ProcedureStepStateConstants.None,
+                ProcedureStepState.Scheduled => ProcedureStepStateConstants.Scheduled,
+                ProcedureStepState.InProgress => ProcedureStepStateConstants.InProgress,
+                ProcedureStepState.Canceled => ProcedureStepStateConstants.Canceled,
+                ProcedureStepState.Completed => ProcedureStepStateConstants.Completed,
+                _ => throw new ArgumentOutOfRangeException(state.ToString()),
+            };
         }
 
         /// <summary>
