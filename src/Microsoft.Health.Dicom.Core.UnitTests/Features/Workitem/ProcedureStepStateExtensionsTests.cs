@@ -31,11 +31,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         }
 
         [Theory]
-        [InlineData(ProcedureStepState.None, @"")]
-        [InlineData(ProcedureStepState.Scheduled, @"SCHEDULED")]
-        [InlineData(ProcedureStepState.InProgress, @"IN PROGRESS")]
-        [InlineData(ProcedureStepState.Completed, @"COMPLETED")]
-        [InlineData(ProcedureStepState.Canceled, @"CANCELED")]
+        [InlineData(ProcedureStepState.None, ProcedureStepStateConstants.None)]
+        [InlineData(ProcedureStepState.Scheduled, ProcedureStepStateConstants.Scheduled)]
+        [InlineData(ProcedureStepState.InProgress, ProcedureStepStateConstants.InProgress)]
+        [InlineData(ProcedureStepState.Completed, ProcedureStepStateConstants.Completed)]
+        [InlineData(ProcedureStepState.Canceled, ProcedureStepStateConstants.Completed)]
         public void GivenGetStringValue_WhenStateIsValid_ReturnsMatchingStringValue(ProcedureStepState state, string expectedValue)
         {
             var actual = state.GetStringValue();
