@@ -122,6 +122,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                             DicomCoreResource.InvalidProcedureStepStateTransition,
                             string.Empty,
                             state,
+                            string.Empty,
                             string.Empty))
         };
     }

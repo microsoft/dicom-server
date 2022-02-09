@@ -176,7 +176,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                     identifier.WorkitemUid,
                     identifier.PartitionKey,
                     identifier.WorkitemKey);
-            }
+        }
         }
 
         /// <inheritdoc />

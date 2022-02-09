@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Microsoft.Health.DicomCast.Core.UnitTests\Microsoft.Health.DicomCast.Core.UnitTests.csproj" />
     <ProjectReference Include="..\Microsoft.Health.DicomCast.TableStorage\Microsoft.Health.DicomCast.TableStorage.csproj" />
   </ItemGroup>
 

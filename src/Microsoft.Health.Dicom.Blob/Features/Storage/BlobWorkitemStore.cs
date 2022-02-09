@@ -63,6 +63,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             EnsureArg.IsNotNull(identifier, nameof(identifier));
             EnsureArg.IsNotNull(dataset, nameof(dataset));
 
+            var addWorkitemStreamTagName = nameof(BlobWorkitemStore) + "." + nameof(AddWorkitemAsync);
             var blob = GetBlockBlobClient(identifier);
 
             try
@@ -98,6 +99,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         public async Task<DicomDataset> GetWorkitemAsync(WorkitemInstanceIdentifier workitemInstanceIdentifier, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(workitemInstanceIdentifier, nameof(workitemInstanceIdentifier));
+            var getWorkitemStreamTagName = nameof(BlobWorkitemStore) + "." + nameof(GetWorkitemAsync);
 
             BlockBlobClient cloudBlockBlob = GetBlockBlobClient(workitemInstanceIdentifier);
 

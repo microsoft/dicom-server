@@ -39,6 +39,9 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
                     { DicomTag.SeriesNumber, seriesNumber ?? DefaultSeriesNumber },
                     { DicomTag.InstanceNumber, instanceNumber ?? DefaultInstanceNumber },
                     { DicomTag.AccessionNumber, accessionNumber ?? DefaultAccessionNumber },
+                    { DicomTag.StudyInstanceUID, DicomUID.Generate().UID },
+                    { DicomTag.SeriesInstanceUID, DicomUID.Generate().UID },
+                    { DicomTag.SOPInstanceUID, DicomUID.Generate().UID },
                 };
 
             return ds;
