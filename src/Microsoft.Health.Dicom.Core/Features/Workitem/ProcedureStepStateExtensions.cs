@@ -45,12 +45,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <returns>Returns the display name of the state</returns>
         public static string GetStringValue(this ProcedureStepState state)
         {
-            //var name = typeof(ProcedureStepState)
-            //            .GetMember(state.ToString())
-            //            .First()
-            //            .GetCustomAttribute<DisplayAttribute>()
-            //            .GetName();
-
             return state switch
             {
                 ProcedureStepState.None => ProcedureStepStateConstants.None,

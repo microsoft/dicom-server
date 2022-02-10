@@ -1538,6 +1538,33 @@ BEGIN
 END
 
 GO
+CREATE OR ALTER PROCEDURE dbo.GetWorkitemMetadata
+@partitionKey INT, @workitemUid VARCHAR (64), @procedureStepStateTagPath VARCHAR (64)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    SELECT wi.WorkitemUid,
+           wi.WorkitemKey,
+           wi.PartitionKey,
+           wi.[Status],
+           wi.TransactionUid,
+           eqt.TagValue AS ProcedureStepState
+    FROM   dbo.WorkitemQueryTag AS wqt
+           INNER JOIN
+           dbo.ExtendedQueryTagString AS eqt
+           ON eqt.ResourceType = 1
+              AND eqt.TagKey = wqt.TagKey
+              AND wqt.TagPath = @procedureStepStateTagPath
+           INNER JOIN
+           dbo.Workitem AS wi
+           ON wi.WorkitemKey = eqt.SopInstanceKey1
+              AND wi.PartitionKey = eqt.PartitionKey
+    WHERE  wi.PartitionKey = @partitionKey
+           AND wi.WorkitemUid = @workitemUid;
+END
+
+GO
 CREATE OR ALTER PROCEDURE dbo.GetWorkitemQueryTags
 AS
 BEGIN
@@ -1903,6 +1930,69 @@ BEGIN
            AND StudyInstanceUid = @studyInstanceUid
            AND SeriesInstanceUid = @seriesInstanceUid
            AND SopInstanceUid = @sopInstanceUid;
+    COMMIT TRANSACTION;
+END
+
+GO
+CREATE OR ALTER PROCEDURE dbo.UpdateWorkitemProcedureStepState
+@partitionKey INT, @workitemUid VARCHAR (64), @procedureStepStateTagPath VARCHAR (64), @procedureStepState VARCHAR (64), @status TINYINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+    DECLARE @workitemKey AS BIGINT;
+    DECLARE @newWatermark AS BIGINT;
+    DECLARE @currentProcedureStepStateTagValue AS VARCHAR (64);
+    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+    SELECT @workitemKey = WorkitemKey
+    FROM   dbo.Workitem
+    WHERE  PartitionKey = @partitionKey
+           AND WorkitemUid = @workitemUid;
+    IF @@ROWCOUNT = 0
+        THROW 50409, 'Workitem does not exist', 1;
+    SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
+    BEGIN TRY
+        WITH TagKeyCTE
+        AS   (SELECT wqt.TagKey,
+                     wqt.TagPath,
+                     eqts.TagValue AS OldTagValue,
+                     eqts.ResourceType,
+                     wi.PartitionKey,
+                     wi.WorkitemKey,
+                     wi.WorkitemUid,
+                     wi.TransactionUid,
+                     eqts.Watermark
+              FROM   dbo.WorkitemQueryTag AS wqt
+                     INNER JOIN
+                     dbo.ExtendedQueryTagString AS eqts
+                     ON eqts.TagKey = wqt.TagKey
+                        AND eqts.ResourceType = 1
+                     INNER JOIN
+                     dbo.Workitem AS wi
+                     ON wi.PartitionKey = eqts.PartitionKey
+                        AND wi.WorkitemKey = eqts.SopInstanceKey1
+              WHERE  wi.PartitionKey = @partitionKey
+                     AND wi.WorkitemKey = @workitemKey)
+        UPDATE targetTbl
+        SET    targetTbl.TagValue  = @procedureStepState,
+               targetTbl.Watermark = @newWatermark
+        FROM   dbo.ExtendedQueryTagString AS targetTbl
+               INNER JOIN
+               TagKeyCTE AS cte
+               ON targetTbl.ResourceType = cte.ResourceType
+                  AND cte.PartitionKey = targetTbl.PartitionKey
+                  AND cte.WorkitemKey = targetTbl.SopInstanceKey1
+                  AND cte.TagKey = targetTbl.TagKey
+                  AND cte.OldTagValue = targetTbl.TagValue
+                  AND cte.Watermark = targetTbl.Watermark
+        WHERE  cte.TagPath = @procedureStepStateTagPath;
+        EXECUTE dbo.UpdateWorkitemStatus @partitionKey, @workitemKey, @status;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
+    SELECT @workitemKey;
     COMMIT TRANSACTION;
 END
 

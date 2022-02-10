@@ -97,9 +97,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             IEnumerable<QueryTag> queryTags,
             CancellationToken cancellationToken = default)
         {
-            // await UpdateWorkitemAsync(workitemMetadata, dataset, queryTags, cancellationToken)
-            //    .ConfigureAwait(false);
-
             await UpdateWorkitemProcedureStepStateAsync(
                     workitemMetadata.PartitionKey,
                     workitemMetadata.WorkitemUid,
@@ -219,39 +216,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                     partitionKey,
                     workitemKey,
                     (byte)status);
-
-                try
-                {
-                    await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
-                }
-                catch (SqlException ex)
-                {
-                    throw new DataStoreException(ex);
-                }
-            }
-        }
-
-        private async Task UpdateWorkitemAsync(WorkitemMetadataStoreEntry workitemMetadata,
-            DicomDataset dataset,
-            IEnumerable<QueryTag> queryTags,
-            CancellationToken cancellationToken = default)
-        {
-            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
-            {
-                var rows = ExtendedQueryTagDataRowsBuilder.Build(dataset, queryTags, Version);
-                var parameters = new VLatest.UpdateWorkitemTableValuedParameters(
-                    rows.StringRows,
-                    rows.DateTimeWithUtcRows,
-                    rows.PersonNameRows
-                );
-
-                VLatest.UpdateWorkitem.PopulateCommand(
-                    sqlCommandWrapper,
-                    workitemMetadata.PartitionKey,
-                    workitemMetadata.WorkitemUid,
-                    (byte)WorkitemStoreStatus.ReadWrite,
-                    parameters);
 
                 try
                 {

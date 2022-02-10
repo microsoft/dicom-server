@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V9
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -59,7 +59,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetInstancesByWatermarkRangeV6Procedure GetInstancesByWatermarkRangeV6 = new GetInstancesByWatermarkRangeV6Procedure();
         internal readonly static GetPartitionProcedure GetPartition = new GetPartitionProcedure();
         internal readonly static GetPartitionsProcedure GetPartitions = new GetPartitionsProcedure();
-        internal readonly static GetWorkitemMetadataProcedure GetWorkitemMetadata = new GetWorkitemMetadataProcedure();
         internal readonly static GetWorkitemQueryTagsProcedure GetWorkitemQueryTags = new GetWorkitemQueryTagsProcedure();
         internal readonly static IIndexInstanceCoreV9Procedure IIndexInstanceCoreV9 = new IIndexInstanceCoreV9Procedure();
         internal readonly static IIndexWorkitemInstanceCoreProcedure IIndexWorkitemInstanceCore = new IIndexWorkitemInstanceCoreProcedure();
@@ -71,7 +70,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static UpdateExtendedQueryTagQueryStatusProcedure UpdateExtendedQueryTagQueryStatus = new UpdateExtendedQueryTagQueryStatusProcedure();
         internal readonly static UpdateInstanceStatusProcedure UpdateInstanceStatus = new UpdateInstanceStatusProcedure();
         internal readonly static UpdateInstanceStatusV6Procedure UpdateInstanceStatusV6 = new UpdateInstanceStatusV6Procedure();
-        internal readonly static UpdateWorkitemProcedureStepStateProcedure UpdateWorkitemProcedureStepState = new UpdateWorkitemProcedureStepStateProcedure();
         internal readonly static UpdateWorkitemStatusProcedure UpdateWorkitemStatus = new UpdateWorkitemStatusProcedure();
 
         internal class ChangeFeedTable : Table
@@ -1183,26 +1181,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class GetWorkitemMetadataProcedure : StoredProcedure
-        {
-            internal GetWorkitemMetadataProcedure() : base("dbo.GetWorkitemMetadata")
-            {
-            }
-
-            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.String> _workitemUid = new ParameterDefinition<System.String>("@workitemUid", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.String> _procedureStepStateTagPath = new ParameterDefinition<System.String>("@procedureStepStateTagPath", global::System.Data.SqlDbType.VarChar, false, 64);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String workitemUid, System.String procedureStepStateTagPath)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetWorkitemMetadata";
-                _partitionKey.AddParameter(command.Parameters, partitionKey);
-                _workitemUid.AddParameter(command.Parameters, workitemUid);
-                _procedureStepStateTagPath.AddParameter(command.Parameters, procedureStepStateTagPath);
-            }
-        }
-
         internal class GetWorkitemQueryTagsProcedure : StoredProcedure
         {
             internal GetWorkitemQueryTagsProcedure() : base("dbo.GetWorkitemQueryTags")
@@ -1583,30 +1561,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _watermark.AddParameter(command.Parameters, watermark);
                 _status.AddParameter(command.Parameters, status);
                 _maxTagKey.AddParameter(command.Parameters, maxTagKey);
-            }
-        }
-
-        internal class UpdateWorkitemProcedureStepStateProcedure : StoredProcedure
-        {
-            internal UpdateWorkitemProcedureStepStateProcedure() : base("dbo.UpdateWorkitemProcedureStepState")
-            {
-            }
-
-            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.String> _workitemUid = new ParameterDefinition<System.String>("@workitemUid", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.String> _procedureStepStateTagPath = new ParameterDefinition<System.String>("@procedureStepStateTagPath", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.String> _procedureStepState = new ParameterDefinition<System.String>("@procedureStepState", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.Byte> _status = new ParameterDefinition<System.Byte>("@status", global::System.Data.SqlDbType.TinyInt, false);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String workitemUid, System.String procedureStepStateTagPath, System.String procedureStepState, System.Byte status)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.UpdateWorkitemProcedureStepState";
-                _partitionKey.AddParameter(command.Parameters, partitionKey);
-                _workitemUid.AddParameter(command.Parameters, workitemUid);
-                _procedureStepStateTagPath.AddParameter(command.Parameters, procedureStepStateTagPath);
-                _procedureStepState.AddParameter(command.Parameters, procedureStepState);
-                _status.AddParameter(command.Parameters, status);
             }
         }
 
