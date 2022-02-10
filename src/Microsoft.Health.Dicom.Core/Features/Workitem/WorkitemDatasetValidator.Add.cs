@@ -50,20 +50,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
         }
 
-        private static void ValidateForDuplicateTagValuesInSequence(DicomDataset dicomDataset)
+        internal static void ValidateForDuplicateTagValuesInSequence(DicomDataset dicomDataset)
         {
             var sequenceList = dicomDataset.Where(t => t.ValueRepresentation == DicomVR.SQ).Cast<DicomSequence>();
 
             var tagValueMap = new Dictionary<string, string>();
-            foreach (var sequence in sequenceList)
+            foreach (DicomDataset sqDataset in from sequence in sequenceList
+                                               from DicomDataset sqDataset in sequence.Items
+                                               select sqDataset)
             {
                 tagValueMap.Clear();
 
-                foreach (var item in sequence.Items.SelectMany(ds => ds))
+                foreach ((DicomItem item, string tagPath) in
+                            from item in sqDataset
+                            let tagPath = item.Tag.GetPath()
+                            select (item, tagPath))
                 {
-                    var tagPath = item.Tag.GetPath();
-
-                    if (dicomDataset.TryGetString(item.Tag, out var tagValue) &&
+                    if (sqDataset.TryGetString(item.Tag, out var tagValue) &&
                         tagValueMap.ContainsKey(tagPath) &&
                         string.Equals(tagValue, tagValueMap[tagPath], StringComparison.Ordinal))
                     {
