@@ -73,12 +73,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Features\Schema\Migrations\10.diff.sql" />
-    <None Remove="Features\Schema\Migrations\9.diff.sql" />
-    <None Remove="Features\Schema\Sql\Sprocs\GetInstanceWithProperties.sql" />
-  </ItemGroup>
-
-  <ItemGroup>
     <TInitSqlScript Include="Features\Schema\Sql\Scripts\TransactionCheck.sql" />
   </ItemGroup>
 
