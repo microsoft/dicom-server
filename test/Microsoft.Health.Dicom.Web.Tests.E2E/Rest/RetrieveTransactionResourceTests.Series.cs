@@ -149,16 +149,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             using DicomWebAsyncEnumerableResponse<DicomFile> response = await _client.RetrieveSeriesAsync(studyInstanceUid, seriesInstanceUid, dicomTransferSyntax: "*");
 
-            // check content body
-            DicomFile[] instancesInStudy = await response.ToArrayAsync();
-
-            Assert.Equal(2, instancesInStudy.Length);
-
-            byte[][] actual = instancesInStudy.Select(item => item.ToByteArray()).ToArray();
-
-            Assert.Contains(dicomFile1.ToByteArray(), actual);
-            Assert.Contains(dicomFile2.ToByteArray(), actual);
-
             // check response multi-part part content-type header
             await using Stream stream = await response.Content.ReadAsStreamAsync(CancellationToken.None)
                 .ConfigureAwait(false);
@@ -175,6 +165,16 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             }
             Assert.Equal($"application/dicom; transfer-syntax={DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID}", partContentTypeHeader[0]);
             Assert.Equal($"application/dicom; transfer-syntax={DicomTransferSyntax.MPEG2.UID.UID}", partContentTypeHeader[1]);
+
+            // check content body
+            DicomFile[] instancesInStudy = await response.ToArrayAsync();
+
+            Assert.Equal(2, instancesInStudy.Length);
+
+            byte[][] actual = instancesInStudy.Select(item => item.ToByteArray()).ToArray();
+
+            Assert.Contains(dicomFile1.ToByteArray(), actual);
+            Assert.Contains(dicomFile2.ToByteArray(), actual);
         }
 
         [Fact]
