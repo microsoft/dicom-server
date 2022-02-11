@@ -783,17 +783,15 @@ BEGIN
     BEGIN TRANSACTION;
     DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
     DECLARE @workitemKey AS BIGINT;
-    DECLARE @watermark AS BIGINT;
     SELECT @workitemKey = WorkitemKey
     FROM   dbo.Workitem
     WHERE  PartitionKey = @partitionKey
            AND WorkitemUid = @workitemUid;
     IF @@ROWCOUNT <> 0
         THROW 50409, 'Workitem already exists', 1;
-    SET @watermark =  NEXT VALUE FOR dbo.WorkitemWatermarkSequence;
     SET @workitemKey =  NEXT VALUE FOR dbo.WorkitemKeySequence;
-    INSERT  INTO dbo.Workitem (WorkitemKey, PartitionKey, WorkitemUid, Status, Watermark, CreatedDate, LastWatermarkUpdatedDate)
-    VALUES                   (@workitemKey, @partitionKey, @workitemUid, @initialStatus, @watermark, @currentDate, @currentDate);
+    INSERT  INTO dbo.Workitem (WorkitemKey, PartitionKey, WorkitemUid, Status, CreatedDate, LastStatusUpdatedDate)
+    VALUES                   (@workitemKey, @partitionKey, @workitemUid, @initialStatus, @currentDate, @currentDate);
     BEGIN TRY
         EXECUTE dbo.IIndexWorkitemInstanceCore @partitionKey, @workitemKey, @stringExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
     END TRY
