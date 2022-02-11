@@ -7,7 +7,7 @@
 
   <!-- Properties used by sql task to generate full script-->
   <PropertyGroup>
-    <LatestSchemaVersion>9</LatestSchemaVersion>
+    <LatestSchemaVersion>10</LatestSchemaVersion>
     <GeneratedFullScriptPath>Features\Schema\Migrations\$(LatestSchemaVersion).sql</GeneratedFullScriptPath>
   </PropertyGroup>
 
@@ -73,6 +73,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Features\Schema\Migrations\10.diff.sql" />
     <None Remove="Features\Schema\Migrations\9.diff.sql" />
     <None Remove="Features\Schema\Sql\Sprocs\GetInstanceWithProperties.sql" />
   </ItemGroup>

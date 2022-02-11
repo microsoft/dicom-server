@@ -16,13 +16,13 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
 {
-    internal class SqlInstanceStoreV9 : SqlInstanceStoreV6
+    internal class SqlInstanceStoreV10 : SqlInstanceStoreV6
     {
-        public SqlInstanceStoreV9(SqlConnectionWrapperFactory sqlConnectionWrapperFactory) : base(sqlConnectionWrapperFactory)
+        public SqlInstanceStoreV10(SqlConnectionWrapperFactory sqlConnectionWrapperFactory) : base(sqlConnectionWrapperFactory)
         {
         }
 
-        public override SchemaVersion Version => SchemaVersion.V9;
+        public override SchemaVersion Version => SchemaVersion.V10;
 
         public override async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierWithPropertiesAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
         {

@@ -26,14 +26,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
     /// <summary>
     /// Sql IndexDataStore version 6.
     /// </summary>
-    internal class SqlIndexDataStoreV9 : SqlIndexDataStoreV6
+    internal class SqlIndexDataStoreV10 : SqlIndexDataStoreV6
     {
-        public SqlIndexDataStoreV9(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+        public SqlIndexDataStoreV10(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
             : base(sqlConnectionWrapperFactory)
         {
         }
 
-        public override SchemaVersion Version => SchemaVersion.V9;
+        public override SchemaVersion Version => SchemaVersion.V10;
 
         public override async Task<long> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
