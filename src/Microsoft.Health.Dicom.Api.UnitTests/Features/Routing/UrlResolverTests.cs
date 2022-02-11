@@ -86,12 +86,13 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Routing
                 });
         }
 
-        [Fact]
-        public void GivenAStudy_WhenRetrieveStudyUriWithPartitionIdAndVersionIsResolved_ThenCorrectUrlShouldBeReturned()
+        [Theory]
+        [InlineData("v1.0-prerelease")]
+        [InlineData("v1")]
+        public void GivenAStudy_WhenRetrieveStudyUriWithPartitionIdAndVersionIsResolved_ThenCorrectUrlShouldBeReturned(string version)
         {
             const string studyInstanceUid = "123.123";
             const string partitionName = "partition1";
-            const string version = "v1.0-prerelease";
             _httpContext.Request.RouteValues.Add(KnownActionParameterNames.PartitionName, partitionName);
             _httpContext.Request.RouteValues.Add(KnownActionParameterNames.Version, version);
 
@@ -124,6 +125,26 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Routing
                     Assert.Equal(studyInstanceUid, routeValues[KnownActionParameterNames.StudyInstanceUid]);
                     Assert.Equal(seriesInstanceUid, routeValues[KnownActionParameterNames.SeriesInstanceUid]);
                     Assert.Equal(sopInstanceUid, routeValues[KnownActionParameterNames.SopInstanceUid]);
+                });
+        }
+
+        [Fact]
+        public void GivenAnInstance_WhenResolveRetrieveWorkitemUriResolved_ThenCorrectUrlShouldBeReturned()
+        {
+            const string workitemInstanceUid = "123.123";
+            const string partitionName = "partition1";
+            const string version = "v1.0-prerelease";
+            _httpContext.Request.RouteValues.Add(KnownActionParameterNames.PartitionName, partitionName);
+            _httpContext.Request.RouteValues.Add(KnownActionParameterNames.Version, version);
+
+            _urlResolver.ResolveRetrieveWorkitemUri(workitemInstanceUid);
+
+            ValidateUrlRouteContext(
+                KnownRouteNames.VersionedPartitionWorkitemInstance,
+                routeValues =>
+                {
+                    Assert.Equal(workitemInstanceUid, routeValues[KnownActionParameterNames.WorkItemInstanceUid]);
+                    Assert.Equal(partitionName, routeValues[KnownActionParameterNames.PartitionName]);
                 });
         }
 

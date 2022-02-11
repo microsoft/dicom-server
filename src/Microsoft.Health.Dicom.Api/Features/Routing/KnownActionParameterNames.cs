@@ -12,6 +12,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         internal const string StudyInstanceUid = "studyInstanceUid";
         internal const string SeriesInstanceUid = "seriesInstanceUid";
         internal const string SopInstanceUid = "sopInstanceUid";
+        internal const string WorkItemInstanceUid = "workitemInstanceUid";
         internal const string Frames = "frames";
         internal const string TagPath = "tagPath";
         internal const string OperationId = "operationId";

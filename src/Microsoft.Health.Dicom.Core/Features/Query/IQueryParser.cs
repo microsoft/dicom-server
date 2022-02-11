@@ -9,8 +9,10 @@ using Microsoft.Health.Dicom.Core.Features.Query.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
-    public interface IQueryParser
+    public interface IQueryParser<TQueryExpression, TQueryParameters>
+         where TQueryExpression : BaseQueryExpression
+         where TQueryParameters : BaseQueryParameters
     {
-        QueryExpression Parse(QueryParameters parameters, IReadOnlyCollection<QueryTag> queryTags);
+        TQueryExpression Parse(TQueryParameters parameters, IReadOnlyCollection<QueryTag> queryTags);
     }
 }

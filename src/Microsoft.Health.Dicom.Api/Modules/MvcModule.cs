@@ -34,7 +34,11 @@ namespace Microsoft.Health.Dicom.Api.Modules
 
             services.Add<PopulateDataPartitionFilterAttribute>()
                 .Scoped()
-                .AsService<PopulateDataPartitionFilterAttribute>();
+                .AsSelf();
+
+            services.Add<UpsRsFeatureFilterAttribute>()
+                .Scoped()
+                .AsSelf();
         }
     }
 }

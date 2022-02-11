@@ -52,26 +52,46 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             var dateTimeWithUtcRows = new List<InsertDateTimeExtendedQueryTagTableTypeV2Row>();
             var personNameRows = new List<InsertPersonNameExtendedQueryTagTableTypeV1Row>();
 
-            foreach (QueryTag queryTag in queryTags.Where(x => x.IsExtendedQueryTag))
+            foreach (QueryTag queryTag in queryTags.Where(x => x.IsExtendedQueryTag || x.WorkitemQueryTagStoreEntry != null))
+            {
+                if (queryTag.VR == DicomVR.SQ)
+                {
+                    var dicomDatasets = instance.GetSequencePathValues(queryTag.WorkitemQueryTagStoreEntry.PathTags);
+                    foreach (var dataset in dicomDatasets)
+                    {
+                        foreach (var dicomItem in dataset)
+                        {
+                            ExtendedQueryTagDataType dataType = ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[dicomItem.Tag.GetDefaultVR().Code];
+                            AddRows(dataset, dataType, new QueryTag(dicomItem.Tag), GetKeyFromQueryTag(queryTag));
+                        }
+                    }
+                }
+                else
+                {
+                    ExtendedQueryTagDataType dataType = ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[queryTag.VR.Code];
+                    AddRows(instance, dataType, queryTag, GetKeyFromQueryTag(queryTag));
+                }
+            }
+
+            void AddRows(DicomDataset instance, ExtendedQueryTagDataType dataType, QueryTag queryTag, int tagKey)
             {
                 // Create row
-                ExtendedQueryTagDataType dataType = ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[queryTag.VR.Code];
                 switch (dataType)
                 {
-                    case ExtendedQueryTagDataType.StringData: AddStringRow(instance, stringRows, queryTag); break;
-                    case ExtendedQueryTagDataType.LongData: AddLongRow(instance, longRows, queryTag); break;
-                    case ExtendedQueryTagDataType.DoubleData: AddDoubleRow(instance, doubleRows, queryTag); break;
+                    case ExtendedQueryTagDataType.StringData: AddStringRow(instance, stringRows, queryTag, tagKey); break;
+                    case ExtendedQueryTagDataType.LongData: AddLongRow(instance, longRows, queryTag, tagKey); break;
+                    case ExtendedQueryTagDataType.DoubleData: AddDoubleRow(instance, doubleRows, queryTag, tagKey); break;
                     case ExtendedQueryTagDataType.DateTimeData:
                         if ((int)schemaVersion < SchemaVersionConstants.SupportDTAndTMInExtendedQueryTagSchemaVersion)
                         {
-                            AddDateTimeRow(instance, dateTimeRows, queryTag);
+                            AddDateTimeRow(instance, dateTimeRows, queryTag, tagKey);
                         }
                         else
                         {
-                            AddDateTimeWithUtcRow(instance, dateTimeWithUtcRows, queryTag);
+                            AddDateTimeWithUtcRow(instance, dateTimeWithUtcRows, queryTag, tagKey);
                         }
                         break;
-                    case ExtendedQueryTagDataType.PersonNameData: AddPersonNameRow(instance, personNameRows, queryTag); break;
+                    case ExtendedQueryTagDataType.PersonNameData: AddPersonNameRow(instance, personNameRows, queryTag, tagKey); break;
                     default:
                         Debug.Fail($"Not able to handle {dataType}");
                         break;
@@ -102,16 +122,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
             return max;
         }
 
-        private static void AddPersonNameRow(DicomDataset instance, List<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNamRows, QueryTag queryTag)
+        private static void AddPersonNameRow(DicomDataset instance, List<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNamRows, QueryTag queryTag, int tagKey)
         {
             string personNameVal = instance.GetSingleValueOrDefault<string>(queryTag.Tag, expectedVR: queryTag.VR);
             if (personNameVal != null)
             {
-                personNamRows.Add(new InsertPersonNameExtendedQueryTagTableTypeV1Row(queryTag.ExtendedQueryTagStoreEntry.Key, personNameVal, (byte)queryTag.Level));
+                personNamRows.Add(new InsertPersonNameExtendedQueryTagTableTypeV1Row(tagKey, personNameVal, (byte)queryTag.Level));
             }
         }
 
-        private static void AddDateTimeRow(DicomDataset instance, List<InsertDateTimeExtendedQueryTagTableTypeV1Row> dateTimeRows, QueryTag queryTag)
+        private static void AddDateTimeRow(DicomDataset instance, List<InsertDateTimeExtendedQueryTagTableTypeV1Row> dateTimeRows, QueryTag queryTag, int tagKey)
         {
             DateTime? dateVal = null;
 
@@ -132,11 +152,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
             if (dateVal.HasValue)
             {
-                dateTimeRows.Add(new InsertDateTimeExtendedQueryTagTableTypeV1Row(queryTag.ExtendedQueryTagStoreEntry.Key, dateVal.Value, (byte)queryTag.Level));
+                dateTimeRows.Add(new InsertDateTimeExtendedQueryTagTableTypeV1Row(tagKey, dateVal.Value, (byte)queryTag.Level));
             }
         }
 
-        private static void AddDateTimeWithUtcRow(DicomDataset instance, List<InsertDateTimeExtendedQueryTagTableTypeV2Row> dateTimeRows, QueryTag queryTag)
+        private static void AddDateTimeWithUtcRow(DicomDataset instance, List<InsertDateTimeExtendedQueryTagTableTypeV2Row> dateTimeRows, QueryTag queryTag, int tagKey)
         {
             DateTime? dateVal = null;
             DateTime? dateUtcVal = null;
@@ -160,20 +180,20 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
             if (dateVal.HasValue)
             {
-                dateTimeRows.Add(new InsertDateTimeExtendedQueryTagTableTypeV2Row(queryTag.ExtendedQueryTagStoreEntry.Key, dateVal.Value, dateUtcVal.HasValue ? dateUtcVal.Value : null, (byte)queryTag.Level));
+                dateTimeRows.Add(new InsertDateTimeExtendedQueryTagTableTypeV2Row(tagKey, dateVal.Value, dateUtcVal.HasValue ? dateUtcVal.Value : null, (byte)queryTag.Level));
             }
         }
 
-        private static void AddDoubleRow(DicomDataset instance, List<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleRows, QueryTag queryTag)
+        private static void AddDoubleRow(DicomDataset instance, List<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleRows, QueryTag queryTag, int tagKey)
         {
             double? doubleVal = instance.GetSingleValueOrDefault<double>(queryTag.Tag, expectedVR: queryTag.VR);
             if (doubleVal.HasValue)
             {
-                doubleRows.Add(new InsertDoubleExtendedQueryTagTableTypeV1Row(queryTag.ExtendedQueryTagStoreEntry.Key, doubleVal.Value, (byte)queryTag.Level));
+                doubleRows.Add(new InsertDoubleExtendedQueryTagTableTypeV1Row(tagKey, doubleVal.Value, (byte)queryTag.Level));
             }
         }
 
-        private static void AddLongRow(DicomDataset instance, List<InsertLongExtendedQueryTagTableTypeV1Row> longRows, QueryTag queryTag)
+        private static void AddLongRow(DicomDataset instance, List<InsertLongExtendedQueryTagTableTypeV1Row> longRows, QueryTag queryTag, int tagKey)
         {
             long? longVal = LongReaders.TryGetValue(
                              queryTag.VR,
@@ -182,17 +202,22 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
             if (longVal.HasValue)
             {
-                longRows.Add(new InsertLongExtendedQueryTagTableTypeV1Row(queryTag.ExtendedQueryTagStoreEntry.Key, longVal.Value, (byte)queryTag.Level));
+                longRows.Add(new InsertLongExtendedQueryTagTableTypeV1Row(tagKey, longVal.Value, (byte)queryTag.Level));
             }
         }
 
-        private static void AddStringRow(DicomDataset instance, List<InsertStringExtendedQueryTagTableTypeV1Row> stringRows, QueryTag queryTag)
+        private static void AddStringRow(DicomDataset instance, List<InsertStringExtendedQueryTagTableTypeV1Row> stringRows, QueryTag queryTag, int tagKey)
         {
             string stringVal = instance.GetSingleValueOrDefault<string>(queryTag.Tag, expectedVR: queryTag.VR);
             if (stringVal != null)
             {
-                stringRows.Add(new InsertStringExtendedQueryTagTableTypeV1Row(queryTag.ExtendedQueryTagStoreEntry.Key, stringVal, (byte)queryTag.Level));
+                stringRows.Add(new InsertStringExtendedQueryTagTableTypeV1Row(tagKey, stringVal, (byte)queryTag.Level));
             }
+        }
+
+        private static int GetKeyFromQueryTag(QueryTag queryTag)
+        {
+            return queryTag.WorkitemQueryTagStoreEntry != null ? queryTag.WorkitemQueryTagStoreEntry.Key : queryTag.ExtendedQueryTagStoreEntry.Key;
         }
     }
 }

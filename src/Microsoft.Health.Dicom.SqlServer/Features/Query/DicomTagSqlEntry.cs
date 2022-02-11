@@ -52,13 +52,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
                 { DicomVR.PN, new DicomTagSqlEntry(SqlTableType.ExtendedQueryTagPersonNameTable, VLatest.ExtendedQueryTagPersonName.TagValue, VLatest.ExtendedQueryTagPersonNameTable.TagValueWords, VLatest.ExtendedQueryTagPersonName.TagKey, true) },
         };
 
-        private DicomTagSqlEntry(SqlTableType sqlTableType, Column sqlColumn, string fullTextIndexColumnName = null, Column sqlKeyColumn = null, bool isExtendedQueryTag = false)
+        private DicomTagSqlEntry(SqlTableType sqlTableType, Column sqlColumn, string fullTextIndexColumnName = null, Column sqlKeyColumn = null, bool isIndexedQueryTag = false)
         {
             SqlTableType = sqlTableType;
             SqlColumn = sqlColumn;
             FullTextIndexColumnName = fullTextIndexColumnName;
             SqlKeyColumn = sqlKeyColumn;
-            IsExtendedQueryTag = isExtendedQueryTag;
+            IsIndexedQueryTag = isIndexedQueryTag;
         }
 
         public SqlTableType SqlTableType { get; }
@@ -69,11 +69,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
 
         public Column SqlKeyColumn { get; }
 
-        public bool IsExtendedQueryTag { get; }
+        public bool IsIndexedQueryTag { get; }
 
-        public static DicomTagSqlEntry GetDicomTagSqlEntry(QueryTag queryTag)
+        public static DicomTagSqlEntry GetDicomTagSqlEntry(QueryTag queryTag, bool isLongSchemaTable)
         {
-            return queryTag.IsExtendedQueryTag ? ExtendedQueryTagVRToSqlMapping[queryTag.VR] : CoreQueryTagToSqlMapping[queryTag.Tag];
+            return isLongSchemaTable ? ExtendedQueryTagVRToSqlMapping[queryTag.VR] : CoreQueryTagToSqlMapping[queryTag.Tag];
         }
     }
 }

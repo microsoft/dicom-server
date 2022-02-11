@@ -116,8 +116,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [MemberData(nameof(SchemaDiffVersions))]
         public async Task GivenASchemaVersion_WhenApplyingDiffTwice_ShouldSucceed(int schemaVersion)
         {
-            SqlDataStoreTestsFixture snapshotFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("SNAPSHOT"));
-            snapshotFixture.SchemaInformation = new SchemaInformation(SchemaVersionConstants.Min, schemaVersion - 1);
+            var schemaInformation = new SchemaInformation(SchemaVersionConstants.Min, schemaVersion - 1);
+            SqlDataStoreTestsFixture snapshotFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("SNAPSHOT"), schemaInformation);
 
             await snapshotFixture.InitializeAsync(forceIncrementalSchemaUpgrade: false);
             await snapshotFixture.SchemaUpgradeRunner.ApplySchemaAsync(schemaVersion, applyFullSchemaSnapshot: false, CancellationToken.None);
@@ -134,8 +134,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         [MemberData(nameof(SchemaSnapshotVersions))]
         public async Task GivenASchemaVersion_WhenApplyingSnapshotTwice_ShouldSucceed(int schemaVersion)
         {
-            SqlDataStoreTestsFixture snapshotFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("SNAPSHOT"));
-            snapshotFixture.SchemaInformation = new SchemaInformation(SchemaVersionConstants.Min, schemaVersion);
+            var schemaInformation = new SchemaInformation(SchemaVersionConstants.Min, schemaVersion);
+            SqlDataStoreTestsFixture snapshotFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("SNAPSHOT"), schemaInformation);
 
             await snapshotFixture.InitializeAsync(forceIncrementalSchemaUpgrade: false);
             await snapshotFixture.SchemaUpgradeRunner.ApplySchemaAsync(schemaVersion, applyFullSchemaSnapshot: true, CancellationToken.None);

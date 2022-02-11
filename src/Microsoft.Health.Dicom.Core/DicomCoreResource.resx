@@ -479,4 +479,42 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>Expected value '{0}' to be one of the following values: [{1}]</value>
     <comment>{0} Actual value. {1} Comma-separated list of expected values.</comment>
   </data>
+  <data name="WorkitemInstanceAlreadyExists" xml:space="preserve">
+    <value>The workitem instance with UID: '{0}' already exists. Try creating using a different UID.</value>
+    <comment>{0} Workitem UID.</comment>
+  </data>
+  <data name="NestedSequencesNotSupported" xml:space="preserve">
+    <value>Nested Dicom sequence tags are currently not supported.</value>
+  </data>
+  <data name="UpsRsFeatureDisabled" xml:space="preserve">
+    <value>UPS-RS feature is disabled.</value>
+  </data>
+  <data name="InvalidProcedureStepState" xml:space="preserve">
+    <value>'{0}' is not a valid procedure step state for the specified WorkitemInstanceUID '{1}'. {2}</value>
+    <comment>{0} ProcedureStepState. {1} WorkitemInstanceUID. {2} Error code</comment>
+  </data>
+  <data name="MismatchSopInstanceWorkitemInstanceUid" xml:space="preserve">
+    <value>SOPInstanceUID '{0}' in the payload does not match the specified WorkitemInstanceUID '{1}'.</value>
+    <comment>{0} SOPInstanceUID. {1} WorkitemInstanceUID.</comment>
+  </data>
+  <data name="MismatchAffectedSopInstanceWorkitemInstanceUid" xml:space="preserve">
+    <value>AffectedSOPInstanceUID '{0}' in the payload does not match the specified WorkitemInstanceUID '{1}'.</value>
+    <comment>{0} AffectedSOPInstanceUID. {1} WorkitemInstanceUID.</comment>
+  </data>
+  <data name="MissingWorkitemInstanceUid" xml:space="preserve">
+    <value>WorkitemInstanceUID is missing.</value>
+  </data>
+
+  <data name="DuplicateTagValueNotSupported" xml:space="preserve">
+    <value>Duplicate value '{0}' for tag '{1}' not supported in a sequence.</value>
+    <comment>{0} String Value. {1} DicomTag.</comment>
+  </data>
+  <data name="InvalidTransactionUID" xml:space="preserve">
+    <value>'{0}' is not a valid transactionUID for the specified WorkitemInstanceUID '{1}'.</value>
+    <comment>{0} TransactionUID. {1} WorkitemInstanceUID.</comment>
+  </data>
+  <data name="UnsupportedWorkitemSearchParameter" xml:space="preserve">
+    <value>Invalid workitem query. AttributeId {0} is not queryable.  If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters and attributes.</value>
+    <comment>{0} AttributeId name.</comment>
+  </data>
 </root>

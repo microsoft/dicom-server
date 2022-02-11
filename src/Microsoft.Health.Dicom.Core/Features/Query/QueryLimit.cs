@@ -43,6 +43,47 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             DicomTag.SOPInstanceUID,
         };
 
+        private static readonly HashSet<DicomTag> WorkitemQueryParseTags = new HashSet<DicomTag>()
+        {
+            DicomTag.RequestedProcedureID,
+            DicomTag.CodeValue
+        };
+
+        public static readonly HashSet<DicomTag> RequiredWorkitemSingleTags = new HashSet<DicomTag>
+        {
+            DicomTag.WorklistLabel,
+            DicomTag.ExpectedCompletionDateTime,
+            DicomTag.InputReadinessState,
+            DicomTag.PatientName,
+            DicomTag.PatientID,
+            DicomTag.PatientBirthDate,
+            DicomTag.PatientSex,
+            DicomTag.AdmissionID,
+            DicomTag.AccessionNumber,
+            DicomTag.RequestedProcedureID,
+            DicomTag.RequestingService,
+            DicomTag.ProcedureStepLabel,
+            DicomTag.ScheduledProcedureStepPriority,
+            DicomTag.ScheduledProcedureStepStartDateTime
+        };
+
+        public static readonly HashSet<DicomTag> RequiredWorkitemSequenceTags = new HashSet<DicomTag>
+        {
+            DicomTag.IssuerOfAdmissionIDSequence,
+            DicomTag.ReferencedRequestSequence,
+            DicomTag.IssuerOfAccessionNumberSequence,
+            DicomTag.ScheduledWorkitemCodeSequence,
+            DicomTag.ScheduledStationNameCodeSequence,
+            DicomTag.ScheduledStationClassCodeSequence,
+            DicomTag.ScheduledStationGeographicLocationCodeSequence,
+            DicomTag.ScheduledHumanPerformersSequence,
+            DicomTag.HumanPerformerCodeSequence,
+            DicomTag.ReplacedProcedureStepSequence
+        };
+
+        public static readonly HashSet<DicomTag> AllRequiredWorkitemTags = new HashSet<DicomTag>(
+            RequiredWorkitemSingleTags.Union(RequiredWorkitemSequenceTags).Union(new DicomTag[] { DicomTag.ProcedureStepState }));
+
         public static readonly HashSet<DicomTag> CoreTags = new HashSet<DicomTag>(
             CoreStudyTags.Union(CoreSeriesTags).Union(CoreInstanceTags));
 
@@ -81,6 +122,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 return QueryTagLevel.Series;
             }
             if (CoreInstanceTags.Contains(coreTag))
+            {
+                return QueryTagLevel.Instance;
+            }
+            if (WorkitemQueryParseTags.Contains(coreTag))
             {
                 return QueryTagLevel.Instance;
             }

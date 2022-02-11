@@ -10,7 +10,7 @@ namespace Microsoft.Health.Dicom.Client.Models
     /// <summary>
     /// Represents a reference to an existing long-running oepration.
     /// </summary>
-    public class OperationReference
+    public class OperationReference : IResourceReference<OperationStatus>
     {
         /// <summary>
         /// Gets or sets the operation ID.

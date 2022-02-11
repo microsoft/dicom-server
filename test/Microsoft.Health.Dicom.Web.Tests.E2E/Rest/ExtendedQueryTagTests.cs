@@ -148,6 +148,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(errors[0].ErrorMessage, (await _tagManager.GetTagErrorsAsync(tag.GetPath(), 1, 0)).Single().ErrorMessage);
             Assert.Equal(errors[1].ErrorMessage, (await _tagManager.GetTagErrorsAsync(tag.GetPath(), 1, 1)).Single().ErrorMessage);
 
+            // Check that the reference API returns the same values
+            var sameErrors = await _client.ResolveReferenceAsync(actual.Errors);
+            Assert.Equal(errors.Select(x => x.ErrorMessage), (await sameErrors.GetValueAsync()).Select(x => x.ErrorMessage));
+
             var exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.QueryInstancesAsync($"{tag.GetPath()}={tagValue}"));
             Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
 

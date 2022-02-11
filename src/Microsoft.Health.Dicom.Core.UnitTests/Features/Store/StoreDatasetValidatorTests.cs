@@ -69,13 +69,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
         [Theory]
         [MemberData(nameof(GetNonExplicitVRTransferSyntax))]
-        public async Task GivenAValidDicomDatasetWithImplicitVR_WhenValidated_ThenItShouldThrowNotAcceptableException(DicomTransferSyntax transferSyntax)
+        public async Task GivenAValidDicomDatasetWithImplicitVR_WhenValidated_ReturnsFalse(DicomTransferSyntax transferSyntax)
         {
             var dicomDataset = Samples
                 .CreateRandomInstanceDataset(dicomTransferSyntax: transferSyntax)
                 .NotValidated();
 
-            await Assert.ThrowsAsync<NotAcceptableException>(() => _dicomDatasetValidator.ValidateAsync(dicomDataset, requiredStudyInstanceUid: null));
+            var actual = await _dicomDatasetValidator.ValidateAsync(dicomDataset, requiredStudyInstanceUid: null);
+
+            Assert.False(actual);
         }
 
         [Fact]

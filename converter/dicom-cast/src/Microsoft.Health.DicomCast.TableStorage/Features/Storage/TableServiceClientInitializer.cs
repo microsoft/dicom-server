@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Azure.Data.Tables;
 using EnsureThat;
@@ -22,14 +23,16 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task InitializeDataStoreAsync(TableServiceClient tableServiceClient)
+        public async Task InitializeDataStoreAsync(TableServiceClient tableServiceClient, Dictionary<string, string> tableList)
         {
             EnsureArg.IsNotNull(tableServiceClient, nameof(tableServiceClient));
+            EnsureArg.IsNotNull(tableList, nameof(tableList));
 
             try
             {
                 _logger.LogInformation("Initializing Table Storage and tables");
-                foreach (string tableName in Constants.AllTables)
+
+                foreach (string tableName in tableList.Values)
                 {
                     if (await tableServiceClient.CreateTableIfNotExistsAsync(tableName) != null)
                     {

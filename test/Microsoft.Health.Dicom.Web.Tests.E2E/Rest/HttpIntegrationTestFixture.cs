@@ -13,6 +13,7 @@ using Microsoft.Health.Client;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.IO;
+using NSubstitute;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 {
@@ -65,7 +66,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                             testUser.UserId,
                             testUser.Password);
 
-                        credentialProvider = new OAuth2UserPasswordCredentialProvider(Options.Create(credentialConfiguration), new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress });
+                        IOptionsMonitor<OAuth2UserPasswordCredentialConfiguration> optionsMonitor = CreateOptionsMonitor(credentialConfiguration);
+                        credentialProvider = new OAuth2UserPasswordCredentialProvider(optionsMonitor, new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress });
                     }
                     else
                     {
@@ -76,7 +78,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                             clientApplication.ClientId,
                             clientApplication.ClientSecret);
 
-                        credentialProvider = new OAuth2ClientCredentialProvider(Options.Create(credentialConfiguration), new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress });
+                        IOptionsMonitor<OAuth2ClientCredentialConfiguration> optionsMonitor = CreateOptionsMonitor(credentialConfiguration);
+                        credentialProvider = new OAuth2ClientCredentialProvider(optionsMonitor, new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress });
                     }
 
                     var authHandler = new AuthenticationHttpMessageHandler(credentialProvider)
@@ -91,7 +94,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             var httpClient = new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress };
 
-            var dicomWebClient = new DicomWebClient(httpClient, DicomApiVersions.V1Prerelease)
+            var dicomWebClient = new DicomWebClient(httpClient, DicomApiVersions.V1)
             {
                 GetMemoryStream = () => RecyclableMemoryStreamManager.GetStream(),
             };
@@ -110,6 +113,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             {
                 TestDicomWebServer.Dispose();
             }
+        }
+
+        private static IOptionsMonitor<T> CreateOptionsMonitor<T>(T configuration)
+        {
+            var optionsMonitor = Substitute.For<IOptionsMonitor<T>>();
+            optionsMonitor.CurrentValue.Returns(configuration);
+            optionsMonitor.Get(default).ReturnsForAnyArgs(configuration);
+
+            return optionsMonitor;
         }
     }
 }

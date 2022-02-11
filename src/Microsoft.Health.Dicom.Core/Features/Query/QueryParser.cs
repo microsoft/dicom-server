@@ -16,68 +16,16 @@ using Microsoft.Health.Dicom.Core.Features.Query.Model;
 namespace Microsoft.Health.Dicom.Core.Features.Query
 {
     /// <summary>
-    /// Main parser class that implements the flow and registration of the parsers
+    /// Main parser class that converts uri query parameters to sql ready query expresions for QIDO-RS request
     /// </summary>
-    public partial class QueryParser : IQueryParser
+    public class QueryParser : BaseQueryParser<QueryExpression, QueryParameters>
     {
         private readonly IDicomTagParser _dicomTagPathParser;
-
-        private const string IncludeFieldValueAll = "all";
-
-        private readonly static Dictionary<DicomVR, Func<QueryTag, string, QueryFilterCondition>> ValueParsers = new Dictionary<DicomVR, Func<QueryTag, string, QueryFilterCondition>>
-        {
-            { DicomVR.DA, ParseDateOrTimeTagValue },
-            { DicomVR.DT, ParseDateOrTimeTagValue },
-            { DicomVR.TM, ParseTimeTagValue },
-
-            { DicomVR.UI, ParseStringTagValue },
-            { DicomVR.LO, ParseStringTagValue },
-            { DicomVR.SH, ParseStringTagValue },
-            { DicomVR.PN, ParseStringTagValue },
-            { DicomVR.CS, ParseStringTagValue },
-
-            { DicomVR.AE, ParseStringTagValue },
-            { DicomVR.AS, ParseStringTagValue },
-            { DicomVR.DS, ParseStringTagValue },
-            { DicomVR.IS, ParseStringTagValue },
-
-            { DicomVR.SL, ParseLongTagValue },
-            { DicomVR.SS, ParseLongTagValue },
-            { DicomVR.UL, ParseLongTagValue },
-            { DicomVR.US, ParseLongTagValue },
-
-            { DicomVR.FL, ParseDoubleTagValue },
-            { DicomVR.FD, ParseDoubleTagValue },
-        };
-
-        public const string DateTagValueFormat = "yyyyMMdd";
-
-        public static readonly string[] DateTimeTagValueFormats =
-        {
-            "yyyyMMddHHmmss.FFFFFF",
-            "yyyyMMddHHmmss",
-            "yyyyMMddHHmm",
-            "yyyyMMddHH",
-            "yyyyMMdd",
-            "yyyyMM",
-            "yyyy"
-        };
-
-        public static readonly string[] DateTimeTagValueWithOffsetFormats =
-        {
-            "yyyyMMddHHmmss.FFFFFFzzz",
-            "yyyyMMddHHmmsszzz",
-            "yyyyMMddHHmmzzz",
-            "yyyyMMddHHzzz",
-            "yyyyMMddzzz",
-            "yyyyMMzzz",
-            "yyyyzzz"
-        };
 
         public QueryParser(IDicomTagParser dicomTagPathParser)
             => _dicomTagPathParser = EnsureArg.IsNotNull(dicomTagPathParser, nameof(dicomTagPathParser));
 
-        public QueryExpression Parse(QueryParameters parameters, IReadOnlyCollection<QueryTag> queryTags)
+        public override QueryExpression Parse(QueryParameters parameters, IReadOnlyCollection<QueryTag> queryTags)
         {
             EnsureArg.IsNotNull(parameters, nameof(parameters));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
@@ -166,7 +114,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 return false;
             }
 
-            // QueryTag could be either core or extended query tag.
+            // QueryTag could be either core or extended query tag or workitem query tag.
             QueryTag queryTag = GetMatchingQueryTag(dicomTag, queryParameter.Key, queryTags);
 
             // check if tag is disabled
@@ -197,7 +145,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
         private bool TryParseDicomAttributeId(string attributeId, out DicomTag dicomTag)
         {
-            if (_dicomTagPathParser.TryParse(attributeId, out DicomTag[] result, supportMultiple: false))
+            if (_dicomTagPathParser.TryParse(attributeId, out DicomTag[] result))
             {
                 dicomTag = result[0];
                 return true;

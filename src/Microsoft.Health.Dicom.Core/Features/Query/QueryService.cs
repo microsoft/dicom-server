@@ -23,14 +23,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 {
     public class QueryService : IQueryService
     {
-        private readonly IQueryParser _queryParser;
+        private readonly IQueryParser<QueryExpression, QueryParameters> _queryParser;
         private readonly IQueryStore _queryStore;
         private readonly IMetadataStore _metadataStore;
         private readonly IQueryTagService _queryTagService;
         private readonly IDicomRequestContextAccessor _contextAccessor;
 
         public QueryService(
-            IQueryParser queryParser,
+            IQueryParser<QueryExpression, QueryParameters> queryParser,
             IQueryStore queryStore,
             IMetadataStore metadataStore,
             IQueryTagService queryTagService,

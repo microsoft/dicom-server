@@ -11,6 +11,7 @@ using Microsoft.Health.Dicom.Blob.Features.Health;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
 
@@ -38,7 +39,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddStorageDataStore<BlobStoreConfigurationSection, IFileStore, BlobFileStore, LoggingFileStore>(
                     configuration, "DcmHealthCheck")
                 .AddStorageDataStore<MetadataStoreConfigurationSection, IMetadataStore, BlobMetadataStore, LoggingMetadataStore>(
-                    configuration, "MetadataHealthCheck");
+                    configuration, "MetadataHealthCheck")
+                .AddStorageDataStore<WorkitemStoreConfigurationSection, IWorkitemStore, BlobWorkitemStore, LoggingWorkitemStore>(
+                    configuration, "WorkitemHealthCheck");
 
             return serverBuilder;
         }

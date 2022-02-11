@@ -25,7 +25,7 @@ namespace Microsoft.Health.DicomCast.TableStorage
 
         public const string SyncStateRowKey = "SyncStateRowKey";
 
-        // List of all the tables that need to be initialized
+        // List of all the table name suffixes that need to be initialized
         public static readonly List<string> AllTables = new List<string> { SyncStateTableName, FhirExceptionTableName, DicomExceptionTableName, TransientFailureTableName, DicomValidationTableName, TransientRetryTableName };
     }
 }

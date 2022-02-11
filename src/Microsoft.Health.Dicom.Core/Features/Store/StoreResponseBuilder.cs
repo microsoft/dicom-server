@@ -60,7 +60,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         }
 
         /// <inheritdoc />
-        public void AddSuccess(DicomDataset dicomDataset)
+        public void AddSuccess(DicomDataset dicomDataset, ushort? warningReasonCode = null)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
@@ -75,12 +75,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
             var dicomInstance = dicomDataset.ToInstanceIdentifier();
 
-            var referencedSop = new DicomDataset()
+            var referencedSop = new DicomDataset
             {
                 { DicomTag.ReferencedSOPInstanceUID, dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID) },
                 { DicomTag.RetrieveURL, _urlResolver.ResolveRetrieveInstanceUri(dicomInstance).ToString() },
                 { DicomTag.ReferencedSOPClassUID, dicomDataset.GetSingleValueOrDefault<string>(DicomTag.SOPClassUID) },
             };
+
+            if (warningReasonCode.HasValue)
+            {
+                referencedSop.Add(DicomTag.WarningReason, warningReasonCode.Value);
+            }
 
             referencedSopSequence.Items.Add(referencedSop);
         }

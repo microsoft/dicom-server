@@ -44,7 +44,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags.Where(tag => tag.IsExtendedQueryTag), Version);
-                VLatest.AddInstanceV2TableValuedParameters parameters = new VLatest.AddInstanceV2TableValuedParameters(
+                V8.AddInstanceV2TableValuedParameters parameters = new V8.AddInstanceV2TableValuedParameters(
                     rows.StringRows,
                     rows.LongRows,
                     rows.DoubleRows,
@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     rows.PersonNameRows
                 );
 
-                VLatest.AddInstanceV2.PopulateCommand(
+                V8.AddInstanceV2.PopulateCommand(
                     sqlCommandWrapper,
                     instance.GetString(DicomTag.StudyInstanceUID),
                     instance.GetString(DicomTag.SeriesInstanceUID),
@@ -100,14 +100,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags, Version);
-                VLatest.IndexInstanceV2TableValuedParameters parameters = new VLatest.IndexInstanceV2TableValuedParameters(
+                V8.IndexInstanceV2TableValuedParameters parameters = new V8.IndexInstanceV2TableValuedParameters(
                     rows.StringRows,
                     rows.LongRows,
                     rows.DoubleRows,
                     rows.DateTimeWithUtcRows,
                     rows.PersonNameRows);
 
-                VLatest.IndexInstanceV2.PopulateCommand(sqlCommandWrapper, watermark, parameters);
+                V8.IndexInstanceV2.PopulateCommand(sqlCommandWrapper, watermark, parameters);
 
                 try
                 {
