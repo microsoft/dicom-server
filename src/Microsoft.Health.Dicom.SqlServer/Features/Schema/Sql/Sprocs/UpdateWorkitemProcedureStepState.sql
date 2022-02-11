@@ -68,7 +68,7 @@ BEGIN
     UPDATE dbo.Workitem
     SET
         Watermark = @proposedWatermark,
-        LastWatermarkUpdatedDate = @currentDate
+        LastStatusUpdatedDate = @currentDate
     WHERE
         WorkitemKey = @workitemKey
         AND Watermark = @watermark

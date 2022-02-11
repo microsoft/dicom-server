@@ -7,10 +7,10 @@ CREATE TABLE dbo.Workitem (
     WorkitemUid                 VARCHAR(64)                       NOT NULL,
     TransactionUid              VARCHAR(64)                       NULL,
     Status                      TINYINT                           NOT NULL,
-    Watermark                   BIGINT                            NOT NULL DEFAULT 0,
+    Watermark                   BIGINT                            DEFAULT 0 NOT NULL,
     --audit columns
     CreatedDate                 DATETIME2(7)                      NOT NULL,
-    LastWatermarkUpdatedDate    DATETIME2(7)                      NOT NULL,
+    LastStatusUpdatedDate       DATETIME2(7)                      NOT NULL,
 ) WITH (DATA_COMPRESSION = PAGE)
 
 -- Ordering workitems by partition and then by WorkitemKey for partition-specific retrieval

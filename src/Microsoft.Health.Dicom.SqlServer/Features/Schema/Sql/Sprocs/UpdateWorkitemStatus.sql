@@ -31,7 +31,7 @@ BEGIN
     UPDATE dbo.Workitem
     SET
         [Status] = @status,
-        LastWatermarkUpdatedDate = @currentDate
+        LastStatusUpdatedDate = @currentDate
     WHERE
         WorkitemKey = @workitemKey
 

@@ -70,8 +70,9 @@
     <TSqlScript Include="Features\Schema\Sql\Tables\*.sql" />
     <TSqlScript Include="Features\Schema\Sql\Types\*.sql" />
     <None Remove="Features\Schema\Migrations\10.diff.sql" />
+    <None Remove="Features\Schema\Sql\Sprocs\AddWorkitemV10.sql" />
+    <None Remove="Features\Schema\Sql\Sprocs\GetCurrentAndNextWorkitemWatermark.sql" />
     <None Remove="Features\Schema\Sql\Sprocs\GetWorkitemMetadata.sql" />
-    <None Remove="Features\Schema\Sql\Sprocs\GetWorkitemWatermark.sql" />
     <None Remove="Features\Schema\Sql\Sprocs\UpdateWorkitemProcedureStepState.sql" />
     <TSqlScript Include="Features\Schema\Sql\Scripts\WorkitemQueryTag.sql" />
   </ItemGroup>

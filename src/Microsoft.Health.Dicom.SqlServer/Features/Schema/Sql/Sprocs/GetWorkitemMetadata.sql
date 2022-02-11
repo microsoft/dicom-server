@@ -34,6 +34,19 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
+    DECLARE @workitemKey BIGINT
+
+    SELECT
+        @workitemKey = WorkitemKey
+    FROM
+        dbo.Workitem
+    WHERE
+        PartitionKey = @partitionKey
+        AND WorkitemUid = @workitemUid        
+
+    IF @workitemKey IS NULL
+        THROW 50409, 'Workitem does not exist', 1;
+
     SELECT
 	    wi.WorkitemUid,
 	    wi.WorkitemKey,
@@ -52,7 +65,6 @@ BEGIN
 			ON wi.WorkitemKey = eqt.SopInstanceKey1
 			AND wi.PartitionKey = eqt.PartitionKey
     WHERE
-	    wi.PartitionKey = @partitionKey
-	    AND wi.WorkitemUid = @workitemUid
+	    wi.WorkitemKey = @workitemKey
 
 END

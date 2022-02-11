@@ -3,7 +3,7 @@
 **************************************************************/
 --
 -- STORED PROCEDURE
---     AddWorkitem
+--     AddWorkitemV10
 --
 -- DESCRIPTION
 --     Adds a UPS-RS workitem.
@@ -22,9 +22,9 @@
 --     @initialStatus
 --         * New status of the workitem status, Either 0(None) or 1(ReadWrite)
 -- RETURN VALUE
---     The WorkitemKey
+--     The WorkitemKey and Watermark
 ------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.AddWorkitem
+CREATE OR ALTER PROCEDURE dbo.AddWorkitemV10
     @partitionKey                   INT,
     @workitemUid                    VARCHAR(64),
     @stringExtendedQueryTags        dbo.InsertStringExtendedQueryTagTableType_1 READONLY,
@@ -54,7 +54,7 @@ BEGIN
     SET @watermark = NEXT VALUE FOR dbo.WorkitemWatermarkSequence
     SET @workitemKey = NEXT VALUE FOR dbo.WorkitemKeySequence
     INSERT INTO dbo.Workitem
-        (WorkitemKey, PartitionKey, WorkitemUid, Status, Watermark, CreatedDate, LastWatermarkUpdatedDate)
+        (WorkitemKey, PartitionKey, WorkitemUid, Status, Watermark, CreatedDate, LastStatusUpdatedDate)
     VALUES
         (@workitemKey, @partitionKey, @workitemUid, @initialStatus, @watermark, @currentDate, @currentDate)
 
@@ -74,7 +74,9 @@ BEGIN
 
     END CATCH
 
-    SELECT @workitemKey
+    SELECT
+        @workitemKey AS WorkitemKey,
+        @watermark AS Watermark
 
     COMMIT TRANSACTION
 END

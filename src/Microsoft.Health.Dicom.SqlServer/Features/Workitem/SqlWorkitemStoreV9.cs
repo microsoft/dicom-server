@@ -13,7 +13,6 @@ using FellowOakDicom;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
@@ -31,12 +30,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 {
     internal class SqlWorkitemStoreV9 : ISqlWorkitemStore
     {
-        private static readonly Health.SqlServer.Features.Schema.Model.NVarCharColumn ProcedureStepStateColumn =
-            new Health.SqlServer.Features.Schema.Model.NVarCharColumn("ProcedureStepState", 64);
-
-        private static readonly Health.SqlServer.Features.Schema.Model.BigIntColumn ProposedWatermarkColumn =
-            new Health.SqlServer.Features.Schema.Model.BigIntColumn("ProposedWatermark");
-
         protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory;
         protected readonly ILogger<ISqlWorkitemStore> Logger;
 
@@ -48,7 +41,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
         public virtual SchemaVersion Version => SchemaVersion.V9;
 
-        public virtual async Task<(long? workitemKey, long? watermark)> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+        public virtual async Task<long> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
@@ -71,19 +64,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
                 try
                 {
-                    using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
-                    {
-                        while (await reader.ReadAsync(cancellationToken))
-                        {
-                            (long workitemKey, long watermark) = reader.ReadRow(
-                                VLatest.Workitem.WorkitemKey,
-                                VLatest.Workitem.Watermark);
-
-                            return (workitemKey, watermark);
-                        }
-                    }
-
-                    return (null, null);
+                    return (long)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
                 }
                 catch (SqlException ex)
                 {
@@ -148,86 +129,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
             return results;
         }
-        public async Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(
-            int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
-        {
-            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
-            {
-                var procedureStepStateTagPath = DicomTag.ProcedureStepState.GetPath();
-
-                VLatest.GetWorkitemMetadata
-                    .PopulateCommand(sqlCommandWrapper, partitionKey, workitemUid, procedureStepStateTagPath);
-
-                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
-                {
-                    while (await reader.ReadAsync(cancellationToken))
-                    {
-                        (
-                            string wiUid,
-                            long workitemKey,
-                            int pkey,
-                            byte status,
-                            string transactionUid,
-                            long watermark,
-                            string procedureStepState
-                        ) = reader.ReadRow(
-                                VLatest.Workitem.WorkitemUid,
-                                VLatest.Workitem.WorkitemKey,
-                                VLatest.Workitem.PartitionKey,
-                                VLatest.Workitem.Status,
-                                VLatest.Workitem.TransactionUid,
-                                VLatest.Workitem.Watermark,
-                                ProcedureStepStateColumn);
-
-                        return new WorkitemMetadataStoreEntry(wiUid, workitemKey, watermark, pkey)
-                        {
-                            Status = (WorkitemStoreStatus)status,
-                            TransactionUid = transactionUid,
-                            ProcedureStepState = ProcedureStepStateExtensions.GetProcedureStepState(procedureStepState)
-                        };
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        public async Task<WorkitemWatermarkEntry> GetWorkitemWatermarkAsync(
-            int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
-        {
-            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
-            {
-                var procedureStepStateTagPath = DicomTag.ProcedureStepState.GetPath();
-
-                VLatest.GetWorkitemWatermark
-                    .PopulateCommand(sqlCommandWrapper, partitionKey, workitemUid);
-
-                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
-                {
-                    while (await reader.ReadAsync(cancellationToken))
-                    {
-                        (
-                            _,
-                            long watermark,
-                            long proposedWatermark
-                        ) = reader.ReadRow(
-                                VLatest.Workitem.WorkitemKey,
-                                VLatest.Workitem.Watermark,
-                                ProposedWatermarkColumn);
-
-                        return new WorkitemWatermarkEntry
-                        {
-                            Value = watermark,
-                            ProposedValue = proposedWatermark
-                        };
-                    }
-                }
-            }
-
-            return null;
-        }
 
         public async Task UpdateWorkitemStatusAsync(long workitemKey, WorkitemStoreStatus status, CancellationToken cancellationToken = default)
         {
@@ -235,34 +136,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.UpdateWorkitemStatus.PopulateCommand(sqlCommandWrapper, workitemKey, (byte)status);
-
-                try
-                {
-                    await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
-                }
-                catch (SqlException ex)
-                {
-                    throw new DataStoreException(ex);
-                }
-            }
-        }
-
-        public async Task UpdateWorkitemProcedureStepStateAsync(
-            WorkitemMetadataStoreEntry workitemMetadata,
-            long proposedWatermark,
-            string procedureStepState,
-            CancellationToken cancellationToken = default)
-        {
-            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
-            {
-                VLatest.UpdateWorkitemProcedureStepState.PopulateCommand(
-                    sqlCommandWrapper,
-                    workitemMetadata.WorkitemKey,
-                    DicomTag.ProcedureStepState.GetPath(),
-                    procedureStepState,
-                    workitemMetadata.Watermark,
-                    proposedWatermark);
 
                 try
                 {
@@ -309,6 +182,26 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             }
 
             return new WorkitemQueryResult(results);
+        }
+
+        public virtual Task<(long WorkitemKey, long Watermark)?> BeginAddWorkitemWithWatermarkAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+        {
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+        }
+
+        public virtual Task UpdateWorkitemProcedureStepStateAsync(WorkitemMetadataStoreEntry workitemMetadata, long proposedWatermark, string procedureStepState, CancellationToken cancellationToken = default)
+        {
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+        }
+
+        public virtual Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
+        {
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+        }
+
+        public virtual Task<(long CurrentWatermark, long NextWatermark)?> GetCurrentAndNextWorkitemWatermarkAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
+        {
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
     }
 }

@@ -25,8 +25,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <param name="dataset">The DICOM dataset to index.</param>
         /// <param name="queryTags">Queryable workitem tags</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A task that gets the workitem key and workitem watermark.</returns>
-        Task<(long? workitemKey, long? watermark)> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
+        /// <returns>A task that gets the workitem watermark.</returns>
+        Task<long> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Asynchronously begin the creation of a workitem instance.
+        /// </summary>
+        /// <param name="partitionKey">The partition key.</param>
+        /// <param name="dataset">The DICOM dataset to index.</param>
+        /// <param name="queryTags">Queryable workitem tags</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task that adds the workitem and gets the workitemkey and watermark.</returns>
+        Task<(long WorkitemKey, long Watermark)?> BeginAddWorkitemWithWatermarkAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously completes the creation of a workitem instance.
@@ -81,13 +91,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Asynchronously gets workitem watermark and proposed watermark
+        /// Asynchronously gets current and next workitem watermark
         /// </summary>
         /// <param name="partitionKey">The partition key.</param>
         /// <param name="workitemUid">Workitem instance UID</param>
         /// <param name="cancellationToken">The cancellation token</param>
-        /// <returns>Returns the Workitem Watermark and Proposed Watermark from the store.</returns>
-        Task<WorkitemWatermarkEntry> GetWorkitemWatermarkAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default);
+        /// <returns>Returns the Current and Next Workitem Watermark.</returns>
+        Task<(long CurrentWatermark, long NextWatermark)?> GetCurrentAndNextWorkitemWatermarkAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously queries workitem

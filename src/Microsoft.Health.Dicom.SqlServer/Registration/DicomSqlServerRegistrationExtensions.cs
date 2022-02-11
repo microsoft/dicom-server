@@ -204,6 +204,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddScoped<IIndexWorkitemStore, SqlWorkitemStore>();
             services.TryAddScoped<VersionedCache<ISqlWorkitemStore>>();
             services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlWorkitemStore, SqlWorkitemStoreV9>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlWorkitemStore, SqlWorkitemStoreV10>());
 
             return services;
         }
