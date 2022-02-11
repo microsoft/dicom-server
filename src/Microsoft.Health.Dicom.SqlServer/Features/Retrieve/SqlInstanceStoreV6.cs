@@ -91,6 +91,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             return results;
         }
 
+
+        public override async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierWithPropertiesAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
+        {
+            return await GetInstanceIdentifierImp(partitionKey, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
+        }
+
         private async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierImp(
             int partitionKey,
             string studyInstanceUid,

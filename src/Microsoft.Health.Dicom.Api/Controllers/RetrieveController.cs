@@ -156,7 +156,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             RetrieveResourceResponse response = await _mediator.RetrieveDicomInstanceAsync(
                 studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
-            return new ObjectResult(response.ResponseStreams.First())
+            return new ObjectResult(response.ResponseInstances.First().Stream)
             {
                 StatusCode = (int)HttpStatusCode.OK,
             };
@@ -220,7 +220,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
 
         private static IActionResult CreateResult(RetrieveResourceResponse response)
         {
-            return new MultipartResult((int)HttpStatusCode.OK, response.ResponseStreams.Select(x => new MultipartItem(response.ContentType, x, response.TransferSyntax)).ToList());
+            return new MultipartResult((int)HttpStatusCode.OK, response.ResponseInstances.Select(x => new MultipartItem(response.ContentType, x.Stream, x.TransferSyntaxUid)).ToList());
         }
     }
 }

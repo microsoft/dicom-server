@@ -50,5 +50,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             ISqlInstanceStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
             return await store.GetInstanceBatchesAsync(batchSize, batchCount, indexStatus, maxWatermark, cancellationToken);
         }
+
+        public async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierWithPropertiesAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
+        {
+            ISqlInstanceStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+            return await store.GetInstanceIdentifierWithPropertiesAsync(partitionKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
+        }
     }
 }

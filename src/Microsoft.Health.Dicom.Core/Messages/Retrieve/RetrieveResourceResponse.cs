@@ -4,26 +4,23 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.IO;
 using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 {
     public class RetrieveResourceResponse
     {
-        public RetrieveResourceResponse(IEnumerable<Stream> responseStreams, string contentType, string transferSyntax = default)
+        public RetrieveResourceResponse(IEnumerable<RetrieveResourceInstance> responseStreams, string contentType)
         {
-            EnsureArg.IsNotNull(responseStreams, nameof(responseStreams));
-            EnsureArg.IsNotEmptyOrWhiteSpace(contentType, nameof(contentType));
-            ResponseStreams = responseStreams;
-            ContentType = contentType;
-            TransferSyntax = transferSyntax;
+            ResponseInstances = EnsureArg.IsNotNull(responseStreams, nameof(responseStreams)); ;
+            ContentType = EnsureArg.IsNotEmptyOrWhiteSpace(contentType, nameof(contentType)); ;
         }
 
-        public IEnumerable<Stream> ResponseStreams { get; }
+        /// <summary>
+        /// Collection of instance streams and properties used in response
+        /// </summary>
+        public IEnumerable<RetrieveResourceInstance> ResponseInstances { get; }
 
         public string ContentType { get; }
-
-        public string TransferSyntax { get; }
     }
 }

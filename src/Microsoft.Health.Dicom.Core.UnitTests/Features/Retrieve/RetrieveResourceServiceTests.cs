@@ -109,7 +109,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    DefaultCancellationToken);
 
             // Validate response status code and ensure response streams have expected files - they should be equivalent to what the store was set up to return.
-            ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), response.ResponseStreams);
+            ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), response.ResponseInstances.Select(x => x.Stream));
 
             // Validate dicom request is populated with correct transcode values
             ValidateDicomRequestIsPopulated();
@@ -138,10 +138,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    DefaultCancellationToken);
 
             // Validate response status code and ensure response streams have expected files - they should be equivalent to what the store was set up to return.
-            ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), response.ResponseStreams);
+            ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), response.ResponseInstances.Select(x => x.Stream));
 
             // Validate dicom request is populated with correct transcode values
-            ValidateDicomRequestIsPopulated(true, response.ResponseStreams.Sum(s => s.Length));
+            ValidateDicomRequestIsPopulated(true, response.ResponseInstances.Sum(s => s.Stream.Length));
 
             // Dispose created streams.
             streamsAndStoredFiles.ToList().ForEach(x => x.Value.Dispose());
@@ -195,7 +195,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    DefaultCancellationToken);
 
             // Validate response status code and ensure response streams have expected files - they should be equivalent to what the store was set up to return.
-            ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), response.ResponseStreams);
+            ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), response.ResponseInstances.Select(x => x.Stream));
 
             // Validate dicom request is populated with correct transcode values
             ValidateDicomRequestIsPopulated();
@@ -249,7 +249,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    DefaultCancellationToken);
 
             // Validate response status code and ensure response stream has expected file - it should be equivalent to what the store was set up to return.
-            ValidateResponseStreams(new List<DicomFile>() { streamAndStoredFile.Key }, response.ResponseStreams);
+            ValidateResponseStreams(new List<DicomFile>() { streamAndStoredFile.Key }, response.ResponseInstances.Select(x => x.Stream));
 
             // Validate dicom request is populated with correct transcode values
             ValidateDicomRequestIsPopulated();
@@ -327,8 +327,8 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    DefaultCancellationToken);
 
             // Validate response status code and ensure response streams has expected frames - it should be equivalent to what the store was set up to return.
-            AssertPixelDataEqual(DicomPixelData.Create(streamAndStoredFile.Key.Dataset).GetFrame(framesToRequest[0]), response.ResponseStreams.ToList()[0]);
-            AssertPixelDataEqual(DicomPixelData.Create(streamAndStoredFile.Key.Dataset).GetFrame(framesToRequest[1]), response.ResponseStreams.ToList()[1]);
+            AssertPixelDataEqual(DicomPixelData.Create(streamAndStoredFile.Key.Dataset).GetFrame(framesToRequest[0]), response.ResponseInstances.ToList()[0].Stream);
+            AssertPixelDataEqual(DicomPixelData.Create(streamAndStoredFile.Key.Dataset).GetFrame(framesToRequest[1]), response.ResponseInstances.ToList()[1].Stream);
 
             // Validate dicom request is populated with correct transcode values
             ValidateDicomRequestIsPopulated();
@@ -336,37 +336,94 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             streamAndStoredFile.Value.Dispose();
         }
 
-        private List<VersionedInstanceIdentifier> SetupInstanceIdentifiersList(ResourceType resourceType, int partitionKey = DefaultPartition.Key)
+        [Theory]
+        [InlineData("*", "1.2.840.10008.1.2.1", "1.2.840.10008.1.2.1")]
+        [InlineData("1.2.840.10008.1.2.1", "1.2.840.10008.1.2.1", "1.2.840.10008.1.2.1")]
+        [InlineData("1.2.840.10008.1.2.4.90", "1.2.840.10008.1.2.1", "1.2.840.10008.1.2.4.90")]
+        public async Task GetSeriesInstances_WithAcceptType_ThenResponseContentTypeIsCorrect(string requestedTransferSyntax, string originalTransferSyntax, string expectedTransferSyntax)
+        {
+            // arrange object with originalTransferSyntax
+            List<VersionedInstanceIdentifier> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Series, DefaultPartition.Key, new InstanceProperties(originalTransferSyntax));
+
+            // For each instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
+            var streamsAndStoredFiles = versionedInstanceIdentifiers.Select(
+                x => StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(x, originalTransferSyntax)).Result).ToList();
+            streamsAndStoredFiles.ForEach(x => _fileStore.GetFileAsync(x.Key.Dataset.ToVersionedInstanceIdentifier(0), DefaultCancellationToken).Returns(x.Value));
+
+            // act
+            RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
+                   new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy(requestedTransferSyntax) }),
+                   DefaultCancellationToken);
+
+            // assert
+            response.ResponseInstances
+                .Select(stream => stream.TransferSyntaxUid)
+                .ToList()
+                .ForEach(responseContentType => Assert.Equal(expectedTransferSyntax, responseContentType));
+        }
+
+        [Theory]
+        [InlineData("*", "1.2.840.10008.1.2.1", "*")] // this is the bug in old files, that is fixed for new files
+        [InlineData("1.2.840.10008.1.2.1", "1.2.840.10008.1.2.1", "1.2.840.10008.1.2.1")]
+        [InlineData("1.2.840.10008.1.2.4.90", "1.2.840.10008.1.2.1", "1.2.840.10008.1.2.4.90")]
+        public async Task GetSeriesInstances_WithAcceptTypeOnOldFile_ThenResponseContentTypeWithBackCompatWorks(string requestedTransferSyntax, string originalTransferSyntax, string expectedTransferSyntax)
+        {
+            // arrange object with originalTransferSyntax as null from DB to show backcompat
+            List<VersionedInstanceIdentifier> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Series, DefaultPartition.Key, new InstanceProperties(null));
+
+            // For each instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
+            var streamsAndStoredFiles = versionedInstanceIdentifiers.Select(
+                x => StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(x, originalTransferSyntax)).Result).ToList();
+            streamsAndStoredFiles.ForEach(x => _fileStore.GetFileAsync(x.Key.Dataset.ToVersionedInstanceIdentifier(0), DefaultCancellationToken).Returns(x.Value));
+
+            // act
+            RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
+                   new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy(requestedTransferSyntax) }),
+                   DefaultCancellationToken);
+
+            // assert
+            response.ResponseInstances
+                .Select(stream => stream.TransferSyntaxUid)
+                .ToList()
+                .ForEach(responseContentType => Assert.Equal(expectedTransferSyntax, responseContentType));
+        }
+
+        private List<VersionedInstanceIdentifier> SetupInstanceIdentifiersList(ResourceType resourceType, int partitionKey = DefaultPartition.Key, InstanceProperties instanceProperty = null)
         {
             var dicomInstanceIdentifiersList = new List<VersionedInstanceIdentifier>();
 
             switch (resourceType)
             {
                 case ResourceType.Study:
-                    dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
-                    dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
-                    dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _secondSeriesInstanceUid, TestUidGenerator.Generate(), 0));
-                    _instanceStore.GetInstanceIdentifiersInStudyAsync(partitionKey, _studyInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
+                    dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, partitionKey, instanceProperty));
+                    dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, partitionKey, instanceProperty));
+                    dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _secondSeriesInstanceUid, TestUidGenerator.Generate(), 0, partitionKey, instanceProperty));
+                    _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionKey, _studyInstanceUid, null, null, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
                     break;
                 case ResourceType.Series:
-                    dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
-                    dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
-                    _instanceStore.GetInstanceIdentifiersInSeriesAsync(partitionKey, _studyInstanceUid, _firstSeriesInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
+                    dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, partitionKey, instanceProperty));
+                    dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, partitionKey, instanceProperty));
+                    _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionKey, _studyInstanceUid, _firstSeriesInstanceUid, null, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
                     break;
                 case ResourceType.Instance:
                 case ResourceType.Frames:
-                    dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, 0));
-                    dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0));
-                    _instanceStore.GetInstanceIdentifierAsync(partitionKey, _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList.SkipLast(1));
+                    dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, 0, partitionKey, instanceProperty));
+                    dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, partitionKey, instanceProperty));
+                    _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionKey, _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList.SkipLast(1));
                     break;
             }
-
             return dicomInstanceIdentifiersList;
         }
 
-        private DicomDataset GenerateDatasetsFromIdentifiers(InstanceIdentifier instanceIdentifier)
+        private DicomDataset GenerateDatasetsFromIdentifiers(InstanceIdentifier instanceIdentifier, string transferSyntaxUid = null)
         {
-            var ds = new DicomDataset(DicomTransferSyntax.ExplicitVRLittleEndian)
+            DicomTransferSyntax syntax = DicomTransferSyntax.ExplicitVRLittleEndian;
+            if (transferSyntaxUid != null)
+            {
+                syntax = DicomTransferSyntax.Parse(transferSyntaxUid);
+            }
+
+            var ds = new DicomDataset(syntax)
             {
                 { DicomTag.StudyInstanceUID, instanceIdentifier.StudyInstanceUid },
                 { DicomTag.SeriesInstanceUID, instanceIdentifier.SeriesInstanceUid },

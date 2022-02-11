@@ -18,6 +18,8 @@ CREATE TABLE dbo.Instance (
     --audit columns
     CreatedDate             DATETIME2(7)               NOT NULL,
     PartitionKey            INT                        NOT NULL DEFAULT 1,  --FK
+    --instance metadata
+    TransferSyntaxUid       VARCHAR(64)                NULL,
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance

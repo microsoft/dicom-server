@@ -93,5 +93,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             IndexStatus indexStatus,
             long? maxWatermark = null,
             CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Gets identifiers of instances with additional properties.
+        /// </summary>
+        /// <param name="partitionKey">The partition key.</param>
+        /// <param name="studyInstanceUid">The study identifier.</param>
+        /// <param name="seriesInstanceUid">The series identifier.</param>
+        /// <param name="sopInstanceUid">The instance identifier.</param>
+        /// <param name="cancellationToken">An optional cancellation token.</param>
+        /// <returns>Instance identifiers.</returns>
+        Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierWithPropertiesAsync(
+            int partitionKey,
+            string studyInstanceUid,
+            string seriesInstanceUid = null,
+            string sopInstanceUid = null,
+            CancellationToken cancellationToken = default);
+
     }
 }

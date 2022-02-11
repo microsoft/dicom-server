@@ -67,6 +67,27 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             return instancesToRetrieve;
         }
 
+        public static async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstancesWithProperties(
+                this IInstanceStore instanceStore,
+                ResourceType resourceType,
+                int partitionKey,
+                string studyInstanceUid,
+                string seriesInstanceUid,
+                string sopInstanceUid,
+                CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
+
+            IEnumerable<VersionedInstanceIdentifier> instancesToRetrieve = await instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
+
+            if (!instancesToRetrieve.Any())
+            {
+                ThrowNotFoundException(resourceType);
+            }
+
+            return instancesToRetrieve;
+        }
+
         private static void ThrowNotFoundException(ResourceType resourceType)
         {
             switch (resourceType)
