@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using FellowOakDicom;
-using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
@@ -41,12 +40,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <summary>
         /// Adds a failed entry to the response.
         /// </summary>
-        /// <param name="dicomDataset">The DICOM dataset that failed to be stored.</param>
         /// <param name="failureReasonCode">The failure reason code.</param>
         /// <param name="message">The message related to the failure</param>
-        void AddFailure(
-            DicomDataset dicomDataset = null,
-            ushort failureReasonCode = FailureReasonCodes.ProcessingFailure,
-            string message = null);
+        /// <param name="dicomDataset">The DICOM dataset that failed to be stored.</param>
+        void AddFailure(ushort? failureReasonCode, string message = null, DicomDataset dicomDataset = null);
     }
 }

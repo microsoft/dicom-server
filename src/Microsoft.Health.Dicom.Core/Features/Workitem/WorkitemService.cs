@@ -13,12 +13,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
     public partial class WorkitemService : IWorkitemService
     {
-        private static readonly Action<ILogger, ushort, Exception> LogValidationFailedDelegate =
-            LoggerMessage.Define<ushort>(
-                LogLevel.Information,
-                default,
-                "Validation failed for the DICOM instance work-item entry. Failure code: {FailureCode}.");
-
         private readonly IWorkitemResponseBuilder _responseBuilder;
         private readonly IEnumerable<IWorkitemDatasetValidator> _validators;
         private readonly IWorkitemOrchestrator _workitemOrchestrator;

@@ -53,10 +53,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             var status = WorkitemResponseStatus.Failure;
 
-            if (!_dataset.TryGetSingleValue<ushort>(DicomTag.FailureReason, out var _))
+            if (!_dataset.TryGetSingleValue<ushort>(DicomTag.FailureReason, out var failureReason))
             {
                 // There are only success.
                 status = WorkitemResponseStatus.Success;
+            }
+            else if (failureReason == FailureReasonCodes.DatasetDoesNotMatchSOPClass)
+            {
+                status = WorkitemResponseStatus.Conflict;
+            }
+            else if (failureReason == FailureReasonCodes.ProcessingFailure)
+            {
+                status = WorkitemResponseStatus.None;
+            }
+            else
+            {
+                status = WorkitemResponseStatus.Failure;
             }
 
             return new CancelWorkitemResponse(status, _message);
@@ -80,14 +92,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         }
 
         /// <inheritdoc />
-        public void AddFailure(DicomDataset dicomDataset = null,
-            ushort failureReasonCode = FailureReasonCodes.ProcessingFailure,
-            string message = null)
+        public void AddFailure(ushort? failureReasonCode, string message = null, DicomDataset dicomDataset = null)
         {
             _message = message;
             _dataset = dicomDataset ?? new DicomDataset();
 
-            _dataset.Add(DicomTag.FailureReason, failureReasonCode);
+            _dataset.Add(DicomTag.FailureReason, failureReasonCode.GetValueOrDefault(FailureReasonCodes.ProcessingFailure));
         }
     }
 }

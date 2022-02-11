@@ -68,33 +68,31 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
             catch (Exception ex)
             {
-                ushort failureCode = FailureReasonCodes.ProcessingFailure;
+                ushort? failureCode = FailureReasonCodes.ProcessingFailure;
 
                 switch (ex)
                 {
+                    case DatasetValidationException datasetValidationException:
+                        // should return 400
+                        failureCode = datasetValidationException.FailureCode;
+                        break;
+
                     case DicomValidationException _:
-                        // TODO: handle this to return 409
-                        failureCode = FailureReasonCodes.ValidationFailure;
-                        break;
-
-                    case DatasetValidationException dicomDatasetValidationException:
-                        // TODO: handle this to return 400
-                        failureCode = dicomDatasetValidationException.FailureCode;
-                        break;
-
                     case ValidationException _:
-                        // TODO: handle this to return 409
-                        failureCode = FailureReasonCodes.ValidationFailure;
+                        // should return 409
+                        failureCode = FailureReasonCodes.DatasetDoesNotMatchSOPClass;
                         break;
 
                     case WorkitemNotFoundException:
-                        // TODO: handle this to return 404
+                        // should return 404
+                        failureCode = null;
                         break;
                 }
 
-                LogValidationFailedDelegate(_logger, failureCode, ex);
+                _logger.LogInformation(ex,
+                    "Validation failed for the DICOM instance work-item entry. Failure code: {FailureCode}.", failureCode);
 
-                _responseBuilder.AddFailure(dataset, failureCode, ex.Message);
+                _responseBuilder.AddFailure(failureCode, ex.Message, dataset);
 
                 return false;
             }
@@ -121,14 +119,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 switch (ex)
                 {
                     case WorkitemNotFoundException _:
-                        // TODO: Should this also be treated as FailureReasonCodes.ValidationFailure???
                         failureCode = FailureReasonCodes.ProcessingFailure;
                         break;
                 }
 
                 _logger.LogWarning(ex, "Failed to cancel the work-item entry. Failure code: {FailureCode}.", failureCode);
 
-                _responseBuilder.AddFailure(dataset, failureCode, ex.Message);
+                _responseBuilder.AddFailure(failureCode, ex.Message, dataset);
             }
         }
     }

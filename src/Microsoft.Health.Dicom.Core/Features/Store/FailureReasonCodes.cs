@@ -41,6 +41,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <remarks>
         /// The Studies Store Transaction (Section 10.5) observed that the Data Set did not match the constraints of the SOP Class during storage of the instance.
         /// </remarks>
-        public const ushort DataSetDoesNotMatchSOPClass = 45063;
+        public const ushort DatasetDoesNotMatchSOPClass = 45063;
     }
 }

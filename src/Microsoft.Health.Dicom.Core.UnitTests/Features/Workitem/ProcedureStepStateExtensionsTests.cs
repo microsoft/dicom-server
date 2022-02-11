@@ -35,11 +35,23 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         [InlineData(ProcedureStepState.Scheduled, ProcedureStepStateConstants.Scheduled)]
         [InlineData(ProcedureStepState.InProgress, ProcedureStepStateConstants.InProgress)]
         [InlineData(ProcedureStepState.Completed, ProcedureStepStateConstants.Completed)]
-        [InlineData(ProcedureStepState.Canceled, ProcedureStepStateConstants.Completed)]
+        [InlineData(ProcedureStepState.Canceled, ProcedureStepStateConstants.Canceled)]
         public void GivenGetStringValue_WhenStateIsValid_ReturnsMatchingStringValue(ProcedureStepState state, string expectedValue)
         {
             var actual = state.GetStringValue();
             Assert.Equal(expectedValue, actual);
+        }
+
+        [Theory]
+        [InlineData(ProcedureStepStateConstants.None, ProcedureStepState.None)]
+        [InlineData(ProcedureStepStateConstants.Scheduled, ProcedureStepState.Scheduled)]
+        [InlineData(ProcedureStepStateConstants.InProgress, ProcedureStepState.InProgress)]
+        [InlineData(ProcedureStepStateConstants.Completed, ProcedureStepState.Completed)]
+        [InlineData(ProcedureStepStateConstants.Canceled, ProcedureStepState.Canceled)]
+        public void GivenGetProcedureStepState_WhenValidStringValueIsPassed_ReturnsMatchingProcedureStepState(string stringValue, ProcedureStepState expectedState)
+        {
+            var actual = ProcedureStepStateExtensions.GetProcedureStepState(stringValue);
+            Assert.Equal(expectedState, actual);
         }
     }
 }

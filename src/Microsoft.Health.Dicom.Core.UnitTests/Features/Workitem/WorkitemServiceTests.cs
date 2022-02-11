@@ -135,9 +135,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             _responseBuilder
                 .Received()
                 .AddFailure(
-                    Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)),
                     Arg.Is<ushort>(fc => fc == failureCode),
-                    Arg.Is<string>(msg => msg == errorMessage));
+                    Arg.Is<string>(msg => msg == errorMessage),
+                    Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)));
         }
 
         [Fact]
@@ -156,9 +156,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             _responseBuilder
                 .Received()
                 .AddFailure(
-                    Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)),
                     Arg.Is<ushort>(fc => fc == FailureReasonCodes.ValidationFailure),
-                    Arg.Any<string>());
+                    Arg.Any<string>(),
+                    Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)));
         }
 
         [Fact]
@@ -178,9 +178,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             _responseBuilder
                 .Received()
                 .AddFailure(
-                    Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)),
                     Arg.Is<ushort>(fc => fc == FailureReasonCodes.ProcessingFailure),
-                    Arg.Is<string>(msg => msg == errorMessage));
+                    Arg.Is<string>(msg => msg == errorMessage),
+                    Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)));
         }
 
         [Fact]
@@ -201,9 +201,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             _responseBuilder
                 .Received()
                 .AddFailure(
-                    Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)),
                     Arg.Is<ushort>(fc => fc == failureCode),
-                    Arg.Is<string>(msg => msg == string.Format(DicomCoreResource.WorkitemInstanceAlreadyExists, workitemInstanceUid)));
+                    Arg.Is<string>(msg => msg == string.Format(DicomCoreResource.WorkitemInstanceAlreadyExists, workitemInstanceUid)),
+                    Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)));
         }
 
         [Fact]
@@ -224,9 +224,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             _responseBuilder
                 .Received()
                 .AddFailure(
-                    Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)),
                     Arg.Is<ushort>(fc => fc == failureCode),
-                    Arg.Is<string>(msg => msg == workitemInstanceUid));
+                    Arg.Is<string>(msg => msg == workitemInstanceUid),
+                    Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)));
         }
 
         [Fact]
