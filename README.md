@@ -6,7 +6,7 @@ The Medical Imaging Server for DICOM is an open source DICOM server that is easi
 
 ![Architecture](docs/images/DICOM-arch.png)
 
-The Medical Imaging Server for DICOM is a .NET Core implementation of DICOMweb&trade;. [DICOMweb&trade;](https://www.dicomstandard.org/dicomweb) is the DICOM Standard for web-based medical imaging. Details of our conformance to the standard can be found in our [Conformance Statement](docs/resources/conformance-statement.md).
+The Medical Imaging Server for DICOM is a .NET Core implementation of DICOMweb&trade;. [DICOMweb&trade;](https://www.dicomstandard.org/using/dicomweb) is the DICOM Standard for web-based medical imaging. Details of our conformance to the standard can be found in our [Conformance Statement](docs/resources/conformance-statement.md).
 
 ## Deploy the Medical Imaging Server for DICOM
 
@@ -15,11 +15,11 @@ The Medical Imaging Server for DICOM is designed to run on Azure. However, for d
 ### Deploy to Azure
 
 If you already have an Azure subscription, deploy the Medical Imaging Server for DICOM directly to Azure: <br/>
-    <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fdicom-server%2Fmain%2Fsamples%2Ftemplates%2Fdefault-azuredeploy.json" target="_blank"><img src="https://azuredeploy.net/deploybutton.png"/></a>
+    <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fdicom-server%2Fmain%2Fsamples%2Ftemplates%2Fdefault-azuredeploy.json" target="_blank"><img src="https://aka.ms/deploytoazurebutton"/></a>
 
 To sync your Medical Imaging Server for DICOM metadata directly into a FHIR server, deploy **DICOM Cast** (alongside a FHIR OSS Server and Medical Imaging Server for DICOM) via: <br/>
-    <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fdicom-server%2Fmain%2Fconverter%2Fdicom-cast%2Fsamples%2Ftemplates%2Fdefault-azuredeploy.json" target="_blank"><img src="https://azuredeploy.net/deploybutton.png"/>
-    </a> 
+    <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fdicom-server%2Fmain%2Fconverter%2Fdicom-cast%2Fsamples%2Ftemplates%2Fdefault-azuredeploy.json" target="_blank"><img src="https://aka.ms/deploytoazurebutton"/>
+    </a>
 
 For a complete set of instructions for how to deploy the Medical Imaging Server for DICOM to Azure, refer to the Quickstart [Deploy to Azure ](docs/quickstarts/deploy-via-azure.md).
 
