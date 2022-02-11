@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         }
 
         /// <inheritdoc />
-        public async Task AddWorkitemAsync(WorkitemInstanceIdentifier identifier, DicomDataset dataset, CancellationToken cancellationToken)
+        public async Task AddWorkitemAsync(WorkitemInstanceIdentifier identifier, DicomDataset dataset, long? proposedWatermark = default, CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(identifier, nameof(identifier));
 
@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             try
             {
-                await _workitemStore.AddWorkitemAsync(identifier, dataset, cancellationToken);
+                await _workitemStore.AddWorkitemAsync(identifier, dataset, proposedWatermark, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
             }
@@ -71,19 +71,41 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
         }
 
-        public async Task<DicomDataset> GetWorkitemAsync(WorkitemInstanceIdentifier workitemInstanceIdentifier, CancellationToken cancellationToken = default)
+        /// <inheritdoc />
+        public async Task<DicomDataset> GetWorkitemAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNull(workitemInstanceIdentifier, nameof(workitemInstanceIdentifier));
+            EnsureArg.IsNotNull(identifier, nameof(identifier));
 
-            LogQueryWorkitemDelegate(_logger, workitemInstanceIdentifier, null);
+            LogQueryWorkitemDelegate(_logger, identifier, null);
 
             try
             {
-                var result = await _workitemStore.GetWorkitemAsync(workitemInstanceIdentifier, cancellationToken);
+                var result = await _workitemStore.GetWorkitemAsync(identifier, cancellationToken);
 
                 LogOperationSucceededDelegate(_logger, null);
 
                 return result;
+            }
+            catch (Exception ex)
+            {
+                LogOperationFailedDelegate(_logger, ex);
+
+                throw;
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteWorkitemAsync(WorkitemInstanceIdentifier identifier, long? proposedWatermark = default, CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(identifier, nameof(identifier));
+
+            LogQueryWorkitemDelegate(_logger, identifier, null);
+
+            try
+            {
+                await _workitemStore.DeleteWorkitemAsync(identifier, proposedWatermark, cancellationToken);
+
+                LogOperationSucceededDelegate(_logger, null);
             }
             catch (Exception ex)
             {

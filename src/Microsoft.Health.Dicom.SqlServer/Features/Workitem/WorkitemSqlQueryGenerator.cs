@@ -119,7 +119,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             StringBuilder
                 .AppendLine("SELECT ")
                 .Append(VLatest.Workitem.WorkitemKey, tableAlias).AppendLine(",")
-                .Append(VLatest.Workitem.WorkitemUid, tableAlias).AppendLine()
+                .Append(VLatest.Workitem.WorkitemUid, tableAlias).AppendLine(",")
+                .Append(VLatest.Workitem.Watermark, tableAlias).AppendLine()
                 .AppendLine("FROM");
         }
 

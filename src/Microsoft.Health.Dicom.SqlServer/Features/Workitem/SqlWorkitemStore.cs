@@ -23,38 +23,34 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
         public SqlWorkitemStore(VersionedCache<ISqlWorkitemStore> cache)
             => _cache = EnsureArg.IsNotNull(cache, nameof(cache));
 
-        public async Task<long> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
+        public async Task<(long? workitemKey, long? watermark)> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
         {
             ISqlWorkitemStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
             return await store.BeginAddWorkitemAsync(partitionKey, dataset, queryTags, cancellationToken);
         }
 
-        public async Task BeginUpdateWorkitemAsync(WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken = default)
+        public async Task EndAddWorkitemAsync(long workitemKey, CancellationToken cancellationToken = default)
+        {
+            ISqlWorkitemStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+
+            await store.EndAddWorkitemAsync(workitemKey, cancellationToken);
+        }
+        public async Task UpdateWorkitemStatusAsync(long workitemKey, WorkitemStoreStatus status, CancellationToken cancellationToken = default)
         {
             var store = await _cache.GetAsync(cancellationToken: cancellationToken);
 
-            await store.BeginUpdateWorkitemAsync(workitemMetadata, cancellationToken);
+            await store.UpdateWorkitemStatusAsync(workitemKey, status, cancellationToken);
         }
 
-        public async Task EndUpdateWorkitemAsync(WorkitemMetadataStoreEntry workitemMetadata, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
+        public async Task UpdateWorkitemProcedureStepStateAsync(
+            WorkitemMetadataStoreEntry workitemMetadata,
+            long proposedWatermark,
+            string procedureStepState,
+            CancellationToken cancellationToken = default)
         {
             var store = await _cache.GetAsync(cancellationToken: cancellationToken);
 
-            await store.EndUpdateWorkitemAsync(workitemMetadata, dataset, queryTags, cancellationToken);
-        }
-
-        public async Task LockWorkitemAsync(WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken = default)
-        {
-            var store = await _cache.GetAsync(cancellationToken: cancellationToken);
-
-            await store.LockWorkitemAsync(workitemMetadata, cancellationToken);
-        }
-
-        public async Task UnlockWorkitemAsync(WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken = default)
-        {
-            var store = await _cache.GetAsync(cancellationToken: cancellationToken);
-
-            await store.UnlockWorkitemAsync(workitemMetadata, cancellationToken);
+            await store.UpdateWorkitemProcedureStepStateAsync(workitemMetadata, proposedWatermark, procedureStepState, cancellationToken);
         }
 
         public async Task DeleteWorkitemAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
@@ -62,12 +58,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             ISqlWorkitemStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
 
             await store.DeleteWorkitemAsync(partitionKey, workitemUid, cancellationToken);
-        }
-
-        public async Task EndAddWorkitemAsync(int partitionKey, long workitemKey, CancellationToken cancellationToken = default)
-        {
-            ISqlWorkitemStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-            await store.EndAddWorkitemAsync(partitionKey, workitemKey, cancellationToken);
         }
 
         public async Task<IReadOnlyList<WorkitemQueryTagStoreEntry>> GetWorkitemQueryTagsAsync(CancellationToken cancellationToken = default)
@@ -81,6 +71,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             ISqlWorkitemStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
 
             return await store.GetWorkitemMetadataAsync(partitionKey, workitemUid, cancellationToken);
+        }
+
+        public async Task<WorkitemWatermarkEntry> GetWorkitemWatermarkAsync(
+            int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
+        {
+            ISqlWorkitemStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+
+            return await store.GetWorkitemWatermarkAsync(partitionKey, workitemUid, cancellationToken);
         }
 
         public async Task<WorkitemQueryResult> QueryAsync(int partitionKey, BaseQueryExpression query, CancellationToken cancellationToken = default)

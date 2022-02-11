@@ -61,6 +61,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetPartitionsProcedure GetPartitions = new GetPartitionsProcedure();
         internal readonly static GetWorkitemMetadataProcedure GetWorkitemMetadata = new GetWorkitemMetadataProcedure();
         internal readonly static GetWorkitemQueryTagsProcedure GetWorkitemQueryTags = new GetWorkitemQueryTagsProcedure();
+        internal readonly static GetWorkitemWatermarkProcedure GetWorkitemWatermark = new GetWorkitemWatermarkProcedure();
         internal readonly static IIndexInstanceCoreV9Procedure IIndexInstanceCoreV9 = new IIndexInstanceCoreV9Procedure();
         internal readonly static IIndexWorkitemInstanceCoreProcedure IIndexWorkitemInstanceCore = new IIndexWorkitemInstanceCoreProcedure();
         internal readonly static IncrementDeletedInstanceRetryProcedure IncrementDeletedInstanceRetry = new IncrementDeletedInstanceRetryProcedure();
@@ -357,8 +358,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly VarCharColumn WorkitemUid = new VarCharColumn("WorkitemUid", 64);
             internal readonly NullableVarCharColumn TransactionUid = new NullableVarCharColumn("TransactionUid", 64);
             internal readonly TinyIntColumn Status = new TinyIntColumn("Status");
+            internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly DateTime2Column CreatedDate = new DateTime2Column("CreatedDate", 7);
-            internal readonly DateTime2Column LastStatusUpdatedDate = new DateTime2Column("LastStatusUpdatedDate", 7);
+            internal readonly DateTime2Column LastWatermarkUpdatedDate = new DateTime2Column("LastWatermarkUpdatedDate", 7);
             internal readonly Index IXC_Workitem = new Index("IXC_Workitem");
             internal readonly Index IX_Workitem_WorkitemUid_PartitionKey = new Index("IX_Workitem_WorkitemUid_PartitionKey");
         }
@@ -1216,6 +1218,24 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
+        internal class GetWorkitemWatermarkProcedure : StoredProcedure
+        {
+            internal GetWorkitemWatermarkProcedure() : base("dbo.GetWorkitemWatermark")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.String> _workitemUid = new ParameterDefinition<System.String>("@workitemUid", global::System.Data.SqlDbType.VarChar, false, 64);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String workitemUid)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetWorkitemWatermark";
+                _partitionKey.AddParameter(command.Parameters, partitionKey);
+                _workitemUid.AddParameter(command.Parameters, workitemUid);
+            }
+        }
+
         internal class IIndexInstanceCoreV9Procedure : StoredProcedure
         {
             internal IIndexInstanceCoreV9Procedure() : base("dbo.IIndexInstanceCoreV9")
@@ -1592,21 +1612,21 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
-            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.String> _workitemUid = new ParameterDefinition<System.String>("@workitemUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.Int64> _workitemKey = new ParameterDefinition<System.Int64>("@workitemKey", global::System.Data.SqlDbType.BigInt, false);
             private readonly ParameterDefinition<System.String> _procedureStepStateTagPath = new ParameterDefinition<System.String>("@procedureStepStateTagPath", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.String> _procedureStepState = new ParameterDefinition<System.String>("@procedureStepState", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.Byte> _status = new ParameterDefinition<System.Byte>("@status", global::System.Data.SqlDbType.TinyInt, false);
+            private readonly ParameterDefinition<System.Int64> _watermark = new ParameterDefinition<System.Int64>("@watermark", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.Int64> _proposedWatermark = new ParameterDefinition<System.Int64>("@proposedWatermark", global::System.Data.SqlDbType.BigInt, false);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String workitemUid, System.String procedureStepStateTagPath, System.String procedureStepState, System.Byte status)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int64 workitemKey, System.String procedureStepStateTagPath, System.String procedureStepState, System.Int64 watermark, System.Int64 proposedWatermark)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.UpdateWorkitemProcedureStepState";
-                _partitionKey.AddParameter(command.Parameters, partitionKey);
-                _workitemUid.AddParameter(command.Parameters, workitemUid);
+                _workitemKey.AddParameter(command.Parameters, workitemKey);
                 _procedureStepStateTagPath.AddParameter(command.Parameters, procedureStepStateTagPath);
                 _procedureStepState.AddParameter(command.Parameters, procedureStepState);
-                _status.AddParameter(command.Parameters, status);
+                _watermark.AddParameter(command.Parameters, watermark);
+                _proposedWatermark.AddParameter(command.Parameters, proposedWatermark);
             }
         }
 
@@ -1616,15 +1636,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
-            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
             private readonly ParameterDefinition<System.Int64> _workitemKey = new ParameterDefinition<System.Int64>("@workitemKey", global::System.Data.SqlDbType.BigInt, false);
             private readonly ParameterDefinition<System.Byte> _status = new ParameterDefinition<System.Byte>("@status", global::System.Data.SqlDbType.TinyInt, false);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.Int64 workitemKey, System.Byte status)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int64 workitemKey, System.Byte status)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.UpdateWorkitemStatus";
-                _partitionKey.AddParameter(command.Parameters, partitionKey);
                 _workitemKey.AddParameter(command.Parameters, workitemKey);
                 _status.AddParameter(command.Parameters, status);
             }

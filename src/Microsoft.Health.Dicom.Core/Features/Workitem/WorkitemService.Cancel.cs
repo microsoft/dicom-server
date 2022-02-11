@@ -27,7 +27,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
 
-            var workitemMetadata = await _workitemOrchestrator.GetWorkitemMetadataAsync(workitemInstanceUid, cancellationToken).ConfigureAwait(false);
+            var workitemMetadata = await _workitemOrchestrator
+                .GetWorkitemMetadataAsync(workitemInstanceUid, cancellationToken)
+                .ConfigureAwait(false);
 
             // Get the state transition result
             var transitionStateResult = workitemMetadata?

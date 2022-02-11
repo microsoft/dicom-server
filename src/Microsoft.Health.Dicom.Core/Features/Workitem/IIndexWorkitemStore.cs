@@ -25,51 +25,35 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <param name="dataset">The DICOM dataset to index.</param>
         /// <param name="queryTags">Queryable workitem tags</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A task that gets the workitem key.</returns>
-        Task<long> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
+        /// <returns>A task that gets the workitem key and workitem watermark.</returns>
+        Task<(long? workitemKey, long? watermark)> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously completes the creation of a workitem instance.
         /// </summary>
-        /// <param name="partitionKey">The partition key.</param>
         /// <param name="workitemKey">The workitem instance key.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous update operation.</returns>
-        Task EndAddWorkitemAsync(int partitionKey, long workitemKey, CancellationToken cancellationToken = default);
+        Task EndAddWorkitemAsync(long workitemKey, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Asynchronously begins canceling a workitem instance.
+        /// Asynchronously updates the workitem instance status.
         /// </summary>
-        /// <param name="workitemMetadata">Workitem attributes that are indexed in a store.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task representing the method status.</returns>
-        Task BeginUpdateWorkitemAsync(WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Asynchronously completes the cancellation of a workitem instance.
-        /// </summary>
-        /// <param name="workitemMetadata">Workitem attributes that are indexed in a store.</param>
-        /// <param name="dataset">The DICOM dataset to index.</param>
-        /// <param name="queryTags">Queryable workitem tags</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task representing the method status.</returns>
-        Task EndUpdateWorkitemAsync(WorkitemMetadataStoreEntry workitemMetadata, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Asynchronously (soft) locks the workitem instance.
-        /// </summary>
-        /// <param name="workitemMetadata">Workitem attributes that are indexed in a store.</param>
+        /// <param name="workitemKey">The workitem instance key.</param>
+        /// <param name="status">The Workitem status</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        Task LockWorkitemAsync(WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken = default);
+        Task UpdateWorkitemStatusAsync(long workitemKey, WorkitemStoreStatus status, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Asynchronously unlocks the workitem instance.
+        /// Asynchronously updates the workitem instance's Procedure Step State.
         /// </summary>
-        /// <param name="workitemMetadata">Workitem attributes that are indexed in a store.</param>
+        /// <param name="workitemMetadata">The Workitem Metadata</param>
+        /// <param name="proposedWatermark">The Proposed Watermark</param>
+        /// <param name="procedureStepState">The Procedure Step State</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns></returns>
-        Task UnlockWorkitemAsync(WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken = default);
+        /// <returns>A Task representing the method status.</returns>
+        Task UpdateWorkitemProcedureStepStateAsync(WorkitemMetadataStoreEntry workitemMetadata, long proposedWatermark, string procedureStepState, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously deletes a workitem instance.
@@ -92,9 +76,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// </summary>
         /// <param name="partitionKey">The partition key.</param>
         /// <param name="workitemUid">Workitem instance UID</param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="cancellationToken">The cancellation token</param>
         /// <returns>Returns the Workitem attributes that are indexed in a store.</returns>
         Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Asynchronously gets workitem watermark and proposed watermark
+        /// </summary>
+        /// <param name="partitionKey">The partition key.</param>
+        /// <param name="workitemUid">Workitem instance UID</param>
+        /// <param name="cancellationToken">The cancellation token</param>
+        /// <returns>Returns the Workitem Watermark and Proposed Watermark from the store.</returns>
+        Task<WorkitemWatermarkEntry> GetWorkitemWatermarkAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously queries workitem

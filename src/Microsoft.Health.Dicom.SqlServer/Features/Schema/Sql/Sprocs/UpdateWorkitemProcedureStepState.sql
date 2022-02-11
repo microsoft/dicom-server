@@ -10,48 +10,48 @@
 --     Adds a UPS-RS workitem.
 --
 -- PARAMETERS
---     @partitionKey
---         * The system identifier of the data partition.
---     @workitemUid
---         * The workitem UID.
+--     @workitemKey
+--         * The Workitem Key.
 --     @procedureStepStateTagPath
 --          * The Procedure Step State Tag Path
 --     @procedureStepState
 --          * The New Procedure Step State Value
---     @status
---         * The Workitem status, Either 1(ReadWrite) or 2(Read)
+--     @watermark
+--          * The Workitem Watermark
+--     @proposedWatermark
+--          * The Proposed Watermark for the Workitem
 --
 -- RETURN VALUE
---     The WorkitemKey
+--     The Number of records affected in ExtendedQueryTagString table
 --
 -- EXAMPLE
 --
 /*
 
         BEGIN
-	        DECLARE @partitionKey int = 1
-	        DECLARE @workitemUid varchar(64) = '1.2.840.10008.1.2.184951'
+	        DECLARE @workitemKey BIGINT = 1
 	        DECLARE @procedureStepStateTagPath varchar(64) = '00741000'
 	        DECLARE @procedureStepState varchar(64) = 'SCHEDULED'
-	        DECLARE @status tinyint = 1
+	        DECLARE @watermark BIGINT = 101
+            DECLARE @proposedWatermark BIGINT = 201
 
 	        EXECUTE [dbo].[UpdateWorkitemProcedureStepState] 
-	           @partitionKey
-	          ,@workitemUid
+	           @workitemKey
 	          ,@procedureStepStateTagPath
 	          ,@procedureStepState
-	          ,@status
+              ,@watermark
+	          ,@proposedWatermark
         END
         GO
 
 */
 ------------------------------------------------------------------------
 CREATE OR ALTER PROCEDURE dbo.UpdateWorkitemProcedureStepState
-    @partitionKey                   INT,
-    @workitemUid                    VARCHAR(64),
+    @workitemKey                    BIGINT,
     @procedureStepStateTagPath      VARCHAR(64),
     @procedureStepState             VARCHAR(64),
-    @status                         TINYINT
+    @watermark                      BIGINT,
+    @proposedWatermark              BIGINT
 AS
 BEGIN
     SET NOCOUNT ON
@@ -59,22 +59,25 @@ BEGIN
     SET XACT_ABORT ON
     BEGIN TRANSACTION
 
-    DECLARE @workitemKey BIGINT
-    DECLARE @newWatermark BIGINT
-    DECLARE @currentProcedureStepStateTagValue VARCHAR(64)
-    DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
-
-    SELECT
-        @workitemKey = WorkitemKey
-    FROM
-        dbo.Workitem
-    WHERE
-        PartitionKey = @partitionKey
-        AND WorkitemUid = @workitemUid
-
-    IF @@ROWCOUNT = 0
+    IF NOT EXISTS (SELECT WorkitemUid FROM Workitem WHERE WorkitemKey = @workitemKey)
         THROW 50409, 'Workitem does not exist', 1;
 
+    DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
+
+    -- Update the workitem watermark
+    UPDATE dbo.Workitem
+    SET
+        Watermark = @proposedWatermark,
+        LastWatermarkUpdatedDate = @currentDate
+    WHERE
+        WorkitemKey = @workitemKey
+        AND Watermark = @watermark
+
+    IF @@ROWCOUNT = 0
+        THROW 50409, 'Workitem was changed.', 1; -- TODO: new error code, and change the message???
+
+    DECLARE @currentProcedureStepStateTagValue VARCHAR(64)
+    DECLARE @newWatermark BIGINT
     SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence
 
     BEGIN TRY
@@ -100,8 +103,8 @@ BEGIN
 			        wi.PartitionKey = eqts.PartitionKey
 			        AND wi.WorkitemKey = eqts.SopInstanceKey1
 	        WHERE
-		        wi.PartitionKey = @partitionKey
-		        AND wi.WorkitemKey = @workitemKey
+		        wi.WorkitemKey = @workitemKey
+                AND wi.Watermark = @watermark
         )
         UPDATE targetTbl
         SET
@@ -119,9 +122,6 @@ BEGIN
         WHERE
             cte.TagPath = @procedureStepStateTagPath
 
-        -- Update the Workitem status
-        EXEC dbo.UpdateWorkitemStatus @partitionKey, @workitemKey, @status
-
     END TRY
     BEGIN CATCH
 
@@ -129,7 +129,7 @@ BEGIN
 
     END CATCH
 
-    SELECT @workitemKey
+    SELECT @@ROWCOUNT
 
     COMMIT TRANSACTION
 END

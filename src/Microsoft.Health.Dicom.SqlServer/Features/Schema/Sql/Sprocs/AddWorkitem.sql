@@ -40,6 +40,7 @@ BEGIN
 
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
     DECLARE @workitemKey BIGINT
+    DECLARE @watermark BIGINT
 
     SELECT @workitemKey = WorkitemKey
     FROM dbo.Workitem
@@ -50,11 +51,12 @@ BEGIN
         THROW 50409, 'Workitem already exists', 1;
 
     -- The workitem does not exist, insert it.
+    SET @watermark = NEXT VALUE FOR dbo.WorkitemWatermarkSequence
     SET @workitemKey = NEXT VALUE FOR dbo.WorkitemKeySequence
     INSERT INTO dbo.Workitem
-        (WorkitemKey, PartitionKey, WorkitemUid, Status, CreatedDate, LastStatusUpdatedDate)
+        (WorkitemKey, PartitionKey, WorkitemUid, Status, Watermark, CreatedDate, LastWatermarkUpdatedDate)
     VALUES
-        (@workitemKey, @partitionKey, @workitemUid, @initialStatus, @currentDate, @currentDate)
+        (@workitemKey, @partitionKey, @workitemUid, @initialStatus, @watermark, @currentDate, @currentDate)
 
     BEGIN TRY
 
@@ -72,7 +74,9 @@ BEGIN
 
     END CATCH
 
-    SELECT @workitemKey
+    SELECT
+        @workitemKey,
+        @watermark
 
     COMMIT TRANSACTION
 END

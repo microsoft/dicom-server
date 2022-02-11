@@ -58,12 +58,13 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         public async Task AddWorkitemAsync(
             WorkitemInstanceIdentifier identifier,
             DicomDataset dataset,
+            long? proposedWatermark = default,
             CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(identifier, nameof(identifier));
             EnsureArg.IsNotNull(dataset, nameof(dataset));
 
-            var blob = GetBlockBlobClient(identifier);
+            var blob = GetBlockBlobClient(identifier, proposedWatermark);
 
             try
             {
@@ -95,11 +96,11 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task<DicomDataset> GetWorkitemAsync(WorkitemInstanceIdentifier workitemInstanceIdentifier, CancellationToken cancellationToken = default)
+        public async Task<DicomDataset> GetWorkitemAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNull(workitemInstanceIdentifier, nameof(workitemInstanceIdentifier));
+            EnsureArg.IsNotNull(identifier, nameof(identifier));
 
-            BlockBlobClient cloudBlockBlob = GetBlockBlobClient(workitemInstanceIdentifier);
+            BlockBlobClient cloudBlockBlob = GetBlockBlobClient(identifier);
 
             try
             {
@@ -122,9 +123,26 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             }
         }
 
-        private BlockBlobClient GetBlockBlobClient(WorkitemInstanceIdentifier identifier)
+        public async Task DeleteWorkitemAsync(WorkitemInstanceIdentifier identifier, long? proposedWatermark = default, CancellationToken cancellationToken = default)
         {
-            var blobName = $"{identifier.WorkitemUid}_{identifier.WorkitemKey}_workitem.json";
+            EnsureArg.IsNotNull(identifier, nameof(identifier));
+
+            var blob = GetBlockBlobClient(identifier, proposedWatermark);
+
+            try
+            {
+                await blob.DeleteIfExistsAsync(DeleteSnapshotsOption.None, null, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                throw new DataStoreException(ex);
+            }
+        }
+
+        private BlockBlobClient GetBlockBlobClient(WorkitemInstanceIdentifier identifier, long? proposedWatermark = default)
+        {
+            var watermark = proposedWatermark.GetValueOrDefault(identifier.Watermark);
+            var blobName = $"{identifier.WorkitemUid}_{identifier.WorkitemKey}_{watermark}_workitem.json";
 
             return _container.GetBlockBlobClient(blobName);
         }

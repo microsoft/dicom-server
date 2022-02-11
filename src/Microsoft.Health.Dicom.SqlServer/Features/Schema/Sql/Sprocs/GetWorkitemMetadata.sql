@@ -22,6 +22,7 @@
 --          * PartitionKey
 --          * Status
 --          * TransactionUid
+--          * Watermark
 --          * ProcedureStepState Tag Value
 ------------------------------------------------------------------------
 CREATE OR ALTER PROCEDURE dbo.GetWorkitemMetadata
@@ -39,6 +40,7 @@ BEGIN
 	    wi.PartitionKey,
         wi.[Status],
         wi.TransactionUid,
+        wi.Watermark,
         eqt.TagValue AS ProcedureStepState
     FROM 
 	    dbo.WorkitemQueryTag wqt

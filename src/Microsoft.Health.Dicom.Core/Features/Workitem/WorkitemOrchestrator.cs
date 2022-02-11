@@ -11,12 +11,12 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
+using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
@@ -50,7 +50,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         }
 
         /// <inheritdoc />
-        public async Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(string workitemInstanceUid, CancellationToken cancellationToken)
+        public async Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(string workitemInstanceUid, CancellationToken cancellationToken = default)
         {
             var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
@@ -62,9 +62,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         }
 
         /// <inheritdoc />
-        public async Task AddWorkitemAsync(
-            DicomDataset dataset,
-            CancellationToken cancellationToken)
+        public async Task AddWorkitemAsync(DicomDataset dataset, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
 
@@ -72,33 +70,35 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             try
             {
-                int partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
+                var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
+                var queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken).ConfigureAwait(false);
 
-                IReadOnlyCollection<QueryTag> queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken).ConfigureAwait(false);
-
-                long workitemKey = await _indexWorkitemStore
+                var (workitemKey, watermark) = await _indexWorkitemStore
                     .BeginAddWorkitemAsync(partitionKey, dataset, queryTags, cancellationToken)
                     .ConfigureAwait(false);
+                if (!workitemKey.HasValue || !watermark.HasValue)
+                {
+                    throw new DataStoreException(DicomCoreResource.DataStoreOperationFailed);
+                }
 
-                identifier = new WorkitemInstanceIdentifier(
-                    dataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
-                    workitemKey,
-                    partitionKey);
+                var workitemInstanceUid = dataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty);
+                identifier = new WorkitemInstanceIdentifier(workitemInstanceUid, workitemKey.Value, watermark.Value, partitionKey);
 
                 // We have successfully created the index, store the file.
-                await StoreWorkitemBlobAsync(identifier, dataset, cancellationToken)
+                await StoreWorkitemBlobAsync(identifier, dataset, null, cancellationToken)
                     .ConfigureAwait(false);
 
-                await _indexWorkitemStore.EndAddWorkitemAsync(partitionKey, workitemKey, cancellationToken);
+                await _indexWorkitemStore.EndAddWorkitemAsync(workitemKey.Value, cancellationToken);
             }
             catch
             {
-                await TryDeleteWorkitemAsync(identifier, cancellationToken).ConfigureAwait(false);
+                await TryAddWorkitemCleanupAsync(identifier, cancellationToken).ConfigureAwait(false);
 
                 throw;
             }
         }
 
+        /// <inheritdoc />
         public async Task CancelWorkitemAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, ProcedureStepState targetProcedureStepState, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
@@ -109,22 +109,26 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 return;
             }
 
-            WorkitemInstanceIdentifier workitemInstanceIdentifier = null;
+            WorkitemWatermarkEntry watermarkEntry = null;
+            WorkitemInstanceIdentifier identifier = null;
             DicomDataset storeDicomDataset = null;
 
             try
             {
-                // soft-lock the workitem
-                await _indexWorkitemStore
-                    .BeginUpdateWorkitemAsync(workitemMetadata, cancellationToken)
+                watermarkEntry = await _indexWorkitemStore
+                    .GetWorkitemWatermarkAsync(workitemMetadata.PartitionKey, workitemMetadata.WorkitemUid, cancellationToken)
                     .ConfigureAwait(false);
 
                 // Get the workitem from blob store
-                workitemInstanceIdentifier = new WorkitemInstanceIdentifier(workitemMetadata.WorkitemUid, workitemMetadata.WorkitemKey, workitemMetadata.PartitionKey);
-                storeDicomDataset = await GetWorkitemBlobAsync(workitemInstanceIdentifier, cancellationToken).ConfigureAwait(false);
+                identifier = new WorkitemInstanceIdentifier(workitemMetadata.WorkitemUid, workitemMetadata.WorkitemKey, workitemMetadata.PartitionKey);
+                storeDicomDataset = await GetWorkitemBlobAsync(identifier, cancellationToken).ConfigureAwait(false);
 
                 // update the procedure step state
                 var updatedDicomDataset = new DicomDataset(storeDicomDataset);
+
+                // Add/Update the procedure step state in the blob
+                var targetProcedureStepStateStringValue = targetProcedureStepState.GetStringValue();
+                updatedDicomDataset.AddOrUpdate(DicomTag.ProcedureStepState, targetProcedureStepStateStringValue);
 
                 // if there is a reason for cancellation, set it in the blob
                 dataset.TryGetString(DicomTag.ReasonForCancellation, out var cancellationReason);
@@ -133,59 +137,35 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                     updatedDicomDataset.AddOrUpdate(DicomTag.ReasonForCancellation, cancellationReason);
                 }
 
-                // Add/Update the procedure step state in the blob
-                updatedDicomDataset.AddOrUpdate(DicomTag.ProcedureStepState, targetProcedureStepState.GetStringValue());
+                // store the blob with the new watermark
+                await StoreWorkitemBlobAsync(identifier, updatedDicomDataset, watermarkEntry.ProposedValue, cancellationToken)
+                    .ConfigureAwait(false);
 
-                // update the workitem in the blob store
-                await StoreWorkitemBlobAsync(workitemInstanceIdentifier, updatedDicomDataset, cancellationToken).ConfigureAwait(false);
-
-                // Update the workitem tags in the store
-                var queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken).ConfigureAwait(false);
+                // Update the workitem procedure step state in the store
                 await _indexWorkitemStore
-                    .EndUpdateWorkitemAsync(workitemMetadata, updatedDicomDataset, queryTags, cancellationToken)
+                    .UpdateWorkitemProcedureStepStateAsync(
+                        workitemMetadata,
+                        watermarkEntry.ProposedValue,
+                        targetProcedureStepStateStringValue,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+
+                // Delete the blob with the old watermark
+                await TryDeleteWorkitemBlobAsync(identifier, null, cancellationToken)
                     .ConfigureAwait(false);
             }
             catch
             {
-                // Cleanup cancel action
-                await TryCleanupCancelAsync(workitemMetadata, workitemInstanceIdentifier, storeDicomDataset, cancellationToken);
+                // attempt to delete the blob with proposed watermark
+                await TryDeleteWorkitemBlobAsync(identifier, watermarkEntry.ProposedValue, cancellationToken)
+                    .ConfigureAwait(false);
 
                 throw;
             }
         }
 
-        private async Task TryCleanupCancelAsync(WorkitemMetadataStoreEntry workitemMetadata, WorkitemInstanceIdentifier identifier, DicomDataset dataset, CancellationToken cancellationToken)
-        {
-            if (null == identifier && null == dataset)
-            {
-                return;
-            }
-
-            try
-            {
-                // Upload the original blob back in the store
-                await StoreWorkitemBlobAsync(identifier, dataset, cancellationToken).ConfigureAwait(false);
-
-                // release the workitem (soft) lock
-                await _indexWorkitemStore
-                    .UnlockWorkitemAsync(workitemMetadata, cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(
-                    ex,
-                    @"Failed to revert the workitem blob for [WorkitemUid: '{WorkitemUid}'] [PartitionKey: '{PartitionKey}'] [WorkitemKey: '{WorkitemKey}'].",
-                    identifier.WorkitemUid,
-                    identifier.PartitionKey,
-                    identifier.WorkitemKey);
-            }
-        }
-
         /// <inheritdoc />
-        public async Task<QueryWorkitemResourceResponse> QueryAsync(
-            BaseQueryParameters parameters,
-            CancellationToken cancellationToken)
+        public async Task<QueryWorkitemResourceResponse> QueryAsync(BaseQueryParameters parameters, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(parameters);
 
@@ -195,10 +175,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
-            WorkitemQueryResult queryResult = await _indexWorkitemStore.QueryAsync(partitionKey, queryExpression, cancellationToken);
+            WorkitemQueryResult queryResult = await _indexWorkitemStore
+                .QueryAsync(partitionKey, queryExpression, cancellationToken);
 
             IEnumerable<DicomDataset> workitems = await Task.WhenAll(
-                queryResult.WorkitemInstances.Select(x => _workitemStore.GetWorkitemAsync(x, cancellationToken)));
+                queryResult.WorkitemInstances
+                    .Select(x => _workitemStore.GetWorkitemAsync(x, cancellationToken)));
 
             var workitemResponses = workitems.Select(m => WorkitemQueryResponseBuilder.GenerateResponseDataset(m, queryExpression)).ToList();
 
@@ -206,9 +188,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         }
 
         /// <inheritdoc />
-        private async Task TryDeleteWorkitemAsync(
-            WorkitemInstanceIdentifier identifier,
-            CancellationToken cancellationToken)
+        private async Task TryAddWorkitemCleanupAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken)
         {
             if (null == identifier)
             {
@@ -217,8 +197,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             try
             {
+                // Cleanup workitem data store
                 await _indexWorkitemStore
                     .DeleteWorkitemAsync(identifier.PartitionKey, identifier.WorkitemUid, cancellationToken)
+                    .ConfigureAwait(false);
+
+                // Cleanup Blob store
+                await TryDeleteWorkitemBlobAsync(identifier, null, cancellationToken)
                     .ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -234,17 +219,54 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
         private async Task<DicomDataset> GetWorkitemBlobAsync(
             WorkitemInstanceIdentifier identifier,
-            CancellationToken cancellationToken)
-            => await _workitemStore
+            CancellationToken cancellationToken = default)
+        {
+            if (null == identifier)
+            {
+                return null;
+            }
+
+            return await _workitemStore
                 .GetWorkitemAsync(identifier, cancellationToken)
                 .ConfigureAwait(false);
+        }
 
         private async Task StoreWorkitemBlobAsync(
             WorkitemInstanceIdentifier identifier,
             DicomDataset dicomDataset,
-            CancellationToken cancellationToken)
-            => await _workitemStore
-                .AddWorkitemAsync(identifier, dicomDataset, cancellationToken)
+            long? proposedWatermark = default,
+            CancellationToken cancellationToken = default)
+        {
+            if (null == identifier || null == dicomDataset)
+            {
+                return;
+            }
+
+            await _workitemStore
+                .AddWorkitemAsync(identifier, dicomDataset, proposedWatermark, cancellationToken)
                 .ConfigureAwait(false);
+        }
+
+        private async Task TryDeleteWorkitemBlobAsync(
+            WorkitemInstanceIdentifier identifier,
+            long? proposedWatermark = default,
+            CancellationToken cancellationToken = default)
+        {
+            if (null == identifier)
+            {
+                return;
+            }
+
+            try
+            {
+                await _workitemStore
+                    .DeleteWorkitemAsync(identifier, proposedWatermark, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, @"Failed to delete workitem blob for [WorkitemUid: '{WorkitemUid}', PartitionKey: '{PartitionKey}'].", identifier.WorkitemUid, identifier.PartitionKey);
+            }
+        }
     }
 }

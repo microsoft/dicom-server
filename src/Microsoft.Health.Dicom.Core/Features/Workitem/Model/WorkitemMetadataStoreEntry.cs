@@ -5,13 +5,12 @@
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem.Model
 {
-    public sealed class WorkitemMetadataStoreEntry
+    public sealed class WorkitemMetadataStoreEntry : WorkitemInstanceIdentifier
     {
-        public string WorkitemUid { get; set; }
-
-        public long WorkitemKey { get; set; }
-
-        public int PartitionKey { get; set; }
+        public WorkitemMetadataStoreEntry(string workitemUid, long workitemKey, long watermark, int partitionKey = default)
+            : base(workitemUid, workitemKey, watermark, partitionKey)
+        {
+        }
 
         public WorkitemStoreStatus Status { get; set; }
 

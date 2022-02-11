@@ -68,6 +68,14 @@ CREATE SEQUENCE dbo.WorkitemKeySequence
     NO CYCLE
     CACHE 10000;
 
+CREATE SEQUENCE dbo.WorkitemWatermarkSequence
+    AS BIGINT
+    START WITH 1
+    INCREMENT BY 1
+    MINVALUE 1
+    NO CYCLE
+    CACHE 1000000;
+
 CREATE TABLE dbo.ChangeFeed (
     Sequence          BIGINT             IDENTITY (1, 1) NOT NULL,
     Timestamp         DATETIMEOFFSET (7) NOT NULL,
@@ -418,13 +426,14 @@ CREATE NONCLUSTERED INDEX IX_Study_PatientBirthDate_PartitionKey
     INCLUDE(StudyKey) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.Workitem (
-    WorkitemKey           BIGINT        NOT NULL,
-    PartitionKey          INT           DEFAULT 1 NOT NULL,
-    WorkitemUid           VARCHAR (64)  NOT NULL,
-    TransactionUid        VARCHAR (64)  NULL,
-    Status                TINYINT       NOT NULL,
-    CreatedDate           DATETIME2 (7) NOT NULL,
-    LastStatusUpdatedDate DATETIME2 (7) NOT NULL
+    WorkitemKey              BIGINT        NOT NULL,
+    PartitionKey             INT           DEFAULT 1 NOT NULL,
+    WorkitemUid              VARCHAR (64)  NOT NULL,
+    TransactionUid           VARCHAR (64)  NULL,
+    Status                   TINYINT       NOT NULL,
+    Watermark                BIGINT        DEFAULT 0 NOT NULL,
+    CreatedDate              DATETIME2 (7) NOT NULL,
+    LastWatermarkUpdatedDate DATETIME2 (7) NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
@@ -433,7 +442,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_Workitem
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemUid_PartitionKey
     ON dbo.Workitem(WorkitemUid, PartitionKey)
-    INCLUDE(WorkitemKey, Status, TransactionUid) WITH (DATA_COMPRESSION = PAGE);
+    INCLUDE(Watermark, WorkitemKey, Status, TransactionUid) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.WorkitemQueryTag (
     TagKey  INT          NOT NULL,
@@ -774,22 +783,25 @@ BEGIN
     BEGIN TRANSACTION;
     DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
     DECLARE @workitemKey AS BIGINT;
+    DECLARE @watermark AS BIGINT;
     SELECT @workitemKey = WorkitemKey
     FROM   dbo.Workitem
     WHERE  PartitionKey = @partitionKey
            AND WorkitemUid = @workitemUid;
     IF @@ROWCOUNT <> 0
         THROW 50409, 'Workitem already exists', 1;
+    SET @watermark =  NEXT VALUE FOR dbo.WorkitemWatermarkSequence;
     SET @workitemKey =  NEXT VALUE FOR dbo.WorkitemKeySequence;
-    INSERT  INTO dbo.Workitem (WorkitemKey, PartitionKey, WorkitemUid, Status, CreatedDate, LastStatusUpdatedDate)
-    VALUES                   (@workitemKey, @partitionKey, @workitemUid, @initialStatus, @currentDate, @currentDate);
+    INSERT  INTO dbo.Workitem (WorkitemKey, PartitionKey, WorkitemUid, Status, Watermark, CreatedDate, LastWatermarkUpdatedDate)
+    VALUES                   (@workitemKey, @partitionKey, @workitemUid, @initialStatus, @watermark, @currentDate, @currentDate);
     BEGIN TRY
         EXECUTE dbo.IIndexWorkitemInstanceCore @partitionKey, @workitemKey, @stringExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
     END TRY
     BEGIN CATCH
         THROW;
     END CATCH
-    SELECT @workitemKey;
+    SELECT @workitemKey,
+           @watermark;
     COMMIT TRANSACTION;
 END
 
@@ -1549,6 +1561,7 @@ BEGIN
            wi.PartitionKey,
            wi.[Status],
            wi.TransactionUid,
+           wi.Watermark,
            eqt.TagValue AS ProcedureStepState
     FROM   dbo.WorkitemQueryTag AS wqt
            INNER JOIN
@@ -1574,6 +1587,23 @@ BEGIN
            TagPath,
            TagVR
     FROM   dbo.WorkItemQueryTag;
+END
+
+GO
+CREATE OR ALTER PROCEDURE dbo.GetWorkitemWatermark
+@partitionKey INT, @workitemUid VARCHAR (64)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    DECLARE @proposedWatermark AS BIGINT;
+    SET @proposedWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
+    SELECT WorkitemKey,
+           Watermark,
+           @proposedWatermark AS ProposedWatermark
+    FROM   Workitem
+    WHERE  PartitionKey = @partitionKey
+           AND WorkitemUid = @workitemUid;
 END
 
 GO
@@ -1935,22 +1965,26 @@ END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.UpdateWorkitemProcedureStepState
-@partitionKey INT, @workitemUid VARCHAR (64), @procedureStepStateTagPath VARCHAR (64), @procedureStepState VARCHAR (64), @status TINYINT
+@workitemKey BIGINT, @procedureStepStateTagPath VARCHAR (64), @procedureStepState VARCHAR (64), @watermark BIGINT, @proposedWatermark BIGINT
 AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
-    DECLARE @workitemKey AS BIGINT;
-    DECLARE @newWatermark AS BIGINT;
-    DECLARE @currentProcedureStepStateTagValue AS VARCHAR (64);
-    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
-    SELECT @workitemKey = WorkitemKey
-    FROM   dbo.Workitem
-    WHERE  PartitionKey = @partitionKey
-           AND WorkitemUid = @workitemUid;
-    IF @@ROWCOUNT = 0
+    IF NOT EXISTS (SELECT WorkitemUid
+                   FROM   Workitem
+                   WHERE  WorkitemKey = @workitemKey)
         THROW 50409, 'Workitem does not exist', 1;
+    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+    UPDATE dbo.Workitem
+    SET    Watermark                = @proposedWatermark,
+           LastWatermarkUpdatedDate = @currentDate
+    WHERE  WorkitemKey = @workitemKey
+           AND Watermark = @watermark;
+    IF @@ROWCOUNT = 0
+        THROW 50409, 'Workitem was changed.', 1;
+    DECLARE @currentProcedureStepStateTagValue AS VARCHAR (64);
+    DECLARE @newWatermark AS BIGINT;
     SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
     BEGIN TRY
         WITH TagKeyCTE
@@ -1972,8 +2006,8 @@ BEGIN
                      dbo.Workitem AS wi
                      ON wi.PartitionKey = eqts.PartitionKey
                         AND wi.WorkitemKey = eqts.SopInstanceKey1
-              WHERE  wi.PartitionKey = @partitionKey
-                     AND wi.WorkitemKey = @workitemKey)
+              WHERE  wi.WorkitemKey = @workitemKey
+                     AND wi.Watermark = @watermark)
         UPDATE targetTbl
         SET    targetTbl.TagValue  = @procedureStepState,
                targetTbl.Watermark = @newWatermark
@@ -1987,18 +2021,17 @@ BEGIN
                   AND cte.OldTagValue = targetTbl.TagValue
                   AND cte.Watermark = targetTbl.Watermark
         WHERE  cte.TagPath = @procedureStepStateTagPath;
-        EXECUTE dbo.UpdateWorkitemStatus @partitionKey, @workitemKey, @status;
     END TRY
     BEGIN CATCH
         THROW;
     END CATCH
-    SELECT @workitemKey;
+    SELECT @@ROWCOUNT;
     COMMIT TRANSACTION;
 END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.UpdateWorkitemStatus
-@partitionKey INT, @workitemKey BIGINT, @status TINYINT
+@workitemKey BIGINT, @status TINYINT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -2006,10 +2039,9 @@ BEGIN
     BEGIN TRANSACTION;
     DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
     UPDATE dbo.Workitem
-    SET    Status                = @status,
-           LastStatusUpdatedDate = @currentDate
-    WHERE  PartitionKey = @partitionKey
-           AND WorkitemKey = @workitemKey;
+    SET    [Status]                 = @status,
+           LastWatermarkUpdatedDate = @currentDate
+    WHERE  WorkitemKey = @workitemKey;
     IF @@ROWCOUNT = 0
         THROW 50404, 'Workitem instance does not exist', 1;
     COMMIT TRANSACTION;
