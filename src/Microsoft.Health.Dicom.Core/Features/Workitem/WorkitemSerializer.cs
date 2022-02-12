@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
 
             var serializerOptions = new JsonSerializerOptions();
-            serializerOptions.Converters.Add(new DicomJsonConverter());
+            serializerOptions.Converters.Add(new DicomJsonConverter(autoValidate: false));
 
             using (var streamReader = new StreamReader(stream))
             {

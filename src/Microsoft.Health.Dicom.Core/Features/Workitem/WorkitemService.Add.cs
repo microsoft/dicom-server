@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -22,6 +23,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     /// </summary>
     public partial class WorkitemService
     {
+        private const string WorklistLabel = "worklist";
+
         private static readonly Action<ILogger, ushort, Exception> LogFailedToAddDelegate =
             LoggerMessage.Define<ushort>(
                 LogLevel.Warning,
@@ -38,36 +41,36 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
 
-            // The format of the identifiers will be validated by fo-dicom.
-            var workitemUid = string.IsNullOrEmpty(workitemInstanceUid)
-                ? (dataset.TryGetString(DicomTag.SOPInstanceUID, out var sopInstanceUid)
-                    ? sopInstanceUid
-                    : dataset.TryGetString(DicomTag.AffectedSOPInstanceUID, out var affectedSopInstanceUid) ? affectedSopInstanceUid : null)
-                : workitemInstanceUid;
+            Prepare(dataset, workitemInstanceUid);
 
-            if (Validate(dataset, workitemUid))
+            if (Validate(dataset))
             {
-                Prepare(dataset, workitemUid);
-
                 await AddWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
             }
 
             return _responseBuilder.BuildAddResponse();
         }
 
-        private static void Prepare(DicomDataset dataset, string workitemUid)
+        private static void Prepare(DicomDataset dataset, string workitemQueryParameter)
         {
+            // SOP Common Module
+            dataset.AddOrUpdate(DicomTag.SOPClassUID, DicomUID.UnifiedProcedureStepPush);
+            ReconcileWorkitemInstanceUid(dataset, workitemQueryParameter);
+
+            // Unified Procedure Step Scheduled Procedure Information Module
+            dataset.AddOrUpdate(DicomTag.ScheduledProcedureStepModificationDateTime, DateTime.UtcNow);
+            dataset.AddOrUpdate(DicomTag.WorklistLabel, WorklistLabel);
+
+            // Unified Procedure Step Progress Information Module
             var result = ProcedureStepState.GetTransitionState(WorkitemStateEvents.NCreate, dataset.GetString(DicomTag.ProcedureStepState));
             dataset.AddOrUpdate(DicomTag.ProcedureStepState, result.State);
-
-            dataset.AddOrUpdate(DicomTag.SOPInstanceUID, workitemUid);
         }
 
-        private bool Validate(DicomDataset dataset, string workitemInstanceUid)
+        private bool Validate(DicomDataset dataset)
         {
             try
             {
-                GetValidator<AddWorkitemDatasetValidator>().Validate(dataset, workitemInstanceUid);
+                GetValidator<AddWorkitemDatasetValidator>().Validate(dataset);
                 return true;
             }
             catch (Exception ex)
@@ -122,6 +125,32 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
                 // TODO: This can return the Database Error as is. We need to abstract that detail.
                 _responseBuilder.AddFailure(dataset, failureCode, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Sets the dataset value from the query parameter as long as there is no conflict.
+        /// </summary>
+        private static void ReconcileWorkitemInstanceUid(DicomDataset dataset, string workitemQueryParameter)
+        {
+            EnsureArg.IsNotNull(dataset, nameof(dataset));
+
+            if (!string.IsNullOrWhiteSpace(workitemQueryParameter))
+            {
+                var uidInDataset = dataset.TryGetString(DicomTag.SOPInstanceUID, out var sopInstanceUid);
+
+                if (uidInDataset && !string.Equals(workitemQueryParameter, sopInstanceUid, StringComparison.Ordinal))
+                {
+                    throw new DatasetValidationException(
+                    FailureReasonCodes.ValidationFailure,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.MismatchSopInstanceWorkitemInstanceUid,
+                        sopInstanceUid,
+                        workitemQueryParameter));
+                }
+
+                dataset.AddOrUpdate(DicomTag.SOPInstanceUID, workitemQueryParameter);
             }
         }
     }

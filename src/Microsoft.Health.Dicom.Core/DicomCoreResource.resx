@@ -494,27 +494,31 @@ For details on valid range queries, please refer to Search Matching section in C
     <comment>{0} ProcedureStepState. {1} WorkitemInstanceUID. {2} Error code</comment>
   </data>
   <data name="MismatchSopInstanceWorkitemInstanceUid" xml:space="preserve">
-    <value>SOPInstanceUID '{0}' in the payload does not match the specified WorkitemInstanceUID '{1}'.</value>
+    <value>SOPInstanceUID '{0}' in the payload does not match the workitem query parameter '{1}'.</value>
     <comment>{0} SOPInstanceUID. {1} WorkitemInstanceUID.</comment>
   </data>
-  <data name="MismatchAffectedSopInstanceWorkitemInstanceUid" xml:space="preserve">
-    <value>AffectedSOPInstanceUID '{0}' in the payload does not match the specified WorkitemInstanceUID '{1}'.</value>
-    <comment>{0} AffectedSOPInstanceUID. {1} WorkitemInstanceUID.</comment>
-  </data>
-  <data name="MissingWorkitemInstanceUid" xml:space="preserve">
-    <value>WorkitemInstanceUID is missing.</value>
-  </data>
-
   <data name="DuplicateTagValueNotSupported" xml:space="preserve">
     <value>Duplicate value '{0}' for tag '{1}' not supported in a sequence.</value>
     <comment>{0} String Value. {1} DicomTag.</comment>
   </data>
   <data name="InvalidTransactionUID" xml:space="preserve">
-    <value>'{0}' is not a valid transactionUID for the specified WorkitemInstanceUID '{1}'.</value>
-    <comment>{0} TransactionUID. {1} WorkitemInstanceUID.</comment>
+    <value>Invalid TransactionUID for the specified WorkitemInstanceUID '{1}'.</value>
+    <comment>{0} WorkitemInstanceUID.</comment>
   </data>
   <data name="UnsupportedWorkitemSearchParameter" xml:space="preserve">
     <value>Invalid workitem query. AttributeId {0} is not queryable.  If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters and attributes.</value>
     <comment>{0} AttributeId name.</comment>
+  </data>
+  <data name="AttributeMustBeEmpty" xml:space="preserve">
+    <value>The attribute with tag '{0}' must be empty.</value>
+    <comment>{0} Dicom Tag</comment>
+  </data>
+  <data name="AttributeNotAllowed" xml:space="preserve">
+    <value>The attribute with tag '{0}' cannot be present.</value>
+    <comment>{0} Dicom Tag</comment>
+  </data>
+  <data name="MissingRequiredValue" xml:space="preserve">
+    <value>The value for tag '{0}' is missing.</value>
+    <comment>{0} is the DICOM tag name. E.g., StudyInstanceUID.</comment>
   </data>
 </root>
