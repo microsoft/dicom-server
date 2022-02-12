@@ -50,8 +50,9 @@ BEGIN
     IF @@ROWCOUNT <> 0
         THROW 50409, 'Workitem already exists', 1;
 
-    -- The workitem does not exist, insert it.
     SET @watermark = NEXT VALUE FOR dbo.WorkitemWatermarkSequence
+
+    -- The workitem does not exist, insert it.
     SET @workitemKey = NEXT VALUE FOR dbo.WorkitemKeySequence
     INSERT INTO dbo.Workitem
         (WorkitemKey, PartitionKey, WorkitemUid, Status, Watermark, CreatedDate, LastStatusUpdatedDate)

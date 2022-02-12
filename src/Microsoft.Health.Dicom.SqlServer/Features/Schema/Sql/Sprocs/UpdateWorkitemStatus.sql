@@ -9,6 +9,8 @@
 --     Updates a workitem status.
 --
 -- PARAMETERS
+--     @partitionKey
+--         * The system identifier of the data partition.
 --     @workitemKey
 --         * The workitem key.
 --     @status
@@ -17,6 +19,7 @@
 --     The WorkitemKey
 ------------------------------------------------------------------------
 CREATE OR ALTER PROCEDURE dbo.UpdateWorkitemStatus
+    @partitionKey                   INT,
     @workitemKey                    BIGINT,
     @status                         TINYINT
 AS
@@ -29,11 +32,9 @@ BEGIN
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
 
     UPDATE dbo.Workitem
-    SET
-        [Status] = @status,
-        LastStatusUpdatedDate = @currentDate
-    WHERE
-        WorkitemKey = @workitemKey
+    SET Status = @status, LastStatusUpdatedDate = @currentDate
+    WHERE PartitionKey = @partitionKey
+        AND WorkitemKey = @workitemKey
 
     -- The workitem instance does not exist. Perhaps it was deleted?
     IF @@ROWCOUNT = 0

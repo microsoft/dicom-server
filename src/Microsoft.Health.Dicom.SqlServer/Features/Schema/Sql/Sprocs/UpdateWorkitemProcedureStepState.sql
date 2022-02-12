@@ -1,5 +1,4 @@
-﻿
-/*************************************************************
+﻿/*************************************************************
  Stored procedure for Updating a workitem procedure step state.
 **************************************************************/
 --
@@ -7,7 +6,7 @@
 --     UpdateWorkitemProcedureStepState
 --
 -- DESCRIPTION
---     Adds a UPS-RS workitem.
+--     Updates a UPS-RS workitem procedure step state.
 --
 -- PARAMETERS
 --     @workitemKey
@@ -67,14 +66,13 @@ BEGIN
     -- Update the workitem watermark
     UPDATE dbo.Workitem
     SET
-        Watermark = @proposedWatermark,
-        LastStatusUpdatedDate = @currentDate
+        Watermark = @proposedWatermark
     WHERE
         WorkitemKey = @workitemKey
         AND Watermark = @watermark
 
     IF @@ROWCOUNT = 0
-        THROW 50409, 'Workitem was changed.', 1; -- TODO: new error code, and change the message???
+        THROW 50409, 'Workitem update failed.', 1;
 
     DECLARE @currentProcedureStepStateTagValue VARCHAR(64)
     DECLARE @newWatermark BIGINT

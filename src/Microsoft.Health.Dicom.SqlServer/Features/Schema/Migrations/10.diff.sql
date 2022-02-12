@@ -25,6 +25,7 @@ BEGIN
         NO CYCLE
         CACHE 1000000
 END
+GO
 
 IF NOT EXISTS 
 (
@@ -34,27 +35,27 @@ IF NOT EXISTS
         AND Object_id = OBJECT_ID('dbo.Workitem')
 )
 BEGIN
-
     ALTER TABLE dbo.Workitem
         ADD Watermark BIGINT DEFAULT 0 NOT NULL
-
-    DROP INDEX IF EXISTS IX_Workitem_WorkitemUid_PartitionKey ON dbo.Workitem
-
-    CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemUid_PartitionKey ON dbo.Workitem
-    (
-        WorkitemUid,
-        PartitionKey
-    )
-    INCLUDE
-    (
-        Watermark,
-        WorkitemKey,
-        Status,
-        TransactionUid
-    )
-    WITH (DATA_COMPRESSION = PAGE)
-
 END
+GO
+
+DROP INDEX IF EXISTS IX_Workitem_WorkitemUid_PartitionKey ON dbo.Workitem
+GO
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemUid_PartitionKey ON dbo.Workitem
+(
+    WorkitemUid,
+    PartitionKey
+)
+INCLUDE
+(
+    Watermark,
+    WorkitemKey,
+    Status,
+    TransactionUid
+)
+WITH (DATA_COMPRESSION = PAGE)
 GO
 
 /*************************************************************
@@ -109,8 +110,9 @@ BEGIN
     IF @@ROWCOUNT <> 0
         THROW 50409, 'Workitem already exists', 1;
 
-    -- The workitem does not exist, insert it.
     SET @watermark = NEXT VALUE FOR dbo.WorkitemWatermarkSequence
+
+    -- The workitem does not exist, insert it.
     SET @workitemKey = NEXT VALUE FOR dbo.WorkitemKeySequence
     INSERT INTO dbo.Workitem
         (WorkitemKey, PartitionKey, WorkitemUid, Status, Watermark, CreatedDate, LastStatusUpdatedDate)
@@ -140,6 +142,7 @@ BEGIN
     COMMIT TRANSACTION
 END
 GO
+
 
 /*************************************************************
  Stored procedure for Updating a workitem procedure step state.
@@ -209,13 +212,14 @@ BEGIN
     -- Update the workitem watermark
     UPDATE dbo.Workitem
     SET
-        Watermark = @proposedWatermark
+        Watermark = @proposedWatermark,
+        LastStatusUpdatedDate = @currentDate
     WHERE
         WorkitemKey = @workitemKey
         AND Watermark = @watermark
 
     IF @@ROWCOUNT = 0
-        THROW 50409, 'Workitem update failed.', 1;
+        THROW 50409, 'Workitem was changed.', 1; -- TODO: new error code, and change the message???
 
     DECLARE @currentProcedureStepStateTagValue VARCHAR(64)
     DECLARE @newWatermark BIGINT

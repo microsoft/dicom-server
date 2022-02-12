@@ -1701,13 +1701,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
             }
 
+            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
             private readonly ParameterDefinition<System.Int64> _workitemKey = new ParameterDefinition<System.Int64>("@workitemKey", global::System.Data.SqlDbType.BigInt, false);
             private readonly ParameterDefinition<System.Byte> _status = new ParameterDefinition<System.Byte>("@status", global::System.Data.SqlDbType.TinyInt, false);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int64 workitemKey, System.Byte status)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.Int64 workitemKey, System.Byte status)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.UpdateWorkitemStatus";
+                _partitionKey.AddParameter(command.Parameters, partitionKey);
                 _workitemKey.AddParameter(command.Parameters, workitemKey);
                 _status.AddParameter(command.Parameters, status);
             }

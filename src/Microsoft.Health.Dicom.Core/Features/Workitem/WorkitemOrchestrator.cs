@@ -83,11 +83,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 await StoreWorkitemBlobAsync(identifier, dataset, null, cancellationToken)
                     .ConfigureAwait(false);
 
-                await _indexWorkitemStore.EndAddWorkitemAsync(result.Value.WorkitemKey, cancellationToken);
+                await _indexWorkitemStore
+                    .EndAddWorkitemAsync(partitionKey, result.Value.WorkitemKey, cancellationToken)
+                    .ConfigureAwait(false);
             }
             catch
             {
-                await TryAddWorkitemCleanupAsync(identifier, cancellationToken).ConfigureAwait(false);
+                await TryAddWorkitemCleanupAsync(identifier, cancellationToken)
+                    .ConfigureAwait(false);
 
                 throw;
             }
@@ -104,18 +107,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 return;
             }
 
-            WorkitemWatermarkEntry watermarkEntry = null;
+            (long CurrentWatermark, long NextWatermark)? watermarkEntry = null;
             WorkitemInstanceIdentifier identifier = null;
-            (long currentWatermark, long nextWatermark)? result = null;
 
             try
             {
-                result = await _indexWorkitemStore
+                watermarkEntry = await _indexWorkitemStore
                     .GetCurrentAndNextWorkitemWatermarkAsync(workitemMetadata.PartitionKey, workitemMetadata.WorkitemUid, cancellationToken)
                     .ConfigureAwait(false);
 
                 // Get the workitem from blob store
-                identifier = new WorkitemInstanceIdentifier(workitemMetadata.WorkitemUid, workitemMetadata.WorkitemKey, result.Value.currentWatermark, workitemMetadata.PartitionKey);
+                identifier = new WorkitemInstanceIdentifier(
+                    workitemMetadata.WorkitemUid,
+                    workitemMetadata.WorkitemKey,
+                    watermarkEntry.Value.CurrentWatermark,
+                    workitemMetadata.PartitionKey);
                 var storeDicomDataset = await GetWorkitemBlobAsync(identifier, cancellationToken).ConfigureAwait(false);
 
                 // update the procedure step state
@@ -133,28 +139,28 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 }
 
                 // store the blob with the new watermark
-                await StoreWorkitemBlobAsync(identifier, updatedDicomDataset, result.Value.nextWatermark, cancellationToken)
+                await StoreWorkitemBlobAsync(identifier, updatedDicomDataset, watermarkEntry.Value.NextWatermark, cancellationToken)
                     .ConfigureAwait(false);
 
                 // Update the workitem procedure step state in the store
                 await _indexWorkitemStore
                     .UpdateWorkitemProcedureStepStateAsync(
                         workitemMetadata,
-                        watermarkEntry.ProposedValue,
+                        watermarkEntry.Value.NextWatermark,
                         targetProcedureStepStateStringValue,
                         cancellationToken)
                     .ConfigureAwait(false);
 
                 // Delete the blob with the old watermark
-                await TryDeleteWorkitemBlobAsync(identifier, null, cancellationToken)
+                await TryDeleteWorkitemBlobAsync(identifier, watermarkEntry.Value.CurrentWatermark, cancellationToken)
                     .ConfigureAwait(false);
             }
             catch
             {
                 // attempt to delete the blob with proposed watermark
-                if (result.HasValue)
+                if (watermarkEntry.HasValue)
                 {
-                    await TryDeleteWorkitemBlobAsync(identifier, result.Value.nextWatermark, cancellationToken)
+                    await TryDeleteWorkitemBlobAsync(identifier, watermarkEntry.Value.NextWatermark, cancellationToken)
                         .ConfigureAwait(false);
                 }
 

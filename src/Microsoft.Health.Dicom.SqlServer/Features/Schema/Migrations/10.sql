@@ -2017,12 +2017,11 @@ BEGIN
         THROW 50409, 'Workitem does not exist', 1;
     DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
     UPDATE dbo.Workitem
-    SET    Watermark             = @proposedWatermark,
-           LastStatusUpdatedDate = @currentDate
+    SET    Watermark = @proposedWatermark
     WHERE  WorkitemKey = @workitemKey
            AND Watermark = @watermark;
     IF @@ROWCOUNT = 0
-        THROW 50409, 'Workitem was changed.', 1;
+        THROW 50409, 'Workitem update failed.', 1;
     DECLARE @currentProcedureStepStateTagValue AS VARCHAR (64);
     DECLARE @newWatermark AS BIGINT;
     SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
@@ -2071,7 +2070,7 @@ END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.UpdateWorkitemStatus
-@workitemKey BIGINT, @status TINYINT
+@partitionKey INT, @workitemKey BIGINT, @status TINYINT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -2079,9 +2078,10 @@ BEGIN
     BEGIN TRANSACTION;
     DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
     UPDATE dbo.Workitem
-    SET    [Status]              = @status,
+    SET    Status                = @status,
            LastStatusUpdatedDate = @currentDate
-    WHERE  WorkitemKey = @workitemKey;
+    WHERE  PartitionKey = @partitionKey
+           AND WorkitemKey = @workitemKey;
     IF @@ROWCOUNT = 0
         THROW 50404, 'Workitem instance does not exist', 1;
     COMMIT TRANSACTION;

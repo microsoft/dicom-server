@@ -41,19 +41,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <summary>
         /// Asynchronously completes the creation of a workitem instance.
         /// </summary>
+        /// <param name="partitionKey">The Partition Key</param>
         /// <param name="workitemKey">The workitem instance key.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous update operation.</returns>
-        Task EndAddWorkitemAsync(long workitemKey, CancellationToken cancellationToken = default);
+        Task EndAddWorkitemAsync(int partitionKey, long workitemKey, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously updates the workitem instance status.
         /// </summary>
+        /// <param name="partitionKey">The Partition Key</param>
         /// <param name="workitemKey">The workitem instance key.</param>
         /// <param name="status">The Workitem status</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        Task UpdateWorkitemStatusAsync(long workitemKey, WorkitemStoreStatus status, CancellationToken cancellationToken = default);
+        Task UpdateWorkitemStatusAsync(int partitionKey, long workitemKey, WorkitemStoreStatus status, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously updates the workitem instance's Procedure Step State.

@@ -37,17 +37,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             return await store.BeginAddWorkitemWithWatermarkAsync(partitionKey, dataset, queryTags, cancellationToken);
         }
 
-        public async Task EndAddWorkitemAsync(long workitemKey, CancellationToken cancellationToken = default)
+        public async Task EndAddWorkitemAsync(int partitionKey, long workitemKey, CancellationToken cancellationToken = default)
         {
             ISqlWorkitemStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
 
-            await store.EndAddWorkitemAsync(workitemKey, cancellationToken);
+            await store.EndAddWorkitemAsync(partitionKey, workitemKey, cancellationToken);
         }
-        public async Task UpdateWorkitemStatusAsync(long workitemKey, WorkitemStoreStatus status, CancellationToken cancellationToken = default)
+        public async Task UpdateWorkitemStatusAsync(int partitionKey, long workitemKey, WorkitemStoreStatus status, CancellationToken cancellationToken = default)
         {
             var store = await _cache.GetAsync(cancellationToken: cancellationToken);
 
-            await store.UpdateWorkitemStatusAsync(workitemKey, status, cancellationToken);
+            await store.UpdateWorkitemStatusAsync(partitionKey, workitemKey, status, cancellationToken);
         }
 
         public async Task UpdateWorkitemProcedureStepStateAsync(

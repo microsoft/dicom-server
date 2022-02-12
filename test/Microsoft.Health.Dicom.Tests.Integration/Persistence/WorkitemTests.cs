@@ -50,7 +50,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             await _fixture
                 .IndexWorkitemStore
-                .EndAddWorkitemAsync(workitem.Value.WorkitemKey, CancellationToken.None);
+                .EndAddWorkitemAsync(DefaultPartition.Key, workitem.Value.WorkitemKey, CancellationToken.None);
         }
 
         [Fact]
@@ -109,7 +109,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 .IndexWorkitemStore
                 .BeginAddWorkitemWithWatermarkAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None)
                 .ConfigureAwait(false);
-            await _fixture.IndexWorkitemStore.EndAddWorkitemAsync(workitem.Value.WorkitemKey, CancellationToken.None);
+            await _fixture.IndexWorkitemStore
+                .EndAddWorkitemAsync(DefaultPartition.Key, workitem.Value.WorkitemKey, CancellationToken.None);
 
             var includeField = new QueryIncludeField(new List<DicomTag> { tag });
             var queryTag = new QueryTag(new WorkitemQueryTagStoreEntry(2, tag.GetPath(), tag.GetDefaultVR().Code));
@@ -143,9 +144,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             };
 
             (long WorkitemKey, long Watermark)? workitem1 = await _fixture.IndexWorkitemStore.BeginAddWorkitemWithWatermarkAsync(DefaultPartition.Key, dataset1, queryTags, CancellationToken.None);
-            await _fixture.IndexWorkitemStore.EndAddWorkitemAsync(workitem1.Value.WorkitemKey, CancellationToken.None);
+            await _fixture.IndexWorkitemStore
+                .EndAddWorkitemAsync(DefaultPartition.Key, workitem1.Value.WorkitemKey, CancellationToken.None);
             (long WorkitemKey, long Watermark)? workitem2 = await _fixture.IndexWorkitemStore.BeginAddWorkitemWithWatermarkAsync(DefaultPartition.Key, dataset2, queryTags, CancellationToken.None);
-            await _fixture.IndexWorkitemStore.EndAddWorkitemAsync(workitem2.Value.WorkitemKey, CancellationToken.None);
+            await _fixture.IndexWorkitemStore
+                .EndAddWorkitemAsync(DefaultPartition.Key, workitem2.Value.WorkitemKey, CancellationToken.None);
 
             var includeField = new QueryIncludeField(new List<DicomTag> { tag });
             var queryTag = new QueryTag(new WorkitemQueryTagStoreEntry(2, tag.GetPath(), tag.GetDefaultVR().Code));

@@ -78,9 +78,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             }
         }
 
-        public virtual async Task EndAddWorkitemAsync(long workitemKey, CancellationToken cancellationToken = default)
+        public virtual async Task EndAddWorkitemAsync(int partitionKey, long workitemKey, CancellationToken cancellationToken = default)
         {
-            await UpdateWorkitemStatusAsync(workitemKey, WorkitemStoreStatus.ReadWrite, cancellationToken);
+            await UpdateWorkitemStatusAsync(partitionKey, workitemKey, WorkitemStoreStatus.ReadWrite, cancellationToken);
         }
 
         public async Task DeleteWorkitemAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
@@ -130,12 +130,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             return results;
         }
 
-        public async Task UpdateWorkitemStatusAsync(long workitemKey, WorkitemStoreStatus status, CancellationToken cancellationToken = default)
+        public async Task UpdateWorkitemStatusAsync(int partitionKey, long workitemKey, WorkitemStoreStatus status, CancellationToken cancellationToken = default)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.UpdateWorkitemStatus.PopulateCommand(sqlCommandWrapper, workitemKey, (byte)status);
+                VLatest.UpdateWorkitemStatus
+                    .PopulateCommand(sqlCommandWrapper, partitionKey, workitemKey, (byte)status);
 
                 try
                 {
