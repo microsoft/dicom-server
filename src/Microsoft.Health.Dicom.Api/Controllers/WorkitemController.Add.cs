@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -47,9 +48,11 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [VersionedRoute(KnownRoutes.CreateWorkitemInstancesRoute, Name = KnownRouteNames.VersionedWorkitemInstance)]
         [Route(KnownRoutes.CreateWorkitemInstancesRoute, Name = KnownRouteNames.WorkitemInstance)]
         [AuditEventType(AuditEventSubType.AddWorkitem)]
-        public async Task<IActionResult> AddAsync(string workitemInstanceUid = null)
+        public async Task<IActionResult> AddAsync()
         {
-            return await PostAsync(workitemInstanceUid);
+            // The Workitem UID is passed as the name of the first query parameter 
+            string workitemUid = HttpContext.Request.Query.Keys.FirstOrDefault();
+            return await PostAsync(workitemUid);
         }
 
         private async Task<IActionResult> PostAsync(string workitemInstanceUid)

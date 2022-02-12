@@ -5,6 +5,7 @@
 
 using System;
 using FellowOakDicom;
+using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
@@ -14,15 +15,38 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
     public class AddWorkitemDatasetValidatorTests
     {
         [Fact]
-        public void GivenValidateForDuplicateTagValuesInSequence_WhenSequenceHasNoDuplicateTag_NoExceptionsThrown()
+        public void GivenMissingRequiredTag_Throws()
         {
-            var sqDataset = new DicomDataset();
-            sqDataset.Add(DicomTag.ExpectedCompletionDateTime, DateTime.Now);
-
             var dataset = Samples.CreateRandomWorkitemInstanceDataset();
-            dataset.AddOrUpdate(DicomTag.ScheduledWorkitemCodeSequence, sqDataset);
+            var validator = new AddWorkitemDatasetValidator();
 
-            AddWorkitemDatasetValidator.ValidateForDuplicateTagValuesInSequence(dataset);
+            dataset = dataset.Remove(DicomTag.TransactionUID);
+
+            Assert.Throws<DatasetValidationException>(() => validator.Validate(dataset));
+        }
+
+        [Fact]
+        public void GivenNotAllowedTag_WhenPresent_Throws()
+        {
+            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+
+            dataset = dataset.Add(new DicomDateTime(DicomTag.ProcedureStepCancellationDateTime, DateTime.UtcNow));
+
+            var validator = new AddWorkitemDatasetValidator();
+
+            Assert.Throws<DatasetValidationException>(() => validator.Validate(dataset));
+        }
+
+        [Fact]
+        public void GivenTagShouldBeEmpty_WhenHasValue_Throws()
+        {
+            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+
+            dataset = dataset.AddOrUpdate(new DicomUniqueIdentifier(DicomTag.TransactionUID, "123"));
+
+            var validator = new AddWorkitemDatasetValidator();
+
+            Assert.Throws<DatasetValidationException>(() => validator.Validate(dataset));
         }
     }
 }

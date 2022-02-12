@@ -3,12 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Globalization;
-using System.Linq;
-using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -22,18 +17,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     /// </summary>
     public class AddWorkitemDatasetValidator : WorkitemDatasetValidator
     {
-        protected override void OnValidate(DicomDataset dicomDataset)
-        {
-            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
-
-            ValidateRequiredTags(dicomDataset);
-
-            ValidateForDuplicateTagValuesInSequence(dicomDataset);
-        }
-
         // 2/1 requirements are treated as 1/1 since the value should be set by this point.
         // 3/* and -/- requirements are ignored.
-        private static void ValidateRequiredTags(DicomDataset dataset)
+        protected override void OnValidate(DicomDataset dataset)
         {
             // TODO: return all validation exceptions together
 
@@ -108,40 +94,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                         CultureInfo.InvariantCulture,
                         DicomCoreResource.AttributeNotAllowed,
                         tag));
-            }
-        }
-
-        internal static void ValidateForDuplicateTagValuesInSequence(DicomDataset dicomDataset)
-        {
-            var sequenceList = dicomDataset.Where(t => t.ValueRepresentation == DicomVR.SQ).Cast<DicomSequence>();
-
-            var tagValueMap = new Dictionary<string, string>();
-            foreach (DicomDataset sqDataset in from sequence in sequenceList
-                                               from DicomDataset sqDataset in sequence.Items
-                                               select sqDataset)
-            {
-                tagValueMap.Clear();
-
-                foreach ((DicomItem item, string tagPath) in
-                            from item in sqDataset
-                            let tagPath = item.Tag.GetPath()
-                            select (item, tagPath))
-                {
-                    if (sqDataset.TryGetString(item.Tag, out var tagValue) &&
-                        tagValueMap.ContainsKey(tagPath) &&
-                        string.Equals(tagValue, tagValueMap[tagPath], StringComparison.Ordinal))
-                    {
-                        throw new DatasetValidationException(
-                            FailureReasonCodes.ValidationFailure,
-                            string.Format(
-                                CultureInfo.InvariantCulture,
-                                DicomCoreResource.DuplicateTagValueNotSupported,
-                                tagValue,
-                                tagPath));
-                    }
-
-                    tagValueMap[tagPath] = tagValue;
-                }
             }
         }
     }
