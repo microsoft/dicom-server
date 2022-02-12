@@ -77,7 +77,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                     .ConfigureAwait(false);
 
                 var workitemInstanceUid = dataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty);
-                identifier = new WorkitemInstanceIdentifier(workitemInstanceUid, result.Value.WorkitemKey, result.Value.Watermark, partitionKey);
+                identifier = new WorkitemInstanceIdentifier(workitemInstanceUid, result.Value.WorkitemKey, partitionKey, result.Value.Watermark);
 
                 // We have successfully created the index, store the file.
                 await StoreWorkitemBlobAsync(identifier, dataset, null, cancellationToken)
@@ -120,8 +120,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 identifier = new WorkitemInstanceIdentifier(
                     workitemMetadata.WorkitemUid,
                     workitemMetadata.WorkitemKey,
-                    watermarkEntry.Value.CurrentWatermark,
-                    workitemMetadata.PartitionKey);
+                    workitemMetadata.PartitionKey,
+                    watermarkEntry.Value.CurrentWatermark);
                 var storeDicomDataset = await GetWorkitemBlobAsync(identifier, cancellationToken).ConfigureAwait(false);
 
                 // update the procedure step state

@@ -8,7 +8,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem.Model
     public sealed class WorkitemMetadataStoreEntry : WorkitemInstanceIdentifier
     {
         public WorkitemMetadataStoreEntry(string workitemUid, long workitemKey, long watermark, int partitionKey = default)
-            : base(workitemUid, workitemKey, watermark, partitionKey)
+            : base(workitemUid, workitemKey, partitionKey, watermark)
         {
         }
 

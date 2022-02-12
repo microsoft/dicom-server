@@ -141,7 +141,8 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
 
         private BlockBlobClient GetBlockBlobClient(WorkitemInstanceIdentifier identifier, long? proposedWatermark = default)
         {
-            var watermark = proposedWatermark.GetValueOrDefault(identifier.Watermark);
+            var watermark = (proposedWatermark ?? identifier.Watermark).GetValueOrDefault(0);
+
             var blobName = $"{identifier.WorkitemUid}_{identifier.WorkitemKey}_{watermark}_workitem.json";
 
             return _container.GetBlockBlobClient(blobName);
