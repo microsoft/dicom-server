@@ -55,7 +55,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// Sets attributes that are the Service Class Provider's responsibility according to:
         /// <see href='https://dicom.nema.org/dicom/2013/output/chtml/part04/sect_CC.2.html#table_CC.2.5-3'/>
         /// </summary>
-        private static void SetSpecifiedAttributesForCreate(DicomDataset dataset, string workitemQueryParameter)
+        internal static void SetSpecifiedAttributesForCreate(DicomDataset dataset, string workitemQueryParameter)
         {
             // SOP Common Module
             dataset.AddOrUpdate(DicomTag.SOPClassUID, DicomUID.UnifiedProcedureStepPush);
@@ -67,6 +67,30 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             // Unified Procedure Step Progress Information Module
             dataset.AddOrUpdate(DicomTag.ProcedureStepState, ProcedureStepState.Scheduled);
+        }
+
+        /// <summary>
+        /// Sets the dataset value from the query parameter as long as there is no conflict.
+        /// </summary>
+        internal static void ReconcileWorkitemInstanceUid(DicomDataset dataset, string workitemQueryParameter)
+        {
+            if (!string.IsNullOrWhiteSpace(workitemQueryParameter))
+            {
+                var uidInDataset = dataset.TryGetString(DicomTag.SOPInstanceUID, out var sopInstanceUid);
+
+                if (uidInDataset && !string.Equals(workitemQueryParameter, sopInstanceUid, StringComparison.Ordinal))
+                {
+                    throw new DatasetValidationException(
+                    FailureReasonCodes.ValidationFailure,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.MismatchSopInstanceWorkitemInstanceUid,
+                        sopInstanceUid,
+                        workitemQueryParameter));
+                }
+
+                dataset.AddOrUpdate(DicomTag.SOPInstanceUID, workitemQueryParameter);
+            }
         }
 
         private bool Validate(DicomDataset dataset)
@@ -128,32 +152,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
                 // TODO: This can return the Database Error as is. We need to abstract that detail.
                 _responseBuilder.AddFailure(dataset, failureCode, ex.Message);
-            }
-        }
-
-        /// <summary>
-        /// Sets the dataset value from the query parameter as long as there is no conflict.
-        /// </summary>
-        private static void ReconcileWorkitemInstanceUid(DicomDataset dataset, string workitemQueryParameter)
-        {
-            EnsureArg.IsNotNull(dataset, nameof(dataset));
-
-            if (!string.IsNullOrWhiteSpace(workitemQueryParameter))
-            {
-                var uidInDataset = dataset.TryGetString(DicomTag.SOPInstanceUID, out var sopInstanceUid);
-
-                if (uidInDataset && !string.Equals(workitemQueryParameter, sopInstanceUid, StringComparison.Ordinal))
-                {
-                    throw new DatasetValidationException(
-                    FailureReasonCodes.ValidationFailure,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        DicomCoreResource.MismatchSopInstanceWorkitemInstanceUid,
-                        sopInstanceUid,
-                        workitemQueryParameter));
-                }
-
-                dataset.AddOrUpdate(DicomTag.SOPInstanceUID, workitemQueryParameter);
             }
         }
     }

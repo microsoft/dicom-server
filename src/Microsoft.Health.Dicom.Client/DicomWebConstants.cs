@@ -11,7 +11,8 @@ namespace Microsoft.Health.Dicom.Client
     {
         public const string BasePartitionUriFormat = "/partitions/{0}";
         public const string BaseStudyUriFormat = "/studies/{0}";
-        public const string BaseWorkitemUriFormat = "/workitems?{0}";
+        public const string BaseWorkitemUriFormat = "/workitems/{0}";
+        public const string AddWorkitemUriFormat = "/workitems?{0}";
         public const string BaseRetrieveStudyMetadataUriFormat = BaseStudyUriFormat + "/metadata";
         public const string BaseSeriesUriFormat = BaseStudyUriFormat + "/series/{1}";
         public const string BaseRetrieveSeriesMetadataUriFormat = BaseSeriesUriFormat + "/metadata";

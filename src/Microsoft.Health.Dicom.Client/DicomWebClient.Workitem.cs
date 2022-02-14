@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Client
             serializerOptions.Converters.Add(new DicomJsonConverter());
 
             string jsonString = JsonSerializer.Serialize(dicomDatasets, serializerOptions);
-            using var request = new HttpRequestMessage(HttpMethod.Post, GenerateWorkitemAddRequestUri(partitionName, workitemUid));
+            using var request = new HttpRequestMessage(HttpMethod.Post, GenerateWorkitemAddRequestUri(workitemUid, partitionName));
             {
                 request.Content = new StringContent(jsonString);
                 request.Content.Headers.ContentType = DicomWebConstants.MediaTypeApplicationDicomJson;

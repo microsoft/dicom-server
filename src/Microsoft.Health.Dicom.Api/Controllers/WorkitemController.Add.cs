@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// <returns></returns>
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
         [Produces(KnownContentTypes.ApplicationDicomJson)]
-        [Consumes(KnownContentTypes.ApplicationDicomJson, KnownContentTypes.ApplicationJson)]
+        [Consumes(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.Accepted)]
         [ProducesResponseType((int)HttpStatusCode.Conflict)]

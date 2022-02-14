@@ -368,7 +368,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         /// Validate whether a dataset meets the service class user (SCU) and service class provider (SCP) requirements for a given attribute.
         /// <see href="https://dicom.nema.org/medical/dicom/current/output/html/part04.html#sect_5.4.2.1">Dicom 3.4.5.4.2.1</see>
         /// </summary>
-        /// <param name="dataset">GThe dataset to validate.</param>
+        /// <param name="dataset">The dataset to validate.</param>
         /// <param name="tag">The tag for the attribute that is required.</param>
         /// <param name="requirement">The requirement code expressed as an enum.</param>
         public static void ValidateRequirement(this DicomDataset dataset, DicomTag tag, RequirementCode requirement)
