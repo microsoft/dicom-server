@@ -3,7 +3,7 @@
 **************************************************************/
 --
 -- STORED PROCEDURE
---     AddWorkitemV10
+--     AddWorkitemV11
 --
 -- DESCRIPTION
 --     Adds a UPS-RS workitem.
@@ -24,7 +24,7 @@
 -- RETURN VALUE
 --     The WorkitemKey and Watermark
 ------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.AddWorkitemV10
+CREATE OR ALTER PROCEDURE dbo.AddWorkitemV11
     @partitionKey                   INT,
     @workitemUid                    VARCHAR(64),
     @stringExtendedQueryTags        dbo.InsertStringExtendedQueryTagTableType_1 READONLY,

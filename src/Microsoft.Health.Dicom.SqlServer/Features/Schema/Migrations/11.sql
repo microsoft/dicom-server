@@ -803,7 +803,7 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.AddWorkitemV10
+CREATE OR ALTER PROCEDURE dbo.AddWorkitemV11
 @partitionKey INT, @workitemUid VARCHAR (64), @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY, @initialStatus TINYINT
 AS
 BEGIN
@@ -2045,8 +2045,7 @@ BEGIN
                      dbo.Workitem AS wi
                      ON wi.PartitionKey = eqts.PartitionKey
                         AND wi.WorkitemKey = eqts.SopInstanceKey1
-              WHERE  wi.WorkitemKey = @workitemKey
-                     AND wi.Watermark = @watermark)
+              WHERE  wi.WorkitemKey = @workitemKey)
         UPDATE targetTbl
         SET    targetTbl.TagValue  = @procedureStepState,
                targetTbl.Watermark = @newWatermark
