@@ -102,7 +102,6 @@ BEGIN
 			        AND wi.WorkitemKey = eqts.SopInstanceKey1
 	        WHERE
 		        wi.WorkitemKey = @workitemKey
-                AND wi.Watermark = @watermark
         )
         UPDATE targetTbl
         SET
