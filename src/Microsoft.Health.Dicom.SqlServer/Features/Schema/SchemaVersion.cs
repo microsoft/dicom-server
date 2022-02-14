@@ -21,5 +21,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
         V8 = 8,
         V9 = 9,
         V10 = 10,
+        V11 = 11,
     }
 }
