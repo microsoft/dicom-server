@@ -14,30 +14,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
     public class LoggingWorkitemStore : IWorkitemStore
     {
-        private static readonly Action<ILogger, WorkitemInstanceIdentifier, Exception> LogAddWorkitemDelegate =
-               LoggerMessage.Define<WorkitemInstanceIdentifier>(
-                   LogLevel.Debug,
-                   default,
-                   "Adding workitem '{WorkitemInstanceIdentifier}'.");
-
-        private static readonly Action<ILogger, WorkitemInstanceIdentifier, Exception> LogQueryWorkitemDelegate =
-               LoggerMessage.Define<WorkitemInstanceIdentifier>(
-                   LogLevel.Debug,
-                   default,
-                   "Querying workitem '{WorkitemInstanceIdentifier}'.");
-
-        private static readonly Action<ILogger, Exception> LogOperationSucceededDelegate =
-            LoggerMessage.Define(
-                LogLevel.Debug,
-                default,
-                "The operation completed successfully.");
-
-        private static readonly Action<ILogger, Exception> LogOperationFailedDelegate =
-            LoggerMessage.Define(
-                LogLevel.Warning,
-                default,
-                "The operation failed.");
-
         private readonly IWorkitemStore _workitemStore;
         private readonly ILogger _logger;
 
@@ -55,17 +31,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             EnsureArg.IsNotNull(identifier, nameof(identifier));
 
-            LogAddWorkitemDelegate(_logger, identifier, null);
+            _logger.LogDebug("Adding workitem '{WorkitemInstanceIdentifier}'.", identifier);
 
             try
             {
                 await _workitemStore.AddWorkitemAsync(identifier, dataset, proposedWatermark, cancellationToken);
 
-                LogOperationSucceededDelegate(_logger, null);
+                _logger.LogDebug("The operation completed successfully.");
             }
             catch (Exception ex)
             {
-                LogOperationFailedDelegate(_logger, ex);
+                _logger.LogWarning(ex, "The operation failed.");
 
                 throw;
             }
@@ -76,19 +52,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             EnsureArg.IsNotNull(identifier, nameof(identifier));
 
-            LogQueryWorkitemDelegate(_logger, identifier, null);
+            _logger.LogDebug("Querying workitem '{WorkitemInstanceIdentifier}'.", identifier);
 
             try
             {
                 var result = await _workitemStore.GetWorkitemAsync(identifier, cancellationToken);
 
-                LogOperationSucceededDelegate(_logger, null);
+                _logger.LogDebug("The operation completed successfully.");
 
                 return result;
             }
             catch (Exception ex)
             {
-                LogOperationFailedDelegate(_logger, ex);
+                _logger.LogWarning(ex, "The operation failed.");
 
                 throw;
             }
@@ -99,17 +75,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             EnsureArg.IsNotNull(identifier, nameof(identifier));
 
-            LogQueryWorkitemDelegate(_logger, identifier, null);
+            _logger.LogDebug("Querying workitem '{WorkitemInstanceIdentifier}'.", identifier);
 
             try
             {
                 await _workitemStore.DeleteWorkitemAsync(identifier, proposedWatermark, cancellationToken);
 
-                LogOperationSucceededDelegate(_logger, null);
+                _logger.LogDebug("The operation completed successfully.");
             }
             catch (Exception ex)
             {
-                LogOperationFailedDelegate(_logger, ex);
+                _logger.LogWarning(ex, "The operation failed.");
 
                 throw;
             }
