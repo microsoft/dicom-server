@@ -23,6 +23,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     /// </summary>
     public partial class WorkitemService
     {
+        private const string WorklistLabel = "worklist";
+
         public async Task<AddWorkitemResponse> ProcessAddAsync(DicomDataset dataset, string workitemInstanceUid, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));

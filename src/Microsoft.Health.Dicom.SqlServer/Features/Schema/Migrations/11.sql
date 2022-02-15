@@ -287,7 +287,8 @@ CREATE TABLE dbo.Instance (
     Status                TINYINT       NOT NULL,
     LastStatusUpdatedDate DATETIME2 (7) NOT NULL,
     CreatedDate           DATETIME2 (7) NOT NULL,
-    PartitionKey          INT           DEFAULT 1 NOT NULL
+    PartitionKey          INT           DEFAULT 1 NOT NULL,
+    TransferSyntaxUid     VARCHAR (64)  NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
@@ -300,11 +301,11 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_
 
 CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_Status_PartitionKey
     ON dbo.Instance(StudyInstanceUid, Status, PartitionKey)
-    INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
+    INCLUDE(SeriesInstanceUid, SopInstanceUid, Watermark, TransferSyntaxUid) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_PartitionKey
     ON dbo.Instance(StudyInstanceUid, SeriesInstanceUid, Status, PartitionKey)
-    INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
+    INCLUDE(SopInstanceUid, Watermark, TransferSyntaxUid) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE NONCLUSTERED INDEX IX_Instance_SopInstanceUid_Status_PartitionKey
     ON dbo.Instance(SopInstanceUid, Status, PartitionKey)
@@ -680,7 +681,7 @@ END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.AddInstanceV6
-@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @patientId NVARCHAR (64), @patientName NVARCHAR (325)=NULL, @referringPhysicianName NVARCHAR (325)=NULL, @studyDate DATE=NULL, @studyDescription NVARCHAR (64)=NULL, @accessionNumber NVARCHAR (64)=NULL, @modality NVARCHAR (16)=NULL, @performedProcedureStepStartDate DATE=NULL, @patientBirthDate DATE=NULL, @manufacturerModelName NVARCHAR (64)=NULL, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY, @initialStatus TINYINT
+@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @patientId NVARCHAR (64), @patientName NVARCHAR (325)=NULL, @referringPhysicianName NVARCHAR (325)=NULL, @studyDate DATE=NULL, @studyDescription NVARCHAR (64)=NULL, @accessionNumber NVARCHAR (64)=NULL, @modality NVARCHAR (16)=NULL, @performedProcedureStepStartDate DATE=NULL, @patientBirthDate DATE=NULL, @manufacturerModelName NVARCHAR (64)=NULL, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY, @initialStatus TINYINT, @transferSyntaxUid VARCHAR (64)=NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -745,8 +746,8 @@ BEGIN
                    AND StudyKey = @studyKey
                    AND PartitionKey = @partitionKey;
         END
-    INSERT  INTO dbo.Instance (PartitionKey, StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
-    VALUES                   (@partitionKey, @studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate);
+    INSERT  INTO dbo.Instance (PartitionKey, StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate, TransferSyntaxUid)
+    VALUES                   (@partitionKey, @studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate, @transferSyntaxUid);
     BEGIN TRY
         EXECUTE dbo.IIndexInstanceCoreV9 @partitionKey, @studyKey, @seriesKey, @instanceKey, @newWatermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
     END TRY
@@ -1566,6 +1567,26 @@ BEGIN
            SeriesInstanceUid,
            SopInstanceUid,
            Watermark
+    FROM   dbo.Instance
+    WHERE  PartitionKey = @partitionKey
+           AND StudyInstanceUid = @studyInstanceUid
+           AND SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
+           AND SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
+           AND Status = @validStatus;
+END
+
+GO
+CREATE OR ALTER PROCEDURE dbo.GetInstanceWithProperties
+@validStatus TINYINT, @partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64)=NULL, @sopInstanceUid VARCHAR (64)=NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    SELECT StudyInstanceUid,
+           SeriesInstanceUid,
+           SopInstanceUid,
+           Watermark,
+           TransferSyntaxUid
     FROM   dbo.Instance
     WHERE  PartitionKey = @partitionKey
            AND StudyInstanceUid = @studyInstanceUid

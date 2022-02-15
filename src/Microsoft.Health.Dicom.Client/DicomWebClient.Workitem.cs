@@ -54,10 +54,10 @@ namespace Microsoft.Health.Dicom.Client
             using var request = new HttpRequestMessage(HttpMethod.Post, GenerateWorkitemCancelRequestUri(workitemUid, partitionName));
             {
                 request.Content = new StringContent(jsonString);
-                request.Content.Headers.ContentType = new MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType);
+                request.Content.Headers.ContentType = new MediaTypeHeaderValue(DicomWebConstants.ApplicationDicomJsonMediaType);
             }
 
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(DicomWebConstants.ApplicationJsonMediaType));
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(DicomWebConstants.ApplicationDicomJsonMediaType));
 
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
             await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);

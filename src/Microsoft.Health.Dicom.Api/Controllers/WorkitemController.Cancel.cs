@@ -36,9 +36,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// </remarks>
         /// <param name="workitemInstanceUid">The workitem Uid</param>
         /// <returns>Returns a string status report.</returns>
-        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationJson }, allowSingle: true, allowMultiple: false)]
-        [Produces(KnownContentTypes.ApplicationJson)]
-        [Consumes(KnownContentTypes.ApplicationJson)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+        [Produces(KnownContentTypes.ApplicationDicomJson)]
+        [Consumes(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.Accepted)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.Conflict)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]

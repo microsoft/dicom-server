@@ -62,7 +62,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             try
             {
-                GetValidator<CancelWorkitemDatasetValidator>().Validate(dataset, workitemInstanceUid);
+                GetValidator<CancelWorkitemDatasetValidator>().Validate(dataset);
 
                 CancelWorkitemDatasetValidator.ValidateProcedureStepStateInStore(workitemInstanceUid, workitemMetadata, transitionStateResult);
 
