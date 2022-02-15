@@ -187,3 +187,76 @@ END
 GO
 
 COMMIT TRANSACTION
+
+IF EXISTS 
+(
+    SELECT *
+    FROM    sys.indexes
+    WHERE   NAME = 'IX_Instance_StudyInstanceUid_Status_PartitionKey'
+        AND Object_id = OBJECT_ID('dbo.Instance')
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_Status_PartitionKey on dbo.Instance
+    (
+        StudyInstanceUid,
+        Status,
+        PartitionKey    
+    )
+    INCLUDE
+    (
+        SeriesInstanceUid,
+        SopInstanceUid,
+        Watermark,
+        TransferSyntaxUid
+    )
+    WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING = ON, ONLINE = ON)
+END
+
+IF EXISTS 
+(
+    SELECT *
+    FROM    sys.indexes
+    WHERE   NAME = 'IX_Instance_StudyInstanceUid_Status_PartitionKey'
+        AND Object_id = OBJECT_ID('dbo.Instance')
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_Status_PartitionKey on dbo.Instance
+    (
+        StudyInstanceUid,
+        Status,
+        PartitionKey    
+    )
+    INCLUDE
+    (
+        SeriesInstanceUid,
+        SopInstanceUid,
+        Watermark,
+        TransferSyntaxUid
+    )
+    WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING = ON, ONLINE = ON)
+END
+
+
+IF EXISTS 
+(
+    SELECT *
+    FROM    sys.indexes
+    WHERE   NAME = 'IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_PartitionKey'
+        AND Object_id = OBJECT_ID('dbo.Instance')
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_PartitionKey on dbo.Instance
+    (
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        Status,
+        PartitionKey    
+    )
+    INCLUDE
+    (
+        SopInstanceUid,
+        Watermark,
+        TransferSyntaxUid
+    )
+    WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING = ON, ONLINE = ON)
+END

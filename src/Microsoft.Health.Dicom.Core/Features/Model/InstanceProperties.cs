@@ -7,7 +7,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
 {
     public class InstanceProperties
     {
-
         public InstanceProperties(string transferSyntaxUid)
         {
             TransferSyntaxUid = transferSyntaxUid;

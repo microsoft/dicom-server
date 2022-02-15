@@ -53,7 +53,10 @@ CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_Status_PartitionKey on db
 )
 INCLUDE
 (
-    Watermark
+    SeriesInstanceUid,
+    SopInstanceUid,
+    Watermark,
+    TransferSyntaxUid
 )
 WITH (DATA_COMPRESSION = PAGE)
 
@@ -67,7 +70,9 @@ CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_
 )
 INCLUDE
 (
-    Watermark
+    SopInstanceUid,
+    Watermark,
+    TransferSyntaxUid
 )
 WITH (DATA_COMPRESSION = PAGE)
 
