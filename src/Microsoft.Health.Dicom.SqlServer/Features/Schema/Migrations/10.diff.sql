@@ -23,7 +23,7 @@ BEGIN
         INCREMENT BY 1
         MINVALUE 1
         NO CYCLE
-        CACHE 1000000
+        CACHE 10000
 END
 GO
 
@@ -38,6 +38,14 @@ BEGIN
     ALTER TABLE dbo.Workitem
         ADD Watermark BIGINT DEFAULT 0 NOT NULL
 END
+GO
+
+DROP INDEX IF EXISTS IXC_Workitem ON dbo.Workitem
+GO
+CREATE UNIQUE CLUSTERED INDEX IXC_Workitem ON dbo.Workitem
+(
+    WorkitemKey
+)
 GO
 
 DROP INDEX IF EXISTS IX_Workitem_WorkitemUid_PartitionKey ON dbo.Workitem
@@ -58,12 +66,22 @@ INCLUDE
 WITH (DATA_COMPRESSION = PAGE)
 GO
 
+DROP INDEX IF EXISTS IX_Workitem_WorkitemKey_Watermark ON dbo.Workitem
+GO
+CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemKey_Watermark ON dbo.Workitem
+(
+    WorkitemKey,
+    Watermark
+)
+WITH (DATA_COMPRESSION = PAGE)
+GO
+
 /*************************************************************
     Stored procedure for adding a workitem.
 **************************************************************/
 --
 -- STORED PROCEDURE
---     AddWorkitemV11
+--     AddWorkitemV10
 --
 -- DESCRIPTION
 --     Adds a UPS-RS workitem.
@@ -84,7 +102,7 @@ GO
 -- RETURN VALUE
 --     The WorkitemKey and Watermark
 ------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.AddWorkitemV11
+CREATE OR ALTER PROCEDURE dbo.AddWorkitemV10
     @partitionKey                   INT,
     @workitemUid                    VARCHAR(64),
     @stringExtendedQueryTags        dbo.InsertStringExtendedQueryTagTableType_1 READONLY,
@@ -143,7 +161,6 @@ BEGIN
 END
 GO
 
-
 /*************************************************************
  Stored procedure for Updating a workitem procedure step state.
 **************************************************************/
@@ -152,7 +169,7 @@ GO
 --     UpdateWorkitemProcedureStepState
 --
 -- DESCRIPTION
---     Adds a UPS-RS workitem.
+--     Updates a UPS-RS workitem procedure step state.
 --
 -- PARAMETERS
 --     @workitemKey
@@ -204,23 +221,20 @@ BEGIN
     SET XACT_ABORT ON
     BEGIN TRANSACTION
 
-    IF NOT EXISTS (SELECT WorkitemUid FROM Workitem WHERE WorkitemKey = @workitemKey)
-        THROW 50409, 'Workitem does not exist', 1;
-
-    DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
-
     -- Update the workitem watermark
+    -- To update the workitem watermark, current watermark MUST match.
+    -- This check is to make sure no two parties can update the workitem with an outdated data.
     UPDATE dbo.Workitem
     SET
-        Watermark = @proposedWatermark,
-        LastStatusUpdatedDate = @currentDate
+        Watermark = @proposedWatermark
     WHERE
         WorkitemKey = @workitemKey
         AND Watermark = @watermark
 
     IF @@ROWCOUNT = 0
-        THROW 50409, 'Workitem was changed.', 1; -- TODO: new error code, and change the message???
+        THROW 50409, 'Workitem update failed.', 1;
 
+    DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
     DECLARE @currentProcedureStepStateTagValue VARCHAR(64)
     DECLARE @newWatermark BIGINT
     SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence
@@ -249,7 +263,6 @@ BEGIN
 			        AND wi.WorkitemKey = eqts.SopInstanceKey1
 	        WHERE
 		        wi.WorkitemKey = @workitemKey
-                AND wi.Watermark = @watermark
         )
         UPDATE targetTbl
         SET
@@ -274,12 +287,14 @@ BEGIN
 
     END CATCH
 
+    IF @@ROWCOUNT = 0
+        THROW 50409, 'Workitem update failed.', 1;
+
     SELECT @@ROWCOUNT
 
     COMMIT TRANSACTION
 END
 GO
-
 
 /*************************************************************
     Stored procedure for getting a workitem metadata.
@@ -293,9 +308,9 @@ GO
 --
 -- PARAMETERS
 --     @partitionKey
---         * The system identifier of the data partition.
---     @workitemUid
---         * The workitem UID.
+--         * The Partition Key
+--     @workitemInstanceUid
+--         * The workitem Key.
 --     @procedureStepStateTagPath
 --         * The Procedure Step State Tag Path.
 -- RETURN VALUE
@@ -317,19 +332,6 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-    DECLARE @workitemKey BIGINT
-
-    SELECT
-        @workitemKey = WorkitemKey
-    FROM
-        dbo.Workitem
-    WHERE
-        PartitionKey = @partitionKey
-        AND WorkitemUid = @workitemUid        
-
-    IF @workitemKey IS NULL
-        THROW 50409, 'Workitem does not exist', 1;
-
     SELECT
 	    wi.WorkitemUid,
 	    wi.WorkitemKey,
@@ -348,7 +350,11 @@ BEGIN
 			ON wi.WorkitemKey = eqt.SopInstanceKey1
 			AND wi.PartitionKey = eqt.PartitionKey
     WHERE
-	    wi.WorkitemKey = @workitemKey
+        wi.PartitionKey = @partitionKey
+        AND wi.WorkitemUid = @workitemUid
+
+    IF @@ROWCOUNT = 0
+        THROW 50409, 'Workitem does not exist', 1;
 
 END
 GO
@@ -364,10 +370,8 @@ GO
 --     Gets the current and next watermark.
 --
 -- PARAMETERS
---     @partitionKey
---         * The partition key.
---     @workitemUid
---         * The Workitem instance UID.
+--     @workitemKey
+--         * The Workitem key.
 --
 -- RETURN VALUE
 --     Recordset with the following columns
@@ -375,24 +379,13 @@ GO
 --          * ProposedWatermark
 ------------------------------------------------------------------------
 CREATE OR ALTER PROCEDURE dbo.GetCurrentAndNextWorkitemWatermark
-    @partitionKey                       INT,
-    @workitemUid                        VARCHAR(64)
+    @workitemKey                       BIGINT
 AS
 BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-    DECLARE @workitemKey BIGINT
-
-    SELECT
-        @workitemKey = WorkitemKey
-    FROM
-        dbo.Workitem
-    WHERE
-        PartitionKey = @partitionKey
-        AND WorkitemUid = @workitemUid        
-
-    IF @workitemKey IS NULL
+    IF NOT EXISTS (SELECT WorkitemKey FROM dbo.Workitem WHERE WorkitemKey = @workitemKey)
         THROW 50409, 'Workitem does not exist', 1;
 
     DECLARE @proposedWatermark BIGINT
@@ -402,7 +395,7 @@ BEGIN
         Watermark,
         @proposedWatermark AS ProposedWatermark
     FROM
-        Workitem
+        dbo.Workitem
     WHERE
         WorkitemKey = @workitemKey
 

@@ -9,10 +9,8 @@
 --     Gets the current and next watermark.
 --
 -- PARAMETERS
---     @partitionKey
---         * The partition key.
---     @workitemUid
---         * The Workitem instance UID.
+--     @workitemKey
+--         * The Workitem key.
 --
 -- RETURN VALUE
 --     Recordset with the following columns
@@ -20,24 +18,13 @@
 --          * ProposedWatermark
 ------------------------------------------------------------------------
 CREATE OR ALTER PROCEDURE dbo.GetCurrentAndNextWorkitemWatermark
-    @partitionKey                       INT,
-    @workitemUid                        VARCHAR(64)
+    @workitemKey                       BIGINT
 AS
 BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-    DECLARE @workitemKey BIGINT
-
-    SELECT
-        @workitemKey = WorkitemKey
-    FROM
-        dbo.Workitem
-    WHERE
-        PartitionKey = @partitionKey
-        AND WorkitemUid = @workitemUid        
-
-    IF @workitemKey IS NULL
+    IF NOT EXISTS (SELECT WorkitemKey FROM dbo.Workitem WHERE WorkitemKey = @workitemKey)
         THROW 50409, 'Workitem does not exist', 1;
 
     DECLARE @proposedWatermark BIGINT
@@ -47,7 +34,7 @@ BEGIN
         Watermark,
         @proposedWatermark AS ProposedWatermark
     FROM
-        Workitem
+        dbo.Workitem
     WHERE
         WorkitemKey = @workitemKey
 

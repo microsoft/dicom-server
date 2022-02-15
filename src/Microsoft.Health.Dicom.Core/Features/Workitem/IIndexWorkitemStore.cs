@@ -86,20 +86,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <summary>
         /// Asynchronously gets workitem metadata
         /// </summary>
-        /// <param name="partitionKey">The partition key.</param>
-        /// <param name="workitemUid">Workitem instance UID</param>
+        /// <param name="partitionKey">The Partition key</param>
+        /// <param name="workitemUid">The workitem instance UID.</param>
         /// <param name="cancellationToken">The cancellation token</param>
         /// <returns>Returns the Workitem attributes that are indexed in a store.</returns>
-        Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default);
+        Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(
+            int partitionKey,
+            string workitemUid,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously gets current and next workitem watermark
         /// </summary>
-        /// <param name="partitionKey">The partition key.</param>
-        /// <param name="workitemUid">Workitem instance UID</param>
+        /// <param name="workitemKey">The workitem key.</param>
         /// <param name="cancellationToken">The cancellation token</param>
         /// <returns>Returns the Current and Next Workitem Watermark.</returns>
-        Task<(long CurrentWatermark, long NextWatermark)?> GetCurrentAndNextWorkitemWatermarkAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default);
+        Task<(long CurrentWatermark, long NextWatermark)?> GetCurrentAndNextWorkitemWatermarkAsync(long workitemKey, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously queries workitem

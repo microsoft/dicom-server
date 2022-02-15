@@ -58,12 +58,9 @@ BEGIN
     SET XACT_ABORT ON
     BEGIN TRANSACTION
 
-    IF NOT EXISTS (SELECT WorkitemUid FROM Workitem WHERE WorkitemKey = @workitemKey)
-        THROW 50409, 'Workitem does not exist', 1;
-
-    DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
-
     -- Update the workitem watermark
+    -- To update the workitem watermark, current watermark MUST match.
+    -- This check is to make sure no two parties can update the workitem with an outdated data.
     UPDATE dbo.Workitem
     SET
         Watermark = @proposedWatermark
@@ -74,6 +71,7 @@ BEGIN
     IF @@ROWCOUNT = 0
         THROW 50409, 'Workitem update failed.', 1;
 
+    DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
     DECLARE @currentProcedureStepStateTagValue VARCHAR(64)
     DECLARE @newWatermark BIGINT
     SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence
@@ -125,6 +123,9 @@ BEGIN
         THROW
 
     END CATCH
+
+    IF @@ROWCOUNT = 0
+        THROW 50409, 'Workitem update failed.', 1;
 
     SELECT @@ROWCOUNT
 

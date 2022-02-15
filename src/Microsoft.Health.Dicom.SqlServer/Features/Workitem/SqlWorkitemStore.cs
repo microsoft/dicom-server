@@ -74,18 +74,21 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             return await store.GetWorkitemQueryTagsAsync(cancellationToken);
         }
 
-        public async Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
+        public async Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(
+            int partitionKey,
+            string workitemUid,
+            CancellationToken cancellationToken = default)
         {
             ISqlWorkitemStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
 
             return await store.GetWorkitemMetadataAsync(partitionKey, workitemUid, cancellationToken);
         }
 
-        public async Task<(long CurrentWatermark, long NextWatermark)?> GetCurrentAndNextWorkitemWatermarkAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
+        public async Task<(long CurrentWatermark, long NextWatermark)?> GetCurrentAndNextWorkitemWatermarkAsync(long workitemKey, CancellationToken cancellationToken = default)
         {
             ISqlWorkitemStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
 
-            return await store.GetCurrentAndNextWorkitemWatermarkAsync(partitionKey, workitemUid, cancellationToken);
+            return await store.GetCurrentAndNextWorkitemWatermarkAsync(workitemKey, cancellationToken);
         }
 
         public async Task<WorkitemQueryResult> QueryAsync(int partitionKey, BaseQueryExpression query, CancellationToken cancellationToken = default)

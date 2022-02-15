@@ -30,7 +30,7 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 {
-    internal class SqlWorkitemStoreV11 : SqlWorkitemStoreV9
+    internal class SqlWorkitemStoreV10 : SqlWorkitemStoreV9
     {
         protected static readonly Health.SqlServer.Features.Schema.Model.NVarCharColumn ProcedureStepStateColumn =
             new Health.SqlServer.Features.Schema.Model.NVarCharColumn("ProcedureStepState", 64);
@@ -38,12 +38,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
         protected static readonly Health.SqlServer.Features.Schema.Model.BigIntColumn ProposedWatermarkColumn =
             new Health.SqlServer.Features.Schema.Model.BigIntColumn("ProposedWatermark");
 
-        public SqlWorkitemStoreV11(SqlConnectionWrapperFactory sqlConnectionWrapperFactory, ILogger<ISqlWorkitemStore> logger)
+        public SqlWorkitemStoreV10(SqlConnectionWrapperFactory sqlConnectionWrapperFactory, ILogger<ISqlWorkitemStore> logger)
             : base(sqlConnectionWrapperFactory, logger)
         {
         }
 
-        public override SchemaVersion Version => SchemaVersion.V11;
+        public override SchemaVersion Version => SchemaVersion.V10;
 
         public override async Task<(long WorkitemKey, long Watermark)?> BeginAddWorkitemWithWatermarkAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 var rows = ExtendedQueryTagDataRowsBuilder.Build(dataset, queryTags, Version);
-                var parameters = new VLatest.AddWorkitemV11TableValuedParameters(
+                var parameters = new VLatest.AddWorkitemV10TableValuedParameters(
                     rows.StringRows,
                     rows.DateTimeWithUtcRows,
                     rows.PersonNameRows
@@ -59,7 +59,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
                 string workitemUid = dataset.GetString(DicomTag.SOPInstanceUID);
 
-                VLatest.AddWorkitemV11.PopulateCommand(
+                VLatest.AddWorkitemV10.PopulateCommand(
                     sqlCommandWrapper,
                     partitionKey,
                     workitemUid,
@@ -91,15 +91,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
         }
 
         public override async Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(
-            int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
+            int partitionKey,
+            string workitemUid,
+            CancellationToken cancellationToken = default)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 var procedureStepStateTagPath = DicomTag.ProcedureStepState.GetPath();
 
-                VLatest.GetWorkitemMetadata
-                    .PopulateCommand(sqlCommandWrapper, partitionKey, workitemUid, procedureStepStateTagPath);
+                VLatest.GetWorkitemMetadata.PopulateCommand(sqlCommandWrapper, partitionKey, workitemUid, procedureStepStateTagPath);
 
                 using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
                 {
@@ -107,7 +108,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                     {
                         (
                             string wiUid,
-                            long workitemKey,
+                            long wiKey,
                             int pkey,
                             byte status,
                             string transactionUid,
@@ -122,7 +123,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                                 VLatest.Workitem.Watermark,
                                 ProcedureStepStateColumn);
 
-                        return new WorkitemMetadataStoreEntry(wiUid, workitemKey, watermark, pkey)
+                        return new WorkitemMetadataStoreEntry(wiUid, wiKey, watermark, pkey)
                         {
                             Status = (WorkitemStoreStatus)status,
                             TransactionUid = transactionUid,
@@ -136,7 +137,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
         }
 
         public override async Task<(long CurrentWatermark, long NextWatermark)?> GetCurrentAndNextWorkitemWatermarkAsync(
-            int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
+            long workitemKey,
+            CancellationToken cancellationToken = default)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
@@ -144,7 +146,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                 var procedureStepStateTagPath = DicomTag.ProcedureStepState.GetPath();
 
                 VLatest.GetCurrentAndNextWorkitemWatermark
-                    .PopulateCommand(sqlCommandWrapper, partitionKey, workitemUid);
+                    .PopulateCommand(sqlCommandWrapper, workitemKey);
 
                 using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
                 {

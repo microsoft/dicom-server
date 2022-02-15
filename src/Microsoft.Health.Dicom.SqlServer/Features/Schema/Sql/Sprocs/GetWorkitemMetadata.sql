@@ -10,9 +10,9 @@
 --
 -- PARAMETERS
 --     @partitionKey
---         * The system identifier of the data partition.
---     @workitemUid
---         * The workitem UID.
+--         * The Partition Key
+--     @workitemInstanceUid
+--         * The workitem Key.
 --     @procedureStepStateTagPath
 --         * The Procedure Step State Tag Path.
 -- RETURN VALUE
@@ -34,19 +34,6 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-    DECLARE @workitemKey BIGINT
-
-    SELECT
-        @workitemKey = WorkitemKey
-    FROM
-        dbo.Workitem
-    WHERE
-        PartitionKey = @partitionKey
-        AND WorkitemUid = @workitemUid        
-
-    IF @workitemKey IS NULL
-        THROW 50409, 'Workitem does not exist', 1;
-
     SELECT
 	    wi.WorkitemUid,
 	    wi.WorkitemKey,
@@ -65,6 +52,10 @@ BEGIN
 			ON wi.WorkitemKey = eqt.SopInstanceKey1
 			AND wi.PartitionKey = eqt.PartitionKey
     WHERE
-	    wi.WorkitemKey = @workitemKey
+        wi.PartitionKey = @partitionKey
+        AND wi.WorkitemUid = @workitemUid
+
+    IF @@ROWCOUNT = 0
+        THROW 50409, 'Workitem does not exist', 1;
 
 END

@@ -66,4 +66,4 @@ CREATE SEQUENCE dbo.WorkitemWatermarkSequence
     INCREMENT BY 1
     MINVALUE 1
     NO CYCLE
-    CACHE 1000000
+    CACHE 10000

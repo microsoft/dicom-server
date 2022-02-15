@@ -49,12 +49,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         }
 
         /// <inheritdoc />
-        public async Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(string workitemInstanceUid, CancellationToken cancellationToken = default)
+        public async Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(
+            string workitemUid,
+            CancellationToken cancellationToken = default)
         {
             var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
             var workitemMetadata = await _indexWorkitemStore
-                .GetWorkitemMetadataAsync(partitionKey, workitemInstanceUid, cancellationToken)
+                .GetWorkitemMetadataAsync(partitionKey, workitemUid, cancellationToken)
                 .ConfigureAwait(false);
 
             return workitemMetadata;
@@ -113,7 +115,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             try
             {
                 watermarkEntry = await _indexWorkitemStore
-                    .GetCurrentAndNextWorkitemWatermarkAsync(workitemMetadata.PartitionKey, workitemMetadata.WorkitemUid, cancellationToken)
+                    .GetCurrentAndNextWorkitemWatermarkAsync(workitemMetadata.WorkitemKey, cancellationToken)
                     .ConfigureAwait(false);
 
                 // Get the workitem from blob store

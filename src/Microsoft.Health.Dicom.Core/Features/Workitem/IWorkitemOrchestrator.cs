@@ -20,10 +20,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <summary>
         /// Gets Workitem metadata from the store
         /// </summary>
-        /// <param name="workitemInstanceUid">The workitem instance UID</param>
+        /// <param name="workitemUid">The workitem instance UID</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(string workitemInstanceUid, CancellationToken cancellationToken = default);
+        Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(
+            string workitemUid,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously orchestrate the adding of a UPS-RS workitem.
