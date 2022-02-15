@@ -46,7 +46,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags.Where(tag => tag.IsExtendedQueryTag), Version);
-                VLatest.AddInstanceV6TableValuedParameters parameters = new VLatest.AddInstanceV6TableValuedParameters(
+                V6.AddInstanceV6TableValuedParameters parameters = new V6.AddInstanceV6TableValuedParameters(
                     rows.StringRows,
                     rows.LongRows,
                     rows.DoubleRows,
@@ -54,7 +54,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
                     rows.PersonNameRows
                 );
 
-                VLatest.AddInstanceV6.PopulateCommand(
+                V6.AddInstanceV6.PopulateCommand(
                     sqlCommandWrapper,
                     partitionKey,
                     instance.GetString(DicomTag.StudyInstanceUID),

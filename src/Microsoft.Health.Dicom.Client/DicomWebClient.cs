@@ -142,7 +142,7 @@ namespace Microsoft.Health.Dicom.Client
 
             await using Stream stream = await httpContent.ReadAsStreamAsync(cancellationToken)
                 .ConfigureAwait(false);
-
+            stream.Seek(0, SeekOrigin.Begin);
             MultipartSection part;
 
             var media = MediaTypeHeaderValue.Parse(httpContent.Headers.ContentType.ToString());
