@@ -806,7 +806,7 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.AddWorkitemV10
+CREATE OR ALTER PROCEDURE dbo.AddWorkitemV11
 @partitionKey INT, @workitemUid VARCHAR (64), @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY, @initialStatus TINYINT
 AS
 BEGIN
