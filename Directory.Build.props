@@ -12,7 +12,7 @@
     <FhirServerPackageVersion>2.0.55</FhirServerPackageVersion>
     <FoDicomVersion>5.0.2</FoDicomVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <HealthcareSharedPackageVersion>4.0.24</HealthcareSharedPackageVersion>
+    <HealthcareSharedPackageVersion>4.0.25</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
     <Hl7FhirPackageVersion>3.8.0</Hl7FhirPackageVersion>
     <LangVersion>Latest</LangVersion>
