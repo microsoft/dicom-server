@@ -103,7 +103,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         /// <param name="sopInstanceUid">The instance identifier.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>Instance identifiers.</returns>
-        Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierWithPropertiesAsync(
+        Task<IEnumerable<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(
             int partitionKey,
             string studyInstanceUid,
             string seriesInstanceUid = null,

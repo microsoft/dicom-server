@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -92,9 +93,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
         }
 
 
-        public override async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierWithPropertiesAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
+        public override async Task<IEnumerable<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
         {
-            return await GetInstanceIdentifierImp(partitionKey, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
+            IEnumerable<VersionedInstanceIdentifier> indentifiers = await GetInstanceIdentifierImp(partitionKey, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
+            return indentifiers.Select(i => new InstanceMetadata(i, null));
         }
 
         private async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierImp(

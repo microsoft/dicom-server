@@ -12,9 +12,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
             string seriesInstanceUid,
             string sopInstanceUid,
             long version,
-            int partitionKey = default,
-            InstanceProperties instanceProperties = null)
-            : base(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partitionKey, instanceProperties)
+            int partitionKey = default)
+            : base(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partitionKey)
         {
             Version = version;
         }

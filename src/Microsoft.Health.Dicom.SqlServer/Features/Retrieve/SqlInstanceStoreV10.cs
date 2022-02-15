@@ -24,9 +24,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
 
         public override SchemaVersion Version => SchemaVersion.V10;
 
-        public override async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierWithPropertiesAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
+        public override async Task<IEnumerable<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
         {
-            var results = new List<VersionedInstanceIdentifier>();
+            var results = new List<InstanceMetadata>();
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
@@ -50,13 +50,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
                            VLatest.Instance.Watermark,
                            VLatest.Instance.TransferSyntaxUid);
 
-                        results.Add(new VersionedInstanceIdentifier(
-                                rStudyInstanceUid,
-                                rSeriesInstanceUid,
-                                rSopInstanceUid,
-                                watermark,
-                                partitionKey,
-                                new InstanceProperties(rTransferSyntaxUid)));
+                        results.Add(
+                            new InstanceMetadata(
+                                new VersionedInstanceIdentifier(
+                                    rStudyInstanceUid,
+                                    rSeriesInstanceUid,
+                                    rSopInstanceUid,
+                                    watermark,
+                                    partitionKey),
+                                new InstanceProperties() { TransferSyntaxUid = rTransferSyntaxUid }));
                     }
                 }
             }
