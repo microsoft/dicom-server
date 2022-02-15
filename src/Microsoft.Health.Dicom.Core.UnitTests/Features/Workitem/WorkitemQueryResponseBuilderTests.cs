@@ -18,9 +18,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
     public class WorkitemQueryResponseBuilderTests
     {
         [Fact]
-        public void GivenWorkitemInstanceLevel_WithIncludeField_ValidReturned()
+        public void GivenWorkitem_WithIncludeField_ValidReturned()
         {
-            var includeField = new QueryIncludeField(new List<DicomTag> { DicomTag.PatientID });
+            var includeField = new QueryIncludeField(new List<DicomTag> { DicomTag.WorklistLabel });
             var filters = new List<QueryFilterCondition>()
             {
                 new StringSingleValueMatchCondition(new QueryTag(DicomTag.PatientName), "Foo"),
@@ -30,7 +30,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             DicomDataset responseDataset = WorkitemQueryResponseBuilder.GenerateResponseDataset(Samples.CreateRandomWorkitemInstanceDataset(), query);
             var tags = responseDataset.Select(i => i.Tag).ToList();
 
-            Assert.Contains<DicomTag>(DicomTag.PatientID, tags); // Valid inlcude
+            Assert.Contains<DicomTag>(DicomTag.WorklistLabel, tags); // Valid include
             Assert.Contains<DicomTag>(DicomTag.PatientName, tags); // Valid filter
             Assert.DoesNotContain<DicomTag>(DicomTag.TransactionUID, tags);
         }

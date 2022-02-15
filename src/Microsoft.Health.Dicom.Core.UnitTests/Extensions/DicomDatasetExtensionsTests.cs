@@ -9,6 +9,8 @@ using System.Linq;
 using System.Text.Json;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Tests.Common.Serialization;
 using Xunit;
 
@@ -369,6 +371,56 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
             {
                 dicomItemsNotToCopy.Add(typeof(T), creator());
             }
+        }
+
+        [Theory]
+        [MemberData(nameof(ValidAttributeRequirements))]
+        public void GivenADataset_WhenRequirementIsMet_ValidationSucceeds(DicomTag tag, DicomItem item, RequirementCode requirement)
+        {
+            var dataset = new DicomDataset(item);
+
+            dataset.ValidateRequirement(tag, requirement);
+        }
+
+        [Theory]
+        [MemberData(nameof(InvalidAttributeRequirements))]
+        public void GivenADataset_WhenRequirementIsNotMet_ValidationFails(DicomTag tag, DicomItem item, RequirementCode requirement)
+        {
+            var dataset = new DicomDataset(item);
+
+            Assert.Throws<DatasetValidationException>(() => dataset.ValidateRequirement(tag, requirement));
+        }
+
+        public static IEnumerable<object[]> ValidAttributeRequirements()
+        {
+            yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName, "foo"), RequirementCode.OneOne };
+            yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName, "foo"), RequirementCode.TwoOne };
+            yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName, ""), RequirementCode.TwoOne };
+
+            yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, DateTime.UtcNow), RequirementCode.OneOne };
+            yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, DateTime.UtcNow), RequirementCode.TwoOne };
+            yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, new string[0]), RequirementCode.TwoOne };
+
+            yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue, 0), RequirementCode.OneOne };
+            yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue, 0), RequirementCode.TwoOne };
+            yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue), RequirementCode.TwoOne };
+
+            yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence, new DicomDataset[] { new DicomDataset(new DicomDecimalString(DicomTag.PixelBandwidth, "1.0")) }), RequirementCode.OneOne };
+            yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence, new DicomDataset[] { new DicomDataset(new DicomDecimalString(DicomTag.PixelBandwidth, "1.0")) }), RequirementCode.TwoOne };
+            yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence), RequirementCode.TwoOne };
+        }
+
+        public static IEnumerable<object[]> InvalidAttributeRequirements()
+        {
+            // not present
+            yield return new object[] { DicomTag.SnoutPosition, null, RequirementCode.OneOne };
+            yield return new object[] { DicomTag.SnoutPosition, null, RequirementCode.TwoOne };
+
+            // present, but zero length
+            yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName), RequirementCode.OneOne };
+            yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, new string[0]), RequirementCode.OneOne };
+            yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue), RequirementCode.OneOne };
+            yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence), RequirementCode.OneOne };
         }
     }
 }

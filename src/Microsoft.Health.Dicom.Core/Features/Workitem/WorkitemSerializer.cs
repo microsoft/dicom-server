@@ -27,13 +27,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             EnsureArg.IsNotNull(stream, nameof(stream));
             EnsureArg.IsNotEmptyOrWhiteSpace(contentType, nameof(contentType));
 
-            if (!string.Equals(contentType, KnownContentTypes.ApplicationJson, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(contentType, KnownContentTypes.ApplicationDicomJson, StringComparison.OrdinalIgnoreCase))
             {
                 throw new UnsupportedMediaTypeException(contentType);
             }
 
             var serializerOptions = new JsonSerializerOptions();
-            serializerOptions.Converters.Add(new DicomJsonConverter());
+            serializerOptions.Converters.Add(new DicomJsonConverter(autoValidate: false));
 
             using (var streamReader = new StreamReader(stream))
             {
