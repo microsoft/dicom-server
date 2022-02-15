@@ -34,7 +34,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         [Fact]
         public async Task GivenNullStream_WhenDeserialized_ThrowsArgumentNullException()
         {
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _target.DeserializeAsync<DicomDataset>(null, KnownContentTypes.ApplicationJson));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _target.DeserializeAsync<DicomDataset>(null, KnownContentTypes.ApplicationDicomJson));
         }
 
         [Fact]
@@ -42,7 +42,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         {
             using (var stream = new MemoryStream(await GetWorkitemBytesAsync()))
             {
-                var datasets = await _target.DeserializeAsync<IEnumerable<DicomDataset>>(stream, KnownContentTypes.ApplicationJson);
+                var datasets = await _target.DeserializeAsync<IEnumerable<DicomDataset>>(stream, KnownContentTypes.ApplicationDicomJson);
 
                 Assert.NotNull(datasets);
                 Assert.True(datasets.Any());

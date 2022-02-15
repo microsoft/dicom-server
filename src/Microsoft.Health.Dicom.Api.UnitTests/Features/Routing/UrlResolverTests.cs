@@ -140,7 +140,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Routing
             _urlResolver.ResolveRetrieveWorkitemUri(workitemInstanceUid);
 
             ValidateUrlRouteContext(
-                KnownRouteNames.VersionedPartitionAddWorkitemInstance,
+                KnownRouteNames.VersionedPartitionRetrieveWorkitemInstance,
                 routeValues =>
                 {
                     Assert.Equal(workitemInstanceUid, routeValues[KnownActionParameterNames.WorkItemInstanceUid]);

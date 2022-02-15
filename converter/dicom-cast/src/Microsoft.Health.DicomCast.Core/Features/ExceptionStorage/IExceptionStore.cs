@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Client.Models;
@@ -33,5 +34,9 @@ namespace Microsoft.Health.DicomCast.Core.Features.ExceptionStorage
         /// <param name="exceptionToStore">The exception that was thrown and needs to be stored</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         Task WriteRetryableExceptionAsync(ChangeFeedEntry changeFeedEntry, int retryNum, TimeSpan nextDelayTimeSpan, Exception exceptionToStore, CancellationToken cancellationToken = default);
+
+        Task<(IEnumerable<IntransientError> results, string continuationToken)> ReadIntransientErrors(ErrorType errorType, string continuationToken, CancellationToken cancellationToken = default);
+
+        Task<(IEnumerable<RetryableError> results, string continuationToken)> ReadRetryableErrors(ErrorType errorType, string continuationToken, CancellationToken cancellationToken = default);
     }
 }

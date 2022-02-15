@@ -13,112 +13,41 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 {
-    public sealed class AddWorkitemDatasetValidatorTests
+    public class AddWorkitemDatasetValidatorTests
     {
         [Fact]
-        public void GivenValidate_WhenDicomDatasetIsNull_ThrowsArgumentNullException()
+        public void GivenMissingRequiredTag_Throws()
         {
-            DicomDataset dicomDataset = null;
-            var workitemInstanceUid = DicomUID.Generate().UID;
+            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+            var validator = new AddWorkitemDatasetValidator();
 
-            var target = new AddWorkitemDatasetValidator();
+            dataset = dataset.Remove(DicomTag.TransactionUID);
 
-            Assert.Throws<ArgumentNullException>(() => target.Validate(dicomDataset, workitemInstanceUid));
+            Assert.Throws<DatasetValidationException>(() => validator.Validate(dataset));
         }
 
         [Fact]
-        public void GivenValidate_WhenWorkitemInstanceUidIsNull_DoesNotThrowException()
+        public void GivenNotAllowedTag_WhenPresent_Throws()
         {
-            string workitemInstanceUid = DicomUID.Generate().UID;
-            DicomDataset dicomDataset = CreateDicomDataset(workitemInstanceUid);
+            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
 
-            var target = new AddWorkitemDatasetValidator();
+            dataset = dataset.Add(new DicomDateTime(DicomTag.ProcedureStepCancellationDateTime, DateTime.UtcNow));
 
-            target.Validate(dicomDataset, workitemInstanceUid);
-        }
+            var validator = new AddWorkitemDatasetValidator();
 
-        [Theory]
-        [MemberData(nameof(GetWorkitemRequiredTags))]
-        public void GivenValidate_WhenRequiredTagIsMissing_ThrowsDatasetValidationException(DicomTag dicomTag)
-        {
-            string workitemInstanceUid = DicomUID.Generate().UID;
-            var dicomDataset = CreateDicomDataset(workitemInstanceUid);
-            dicomDataset.Remove(dicomTag);
-
-            var target = new AddWorkitemDatasetValidator();
-            Assert.Throws<DatasetValidationException>(() => target.Validate(dicomDataset, workitemInstanceUid));
+            Assert.Throws<DatasetValidationException>(() => validator.Validate(dataset));
         }
 
         [Fact]
-        public void GivenValidate_WhenAffectedSOPInstanceUidDoesNotMatch_ThrowsDatasetValidationException()
+        public void GivenTagShouldBeEmpty_WhenHasValue_Throws()
         {
-            string workitemInstanceUid = DicomUID.Generate().UID;
-            var dicomDataset = CreateDicomDataset(workitemInstanceUid);
-            var target = new AddWorkitemDatasetValidator();
+            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
 
-            Assert.Throws<DatasetValidationException>(() => target.Validate(dicomDataset, DicomUID.Generate().UID));
-        }
+            dataset = dataset.AddOrUpdate(new DicomUniqueIdentifier(DicomTag.TransactionUID, "123"));
 
-        private static DicomDataset CreateDicomDataset(string workitemInstanceUid)
-        {
-            var ds = new DicomDataset();
+            var validator = new AddWorkitemDatasetValidator();
 
-            ds.Add(DicomTag.AffectedSOPInstanceUID, workitemInstanceUid);
-            ds.Add(DicomTag.ScheduledProcedureStepPriority, Guid.NewGuid().ToString("N").Substring(0, 16).ToUpper());
-            ds.Add(DicomTag.ProcedureStepLabel, Guid.NewGuid().ToString("N").Substring(0, 16).ToUpper());
-            ds.Add(DicomTag.WorklistLabel, Guid.NewGuid().ToString("N").Substring(0, 16).ToUpper());
-            ds.Add(DicomTag.ScheduledStationNameCodeSequence, new DicomDataset());
-            ds.Add(DicomTag.ScheduledStationClassCodeSequence, new DicomDataset());
-            ds.Add(DicomTag.ScheduledStationGeographicLocationCodeSequence, new DicomDataset());
-            ds.Add(DicomTag.ScheduledHumanPerformersSequence, new DicomDataset());
-            ds.Add(DicomTag.HumanPerformerCodeSequence, new DicomDataset());
-            ds.Add(DicomTag.ScheduledProcedureStepStartDateTime, DateTime.Now);
-            ds.Add(DicomTag.ExpectedCompletionDateTime, DateTime.Now);
-            ds.Add(DicomTag.ScheduledWorkitemCodeSequence, new DicomDataset());
-            ds.Add(DicomTag.InputReadinessState, Guid.NewGuid().ToString("N").Substring(0, 16).ToUpper());
-            ds.Add(DicomTag.PatientName, Guid.NewGuid().ToString("N").Substring(0, 16).ToUpper());
-            ds.Add(DicomTag.PatientID, TestUidGenerator.Generate());
-            ds.Add(DicomTag.PatientBirthDate, DateTime.Now.ToString(@"yyyyMMdd"));
-            ds.Add(DicomTag.PatientSex, Guid.NewGuid().ToString("N").Substring(0, 16).ToUpper());
-            ds.Add(DicomTag.AdmissionID, Guid.NewGuid().ToString("N").Substring(0, 16).ToUpper());
-            ds.Add(DicomTag.IssuerOfAdmissionIDSequence, new DicomDataset());
-            ds.Add(DicomTag.ReferencedRequestSequence, new DicomDataset());
-            ds.Add(DicomTag.AccessionNumber, Guid.NewGuid().ToString("N").Substring(0, 16).ToUpper());
-            ds.Add(DicomTag.IssuerOfAccessionNumberSequence, new DicomDataset());
-            ds.Add(DicomTag.RequestedProcedureID, Guid.NewGuid().ToString("N").Substring(0, 16).ToUpper());
-            ds.Add(DicomTag.RequestingService, Guid.NewGuid().ToString("N").Substring(0, 16).ToUpper());
-            ds.Add(DicomTag.ReplacedProcedureStepSequence, new DicomDataset());
-
-            return ds;
-        }
-
-        public static IEnumerable<object[]> GetWorkitemRequiredTags()
-        {
-            yield return new object[] { DicomTag.ScheduledProcedureStepPriority };
-            yield return new object[] { DicomTag.ProcedureStepLabel };
-            yield return new object[] { DicomTag.WorklistLabel };
-            yield return new object[] { DicomTag.ScheduledProcedureStepStartDateTime };
-            yield return new object[] { DicomTag.ExpectedCompletionDateTime };
-            yield return new object[] { DicomTag.InputReadinessState };
-            yield return new object[] { DicomTag.PatientName };
-            yield return new object[] { DicomTag.PatientID };
-            yield return new object[] { DicomTag.PatientBirthDate };
-            yield return new object[] { DicomTag.PatientSex };
-            yield return new object[] { DicomTag.AdmissionID };
-            yield return new object[] { DicomTag.AccessionNumber };
-            yield return new object[] { DicomTag.RequestedProcedureID };
-            yield return new object[] { DicomTag.RequestingService };
-
-            yield return new object[] { DicomTag.IssuerOfAdmissionIDSequence };
-            yield return new object[] { DicomTag.ReferencedRequestSequence };
-            yield return new object[] { DicomTag.IssuerOfAccessionNumberSequence };
-            yield return new object[] { DicomTag.ScheduledWorkitemCodeSequence };
-            yield return new object[] { DicomTag.ScheduledStationNameCodeSequence };
-            yield return new object[] { DicomTag.ScheduledStationClassCodeSequence };
-            yield return new object[] { DicomTag.ScheduledStationGeographicLocationCodeSequence };
-            yield return new object[] { DicomTag.ScheduledHumanPerformersSequence };
-            yield return new object[] { DicomTag.HumanPerformerCodeSequence };
-            yield return new object[] { DicomTag.ReplacedProcedureStepSequence };
+            Assert.Throws<DatasetValidationException>(() => validator.Validate(dataset));
         }
     }
 }

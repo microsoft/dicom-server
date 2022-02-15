@@ -13,7 +13,9 @@ using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
+using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Extensions
 {
@@ -359,6 +361,39 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                         yield return new DicomDataset(item);
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Validate whether a dataset meets the service class user (SCU) and service class provider (SCP) requirements for a given attribute.
+        /// <see href="https://dicom.nema.org/medical/dicom/current/output/html/part04.html#sect_5.4.2.1">Dicom 3.4.5.4.2.1</see>
+        /// </summary>
+        /// <param name="dataset">The dataset to validate.</param>
+        /// <param name="tag">The tag for the attribute that is required.</param>
+        /// <param name="requirement">The requirement code expressed as an enum.</param>
+        public static void ValidateRequirement(this DicomDataset dataset, DicomTag tag, RequirementCode requirement)
+        {
+            EnsureArg.IsNotNull(dataset, nameof(dataset));
+            EnsureArg.IsNotNull(tag, nameof(tag));
+
+            // We only validate attributes that are mandatory for the SCU (1 or 2). We won't validate any optional attributes (3).
+            if (!dataset.Contains(tag))
+            {
+                throw new DatasetValidationException(
+                    FailureReasonCodes.MissingAttribute,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.MissingRequiredTag,
+                        tag));
+            }
+            else if (requirement is RequirementCode.OneOne && dataset.GetValueCount(tag) < 1)
+            {
+                throw new DatasetValidationException(
+                    FailureReasonCodes.MissingAttributeValue,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.MissingRequiredValue,
+                        tag));
             }
         }
     }

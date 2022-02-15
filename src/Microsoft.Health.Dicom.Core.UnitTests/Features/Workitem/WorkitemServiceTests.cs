@@ -78,7 +78,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
             _datasetValidator
                 .Received()
-                .Validate(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Is<string>(uid => uid == workitemInstanceUid));
+                .Validate(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)));
         }
 
         [Fact]
@@ -89,7 +89,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
 
             _datasetValidator
-                .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
+                .When(dv => dv.Validate(Arg.Any<DicomDataset>()))
                 .Throw(new DicomValidationException(string.Empty, DicomVR.UN, string.Empty));
 
             await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
@@ -107,7 +107,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
 
             _datasetValidator
-                .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
+                .When(dv => dv.Validate(Arg.Any<DicomDataset>()))
                 .Throw(new DatasetValidationException(ushort.MinValue, string.Empty));
 
             await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
@@ -127,7 +127,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
 
             _datasetValidator
-                .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
+                .When(dv => dv.Validate(Arg.Any<DicomDataset>()))
                 .Throw(new DatasetValidationException(failureCode, errorMessage));
 
             await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
@@ -148,7 +148,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
 
             _datasetValidator
-                .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
+                .When(dv => dv.Validate(Arg.Any<DicomDataset>()))
                 .Throw(new DicomValidationException(string.Empty, DicomVR.UN, string.Empty));
 
             await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
@@ -170,7 +170,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
 
             _datasetValidator
-                .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
+                .When(dv => dv.Validate(Arg.Any<DicomDataset>()))
                 .Throw(new Exception(errorMessage));
 
             await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
@@ -233,7 +233,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         public async Task GivenDicomDataset_WhenProcessed_ThenResponseBuilderBuildResponseIsAlwaysCalled()
         {
             _datasetValidator
-                .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
+                .When(dv => dv.Validate(Arg.Any<DicomDataset>()))
                 .Throw(new DicomValidationException(string.Empty, DicomVR.UN, string.Empty));
 
             await _target.ProcessAddAsync(new DicomDataset(), string.Empty, CancellationToken.None).ConfigureAwait(false);
@@ -241,7 +241,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             _responseBuilder.Received().BuildAddResponse();
 
             _datasetValidator
-                .When(dv => dv.Validate(Arg.Any<DicomDataset>(), Arg.Any<string>()))
+                .When(dv => dv.Validate(Arg.Any<DicomDataset>()))
                 .Throw(new DicomValidationException(string.Empty, DicomVR.UN, string.Empty));
 
             await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
@@ -255,6 +255,74 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
             await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
             _responseBuilder.Received().AddSuccess(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)));
+        }
+
+        [Theory]
+        [MemberData(nameof(AddedAttributesForCreate))]
+        internal void GivenEmptyDataset_AttributesAreAdded(DicomTag tag)
+        {
+            var dataset = new DicomDataset();
+
+            WorkitemService.SetSpecifiedAttributesForCreate(dataset, String.Empty);
+
+            Assert.True(dataset.Contains(tag));
+            Assert.True(dataset.GetValueCount(tag) > 0);
+        }
+
+        public static IEnumerable<object[]> AddedAttributesForCreate()
+        {
+            yield return new object[] { DicomTag.SOPClassUID };
+            yield return new object[] { DicomTag.ScheduledProcedureStepModificationDateTime };
+            yield return new object[] { DicomTag.WorklistLabel };
+            yield return new object[] { DicomTag.ProcedureStepState };
+        }
+
+        [Fact]
+        internal void GivenQueryParam_AndNoDatasetAttribute_QueryParamIsSet()
+        {
+            var dataset = new DicomDataset();
+
+            WorkitemService.ReconcileWorkitemInstanceUid(dataset, "123");
+
+            Assert.Equal("123", dataset.GetString(DicomTag.SOPInstanceUID));
+        }
+
+        [Fact]
+        internal void GivenQueryParam_AndMatchingDatasetAttribute_QueryParamIsSet()
+        {
+            var dataset = new DicomDataset(new DicomUniqueIdentifier(DicomTag.SOPInstanceUID, "123"));
+
+            WorkitemService.ReconcileWorkitemInstanceUid(dataset, "123");
+
+            Assert.Equal("123", dataset.GetString(DicomTag.SOPInstanceUID));
+        }
+
+        [Fact]
+        internal void GivenQueryParam_AndDifferentDatasetAttribute_Throws()
+        {
+            var dataset = new DicomDataset(new DicomUniqueIdentifier(DicomTag.SOPInstanceUID, "123"));
+
+            Assert.Throws<DatasetValidationException>(() => WorkitemService.ReconcileWorkitemInstanceUid(dataset, "456"));
+        }
+
+        [Fact]
+        internal void GivenNoQueryParam_AndDatasetAttribute_AttributeIsSet()
+        {
+            var dataset = new DicomDataset(new DicomUniqueIdentifier(DicomTag.SOPInstanceUID, "123"));
+
+            WorkitemService.ReconcileWorkitemInstanceUid(dataset, null);
+
+            Assert.Equal("123", dataset.GetString(DicomTag.SOPInstanceUID));
+        }
+
+        [Fact]
+        internal void GivenNoQueryParam_AndNoDatasetAttribute_NothingIsSet()
+        {
+            var dataset = new DicomDataset();
+
+            WorkitemService.ReconcileWorkitemInstanceUid(dataset, null);
+
+            Assert.False(dataset.Contains(DicomTag.SOPInstanceUID));
         }
 
         private QueryParameters CreateParameters(

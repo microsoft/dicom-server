@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -26,37 +27,63 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
 
-            // The format of the identifiers will be validated by fo-dicom.
-            var workitemUid = string.IsNullOrEmpty(workitemInstanceUid)
-                ? (dataset.TryGetString(DicomTag.SOPInstanceUID, out var sopInstanceUid)
-                    ? sopInstanceUid
-                    : dataset.TryGetString(DicomTag.AffectedSOPInstanceUID, out var affectedSopInstanceUid) ? affectedSopInstanceUid : null)
-                : workitemInstanceUid;
+            SetSpecifiedAttributesForCreate(dataset, workitemInstanceUid);
 
-            if (ValidateAddRequest(dataset, workitemUid))
+            if (ValidateAddRequest(dataset))
             {
-                PrepareAddRequest(dataset, workitemUid);
-
                 await AddWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
             }
 
             return _responseBuilder.BuildAddResponse();
         }
 
-        private static void PrepareAddRequest(DicomDataset dataset, string workitemUid)
+        /// <summary>
+        /// Sets attributes that are the Service Class Provider's responsibility according to:
+        /// <see href='https://dicom.nema.org/dicom/2013/output/chtml/part04/sect_CC.2.html#table_CC.2.5-3'/>
+        /// </summary>
+        internal static void SetSpecifiedAttributesForCreate(DicomDataset dataset, string workitemQueryParameter)
         {
-            var currentProcedureStepState = dataset.GetProcedureState();
-            var result = currentProcedureStepState.GetTransitionState(WorkitemStateEvents.NCreate);
+            // SOP Common Module
+            dataset.AddOrUpdate(DicomTag.SOPClassUID, DicomUID.UnifiedProcedureStepPush);
+            ReconcileWorkitemInstanceUid(dataset, workitemQueryParameter);
 
-            dataset.AddOrUpdate(DicomTag.ProcedureStepState, result.State);
-            dataset.AddOrUpdate(DicomTag.SOPInstanceUID, workitemUid);
+            // Unified Procedure Step Scheduled Procedure Information Module
+            dataset.AddOrUpdate(DicomTag.ScheduledProcedureStepModificationDateTime, DateTime.UtcNow);
+            dataset.AddOrUpdate(DicomTag.WorklistLabel, WorklistLabel);
+
+            // Unified Procedure Step Progress Information Module
+            dataset.AddOrUpdate(DicomTag.ProcedureStepState, ProcedureStepState.Scheduled);
         }
 
-        private bool ValidateAddRequest(DicomDataset dataset, string workitemInstanceUid)
+        /// <summary>
+        /// Sets the dataset value from the query parameter as long as there is no conflict.
+        /// </summary>
+        internal static void ReconcileWorkitemInstanceUid(DicomDataset dataset, string workitemQueryParameter)
+        {
+            if (!string.IsNullOrWhiteSpace(workitemQueryParameter))
+            {
+                var uidInDataset = dataset.TryGetString(DicomTag.SOPInstanceUID, out var sopInstanceUid);
+
+                if (uidInDataset && !string.Equals(workitemQueryParameter, sopInstanceUid, StringComparison.Ordinal))
+                {
+                    throw new DatasetValidationException(
+                    FailureReasonCodes.ValidationFailure,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.MismatchSopInstanceWorkitemInstanceUid,
+                        sopInstanceUid,
+                        workitemQueryParameter));
+                }
+
+                dataset.AddOrUpdate(DicomTag.SOPInstanceUID, workitemQueryParameter);
+            }
+        }
+
+        private bool ValidateAddRequest(DicomDataset dataset)
         {
             try
             {
-                GetValidator<AddWorkitemDatasetValidator>().Validate(dataset, workitemInstanceUid);
+                GetValidator<AddWorkitemDatasetValidator>().Validate(dataset);
                 return true;
             }
             catch (Exception ex)

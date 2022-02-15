@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Client
 
         public HttpContentHeaders ContentHeaders => _response.Content?.Headers;
 
-        protected HttpContent Content => _response.Content;
+        public HttpContent Content => _response.Content;
 
         protected virtual void Dispose(bool disposing)
         {

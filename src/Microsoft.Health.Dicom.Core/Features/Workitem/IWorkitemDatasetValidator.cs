@@ -16,13 +16,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         string Name { get; }
 
         /// <summary>
-        /// Validates the <paramref name="dicomDataset"/>.
+        /// Validates the <paramref name="dataset"/>.
         /// </summary>
-        /// <param name="dicomDataset">The DICOM dataset to validate.</param>
-        /// <param name="workitemInstanceUid">
-        /// If supplied, the workitemInstanceUid in the <paramref name="dicomDataset"/> must match to be considered valid.
-        /// </param>
+        /// <param name="dataset">The DICOM dataset to validate.</param>
         /// <exception cref="DatasetValidationException">Thrown when the validation fails.</exception>
-        void Validate(DicomDataset dicomDataset, string workitemInstanceUid);
+        void Validate(DicomDataset dataset);
     }
 }

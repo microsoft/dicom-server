@@ -108,8 +108,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
             AddRouteValues(routeValues, out bool hasVersion, out bool hasPartition);
 
             var routeName = hasPartition
-                ? (hasVersion ? KnownRouteNames.VersionedPartitionAddWorkitemInstance : KnownRouteNames.PartitionedAddWorkitemInstance)
-                : hasVersion ? KnownRouteNames.VersionedAddWorkitemInstance : KnownRouteNames.AddWorkitemInstance;
+                ? (hasVersion ? KnownRouteNames.VersionedPartitionRetrieveWorkitemInstance : KnownRouteNames.PartitionedRetrieveWorkitemInstance)
+                : hasVersion ? KnownRouteNames.VersionedRetrieveWorkitemInstance : KnownRouteNames.RetrieveWorkitemInstance;
 
             return RouteUri(routeName, routeValues);
         }

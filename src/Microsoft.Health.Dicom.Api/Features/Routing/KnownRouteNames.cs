@@ -51,6 +51,11 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         internal const string VersionedAddWorkitemInstance = nameof(VersionedAddWorkitemInstance);
         internal const string AddWorkitemInstance = nameof(AddWorkitemInstance);
 
+        internal const string VersionedPartitionRetrieveWorkitemInstance = nameof(VersionedPartitionRetrieveWorkitemInstance);
+        internal const string PartitionedRetrieveWorkitemInstance = nameof(PartitionedRetrieveWorkitemInstance);
+        internal const string VersionedRetrieveWorkitemInstance = nameof(VersionedRetrieveWorkitemInstance);
+        internal const string RetrieveWorkitemInstance = nameof(RetrieveWorkitemInstance);
+
         internal const string VersionedPartitionCancelWorkitemInstance = nameof(VersionedPartitionCancelWorkitemInstance);
         internal const string PartitionedCancelWorkitemInstance = nameof(PartitionedCancelWorkitemInstance);
         internal const string VersionedCancelWorkitemInstance = nameof(VersionedCancelWorkitemInstance);

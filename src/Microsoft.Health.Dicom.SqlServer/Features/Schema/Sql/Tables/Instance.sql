@@ -18,6 +18,8 @@ CREATE TABLE dbo.Instance (
     --audit columns
     CreatedDate             DATETIME2(7)               NOT NULL,
     PartitionKey            INT                        NOT NULL DEFAULT 1,  --FK
+    --instance metadata
+    TransferSyntaxUid       VARCHAR(64)                NULL,
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance
@@ -51,7 +53,10 @@ CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_Status_PartitionKey on db
 )
 INCLUDE
 (
-    Watermark
+    SeriesInstanceUid,
+    SopInstanceUid,
+    Watermark,
+    TransferSyntaxUid
 )
 WITH (DATA_COMPRESSION = PAGE)
 
@@ -65,7 +70,9 @@ CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_
 )
 INCLUDE
 (
-    Watermark
+    SopInstanceUid,
+    Watermark,
+    TransferSyntaxUid
 )
 WITH (DATA_COMPRESSION = PAGE)
 

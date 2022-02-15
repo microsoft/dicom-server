@@ -96,7 +96,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                 new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
                 CancellationToken.None);
 
-            ValidateResponseDicomFiles(response.ResponseStreams, datasets.Select(ds => ds));
+            ValidateResponseDicomFiles(response.ResponseInstances.Select(x => x.Stream), datasets.Select(ds => ds));
         }
 
         [Fact]
@@ -130,7 +130,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                 new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
                 CancellationToken.None);
 
-            ValidateResponseDicomFiles(response.ResponseStreams, datasets.Select(ds => ds).Where(ds => ds.ToInstanceIdentifier().SeriesInstanceUid == _firstSeriesInstanceUid));
+            ValidateResponseDicomFiles(response.ResponseInstances.Select(x => x.Stream), datasets.Select(ds => ds).Where(ds => ds.ToInstanceIdentifier().SeriesInstanceUid == _firstSeriesInstanceUid));
             ValidateDicomRequestIsPopulated();
         }
 

@@ -4,12 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Api.Controllers;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
 using Microsoft.Net.Http.Headers;
@@ -20,6 +22,19 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
 {
     public sealed class WorkitemControllerAddTests
     {
+        private readonly WorkitemController _controller;
+        private readonly IMediator _mediator;
+        private readonly string _id = Guid.NewGuid().ToString();
+
+        public WorkitemControllerAddTests()
+        {
+            _mediator = Substitute.For<IMediator>();
+            _controller = new WorkitemController(_mediator, NullLogger<WorkitemController>.Instance);
+            _controller.ControllerContext.HttpContext = new DefaultHttpContext();
+            _controller.ControllerContext.HttpContext.Request.Query = new QueryCollection(new Dictionary<string, StringValues> { { _id, StringValues.Empty } });
+
+        }
+
         [Fact]
         public void GivenNullArguments_WhenConstructing_ThenThrowArgumentNullException()
         {
@@ -35,68 +50,53 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers
         [Fact]
         public async Task GivenWorkitemInstanceUid_WhenHandlerFails_ThenReturnBadRequest()
         {
-            var id = Guid.NewGuid();
-            var mediator = Substitute.For<IMediator>();
-            var controller = new WorkitemController(mediator, NullLogger<WorkitemController>.Instance);
-            controller.ControllerContext.HttpContext = new DefaultHttpContext();
-
-            mediator
+            _mediator
                 .Send(
-                    Arg.Is<AddWorkitemRequest>(x => x.WorkitemInstanceUid == id.ToString()),
-                    Arg.Is(controller.HttpContext.RequestAborted))
+                    Arg.Is<AddWorkitemRequest>(x => x.WorkitemInstanceUid == _id),
+                    Arg.Is(_controller.HttpContext.RequestAborted))
                 .Returns(new AddWorkitemResponse(WorkitemResponseStatus.Failure, new Uri("https://www.microsoft.com")));
 
-            ObjectResult result = await controller.AddAsync(id.ToString()) as ObjectResult;
+            ObjectResult result = await _controller.AddAsync() as ObjectResult;
 
             Assert.IsType<ObjectResult>(result);
             Assert.Equal(HttpStatusCode.BadRequest, (HttpStatusCode)result.StatusCode);
-            Assert.False(controller.Response.Headers.ContainsKey(HeaderNames.ContentLocation));
+            Assert.False(_controller.Response.Headers.ContainsKey(HeaderNames.ContentLocation));
         }
 
         [Fact]
         public async Task GivenWorkitemInstanceUid_WhenItAlreadyExists_ThenReturnConflict()
         {
-            var id = Guid.NewGuid();
-            var mediator = Substitute.For<IMediator>();
-            var controller = new WorkitemController(mediator, NullLogger<WorkitemController>.Instance);
-            controller.ControllerContext.HttpContext = new DefaultHttpContext();
-
-            mediator
+            _mediator
                 .Send(
-                    Arg.Is<AddWorkitemRequest>(x => x.WorkitemInstanceUid == id.ToString()),
-                    Arg.Is(controller.HttpContext.RequestAborted))
+                    Arg.Is<AddWorkitemRequest>(x => x.WorkitemInstanceUid == _id),
+                    Arg.Is(_controller.HttpContext.RequestAborted))
                 .Returns(new AddWorkitemResponse(WorkitemResponseStatus.Conflict, new Uri("https://www.microsoft.com")));
 
-            ObjectResult result = await controller.AddAsync(id.ToString()) as ObjectResult;
+            ObjectResult result = await _controller.AddAsync() as ObjectResult;
 
             Assert.IsType<ObjectResult>(result);
             Assert.Equal(HttpStatusCode.Conflict, (HttpStatusCode)result.StatusCode);
-            Assert.False(controller.Response.Headers.ContainsKey(HeaderNames.ContentLocation));
+            Assert.False(_controller.Response.Headers.ContainsKey(HeaderNames.ContentLocation));
         }
 
 
         [Fact]
         public async Task GivenWorkitemInstanceUid_WhenHandlerSucceeds_ThenReturnCreated()
         {
-            const string url = "https://www.microsoft.com/";
-            var id = Guid.NewGuid();
-            var mediator = Substitute.For<IMediator>();
-            var controller = new WorkitemController(mediator, NullLogger<WorkitemController>.Instance);
-            controller.ControllerContext.HttpContext = new DefaultHttpContext();
-
-            mediator
+            var url = "https://www.microsoft.com/";
+            _mediator
                 .Send(
-                    Arg.Is<AddWorkitemRequest>(x => x.WorkitemInstanceUid == id.ToString()),
-                    Arg.Is(controller.HttpContext.RequestAborted))
+                    Arg.Is<AddWorkitemRequest>(x => x.WorkitemInstanceUid == _id),
+                    Arg.Is(_controller.HttpContext.RequestAborted))
                 .Returns(new AddWorkitemResponse(WorkitemResponseStatus.Success, new Uri(url)));
 
-            ObjectResult result = await controller.AddAsync(id.ToString()) as ObjectResult;
+            ObjectResult result = await _controller.AddAsync() as ObjectResult;
 
             Assert.IsType<ObjectResult>(result);
             Assert.Equal(HttpStatusCode.Created, (HttpStatusCode)result.StatusCode);
-            Assert.True(controller.Response.Headers.ContainsKey(HeaderNames.ContentLocation));
-            Assert.Equal(url, controller.Response.Headers[HeaderNames.ContentLocation]);
-            Assert.Equal(url, controller.Response.Headers[HeaderNames.Location]);
+            Assert.True(_controller.Response.Headers.ContainsKey(HeaderNames.ContentLocation));
+            Assert.Equal(url, _controller.Response.Headers[HeaderNames.ContentLocation]);
+            Assert.Equal(url, _controller.Response.Headers[HeaderNames.Location]);
         }
     }
 }

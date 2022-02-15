@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -31,9 +32,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// DICOM PS 3.19 XML metadata is not supported.
         /// </remarks>
         /// <returns></returns>
-        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationJson }, allowSingle: true, allowMultiple: false)]
-        [Produces(KnownContentTypes.ApplicationJson)]
-        [Consumes(KnownContentTypes.ApplicationJson)]
+        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+        [Produces(KnownContentTypes.ApplicationDicomJson)]
+        [Consumes(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.Accepted)]
         [ProducesResponseType((int)HttpStatusCode.Conflict)]
@@ -47,9 +48,12 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [VersionedRoute(KnownRoutes.AddWorkitemInstancesRoute, Name = KnownRouteNames.VersionedAddWorkitemInstance)]
         [Route(KnownRoutes.AddWorkitemInstancesRoute, Name = KnownRouteNames.AddWorkitemInstance)]
         [AuditEventType(AuditEventSubType.AddWorkitem)]
-        public async Task<IActionResult> AddAsync(string workitemInstanceUid = null)
+        public async Task<IActionResult> AddAsync()
         {
-            return await PostAddAsync(workitemInstanceUid);
+            // The Workitem UID is passed as the name of the first query parameter 
+            string workitemUid = HttpContext.Request.Query.Keys.FirstOrDefault();
+
+            return await PostAddAsync(workitemUid);
         }
 
         private async Task<IActionResult> PostAddAsync(string workitemInstanceUid)

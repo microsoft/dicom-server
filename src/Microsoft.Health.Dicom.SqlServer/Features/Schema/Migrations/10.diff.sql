@@ -1,59 +1,58 @@
-﻿/*************************************************************
-    Stored procedure for adding an instance.
-**************************************************************/
---
--- STORED PROCEDURE
---     AddInstanceV6
---
--- FIRST SCHEMA VERSION
---     6
---
--- DESCRIPTION
---     Adds a DICOM instance, now with partition.
---
--- PARAMETERS
---     @partitionKey
---         * The system identified of the data partition.
---     @studyInstanceUid
---         * The study instance UID.
---     @seriesInstanceUid
---         * The series instance UID.
---     @sopInstanceUid
---         * The SOP instance UID.
---     @patientId
---         * The Id of the patient.
---     @patientName
---         * The name of the patient.
---     @referringPhysicianName
---         * The referring physician name.
---     @studyDate
---         * The study date.
---     @studyDescription
---         * The study description.
---     @accessionNumber
---         * The accession number associated for the study.
---     @modality
---         * The modality associated for the series.
---     @performedProcedureStepStartDate
---         * The date when the procedure for the series was performed.
---     @stringExtendedQueryTags
---         * String extended query tag data
---     @longExtendedQueryTags
---         * Long extended query tag data
---     @doubleExtendedQueryTags
---         * Double extended query tag data
---     @dateTimeExtendedQueryTags
---         * DateTime extended query tag data
---     @personNameExtendedQueryTags
---         * PersonName extended query tag data
---     @initialStatus
---         * Initial status of the row
---     @transferSyntaxUid
---         * Instance transfer syntax UID
+﻿SET XACT_ABORT ON
 
--- RETURN VALUE
---     The watermark (version).
-------------------------------------------------------------------------
+BEGIN TRANSACTION
+
+/*************************************************************
+    Instance Table
+    Add TransferSyntaxUid column.
+**************************************************************/
+IF NOT EXISTS 
+(
+    SELECT *
+    FROM    sys.columns
+    WHERE   NAME = 'TransferSyntaxUid'
+        AND Object_id = OBJECT_ID('dbo.Instance')
+)
+BEGIN
+    ALTER TABLE dbo.Instance ADD TransferSyntaxUid VARCHAR(64) NULL
+END
+GO
+
+/*************************************************************
+    New GetInstanceWithProperties Stored procedure
+**************************************************************/
+CREATE OR ALTER PROCEDURE dbo.GetInstanceWithProperties (
+    @validStatus        TINYINT,
+    @partitionKey       INT,
+    @studyInstanceUid   VARCHAR(64),
+    @seriesInstanceUid  VARCHAR(64) = NULL,
+    @sopInstanceUid     VARCHAR(64) = NULL
+)
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+
+    SELECT  StudyInstanceUid,
+            SeriesInstanceUid,
+            SopInstanceUid,
+            Watermark,
+            TransferSyntaxUid
+    FROM    dbo.Instance
+    WHERE   PartitionKey            = @partitionKey
+            AND StudyInstanceUid    = @studyInstanceUid
+            AND SeriesInstanceUid   = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
+            AND SopInstanceUid      = ISNULL(@sopInstanceUid, SopInstanceUid)
+            AND Status              = @validStatus
+
+END
+GO
+
+/*************************************************************
+    AddInstance Stored procedure
+    Add new TransferSyntaxUid param with default
+**************************************************************/
 CREATE OR ALTER PROCEDURE dbo.AddInstanceV6
     @partitionKey                       INT,
     @studyInstanceUid                   VARCHAR(64),
@@ -184,4 +183,80 @@ BEGIN
     SELECT @newWatermark
 
     COMMIT TRANSACTION
+END
+GO
+
+COMMIT TRANSACTION
+
+IF EXISTS 
+(
+    SELECT *
+    FROM    sys.indexes
+    WHERE   NAME = 'IX_Instance_StudyInstanceUid_Status_PartitionKey'
+        AND Object_id = OBJECT_ID('dbo.Instance')
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_Status_PartitionKey on dbo.Instance
+    (
+        StudyInstanceUid,
+        Status,
+        PartitionKey    
+    )
+    INCLUDE
+    (
+        SeriesInstanceUid,
+        SopInstanceUid,
+        Watermark,
+        TransferSyntaxUid
+    )
+    WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING = ON, ONLINE = ON)
+END
+
+IF EXISTS 
+(
+    SELECT *
+    FROM    sys.indexes
+    WHERE   NAME = 'IX_Instance_StudyInstanceUid_Status_PartitionKey'
+        AND Object_id = OBJECT_ID('dbo.Instance')
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_Status_PartitionKey on dbo.Instance
+    (
+        StudyInstanceUid,
+        Status,
+        PartitionKey    
+    )
+    INCLUDE
+    (
+        SeriesInstanceUid,
+        SopInstanceUid,
+        Watermark,
+        TransferSyntaxUid
+    )
+    WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING = ON, ONLINE = ON)
+END
+
+
+IF EXISTS 
+(
+    SELECT *
+    FROM    sys.indexes
+    WHERE   NAME = 'IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_PartitionKey'
+        AND Object_id = OBJECT_ID('dbo.Instance')
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_PartitionKey on dbo.Instance
+    (
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        Status,
+        PartitionKey    
+    )
+    INCLUDE
+    (
+        SopInstanceUid,
+        Watermark,
+        TransferSyntaxUid
+    )
+    WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING = ON, ONLINE = ON)
 END

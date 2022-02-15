@@ -4,16 +4,21 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Comparers;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Microsoft.Health.Dicom.Tests.Common.TranscoderTests;
+using Microsoft.Net.Http.Headers;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
@@ -144,6 +149,24 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             using DicomWebAsyncEnumerableResponse<DicomFile> response = await _client.RetrieveSeriesAsync(studyInstanceUid, seriesInstanceUid, dicomTransferSyntax: "*");
 
+            // check response multi-part part content-type header
+            await using Stream stream = await response.Content.ReadAsStreamAsync(CancellationToken.None)
+                .ConfigureAwait(false);
+            stream.Seek(0, SeekOrigin.Begin);
+
+            MultipartSection part;
+            var media = MediaTypeHeaderValue.Parse(response.Content.Headers.ContentType.ToString());
+            var multipartReader = new MultipartReader(HeaderUtilities.RemoveQuotes(media.Boundary).Value, stream, 100);
+
+            List<string> partContentTypeHeader = new List<string>();
+            while ((part = await multipartReader.ReadNextSectionAsync(CancellationToken.None).ConfigureAwait(false)) != null)
+            {
+                partContentTypeHeader.Add(part.ContentType);
+            }
+            Assert.Equal($"application/dicom; transfer-syntax={DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID}", partContentTypeHeader[0]);
+            Assert.Equal($"application/dicom; transfer-syntax={DicomTransferSyntax.MPEG2.UID.UID}", partContentTypeHeader[1]);
+
+            // check content body
             DicomFile[] instancesInStudy = await response.ToArrayAsync();
 
             Assert.Equal(2, instancesInStudy.Length);

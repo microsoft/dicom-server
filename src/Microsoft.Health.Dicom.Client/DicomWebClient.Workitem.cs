@@ -28,13 +28,13 @@ namespace Microsoft.Health.Dicom.Client
             serializerOptions.Converters.Add(new DicomJsonConverter());
 
             string jsonString = JsonSerializer.Serialize(dicomDatasets, serializerOptions);
-            using var request = new HttpRequestMessage(HttpMethod.Post, GenerateWorkitemAddRequestUri(partitionName, workitemUid));
+            using var request = new HttpRequestMessage(HttpMethod.Post, GenerateWorkitemAddRequestUri(workitemUid, partitionName));
             {
                 request.Content = new StringContent(jsonString);
-                request.Content.Headers.ContentType = DicomWebConstants.MediaTypeApplicationJson;
+                request.Content.Headers.ContentType = DicomWebConstants.MediaTypeApplicationDicomJson;
             }
 
-            request.Headers.Accept.Add(DicomWebConstants.MediaTypeApplicationJson);
+            request.Headers.Accept.Add(DicomWebConstants.MediaTypeApplicationDicomJson);
 
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
                 .ConfigureAwait(false);
@@ -71,7 +71,7 @@ namespace Microsoft.Health.Dicom.Client
 
             using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
-            request.Headers.Accept.Add(DicomWebConstants.MediaTypeApplicationJson);
+            request.Headers.Accept.Add(DicomWebConstants.MediaTypeApplicationDicomJson);
 
             HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
                 .ConfigureAwait(false);

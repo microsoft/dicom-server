@@ -14,7 +14,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
     public sealed class CancelWorkitemDatasetValidator : WorkitemDatasetValidator
     {
-        protected override void OnValidate(DicomDataset dicomDataset, string workitemInstanceUid)
+        protected override void OnValidate(DicomDataset dataset)
         {
             // all the attributes in the dataset are optional. Hence no validation is being done here.
         }
