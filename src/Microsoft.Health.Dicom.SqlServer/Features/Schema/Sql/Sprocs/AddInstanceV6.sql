@@ -46,6 +46,11 @@
 --         * DateTime extended query tag data
 --     @personNameExtendedQueryTags
 --         * PersonName extended query tag data
+--     @initialStatus
+--         * Initial status of the row
+--     @transferSyntaxUid
+--         * Instance transfer syntax UID
+
 -- RETURN VALUE
 --     The watermark (version).
 ------------------------------------------------------------------------
@@ -69,7 +74,8 @@ CREATE OR ALTER PROCEDURE dbo.AddInstanceV6
     @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY,
     @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY,
     @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY,
-    @initialStatus                      TINYINT
+    @initialStatus                      TINYINT,
+    @transferSyntaxUid                  VARCHAR(64) = NULL
 AS
 BEGIN
     SET NOCOUNT ON
@@ -150,9 +156,9 @@ BEGIN
 
     -- Insert Instance
     INSERT INTO dbo.Instance
-        (PartitionKey, StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate)
+        (PartitionKey, StudyKey, SeriesKey, InstanceKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, Status, LastStatusUpdatedDate, CreatedDate, TransferSyntaxUid)
     VALUES
-        (@partitionKey, @studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate)
+        (@partitionKey, @studyKey, @seriesKey, @instanceKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @newWatermark, @initialStatus, @currentDate, @currentDate, @transferSyntaxUid)
 
     BEGIN TRY
 

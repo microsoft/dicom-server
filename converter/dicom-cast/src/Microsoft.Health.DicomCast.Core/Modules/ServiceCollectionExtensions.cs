@@ -27,13 +27,12 @@ namespace Microsoft.Health.DicomCast.Core.Modules
             serviceCollection.Add(provider =>
                 {
                     IOptionsMonitor<ManagedIdentityCredentialConfiguration> options = provider.GetService<IOptionsMonitor<ManagedIdentityCredentialConfiguration>>();
-                    var namedOption = options.Get(name);
                     var httpClientFactory = provider.GetService<IHttpClientFactory>();
-                    var credentialProvider = new ManagedIdentityCredentialProvider(Options.Create(namedOption), httpClientFactory);
+                    var credentialProvider = new ManagedIdentityCredentialProvider(options, httpClientFactory, name);
                     return new NamedCredentialProvider(name, credentialProvider);
                 })
                 .Singleton()
-                .AsService<NamedCredentialProvider>();
+                .AsSelf();
         }
 
         public static void AddNamedOAuth2ClientCertificateCredentialProvider(this IServiceCollection serviceCollection, IConfiguration oAuth2ClientCertificateCredentialConfiguration, string name)
@@ -47,13 +46,12 @@ namespace Microsoft.Health.DicomCast.Core.Modules
             serviceCollection.Add(provider =>
                 {
                     IOptionsMonitor<OAuth2ClientCertificateCredentialConfiguration> options = provider.GetService<IOptionsMonitor<OAuth2ClientCertificateCredentialConfiguration>>();
-                    var namedOption = options.Get(name);
                     var httpClient = new HttpClient();
-                    var credentialProvider = new OAuth2ClientCertificateCredentialProvider(Options.Create(namedOption), httpClient);
+                    var credentialProvider = new OAuth2ClientCertificateCredentialProvider(options, httpClient, name);
                     return new NamedCredentialProvider(name, credentialProvider);
                 })
                 .Singleton()
-                .AsService<NamedCredentialProvider>();
+                .AsSelf();
         }
 
         public static void AddNamedOAuth2ClientCredentialProvider(this IServiceCollection serviceCollection, IConfiguration oAuth2ClientCredentialConfiguration, string name)
@@ -66,13 +64,12 @@ namespace Microsoft.Health.DicomCast.Core.Modules
             serviceCollection.Add(provider =>
                 {
                     IOptionsMonitor<OAuth2ClientCredentialConfiguration> options = provider.GetService<IOptionsMonitor<OAuth2ClientCredentialConfiguration>>();
-                    var namedOption = options.Get(name);
                     var httpClient = new HttpClient();
-                    var credentialProvider = new OAuth2ClientCredentialProvider(Options.Create(namedOption), httpClient);
+                    var credentialProvider = new OAuth2ClientCredentialProvider(options, httpClient, name);
                     return new NamedCredentialProvider(name, credentialProvider);
                 })
                 .Singleton()
-                .AsService<NamedCredentialProvider>();
+                .AsSelf();
         }
 
         public static void AddNamedOAuth2UserPasswordCredentialProvider(this IServiceCollection serviceCollection, IConfiguration oAuth2UserPasswordCredentialConfiguration, string name)
@@ -85,13 +82,12 @@ namespace Microsoft.Health.DicomCast.Core.Modules
             serviceCollection.Add(provider =>
                 {
                     IOptionsMonitor<OAuth2UserPasswordCredentialConfiguration> options = provider.GetService<IOptionsMonitor<OAuth2UserPasswordCredentialConfiguration>>();
-                    var namedOption = options.Get(name);
                     var httpClient = new HttpClient();
-                    var credentialProvider = new OAuth2UserPasswordCredentialProvider(Options.Create(namedOption), httpClient);
+                    var credentialProvider = new OAuth2UserPasswordCredentialProvider(options, httpClient, name);
                     return new NamedCredentialProvider(name, credentialProvider);
                 })
                 .Singleton()
-                .AsService<NamedCredentialProvider>();
+                .AsSelf();
         }
     }
 }

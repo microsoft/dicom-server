@@ -4,6 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Data.Tables;
@@ -22,6 +25,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
     {
         private readonly TableServiceClient _tableServiceClient;
         private readonly ILogger<TableExceptionStore> _logger;
+        private readonly Dictionary<string, string> _tableList;
 
         public TableExceptionStore(
             TableServiceClientProvider tableServiceClientProvider,
@@ -31,6 +35,7 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             _tableServiceClient = tableServiceClientProvider.GetTableServiceClient();
+            _tableList = tableServiceClientProvider.TableList;
             _logger = logger;
         }
 
@@ -41,15 +46,17 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
 
             string tableName = errorType switch
             {
-                ErrorType.FhirError => Constants.FhirExceptionTableName,
-                ErrorType.DicomError => Constants.DicomExceptionTableName,
-                ErrorType.DicomValidationError => Constants.DicomValidationTableName,
-                ErrorType.TransientFailure => Constants.TransientFailureTableName,
+                ErrorType.FhirError => _tableList[Constants.FhirExceptionTableName],
+                ErrorType.DicomError => _tableList[Constants.DicomExceptionTableName],
+                ErrorType.DicomValidationError => _tableList[Constants.DicomValidationTableName],
+                ErrorType.TransientFailure => _tableList[Constants.TransientFailureTableName],
                 _ => null,
             };
 
+            Debug.Assert(tableName != null, $"Error type of '{errorType}' is not supported.");
             if (tableName == null)
             {
+                _logger.LogWarning("The error type '{ErrorType}' was not found so the exception wasn't recorded.", errorType);
                 return;
             }
 
@@ -85,19 +92,50 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             string sopInstanceUid = dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
             long changeFeedSequence = changeFeedEntry.Sequence;
 
-            var tableClient = _tableServiceClient.GetTableClient(Constants.TransientRetryTableName);
+            var tableClient = _tableServiceClient.GetTableClient(_tableList[Constants.TransientRetryTableName]);
             var entity = new RetryableEntity(studyInstanceUid, seriesInstanceUid, sopInstanceUid, changeFeedSequence, retryNum, exceptionToStore);
 
             try
             {
                 await tableClient.UpsertEntityAsync(entity, cancellationToken: cancellationToken);
-                _logger.LogInformation("Retryable error when processing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyInstanceUid}, SeriesUID: {SeriesInstanceUid}, InstanceUID: {SopInstanceUid}. Tried {RetryNum} time(s). Waiting {Milliseconds} milliseconds . Stored into table: {Table} in table storage.", changeFeedSequence, studyInstanceUid, seriesInstanceUid, sopInstanceUid, retryNum, nextDelayTimeSpan.TotalMilliseconds, Constants.TransientRetryTableName);
+                _logger.LogInformation("Retryable error when processing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyInstanceUid}, SeriesUID: {SeriesInstanceUid}, InstanceUID: {SopInstanceUid}. Tried {RetryNum} time(s). Waiting {Milliseconds} milliseconds . Stored into table: {Table} in table storage.", changeFeedSequence, studyInstanceUid, seriesInstanceUid, sopInstanceUid, retryNum, nextDelayTimeSpan.TotalMilliseconds, _tableList[Constants.TransientRetryTableName]);
             }
             catch
             {
                 _logger.LogInformation("Retryable error when processing changefeed entry: {ChangeFeedSequence} for DICOM instance with StudyUID: {StudyInstanceUid}, SeriesUID: {SeriesInstanceUid}, InstanceUID: {SopInstanceUid}. Tried {RetryNum} time(s). Failed to store to table storage.", changeFeedSequence, studyInstanceUid, seriesInstanceUid, sopInstanceUid, retryNum);
                 throw;
             }
+        }
+
+        public async Task<(IEnumerable<IntransientError>, string)> ReadIntransientErrors(ErrorType errorType, string continuationToken = null, CancellationToken cancellationToken = default)
+        {
+            string tableName = errorType switch
+            {
+                ErrorType.FhirError => _tableList[Constants.FhirExceptionTableName],
+                ErrorType.DicomError => _tableList[Constants.DicomExceptionTableName],
+                ErrorType.DicomValidationError => _tableList[Constants.DicomValidationTableName],
+                ErrorType.TransientFailure => _tableList[Constants.TransientFailureTableName],
+                _ => throw new ArgumentOutOfRangeException(nameof(errorType)),
+            };
+
+            var tableClient = _tableServiceClient.GetTableClient(tableName);
+
+            var result = tableClient.QueryAsync<IntransientEntity>(cancellationToken: cancellationToken);
+
+            var results = await result.AsPages(continuationToken).FirstOrDefaultAsync(cancellationToken);
+
+            return (results?.Values ?? Enumerable.Empty<IntransientError>(), results?.ContinuationToken);
+        }
+
+        public async Task<(IEnumerable<RetryableError>, string)> ReadRetryableErrors(ErrorType errorType, string continuationToken, CancellationToken cancellationToken = default)
+        {
+            var tableClient = _tableServiceClient.GetTableClient(_tableList[Constants.TransientRetryTableName]);
+
+            var result = tableClient.QueryAsync<RetryableEntity>(cancellationToken: cancellationToken);
+
+            var results = await result.AsPages(continuationToken).FirstOrDefaultAsync(cancellationToken);
+
+            return (results?.Values ?? Enumerable.Empty<RetryableError>(), results?.ContinuationToken);
         }
     }
 }

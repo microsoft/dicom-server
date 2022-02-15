@@ -63,10 +63,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             try
             {
-                string transferSyntax = _retrieveTransferSyntaxHandler.GetTransferSyntax(message.ResourceType, message.AcceptHeaders, out AcceptHeaderDescriptor acceptHeaderDescriptor);
-                bool isOriginalTransferSyntaxRequested = DicomTransferSyntaxUids.IsOriginalTransferSyntaxRequested(transferSyntax);
+                string requestedTransferSyntax = _retrieveTransferSyntaxHandler.GetTransferSyntax(message.ResourceType, message.AcceptHeaders, out AcceptHeaderDescriptor acceptHeaderDescriptor);
+                bool isOriginalTransferSyntaxRequested = DicomTransferSyntaxUids.IsOriginalTransferSyntaxRequested(requestedTransferSyntax);
 
-                IEnumerable<VersionedInstanceIdentifier> retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
+                IEnumerable<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
                     message.ResourceType, partitionKey, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
 
                 if (!retrieveInstances.Any())
@@ -74,35 +74,36 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                     throw new InstanceNotFoundException();
                 }
 
-                Stream[] resultStreams = await Task.WhenAll(
-                    retrieveInstances.Select(x => _blobDataStore.GetFileAsync(x, cancellationToken)));
+                IEnumerable<RetrieveResourceInstance> resultInstances = await Task.WhenAll(
+                    retrieveInstances.Select(async x =>
+                    {
+                        Stream s = await _blobDataStore.GetFileAsync(x.VersionedInstanceIdentifier, cancellationToken);
+                        return new RetrieveResourceInstance(s, GetResponseTransferSyntax(requestedTransferSyntax, x));
+                    }));
 
-                long lengthOfResultStreams = resultStreams.Sum(stream => stream.Length);
+                long lengthOfResultStreams = resultInstances.Sum(i => i.Stream.Length);
                 _dicomRequestContextAccessor.RequestContext.IsTranscodeRequested = !isOriginalTransferSyntaxRequested;
                 _dicomRequestContextAccessor.RequestContext.BytesTranscoded = isOriginalTransferSyntaxRequested ? 0 : lengthOfResultStreams;
 
                 if (message.ResourceType == ResourceType.Frames)
                 {
+                    RetrieveResourceInstance instanceStream = resultInstances.Single();
+                    IReadOnlyCollection<Stream> frames = await _frameHandler.GetFramesResourceAsync(
+                            instanceStream.Stream,
+                            message.Frames,
+                            isOriginalTransferSyntaxRequested,
+                            requestedTransferSyntax);
+
                     return new RetrieveResourceResponse(
-                        await _frameHandler.GetFramesResourceAsync(
-                        resultStreams.Single(), message.Frames, isOriginalTransferSyntaxRequested, transferSyntax),
-                        acceptHeaderDescriptor.MediaType,
-                        transferSyntax);
+                        frames.Select(f => new RetrieveResourceInstance(f, instanceStream.TransferSyntaxUid)),
+                        acceptHeaderDescriptor.MediaType);
                 }
-                else
+                else if (!isOriginalTransferSyntaxRequested)
                 {
-                    if (!isOriginalTransferSyntaxRequested)
-                    {
-                        resultStreams = await Task.WhenAll(resultStreams.Select(x => _transcoder.TranscodeFileAsync(x, transferSyntax)));
-                    }
-
-                    resultStreams = resultStreams.Select(stream =>
-                        new LazyTransformReadOnlyStream<Stream>(
-                            stream,
-                            s => ResetDicomFileStream(s))).ToArray();
+                    resultInstances = await Task.WhenAll(resultInstances.Select(async x => new RetrieveResourceInstance(await _transcoder.TranscodeFileAsync(x.Stream, requestedTransferSyntax), x.TransferSyntaxUid)));
                 }
 
-                return new RetrieveResourceResponse(resultStreams, acceptHeaderDescriptor.MediaType, transferSyntax);
+                return new RetrieveResourceResponse(resultInstances, acceptHeaderDescriptor.MediaType);
             }
             catch (DataStoreException e)
             {
@@ -113,10 +114,26 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             }
         }
 
-        private static Stream ResetDicomFileStream(Stream stream)
+        private static string GetResponseTransferSyntax(string requestedTransferSyntax, InstanceMetadata instanceMetadata)
         {
-            stream.Seek(offset: 0, SeekOrigin.Begin);
-            return stream;
+            bool isOriginalTransferSyntaxRequested = DicomTransferSyntaxUids.IsOriginalTransferSyntaxRequested(requestedTransferSyntax);
+            if (isOriginalTransferSyntaxRequested)
+            {
+                return GetOriginalTransferSyntaxWithBackCompat(requestedTransferSyntax, instanceMetadata);
+            }
+            return requestedTransferSyntax;
+        }
+
+        /// <summary>
+        /// Existing dicom files(as of Feb 2022) do not have transferSyntax stored. 
+        /// Untill we backfill those files, we need this existing buggy fall back code: requestedTransferSyntax can be "*" which is the wrong content-type to return
+        /// </summary>
+        /// <param name="requestedTransferSyntax"></param>
+        /// <param name="instanceMetadata"></param>
+        /// <returns></returns>
+        private static string GetOriginalTransferSyntaxWithBackCompat(string requestedTransferSyntax, InstanceMetadata instanceMetadata)
+        {
+            return string.IsNullOrEmpty(instanceMetadata.InstanceProperties?.TransferSyntaxUid) ? requestedTransferSyntax : instanceMetadata.InstanceProperties.TransferSyntaxUid;
         }
     }
 }

@@ -115,5 +115,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
 
             return results;
         }
+
+        public virtual Task<IEnumerable<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
+        {
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+        }
     }
 }
