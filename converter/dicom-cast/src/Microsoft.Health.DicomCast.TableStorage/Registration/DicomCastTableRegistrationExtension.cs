@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using Azure.Identity;
 using EnsureThat;
 using Microsoft.Extensions.Azure;
@@ -29,14 +30,15 @@ namespace Microsoft.Health.DicomCast.TableStorage
         /// </summary>
         /// <param name="serviceCollection">Service collection</param>
         /// <param name="configuration">The configuration for the server.</param>
+        /// <param name="configureAction">An optional delegate to set <see cref="TableDataStoreConfiguration"/> properties after values have been loaded from configuration.</param>
         /// <returns>IServiceCollection</returns>
-        public static IServiceCollection AddTableStorageDataStore(this IServiceCollection serviceCollection, IConfiguration configuration)
+        public static IServiceCollection AddTableStorageDataStore(this IServiceCollection serviceCollection, IConfiguration configuration, Action<TableDataStoreConfiguration> configureAction = null)
         {
             EnsureArg.IsNotNull(serviceCollection, nameof(serviceCollection));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
             serviceCollection
-                    .AddTableDataStore(configuration)
+                    .AddTableDataStore(configuration, configureAction)
                     .AddHealthChecks().AddCheck<TableHealthCheck>(name: nameof(TableHealthCheck));
 
             serviceCollection.Replace(new ServiceDescriptor(typeof(IExceptionStore), typeof(TableExceptionStore), ServiceLifetime.Singleton));
@@ -44,12 +46,12 @@ namespace Microsoft.Health.DicomCast.TableStorage
             return serviceCollection;
         }
 
-        private static IServiceCollection AddTableDataStore(this IServiceCollection serviceCollection, IConfiguration configuration)
+        private static IServiceCollection AddTableDataStore(this IServiceCollection serviceCollection, IConfiguration configuration, Action<TableDataStoreConfiguration> configureAction = null)
         {
             EnsureArg.IsNotNull(serviceCollection, nameof(serviceCollection));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-            TableDataStoreConfiguration tableDataStoreConfiguration = RegisterTableDataStoreConfiguration(serviceCollection, configuration);
+            TableDataStoreConfiguration tableDataStoreConfiguration = RegisterTableDataStoreConfiguration(serviceCollection, configuration, configureAction);
 
             serviceCollection.AddAzureClients(builder =>
             {
@@ -87,10 +89,12 @@ namespace Microsoft.Health.DicomCast.TableStorage
             return serviceCollection;
         }
 
-        private static TableDataStoreConfiguration RegisterTableDataStoreConfiguration(IServiceCollection serviceCollection, IConfiguration configuration)
+        private static TableDataStoreConfiguration RegisterTableDataStoreConfiguration(IServiceCollection serviceCollection, IConfiguration configuration, Action<TableDataStoreConfiguration> configureAction = null)
         {
             var tableDataStoreConfiguration = new TableDataStoreConfiguration();
             configuration.GetSection(TableStoreConfigurationSectionName).Bind(tableDataStoreConfiguration);
+
+            configureAction?.Invoke(tableDataStoreConfiguration);
 
             if (string.IsNullOrEmpty(tableDataStoreConfiguration.ConnectionString) && tableDataStoreConfiguration.EndpointUri == null)
             {
