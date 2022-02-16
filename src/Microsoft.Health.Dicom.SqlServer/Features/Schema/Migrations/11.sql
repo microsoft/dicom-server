@@ -2048,7 +2048,7 @@ BEGIN
                      wi.WorkitemKey,
                      wi.WorkitemUid,
                      wi.TransactionUid,
-                     eqts.Watermark
+                     eqts.Watermark AS ExtendedQueryTagWatermark
               FROM   dbo.WorkitemQueryTag AS wqt
                      INNER JOIN
                      dbo.ExtendedQueryTagString AS eqts
@@ -2070,15 +2070,14 @@ BEGIN
                   AND cte.WorkitemKey = targetTbl.SopInstanceKey1
                   AND cte.TagKey = targetTbl.TagKey
                   AND cte.OldTagValue = targetTbl.TagValue
-                  AND cte.Watermark = targetTbl.Watermark
+                  AND cte.ExtendedQueryTagWatermark = targetTbl.Watermark
         WHERE  cte.TagPath = @procedureStepStateTagPath;
+        IF @@ROWCOUNT = 0
+            THROW 50409, 'Workitem update failed.', 1;
     END TRY
     BEGIN CATCH
         THROW;
     END CATCH
-    IF @@ROWCOUNT = 0
-        THROW 50409, 'Workitem update failed.', 1;
-    SELECT @@ROWCOUNT;
     COMMIT TRANSACTION;
 END
 
