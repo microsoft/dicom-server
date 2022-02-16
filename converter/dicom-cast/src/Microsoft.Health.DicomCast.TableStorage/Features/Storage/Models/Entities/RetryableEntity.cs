@@ -7,10 +7,11 @@ using System;
 using Azure;
 using Azure.Data.Tables;
 using EnsureThat;
+using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Models.Entities
 {
-    public class RetryableEntity : ITableEntity
+    public class RetryableEntity : RetryableError, ITableEntity
     {
         public RetryableEntity()
         {
@@ -26,34 +27,14 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Models.Entiti
         /// <param name="retryNum">Number of times changefeed entry has been retried</param>
         /// <param name="ex">The exception that was thrown</param>
         public RetryableEntity(string studyUid, string seriesUid, string instanceUid, long changeFeedSequence, int retryNum, Exception ex)
+            : base(studyUid, seriesUid, instanceUid, changeFeedSequence, retryNum, ex)
         {
-            EnsureArg.IsNotNull(studyUid, nameof(studyUid));
-            EnsureArg.IsNotNull(seriesUid, nameof(seriesUid));
-            EnsureArg.IsNotNull(instanceUid, nameof(instanceUid));
             EnsureArg.IsNotNull(ex, nameof(ex));
 
             PartitionKey = ex.GetType().Name;
             RowKey = Guid.NewGuid().ToString();
-
-            StudyUid = studyUid;
-            SeriesUid = seriesUid;
-            InstanceUid = instanceUid;
-            ChangeFeedSequence = changeFeedSequence;
-            RetryNumber = retryNum;
-            Exception = ex.ToString();
         }
 
-        public string StudyUid { get; set; }
-
-        public string SeriesUid { get; set; }
-
-        public string InstanceUid { get; set; }
-
-        public long ChangeFeedSequence { get; set; }
-
-        public int RetryNumber { get; set; }
-
-        public string Exception { get; set; }
         public string PartitionKey { get; set; }
         public string RowKey { get; set; }
         public DateTimeOffset? Timestamp { get; set; }

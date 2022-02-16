@@ -16,6 +16,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         public const ushort ProcessingFailure = 272;
 
         /// <summary>
+        /// Data Set does not contain one or more required attributes.
+        /// </summary>
+        /// <remarks>
+        /// <see href="https://dicom.nema.org/medical/dicom/current/output/html/part07.html#sect_C.5.13"/>
+        /// </remarks>
+        public const ushort MissingAttribute = 288;
+
+        /// <summary>
+        /// Data Set contains one or more attributes which are missing required values.
+        /// </summary>
+        /// <remarks>
+        /// <see href="https://dicom.nema.org/medical/dicom/current/output/html/part07.html#sect_C.5.14"/>
+        /// </remarks>
+        public const ushort MissingAttributeValue = 289;
+
+        /// <summary>
         /// The DICOM instance failed validation.
         /// </summary>
         public const ushort ValidationFailure = 43264;

@@ -70,6 +70,24 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The attribute with tag &apos;{0}&apos; must be empty..
+        /// </summary>
+        internal static string AttributeMustBeEmpty {
+            get {
+                return ResourceManager.GetString("AttributeMustBeEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The attribute with tag &apos;{0}&apos; cannot be present..
+        /// </summary>
+        internal static string AttributeNotAllowed {
+            get {
+                return ResourceManager.GetString("AttributeNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The limit must be between 1 and {0}..
         /// </summary>
         internal static string ChangeFeedLimitOutOfRange {
@@ -652,7 +670,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid transactionUID for the specified WorkitemInstanceUID &apos;{1}&apos;..
+        ///   Looks up a localized string similar to Invalid TransactionUID for the specified WorkitemInstanceUID &apos;{1}&apos;..
         /// </summary>
         internal static string InvalidTransactionUID {
             get {
@@ -688,16 +706,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to AffectedSOPInstanceUID &apos;{0}&apos; in the payload does not match the specified WorkitemInstanceUID &apos;{1}&apos;..
-        /// </summary>
-        internal static string MismatchAffectedSopInstanceWorkitemInstanceUid {
-            get {
-                return ResourceManager.GetString("MismatchAffectedSopInstanceWorkitemInstanceUid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SOPInstanceUID &apos;{0}&apos; in the payload does not match the specified WorkitemInstanceUID &apos;{1}&apos;..
+        ///   Looks up a localized string similar to SOPInstanceUID &apos;{0}&apos; in the payload does not match the workitem query parameter &apos;{1}&apos;..
         /// </summary>
         internal static string MismatchSopInstanceWorkitemInstanceUid {
             get {
@@ -760,20 +769,20 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The value for tag &apos;{0}&apos; is missing..
+        /// </summary>
+        internal static string MissingRequiredValue {
+            get {
+                return ResourceManager.GetString("MissingRequiredValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The vr for tag &apos;{0}&apos; is missing..
         /// </summary>
         internal static string MissingVRCode {
             get {
                 return ResourceManager.GetString("MissingVRCode", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to WorkitemInstanceUID is missing..
-        /// </summary>
-        internal static string MissingWorkitemInstanceUid {
-            get {
-                return ResourceManager.GetString("MissingWorkitemInstanceUid", resourceCulture);
             }
         }
         

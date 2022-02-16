@@ -131,14 +131,9 @@ namespace Microsoft.Health.Dicom.Client
             return GenerateRequestUri(string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid), partitionName);
         }
 
-        private Uri GenerateWorkitemAddRequestUri(string partitionName = default, string workitemUid = default)
+        private Uri GenerateWorkitemAddRequestUri(string workitemUid, string partitionName = default)
         {
-            if (string.IsNullOrEmpty(workitemUid))
-            {
-                return GenerateRequestUri(DicomWebConstants.WorkitemUriString, partitionName);
-            }
-
-            return GenerateRequestUri(string.Format(DicomWebConstants.BaseWorkitemUriFormat, workitemUid), partitionName);
+            return GenerateRequestUri(string.Format(DicomWebConstants.AddWorkitemUriFormat, workitemUid), partitionName);
         }
 
         private async IAsyncEnumerable<Stream> ReadMultipartResponseAsStreamsAsync(HttpContent httpContent, [EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -147,7 +142,7 @@ namespace Microsoft.Health.Dicom.Client
 
             await using Stream stream = await httpContent.ReadAsStreamAsync(cancellationToken)
                 .ConfigureAwait(false);
-
+            stream.Seek(0, SeekOrigin.Begin);
             MultipartSection part;
 
             var media = MediaTypeHeaderValue.Parse(httpContent.Headers.ContentType.ToString());

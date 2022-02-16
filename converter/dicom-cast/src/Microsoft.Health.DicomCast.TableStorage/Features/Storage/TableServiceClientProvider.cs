@@ -4,13 +4,16 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Data.Tables;
 using EnsureThat;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Core;
+using Microsoft.Health.DicomCast.TableStorage.Configs;
 using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
@@ -19,19 +22,32 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
     {
         private readonly TableServiceClient _tableServiceClient;
         private readonly RetryableInitializationOperation _initializationOperation;
+        private readonly TableDataStoreConfiguration _tableDataStoreConfiguration;
+
+        // This table holds the full table names.
+        // Key contains list of Constants.alltables
+        // Values contains  list of fulltable names computed as "tablenameprefix+key". TableNameprefix is dicomcastname provisioned. Its defualt value is empty.
+        public Dictionary<string, string> TableList { get; }
 
         public TableServiceClientProvider(
             TableServiceClient tableServiceClient,
             ITableServiceClientInitializer tableServiceClientInitializer,
+            IOptions<TableDataStoreConfiguration> tableDataStoreConfiguration,
             ILogger<TableServiceClientProvider> logger)
         {
             EnsureArg.IsNotNull(tableServiceClient, nameof(tableServiceClient));
             EnsureArg.IsNotNull(tableServiceClientInitializer, nameof(tableServiceClientInitializer));
+            EnsureArg.IsNotNull(tableDataStoreConfiguration?.Value, nameof(tableDataStoreConfiguration));
             EnsureArg.IsNotNull(logger, nameof(logger));
+
+            _tableDataStoreConfiguration = tableDataStoreConfiguration?.Value;
+
+            TableList = new Dictionary<string, string>();
+            InitializeTableNames();
 
             _tableServiceClient = tableServiceClient;
             _initializationOperation = new RetryableInitializationOperation(
-                () => tableServiceClientInitializer.InitializeDataStoreAsync(_tableServiceClient));
+                () => tableServiceClientInitializer.InitializeDataStoreAsync(_tableServiceClient, TableList));
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -75,6 +91,14 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             }
 
             return _tableServiceClient;
+        }
+
+        private void InitializeTableNames()
+        {
+            foreach (var table in Constants.AllTables)
+            {
+                TableList.Add(table, $"{_tableDataStoreConfiguration.TableNamePrefix}{table}");
+            }
         }
     }
 }
