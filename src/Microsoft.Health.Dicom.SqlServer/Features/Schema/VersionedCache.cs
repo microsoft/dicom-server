@@ -38,18 +38,19 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
 
         private async Task<T> ResolveAsync(CancellationToken cancellationToken = default)
         {
-            SchemaVersion version = await _schemaVersionResolver.GetCurrentVersionAsync(cancellationToken);
+            SchemaVersion current = await _schemaVersionResolver.GetCurrentVersionAsync(cancellationToken);
 
             // Return the latest version of the entity. If the entity is not found, throw an exception.
-            T value = _entities.Where(entity => entity.Version <= version && (int)entity.Version >= SchemaVersionConstants.Min).FirstOrDefault();
+            T value = _entities.FirstOrDefault(x => x.Version <= current);
 
-            if (value != null) return value;
-
-            string msg = version == SchemaVersion.Unknown
+            if (value == null)
+            {
+                throw new InvalidSchemaVersionException(current == SchemaVersion.Unknown
                     ? DicomSqlServerResource.UnknownSchemaVersion
-                    : string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.SchemaVersionOutOfRange, version);
+                    : string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.SchemaVersionOutOfRange, current));
+            }
 
-            throw new InvalidSchemaVersionException(msg);
+            return value;
         }
     }
 }
