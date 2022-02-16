@@ -10,7 +10,7 @@ CREATE TABLE dbo.Workitem (
     --audit columns
     CreatedDate                 DATETIME2(7)                      NOT NULL,
     LastStatusUpdatedDate       DATETIME2(7)                      NOT NULL,
-    Watermark                   BIGINT                            NOT NULL DEFAULT 0,
+    Watermark                   BIGINT                            DEFAULT 0 NOT NULL,
 ) WITH (DATA_COMPRESSION = PAGE)
 
 -- Ordering workitems by partition and then by WorkitemKey for partition-specific retrieval
@@ -40,4 +40,3 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemKey_Watermark ON dbo.Workit
     Watermark
 )
 WITH (DATA_COMPRESSION = PAGE)
-GO
