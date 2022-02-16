@@ -26,17 +26,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <param name="queryTags">Queryable workitem tags</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that gets the workitem watermark.</returns>
-        Task<long> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Asynchronously begin the creation of a workitem instance.
-        /// </summary>
-        /// <param name="partitionKey">The partition key.</param>
-        /// <param name="dataset">The DICOM dataset to index.</param>
-        /// <param name="queryTags">Queryable workitem tags</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A task that adds the workitem and gets the workitemkey and watermark.</returns>
-        Task<(long WorkitemKey, long Watermark)?> BeginAddWorkitemWithWatermarkAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
+        Task<WorkitemInstanceIdentifier> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously completes the creation of a workitem instance.

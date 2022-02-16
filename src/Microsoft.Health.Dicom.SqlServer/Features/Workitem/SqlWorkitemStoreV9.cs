@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
         public virtual SchemaVersion Version => SchemaVersion.V9;
 
-        public virtual async Task<long> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+        public virtual async Task<WorkitemInstanceIdentifier> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
@@ -53,7 +53,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                     rows.PersonNameRows
                 );
 
-                string workitemUid = dataset.GetString(DicomTag.SOPInstanceUID);
+                string workitemUid = dataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty);
 
                 VLatest.AddWorkitem.PopulateCommand(
                     sqlCommandWrapper,
@@ -64,7 +64,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
                 try
                 {
-                    return (long)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+                    var workitemKey = await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+
+                    return new WorkitemInstanceIdentifier(workitemUid, (long)workitemKey, partitionKey);
                 }
                 catch (SqlException ex)
                 {
@@ -181,11 +183,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             }
 
             return new WorkitemQueryResult(results);
-        }
-
-        public virtual Task<(long WorkitemKey, long Watermark)?> BeginAddWorkitemWithWatermarkAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
-        {
-            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
 
         public virtual Task UpdateWorkitemProcedureStepStateAsync(WorkitemMetadataStoreEntry workitemMetadata, long proposedWatermark, string procedureStepState, CancellationToken cancellationToken = default)

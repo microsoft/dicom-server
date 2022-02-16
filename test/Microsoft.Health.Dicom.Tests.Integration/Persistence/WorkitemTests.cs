@@ -42,15 +42,16 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 new QueryTag(new WorkitemQueryTagStoreEntry(2, tag2.GetPath(), tag2.GetDefaultVR().Code)),
             };
 
-            (long WorkitemKey, long Watermark)? workitem = await _fixture
+            var identifier = await _fixture
                 .IndexWorkitemStore
-                .BeginAddWorkitemWithWatermarkAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
+                .BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
 
-            Assert.True(workitem.Value.WorkitemKey > 0);
+            Assert.NotNull(identifier);
+            Assert.True(identifier.WorkitemKey > 0);
 
             await _fixture
                 .IndexWorkitemStore
-                .EndAddWorkitemAsync(DefaultPartition.Key, workitem.Value.WorkitemKey, CancellationToken.None);
+                .EndAddWorkitemAsync(DefaultPartition.Key, identifier.WorkitemKey, CancellationToken.None);
         }
 
         [Fact]
@@ -68,18 +69,21 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 new QueryTag(new WorkitemQueryTagStoreEntry(2, tag2.GetPath(), tag2.GetDefaultVR().Code)),
             };
 
-            (long WorkitemKey, long Watermark)? workitem = await _fixture
+            var identifier = await _fixture
                 .IndexWorkitemStore
-                .BeginAddWorkitemWithWatermarkAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
+                .BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None)
+                .ConfigureAwait(false);
 
             await _fixture.IndexWorkitemStore.DeleteWorkitemAsync(DefaultPartition.Key, workitemUid, CancellationToken.None);
 
             // Try adding it back again, if this succeeds, then assume that Delete operation has succeeded.
-            workitem = await _fixture
+            identifier = await _fixture
                 .IndexWorkitemStore
-                .BeginAddWorkitemWithWatermarkAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
+                .BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None)
+                .ConfigureAwait(false);
 
-            Assert.True(workitem.Value.WorkitemKey > 0);
+            Assert.NotNull(identifier);
+            Assert.True(identifier.WorkitemKey > 0);
 
             await _fixture.IndexWorkitemStore.DeleteWorkitemAsync(DefaultPartition.Key, workitemUid, CancellationToken.None);
         }
@@ -105,12 +109,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 new QueryTag(new WorkitemQueryTagStoreEntry(2, tag.GetPath(), tag.GetDefaultVR().Code)),
             };
 
-            (long WorkitemKey, long Watermark)? workitem = await _fixture
+            var identifier = await _fixture
                 .IndexWorkitemStore
-                .BeginAddWorkitemWithWatermarkAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None)
+                .BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None)
                 .ConfigureAwait(false);
+
             await _fixture.IndexWorkitemStore
-                .EndAddWorkitemAsync(DefaultPartition.Key, workitem.Value.WorkitemKey, CancellationToken.None);
+                .EndAddWorkitemAsync(DefaultPartition.Key, identifier.WorkitemKey, CancellationToken.None);
 
             var includeField = new QueryIncludeField(new List<DicomTag> { tag });
             var queryTag = new QueryTag(new WorkitemQueryTagStoreEntry(2, tag.GetPath(), tag.GetDefaultVR().Code));
@@ -125,7 +130,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             Assert.True(result.WorkitemInstances.Any());
 
-            Assert.Equal(workitem.Value.WorkitemKey, result.WorkitemInstances.FirstOrDefault().WorkitemKey);
+            Assert.Equal(identifier.WorkitemKey, result.WorkitemInstances.FirstOrDefault().WorkitemKey);
         }
 
         [Fact]
@@ -143,12 +148,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 new QueryTag(new WorkitemQueryTagStoreEntry(2, tag.GetPath(), tag.GetDefaultVR().Code)),
             };
 
-            (long WorkitemKey, long Watermark)? workitem1 = await _fixture.IndexWorkitemStore.BeginAddWorkitemWithWatermarkAsync(DefaultPartition.Key, dataset1, queryTags, CancellationToken.None);
+            var identifier1 = await _fixture.IndexWorkitemStore.BeginAddWorkitemAsync(DefaultPartition.Key, dataset1, queryTags, CancellationToken.None);
             await _fixture.IndexWorkitemStore
-                .EndAddWorkitemAsync(DefaultPartition.Key, workitem1.Value.WorkitemKey, CancellationToken.None);
-            (long WorkitemKey, long Watermark)? workitem2 = await _fixture.IndexWorkitemStore.BeginAddWorkitemWithWatermarkAsync(DefaultPartition.Key, dataset2, queryTags, CancellationToken.None);
+                .EndAddWorkitemAsync(DefaultPartition.Key, identifier1.WorkitemKey, CancellationToken.None);
+            var identifier2 = await _fixture.IndexWorkitemStore.BeginAddWorkitemAsync(DefaultPartition.Key, dataset2, queryTags, CancellationToken.None);
             await _fixture.IndexWorkitemStore
-                .EndAddWorkitemAsync(DefaultPartition.Key, workitem2.Value.WorkitemKey, CancellationToken.None);
+                .EndAddWorkitemAsync(DefaultPartition.Key, identifier2.WorkitemKey, CancellationToken.None);
 
             var includeField = new QueryIncludeField(new List<DicomTag> { tag });
             var queryTag = new QueryTag(new WorkitemQueryTagStoreEntry(2, tag.GetPath(), tag.GetDefaultVR().Code));
@@ -163,7 +168,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             Assert.Single(result.WorkitemInstances);
 
-            Assert.Equal(workitem2.Value.WorkitemKey, result.WorkitemInstances.FirstOrDefault().WorkitemKey);
+            Assert.Equal(identifier2.WorkitemKey, result.WorkitemInstances.FirstOrDefault().WorkitemKey);
 
             query = new BaseQueryExpression(includeField, false, 1, 1, filters);
 
@@ -171,7 +176,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             Assert.Single(result.WorkitemInstances);
 
-            Assert.Equal(workitem1.Value.WorkitemKey, result.WorkitemInstances.FirstOrDefault().WorkitemKey);
+            Assert.Equal(identifier1.WorkitemKey, result.WorkitemInstances.FirstOrDefault().WorkitemKey);
         }
 
         private DicomDataset CreateSampleDataset(string workitemUid, DicomTag tag)

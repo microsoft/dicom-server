@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
         public override SchemaVersion Version => SchemaVersion.V11;
 
-        public override async Task<(long WorkitemKey, long Watermark)?> BeginAddWorkitemWithWatermarkAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+        public override async Task<WorkitemInstanceIdentifier> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
@@ -57,7 +57,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                     rows.PersonNameRows
                 );
 
-                string workitemUid = dataset.GetString(DicomTag.SOPInstanceUID);
+                string workitemUid = dataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty);
 
                 VLatest.AddWorkitemV11.PopulateCommand(
                     sqlCommandWrapper,
@@ -72,7 +72,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                     {
                         while (await reader.ReadAsync(cancellationToken))
                         {
-                            return reader.ReadRow(VLatest.Workitem.WorkitemKey, VLatest.Workitem.Watermark);
+                            (long workitemKey, long watermark) = reader.ReadRow(VLatest.Workitem.WorkitemKey, VLatest.Workitem.Watermark);
+
+                            return new WorkitemInstanceIdentifier(workitemUid, workitemKey, partitionKey, watermark);
                         }
                     }
 

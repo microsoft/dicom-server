@@ -23,18 +23,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
         public SqlWorkitemStore(VersionedCache<ISqlWorkitemStore> cache)
             => _cache = EnsureArg.IsNotNull(cache, nameof(cache));
 
-        public async Task<long> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
+        public async Task<WorkitemInstanceIdentifier> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
         {
             ISqlWorkitemStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
 
             return await store.BeginAddWorkitemAsync(partitionKey, dataset, queryTags, cancellationToken);
-        }
-
-        public async Task<(long WorkitemKey, long Watermark)?> BeginAddWorkitemWithWatermarkAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
-        {
-            ISqlWorkitemStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-
-            return await store.BeginAddWorkitemWithWatermarkAsync(partitionKey, dataset, queryTags, cancellationToken);
         }
 
         public async Task EndAddWorkitemAsync(int partitionKey, long workitemKey, CancellationToken cancellationToken = default)
