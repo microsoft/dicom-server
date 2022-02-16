@@ -39,11 +39,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <summary>
         /// Asynchronously deletes a workitem instance.
         /// </summary>
-        /// <param name="partitionKey">The partition key.</param>
-        /// <param name="workitemUid">Workitem instance UID</param>
+        /// <param name="identifier">The Workitem Identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A Task representing the method status.</returns>
-        Task DeleteWorkitemAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default);
+        Task DeleteWorkitemAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously gets workitem query tags

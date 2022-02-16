@@ -33,10 +33,3 @@ INCLUDE
     TransactionUid
 )
 WITH (DATA_COMPRESSION = PAGE)
-
-CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemKey_Watermark ON dbo.Workitem
-(
-    WorkitemKey,
-    Watermark
-)
-WITH (DATA_COMPRESSION = PAGE)

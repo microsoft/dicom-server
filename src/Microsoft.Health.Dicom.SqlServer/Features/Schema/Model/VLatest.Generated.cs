@@ -363,7 +363,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly Index IXC_Workitem = new Index("IXC_Workitem");
             internal readonly Index IX_Workitem_WorkitemUid_PartitionKey = new Index("IX_Workitem_WorkitemUid_PartitionKey");
-            internal readonly Index IX_Workitem_WorkitemKey_Watermark = new Index("IX_Workitem_WorkitemKey_Watermark");
         }
 
         internal class WorkitemQueryTagTable : Table

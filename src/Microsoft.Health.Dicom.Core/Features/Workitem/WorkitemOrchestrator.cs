@@ -117,7 +117,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             try
             {
                 await _indexWorkitemStore
-                    .DeleteWorkitemAsync(identifier.PartitionKey, identifier.WorkitemUid, cancellationToken)
+                    .DeleteWorkitemAsync(identifier, cancellationToken)
                     .ConfigureAwait(false);
             }
             catch (Exception ex)

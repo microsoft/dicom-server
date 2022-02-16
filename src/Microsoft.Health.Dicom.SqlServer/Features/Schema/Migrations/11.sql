@@ -445,9 +445,6 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemUid_PartitionKey
     ON dbo.Workitem(WorkitemUid, PartitionKey)
     INCLUDE(Watermark, WorkitemKey, Status, TransactionUid) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemKey_Watermark
-    ON dbo.Workitem(WorkitemKey, Watermark) WITH (DATA_COMPRESSION = PAGE);
-
 CREATE TABLE dbo.WorkitemQueryTag (
     TagKey  INT          NOT NULL,
     TagPath VARCHAR (64) NOT NULL,

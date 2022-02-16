@@ -79,15 +79,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             }
         }
 
-        public virtual async Task DeleteWorkitemAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
+        public virtual async Task DeleteWorkitemAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.DeleteWorkitem.PopulateCommand(
                     sqlCommandWrapper,
-                    partitionKey,
-                    workitemUid); ;
+                    identifier.PartitionKey,
+                    identifier.WorkitemUid);
 
                 try
                 {

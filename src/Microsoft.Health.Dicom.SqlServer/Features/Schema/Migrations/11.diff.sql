@@ -148,13 +148,3 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 GO
-
-DROP INDEX IF EXISTS IX_Workitem_WorkitemKey_Watermark ON dbo.Workitem
-GO
-CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemKey_Watermark ON dbo.Workitem
-(
-    WorkitemKey,
-    Watermark
-)
-WITH (DATA_COMPRESSION = PAGE)
-GO

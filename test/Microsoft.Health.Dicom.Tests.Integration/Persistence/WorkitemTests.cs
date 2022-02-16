@@ -66,13 +66,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             var identifier = await _fixture.IndexWorkitemStore.BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
 
-            await _fixture.IndexWorkitemStore.DeleteWorkitemAsync(DefaultPartition.Key, workitemUid, CancellationToken.None);
+            await _fixture.IndexWorkitemStore.DeleteWorkitemAsync(identifier, CancellationToken.None);
 
             // Try adding it back again, if this succeeds, then assume that Delete operation has succeeded.
             identifier = await _fixture.IndexWorkitemStore.BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
             Assert.True(identifier.WorkitemKey > 0);
 
-            await _fixture.IndexWorkitemStore.DeleteWorkitemAsync(DefaultPartition.Key, workitemUid, CancellationToken.None);
+            await _fixture.IndexWorkitemStore.DeleteWorkitemAsync(identifier, CancellationToken.None);
         }
 
         [Fact]

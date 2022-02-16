@@ -69,19 +69,11 @@
     <TSqlScript Include="Features\Schema\Sql\Scripts\Sequences.sql" />
     <TSqlScript Include="Features\Schema\Sql\Tables\*.sql" />
     <TSqlScript Include="Features\Schema\Sql\Types\*.sql" />
-    <None Remove="Features\Schema\Migrations\11.diff.sql" />
-    <None Remove="Features\Schema\Sql\Sprocs\AddWorkitemV11.sql" />
     <TSqlScript Include="Features\Schema\Sql\Scripts\WorkitemQueryTag.sql" />
   </ItemGroup>
 
   <ItemGroup>
     <TInitSqlScript Include="Features\Schema\Sql\Scripts\TransactionCheck.sql" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Features\Schema\Migrations\11.diff.sql">
-      <MutableClassVersion>%(Filename)</MutableClassVersion>
-    </EmbeddedResource>
   </ItemGroup>
 
   <!-- Target contains sql build tasks -->

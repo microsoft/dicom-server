@@ -28,10 +28,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             return await store.BeginAddWorkitemAsync(partitionKey, dataset, queryTags, cancellationToken);
         }
 
-        public async Task DeleteWorkitemAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
+        public async Task DeleteWorkitemAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default)
         {
             ISqlWorkitemStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-            await store.DeleteWorkitemAsync(partitionKey, workitemUid, cancellationToken);
+            await store.DeleteWorkitemAsync(identifier, cancellationToken);
         }
 
         public async Task EndAddWorkitemAsync(int partitionKey, long workitemKey, CancellationToken cancellationToken = default)
