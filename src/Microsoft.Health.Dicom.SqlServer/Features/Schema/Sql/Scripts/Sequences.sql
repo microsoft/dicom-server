@@ -59,3 +59,11 @@ CREATE SEQUENCE dbo.WorkitemKeySequence
     MINVALUE 1
     NO CYCLE
     CACHE 10000
+
+CREATE SEQUENCE dbo.WorkitemWatermarkSequence
+    AS BIGINT
+    START WITH 1
+    INCREMENT BY 1
+    MINVALUE 1
+    NO CYCLE
+    CACHE 10000

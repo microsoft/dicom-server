@@ -24,8 +24,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <param name="dataset">The DICOM dataset to index.</param>
         /// <param name="queryTags">Queryable workitem tags</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A task that gets the workitem key.</returns>
-        Task<long> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
+        /// <returns>A task that gets the workitem identifier.</returns>
+        Task<WorkitemInstanceIdentifier> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously completes the creation of a workitem instance.
@@ -39,11 +39,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <summary>
         /// Asynchronously deletes a workitem instance.
         /// </summary>
-        /// <param name="partitionKey">The partition key.</param>
-        /// <param name="workitemUid">Workitem instance UID</param>
+        /// <param name="identifier">The Workitem Identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A Task representing the method status.</returns>
-        Task DeleteWorkitemAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default);
+        Task DeleteWorkitemAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously gets workitem query tags

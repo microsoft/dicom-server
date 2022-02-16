@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
         public virtual SchemaVersion Version => SchemaVersion.V9;
 
-        public virtual async Task<long> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+        public virtual async Task<WorkitemInstanceIdentifier> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
                     rows.PersonNameRows
                 );
 
-                string workitemUid = dataset.GetString(DicomTag.SOPInstanceUID);
+                string workitemUid = dataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty);
 
                 VLatest.AddWorkitem.PopulateCommand(
                     sqlCommandWrapper,
@@ -63,7 +63,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
                 try
                 {
-                    return (long)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+                    var workitemKey = (long)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+
+                    return new WorkitemInstanceIdentifier(workitemUid, workitemKey, partitionKey);
                 }
                 catch (SqlException ex)
                 {
@@ -77,15 +79,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             }
         }
 
-        public virtual async Task DeleteWorkitemAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
+        public virtual async Task DeleteWorkitemAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.DeleteWorkitem.PopulateCommand(
                     sqlCommandWrapper,
-                    partitionKey,
-                    workitemUid); ;
+                    identifier.PartitionKey,
+                    identifier.WorkitemUid);
 
                 try
                 {

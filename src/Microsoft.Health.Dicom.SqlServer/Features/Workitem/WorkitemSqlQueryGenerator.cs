@@ -67,8 +67,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             StringBuilder
                 .AppendLine("( SELECT ")
                 .Append(VLatest.Workitem.WorkitemUid, WorkitemTableAlias).AppendLine(",")
-                .Append(VLatest.Workitem.WorkitemKey, WorkitemTableAlias).AppendLine()
-                .AppendLine($"FROM {VLatest.Workitem.TableName} {WorkitemTableAlias}");
+                .Append(VLatest.Workitem.WorkitemKey, WorkitemTableAlias).AppendLine();
+
+            if ((int)SchemaVersion >= SchemaVersionConstants.SupportUpsRsWatermarkSchemaVersion)
+            {
+                StringBuilder
+                    .Append(",")
+                    .Append(VLatest.Workitem.Watermark, WorkitemTableAlias)
+                    .AppendLine();
+            }
+
+            StringBuilder.AppendLine($"FROM {VLatest.Workitem.TableName} {WorkitemTableAlias}");
 
             AppendLongSchemaQueryTables();
 
@@ -119,8 +128,17 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             StringBuilder
                 .AppendLine("SELECT ")
                 .Append(VLatest.Workitem.WorkitemKey, tableAlias).AppendLine(",")
-                .Append(VLatest.Workitem.WorkitemUid, tableAlias).AppendLine()
-                .AppendLine("FROM");
+                .Append(VLatest.Workitem.WorkitemUid, tableAlias).AppendLine();
+
+            if ((int)SchemaVersion >= SchemaVersionConstants.SupportUpsRsWatermarkSchemaVersion)
+            {
+                StringBuilder
+                    .Append(",")
+                    .Append(VLatest.Workitem.Watermark, tableAlias)
+                    .AppendLine();
+            }
+
+            StringBuilder.AppendLine("FROM");
         }
 
         private void AppendStatusClause(string tableAlias)

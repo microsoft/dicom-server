@@ -122,7 +122,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
 
         private BlockBlobClient GetBlockBlobClient(WorkitemInstanceIdentifier identifier)
         {
-            var blobName = $"{identifier.WorkitemUid}_{identifier.WorkitemKey}_workitem.json";
+            var blobName = $"{identifier.WorkitemUid}_{identifier.WorkitemKey}_{identifier.Watermark}_workitem.json";
 
             return _container.GetBlockBlobClient(blobName);
         }
