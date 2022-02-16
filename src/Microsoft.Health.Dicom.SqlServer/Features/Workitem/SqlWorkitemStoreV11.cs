@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 var rows = ExtendedQueryTagDataRowsBuilder.Build(dataset, queryTags, Version);
-                var parameters = new VLatest.AddWorkitemTableValuedParameters(
+                var parameters = new VLatest.AddWorkitemV11TableValuedParameters(
                     rows.StringRows,
                     rows.DateTimeWithUtcRows,
                     rows.PersonNameRows
@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
                 string workitemUid = dataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty);
 
-                VLatest.AddWorkitem.PopulateCommand(
+                VLatest.AddWorkitemV11.PopulateCommand(
                     sqlCommandWrapper,
                     partitionKey,
                     workitemUid,
