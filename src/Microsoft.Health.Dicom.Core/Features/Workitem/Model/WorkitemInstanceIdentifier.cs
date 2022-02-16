@@ -15,13 +15,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         public WorkitemInstanceIdentifier(
             string workitemUid,
             long workitemKey,
-            int partitionKey = default)
+            int partitionKey = default,
+            long watermark = default)
         {
             EnsureArg.IsNotNullOrWhiteSpace(workitemUid, nameof(workitemUid));
 
             WorkitemUid = workitemUid;
             WorkitemKey = workitemKey;
             PartitionKey = partitionKey;
+            Watermark = watermark;
         }
 
         public int PartitionKey { get; }
@@ -29,6 +31,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         public long WorkitemKey { get; }
 
         public string WorkitemUid { get; }
+
+        public long Watermark { get; }
 
         public override bool Equals(object obj)
         {
@@ -43,9 +47,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         }
 
         public override int GetHashCode()
-            => (PartitionKey + WorkitemUid + WorkitemKey.ToString()).GetHashCode(EqualsStringComparison);
+            => (PartitionKey + WorkitemUid + WorkitemKey.ToString() + Watermark.ToString()).GetHashCode(EqualsStringComparison);
 
         public override string ToString()
-            => $"PartitionKey: {PartitionKey}, WorkitemUID: {WorkitemUid}, WorkitemKey: {WorkitemKey}";
+            => $"PartitionKey: {PartitionKey}, WorkitemUID: {WorkitemUid}, WorkitemKey: {WorkitemKey}, Watermark: {Watermark}";
     }
 }

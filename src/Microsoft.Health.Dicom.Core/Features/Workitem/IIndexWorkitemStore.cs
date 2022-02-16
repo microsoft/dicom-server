@@ -24,8 +24,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <param name="dataset">The DICOM dataset to index.</param>
         /// <param name="queryTags">Queryable workitem tags</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A task that gets the workitem key.</returns>
-        Task<long> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
+        /// <returns>A task that gets the workitem identifier.</returns>
+        Task<WorkitemInstanceIdentifier> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously completes the creation of a workitem instance.
