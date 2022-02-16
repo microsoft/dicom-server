@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "de237534-c661-4844-9846-0295f39a179a",
+		"_postman_id": "be60fbcf-8337-4520-a289-657e5293dae7",
 		"name": "Dicom Data Partition Feature",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -187,6 +187,139 @@
 				"description": "This request deletes a single study (and all child series and instances).\r\n\r\n> Delete is not part of the DICOM standard, but has been added for convenience.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}\r\n* Method: DELETE\r\n* Headers: No special headers needed"
 			},
 			"response": []
+		},
+		{
+			"name": "Create-workitem",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true,
+					"accept-encoding": true,
+					"connection": true,
+					"content-type": true,
+					"user-agent": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"type": "text",
+						"value": "application/dicom+json"
+					},
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/dicom+json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {\r\n        \"00081080\": {\r\n            \"vr\": \"LO\"\r\n        },\r\n        \"00081084\": {\r\n            \"vr\": \"SQ\",\r\n            \"Value\": [\r\n                { }\r\n            ]\r\n        },\r\n        \"00081195\": {\r\n            \"vr\": \"UI\"\r\n        },\r\n        \"00100010\": {\r\n            \"vr\": \"PN\",\r\n            \"Value\": [\r\n                {\r\n                    \"Alphabetic\": \"Last^First\"\r\n                }\r\n            ]\r\n        },\r\n        \"00100020\": {\r\n            \"vr\": \"LO\",\r\n            \"Value\": [\r\n                \"11111\"\r\n            ]\r\n        },\r\n        \"00100030\": {\r\n            \"vr\": \"DA\",\r\n            \"Value\": [\r\n                \"20000101\"\r\n            ]\r\n        },\r\n        \"00100040\": {\r\n            \"vr\": \"CS\",\r\n            \"Value\": [\r\n                \"F\"\r\n            ]\r\n        },\r\n        \"00101002\": {\r\n            \"vr\": \"SQ\"\r\n        },\r\n        \"00104000\": {\r\n            \"vr\": \"LT\"\r\n        },\r\n        \"00321033\": {\r\n            \"vr\": \"LO\",\r\n            \"Value\": [\r\n                \"123\"\r\n            ]\r\n        },\r\n        \"00380010\": {\r\n            \"vr\": \"LO\",\r\n            \"Value\": [\r\n                \"11111\"\r\n            ]\r\n        },\r\n        \"00380014\": {\r\n            \"vr\": \"SQ\"\r\n        },\r\n        \"00400400\": {\r\n            \"vr\": \"LT\"\r\n        },\r\n        \"00401001\": {\r\n            \"vr\": \"SH\",\r\n            \"Value\": [\r\n                \"123\"\r\n            ]\r\n        },\r\n        \"00404005\": {\r\n            \"vr\": \"DT\",\r\n            \"Value\": [\r\n                \"20211202115531.193\"\r\n            ]\r\n        },\r\n        \"00404010\": {\r\n            \"vr\": \"DT\",\r\n            \"Value\": [\r\n                \"20211202115531.193\"\r\n            ]\r\n        },\r\n        \"00404018\": {\r\n            \"vr\": \"SQ\",\r\n            \"Value\": [\r\n                {\r\n                    \"00080100\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"ABC123\"\r\n                        ]\r\n                    },\r\n                    \"00080102\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"123ABC\"\r\n                        ]\r\n                    },\r\n                    \"00080103\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"1.0\"\r\n                        ]\r\n                    },\r\n                    \"00080104\": {\r\n                        \"vr\": \"LO\",\r\n                        \"Value\": [\r\n                            \"Requested procedure\"\r\n                        ]\r\n                    }\r\n                }\r\n            ]\r\n        },\r\n        \"00404021\": {\r\n            \"vr\": \"SQ\"\r\n        },\r\n        \"00404025\": {\r\n            \"vr\": \"SQ\",\r\n            \"Value\": [\r\n                {\r\n                    \"00080100\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"ABC_123\"\r\n                        ]\r\n                    },\r\n                    \"00080102\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"123ABC\"\r\n                        ]\r\n                    },\r\n                    \"00080104\": {\r\n                        \"vr\": \"LO\",\r\n                        \"Value\": [\r\n                            \"Station name\"\r\n                        ]\r\n                    }\r\n                },\r\n                {\r\n                    \"00080100\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"DEF_456\"\r\n                        ]\r\n                    },\r\n                    \"00080102\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"123ABC\"\r\n                        ]\r\n                    },\r\n                    \"00080104\": {\r\n                        \"vr\": \"LO\",\r\n                        \"Value\": [\r\n                            \"Station name\"\r\n                        ]\r\n                    }\r\n                }\r\n            ]\r\n        },\r\n        \"00404026\": {\r\n            \"vr\": \"SQ\",\r\n            \"Value\": [\r\n                {\r\n                    \"00080100\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"ABC\"\r\n                        ]\r\n                    },\r\n                    \"00080102\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"AAA\"\r\n                        ]\r\n                    },\r\n                    \"00080104\": {\r\n                        \"vr\": \"LO\",\r\n                        \"Value\": [\r\n                            \"Station class\"\r\n                        ]\r\n                    }\r\n                },\r\n                {\r\n                    \"00080100\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"ABC\"\r\n                        ]\r\n                    },\r\n                    \"00080102\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"AAA\"\r\n                        ]\r\n                    },\r\n                    \"00080104\": {\r\n                        \"vr\": \"LO\",\r\n                        \"Value\": [\r\n                            \"Station class\"\r\n                        ]\r\n                    }\r\n                }\r\n            ]\r\n        },\r\n        \"00404027\": {\r\n            \"vr\": \"SQ\",\r\n            \"Value\": [\r\n                {\r\n                    \"00080100\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"ABC_1\"\r\n                        ]\r\n                    },\r\n                    \"00080102\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"DEF\"\r\n                        ]\r\n                    },\r\n                    \"00080104\": {\r\n                        \"vr\": \"LO\",\r\n                        \"Value\": [\r\n                            \"Geographic location\"\r\n                        ]\r\n                    }\r\n                },\r\n                {\r\n                    \"00080100\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"ABC_2\"\r\n                        ]\r\n                    },\r\n                    \"00080102\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"DEF\"\r\n                        ]\r\n                    },\r\n                    \"00080104\": {\r\n                        \"vr\": \"LO\",\r\n                        \"Value\": [\r\n                            \"Geographic location\"\r\n                        ]\r\n                    }\r\n                }\r\n            ]\r\n        },\r\n        \"00404034\": {\r\n            \"vr\": \"SQ\",\r\n            \"Value\": [\r\n                {\r\n                    \"00404037\": {\r\n                        \"vr\": \"PN\",\r\n                        \"Value\": [\r\n                            {\r\n                                \"Alphabetic\": \"Lastname^Firstname^^Dr\"\r\n                            }\r\n                        ]\r\n                    }\r\n                }\r\n            ]\r\n        },\r\n        \"00404041\": {\r\n            \"vr\": \"CS\",\r\n            \"Value\": [\r\n                \"READY\"\r\n            ]\r\n        },\r\n        \"0040A370\": {\r\n            \"vr\": \"SQ\",\r\n            \"Value\": [\r\n                {\r\n                    \"00080050\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"1234567\"\r\n                        ]\r\n                    },\r\n                    \"00080051\": {\r\n                        \"vr\": \"SQ\"\r\n                    },\r\n                    \"00080090\": {\r\n                        \"vr\": \"PN\",\r\n                        \"Value\": [\r\n                            {\r\n                                \"Alphabetic\": \"Last^First^^Dr\"\r\n                            }\r\n                        ]\r\n                    },\r\n                    \"0020000D\": {\r\n                        \"vr\": \"UI\",\r\n                        \"Value\": [\r\n                            \"2.25.00000000000000000000000000000000\"\r\n                        ]\r\n                    },\r\n                    \"00321060\": {\r\n                        \"vr\": \"LO\",\r\n                        \"Value\": [\r\n                            \"Requested procedure description\"\r\n                        ]\r\n                    },\r\n                    \"00321064\": {\r\n                        \"vr\": \"SQ\",\r\n                        \"Value\": [\r\n                            {\r\n                                \"00080100\": {\r\n                                    \"vr\": \"SH\",\r\n                                    \"Value\": [\r\n                                        \"GHI123\"\r\n                                    ]\r\n                                },\r\n                                \"00080102\": {\r\n                                    \"vr\": \"SH\",\r\n                                    \"Value\": [\r\n                                        \"789JKL\"\r\n                                    ]\r\n                                },\r\n                                \"00080104\": {\r\n                                    \"vr\": \"LO\",\r\n                                    \"Value\": [\r\n                                        \"Requested procedure\"\r\n                                    ]\r\n                                }\r\n                            }\r\n                        ]\r\n                    },\r\n                    \"00400026\": {\r\n                        \"vr\": \"SQ\"\r\n                    },\r\n                    \"00400027\": {\r\n                        \"vr\": \"SQ\"\r\n                    },\r\n                    \"00401001\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"123\"\r\n                        ]\r\n                    },\r\n                    \"00401400\": {\r\n                        \"vr\": \"LT\",\r\n                        \"Value\": [\r\n                            \"Requested Cataract surgery procedure comments\"\r\n                        ]\r\n                    }\r\n                }\r\n            ]\r\n        },\r\n        \"00741000\": {\r\n            \"vr\": \"CS\",\r\n            \"Value\": [\r\n                \"SCHEDULED\"\r\n            ]\r\n        },\r\n        \"00741002\": {\r\n            \"vr\": \"SQ\"\r\n        },\r\n        \"00741200\": {\r\n            \"vr\": \"CS\",\r\n            \"Value\": [\r\n                \"MEDIUM\"\r\n            ]\r\n        },\r\n        \"00741202\": {\r\n            \"vr\": \"LO\",\r\n            \"Value\": [\r\n                \"WORKLIST\"\r\n            ]\r\n        },\r\n        \"00741204\": {\r\n            \"vr\": \"LO\",\r\n            \"Value\": [\r\n                \"Scheduled procedure step description\"\r\n            ]\r\n        },\r\n        \"00741210\": {\r\n            \"vr\": \"SQ\"\r\n        },\r\n        \"00741216\": {\r\n            \"vr\": \"SQ\"\r\n        }\r\n    }\r\n]",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/partitions/{{partitionName}}/workitems?{{workitem1}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"partitions",
+						"{{partitionName}}",
+						"workitems"
+					],
+					"query": [
+						{
+							"key": "{{workitem1}}",
+							"value": null
+						}
+					]
+				},
+				"description": "For the body of the request, select the red-triangle.dcm file located in the GitHub repo at ../docs/dcms.  Ensure you attach the file as `binary`.\r\n\r\n> NOTE: This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related. It allows the use of Postman to upload files to the DICOMweb service.\r\n\r\nThe following is required to upload a single DICOM file.\r\n\r\n* Path: ../studies\r\n* Method: POST\r\n* Headers:\r\n   *  `Accept: application/dicom+json`\r\n   *  `Content-Type: application/dicom`\r\n* Body:\r\n    * Contains the DICOM file as a bytes.\r\n\r\n> This API is currently not implemented\r\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Search-for-workitems",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true,
+					"accept-encoding": true,
+					"connection": true,
+					"content-type": true,
+					"user-agent": true
+				},
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"type": "text",
+						"value": "application/dicom+json"
+					},
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/dicom+json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {\r\n        \"00081080\": {\r\n            \"vr\": \"LO\"\r\n        },\r\n        \"00081084\": {\r\n            \"vr\": \"SQ\",\r\n            \"Value\": [\r\n                { }\r\n            ]\r\n        },\r\n        \"00081195\": {\r\n            \"vr\": \"UI\"\r\n        },\r\n        \"00100010\": {\r\n            \"vr\": \"PN\",\r\n            \"Value\": [\r\n                {\r\n                    \"Alphabetic\": \"Last^First\"\r\n                }\r\n            ]\r\n        },\r\n        \"00100020\": {\r\n            \"vr\": \"LO\",\r\n            \"Value\": [\r\n                \"11111\"\r\n            ]\r\n        },\r\n        \"00100030\": {\r\n            \"vr\": \"DA\",\r\n            \"Value\": [\r\n                \"20000101\"\r\n            ]\r\n        },\r\n        \"00100040\": {\r\n            \"vr\": \"CS\",\r\n            \"Value\": [\r\n                \"F\"\r\n            ]\r\n        },\r\n        \"00101002\": {\r\n            \"vr\": \"SQ\"\r\n        },\r\n        \"00104000\": {\r\n            \"vr\": \"LT\"\r\n        },\r\n        \"00321033\": {\r\n            \"vr\": \"LO\",\r\n            \"Value\": [\r\n                \"123\"\r\n            ]\r\n        },\r\n        \"00380010\": {\r\n            \"vr\": \"LO\",\r\n            \"Value\": [\r\n                \"11111\"\r\n            ]\r\n        },\r\n        \"00380014\": {\r\n            \"vr\": \"SQ\"\r\n        },\r\n        \"00400400\": {\r\n            \"vr\": \"LT\"\r\n        },\r\n        \"00401001\": {\r\n            \"vr\": \"SH\",\r\n            \"Value\": [\r\n                \"123\"\r\n            ]\r\n        },\r\n        \"00404005\": {\r\n            \"vr\": \"DT\",\r\n            \"Value\": [\r\n                \"20211202115531.193\"\r\n            ]\r\n        },\r\n        \"00404010\": {\r\n            \"vr\": \"DT\",\r\n            \"Value\": [\r\n                \"20211202115531.193\"\r\n            ]\r\n        },\r\n        \"00404018\": {\r\n            \"vr\": \"SQ\",\r\n            \"Value\": [\r\n                {\r\n                    \"00080100\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"ABC123\"\r\n                        ]\r\n                    },\r\n                    \"00080102\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"123ABC\"\r\n                        ]\r\n                    },\r\n                    \"00080103\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"1.0\"\r\n                        ]\r\n                    },\r\n                    \"00080104\": {\r\n                        \"vr\": \"LO\",\r\n                        \"Value\": [\r\n                            \"Requested procedure\"\r\n                        ]\r\n                    }\r\n                }\r\n            ]\r\n        },\r\n        \"00404021\": {\r\n            \"vr\": \"SQ\"\r\n        },\r\n        \"00404025\": {\r\n            \"vr\": \"SQ\",\r\n            \"Value\": [\r\n                {\r\n                    \"00080100\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"ABC_123\"\r\n                        ]\r\n                    },\r\n                    \"00080102\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"123ABC\"\r\n                        ]\r\n                    },\r\n                    \"00080104\": {\r\n                        \"vr\": \"LO\",\r\n                        \"Value\": [\r\n                            \"Station name\"\r\n                        ]\r\n                    }\r\n                },\r\n                {\r\n                    \"00080100\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"DEF_456\"\r\n                        ]\r\n                    },\r\n                    \"00080102\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"123ABC\"\r\n                        ]\r\n                    },\r\n                    \"00080104\": {\r\n                        \"vr\": \"LO\",\r\n                        \"Value\": [\r\n                            \"Station name\"\r\n                        ]\r\n                    }\r\n                }\r\n            ]\r\n        },\r\n        \"00404026\": {\r\n            \"vr\": \"SQ\",\r\n            \"Value\": [\r\n                {\r\n                    \"00080100\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"ABC\"\r\n                        ]\r\n                    },\r\n                    \"00080102\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"AAA\"\r\n                        ]\r\n                    },\r\n                    \"00080104\": {\r\n                        \"vr\": \"LO\",\r\n                        \"Value\": [\r\n                            \"Station class\"\r\n                        ]\r\n                    }\r\n                },\r\n                {\r\n                    \"00080100\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"ABC\"\r\n                        ]\r\n                    },\r\n                    \"00080102\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"AAA\"\r\n                        ]\r\n                    },\r\n                    \"00080104\": {\r\n                        \"vr\": \"LO\",\r\n                        \"Value\": [\r\n                            \"Station class\"\r\n                        ]\r\n                    }\r\n                }\r\n            ]\r\n        },\r\n        \"00404027\": {\r\n            \"vr\": \"SQ\",\r\n            \"Value\": [\r\n                {\r\n                    \"00080100\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"ABC_1\"\r\n                        ]\r\n                    },\r\n                    \"00080102\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"DEF\"\r\n                        ]\r\n                    },\r\n                    \"00080104\": {\r\n                        \"vr\": \"LO\",\r\n                        \"Value\": [\r\n                            \"Geographic location\"\r\n                        ]\r\n                    }\r\n                },\r\n                {\r\n                    \"00080100\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"ABC_2\"\r\n                        ]\r\n                    },\r\n                    \"00080102\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"DEF\"\r\n                        ]\r\n                    },\r\n                    \"00080104\": {\r\n                        \"vr\": \"LO\",\r\n                        \"Value\": [\r\n                            \"Geographic location\"\r\n                        ]\r\n                    }\r\n                }\r\n            ]\r\n        },\r\n        \"00404034\": {\r\n            \"vr\": \"SQ\",\r\n            \"Value\": [\r\n                {\r\n                    \"00404037\": {\r\n                        \"vr\": \"PN\",\r\n                        \"Value\": [\r\n                            {\r\n                                \"Alphabetic\": \"Lastname^Firstname^^Dr\"\r\n                            }\r\n                        ]\r\n                    }\r\n                }\r\n            ]\r\n        },\r\n        \"00404041\": {\r\n            \"vr\": \"CS\",\r\n            \"Value\": [\r\n                \"READY\"\r\n            ]\r\n        },\r\n        \"0040A370\": {\r\n            \"vr\": \"SQ\",\r\n            \"Value\": [\r\n                {\r\n                    \"00080050\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"1234567\"\r\n                        ]\r\n                    },\r\n                    \"00080051\": {\r\n                        \"vr\": \"SQ\"\r\n                    },\r\n                    \"00080090\": {\r\n                        \"vr\": \"PN\",\r\n                        \"Value\": [\r\n                            {\r\n                                \"Alphabetic\": \"Last^First^^Dr\"\r\n                            }\r\n                        ]\r\n                    },\r\n                    \"0020000D\": {\r\n                        \"vr\": \"UI\",\r\n                        \"Value\": [\r\n                            \"2.25.00000000000000000000000000000000\"\r\n                        ]\r\n                    },\r\n                    \"00321060\": {\r\n                        \"vr\": \"LO\",\r\n                        \"Value\": [\r\n                            \"Requested procedure description\"\r\n                        ]\r\n                    },\r\n                    \"00321064\": {\r\n                        \"vr\": \"SQ\",\r\n                        \"Value\": [\r\n                            {\r\n                                \"00080100\": {\r\n                                    \"vr\": \"SH\",\r\n                                    \"Value\": [\r\n                                        \"GHI123\"\r\n                                    ]\r\n                                },\r\n                                \"00080102\": {\r\n                                    \"vr\": \"SH\",\r\n                                    \"Value\": [\r\n                                        \"789JKL\"\r\n                                    ]\r\n                                },\r\n                                \"00080104\": {\r\n                                    \"vr\": \"LO\",\r\n                                    \"Value\": [\r\n                                        \"Requested procedure\"\r\n                                    ]\r\n                                }\r\n                            }\r\n                        ]\r\n                    },\r\n                    \"00400026\": {\r\n                        \"vr\": \"SQ\"\r\n                    },\r\n                    \"00400027\": {\r\n                        \"vr\": \"SQ\"\r\n                    },\r\n                    \"00401001\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"123\"\r\n                        ]\r\n                    },\r\n                    \"00401400\": {\r\n                        \"vr\": \"LT\",\r\n                        \"Value\": [\r\n                            \"Requested Cataract surgery procedure comments\"\r\n                        ]\r\n                    }\r\n                }\r\n            ]\r\n        },\r\n        \"00741000\": {\r\n            \"vr\": \"CS\",\r\n            \"Value\": [\r\n                \"SCHEDULED\"\r\n            ]\r\n        },\r\n        \"00741002\": {\r\n            \"vr\": \"SQ\"\r\n        },\r\n        \"00741200\": {\r\n            \"vr\": \"CS\",\r\n            \"Value\": [\r\n                \"MEDIUM\"\r\n            ]\r\n        },\r\n        \"00741202\": {\r\n            \"vr\": \"LO\",\r\n            \"Value\": [\r\n                \"WORKLIST\"\r\n            ]\r\n        },\r\n        \"00741204\": {\r\n            \"vr\": \"LO\",\r\n            \"Value\": [\r\n                \"Scheduled procedure step description\"\r\n            ]\r\n        },\r\n        \"00741210\": {\r\n            \"vr\": \"SQ\"\r\n        },\r\n        \"00741216\": {\r\n            \"vr\": \"SQ\"\r\n        }\r\n    }\r\n]",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/partitions/{{partitionName}}/workitems?PatientName=Last^First",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"partitions",
+						"{{partitionName}}",
+						"workitems"
+					],
+					"query": [
+						{
+							"key": "PatientName",
+							"value": "Last^First"
+						}
+					]
+				},
+				"description": "For the body of the request, select the red-triangle.dcm file located in the GitHub repo at ../docs/dcms.  Ensure you attach the file as `binary`.\r\n\r\n> NOTE: This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related. It allows the use of Postman to upload files to the DICOMweb service.\r\n\r\nThe following is required to upload a single DICOM file.\r\n\r\n* Path: ../studies\r\n* Method: POST\r\n* Headers:\r\n   *  `Accept: application/dicom+json`\r\n   *  `Content-Type: application/dicom`\r\n* Body:\r\n    * Contains the DICOM file as a bytes.\r\n\r\n> This API is currently not implemented\r\n"
+			},
+			"response": []
 		}
 	],
 	"event": [
@@ -233,6 +366,11 @@
 		{
 			"key": "partitionName",
 			"value": "Microsoft.Default"
+		},
+		{
+			"key": "workitem1",
+			"value": "1",
+			"type": "default"
 		}
 	]
 }
