@@ -72,8 +72,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             if ((int)SchemaVersion >= SchemaVersionConstants.SupportUpsRsWatermarkSchemaVersion)
             {
                 StringBuilder
-                    .AppendLine(",")
-                    .Append(VLatest.Workitem.WorkitemUid, WorkitemTableAlias);
+                    .Append(",")
+                    .AppendLine(VLatest.Workitem.Watermark, WorkitemTableAlias);
             }
 
             StringBuilder.AppendLine($"FROM {VLatest.Workitem.TableName} {WorkitemTableAlias}");
@@ -132,8 +132,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             if ((int)SchemaVersion >= SchemaVersionConstants.SupportUpsRsWatermarkSchemaVersion)
             {
                 StringBuilder
-                    .AppendLine(",")
-                    .Append(VLatest.Workitem.WorkitemUid, tableAlias);
+                    .Append(",")
+                    .AppendLine(VLatest.Workitem.Watermark, tableAlias);
             }
 
             StringBuilder.AppendLine("FROM");
