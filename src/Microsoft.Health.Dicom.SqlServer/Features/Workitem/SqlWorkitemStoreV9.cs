@@ -63,9 +63,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
                 try
                 {
-                    var workitemKey = await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+                    var workitemKey = (long)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
 
-                    return new WorkitemInstanceIdentifier(workitemUid, (long)workitemKey, partitionKey);
+                    return new WorkitemInstanceIdentifier(workitemUid, workitemKey, partitionKey);
                 }
                 catch (SqlException ex)
                 {
