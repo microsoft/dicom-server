@@ -8,6 +8,8 @@ The DICOM service supports a subset of the Worklist Service (UPS-RS) defined in 
 The base URI for all operations below should include the [desired API version](../api-versioning.md) and the [data partition](data-partitions.md) if that feature is enabled.
 Throughout, the variable  in a URI template stands for a Workitem UID.
 
+You can find example requests for these transactions in the [data partition Postman collection](../resources/data-partition-feature.postman_collection.json).
+
 ## Create
 
 This transaction uses the POST method to create a new Workitem.
@@ -18,19 +20,20 @@ This transaction uses the POST method to create a new Workitem.
 | POST   | `../workitems?{workitem}` | Creates a Workitem with the specified UID. |
 
 
-If not specified in the URI, the payload dataset must contain the Workitem in either the SOPInstanceUid or AffectedSOPInstanceUID attributes.
+If not specified in the URI, the payload dataset must contain the Workitem in the SOPInstanceUID attribute.
 
-The `Accept` and `Content-Type` headers are required in the request, and must both have the value `application/json`.
+The `Accept` and `Content-Type` headers are required in the request, and must both have the value `application/dicom+json`.
 
-There are a number of DICOM elements which are required to be present in every Workitem dataset. The full list is in
-[this table](https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.5-3).
+There are a number of requirements related to DICOM data attributes in the context of a specific transaction. Attributes may be
+required to be present, required to not be present, required to be empty, or required to not be empty. These requirements can be 
+found in [this table](https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.5-3).
 
 Notes on dataset attributes:
 - **SOP Instance UID:** Although the reference table above says that SOP Instance UID should not be present, this guidance is specific to the DIMSE protocol and is
 handled diferently in DICOMWeb&trade;. SOP Instance UID **should be present** in the dataset if not in the URI.
 - **Scheduled Procedure Step State:** this attribute must be present, but must have no value.
 
-### Store Response Status Codes
+### Create Response Status Codes
 
 | Code                         | Description |
 | :--------------------------- | :---------- |
@@ -41,7 +44,7 @@ handled diferently in DICOMWeb&trade;. SOP Instance UID **should be present** in
 | 415 (Unsupported Media Type) | The provided `Content-Type` is not supported. |
 | 503 (Service Unavailable)    | The service is unavailable or busy. Please try again later. |
 
-### Store Response Payload
+### Create Response Payload
 
 A success response will have no payload. The `Location` and `Content-Location` response headers will contain
 a URI reference to the created Workitem.
@@ -58,7 +61,7 @@ This transaction enables you to search for Workitems by attributes.
 
 The following `Accept` header(s) are supported for searching:
 
-- `application/json`
+- `application/dicom+json`
 
 ### Supported Search Parameters
 
@@ -109,7 +112,7 @@ Tags can be encoded in a number of ways for the query parameter. We have partial
 | {group}{element} | 00100010         |
 | {dicomKeyword}   | PatientName |
 
-Example query: **../workitems?PatientId=K123&0040A370.00080050=1423JS&includefield=00404005&limit=5&offset=0**
+Example query: **../workitems?PatientID=K123&0040A370.00080050=1423JS&includefield=00404005&limit=5&offset=0**
 
 ### Search Response
 
