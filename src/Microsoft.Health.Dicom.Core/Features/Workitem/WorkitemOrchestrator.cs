@@ -124,10 +124,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             {
                 _logger.LogWarning(
                     ex,
-                    @"Failed to cleanup workitem [WorkitemUid: '{WorkitemUid}'] [PartitionKey: '{PartitionKey}'] [WorkitemKey: '{WorkitemKey}'].",
+                    @"Failed to cleanup workitem [WorkitemUid: '{WorkitemUid}'] [PartitionKey: '{PartitionKey}'] [WorkitemKey: '{WorkitemKey} [Watermark: '{Watermark}']].",
                     identifier.WorkitemUid,
                     identifier.PartitionKey,
-                    identifier.WorkitemKey);
+                    identifier.WorkitemKey,
+                    identifier.Watermark);
             }
         }
 
