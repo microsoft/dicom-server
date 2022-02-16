@@ -122,13 +122,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(
-                    ex,
-                    @"Failed to cleanup workitem [WorkitemUid: '{WorkitemUid}'] [PartitionKey: '{PartitionKey}'] [WorkitemKey: '{WorkitemKey} [Watermark: '{Watermark}']].",
-                    identifier.WorkitemUid,
-                    identifier.PartitionKey,
-                    identifier.WorkitemKey,
-                    identifier.Watermark);
+                _logger.LogWarning(ex, @"Failed to cleanup workitem {Identifier}.", identifier);
             }
         }
 

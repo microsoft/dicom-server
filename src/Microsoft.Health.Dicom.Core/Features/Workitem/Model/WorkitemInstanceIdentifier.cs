@@ -40,7 +40,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             {
                 return WorkitemUid.Equals(identifier.WorkitemUid, EqualsStringComparison) &&
                         WorkitemKey == identifier.WorkitemKey &&
-                        PartitionKey == identifier.PartitionKey;
+                        PartitionKey == identifier.PartitionKey &&
+                        Watermark == identifier.Watermark;
             }
 
             return false;

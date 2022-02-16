@@ -73,7 +73,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             {
                 StringBuilder
                     .Append(",")
-                    .AppendLine(VLatest.Workitem.Watermark, WorkitemTableAlias);
+                    .Append(VLatest.Workitem.Watermark, WorkitemTableAlias)
+                    .AppendLine();
             }
 
             StringBuilder.AppendLine($"FROM {VLatest.Workitem.TableName} {WorkitemTableAlias}");
@@ -133,7 +134,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             {
                 StringBuilder
                     .Append(",")
-                    .AppendLine(VLatest.Workitem.Watermark, tableAlias);
+                    .Append(VLatest.Workitem.Watermark, tableAlias)
+                    .AppendLine();
             }
 
             StringBuilder.AppendLine("FROM");
