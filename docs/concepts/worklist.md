@@ -6,7 +6,7 @@ The DICOM service supports a subset of the Worklist Service (UPS-RS) defined in 
 - [Search](#search)
 
 The base URI for all operations below should include the [desired API version](../api-versioning.md) and the [data partition](data-partitions.md) if that feature is enabled.
-Throughout, the variable  in a URI template stands for a Workitem UID.
+Throughout, the variable `{workitem}` in a URI template stands for a Workitem UID.
 
 You can find example requests for these transactions in the [data partition Postman collection](../resources/data-partition-feature.postman_collection.json).
 
