@@ -41,15 +41,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
             SchemaVersion version = await _schemaVersionResolver.GetCurrentVersionAsync(cancellationToken);
 
             // Return the latest version of the entity. If the entity is not found, throw an exception.
-            T value = _entities.Where(entity => entity.Version <= version && (int)entity.Version >= SchemaVersionConstants.Min).FirstOrDefault();
+            T value = _entities.Where(entity => entity.Version <= version).FirstOrDefault();
 
-            if (value != null) return value;
-
-            string msg = version == SchemaVersion.Unknown
+            if (value == null)
+            {
+                throw new InvalidSchemaVersionException(version == SchemaVersion.Unknown
                     ? DicomSqlServerResource.UnknownSchemaVersion
-                    : string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.SchemaVersionOutOfRange, version);
+                    : string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.SchemaVersionOutOfRange, version));
+            }
 
-            throw new InvalidSchemaVersionException(msg);
+            return value;
         }
     }
 }
