@@ -2028,57 +2028,50 @@ BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
+    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+    DECLARE @currentProcedureStepStateTagValue AS VARCHAR (64);
+    DECLARE @newWatermark AS BIGINT;
     UPDATE dbo.Workitem
     SET    Watermark = @proposedWatermark
     WHERE  WorkitemKey = @workitemKey
            AND Watermark = @watermark;
     IF @@ROWCOUNT = 0
         THROW 50409, 'Workitem update failed.', 1;
-    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
-    DECLARE @currentProcedureStepStateTagValue AS VARCHAR (64);
-    DECLARE @newWatermark AS BIGINT;
     SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
-    BEGIN TRY
-        WITH TagKeyCTE
-        AS   (SELECT wqt.TagKey,
-                     wqt.TagPath,
-                     eqts.TagValue AS OldTagValue,
-                     eqts.ResourceType,
-                     wi.PartitionKey,
-                     wi.WorkitemKey,
-                     wi.WorkitemUid,
-                     wi.TransactionUid,
-                     eqts.Watermark AS ExtendedQueryTagWatermark
-              FROM   dbo.WorkitemQueryTag AS wqt
-                     INNER JOIN
-                     dbo.ExtendedQueryTagString AS eqts
-                     ON eqts.TagKey = wqt.TagKey
-                        AND eqts.ResourceType = 1
-                     INNER JOIN
-                     dbo.Workitem AS wi
-                     ON wi.PartitionKey = eqts.PartitionKey
-                        AND wi.WorkitemKey = eqts.SopInstanceKey1
-              WHERE  wi.WorkitemKey = @workitemKey)
-        UPDATE targetTbl
-        SET    targetTbl.TagValue  = @procedureStepState,
-               targetTbl.Watermark = @newWatermark
-        FROM   dbo.ExtendedQueryTagString AS targetTbl
-               INNER JOIN
-               TagKeyCTE AS cte
-               ON targetTbl.ResourceType = cte.ResourceType
-                  AND cte.PartitionKey = targetTbl.PartitionKey
-                  AND cte.WorkitemKey = targetTbl.SopInstanceKey1
-                  AND cte.TagKey = targetTbl.TagKey
-                  AND cte.OldTagValue = targetTbl.TagValue
-                  AND cte.ExtendedQueryTagWatermark = targetTbl.Watermark
-        WHERE  cte.TagPath = @procedureStepStateTagPath;
-        IF @@ROWCOUNT = 0
-            THROW 50409, 'Workitem update failed.', 1;
-    END TRY
-    BEGIN CATCH
-        THROW;
-    END CATCH
+    WITH TagKeyCTE
+    AS   (SELECT wqt.TagKey,
+                 wqt.TagPath,
+                 eqts.TagValue AS OldTagValue,
+                 eqts.ResourceType,
+                 wi.PartitionKey,
+                 wi.WorkitemKey,
+                 eqts.Watermark AS ExtendedQueryTagWatermark
+          FROM   dbo.WorkitemQueryTag AS wqt
+                 INNER JOIN
+                 dbo.ExtendedQueryTagString AS eqts
+                 ON eqts.TagKey = wqt.TagKey
+                    AND eqts.ResourceType = 1
+                 INNER JOIN
+                 dbo.Workitem AS wi
+                 ON wi.PartitionKey = eqts.PartitionKey
+                    AND wi.WorkitemKey = eqts.SopInstanceKey1
+          WHERE  wi.WorkitemKey = @workitemKey)
+    UPDATE targetTbl
+    SET    targetTbl.TagValue  = @procedureStepState,
+           targetTbl.Watermark = @newWatermark
+    FROM   dbo.ExtendedQueryTagString AS targetTbl
+           INNER JOIN
+           TagKeyCTE AS cte
+           ON targetTbl.ResourceType = cte.ResourceType
+              AND cte.PartitionKey = targetTbl.PartitionKey
+              AND cte.WorkitemKey = targetTbl.SopInstanceKey1
+              AND cte.TagKey = targetTbl.TagKey
+              AND cte.OldTagValue = targetTbl.TagValue
+              AND cte.ExtendedQueryTagWatermark = targetTbl.Watermark
+    WHERE  cte.TagPath = @procedureStepStateTagPath;
     COMMIT TRANSACTION;
+    IF @@ROWCOUNT = 0
+        THROW 50409, 'Workitem update failed.', 1;
 END
 
 GO

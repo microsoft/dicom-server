@@ -80,6 +80,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             return ProcedureStepState.None;
         }
 
+        /// <summary>
+        /// Gets the procedure step state from the DicomDataset
+        /// </summary>
+        /// <param name="dataset">The DICOM dataset</param>
+        /// <returns>Returns Procedure Step State</returns>
         public static ProcedureStepState GetProcedureState(this DicomDataset dataset)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
@@ -96,8 +101,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// The method returns the valid transitiion according to the spec
         /// https://dicom.nema.org/dicom/2013/output/chtml/part04/chapter_CC.html#table_CC.1.1-2
         /// </summary>
-        /// <param name="state"></param>
-        /// <param name="action"></param>
+        /// <param name="state">The Workitem's Current Procedure Step State</param>
+        /// <param name="action">The target event/action type</param>
         /// <returns></returns>
         /// <exception cref="Exceptions.NotSupportedException"></exception>
         private static WorkitemStateTransitionResult CheckProcedureStepStateTransitionTable(this ProcedureStepState state, WorkitemStateEvents action) => (action, state) switch

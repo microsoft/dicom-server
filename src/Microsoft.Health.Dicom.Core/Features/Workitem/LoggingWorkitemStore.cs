@@ -52,7 +52,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             EnsureArg.IsNotNull(identifier, nameof(identifier));
 
-            _logger.LogDebug("Querying workitem '{WorkitemInstanceIdentifier}'.", identifier);
+            _logger.LogDebug("Getting workitem with identifier '[{WorkitemInstanceIdentifier}]'.", identifier);
 
             try
             {
@@ -75,7 +75,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             EnsureArg.IsNotNull(identifier, nameof(identifier));
 
-            _logger.LogDebug("Querying workitem '{WorkitemInstanceIdentifier}'.", identifier);
+            _logger.LogDebug("Deleting workitem with identifier '[{WorkitemInstanceIdentifier}]'.", identifier);
 
             try
             {

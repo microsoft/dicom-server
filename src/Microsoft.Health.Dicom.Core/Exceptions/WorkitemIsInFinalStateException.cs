@@ -6,7 +6,7 @@
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
     /// <summary>
-    /// Exception thrown when the Workitem instance already exists.
+    /// Exception thrown when the Workitem is in the final state.
     /// </summary>
     public class WorkitemIsInFinalStateException : DicomServerException
     {

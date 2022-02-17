@@ -37,14 +37,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
 
         /// <summary>
-        /// Asynchronously orchestrate the canceling of a UPS-RS workitem.
+        /// Asynchronously orchestrate updating the state of a UPS-RS workitem.
         /// </summary>
         /// <param name="dataset">The workitem dataset with the cancel request.</param>
         /// <param name="workitemMetadata">The workitem metadata</param>
         /// <param name="targetProcedureStepState">The target procedure step state</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        Task CancelWorkitemAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, ProcedureStepState targetProcedureStepState, CancellationToken cancellationToken);
+        Task UpdateWorkitemStateAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, ProcedureStepState targetProcedureStepState, CancellationToken cancellationToken);
 
         /// <summary>
         /// Asynchronously orchestrate the searching of a UPS-RS workitem

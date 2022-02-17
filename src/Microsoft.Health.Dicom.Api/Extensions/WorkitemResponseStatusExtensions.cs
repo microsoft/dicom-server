@@ -23,8 +23,8 @@ namespace Microsoft.Health.Dicom.Api.Extensions
         private static readonly IReadOnlyDictionary<WorkitemResponseStatus, HttpStatusCode> CancelResponseStatusToHttpStatusCodeMapping =
             new Dictionary<WorkitemResponseStatus, HttpStatusCode>()
             {
-                { WorkitemResponseStatus.None, HttpStatusCode.NotFound },
                 { WorkitemResponseStatus.Success, HttpStatusCode.Accepted },
+                { WorkitemResponseStatus.NotFound, HttpStatusCode.NotFound },
                 { WorkitemResponseStatus.Failure, HttpStatusCode.BadRequest },
                 { WorkitemResponseStatus.Conflict, HttpStatusCode.Conflict }
             };

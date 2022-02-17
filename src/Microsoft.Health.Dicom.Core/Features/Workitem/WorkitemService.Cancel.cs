@@ -104,7 +104,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         {
             try
             {
-                await _workitemOrchestrator.CancelWorkitemAsync(dataset, workitemMetadata, targetProcedureStepState, cancellationToken).ConfigureAwait(false);
+                await _workitemOrchestrator
+                    .UpdateWorkitemStateAsync(dataset, workitemMetadata, targetProcedureStepState, cancellationToken)
+                    .ConfigureAwait(false);
 
                 _logger.LogInformation("Successfully canceled the work-item entry.");
 

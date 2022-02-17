@@ -6,7 +6,7 @@
 namespace Microsoft.Health.Dicom.Core.Exceptions
 {
     /// <summary>
-    /// Exception thrown when the Workitem instance already exists.
+    /// Exception thrown when the Workitem instance is not found.
     /// </summary>
     public class WorkitemNotFoundException : DicomServerException
     {

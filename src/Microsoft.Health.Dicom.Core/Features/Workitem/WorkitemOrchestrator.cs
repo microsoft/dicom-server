@@ -49,9 +49,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         }
 
         /// <inheritdoc />
-        public async Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(
-            string workitemUid,
-            CancellationToken cancellationToken = default)
+        public async Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(string workitemUid, CancellationToken cancellationToken = default)
         {
             var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
@@ -96,7 +94,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         }
 
         /// <inheritdoc />
-        public async Task CancelWorkitemAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, ProcedureStepState targetProcedureStepState, CancellationToken cancellationToken)
+        public async Task UpdateWorkitemStateAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, ProcedureStepState targetProcedureStepState, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
             EnsureArg.IsNotNull(workitemMetadata, nameof(workitemMetadata));
@@ -215,9 +213,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
         }
 
-        private async Task<DicomDataset> GetWorkitemBlobAsync(
-            WorkitemInstanceIdentifier identifier,
-            CancellationToken cancellationToken = default)
+        private async Task<DicomDataset> GetWorkitemBlobAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default)
         {
             if (null == identifier)
             {
@@ -245,10 +241,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 .ConfigureAwait(false);
         }
 
-        private async Task TryDeleteWorkitemBlobAsync(
-            WorkitemInstanceIdentifier identifier,
-            long? proposedWatermark = default,
-            CancellationToken cancellationToken = default)
+        private async Task TryDeleteWorkitemBlobAsync(WorkitemInstanceIdentifier identifier, long? proposedWatermark = default, CancellationToken cancellationToken = default)
         {
             if (null == identifier)
             {

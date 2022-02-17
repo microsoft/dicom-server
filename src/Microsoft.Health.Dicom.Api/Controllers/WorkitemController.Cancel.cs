@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Extensions;
-using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
@@ -36,7 +35,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         /// </remarks>
         /// <param name="workitemInstanceUid">The workitem Uid</param>
         /// <returns>Returns a string status report.</returns>
-        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
         [Produces(KnownContentTypes.ApplicationDicomJson)]
         [Consumes(KnownContentTypes.ApplicationDicomJson)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.Accepted)]
@@ -53,11 +51,8 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [AuditEventType(AuditEventSubType.CancelWorkitem)]
         public async Task<IActionResult> CancelAsync(string workitemInstanceUid)
         {
-            long fileSize = Request.ContentLength ?? 0;
-
-            _logger.LogInformation("DICOM Web Cancel Workitem Transaction request received, with Workitem instance UID {WorkitemInstanceUid}, and file size of {FileSize} bytes",
-                workitemInstanceUid ?? string.Empty,
-                fileSize);
+            _logger.LogInformation("DICOM Web Cancel Workitem Transaction request received, with Workitem instance UID {WorkitemInstanceUid}",
+                workitemInstanceUid ?? string.Empty);
 
             var response = await _mediator.CancelWorkitemAsync(
                     Request.Body,

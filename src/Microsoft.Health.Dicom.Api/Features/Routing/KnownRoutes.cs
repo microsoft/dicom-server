@@ -16,6 +16,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         private const string ExtendedQueryTagsRouteSegment = "extendedquerytags";
         private const string OperationsSegment = "operations";
         private const string WorkitemsRouteSegment = "workitems";
+        private const string WorkitemCancelRequest = "cancelrequest";
 
         private const string PartitionNameRouteSegment = "{" + KnownActionParameterNames.PartitionName + "}";
         private const string StudiesInstanceUidRouteSegment = "{" + KnownActionParameterNames.StudyInstanceUid + "}";
@@ -32,7 +33,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Routing
         public const string AddWorkitemInstancesRoute = WorkitemsRouteSegment;
         public const string RetrieveWorkitemInstancesRoute = WorkitemsRouteSegment + "/{" + KnownActionParameterNames.WorkItemInstanceUid + "}";
         public const string SearchWorkitemInstancesRoute = WorkitemsRouteSegment;
-        public const string CancelWorkitemInstancesRoute = WorkitemsRouteSegment + "/{" + KnownActionParameterNames.WorkItemInstanceUid + "}/cancelrequest";
+        public const string CancelWorkitemInstancesRoute = WorkitemsRouteSegment + "/{" + KnownActionParameterNames.WorkItemInstanceUid + "}/" + WorkitemCancelRequest;
 
         public const string PartitionRoute = PartitionsRouteSegment + "/" + PartitionNameRouteSegment;
         public const string StudyRoute = StudiesRouteSegment + "/" + StudiesInstanceUidRouteSegment;

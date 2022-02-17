@@ -64,11 +64,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
             else if (failureReason == FailureReasonCodes.ProcessingFailure)
             {
-                status = WorkitemResponseStatus.None;
-            }
-            else
-            {
-                status = WorkitemResponseStatus.Failure;
+                status = WorkitemResponseStatus.NotFound;
             }
 
             return new CancelWorkitemResponse(status, _message);
