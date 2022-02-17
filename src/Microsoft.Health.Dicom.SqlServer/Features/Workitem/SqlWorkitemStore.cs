@@ -36,6 +36,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
             await store.EndAddWorkitemAsync(partitionKey, workitemKey, cancellationToken);
         }
+
         public async Task UpdateWorkitemStatusAsync(int partitionKey, long workitemKey, WorkitemStoreStatus status, CancellationToken cancellationToken = default)
         {
             var store = await _cache.GetAsync(cancellationToken: cancellationToken);
