@@ -202,7 +202,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             {
                 // Cleanup workitem data store
                 await _indexWorkitemStore
-                    .DeleteWorkitemAsync(identifier.PartitionKey, identifier.WorkitemUid, cancellationToken)
+                    .DeleteWorkitemAsync(identifier, cancellationToken)
                     .ConfigureAwait(false);
 
                 // Cleanup Blob store
@@ -211,12 +211,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(
-                    ex,
-                    @"Failed to cleanup workitem [WorkitemUid: '{WorkitemUid}'] [PartitionKey: '{PartitionKey}'] [WorkitemKey: '{WorkitemKey}'].",
-                    identifier.WorkitemUid,
-                    identifier.PartitionKey,
-                    identifier.WorkitemKey);
+                _logger.LogWarning(ex, @"Failed to cleanup workitem {Identifier}.", identifier);
             }
         }
 

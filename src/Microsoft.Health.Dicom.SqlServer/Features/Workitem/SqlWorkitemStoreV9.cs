@@ -64,9 +64,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 
                 try
                 {
-                    var workitemKey = await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+                    var workitemKey = (long)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
 
-                    return new WorkitemInstanceIdentifier(workitemUid, (long)workitemKey, partitionKey);
+                    return new WorkitemInstanceIdentifier(workitemUid, workitemKey, partitionKey);
                 }
                 catch (SqlException ex)
                 {
@@ -85,15 +85,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             await UpdateWorkitemStatusAsync(partitionKey, workitemKey, WorkitemStoreStatus.ReadWrite, cancellationToken);
         }
 
-        public async Task DeleteWorkitemAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
+        public virtual async Task DeleteWorkitemAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
                 VLatest.DeleteWorkitem.PopulateCommand(
                     sqlCommandWrapper,
-                    partitionKey,
-                    workitemUid); ;
+                    identifier.PartitionKey,
+                    identifier.WorkitemUid);
 
                 try
                 {

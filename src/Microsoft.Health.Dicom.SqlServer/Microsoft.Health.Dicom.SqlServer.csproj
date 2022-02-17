@@ -100,8 +100,4 @@
     </ItemGroup>
   </Target>
 
-  <ItemGroup>
-    <GenerateFullScriptsOutputs Remove="Features\Schema\Migrations\12.sql" />
-  </ItemGroup>
-
 </Project>

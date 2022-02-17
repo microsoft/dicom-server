@@ -1,4 +1,49 @@
-﻿/*************************************************************
+/****************************************************************************************
+Guidelines to create migration scripts - https://github.com/microsoft/healthcare-shared-components/tree/master/src/Microsoft.Health.SqlServer/SqlSchemaScriptsGuidelines.md
+This diff is broken up into several sections:
+ - The first transaction contains changes to tables and stored procedures.
+ - The second transaction contains updates to indexes.
+ - IMPORTANT: Avoid rebuiling indexes inside the transaction, it locks the table during the transaction.
+******************************************************************************************/
+
+SET XACT_ABORT ON
+
+BEGIN TRANSACTION
+
+IF NOT EXISTS
+(
+    SELECT * FROM sys.sequences
+    WHERE Name = 'WorkitemWatermarkSequence'
+)
+BEGIN
+
+    CREATE SEQUENCE dbo.WorkitemWatermarkSequence
+        AS BIGINT
+        START WITH 1
+        INCREMENT BY 1
+        MINVALUE 1
+        NO CYCLE
+        CACHE 10000
+
+END
+GO
+
+IF NOT EXISTS 
+(
+    SELECT *
+    FROM    sys.columns
+    WHERE NAME = 'Watermark'
+          AND Object_id = OBJECT_ID('dbo.Workitem')
+)
+BEGIN
+
+    ALTER TABLE dbo.Workitem
+        ADD Watermark BIGINT DEFAULT 0 NOT NULL
+
+END
+GO
+
+/*************************************************************
     Stored procedure for adding a workitem.
 **************************************************************/
 --
@@ -82,3 +127,24 @@ BEGIN
         @watermark
 
 END
+GO
+
+COMMIT TRANSACTION
+
+DROP INDEX IF EXISTS IX_Workitem_WorkitemUid_PartitionKey ON dbo.Workitem
+GO
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemUid_PartitionKey ON dbo.Workitem
+(
+    WorkitemUid,
+    PartitionKey
+)
+INCLUDE
+(
+    Watermark,
+    WorkitemKey,
+    Status,
+    TransactionUid
+)
+WITH (DATA_COMPRESSION = PAGE)
+GO

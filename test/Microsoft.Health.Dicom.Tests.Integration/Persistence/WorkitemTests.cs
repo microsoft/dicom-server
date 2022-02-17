@@ -74,7 +74,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 .BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None)
                 .ConfigureAwait(false);
 
-            await _fixture.IndexWorkitemStore.DeleteWorkitemAsync(DefaultPartition.Key, workitemUid, CancellationToken.None);
+            await _fixture.IndexWorkitemStore.DeleteWorkitemAsync(identifier, CancellationToken.None);
 
             // Try adding it back again, if this succeeds, then assume that Delete operation has succeeded.
             identifier = await _fixture
@@ -85,7 +85,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             Assert.NotNull(identifier);
             Assert.True(identifier.WorkitemKey > 0);
 
-            await _fixture.IndexWorkitemStore.DeleteWorkitemAsync(DefaultPartition.Key, workitemUid, CancellationToken.None);
+            await _fixture.IndexWorkitemStore.DeleteWorkitemAsync(identifier, CancellationToken.None);
         }
 
         [Fact]

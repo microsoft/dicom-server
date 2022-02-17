@@ -54,11 +54,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             await store.UpdateWorkitemProcedureStepStateAsync(workitemMetadata, proposedWatermark, procedureStepState, cancellationToken);
         }
 
-        public async Task DeleteWorkitemAsync(int partitionKey, string workitemUid, CancellationToken cancellationToken = default)
+        public async Task DeleteWorkitemAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default)
         {
             ISqlWorkitemStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-
-            await store.DeleteWorkitemAsync(partitionKey, workitemUid, cancellationToken);
+            await store.DeleteWorkitemAsync(identifier, cancellationToken);
         }
 
         public async Task<IReadOnlyList<WorkitemQueryTagStoreEntry>> GetWorkitemQueryTagsAsync(CancellationToken cancellationToken = default)

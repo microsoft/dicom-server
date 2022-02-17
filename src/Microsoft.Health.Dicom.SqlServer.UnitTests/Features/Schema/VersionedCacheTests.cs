@@ -16,20 +16,24 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Schema
     public class VersionedCacheTests
     {
         private readonly ISchemaVersionResolver _schemaVersionResolver;
-        private readonly VersionedCache<IVersioned> _versionedCache;
+        private readonly VersionedCache<SqlStore> _versionedCache;
 
         public VersionedCacheTests()
         {
             _schemaVersionResolver = Substitute.For<ISchemaVersionResolver>();
-            _versionedCache = new VersionedCache<IVersioned>(
+            _versionedCache = new VersionedCache<SqlStore>(
                 _schemaVersionResolver,
-                new List<IVersioned> { new Example1(), new Example2() });
+                new List<SqlStore>
+                {
+                    new SqlStore { Version = SchemaVersion.V2 },
+                    new SqlStore { Version = SchemaVersion.V4 },
+                    new SqlStore { Version = SchemaVersion.V7 },
+                });
         }
 
         [Theory]
         [InlineData(SchemaVersion.Unknown)]
-        [InlineData(SchemaVersion.V3)]
-        [InlineData((SchemaVersion)2)]
+        [InlineData(SchemaVersion.V1)]
         public async Task GivenInvalidVersion_WhenGettingValue_ThenThrowException(SchemaVersion version)
         {
             using CancellationTokenSource source = new CancellationTokenSource();
@@ -40,42 +44,35 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Schema
         }
 
         [Theory]
-        [InlineData((SchemaVersion)SchemaVersionConstants.Min)]
-        [InlineData((SchemaVersion)SchemaVersionConstants.Max)]
-        public async Task GivenValidVersion_WhenGettingValue_ThenReturnsValue(SchemaVersion version)
+        [InlineData(SchemaVersion.V2, SchemaVersion.V2)]
+        [InlineData(SchemaVersion.V3, SchemaVersion.V2)]
+        [InlineData(SchemaVersion.V4, SchemaVersion.V4)]
+        [InlineData(SchemaVersion.V5, SchemaVersion.V4)]
+        [InlineData(SchemaVersion.V6, SchemaVersion.V4)]
+        [InlineData(SchemaVersion.V7, SchemaVersion.V7)]
+        [InlineData(SchemaVersion.V8, SchemaVersion.V7)]
+        [InlineData(SchemaVersion.V9, SchemaVersion.V7)]
+        public async Task GivenValidVersion_WhenGettingValue_ThenReturnsValue(SchemaVersion current, SchemaVersion expected)
         {
+            SqlStore actual;
             using CancellationTokenSource source = new CancellationTokenSource();
 
-            _schemaVersionResolver.GetCurrentVersionAsync(source.Token).Returns(version);
-            var value = await _versionedCache.GetAsync(source.Token);
-            Assert.NotNull(value);
-            await _schemaVersionResolver.Received(1).GetCurrentVersionAsync(source.Token);
-        }
-
-        [Fact]
-        public async Task GivenValidVersion_WhenGettingValue_ThenReturnCachedValue()
-        {
-            using CancellationTokenSource source = new CancellationTokenSource();
-
-            _schemaVersionResolver.GetCurrentVersionAsync(source.Token).Returns((SchemaVersion)SchemaVersionConstants.Min);
-            Example1 first = (await _versionedCache.GetAsync(source.Token)) as Example1;
-            Assert.NotNull(first);
+            // Resolve version
+            _schemaVersionResolver.GetCurrentVersionAsync(source.Token).Returns(current);
+            actual = await _versionedCache.GetAsync(source.Token);
+            Assert.Equal(expected, actual.Version);
             await _schemaVersionResolver.Received(1).GetCurrentVersionAsync(source.Token);
 
+            // Use cached current version
             _schemaVersionResolver.GetCurrentVersionAsync(source.Token).Returns((SchemaVersion)SchemaVersionConstants.Max);
-            Example1 second = (await _versionedCache.GetAsync(source.Token)) as Example1;
-            Assert.Same(first, second);
+            actual = await _versionedCache.GetAsync(source.Token);
+            Assert.Equal(expected, actual.Version);
             await _schemaVersionResolver.Received(1).GetCurrentVersionAsync(source.Token);
         }
 
-        private sealed class Example1 : IVersioned
+        private sealed class SqlStore : IVersioned
         {
-            public SchemaVersion Version => (SchemaVersion)SchemaVersionConstants.Min;
-        }
-
-        private sealed class Example2 : IVersioned
-        {
-            public SchemaVersion Version => (SchemaVersion)SchemaVersionConstants.Max;
+            public SchemaVersion Version { get; init; }
         }
     }
 }
