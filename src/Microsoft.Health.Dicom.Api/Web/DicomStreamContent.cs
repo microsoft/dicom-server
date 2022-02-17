@@ -4,13 +4,15 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using Microsoft.Health.Dicom.Core.Messages;
-using Microsoft.Health.Dicom.Core.Messages.Retrieve;
+using System.IO;
 
-namespace Microsoft.Health.Dicom.Core.Features.Retrieve
+namespace Microsoft.Health.Dicom.Api.Web
 {
-    public interface IRetrieveTransferSyntaxHandler
+    public class DicomStreamContent
     {
-        string GetTransferSyntax(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders, out AcceptHeaderDescriptor acceptHeaderDescriptor, out AcceptHeader acceptedHeader);
+        public Stream Stream { get; init; }
+
+        // could not use HttpContentHeaders since it has no public constructors. HttHeaders is abstract class
+        public IEnumerable<KeyValuePair<string, IEnumerable<string>>> Headers { get; init; }
     }
 }

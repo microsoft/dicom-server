@@ -6,10 +6,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -28,6 +31,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         private readonly IFrameHandler _frameHandler;
         private readonly IRetrieveTransferSyntaxHandler _retrieveTransferSyntaxHandler;
         private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
+        private readonly RetrieveConfiguration _retrieveConfiguration;
         private readonly ILogger<RetrieveResourceService> _logger;
 
         public RetrieveResourceService(
@@ -37,6 +41,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             IFrameHandler frameHandler,
             IRetrieveTransferSyntaxHandler retrieveTransferSyntaxHandler,
             IDicomRequestContextAccessor dicomRequestContextAccessor,
+            IOptionsSnapshot<RetrieveConfiguration> retrieveConfiguration,
             ILogger<RetrieveResourceService> logger)
         {
             EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
@@ -46,6 +51,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             EnsureArg.IsNotNull(retrieveTransferSyntaxHandler, nameof(retrieveTransferSyntaxHandler));
             EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
             EnsureArg.IsNotNull(logger, nameof(logger));
+            EnsureArg.IsNotNull(retrieveConfiguration?.Value, nameof(retrieveConfiguration));
 
             _instanceStore = instanceStore;
             _blobDataStore = blobDataStore;
@@ -53,6 +59,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             _frameHandler = frameHandler;
             _retrieveTransferSyntaxHandler = retrieveTransferSyntaxHandler;
             _dicomRequestContextAccessor = dicomRequestContextAccessor;
+            _retrieveConfiguration = retrieveConfiguration?.Value;
             _logger = logger;
         }
 
@@ -63,47 +70,85 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
             try
             {
-                string requestedTransferSyntax = _retrieveTransferSyntaxHandler.GetTransferSyntax(message.ResourceType, message.AcceptHeaders, out AcceptHeaderDescriptor acceptHeaderDescriptor);
+                string requestedTransferSyntax = _retrieveTransferSyntaxHandler.GetTransferSyntax(message.ResourceType, message.AcceptHeaders, out AcceptHeaderDescriptor acceptHeaderDescriptor, out AcceptHeader acceptedHeader);
                 bool isOriginalTransferSyntaxRequested = DicomTransferSyntaxUids.IsOriginalTransferSyntaxRequested(requestedTransferSyntax);
 
+                // this call throws NotFound when zero instance found
                 IEnumerable<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
                     message.ResourceType, partitionKey, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
 
-                if (!retrieveInstances.Any())
+                // we will only support retrieving multiple instance if requested in original format, since we can do lazyStreams
+                if (retrieveInstances.Count() > 1 && !isOriginalTransferSyntaxRequested)
                 {
-                    throw new InstanceNotFoundException();
+                    throw new NotAcceptableException(
+                        string.Format(DicomCoreResource.RetrieveServiceMultiInstanceTranscodingNotSupported, requestedTransferSyntax));
                 }
 
-                IEnumerable<RetrieveResourceInstance> resultInstances = await Task.WhenAll(
-                    retrieveInstances.Select(async x =>
+                // if single instance, check if we can support transcoding/frame parsing based on fileSize
+                if (retrieveInstances.Count() == 1)
+                {
+                    InstanceMetadata instance = retrieveInstances.First();
+                    var needsTranscoding = NeedsTranscoding(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instance);
+
+                    // need a realized stream if the stream needs to be parsed into a DicomFile
+                    if (needsTranscoding || message.ResourceType == ResourceType.Frames)
                     {
-                        Stream s = await _blobDataStore.GetFileAsync(x.VersionedInstanceIdentifier, cancellationToken);
-                        return new RetrieveResourceInstance(s, GetResponseTransferSyntax(requestedTransferSyntax, x));
-                    }));
+                        FileProperties fileProperties = await _blobDataStore.GetFilePropertiesAsync(instance.VersionedInstanceIdentifier, cancellationToken);
 
-                long lengthOfResultStreams = resultInstances.Sum(i => i.Stream.Length);
-                _dicomRequestContextAccessor.RequestContext.IsTranscodeRequested = !isOriginalTransferSyntaxRequested;
-                _dicomRequestContextAccessor.RequestContext.BytesTranscoded = isOriginalTransferSyntaxRequested ? 0 : lengthOfResultStreams;
+                        // limit the file size that can be read in memory
+                        if (fileProperties.ContentLength > _retrieveConfiguration.MaxDicomFileSize)
+                        {
+                            throw new NotAcceptableException(string.Format(DicomCoreResource.RetrieveServiceFileTooBig, _retrieveConfiguration.MaxDicomFileSize));
+                        }
 
-                if (message.ResourceType == ResourceType.Frames)
-                {
-                    RetrieveResourceInstance instanceStream = resultInstances.Single();
-                    IReadOnlyCollection<Stream> frames = await _frameHandler.GetFramesResourceAsync(
-                            instanceStream.Stream,
-                            message.Frames,
-                            isOriginalTransferSyntaxRequested,
-                            requestedTransferSyntax);
+                        // set properties used for billing
+                        if (needsTranscoding)
+                        {
+                            _dicomRequestContextAccessor.RequestContext.IsTranscodeRequested = true;
+                            _dicomRequestContextAccessor.RequestContext.BytesTranscoded = fileProperties.ContentLength;
+                        }
 
-                    return new RetrieveResourceResponse(
-                        frames.Select(f => new RetrieveResourceInstance(f, instanceStream.TransferSyntaxUid)),
-                        acceptHeaderDescriptor.MediaType);
+                        Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier, cancellationToken);
+
+                        if (message.ResourceType == ResourceType.Frames)
+                        {
+                            // egarly doing getFrames to validate frame numbers are valid before returning a response
+                            IReadOnlyCollection<Stream> frameStreams = await _frameHandler.GetFramesResourceAsync(
+                                stream,
+                                message.Frames,
+                                isOriginalTransferSyntaxRequested,
+                                requestedTransferSyntax);
+
+                            IAsyncEnumerable<RetrieveResourceInstance> frames = GetAsyncEnumerableFrameStreams(
+                                frameStreams,
+                                instance,
+                                isOriginalTransferSyntaxRequested,
+                                requestedTransferSyntax);
+
+                            return new RetrieveResourceResponse(
+                                frames,
+                                acceptHeaderDescriptor.MediaType,
+                                acceptedHeader.IsSinglePart);
+                        }
+
+                        if (needsTranscoding)
+                        {
+                            IAsyncEnumerable<RetrieveResourceInstance> transcodedStream = GetAsyncEnumerableTranscodedStreams(
+                                isOriginalTransferSyntaxRequested,
+                                stream,
+                                instance,
+                                requestedTransferSyntax);
+
+                            return new RetrieveResourceResponse(
+                                transcodedStream,
+                                acceptHeaderDescriptor.MediaType,
+                                acceptedHeader.IsSinglePart);
+                        }
+                    }
                 }
-                else if (!isOriginalTransferSyntaxRequested)
-                {
-                    resultInstances = await Task.WhenAll(resultInstances.Select(async x => new RetrieveResourceInstance(await _transcoder.TranscodeFileAsync(x.Stream, requestedTransferSyntax), x.TransferSyntaxUid)));
-                }
 
-                return new RetrieveResourceResponse(resultInstances, acceptHeaderDescriptor.MediaType);
+                IAsyncEnumerable<RetrieveResourceInstance> responses = GetAsyncEnumerableStreams(retrieveInstances, isOriginalTransferSyntaxRequested, requestedTransferSyntax, cancellationToken);
+                return new RetrieveResourceResponse(responses, acceptHeaderDescriptor.MediaType, acceptedHeader.IsSinglePart);
             }
             catch (DataStoreException e)
             {
@@ -114,9 +159,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             }
         }
 
-        private static string GetResponseTransferSyntax(string requestedTransferSyntax, InstanceMetadata instanceMetadata)
+        private static string GetResponseTransferSyntax(bool isOriginalTransferSyntaxRequested, string requestedTransferSyntax, InstanceMetadata instanceMetadata)
         {
-            bool isOriginalTransferSyntaxRequested = DicomTransferSyntaxUids.IsOriginalTransferSyntaxRequested(requestedTransferSyntax);
             if (isOriginalTransferSyntaxRequested)
             {
                 return GetOriginalTransferSyntaxWithBackCompat(requestedTransferSyntax, instanceMetadata);
@@ -133,7 +177,60 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
         /// <returns></returns>
         private static string GetOriginalTransferSyntaxWithBackCompat(string requestedTransferSyntax, InstanceMetadata instanceMetadata)
         {
-            return string.IsNullOrEmpty(instanceMetadata.InstanceProperties?.TransferSyntaxUid) ? requestedTransferSyntax : instanceMetadata.InstanceProperties.TransferSyntaxUid;
+            return string.IsNullOrEmpty(instanceMetadata.InstanceProperties.TransferSyntaxUid) ? requestedTransferSyntax : instanceMetadata.InstanceProperties.TransferSyntaxUid;
         }
+
+        private static bool NeedsTranscoding(bool isOriginalTransferSyntaxRequested, string requestedTransferSyntax, InstanceMetadata instanceMetadata)
+        {
+            if (isOriginalTransferSyntaxRequested)
+                return false;
+
+            return !(instanceMetadata.InstanceProperties.TransferSyntaxUid != null
+                    && DicomTransferSyntaxUids.AreEqual(requestedTransferSyntax, instanceMetadata.InstanceProperties.TransferSyntaxUid));
+        }
+
+        private async IAsyncEnumerable<RetrieveResourceInstance> GetAsyncEnumerableStreams(
+            IEnumerable<InstanceMetadata> instanceMetadatas,
+            bool isOriginalTransferSyntaxRequested,
+            string requestedTransferSyntax,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            foreach (var instanceMetadata in instanceMetadatas)
+            {
+                yield return
+                    new RetrieveResourceInstance(
+                        await _blobDataStore.GetFileAsync(instanceMetadata.VersionedInstanceIdentifier, cancellationToken),
+                        GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instanceMetadata));
+            }
+        }
+
+        private static async IAsyncEnumerable<RetrieveResourceInstance> GetAsyncEnumerableFrameStreams(
+            IEnumerable<Stream> frameStreams,
+            InstanceMetadata instanceMetadata,
+            bool isOriginalTransferSyntaxRequested,
+            string requestedTransferSyntax)
+        {
+            // fake await to return AsyncEnumerable and keep the response consistent
+            await Task.Run(() => 1);
+            // responseTransferSyntax is same for all frames in a instance
+            var responseTranferSyntax = GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instanceMetadata);
+            foreach (Stream frameStream in frameStreams)
+            {
+                yield return
+                    new RetrieveResourceInstance(frameStream, responseTranferSyntax);
+            }
+        }
+
+        private async IAsyncEnumerable<RetrieveResourceInstance> GetAsyncEnumerableTranscodedStreams(
+            bool isOriginalTransferSyntaxRequested,
+            Stream stream,
+            InstanceMetadata instanceMetadata,
+            string requestedTransferSyntax)
+        {
+            Stream transcodedStream = await _transcoder.TranscodeFileAsync(stream, requestedTransferSyntax);
+
+            yield return new RetrieveResourceInstance(transcodedStream, GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instanceMetadata));
+        }
+
     }
 }

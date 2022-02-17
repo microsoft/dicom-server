@@ -93,6 +93,7 @@ namespace Microsoft.AspNetCore.Builder
             services.AddSingleton(Options.Create(dicomServerConfiguration.Services.DataPartition));
             services.AddSingleton(Options.Create(dicomServerConfiguration.Audit));
             services.AddSingleton(Options.Create(dicomServerConfiguration.Swagger));
+            services.AddSingleton(Options.Create(dicomServerConfiguration.Services.RetrieveConfiguration));
 
             services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
             services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerConfiguration);

@@ -904,6 +904,24 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Requested dicom instance size is above supported limit of {0}, get the entier instance in original transferSyntax with using accept header transfer-syntax=*.
+        /// </summary>
+        internal static string RetrieveServiceFileTooBig {
+            get {
+                return ResourceManager.GetString("RetrieveServiceFileTooBig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Accept transferSyntax &apos;{0}&apos; is not supported when multiples instances are matched. Try getting the instances in the original transferSyntax using accept header with transfer-syntax=*.
+        /// </summary>
+        internal static string RetrieveServiceMultiInstanceTranscodingNotSupported {
+            get {
+                return ResourceManager.GetString("RetrieveServiceMultiInstanceTranscodingNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Sequential dicom tags are currently not supported..
         /// </summary>
         internal static string SequentialDicomTagsNotSupported {

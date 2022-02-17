@@ -45,7 +45,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             _logger = logger;
         }
 
-        public string GetTransferSyntax(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders, out AcceptHeaderDescriptor acceptHeaderDescriptor)
+        public string GetTransferSyntax(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders, out AcceptHeaderDescriptor acceptHeaderDescriptor, out AcceptHeader acceptedHeader)
         {
             EnsureArg.IsNotNull(acceptHeaders, nameof(acceptHeaders));
 
@@ -76,6 +76,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             }
 
             // Last elment has largest quality
+            acceptedHeader = accepted.Last().Key;
             return accepted.Last().Value;
         }
 
