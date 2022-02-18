@@ -13,7 +13,7 @@ CREATE TABLE dbo.Workitem (
     Watermark                   BIGINT                            DEFAULT 0 NOT NULL,
 ) WITH (DATA_COMPRESSION = PAGE)
 
--- Ordering workitems by partition and then by WorkitemKey for partition-specific retrieval
+-- Ordering workitems by WorkitemKey for retrieval
 CREATE UNIQUE CLUSTERED INDEX IXC_Workitem ON dbo.Workitem
 (
     WorkitemKey
