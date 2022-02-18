@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -36,7 +37,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
             ObjectResult objectResult = null;
             if (_response.IsSinglePart)
             {
-                objectResult = await GetSingelPartResult(context.HttpContext, context.HttpContext.RequestAborted);
+                objectResult = await GetSinglePartResult(context.HttpContext, context.HttpContext.RequestAborted);
             }
             else
             {
@@ -45,10 +46,10 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
             await objectResult.ExecuteResultAsync(context);
         }
 
-        private async Task<ObjectResult> GetSingelPartResult(HttpContext context, CancellationToken cancellationToken)
+        private async Task<ObjectResult> GetSinglePartResult(HttpContext context, CancellationToken cancellationToken)
         {
             var enumerator = _response.GetResponseInstancesEnumerator(cancellationToken);
-            await enumerator.MoveNextAsync();
+            Debug.Assert(await enumerator.MoveNextAsync());
             Stream stream = enumerator.Current.Stream;
             string transferSyntax = enumerator.Current.TransferSyntaxUid;
             context.Response.RegisterForDispose(stream);
@@ -86,19 +87,19 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
 
         private static async IAsyncEnumerable<DicomStreamContent> GetAsyncEnumerableStreamContent(
             HttpContext context,
-            IAsyncEnumerator<RetrieveResourceInstance> lasyInstanceEnumerator,
+            IAsyncEnumerator<RetrieveResourceInstance> lazyInstanceEnumerator,
             string contentType)
         {
-            while (await lasyInstanceEnumerator.MoveNextAsync())
+            while (await lazyInstanceEnumerator.MoveNextAsync())
             {
-                context.Response.RegisterForDispose(lasyInstanceEnumerator.Current.Stream);
+                context.Response.RegisterForDispose(lazyInstanceEnumerator.Current.Stream);
                 yield return
                     new DicomStreamContent()
                     {
-                        Stream = lasyInstanceEnumerator.Current.Stream,
+                        Stream = lazyInstanceEnumerator.Current.Stream,
                         Headers = new List<KeyValuePair<string, IEnumerable<string>>>()
                         {
-                            new KeyValuePair<string, IEnumerable<string>>(KnownContentTypes.ContentType, new []{ $"{contentType}; {KnownContentTypes.TransferSyntax}={lasyInstanceEnumerator.Current.TransferSyntaxUid}"})
+                            new KeyValuePair<string, IEnumerable<string>>(KnownContentTypes.ContentType, new []{ $"{contentType}; {KnownContentTypes.TransferSyntax}={lazyInstanceEnumerator.Current.TransferSyntaxUid}"})
                         }
                     };
             }

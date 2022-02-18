@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Api.Web
     {
         public Stream Stream { get; init; }
 
-        // could not use HttpContentHeaders since it has no public constructors. HttHeaders is abstract class
+        // could not use HttpContentHeaders since it has no public constructors. HttpHeaders is abstract class
         public IEnumerable<KeyValuePair<string, IEnumerable<string>>> Headers { get; init; }
     }
 }

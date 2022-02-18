@@ -112,12 +112,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
 
                         if (message.ResourceType == ResourceType.Frames)
                         {
-                            // egarly doing getFrames to validate frame numbers are valid before returning a response
+                            // eagerly doing getFrames to validate frame numbers are valid before returning a response
                             IReadOnlyCollection<Stream> frameStreams = await _frameHandler.GetFramesResourceAsync(
                                 stream,
                                 message.Frames,
                                 isOriginalTransferSyntaxRequested,
                                 requestedTransferSyntax);
+
+                            _dicomRequestContextAccessor.RequestContext.BytesTranscoded = frameStreams.Sum(f => f.Length);
 
                             IAsyncEnumerable<RetrieveResourceInstance> frames = GetAsyncEnumerableFrameStreams(
                                 frameStreams,
@@ -213,11 +215,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
             // fake await to return AsyncEnumerable and keep the response consistent
             await Task.Run(() => 1);
             // responseTransferSyntax is same for all frames in a instance
-            var responseTranferSyntax = GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instanceMetadata);
+            var responseTransferSyntax = GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instanceMetadata);
             foreach (Stream frameStream in frameStreams)
             {
                 yield return
-                    new RetrieveResourceInstance(frameStream, responseTranferSyntax);
+                    new RetrieveResourceInstance(frameStream, responseTransferSyntax);
             }
         }
 
