@@ -119,7 +119,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve
                                 isOriginalTransferSyntaxRequested,
                                 requestedTransferSyntax);
 
-                            _dicomRequestContextAccessor.RequestContext.BytesTranscoded = frameStreams.Sum(f => f.Length);
+                            _dicomRequestContextAccessor.RequestContext.BytesTranscoded = needsTranscoding ? frameStreams.Sum(f => f.Length) : 0;
 
                             IAsyncEnumerable<RetrieveResourceInstance> frames = GetAsyncEnumerableFrameStreams(
                                 frameStreams,
