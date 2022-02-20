@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -48,7 +49,10 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
         private async Task<ObjectResult> GetSinglePartResult(HttpContext context, CancellationToken cancellationToken)
         {
             var enumerator = _response.GetResponseInstancesEnumerator(cancellationToken);
-            await enumerator.MoveNextAsync();
+            var enumResult = await enumerator.MoveNextAsync();
+
+            Debug.Assert(enumResult, "Failed to get the item in Enumerator.");
+
             Stream stream = enumerator.Current.Stream;
             string transferSyntax = enumerator.Current.TransferSyntaxUid;
             context.Response.RegisterForDispose(stream);
