@@ -4,8 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Data;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
@@ -15,19 +13,6 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 {
-    public class SqlServerSchemaUpgradeTestsBase
-    {
-        public static IEnumerable<object[]> SchemaDiffVersions = Enumerable
-            .Range(start: SchemaVersionConstants.Min + 1, count: SchemaVersionConstants.Max - SchemaVersionConstants.Min)
-            .Select(x => new object[] { x })
-            .ToList();
-
-        public static IEnumerable<object[]> SchemaSnapshotVersions = Enumerable
-            .Range(start: SchemaVersionConstants.Min, count: SchemaVersionConstants.Max - SchemaVersionConstants.Min + 1)
-            .Select(x => new object[] { x })
-            .ToList();
-    }
-
     public class SqlServerSchemaUpgradeTests1
     {
         [Fact]
@@ -79,17 +64,16 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
     }
 
-    public class SqlServerSchemaUpgradeTests2 : SqlServerSchemaUpgradeTestsBase
+    public class SqlServerSchemaUpgradeTests2
     {
         /// <summary>
         /// There is small window where Sql schema is updated but not populated to web server, so the server still tries to call old stored procedure.
         /// This test validate it works by checking stored procedure compatiblity. 
         /// </summary>
-        /// <param name="schemaVersion">New schema version</param>
-        [Theory]
-        [MemberData(nameof(SchemaDiffVersions))]
-        public async Task GivenANewSchemaVersion_WhenApplying_ShouldBackCompatible(int schemaVersion)
+        [Fact]
+        public async Task GivenANewSchemaVersion_WhenApplying_ShouldBackCompatible()
         {
+            int schemaVersion = SchemaVersionConstants.Max;
             int oldSchemaVersion = schemaVersion - 1;
             // Create Sql store at old schema version
             SqlDataStoreTestsFixture oldSqlStore = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName($"COMPATIBLE_{oldSchemaVersion}_"), new SchemaInformation(oldSchemaVersion, oldSchemaVersion));
@@ -110,12 +94,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
     }
 
-    public class SqlServerSchemaUpgradeTests3 : SqlServerSchemaUpgradeTestsBase
+    public class SqlServerSchemaUpgradeTests3
     {
-        [Theory]
-        [MemberData(nameof(SchemaDiffVersions))]
-        public async Task GivenASchemaVersion_WhenApplyingDiffTwice_ShouldSucceed(int schemaVersion)
+        [Fact]
+        public async Task GivenASchemaVersion_WhenApplyingDiffTwice_ShouldSucceed()
         {
+            int schemaVersion = SchemaVersionConstants.Max;
             var schemaInformation = new SchemaInformation(SchemaVersionConstants.Min, schemaVersion - 1);
             SqlDataStoreTestsFixture snapshotFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("SNAPSHOT"), schemaInformation);
 
@@ -128,12 +112,12 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
     }
 
-    public class SqlServerSchemaUpgradeTests4 : SqlServerSchemaUpgradeTestsBase
+    public class SqlServerSchemaUpgradeTests4
     {
-        [Theory]
-        [MemberData(nameof(SchemaSnapshotVersions))]
-        public async Task GivenASchemaVersion_WhenApplyingSnapshotTwice_ShouldSucceed(int schemaVersion)
+        [Fact]
+        public async Task GivenASchemaVersion_WhenApplyingSnapshotTwice_ShouldSucceed()
         {
+            int schemaVersion = SchemaVersionConstants.Max;
             var schemaInformation = new SchemaInformation(SchemaVersionConstants.Min, schemaVersion);
             SqlDataStoreTestsFixture snapshotFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("SNAPSHOT"), schemaInformation);
 
