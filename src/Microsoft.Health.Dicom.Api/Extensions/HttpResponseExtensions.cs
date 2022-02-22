@@ -39,8 +39,8 @@ namespace Microsoft.Health.Dicom.Api.Extensions
         }
 
         private static string GetRelativeUri(Uri uri)
-            // ExampleRoot is necessary as GetComponents, like many of the URI members, throws an exception
-            // when used on relative URI instances. As a workaround, we make it absolute temporarily.
-            => new Uri(ExampleRoot, uri).GetComponents(UriComponents.AbsoluteUri & ~UriComponents.SchemeAndServer & ~UriComponents.UserInfo, UriFormat.UriEscaped);
+        // ExampleRoot is necessary as GetComponents, like many of the URI members, throws an exception
+        // when used on relative URI instances. As a workaround, we make it absolute temporarily.
+        { return new Uri(ExampleRoot, uri).GetComponents(UriComponents.AbsoluteUri & ~UriComponents.SchemeAndServer & ~UriComponents.UserInfo, UriFormat.UriEscaped); }
     }
 }

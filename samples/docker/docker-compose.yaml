@@ -21,10 +21,10 @@ services:
     image: mcr.microsoft.com/azure-storage/azurite:3.14.3@sha256:a9f79c01d9ef44549af22935345b5f622d45bef01c771f25a0c87c893b49f978
     restart: always
     # # Uncomment if you want to expose azure storage explorer against localhost
-    # ports:
-    #   - "10001:10001"
-    #   - "10000:10000"
-    #   - "10002:10002"
+    ports:
+      - "10001:10001"
+      - "10000:10000"
+      - "10002:10002"
 
   sql:
     build:
@@ -35,8 +35,8 @@ services:
       SA_PASSWORD: ${SAPASSWORD}
       ACCEPT_EULA: "Y"
     # # Uncomment if you want to expose sql management studio against localhost
-    # ports:
-    #   - "1433:1433"
+    ports:
+      - "1433:1433"
     healthcheck:
         test: ["CMD", "/opt/mssql-tools/bin/sqlcmd","-U sa -P ${SAPASSWORD} -Q 'SELECT * FROM INFORMATION_SCHEMA.TABLES'"]
         interval: 10s
