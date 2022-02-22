@@ -5,7 +5,7 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Operations.Client.DurableTask
+namespace Microsoft.Health.Dicom.Core.Features.Operations
 {
     /// <summary>
     /// Represents a factory that leverages <see cref="Guid.NewGuid"/> for generating <see cref="Guid"/> values.
