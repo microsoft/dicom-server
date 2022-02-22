@@ -80,6 +80,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Responses
                 _retrieveConfiguration.LazyResponseStreamBufferSize,
                 cancellationToken);
 #pragma warning restore CA2000 // Dispose objects before losing scope
+            context.Response.RegisterForDispose(lazyStream);
             var result = new ObjectResult(lazyStream)
             {
                 StatusCode = (int)HttpStatusCode.OK,

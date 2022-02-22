@@ -28,6 +28,7 @@ namespace Microsoft.Health.Dicom.Api.Web
         private const string Crlf = "\r\n";
         private readonly Encoding _defaultHttpEncoding = Encoding.GetEncoding(28591);
         private readonly string _boundary;
+        private readonly string _intermediateBoundary;
         private const int KB = 1024;
 
         private byte[] _buffer;
@@ -51,6 +52,7 @@ namespace Microsoft.Health.Dicom.Api.Web
             _bufferSize = bufferSize;
             _buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
             _boundary = boundary;
+            _intermediateBoundary = Crlf + "--" + _boundary + Crlf;
         }
 
         public override bool CanRead => true;
@@ -154,15 +156,13 @@ namespace Microsoft.Health.Dicom.Api.Web
             return bytesToWrite;
         }
 
-        private int CopyStringToBuffer(string multipartHeader)
+        private void CopyStringToBuffer(string multipartHeader)
         {
             byte[] startBoundary = EncodeStringToByteArray(multipartHeader);
             int bytesToWrite = startBoundary.Length;
             Array.Copy(startBoundary, 0, _buffer, 0, bytesToWrite);
             _bufferPosition = 0;
             _bufferLength = bytesToWrite;
-
-            return bytesToWrite;
         }
 
         protected override void Dispose(bool disposing)
@@ -189,7 +189,7 @@ namespace Microsoft.Health.Dicom.Api.Web
             {
                 multiPartStringBuilder.Append(GetIntermediateBoundary());
             }
-            multiPartStringBuilder.Append(GetContentHeader(_currentStreamContent.Headers));
+            multiPartStringBuilder.Append(GetContentHeader(multiPartStringBuilder, _currentStreamContent.Headers));
             return multiPartStringBuilder.ToString();
         }
 
@@ -205,7 +205,7 @@ namespace Microsoft.Health.Dicom.Api.Web
 
         private string GetIntermediateBoundary()
         {
-            return Crlf + "--" + _boundary + Crlf;
+            return _intermediateBoundary;
         }
 
         private string GetTerminatingBoundary()
@@ -213,9 +213,8 @@ namespace Microsoft.Health.Dicom.Api.Web
             return Crlf + "--" + _boundary + "--" + Crlf;
         }
 
-        private static string GetContentHeader(IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers)
+        private static string GetContentHeader(StringBuilder builder, IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers)
         {
-            StringBuilder builder = new StringBuilder();
             foreach (KeyValuePair<string, IEnumerable<string>> headerPair in headers)
             {
                 builder.Append(headerPair.Key + ": " + string.Join(", ", headerPair.Value) + Crlf);
