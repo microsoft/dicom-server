@@ -32,6 +32,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Audit
 
         public const string QueryWorkitem = "query-workitem";
 
+        public const string RetrieveWorkitem = "retrieve-workitem";
+
         public const string AddExtendedQueryTag = "add-extended-query-tag";
 
         public const string RemoveExtendedQueryTag = "remove-extended-query-tag";

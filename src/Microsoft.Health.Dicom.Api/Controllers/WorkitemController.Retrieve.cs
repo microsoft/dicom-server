@@ -6,7 +6,9 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Features.Routing;
+using Microsoft.Health.Dicom.Core.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers
 {
@@ -20,6 +22,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [PartitionRoute(KnownRoutes.RetrieveWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedRetrieveWorkitemInstance)]
         [VersionedRoute(KnownRoutes.RetrieveWorkitemInstancesRoute, Name = KnownRouteNames.VersionedRetrieveWorkitemInstance)]
         [Route(KnownRoutes.RetrieveWorkitemInstancesRoute, Name = KnownRouteNames.RetrieveWorkitemInstance)]
+        [AuditEventType(AuditEventSubType.RetrieveWorkitem)]
         public IActionResult RetrieveAsync()
         {
             _logger.LogInformation("Requesting non-implemented endpoint.");
