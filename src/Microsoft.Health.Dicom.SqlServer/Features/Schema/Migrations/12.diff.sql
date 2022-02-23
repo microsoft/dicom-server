@@ -260,3 +260,12 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemKey_Watermark ON dbo.Workit
 )
 WITH (DATA_COMPRESSION = PAGE)
 GO
+
+IF NOT EXISTS (
+SELECT 1 FROM  dbo.WorkitemQueryTag WHERE TagPath = '0020000D'
+)
+BEGIN 
+    -- Study Instance UID
+    INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
+    VALUES (NEXT VALUE FOR TagKeySequence, '0020000D', 'UI')
+END 

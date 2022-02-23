@@ -528,6 +528,9 @@ VALUES                           ( NEXT VALUE FOR TagKeySequence, '00741000', 'C
 INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
 VALUES                           ( NEXT VALUE FOR TagKeySequence, '00404027.00080100', 'SQ');
 
+INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
+VALUES                           ( NEXT VALUE FOR TagKeySequence, '0020000D', 'UI');
+
 COMMIT
 GO
 IF ((SELECT is_read_committed_snapshot_on
