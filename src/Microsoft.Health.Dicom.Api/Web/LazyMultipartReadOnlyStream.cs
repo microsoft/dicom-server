@@ -189,7 +189,7 @@ namespace Microsoft.Health.Dicom.Api.Web
             {
                 multiPartStringBuilder.Append(GetIntermediateBoundary());
             }
-            multiPartStringBuilder.Append(GetContentHeader(multiPartStringBuilder, _currentStreamContent.Headers));
+            AppendContentHeader(multiPartStringBuilder, _currentStreamContent.Headers);
             return multiPartStringBuilder.ToString();
         }
 
@@ -213,14 +213,13 @@ namespace Microsoft.Health.Dicom.Api.Web
             return Crlf + "--" + _boundary + "--" + Crlf;
         }
 
-        private static string GetContentHeader(StringBuilder builder, IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers)
+        private static void AppendContentHeader(StringBuilder builder, IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers)
         {
             foreach (KeyValuePair<string, IEnumerable<string>> headerPair in headers)
             {
                 builder.Append(headerPair.Key + ": " + string.Join(", ", headerPair.Value) + Crlf);
             }
             builder.Append(Crlf);
-            return builder.ToString();
         }
         #endregion
     }
