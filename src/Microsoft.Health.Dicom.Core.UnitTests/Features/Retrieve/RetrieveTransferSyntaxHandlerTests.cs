@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             AcceptHeader acceptHeader1 = AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(quality: 0.5, transferSyntax: DicomTransferSyntaxUids.Original);
             AcceptHeader acceptHeader2 = AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(quality: 0.9, transferSyntax: expectedTransferSyntax);
             AcceptHeaderDescriptor acceptHeaderDescriptor;
-            string transferSyntax = _handler.GetTransferSyntax(ResourceType.Frames, new[] { acceptHeader1, acceptHeader2 }, out acceptHeaderDescriptor);
+            string transferSyntax = _handler.GetTransferSyntax(ResourceType.Frames, new[] { acceptHeader1, acceptHeader2 }, out acceptHeaderDescriptor, out AcceptHeader acceptHeader);
             Assert.Equal(expectedTransferSyntax, transferSyntax);
             Assert.Equal(acceptHeader2.MediaType, acceptHeaderDescriptor.MediaType);
         }
@@ -42,7 +42,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             // Use content type that GetStudy doesn't support
             AcceptHeader acceptHeader = AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy(mediaType: KnownContentTypes.ImageJpeg);
             AcceptHeaderDescriptor acceptHeaderDescriptor;
-            Assert.ThrowsAny<NotAcceptableException>(() => _handler.GetTransferSyntax(ResourceType.Study, new[] { acceptHeader }, out acceptHeaderDescriptor));
+            Assert.ThrowsAny<NotAcceptableException>(() => _handler.GetTransferSyntax(ResourceType.Study, new[] { acceptHeader }, out acceptHeaderDescriptor, out AcceptHeader acceptedHeader));
         }
 
         [Fact]
@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             AcceptHeader acceptHeader1 = AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(quality: 0.5, transferSyntax: DicomTransferSyntaxUids.Original);
             AcceptHeader acceptHeader2 = AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(quality: 0.9, transferSyntax: DicomTransferSyntaxUids.Original);
             AcceptHeaderDescriptor acceptHeaderDescriptor;
-            Assert.ThrowsAny<NotAcceptableException>(() => _handler.GetTransferSyntax(ResourceType.Study, new[] { acceptHeader1, acceptHeader2 }, out acceptHeaderDescriptor));
+            Assert.ThrowsAny<NotAcceptableException>(() => _handler.GetTransferSyntax(ResourceType.Study, new[] { acceptHeader1, acceptHeader2 }, out acceptHeaderDescriptor, out AcceptHeader acceptHeader));
         }
     }
 }

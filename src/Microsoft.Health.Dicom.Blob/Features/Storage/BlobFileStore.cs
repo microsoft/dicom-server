@@ -105,6 +105,24 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             return stream;
         }
 
+        public async Task<FileProperties> GetFilePropertiesAsync(
+            VersionedInstanceIdentifier versionedInstanceIdentifier,
+            CancellationToken cancellationToken)
+        {
+            EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+
+            BlockBlobClient blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
+            FileProperties fileProperties = null;
+
+            await ExecuteAsync(async () =>
+            {
+                var response = await blob.GetPropertiesAsync(conditions: null, cancellationToken);
+                fileProperties = response.Value.ToFileProperties();
+            });
+
+            return fileProperties;
+        }
+
         private BlockBlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
         {
             string blobName = $"{versionedInstanceIdentifier.StudyInstanceUid}/{versionedInstanceIdentifier.SeriesInstanceUid}/{versionedInstanceIdentifier.SopInstanceUid}_{versionedInstanceIdentifier.Version}.dcm";

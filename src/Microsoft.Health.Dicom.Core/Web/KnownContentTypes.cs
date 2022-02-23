@@ -20,5 +20,8 @@ namespace Microsoft.Health.Dicom.Core.Web
         public const string ImageJpeg2000Part2 = "image/jpx";
         public const string VideoMpeg2 = "video/mpeg2";
         public const string VideoMp4 = "video/mp4";
+        public const string TransferSyntax = "transfer-syntax";
+        public const string Boundary = "boundary";
+        public const string ContentType = "Content-Type";
     }
 }

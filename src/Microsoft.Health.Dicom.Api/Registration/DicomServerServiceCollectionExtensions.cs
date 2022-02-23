@@ -93,6 +93,7 @@ namespace Microsoft.AspNetCore.Builder
             services.AddSingleton(Options.Create(dicomServerConfiguration.Services.DataPartition));
             services.AddSingleton(Options.Create(dicomServerConfiguration.Audit));
             services.AddSingleton(Options.Create(dicomServerConfiguration.Swagger));
+            services.AddSingleton(Options.Create(dicomServerConfiguration.Services.RetrieveConfiguration));
 
             services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
             services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerConfiguration);
@@ -178,6 +179,19 @@ namespace Microsoft.AspNetCore.Builder
                     if (env.IsDevelopment())
                     {
                         app.UseDeveloperExceptionPage();
+                        app.UseSwagger(c =>
+                        {
+                            c.RouteTemplate = "{documentName}/api.{json|yaml}";
+                        });
+
+                        //Disabling swagger ui until accesability team gets back to us
+                        //app.UseSwaggerUI(options =>
+                        //{
+                        //    foreach (ApiVersionDescription description in provider.ApiVersionDescriptions)
+                        //    {
+                        //        options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.yaml", description.GroupName.ToUpperInvariant());
+                        //    }
+                        //});
                     }
 
                     app.UseAudit();
@@ -187,20 +201,6 @@ namespace Microsoft.AspNetCore.Builder
                     app.UseAuthentication();
 
                     app.UseRequestContextAfterAuthentication<IDicomRequestContext>();
-
-                    app.UseSwagger(c =>
-                    {
-                        c.RouteTemplate = "{documentName}/api.{json|yaml}";
-                    });
-
-                    //Disabling swagger ui until accesability team gets back to us
-                    //app.UseSwaggerUI(options =>
-                    //{
-                    //    foreach (ApiVersionDescription description in provider.ApiVersionDescriptions)
-                    //    {
-                    //        options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.yaml", description.GroupName.ToUpperInvariant());
-                    //    }
-                    //});
 
                     next(app);
                 };

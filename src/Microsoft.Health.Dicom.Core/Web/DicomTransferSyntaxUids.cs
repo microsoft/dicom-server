@@ -4,6 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using EnsureThat;
+using FellowOakDicom;
 
 namespace Microsoft.Health.Dicom.Core
 {
@@ -15,6 +17,14 @@ namespace Microsoft.Health.Dicom.Core
         public static bool IsOriginalTransferSyntaxRequested(string transferSyntax)
         {
             return Original.Equals(transferSyntax, StringComparison.Ordinal);
+        }
+
+        public static bool AreEqual(string transferSyntaxA, string transferSyntaxB)
+        {
+            EnsureArg.IsNotNull(transferSyntaxA, nameof(transferSyntaxA));
+            EnsureArg.IsNotNull(transferSyntaxB, nameof(transferSyntaxB));
+
+            return DicomTransferSyntax.Parse(transferSyntaxA) == DicomTransferSyntax.Parse(transferSyntaxB);
         }
     }
 }

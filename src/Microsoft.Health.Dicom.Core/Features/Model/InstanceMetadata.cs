@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Model
         public InstanceMetadata(VersionedInstanceIdentifier versionedInstanceIdentifier, InstanceProperties instanceProperties)
         {
             VersionedInstanceIdentifier = EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-            InstanceProperties = instanceProperties;
+            InstanceProperties = EnsureArg.IsNotNull(instanceProperties, nameof(instanceProperties));
         }
         public VersionedInstanceIdentifier VersionedInstanceIdentifier { get; }
         public InstanceProperties InstanceProperties { get; }

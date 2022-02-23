@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -14,12 +13,14 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Extensions;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.ModelBinders;
 using Microsoft.Health.Dicom.Api.Features.Responses;
 using Microsoft.Health.Dicom.Api.Features.Routing;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -37,15 +38,18 @@ namespace Microsoft.Health.Dicom.Api.Controllers
     {
         private readonly IMediator _mediator;
         private readonly ILogger<RetrieveController> _logger;
+        private readonly RetrieveConfiguration _retrieveConfiguration;
         private const string IfNoneMatch = "If-None-Match";
 
-        public RetrieveController(IMediator mediator, ILogger<RetrieveController> logger)
+        public RetrieveController(IMediator mediator, ILogger<RetrieveController> logger, IOptionsSnapshot<RetrieveConfiguration> retrieveConfiguration)
         {
             EnsureArg.IsNotNull(mediator, nameof(mediator));
             EnsureArg.IsNotNull(logger, nameof(logger));
+            EnsureArg.IsNotNull(retrieveConfiguration?.Value, nameof(retrieveConfiguration));
 
             _mediator = mediator;
             _logger = logger;
+            _retrieveConfiguration = retrieveConfiguration.Value;
         }
 
         [Produces(KnownContentTypes.MultipartRelated)]
@@ -157,10 +161,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             RetrieveResourceResponse response = await _mediator.RetrieveDicomInstanceAsync(
                 studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
-            return new ObjectResult(response.ResponseInstances.First().Stream)
-            {
-                StatusCode = (int)HttpStatusCode.OK,
-            };
+            return CreateResult(response);
         }
 
         [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
@@ -219,9 +220,9 @@ namespace Microsoft.Health.Dicom.Api.Controllers
             return new MetadataResult(response);
         }
 
-        private static IActionResult CreateResult(RetrieveResourceResponse response)
+        private IActionResult CreateResult(RetrieveResourceResponse response)
         {
-            return new MultipartResult((int)HttpStatusCode.OK, response.ResponseInstances.Select(x => new MultipartItem(response.ContentType, x.Stream, x.TransferSyntaxUid)).ToList());
+            return new ResourceResult(response, _retrieveConfiguration);
         }
     }
 }

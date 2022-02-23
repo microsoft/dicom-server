@@ -26,6 +26,11 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
 
         public double? Quality { get; }
 
+        public bool IsSinglePart
+        {
+            get { return PayloadType == PayloadTypes.SinglePart; }
+        }
+
         public override string ToString()
         {
             return $"MediaType:'{MediaType}', PayloadType:'{PayloadType}', TransferSyntax:'{TransferSyntax}', Quality:'{Quality}'";

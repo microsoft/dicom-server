@@ -13,6 +13,8 @@ using EnsureThat;
 using FellowOakDicom;
 using FellowOakDicom.Imaging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -61,8 +63,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
 
             _retrieveTransferSyntaxHandler = new RetrieveTransferSyntaxHandler(NullLogger<RetrieveTransferSyntaxHandler>.Instance);
             _recyclableMemoryStreamManager = blobStorageFixture.RecyclableMemoryStreamManager;
+            var retrieveConfigurationSnapshot = Substitute.For<IOptionsSnapshot<RetrieveConfiguration>>();
+            retrieveConfigurationSnapshot.Value.Returns(new RetrieveConfiguration());
             _retrieveResourceService = new RetrieveResourceService(
-                _instanceStore, _fileStore, _retrieveTranscoder, _frameHandler, _retrieveTransferSyntaxHandler, _dicomRequestContextAccessor, NullLogger<RetrieveResourceService>.Instance);
+                _instanceStore, _fileStore, _retrieveTranscoder, _frameHandler, _retrieveTransferSyntaxHandler, _dicomRequestContextAccessor, retrieveConfigurationSnapshot, NullLogger<RetrieveResourceService>.Instance);
         }
 
         [Fact]
@@ -80,9 +84,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             await GenerateDicomDatasets(_firstSeriesInstanceUid, 1, false);
             await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true);
 
-            await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
-                new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
-                CancellationToken.None));
+            var response = await _retrieveResourceService.GetInstanceResourceAsync(
+                                    new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
+                                    CancellationToken.None);
+            await Assert.ThrowsAsync<ItemNotFoundException>(() => response.GetStreamsAsync());
         }
 
         [Fact]
@@ -96,7 +101,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                 new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
                 CancellationToken.None);
 
-            ValidateResponseDicomFiles(response.ResponseInstances.Select(x => x.Stream), datasets.Select(ds => ds));
+            ValidateResponseDicomFiles(await response.GetStreamsAsync(), datasets.Select(ds => ds));
         }
 
         [Fact]
@@ -114,9 +119,10 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
             await GenerateDicomDatasets(_firstSeriesInstanceUid, 1, false);
             await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true);
 
-            await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
-                new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
-                CancellationToken.None));
+            RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
+                                                        new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
+                                                        CancellationToken.None);
+            await Assert.ThrowsAsync<ItemNotFoundException>(() => response.GetStreamsAsync());
         }
 
         [Fact]
@@ -130,7 +136,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features
                 new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
                 CancellationToken.None);
 
-            ValidateResponseDicomFiles(response.ResponseInstances.Select(x => x.Stream), datasets.Select(ds => ds).Where(ds => ds.ToInstanceIdentifier().SeriesInstanceUid == _firstSeriesInstanceUid));
+            ValidateResponseDicomFiles(await response.GetStreamsAsync(), datasets.Select(ds => ds).Where(ds => ds.ToInstanceIdentifier().SeriesInstanceUid == _firstSeriesInstanceUid));
             ValidateDicomRequestIsPopulated();
         }
 

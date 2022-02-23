@@ -138,5 +138,35 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
                 throw;
             }
         }
+
+        public async Task<FileProperties> GetFilePropertiesAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+
+            string instanceIdentifierInString = versionedInstanceIdentifier.ToString();
+
+            LogGetFileDelegate(_logger, instanceIdentifierInString, null);
+
+            try
+            {
+                FileProperties fileProperties = await _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifier, cancellationToken);
+
+                LogOperationSucceededDelegate(_logger, null);
+
+                return fileProperties;
+            }
+            catch (ItemNotFoundException ex)
+            {
+                LogFileDoesNotExistDelegate(_logger, instanceIdentifierInString, ex);
+
+                throw;
+            }
+            catch (Exception ex)
+            {
+                LogOperationFailedDelegate(_logger, ex);
+
+                throw;
+            }
+        }
     }
 }

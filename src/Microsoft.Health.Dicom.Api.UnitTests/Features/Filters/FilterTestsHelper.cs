@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Api.Controllers;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Tests.Common;
+using NSubstitute;
 
 namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
 {
@@ -29,7 +30,9 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
 
         public static RetrieveController CreateMockRetrieveController()
         {
-            return Mock.TypeWithArguments<RetrieveController>(Options.Create(new FeatureConfiguration()));
+            var retrieveConfigSnapshot = Substitute.For<IOptionsSnapshot<RetrieveConfiguration>>();
+            retrieveConfigSnapshot.Value.Returns(new RetrieveConfiguration());
+            return Mock.TypeWithArguments<RetrieveController>(Options.Create(new FeatureConfiguration()), retrieveConfigSnapshot);
         }
 
         public static StoreController CreateMockStoreController()
