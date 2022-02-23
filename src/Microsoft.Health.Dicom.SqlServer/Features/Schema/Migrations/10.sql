@@ -68,6 +68,14 @@ CREATE SEQUENCE dbo.WorkitemKeySequence
     NO CYCLE
     CACHE 10000;
 
+CREATE SEQUENCE dbo.WorkitemWatermarkSequence
+    AS BIGINT
+    START WITH 1
+    INCREMENT BY 1
+    MINVALUE 1
+    NO CYCLE
+    CACHE 10000;
+
 CREATE TABLE dbo.ChangeFeed (
     Sequence          BIGINT             IDENTITY (1, 1) NOT NULL,
     Timestamp         DATETIMEOFFSET (7) NOT NULL,
@@ -425,7 +433,8 @@ CREATE TABLE dbo.Workitem (
     TransactionUid        VARCHAR (64)  NULL,
     Status                TINYINT       NOT NULL,
     CreatedDate           DATETIME2 (7) NOT NULL,
-    LastStatusUpdatedDate DATETIME2 (7) NOT NULL
+    LastStatusUpdatedDate DATETIME2 (7) NOT NULL,
+    Watermark             BIGINT        DEFAULT 0 NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
@@ -434,7 +443,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_Workitem
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemUid_PartitionKey
     ON dbo.Workitem(WorkitemUid, PartitionKey)
-    INCLUDE(WorkitemKey, Status, TransactionUid) WITH (DATA_COMPRESSION = PAGE);
+    INCLUDE(Watermark, WorkitemKey, Status, TransactionUid) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.WorkitemQueryTag (
     TagKey  INT          NOT NULL,
@@ -792,6 +801,38 @@ BEGIN
     END CATCH
     SELECT @workitemKey;
     COMMIT TRANSACTION;
+END
+
+GO
+CREATE OR ALTER PROCEDURE dbo.AddWorkitemV11
+@partitionKey INT, @workitemUid VARCHAR (64), @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY, @initialStatus TINYINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+    DECLARE @watermark AS BIGINT;
+    DECLARE @workitemKey AS BIGINT;
+    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+    SELECT @workitemKey = WorkitemKey
+    FROM   dbo.Workitem
+    WHERE  PartitionKey = @partitionKey
+           AND WorkitemUid = @workitemUid;
+    IF @@ROWCOUNT <> 0
+        THROW 50409, 'Workitem already exists', 1;
+    SET @workitemKey =  NEXT VALUE FOR dbo.WorkitemKeySequence;
+    SET @watermark =  NEXT VALUE FOR dbo.WorkitemWatermarkSequence;
+    INSERT  INTO dbo.Workitem (WorkitemKey, PartitionKey, WorkitemUid, Status, Watermark, CreatedDate, LastStatusUpdatedDate)
+    VALUES                   (@workitemKey, @partitionKey, @workitemUid, @initialStatus, @watermark, @currentDate, @currentDate);
+    BEGIN TRY
+        EXECUTE dbo.IIndexWorkitemInstanceCore @partitionKey, @workitemKey, @stringExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
+    COMMIT TRANSACTION;
+    SELECT @workitemKey,
+           @watermark;
 END
 
 GO

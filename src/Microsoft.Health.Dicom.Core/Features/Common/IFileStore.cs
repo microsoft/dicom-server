@@ -40,5 +40,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous delete operation.</returns>
         Task DeleteFileIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Asynchronously get file properties
+        /// </summary>
+        /// <param name="versionedInstanceIdentifier">The DICOM identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task that represents the asynchronous get properties operation.</returns>
+        Task<FileProperties> GetFilePropertiesAsync(
+            VersionedInstanceIdentifier versionedInstanceIdentifier,
+            CancellationToken cancellationToken = default);
     }
 }

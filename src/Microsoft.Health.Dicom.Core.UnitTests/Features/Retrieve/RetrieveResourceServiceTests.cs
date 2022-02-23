@@ -14,6 +14,8 @@ using FellowOakDicom.Imaging;
 using FellowOakDicom.IO.Buffer;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -25,6 +27,7 @@ using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Microsoft.IO;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -61,8 +64,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
             _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
             _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
+            var retrieveConfigurationSnapshot = Substitute.For<IOptionsSnapshot<RetrieveConfiguration>>();
+            retrieveConfigurationSnapshot.Value.Returns(new RetrieveConfiguration());
             _retrieveResourceService = new RetrieveResourceService(
-                _instanceStore, _fileStore, _retrieveTranscoder, _dicomFrameHandler, _retrieveTransferSyntaxHandler, _dicomRequestContextAccessor, _logger);
+                _instanceStore, _fileStore, _retrieveTranscoder, _dicomFrameHandler, _retrieveTransferSyntaxHandler, _dicomRequestContextAccessor, retrieveConfigurationSnapshot, _logger);
         }
 
         [Fact]
@@ -87,9 +92,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             // For the last identifier, set up the fileStore to throw a store exception with the status code 404 (NotFound).
             _fileStore.GetFileAsync(instances.Last().VersionedInstanceIdentifier, DefaultCancellationToken).Throws(new InstanceNotFoundException());
 
-            await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
-                new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
-                DefaultCancellationToken));
+            var response = await _retrieveResourceService.GetInstanceResourceAsync(
+                                    new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
+                                    DefaultCancellationToken);
+            await Assert.ThrowsAsync<InstanceNotFoundException>(() => response.GetStreamsAsync());
         }
 
         [Fact]
@@ -109,7 +115,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    DefaultCancellationToken);
 
             // Validate response status code and ensure response streams have expected files - they should be equivalent to what the store was set up to return.
-            ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), response.ResponseInstances.Select(x => x.Stream));
+            ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), await response.GetStreamsAsync());
 
             // Validate dicom request is populated with correct transcode values
             ValidateDicomRequestIsPopulated();
@@ -122,29 +128,30 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         public async Task GivenSpecificTransferSyntax_WhenRetrieveRequestForStudy_ThenInstancesInStudyAreTranscodedSuccesfully()
         {
             // Add multiple instances to validate that we return the requested instance and ignore the other(s).
-            List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Study);
+            var instanceMetadata = new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, DefaultPartition.Key), new InstanceProperties());
+            _instanceStore.GetInstanceIdentifierWithPropertiesAsync(DefaultPartition.Key, _studyInstanceUid, null, null, DefaultCancellationToken).Returns(new[] { instanceMetadata });
 
             // For each instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
-            var streamsAndStoredFiles = versionedInstanceIdentifiers.Select(
-                x => StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(x.VersionedInstanceIdentifier)).Result).ToList();
+            var streamsAndStoredFile = await StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(instanceMetadata.VersionedInstanceIdentifier));
 
-            streamsAndStoredFiles.ForEach(x => _fileStore.GetFileAsync(x.Key.Dataset.ToVersionedInstanceIdentifier(0), DefaultCancellationToken).Returns(x.Value));
-
+            _fileStore.GetFileAsync(streamsAndStoredFile.Key.Dataset.ToVersionedInstanceIdentifier(0), DefaultCancellationToken).Returns(streamsAndStoredFile.Value);
+            _fileStore.GetFilePropertiesAsync(instanceMetadata.VersionedInstanceIdentifier, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = streamsAndStoredFile.Value.Length });
             string transferSyntax = "1.2.840.10008.1.2.1";
-            streamsAndStoredFiles.ForEach(x => _retrieveTranscoder.TranscodeFileAsync(x.Value, transferSyntax).Returns(x.Value));
+            _retrieveTranscoder.TranscodeFileAsync(streamsAndStoredFile.Value, transferSyntax).Returns(streamsAndStoredFile.Value);
 
             RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
                    new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy(transferSyntax: transferSyntax) }),
                    DefaultCancellationToken);
 
             // Validate response status code and ensure response streams have expected files - they should be equivalent to what the store was set up to return.
-            ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), response.ResponseInstances.Select(x => x.Stream));
+            ValidateResponseStreams(new[] { streamsAndStoredFile.Key }, await response.GetStreamsAsync());
 
             // Validate dicom request is populated with correct transcode values
-            ValidateDicomRequestIsPopulated(true, response.ResponseInstances.Sum(s => s.Stream.Length));
+            IEnumerable<Stream> streams = await response.GetStreamsAsync();
+            ValidateDicomRequestIsPopulated(true, streams.Sum(s => s.Length));
 
             // Dispose created streams.
-            streamsAndStoredFiles.ToList().ForEach(x => x.Value.Dispose());
+            streamsAndStoredFile.Value.Dispose();
         }
 
         [Fact]
@@ -169,9 +176,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             // For the last identifier, set up the fileStore to throw a store exception with the status code 404 (NotFound).
             _fileStore.GetFileAsync(versionedInstanceIdentifiers.Last().VersionedInstanceIdentifier, DefaultCancellationToken).Throws(new InstanceNotFoundException());
 
-            await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
-                new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
-                DefaultCancellationToken));
+            var response = await _retrieveResourceService.GetInstanceResourceAsync(
+                                    new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
+                                    DefaultCancellationToken);
+            await Assert.ThrowsAsync<InstanceNotFoundException>(() => response.GetStreamsAsync());
         }
 
         [Fact]
@@ -195,7 +203,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    DefaultCancellationToken);
 
             // Validate response status code and ensure response streams have expected files - they should be equivalent to what the store was set up to return.
-            ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), response.ResponseInstances.Select(x => x.Stream));
+            ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), await response.GetStreamsAsync());
 
             // Validate dicom request is populated with correct transcode values
             ValidateDicomRequestIsPopulated();
@@ -223,9 +231,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             // For the first instance identifier, set up the fileStore to throw a store exception with the status code 404 (NotFound).
             _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier, DefaultCancellationToken).Throws(new InstanceNotFoundException());
 
-            await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
-                new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance() }),
-                DefaultCancellationToken));
+            var response = await _retrieveResourceService.GetInstanceResourceAsync(
+                        new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance() }),
+                        DefaultCancellationToken);
+            await Assert.ThrowsAsync<InstanceNotFoundException>(() => response.GetStreamsAsync());
         }
 
         [Theory]
@@ -249,7 +258,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    DefaultCancellationToken);
 
             // Validate response status code and ensure response stream has expected file - it should be equivalent to what the store was set up to return.
-            ValidateResponseStreams(new List<DicomFile>() { streamAndStoredFile.Key }, response.ResponseInstances.Select(x => x.Stream));
+            ValidateResponseStreams(new List<DicomFile>() { streamAndStoredFile.Key }, await response.GetStreamsAsync());
 
             // Validate dicom request is populated with correct transcode values
             ValidateDicomRequestIsPopulated();
@@ -271,6 +280,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             // For the instance, set up the fileStore to return a stream containing the file associated with the identifier with 3 frames.
             Stream streamOfStoredFiles = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier), frames: 0).Result.Value;
             _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier, DefaultCancellationToken).Returns(streamOfStoredFiles);
+            _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = streamOfStoredFiles.Length });
 
             var retrieveResourceRequest = new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, framesToRequest, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame() });
             _dicomFrameHandler.GetFramesResourceAsync(streamOfStoredFiles, retrieveResourceRequest.Frames, true, "*").Throws(new FrameNotFoundException());
@@ -293,6 +303,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             // For the instance, set up the fileStore to return a stream containing the file associated with the identifier with 3 frames.
             Stream streamOfStoredFiles = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier), frames: 3).Result.Value;
             _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier, DefaultCancellationToken).Returns(streamOfStoredFiles);
+            _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = streamOfStoredFiles.Length });
 
             var retrieveResourceRequest = new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, framesToRequest, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame() });
             _dicomFrameHandler.GetFramesResourceAsync(streamOfStoredFiles, retrieveResourceRequest.Frames, true, "*").Throws(new FrameNotFoundException());
@@ -316,6 +327,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             // For the first instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
             KeyValuePair<DicomFile, Stream> streamAndStoredFile = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier), frames: 3).Result;
             _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
+            _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = streamAndStoredFile.Value.Length });
 
             // Setup frame handler to return the frames as streams from the file.
             Stream[] frames = framesToRequest.Select(f => GetFrameFromFile(streamAndStoredFile.Key.Dataset, f)).ToArray();
@@ -326,9 +338,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
                    retrieveResourceRequest,
                    DefaultCancellationToken);
 
+            IEnumerable<Stream> streams = await response.GetStreamsAsync();
             // Validate response status code and ensure response streams has expected frames - it should be equivalent to what the store was set up to return.
-            AssertPixelDataEqual(DicomPixelData.Create(streamAndStoredFile.Key.Dataset).GetFrame(framesToRequest[0]), response.ResponseInstances.ToList()[0].Stream);
-            AssertPixelDataEqual(DicomPixelData.Create(streamAndStoredFile.Key.Dataset).GetFrame(framesToRequest[1]), response.ResponseInstances.ToList()[1].Stream);
+            AssertPixelDataEqual(DicomPixelData.Create(streamAndStoredFile.Key.Dataset).GetFrame(framesToRequest[0]), streams.ToList()[0]);
+            AssertPixelDataEqual(DicomPixelData.Create(streamAndStoredFile.Key.Dataset).GetFrame(framesToRequest[1]), streams.ToList()[1]);
 
             // Validate dicom request is populated with correct transcode values
             ValidateDicomRequestIsPopulated();
@@ -340,57 +353,126 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
         [InlineData("*", "1.2.840.10008.1.2.1", "1.2.840.10008.1.2.1")]
         [InlineData("1.2.840.10008.1.2.1", "1.2.840.10008.1.2.1", "1.2.840.10008.1.2.1")]
         [InlineData("1.2.840.10008.1.2.4.90", "1.2.840.10008.1.2.1", "1.2.840.10008.1.2.4.90")]
-        public async Task GetSeriesInstances_WithAcceptType_ThenResponseContentTypeIsCorrect(string requestedTransferSyntax, string originalTransferSyntax, string expectedTransferSyntax)
+        public async Task GetInstances_WithAcceptType_ThenResponseContentTypeIsCorrect(string requestedTransferSyntax, string originalTransferSyntax, string expectedTransferSyntax)
         {
             // arrange object with originalTransferSyntax
-            List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Series, DefaultPartition.Key, new InstanceProperties() { TransferSyntaxUid = originalTransferSyntax });
+            List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Instance, DefaultPartition.Key, new InstanceProperties() { TransferSyntaxUid = originalTransferSyntax });
 
             // For each instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
             var streamsAndStoredFiles = versionedInstanceIdentifiers.Select(
                 x => StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(x.VersionedInstanceIdentifier, originalTransferSyntax)).Result).ToList();
             streamsAndStoredFiles.ForEach(x => _fileStore.GetFileAsync(x.Key.Dataset.ToVersionedInstanceIdentifier(0), DefaultCancellationToken).Returns(x.Value));
+            _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = streamsAndStoredFiles.First().Value.Length });
 
             // act
             RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
-                   new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy(requestedTransferSyntax) }),
+                   new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy(requestedTransferSyntax) }),
                    DefaultCancellationToken);
 
             // assert
-            response.ResponseInstances
-                .Select(stream => stream.TransferSyntaxUid)
-                .ToList()
-                .ForEach(responseContentType => Assert.Equal(expectedTransferSyntax, responseContentType));
+            await using IAsyncEnumerator<RetrieveResourceInstance> enumerator = response.ResponseInstances.GetAsyncEnumerator(DefaultCancellationToken);
+            while (await enumerator.MoveNextAsync())
+            {
+                Assert.Equal(expectedTransferSyntax, enumerator.Current.TransferSyntaxUid);
+            }
+        }
+
+        [Theory]
+        [InlineData("*", "1.2.840.10008.1.2.1", "1.2.840.10008.1.2.1")]
+        [InlineData("1.2.840.10008.1.2.1", "1.2.840.10008.1.2.1", "1.2.840.10008.1.2.1")]
+        [InlineData("1.2.840.10008.1.2.1", "1.2.840.10008.1.2.4.57", "1.2.840.10008.1.2.1")]
+        public async Task GetFrames_WithAcceptType_ThenResponseContentTypeIsCorrect(string requestedTransferSyntax, string originalTransferSyntax, string expectedTransferSyntax)
+        {
+            // Add multiple instances to validate that we return the requested instance and ignore the other(s).
+            List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Frames, DefaultPartition.Key, new InstanceProperties() { TransferSyntaxUid = originalTransferSyntax });
+            var framesToRequest = new List<int> { 1, 2 };
+
+            // For the first instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
+            KeyValuePair<DicomFile, Stream> streamAndStoredFile = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier, originalTransferSyntax), frames: 3).Result;
+            _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
+            _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = streamAndStoredFile.Value.Length });
+
+            // Setup frame handler to return the frames as streams from the file.
+            Stream[] frames = framesToRequest.Select(f => GetFrameFromFile(streamAndStoredFile.Key.Dataset, f)).ToArray();
+            var retrieveResourceRequest = new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, framesToRequest, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(requestedTransferSyntax) });
+            _dicomFrameHandler.GetFramesResourceAsync(streamAndStoredFile.Value, retrieveResourceRequest.Frames, true, "*").Returns(frames);
+
+            // act
+            RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
+                   retrieveResourceRequest,
+                   DefaultCancellationToken);
+            // assert
+            await using IAsyncEnumerator<RetrieveResourceInstance> enumerator = response.ResponseInstances.GetAsyncEnumerator(DefaultCancellationToken);
+            while (await enumerator.MoveNextAsync())
+            {
+                Assert.Equal(expectedTransferSyntax, enumerator.Current.TransferSyntaxUid);
+            }
         }
 
         [Theory]
         [InlineData("*", "1.2.840.10008.1.2.1", "*")] // this is the bug in old files, that is fixed for new files
         [InlineData("1.2.840.10008.1.2.1", "1.2.840.10008.1.2.1", "1.2.840.10008.1.2.1")]
         [InlineData("1.2.840.10008.1.2.4.90", "1.2.840.10008.1.2.1", "1.2.840.10008.1.2.4.90")]
-        public async Task GetSeriesInstances_WithAcceptTypeOnOldFile_ThenResponseContentTypeWithBackCompatWorks(string requestedTransferSyntax, string originalTransferSyntax, string expectedTransferSyntax)
+        public async Task GetInstances_WithAcceptTypeOnOldFile_ThenResponseContentTypeWithBackCompatWorks(string requestedTransferSyntax, string originalTransferSyntax, string expectedTransferSyntax)
         {
             // arrange object with originalTransferSyntax as null from DB to show backcompat
-            List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Series, DefaultPartition.Key, null);
+            List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Instance, DefaultPartition.Key, null);
 
             // For each instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
             var streamsAndStoredFiles = versionedInstanceIdentifiers.Select(
                 x => StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(x.VersionedInstanceIdentifier, originalTransferSyntax)).Result).ToList();
             streamsAndStoredFiles.ForEach(x => _fileStore.GetFileAsync(x.Key.Dataset.ToVersionedInstanceIdentifier(0), DefaultCancellationToken).Returns(x.Value));
+            _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = streamsAndStoredFiles.First().Value.Length });
 
             // act
             RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
-                   new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy(requestedTransferSyntax) }),
+                   new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy(requestedTransferSyntax) }),
                    DefaultCancellationToken);
 
             // assert
-            response.ResponseInstances
-                .Select(stream => stream.TransferSyntaxUid)
-                .ToList()
-                .ForEach(responseContentType => Assert.Equal(expectedTransferSyntax, responseContentType));
+            await using IAsyncEnumerator<RetrieveResourceInstance> enumerator = response.ResponseInstances.GetAsyncEnumerator(DefaultCancellationToken);
+            while (await enumerator.MoveNextAsync())
+            {
+                Assert.Equal(expectedTransferSyntax, enumerator.Current.TransferSyntaxUid);
+            }
+        }
+
+        [Fact]
+        public async Task GetStudy_WithMultipleInstanceAndTranscoding_ThrowsNotSupported()
+        {
+            // arrange object with originalTransferSyntax
+            List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Study);
+
+            // act and assert
+            await Assert.ThrowsAsync<NotAcceptableException>(() =>
+            _retrieveResourceService.GetInstanceResourceAsync(
+                   new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy(transferSyntax: "1.2.840.10008.1.2.4.90") }),
+                   DefaultCancellationToken));
+        }
+
+        [Fact]
+        public async Task GetFrames_WithLargeFileSize_ThrowsNotSupported()
+        {
+            // arrange
+            List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Frames);
+            var framesToRequest = new List<int> { 1, 2 };
+            // arrange fileSize to be greater than max supported
+            long aboveMaxFileSize = new RetrieveConfiguration().MaxDicomFileSize + 1;
+            _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = aboveMaxFileSize });
+
+            // act and assert
+            await Assert.ThrowsAsync<NotAcceptableException>(() =>
+            _retrieveResourceService.GetInstanceResourceAsync(
+                  new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, framesToRequest, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
+                  DefaultCancellationToken));
+
         }
 
         private List<InstanceMetadata> SetupInstanceIdentifiersList(ResourceType resourceType, int partitionKey = DefaultPartition.Key, InstanceProperties instanceProperty = null)
         {
             var dicomInstanceIdentifiersList = new List<InstanceMetadata>();
+
+            instanceProperty = instanceProperty ?? new InstanceProperties();
 
             switch (resourceType)
             {

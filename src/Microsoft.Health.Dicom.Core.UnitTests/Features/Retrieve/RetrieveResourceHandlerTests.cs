@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -166,7 +165,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
 
-            RetrieveResourceResponse expectedResponse = new RetrieveResourceResponse(Enumerable.Empty<RetrieveResourceInstance>(), KnownContentTypes.ApplicationOctetStream);
+            RetrieveResourceResponse expectedResponse = new RetrieveResourceResponse(Substitute.For<IAsyncEnumerable<RetrieveResourceInstance>>(), KnownContentTypes.ApplicationOctetStream);
             RetrieveResourceRequest request = new RetrieveResourceRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, new List<int> { 1 }, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame() });
             _retrieveResourceService.GetInstanceResourceAsync(request, CancellationToken.None).Returns(expectedResponse);
 
