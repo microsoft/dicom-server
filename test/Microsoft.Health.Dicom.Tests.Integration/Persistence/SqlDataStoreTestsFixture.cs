@@ -148,7 +148,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 {
                     new SqlWorkitemStoreV9(SqlConnectionWrapperFactory, NullLogger<SqlWorkitemStoreV9>.Instance),
                     new SqlWorkitemStoreV11(SqlConnectionWrapperFactory, NullLogger<SqlWorkitemStoreV11>.Instance),
-                    new SqlWorkitemStoreV12(SqlConnectionWrapperFactory, NullLogger<SqlWorkitemStoreV12>.Instance)
+                    new SqlWorkitemStoreV13(SqlConnectionWrapperFactory, NullLogger<SqlWorkitemStoreV13>.Instance)
                 }));
 
             IndexDataStoreTestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
