@@ -1041,6 +1041,7 @@ DECLARE @studyKey AS BIGINT;
 DECLARE @seriesKey AS BIGINT;
 DECLARE @instanceKey AS BIGINT;
 DECLARE @deletedDate AS DATETIME2 = SYSUTCDATETIME();
+DECLARE @imageResourceType AS TINYINT = 0;
 SELECT @studyKey = StudyKey,
        @seriesKey = CASE @seriesInstanceUid WHEN NULL THEN NULL ELSE SeriesKey END,
        @instanceKey = CASE @sopInstanceUid WHEN NULL THEN NULL ELSE InstanceKey END
@@ -1087,27 +1088,32 @@ DELETE dbo.ExtendedQueryTagString
 WHERE  SopInstanceKey1 = @studyKey
        AND SopInstanceKey2 = ISNULL(@seriesKey, SopInstanceKey2)
        AND SopInstanceKey3 = ISNULL(@instanceKey, SopInstanceKey3)
-       AND PartitionKey = @partitionKey;
+       AND PartitionKey = @partitionKey
+       AND ResourceType = @imageResourceType;
 DELETE dbo.ExtendedQueryTagLong
 WHERE  SopInstanceKey1 = @studyKey
        AND SopInstanceKey2 = ISNULL(@seriesKey, SopInstanceKey2)
        AND SopInstanceKey3 = ISNULL(@instanceKey, SopInstanceKey3)
-       AND PartitionKey = @partitionKey;
+       AND PartitionKey = @partitionKey
+       AND ResourceType = @imageResourceType;
 DELETE dbo.ExtendedQueryTagDouble
 WHERE  SopInstanceKey1 = @studyKey
        AND SopInstanceKey2 = ISNULL(@seriesKey, SopInstanceKey2)
        AND SopInstanceKey3 = ISNULL(@instanceKey, SopInstanceKey3)
-       AND PartitionKey = @partitionKey;
+       AND PartitionKey = @partitionKey
+       AND ResourceType = @imageResourceType;
 DELETE dbo.ExtendedQueryTagDateTime
 WHERE  SopInstanceKey1 = @studyKey
        AND SopInstanceKey2 = ISNULL(@seriesKey, SopInstanceKey2)
        AND SopInstanceKey3 = ISNULL(@instanceKey, SopInstanceKey3)
-       AND PartitionKey = @partitionKey;
+       AND PartitionKey = @partitionKey
+       AND ResourceType = @imageResourceType;
 DELETE dbo.ExtendedQueryTagPersonName
 WHERE  SopInstanceKey1 = @studyKey
        AND SopInstanceKey2 = ISNULL(@seriesKey, SopInstanceKey2)
        AND SopInstanceKey3 = ISNULL(@instanceKey, SopInstanceKey3)
-       AND PartitionKey = @partitionKey;
+       AND PartitionKey = @partitionKey
+       AND ResourceType = @imageResourceType;
 INSERT INTO dbo.DeletedInstance (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
 SELECT PartitionKey,
        StudyInstanceUid,
@@ -1149,23 +1155,28 @@ IF NOT EXISTS (SELECT *
         DELETE dbo.ExtendedQueryTagString
         WHERE  SopInstanceKey1 = @studyKey
                AND SopInstanceKey2 = ISNULL(@seriesKey, SopInstanceKey2)
-               AND PartitionKey = @partitionKey;
+               AND PartitionKey = @partitionKey
+               AND ResourceType = @imageResourceType;
         DELETE dbo.ExtendedQueryTagLong
         WHERE  SopInstanceKey1 = @studyKey
                AND SopInstanceKey2 = ISNULL(@seriesKey, SopInstanceKey2)
-               AND PartitionKey = @partitionKey;
+               AND PartitionKey = @partitionKey
+               AND ResourceType = @imageResourceType;
         DELETE dbo.ExtendedQueryTagDouble
         WHERE  SopInstanceKey1 = @studyKey
                AND SopInstanceKey2 = ISNULL(@seriesKey, SopInstanceKey2)
-               AND PartitionKey = @partitionKey;
+               AND PartitionKey = @partitionKey
+               AND ResourceType = @imageResourceType;
         DELETE dbo.ExtendedQueryTagDateTime
         WHERE  SopInstanceKey1 = @studyKey
                AND SopInstanceKey2 = ISNULL(@seriesKey, SopInstanceKey2)
-               AND PartitionKey = @partitionKey;
+               AND PartitionKey = @partitionKey
+               AND ResourceType = @imageResourceType;
         DELETE dbo.ExtendedQueryTagPersonName
         WHERE  SopInstanceKey1 = @studyKey
                AND SopInstanceKey2 = ISNULL(@seriesKey, SopInstanceKey2)
-               AND PartitionKey = @partitionKey;
+               AND PartitionKey = @partitionKey
+               AND ResourceType = @imageResourceType;
     END
 IF NOT EXISTS (SELECT *
                FROM   dbo.Series WITH (HOLDLOCK, UPDLOCK)
@@ -1177,19 +1188,24 @@ IF NOT EXISTS (SELECT *
                AND PartitionKey = @partitionKey;
         DELETE dbo.ExtendedQueryTagString
         WHERE  SopInstanceKey1 = @studyKey
-               AND PartitionKey = @partitionKey;
+               AND PartitionKey = @partitionKey
+               AND ResourceType = @imageResourceType;
         DELETE dbo.ExtendedQueryTagLong
         WHERE  SopInstanceKey1 = @studyKey
-               AND PartitionKey = @partitionKey;
+               AND PartitionKey = @partitionKey
+               AND ResourceType = @imageResourceType;
         DELETE dbo.ExtendedQueryTagDouble
         WHERE  SopInstanceKey1 = @studyKey
-               AND PartitionKey = @partitionKey;
+               AND PartitionKey = @partitionKey
+               AND ResourceType = @imageResourceType;
         DELETE dbo.ExtendedQueryTagDateTime
         WHERE  SopInstanceKey1 = @studyKey
-               AND PartitionKey = @partitionKey;
+               AND PartitionKey = @partitionKey
+               AND ResourceType = @imageResourceType;
         DELETE dbo.ExtendedQueryTagPersonName
         WHERE  SopInstanceKey1 = @studyKey
-               AND PartitionKey = @partitionKey;
+               AND PartitionKey = @partitionKey
+               AND ResourceType = @imageResourceType;
     END
 COMMIT TRANSACTION;
 

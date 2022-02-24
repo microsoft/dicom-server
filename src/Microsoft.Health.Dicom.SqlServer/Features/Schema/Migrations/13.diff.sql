@@ -263,18 +263,13 @@ GO
 
 COMMIT TRANSACTION
 
-IF NOT EXISTS (
-    SELECT *
-    FROM sys.indexes
-    WHERE name='IXC_Workitem' AND object_id = OBJECT_ID('dbo.Workitem'))
-BEGIN
+DROP INDEX IF EXISTS IXC_Workitem ON dbo.Workitem
+GO
 
-    CREATE UNIQUE CLUSTERED INDEX IXC_Workitem ON dbo.Workitem
-    (
-        WorkitemKey
-    )
-
-END
+CREATE UNIQUE CLUSTERED INDEX IXC_Workitem ON dbo.Workitem
+(
+    WorkitemKey
+)
 GO
 
 IF NOT EXISTS (
