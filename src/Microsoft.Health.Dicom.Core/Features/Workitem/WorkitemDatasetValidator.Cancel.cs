@@ -35,7 +35,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                     string.Format(
                         CultureInfo.InvariantCulture,
                         DicomCoreResource.WorkitemUpdateIsNotAllowed,
-                        workitemUid));
+                        workitemUid,
+                        workitemMetadata.ProcedureStepState.GetStringValue()));
             }
 
             if (stateTransitionResult.IsError)

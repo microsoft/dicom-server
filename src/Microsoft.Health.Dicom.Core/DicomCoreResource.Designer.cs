@@ -1138,7 +1138,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; can not be updated currently..
+        ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; is in the state of &apos;{1}&apos;..
         /// </summary>
         internal static string WorkitemUpdateIsNotAllowed {
             get {

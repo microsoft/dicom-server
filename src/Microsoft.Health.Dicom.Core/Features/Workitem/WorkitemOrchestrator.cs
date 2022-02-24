@@ -5,12 +5,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Query;
@@ -101,7 +103,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             if (workitemMetadata.Status != WorkitemStoreStatus.ReadWrite)
             {
-                return;
+                throw new DataStoreException(
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.WorkitemUpdateIsNotAllowed,
+                        workitemMetadata.WorkitemUid,
+                        workitemMetadata.ProcedureStepState.GetStringValue()));
             }
 
             (long CurrentWatermark, long NextWatermark)? watermarkEntry = null;
@@ -209,7 +216,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, @"Failed to cleanup workitem {Identifier}.", identifier);
+                _logger.LogWarning(ex, @"Failed to cleanup workitem [{Identifier}].", identifier);
             }
         }
 
@@ -256,7 +263,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, @"Failed to delete workitem blob for [WorkitemUid: '{WorkitemUid}', PartitionKey: '{PartitionKey}'].", identifier.WorkitemUid, identifier.PartitionKey);
+                _logger.LogWarning(ex, @"Failed to delete workitem blob for [{Identifier}].", identifier);
             }
         }
     }
