@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
     [QueryModelStateValidator]
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
     [ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
-    public class DeleteController : Controller
+    public class DeleteController : ControllerBase
     {
         private readonly IMediator _mediator;
         private readonly ILogger<DeleteController> _logger;

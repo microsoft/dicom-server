@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
     [ApiVersion("1")]
     [QueryModelStateValidator]
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
-    public class ChangeFeedController : Controller
+    public class ChangeFeedController : ControllerBase
     {
         private readonly IMediator _mediator;
         private readonly ILogger<ChangeFeedController> _logger;

@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
     [ApiVersion("1.0-prerelease")]
     [ApiVersion("1")]
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
-    public class ExtendedQueryTagController : Controller
+    public class ExtendedQueryTagController : ControllerBase
     {
         private readonly IMediator _mediator;
         private readonly ILogger<ExtendedQueryTagController> _logger;
