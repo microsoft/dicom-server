@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
     [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
     [ServiceFilter(typeof(UpsRsFeatureFilterAttribute))]
     [ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
-    public partial class WorkitemController : Controller
+    public partial class WorkitemController : ControllerBase
     {
         private readonly IMediator _mediator;
         private readonly ILogger<WorkitemController> _logger;

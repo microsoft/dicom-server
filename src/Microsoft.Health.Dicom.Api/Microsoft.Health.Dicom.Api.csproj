@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Common components, such as controllers, for Microsoft's DICOMweb APIs using ASP.NET Core.</Description>
@@ -35,7 +35,7 @@
 
   <ItemGroup>
     <None Include="Controllers\WorkitemController.*.cs">
-      <DependentUpon>Controllers\WorkitemController.cs</DependentUpon>
+      <DependentUpon>WorkitemController.cs</DependentUpon>
     </None>
   </ItemGroup>
 
