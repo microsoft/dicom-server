@@ -241,31 +241,54 @@ BEGIN
 END
 GO
 
+IF NOT EXISTS (
+    SELECT 1 FROM  dbo.WorkitemQueryTag WHERE TagPath = '0020000D'
+)
+BEGIN 
+
+    -- Study Instance UID
+    INSERT INTO dbo.WorkitemQueryTag (
+        TagKey,
+        TagPath,
+        TagVR
+    )
+    VALUES (
+        NEXT VALUE FOR TagKeySequence,
+        '0020000D',
+        'UI'
+    )
+
+END 
+GO
+
 COMMIT TRANSACTION
 
-DROP INDEX IF EXISTS IXC_Workitem ON dbo.Workitem
-GO
-CREATE UNIQUE CLUSTERED INDEX IXC_Workitem ON dbo.Workitem
-(
-    WorkitemKey
-)
-GO
+IF NOT EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IXC_Workitem' AND object_id = OBJECT_ID('dbo.Workitem'))
+BEGIN
 
-DROP INDEX IF EXISTS IX_Workitem_WorkitemKey_Watermark ON dbo.Workitem
-GO
-CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemKey_Watermark ON dbo.Workitem
-(
-    WorkitemKey,
-    Watermark
-)
-WITH (DATA_COMPRESSION = PAGE)
+    CREATE UNIQUE CLUSTERED INDEX IXC_Workitem ON dbo.Workitem
+    (
+        WorkitemKey
+    )
+
+END
 GO
 
 IF NOT EXISTS (
-SELECT 1 FROM  dbo.WorkitemQueryTag WHERE TagPath = '0020000D'
-)
-BEGIN 
-    -- Study Instance UID
-    INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
-    VALUES (NEXT VALUE FOR TagKeySequence, '0020000D', 'UI')
-END 
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_Workitem_WorkitemKey_Watermark' AND object_id = OBJECT_ID('dbo.Workitem'))
+BEGIN
+
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemKey_Watermark ON dbo.Workitem
+    (
+        WorkitemKey,
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+
+END
+GO
