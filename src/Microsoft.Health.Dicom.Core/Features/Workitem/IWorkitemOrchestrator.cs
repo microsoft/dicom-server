@@ -49,9 +49,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <summary>
         /// Asynchronously orchestrate the searching of a UPS-RS workitem
         /// </summary>
-        /// <param name="parameters"></param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="parameters">The query parameters</param>
+        /// <param name="cancellationToken">The cancellation token</param>
         /// <returns></returns>
         Task<QueryWorkitemResourceResponse> QueryAsync(BaseQueryParameters parameters, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Gets DicomDataset Blob from the Store for the given Workitem Instance identifier
+        /// </summary>
+        /// <param name="identifier">The workitem instance identifier</param>
+        /// <param name="cancellationToken">The cancellation token</param>
+        /// <returns></returns>
+        Task<DicomDataset> GetWorkitemBlobAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default);
     }
 }

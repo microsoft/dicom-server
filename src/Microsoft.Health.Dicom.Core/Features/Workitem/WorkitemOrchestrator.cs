@@ -112,38 +112,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
 
             (long CurrentWatermark, long NextWatermark)? watermarkEntry = null;
-            WorkitemInstanceIdentifier identifier = null;
 
             try
             {
+                // Get the current and next watermarks for the workitem instance
                 watermarkEntry = await _indexWorkitemStore
                     .GetCurrentAndNextWorkitemWatermarkAsync(workitemMetadata.WorkitemKey, cancellationToken)
                     .ConfigureAwait(false);
 
-                // Get the workitem from blob store
-                identifier = new WorkitemInstanceIdentifier(
-                    workitemMetadata.WorkitemUid,
-                    workitemMetadata.WorkitemKey,
-                    workitemMetadata.PartitionKey,
-                    watermarkEntry.Value.CurrentWatermark);
-                var storeDicomDataset = await GetWorkitemBlobAsync(identifier, cancellationToken).ConfigureAwait(false);
-
-                // update the procedure step state
-                var updatedDicomDataset = new DicomDataset(storeDicomDataset);
-
-                // Add/Update the procedure step state in the blob
-                var targetProcedureStepStateStringValue = targetProcedureStepState.GetStringValue();
-                updatedDicomDataset.AddOrUpdate(DicomTag.ProcedureStepState, targetProcedureStepStateStringValue);
-
-                // if there is a reason for cancellation, set it in the blob
-                dataset.TryGetString(DicomTag.ReasonForCancellation, out var cancellationReason);
-                if (!string.IsNullOrWhiteSpace(cancellationReason))
-                {
-                    updatedDicomDataset.AddOrUpdate(DicomTag.ReasonForCancellation, cancellationReason);
-                }
-
                 // store the blob with the new watermark
-                await StoreWorkitemBlobAsync(identifier, updatedDicomDataset, watermarkEntry.Value.NextWatermark, cancellationToken)
+                await StoreWorkitemBlobAsync(workitemMetadata, dataset, watermarkEntry.Value.NextWatermark, cancellationToken)
                     .ConfigureAwait(false);
 
                 // Update the workitem procedure step state in the store
@@ -151,12 +129,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                     .UpdateWorkitemProcedureStepStateAsync(
                         workitemMetadata,
                         watermarkEntry.Value.NextWatermark,
-                        targetProcedureStepStateStringValue,
+                        targetProcedureStepState.GetStringValue(),
                         cancellationToken)
                     .ConfigureAwait(false);
 
                 // Delete the blob with the old watermark
-                await TryDeleteWorkitemBlobAsync(identifier, watermarkEntry.Value.CurrentWatermark, cancellationToken)
+                await TryDeleteWorkitemBlobAsync(workitemMetadata, watermarkEntry.Value.CurrentWatermark, cancellationToken)
                     .ConfigureAwait(false);
             }
             catch
@@ -164,7 +142,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 // attempt to delete the blob with proposed watermark
                 if (watermarkEntry.HasValue)
                 {
-                    await TryDeleteWorkitemBlobAsync(identifier, watermarkEntry.Value.NextWatermark, cancellationToken)
+                    await TryDeleteWorkitemBlobAsync(workitemMetadata, watermarkEntry.Value.NextWatermark, cancellationToken)
                         .ConfigureAwait(false);
                 }
 
@@ -220,7 +198,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
         }
 
-        private async Task<DicomDataset> GetWorkitemBlobAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default)
+        public async Task<DicomDataset> GetWorkitemBlobAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default)
         {
             if (null == identifier)
             {

@@ -100,12 +100,45 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
         }
 
+        private async Task<DicomDataset> PrepareRequestCancelWorkitemBlobDatasetAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, ProcedureStepState targetProcedureStepState, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // Get the workitem from blob store
+                var blobDataset = await _workitemOrchestrator
+                    .GetWorkitemBlobAsync(workitemMetadata, cancellationToken)
+                    .ConfigureAwait(false);
+
+                blobDataset.AddOrUpdate(DicomTag.ProcedureStepCancellationDateTime, DateTime.UtcNow);
+                blobDataset.AddOrUpdate(DicomTag.ProcedureStepState, targetProcedureStepState.GetStringValue());
+
+                if (!blobDataset.TryGetSequence(DicomTag.ProcedureStepProgressInformationSequence, out var progressInformationSequence))
+                {
+                    progressInformationSequence = new DicomSequence(DicomTag.ProcedureStepProgressInformationSequence);
+                    blobDataset.Add(DicomTag.ProcedureStepProgressInformationSequence, progressInformationSequence);
+                }
+                progressInformationSequence.Items.Add(dataset);
+
+                return blobDataset;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, @"Error while preparing Cancel Request Blob Dataset");
+
+                throw;
+            }
+        }
+
         private async Task CancelWorkitemAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, ProcedureStepState targetProcedureStepState, CancellationToken cancellationToken)
         {
             try
             {
+                var cancelRequestDataset = await PrepareRequestCancelWorkitemBlobDatasetAsync(
+                        dataset, workitemMetadata, targetProcedureStepState, cancellationToken)
+                    .ConfigureAwait(false);
+
                 await _workitemOrchestrator
-                    .UpdateWorkitemStateAsync(dataset, workitemMetadata, targetProcedureStepState, cancellationToken)
+                    .UpdateWorkitemStateAsync(cancelRequestDataset, workitemMetadata, targetProcedureStepState, cancellationToken)
                     .ConfigureAwait(false);
 
                 _logger.LogInformation("Successfully canceled the work-item entry.");
