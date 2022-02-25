@@ -116,7 +116,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             if (queryTag == null)
             {
-                throw new QueryParseException(string.Format(DicomCoreResource.UnsupportedWorkitemSearchParameter, attributeId));
+                throw new QueryParseException(string.Format(DicomCoreResource.UnsupportedSearchParameter, attributeId));
             }
 
             // Currently only 2 level of sequence tags are supported, so always taking the last element to create a new query tag
