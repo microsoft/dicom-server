@@ -233,6 +233,8 @@ namespace Microsoft.Health.Dicom.Tests.Common
             ds.Add(DicomTag.InputReadinessState, Guid.NewGuid().ToString("N").Substring(0, 14).ToUpper());
             ds.Add(DicomTag.InputInformationSequence, new DicomDataset());
             ds.Add(DicomTag.PatientName, String.Empty);
+            ds.Add(DicomTag.IssuerOfPatientID, String.Empty);
+            ds.Add(DicomTag.IssuerOfPatientIDQualifiersSequence, new DicomDataset());
             ds.Add(DicomTag.OtherPatientIDsSequence, new DicomDataset());
             ds.Add(DicomTag.PatientBirthDate, String.Empty);
             ds.Add(DicomTag.PatientSex, String.Empty);
