@@ -50,6 +50,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             // Unified Procedure Step Relationship Module
             dataset.ValidateRequirement(DicomTag.PatientName, RequirementCode.TwoTwo);
+
+            // Issuer of Patient ID Macro
+            dataset.ValidateRequirement(DicomTag.IssuerOfPatientID, RequirementCode.TwoTwo);
+            dataset.ValidateRequirement(DicomTag.IssuerOfPatientIDQualifiersSequence, RequirementCode.TwoTwo);
+
             dataset.ValidateRequirement(DicomTag.OtherPatientIDsSequence, RequirementCode.TwoTwo);
             dataset.ValidateRequirement(DicomTag.PatientBirthDate, RequirementCode.TwoTwo);
             dataset.ValidateRequirement(DicomTag.PatientSex, RequirementCode.TwoTwo);
