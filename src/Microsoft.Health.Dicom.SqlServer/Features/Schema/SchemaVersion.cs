@@ -22,6 +22,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
         V9 = 9,
         V10 = 10,
         V11 = 11,
-        V12 = 12
+        V12 = 12,
+        V13 = 13
     }
 }
