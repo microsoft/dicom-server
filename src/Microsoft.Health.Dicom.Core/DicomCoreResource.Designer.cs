@@ -904,6 +904,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The required condition for tag &apos;{0}&apos; is not met..
+        /// </summary>
+        internal static string RequiredConditionNotMet {
+            get {
+                return ResourceManager.GetString("RequiredConditionNotMet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Requested dicom instance size is above supported limit of {0}, get the entier instance in original transferSyntax with using accept header transfer-syntax=*.
         /// </summary>
         internal static string RetrieveServiceFileTooBig {

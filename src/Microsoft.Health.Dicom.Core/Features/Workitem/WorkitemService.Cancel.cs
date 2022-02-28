@@ -36,7 +36,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 .ProcedureStepState
                 .GetTransitionState(WorkitemStateEvents.NActionToRequestCancel);
 
-            if (ValidateCancelRequest(workitemInstanceUid, workitemMetadata, dataset, transitionStateResult))
+            var cancelRequestDataset = await PrepareRequestCancelWorkitemBlobDatasetAsync(
+                    dataset, workitemMetadata, transitionStateResult.State, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (ValidateCancelRequest(workitemInstanceUid, workitemMetadata, cancelRequestDataset, transitionStateResult))
             {
                 // If there is a warning code, the workitem is already in the canceled state.
                 if (transitionStateResult.HasWarningWithCode)
@@ -51,20 +55,82 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 }
                 else
                 {
-                    await CancelWorkitemAsync(dataset, workitemMetadata, transitionStateResult.State, cancellationToken).ConfigureAwait(false);
+                    await CancelWorkitemAsync(
+                            cancelRequestDataset,
+                            workitemMetadata,
+                            transitionStateResult.State,
+                            cancellationToken)
+                        .ConfigureAwait(false);
                 }
             }
 
             return _responseBuilder.BuildCancelResponse();
         }
 
-        private bool ValidateCancelRequest(string workitemInstanceUid, WorkitemMetadataStoreEntry workitemMetadata, DicomDataset dataset, WorkitemStateTransitionResult transitionStateResult)
+        private async Task<DicomDataset> PrepareRequestCancelWorkitemBlobDatasetAsync(
+            DicomDataset dataset,
+            WorkitemMetadataStoreEntry workitemMetadata,
+            ProcedureStepState targetProcedureStepState,
+            CancellationToken cancellationToken)
         {
             try
             {
-                GetValidator<CancelWorkitemDatasetValidator>().Validate(dataset);
+                // Get the workitem from blob store
+                var workitemDataset = await _workitemOrchestrator
+                    .GetWorkitemBlobAsync(workitemMetadata, cancellationToken)
+                    .ConfigureAwait(false);
 
-                CancelWorkitemDatasetValidator.ValidateProcedureStepStateInStore(workitemInstanceUid, workitemMetadata, transitionStateResult);
+                PopulateCancelRequestAttributes(workitemDataset, dataset, targetProcedureStepState);
+
+                return workitemDataset;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, @"Error while preparing Cancel Request Blob Dataset");
+
+                throw;
+            }
+        }
+
+        private static DicomDataset PopulateCancelRequestAttributes(
+            DicomDataset workitemDataset,
+            DicomDataset cancelRequestDataset,
+            ProcedureStepState procedureStepState)
+        {
+            workitemDataset.AddOrUpdate(DicomTag.ProcedureStepCancellationDateTime, DateTime.UtcNow);
+            workitemDataset.AddOrUpdate(DicomTag.ProcedureStepState, procedureStepState.GetStringValue());
+
+            var discontinuationReasonCodeSequence = new DicomDataset();
+            if (cancelRequestDataset.TryGetString(DicomTag.ReasonForCancellation, out var cancellationReason))
+            {
+                discontinuationReasonCodeSequence.Add(DicomTag.ReasonForCancellation, cancellationReason);
+            }
+            workitemDataset.AddOrUpdate(new DicomSequence(DicomTag.ProcedureStepDiscontinuationReasonCodeSequence, discontinuationReasonCodeSequence));
+
+            if (!workitemDataset.TryGetSequence(DicomTag.ProcedureStepProgressInformationSequence, out var progressInformationSequence))
+            {
+                progressInformationSequence = new DicomSequence(DicomTag.ProcedureStepProgressInformationSequence);
+                workitemDataset.Add(DicomTag.ProcedureStepProgressInformationSequence, progressInformationSequence);
+            }
+            progressInformationSequence.Items.Add(cancelRequestDataset);
+
+            return workitemDataset;
+        }
+
+        private bool ValidateCancelRequest(
+            string workitemInstanceUid,
+            WorkitemMetadataStoreEntry workitemMetadata,
+            DicomDataset dataset,
+            WorkitemStateTransitionResult transitionStateResult)
+        {
+            try
+            {
+                CancelWorkitemDatasetValidator.ValidateWorkitemState(
+                    workitemInstanceUid,
+                    workitemMetadata,
+                    transitionStateResult);
+
+                GetValidator<CancelWorkitemDatasetValidator>().Validate(dataset);
 
                 return true;
             }
@@ -100,45 +166,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
         }
 
-        private async Task<DicomDataset> PrepareRequestCancelWorkitemBlobDatasetAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, ProcedureStepState targetProcedureStepState, CancellationToken cancellationToken)
+        private async Task CancelWorkitemAsync(
+            DicomDataset dataset,
+            WorkitemMetadataStoreEntry workitemMetadata,
+            ProcedureStepState targetProcedureStepState,
+            CancellationToken cancellationToken)
         {
             try
             {
-                // Get the workitem from blob store
-                var blobDataset = await _workitemOrchestrator
-                    .GetWorkitemBlobAsync(workitemMetadata, cancellationToken)
-                    .ConfigureAwait(false);
-
-                blobDataset.AddOrUpdate(DicomTag.ProcedureStepCancellationDateTime, DateTime.UtcNow);
-                blobDataset.AddOrUpdate(DicomTag.ProcedureStepState, targetProcedureStepState.GetStringValue());
-
-                if (!blobDataset.TryGetSequence(DicomTag.ProcedureStepProgressInformationSequence, out var progressInformationSequence))
-                {
-                    progressInformationSequence = new DicomSequence(DicomTag.ProcedureStepProgressInformationSequence);
-                    blobDataset.Add(DicomTag.ProcedureStepProgressInformationSequence, progressInformationSequence);
-                }
-                progressInformationSequence.Items.Add(dataset);
-
-                return blobDataset;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, @"Error while preparing Cancel Request Blob Dataset");
-
-                throw;
-            }
-        }
-
-        private async Task CancelWorkitemAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, ProcedureStepState targetProcedureStepState, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var cancelRequestDataset = await PrepareRequestCancelWorkitemBlobDatasetAsync(
-                        dataset, workitemMetadata, targetProcedureStepState, cancellationToken)
-                    .ConfigureAwait(false);
-
                 await _workitemOrchestrator
-                    .UpdateWorkitemStateAsync(cancelRequestDataset, workitemMetadata, targetProcedureStepState, cancellationToken)
+                    .UpdateWorkitemStateAsync(dataset, workitemMetadata, targetProcedureStepState, cancellationToken)
                     .ConfigureAwait(false);
 
                 _logger.LogInformation("Successfully canceled the work-item entry.");

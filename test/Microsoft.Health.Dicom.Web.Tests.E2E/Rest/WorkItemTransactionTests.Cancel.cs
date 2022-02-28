@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.True(addResponse.IsSuccessStatusCode);
 
             // Cancel
-            var cancelDicomDataset = Samples.CreateCancelWorkitemInstanceDataset(workitemUid, @"Test Cancel");
+            var cancelDicomDataset = Samples.CreateWorkitemCancelRequestDataset(@"Test Cancel");
             using var cancelResponse = await _client.CancelWorkitemAsync(cancelDicomDataset, workitemUid);
             Assert.True(cancelResponse.IsSuccessStatusCode);
         }

@@ -541,6 +541,10 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>The value for tag '{0}' is missing.</value>
     <comment>{0} is the DICOM tag name. E.g., StudyInstanceUID.</comment>
   </data>
+  <data name="RequiredConditionNotMet" xml:space="preserve">
+    <value>The required condition for tag '{0}' is not met.</value>
+    <comment>{0} is the DICOM tag name.</comment>
+  </data>
   <data name="RetrieveServiceFileTooBig" xml:space="preserve">
     <value>Requested dicom instance size is above supported limit of {0}, get the entier instance in original transferSyntax with using accept header transfer-syntax=*</value>
     <comment>{0} bytes representing the support max file size</comment>
