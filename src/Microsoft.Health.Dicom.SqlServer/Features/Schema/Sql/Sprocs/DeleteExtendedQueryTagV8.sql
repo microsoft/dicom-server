@@ -22,6 +22,7 @@ BEGIN
     BEGIN TRANSACTION
 
         DECLARE @tagKey INT
+        DECLARE @imageResourceType AS TINYINT = 0
 
         SELECT @tagKey = TagKey
         FROM dbo.ExtendedQueryTag WITH(XLOCK)
@@ -42,15 +43,15 @@ BEGIN
 
         -- Delete index data
         IF @dataType = 0
-            DELETE FROM dbo.ExtendedQueryTagString WHERE TagKey = @tagKey
+            DELETE FROM dbo.ExtendedQueryTagString WHERE TagKey = @tagKey AND ResourceType = @imageResourceType
         ELSE IF @dataType = 1
-            DELETE FROM dbo.ExtendedQueryTagLong WHERE TagKey = @tagKey
+            DELETE FROM dbo.ExtendedQueryTagLong WHERE TagKey = @tagKey AND ResourceType = @imageResourceType
         ELSE IF @dataType = 2
-            DELETE FROM dbo.ExtendedQueryTagDouble WHERE TagKey = @tagKey
+            DELETE FROM dbo.ExtendedQueryTagDouble WHERE TagKey = @tagKey AND ResourceType = @imageResourceType
         ELSE IF @dataType = 3
-            DELETE FROM dbo.ExtendedQueryTagDateTime WHERE TagKey = @tagKey
+            DELETE FROM dbo.ExtendedQueryTagDateTime WHERE TagKey = @tagKey AND ResourceType = @imageResourceType
         ELSE
-            DELETE FROM dbo.ExtendedQueryTagPersonName WHERE TagKey = @tagKey
+            DELETE FROM dbo.ExtendedQueryTagPersonName WHERE TagKey = @tagKey AND ResourceType = @imageResourceType
 
         -- Delete errors
         DELETE FROM dbo.ExtendedQueryTagError
