@@ -988,6 +988,7 @@ BEGIN
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
     DECLARE @tagKey AS INT;
+    DECLARE @imageResourceType AS TINYINT = 0;
     SELECT @tagKey = TagKey
     FROM   dbo.ExtendedQueryTag WITH (XLOCK)
     WHERE  dbo.ExtendedQueryTag.TagPath = @tagPath;
@@ -1000,22 +1001,27 @@ BEGIN
     BEGIN TRANSACTION;
     IF @dataType = 0
         DELETE dbo.ExtendedQueryTagString
-        WHERE  TagKey = @tagKey;
+        WHERE  TagKey = @tagKey
+               AND ResourceType = @imageResourceType;
     ELSE
         IF @dataType = 1
             DELETE dbo.ExtendedQueryTagLong
-            WHERE  TagKey = @tagKey;
+            WHERE  TagKey = @tagKey
+                   AND ResourceType = @imageResourceType;
         ELSE
             IF @dataType = 2
                 DELETE dbo.ExtendedQueryTagDouble
-                WHERE  TagKey = @tagKey;
+                WHERE  TagKey = @tagKey
+                       AND ResourceType = @imageResourceType;
             ELSE
                 IF @dataType = 3
                     DELETE dbo.ExtendedQueryTagDateTime
-                    WHERE  TagKey = @tagKey;
+                    WHERE  TagKey = @tagKey
+                           AND ResourceType = @imageResourceType;
                 ELSE
                     DELETE dbo.ExtendedQueryTagPersonName
-                    WHERE  TagKey = @tagKey;
+                    WHERE  TagKey = @tagKey
+                           AND ResourceType = @imageResourceType;
     DELETE dbo.ExtendedQueryTagError
     WHERE  TagKey = @tagKey;
     DELETE dbo.ExtendedQueryTag
