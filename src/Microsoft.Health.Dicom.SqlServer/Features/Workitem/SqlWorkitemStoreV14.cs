@@ -20,7 +20,7 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
 {
-    internal class SqlWorkitemStoreV13 : SqlWorkitemStoreV11
+    internal class SqlWorkitemStoreV14 : SqlWorkitemStoreV11
     {
         protected static readonly Health.SqlServer.Features.Schema.Model.NVarCharColumn ProcedureStepStateColumn =
             new Health.SqlServer.Features.Schema.Model.NVarCharColumn("ProcedureStepState", 64);
@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
         protected static readonly Health.SqlServer.Features.Schema.Model.BigIntColumn ProposedWatermarkColumn =
             new Health.SqlServer.Features.Schema.Model.BigIntColumn("ProposedWatermark");
 
-        public SqlWorkitemStoreV13(SqlConnectionWrapperFactory sqlConnectionWrapperFactory, ILogger<ISqlWorkitemStore> logger)
+        public SqlWorkitemStoreV14(SqlConnectionWrapperFactory sqlConnectionWrapperFactory, ILogger<ISqlWorkitemStore> logger)
             : base(sqlConnectionWrapperFactory, logger)
         {
         }
