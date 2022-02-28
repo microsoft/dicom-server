@@ -139,14 +139,14 @@
     <comment>StudyInstanceUID, SeriesInstanceUID, and SOPInstanceUID are defined by the spec and does not need to be translated. {NumberedPlaceholder="StudyInstanceUID", "SeriesInstanceUID", "SOPInstanceUID"}</comment>
   </data>
   <data name="DuplicateAttribute" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Attribute '{0}' has been specified more than once using different ID formats. Each attribute is only allowed to be specified once.</value>
+    <value>Invalid query: attribute '{0}' has been specified more than once using different ID formats. Each attribute is only allowed to be specified once.</value>
     <comment>{0} attribute-id</comment>
   </data>
   <data name="FrameNotFound" xml:space="preserve">
     <value>The specified frame cannot be found.</value>
   </data>
   <data name="IncludeFieldUnknownAttribute" xml:space="preserve">
-    <value>Invalid QIDO-RS query. IncludeField has unknown attribute '{0}'.</value>
+    <value>Invalid query: IncludeField has unknown attribute '{0}'.</value>
     <comment>{0} attribute name</comment>
   </data>
   <data name="InstanceAlreadyExists" xml:space="preserve">
@@ -162,12 +162,12 @@
     <value>The specified study cannot be found.</value>
   </data>
   <data name="InvalidDateRangeValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified date range '{0}' is invalid.
+    <value>Invalid query: specified date range '{0}' is invalid.
 The first part date {1} should be lesser than or equal to the second part date {2}.</value>
     <comment>{0} date range with &lt;date1&gt;-&lt;date2&gt; format. {1} is date1. {2} is date2.</comment>
   </data>
   <data name="InvalidDateValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified Date value '{0}' is invalid for attribute '{1}'. Date should be valid and formatted as yyyyMMdd.</value>
+    <value>Invalid query: specified Date value '{0}' is invalid for attribute '{1}'. Date should be valid and formatted as yyyyMMdd.</value>
     <comment>{0} Date value. {1} attribute name.</comment>
   </data>
   <data name="ErrorMessageUidIsInvalid" xml:space="preserve">
@@ -180,13 +180,13 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The specified frames value is not valid. At least one frame must be present, and all requested frames must have value greater than 0.</value>
   </data>
   <data name="InvalidFuzzyMatchValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified fuzzymatch value '{0}' is not a valid boolean</value>
+    <value>Invalid query: specified fuzzymatch value '{0}' is not a valid boolean</value>
   </data>
   <data name="InvalidLimitValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified limit value '{0}' is not a valid integer.</value>
+    <value>Invalid query: specified limit value '{0}' is not a valid integer.</value>
   </data>
   <data name="InvalidOffsetValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified offset value '{0}' is not a valid integer.</value>
+    <value>Invalid query: specified offset value '{0}' is not a valid integer.</value>
   </data>
   <data name="InvalidQueryString" xml:space="preserve">
     <value>The query string included invalid characters.</value>
@@ -216,14 +216,14 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The request headers are not acceptable</value>
   </data>
   <data name="QueryEmptyAttributeValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. AttributeId '{0}' has empty string value that is not supported.</value>
+    <value>Invalid query: AttributeId '{0}' has empty string value that is not supported.</value>
     <comment>{0} AttributeId name</comment>
   </data>
   <data name="QueryInvalidResourceLevel" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Querying is only supported at resource level Studies/Series/Instances.</value>
+    <value>Invalid query: querying is only supported at resource level Studies/Series/Instances.</value>
   </data>
   <data name="QueryResultCountMaxExceeded" xml:space="preserve">
-    <value>Invalid QIDO-RS query.  Specified limit value {0} is outside the allowed range of {1}..{2}.</value>
+    <value>Invalid query: specified limit value {0} is outside the allowed range of {1}..{2}.</value>
     <comment>{0} Specified query result limit. {1} min allowed. {2} max allowed.</comment>
   </data>
   <data name="SeriesInstanceNotFound" xml:space="preserve">
@@ -236,7 +236,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The specified study cannot be found.</value>
   </data>
   <data name="UnknownQueryParameter" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Unknown query parameter '{0}'. If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters, attributes and the levels.</value>
+    <value>Invalid query: unknown query parameter '{0}'. If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters, attributes and the levels.</value>
     <comment>{0} Parameter name</comment>
   </data>
   <data name="UnsupportedContentType" xml:space="preserve">
@@ -244,7 +244,7 @@ The first part date {1} should be lesser than or equal to the second part date {
     <comment>{0} is the specified content type. E.g., application/dicom</comment>
   </data>
   <data name="UnsupportedSearchParameter" xml:space="preserve">
-    <value>Invalid QIDO-RS query. AttributeId {0} is not queryable.  If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters, attributes and the levels.</value>
+    <value>Invalid query: AttributeId {0} is not queryable.  If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters, attributes and the levels.</value>
     <comment>{0} AttributeId name.</comment>
   </data>
   <data name="UnsupportedTranscoding" xml:space="preserve">
@@ -313,11 +313,11 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>Sequential dicom tags are currently not supported.</value>
   </data>
   <data name="InvalidDoubleValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified value '{0}' extended query tag with path '{1}' is not a valid double value.</value>
+    <value>Invalid query: specified value '{0}' extended query tag with path '{1}' is not a valid double value.</value>
     <comment>{0} double value. {1} extended query tag path.</comment>
   </data>
   <data name="InvalidLongValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified value '{0}' extended query tag with path '{1}' is not a valid long value.</value>
+    <value>Invalid query: specified value '{0}' extended query tag with path '{1}' is not a valid long value.</value>
     <comment>{0} long value. {1} extended query tag path.</comment>
   </data>
   <data name="ErrorMessageExceedMaxLength" xml:space="preserve">
@@ -406,34 +406,34 @@ The first part date {1} should be lesser than or equal to the second part date {
     <comment>{0} Specified page offset.</comment>
   </data>
   <data name="DisallowedSeriesInstanceUIDAttribute" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Cannot specify attribute 'SeriesInstanceUID' for the given resource.</value>
+    <value>Invalid query: cannot specify attribute 'SeriesInstanceUID' for the given resource.</value>
   </data>
   <data name="DisallowedStudyInstanceUIDAttribute" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Cannot specify attribute 'StudyInstanceUID' for the given resource. </value>
+    <value>Invalid query: cannot specify attribute 'StudyInstanceUID' for the given resource. </value>
   </data>
   <data name="InvalidIncludeAllFields" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Cannot specify included fields in addition to 'all'.</value>
+    <value>Invalid query: cannot specify included fields in addition to 'all'.</value>
   </data>
   <data name="QueryIsDisabledOnAttribute" xml:space="preserve">
     <value>Query is disabled on specified attribute '{0}'.</value>
     <comment>'{0}' attribute in QIDO query. </comment>
   </data>
   <data name="InvalidDateTimeRangeValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified date range '{0}' is invalid.
+    <value>Invalid query: specified date range '{0}' is invalid.
 The first part DateTime {1} should be lesser than or equal to the second part DateTime {2}.</value>
     <comment>{0} DateTime range with &lt;DateTime1&gt;-&lt;DateTime2&gt; format. {1} is DateTime1. {2} is DateTime2.</comment>
   </data>
   <data name="InvalidDateTimeValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified DateTime value '{0}' is invalid for attribute '{1}'. DateTime should be valid and formatted as yyyyMMddHHmmss.FFFFFF where yyyy is mandatory.</value>
+    <value>Invalid query: specified DateTime value '{0}' is invalid for attribute '{1}'. DateTime should be valid and formatted as yyyyMMddHHmmss.FFFFFF where yyyy is mandatory.</value>
     <comment>{0} DateTime value. {1} attribute name.</comment>
   </data>
   <data name="InvalidTimeRangeValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified date range '{0}' is invalid.
+    <value>Invalid query: specified date range '{0}' is invalid.
 The first part time {1} should be lesser than or equal to the second part time {2}.</value>
     <comment>{0} Time range with &lt;Time1&gt;-&lt;Time2&gt; format. {1} is Time1. {2} is Time2.</comment>
   </data>
   <data name="InvalidTimeValue" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified Time value '{0}' is invalid for parameter '{1}'. Time should be valid and formatted as HHmmss.FFFFFF where HH is mandatory.</value>
+    <value>Invalid query: specified Time value '{0}' is invalid for parameter '{1}'. Time should be valid and formatted as HHmmss.FFFFFF where HH is mandatory.</value>
     <comment>{0} Time value. {1} parameter name.</comment>
   </data>
   <data name="ErrorMessageDateTimeIsInvalid" xml:space="preserve">
@@ -443,11 +443,11 @@ The first part time {1} should be lesser than or equal to the second part time {
     <value>Value cannot be parsed as a valid Time.</value>
   </data>
   <data name="DateTimeWithOffsetNotSupported" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified DateTime value '{0}' for attribute {1} contains offset which is not supported.</value>
+    <value>Invalid query: specified DateTime value '{0}' for attribute {1} contains offset which is not supported.</value>
     <comment>{0} DateTime value. {1} attribute name.</comment>
   </data>
   <data name="InvalidRangeValues" xml:space="preserve">
-    <value>Invalid QIDO-RS query. Specified range is invalid.
+    <value>Invalid query: specified range is invalid.
 Both parts in the range cannot be empty.
 For details on valid range queries, please refer to Search Matching section in Conformance Statement (https://github.com/microsoft/dicom-server/blob/main/docs/resources/conformance-statement.md#search-matching).</value>
   </data>
@@ -546,11 +546,11 @@ For details on valid range queries, please refer to Search Matching section in C
     <comment>{0} is the DICOM tag name.</comment>
   </data>
   <data name="RetrieveServiceFileTooBig" xml:space="preserve">
-    <value>Requested dicom instance size is above supported limit of {0}, get the entier instance in original transferSyntax with using accept header transfer-syntax=*</value>
+    <value>Requested DICOM instance size is above the supported limit of {0}. The entire instance can be retrieved with the original transfer syntax by specifying 'transfer-syntax=*' in the Accept header.</value>
     <comment>{0} bytes representing the support max file size</comment>
   </data>
   <data name="RetrieveServiceMultiInstanceTranscodingNotSupported" xml:space="preserve">
-    <value>Accept transferSyntax '{0}' is not supported when multiples instances are matched. Try getting the instances in the original transferSyntax using accept header with transfer-syntax=*</value>
+    <value>Accept transfer syntax '{0}' is not supported when multiple instances are matched. Matching instances can be retrieved with their original transfer syntax by specifying 'transfer-syntax=*' in the Accept header.</value>
     <comment>{0} Accept header transfer syntax</comment>
   </data>
 </root>

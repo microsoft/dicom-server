@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                 // filter conditions with attributeId as key
                 if (!ParseFilterCondition(filter, queryTags, parameters.FuzzyMatching, out QueryFilterCondition condition))
                 {
-                    throw new QueryParseException(string.Format(DicomCoreResource.UnsupportedWorkitemSearchParameter, filter.Key));
+                    throw new QueryParseException(string.Format(DicomCoreResource.UnsupportedSearchParameter, filter.Key));
                 }
 
                 if (!filterConditions.TryAdd(condition.QueryTag.Tag, condition))
@@ -116,7 +116,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
 
             if (queryTag == null)
             {
-                throw new QueryParseException(string.Format(DicomCoreResource.UnsupportedWorkitemSearchParameter, attributeId));
+                throw new QueryParseException(string.Format(DicomCoreResource.UnsupportedSearchParameter, attributeId));
             }
 
             // Currently only 2 level of sequence tags are supported, so always taking the last element to create a new query tag

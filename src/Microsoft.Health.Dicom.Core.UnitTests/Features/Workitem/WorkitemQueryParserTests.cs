@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         {
             _queryParser = new WorkitemQueryParser(new DicomTagParser());
 
-            _queryTags = QueryLimit.RequiredWorkitemSingleTags
+            _queryTags = WorkitemQueryResponseBuilder.RequiredReturnTags
                 .Select(x =>
                     {
                         var entry = new WorkitemQueryTagStoreEntry(0, x.GetPath(), x.GetDefaultVR().Code);

@@ -84,12 +84,12 @@ We support searching on these attributes:
 | PatientName |
 | PatientID |
 | ReferencedRequestSequence.AccessionNumber |
-| ReferencedRequestSequence.Requested​Procedure​ID |
-| Scheduled​Procedure​Step​Start​Date​Time |
+| ReferencedRequestSequence.RequestedProcedureID |
+| ScheduledProcedureStepStartDateTime |
 | ScheduledStationNameCodeSequence.CodeValue |
 | ScheduledStationClassCodeSequence.CodeValue |
-| Scheduled​Station​Geographic​Location​Code​Sequence.CodeValue |
-| Procedure​Step​State |
+| ScheduledStationGeographicLocationCodeSequence.CodeValue |
+| ProcedureStepState |
 
 #### Search Matching
 
