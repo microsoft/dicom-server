@@ -4,14 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Threading.Tasks;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 
 namespace Microsoft.Health.Dicom.Operations.DurableTask
 {
-    public interface IOrchestrationManager : IOrchestrationManager<object>
-    { }
-
-    public interface IOrchestrationManager<T>
+    internal interface IOrchestrationAggregate<T>
     {
-        Task<string> StartAsync(OrchestrationRequest<T> request);
+        Task<string> StartAsync(StartOrchestrationArgs<T> args);
     }
 }

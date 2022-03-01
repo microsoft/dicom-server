@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -13,20 +14,24 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Models.Operations;
+using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Operations.DurableTask
 {
-    internal abstract class OrchestrationManager : IOrchestrationManager
+    [JsonObject(MemberSerialization.OptIn)]
+    internal abstract class OrchestrationManager<T>
     {
+        [JsonProperty]
         private bool _pendingPoll;
-        private readonly HashSet<string> _running;
-        private readonly Queue<OrchestrationSpecification> _pending = new Queue<OrchestrationSpecification>();
+
+        [JsonProperty]
+        [SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Cannot be readonly as Json.NET needs to set the value after construction.")]
+        private HashSet<string> _running;
 
         private readonly IDurableClient _durableClient;
         private readonly IGuidFactory _guidFactory;
         private readonly Func<DateTime> _getUtcNow;
         private readonly OrchestrationConcurrencyOptions _options;
-        private readonly ILogger _logger;
 
         public OrchestrationManager(
             IDurableClient durableClient,
@@ -39,41 +44,52 @@ namespace Microsoft.Health.Dicom.Operations.DurableTask
             _guidFactory = EnsureArg.IsNotNull(guidFactory, nameof(guidFactory));
             _getUtcNow = EnsureArg.IsNotNull(getUtcNow, nameof(getUtcNow));
             _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
-            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
             _running = new HashSet<string>(_options.MaxInstances);
+            Logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
-        public Task<string> StartAsync(OrchestrationRequest<object> request)
+        protected ILogger Logger { get; }
+
+        public Task<string> StartAsync(StartOrchestrationArgs<T> request)
         {
             EnsureArg.IsNotNull(request, nameof(request));
 
+            // If there is no supplied instance ID, we should backfill one so callers
+            // know which instance is performing the actual work when started later.
+            if (request.InstanceId == null)
+            {
+                request = new StartOrchestrationArgs<T>
+                {
+                    FunctionName = request.FunctionName,
+                    Input = request.Input,
+                    InstanceId = OperationId.ToString(_guidFactory.Create()),
+                };
+            }
+
+            Logger.LogInformation("There are currently {Current}/{Max} instances running.", _running.Count, _options.MaxInstances);
+
+            // If we can start now, immediately submit the instance request
+            // TODO: Perhaps there should be additional signals
             if (_running.Count < _options.MaxInstances)
             {
-                string instanceId = QueueStart(request.FunctionName, request.InstanceId, request.Input);
-                TryQueuePoll();
+                string instanceId = StartOrchestration(request);
+                Logger.LogInformation("Submitted execution of orchestration '{FunctionName}' with ID '{InstanceId}'.", request.FunctionName, instanceId);
+
+                EnqueuePollIfActive();
                 return Task.FromResult(instanceId);
             }
             else
             {
-                // If there is no supplied instance ID, we should backfill one so callers
-                // know which instance is performing the actual work when started later.
-                var spec = new OrchestrationSpecification
-                {
-                    FunctionName = request.FunctionName,
-                    Input = request.Input,
-                    InstanceId = request.InstanceId ?? OperationId.ToString(_guidFactory.Create()),
-                };
+                string instanceId = DelayOrchestration(request);
+                Logger.LogInformation("Queued execution of orchestration '{FunctionName}' with ID '{InstanceId}'.", request.FunctionName, instanceId);
 
-                _pending.Enqueue(spec);
-
-                _logger.LogInformation("Queued execution of orchestration '{FunctionName}' with ID '{InstanceId}'.", spec.FunctionName, spec.InstanceId);
-                return Task.FromResult(spec.InstanceId);
+                return Task.FromResult(instanceId);
             }
         }
 
         public async Task PollRunningAsync()
         {
-            _logger.LogInformation("Polling status of orchestration instances.");
+            Logger.LogInformation("Polling status of orchestration instances.");
 
             // Determine which instances have finished one way or another, and notify any proxies
             foreach (string instanceId in _running.ToList()) // Shallow snapshot so we can modify it in the loop
@@ -87,22 +103,22 @@ namespace Microsoft.Health.Dicom.Operations.DurableTask
                 if (status == null)
                 {
                     // Perhaps Start and Poll were batched together, so we should wait
-                    _logger.LogWarning("Cannot find orchestration instance '{InstanceId}'.", instanceId);
+                    Logger.LogWarning("Cannot find orchestration instance '{InstanceId}'.", instanceId);
                     continue;
                 }
 
                 switch (status.RuntimeStatus)
                 {
                     case OrchestrationRuntimeStatus.Completed:
-                        _logger.LogInformation("Orchestration instance '{InstanceId}' completed successfully.", instanceId);
+                        Logger.LogInformation("Orchestration instance '{InstanceId}' completed successfully.", instanceId);
                         break;
                     case OrchestrationRuntimeStatus.Failed:
                     case OrchestrationRuntimeStatus.Canceled:
                     case OrchestrationRuntimeStatus.Terminated:
-                        _logger.LogWarning("Orchestration instance '{InstanceId}' completed with non-success status '{Status}'.", instanceId, status.RuntimeStatus);
+                        Logger.LogWarning("Orchestration instance '{InstanceId}' completed with non-success status '{Status}'.", instanceId, status.RuntimeStatus);
                         break;
                     default:
-                        _logger.LogInformation("Orchestration instance '{InstanceId}' is still running with status '{Status}.", instanceId, status.RuntimeStatus);
+                        Logger.LogInformation("Orchestration instance '{InstanceId}' is still running with status '{Status}.", instanceId, status.RuntimeStatus);
                         continue;
                 }
 
@@ -111,24 +127,18 @@ namespace Microsoft.Health.Dicom.Operations.DurableTask
 
                 // Replace the previously running instance with a new one, if any are pending
                 _running.Remove(instanceId);
-                if (_pending.TryDequeue(out OrchestrationSpecification next))
-                {
-                    QueueStart(next.FunctionName, next.InstanceId, next.Input);
-                }
+                TryStartNextOrchestration();
             }
 
             // Schedule the next poll, if necessary
-            if (_running.Count > 0)
-            {
-                TryQueuePoll();
-            }
-            else
-            {
-                _pendingPoll = false;
-            }
+            EnqueuePollIfActive();
         }
 
-        private string QueueStart(string functionName, string instanceId, object input)
+        protected abstract string DelayOrchestration(StartOrchestrationArgs<T> request);
+
+        protected abstract string StartOrchestration(StartOrchestrationArgs<T> request);
+
+        protected string StartOrchestration(string functionName, string instanceId, object input)
         {
             // Queue the orchestration to start, but note that this invocation is simply
             // appending a message to a batch of operations. So, the returned ID may not be found
@@ -139,33 +149,29 @@ namespace Microsoft.Health.Dicom.Operations.DurableTask
             instanceId = Entity.Current.StartNewOrchestration(functionName, input, instanceId);
             _running.Add(instanceId);
 
-            _logger.LogInformation("Submitted execution of orchestration '{FunctionName}' with ID '{InstanceId}'.", functionName, instanceId);
             return instanceId;
         }
 
-        private bool TryQueuePoll()
-        {
-            if (!_pendingPoll)
-            {
-                _pendingPoll = true;
+        protected abstract bool TryStartNextOrchestration();
 
+        private void EnqueuePollIfActive()
+        {
+            if (_running.Count == 0)
+            {
+                _pendingPoll = false;
+                Logger.LogInformation("There are no running orchestration instances. Polling is not necessary.");
+            }
+            else if (_pendingPoll)
+            {
+                Logger.LogWarning("Poll already pending.");
+            }
+            else
+            {
                 DateTime next = _getUtcNow() + _options.PollingInterval;
                 Entity.Current.SignalEntity(Entity.Current.EntityId, next, nameof(PollRunningAsync));
-
-                _logger.LogInformation("Will poll again for orchestration instance statuses at '{Timestamp}'.", next);
-                return true;
+                _pendingPoll = true;
+                Logger.LogInformation("Will poll again for orchestration instance statuses at '{Timestamp}'.", next);
             }
-
-            return false;
-        }
-
-        private readonly struct OrchestrationSpecification
-        {
-            public string FunctionName { get; init; }
-
-            public string InstanceId { get; init; }
-
-            public object Input { get; init; }
         }
     }
 }
