@@ -32,10 +32,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             using var cancelResponse = await _client.CancelWorkitemAsync(cancelDicomDataset, workitemUid);
             Assert.True(cancelResponse.IsSuccessStatusCode);
 
+            // Query
             using var queryResponse = await _client.QueryWorkitemAsync($"PatientName={patientName}");
             var responseDatasets = await queryResponse.ToArrayAsync();
             var actualDataset = responseDatasets?.FirstOrDefault();
 
+            // Verify
             Assert.NotNull(actualDataset);
             Assert.Equal(workitemUid, actualDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID));
             Assert.Equal(ProcedureStepState.Canceled, ProcedureStepStateExtensions.GetProcedureState(actualDataset));
