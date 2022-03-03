@@ -8,6 +8,9 @@ This diff is broken up into several sections:
 ******************************************************************************************/
 SET XACT_ABORT ON
 
+/****************************************************************************************
+Stored Procedures
+******************************************************************************************/
 BEGIN TRANSACTION
 GO
 
@@ -96,3 +99,25 @@ END
 GO
 
 COMMIT TRANSACTION
+
+/****************************************************************************************
+Delete Decimal String (DS) and Integer String (IS) Tags
+******************************************************************************************/
+DECLARE @tagPath VARCHAR(64)
+
+WHILE (1 = 1)
+BEGIN
+    -- Get next tag
+    SELECT TOP 1 @tagPath = TagPath
+    FROM dbo.ExtendedQueryTag
+    WHERE TagVR = 'DS' OR TagVR = 'IS'
+
+    IF @@ROWCOUNT = 0 BREAK
+
+    BEGIN TRY
+        EXEC dbo.DeleteExtendedQueryTagV15 @tagPath, 0
+    END TRY
+    BEGIN CATCH
+        -- Ignore any errors
+    END CATCH
+END

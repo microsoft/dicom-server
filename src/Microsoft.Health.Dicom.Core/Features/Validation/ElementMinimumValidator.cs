@@ -12,7 +12,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 {
     public class ElementMinimumValidator : IElementMinimumValidator
     {
-
         private static readonly IReadOnlyDictionary<DicomVR, IElementValidation> Validations = new Dictionary<DicomVR, IElementValidation>
         {
             { DicomVR.AE, new ElementMaxLengthValidation(16) },
@@ -21,9 +20,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             { DicomVR.DA, new DateValidation() },
             { DicomVR.DS, new ElementMaxLengthValidation(16) },
             { DicomVR.DT, new DateTimeValidation() },
-            { DicomVR.FL, new ElementRequiredLengthValidation(4) },
             { DicomVR.FD, new ElementRequiredLengthValidation(8) },
-            { DicomVR.IS, new ElementMaxLengthValidation(12) },
+            { DicomVR.FL, new ElementRequiredLengthValidation(4) },
+            { DicomVR.IS, new NumericStringValidation() },
             { DicomVR.LO, new LongStringValidation() },
             { DicomVR.PN, new PersonNameValidation() },
             { DicomVR.SH, new ElementMaxLengthValidation(16) },
@@ -52,6 +51,5 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 Debug.Fail($"Validating VR {vr?.Code} is not supported.");
             }
         }
-
     }
 }

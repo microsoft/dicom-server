@@ -39,7 +39,6 @@ namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
             DicomVRCode.AS,
             DicomVRCode.CS,
             DicomVRCode.DA,
-            DicomVRCode.DS,
             DicomVRCode.DT,
             DicomVRCode.FD,
             DicomVRCode.FL,
