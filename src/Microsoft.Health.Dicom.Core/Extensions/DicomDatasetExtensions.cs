@@ -433,8 +433,10 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             }
         }
 
-        private static void ValidateRequiredAttribute(this DicomDataset dataset, DicomTag tag, bool canCheckValue = true)
+        public static void ValidateRequiredAttribute(this DicomDataset dataset, DicomTag tag, bool canCheckValue = true)
         {
+            EnsureArg.IsNotNull(dataset, nameof(dataset));
+
             if (!dataset.Contains(tag))
             {
                 throw new DatasetValidationException(

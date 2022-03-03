@@ -292,6 +292,10 @@ namespace Microsoft.Health.Dicom.Tests.Common
 
             var dataset = CreateRandomWorkitemInstanceDataset(uid);
 
+            // Default repertoire - ISO-IR 6
+            // Refer: https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.12.html#sect_C.12.1.1.2
+            dataset.AddOrUpdate(DicomTag.SpecificCharacterSet, @"ISO_IR 100");
+
             dataset.AddOrUpdate(DicomTag.SOPClassUID, TestUidGenerator.Generate());
             dataset.AddOrUpdate(DicomTag.SOPInstanceUID, uid);
 
@@ -302,32 +306,29 @@ namespace Microsoft.Health.Dicom.Tests.Common
             dataset.AddOrUpdate(DicomTag.InputReadinessState, Guid.NewGuid().ToString("N").Substring(0, 14).ToUpper());
 
             dataset.AddOrUpdate(DicomTag.ProcedureStepState, procedureStepState.GetStringValue());
-            dataset.AddOrUpdate(DicomTag.ProcedureStepProgressInformationSequence, new DicomDataset());
-            dataset.AddOrUpdate(DicomTag.ProcedureStepCancellationDateTime, DateTime.UtcNow);
-            dataset.AddOrUpdate(new DicomSequence(DicomTag.ProcedureStepDiscontinuationReasonCodeSequence, new DicomDataset
+            dataset.AddOrUpdate(DicomTag.ProcedureStepProgressInformationSequence, new DicomDataset
             {
-                { DicomTag.ReasonForCancellation, cancellationReason }
-            }));
+                { DicomTag.ProcedureStepCancellationDateTime, DateTime.UtcNow },
+                new DicomSequence(DicomTag.ProcedureStepDiscontinuationReasonCodeSequence, new DicomDataset
+                {
+                    { DicomTag.ReasonForCancellation, cancellationReason }
+                })
+            });
 
             // Unified Procedure Step Performed Procedure Information Module
-            dataset.AddOrUpdate(DicomTag.UnifiedProcedureStepPerformedProcedureSequence, new DicomDataset());
-            dataset.AddOrUpdate(DicomTag.ActualHumanPerformersSequence, new DicomDataset());
-            dataset.AddOrUpdate(DicomTag.HumanPerformerCodeSequence, new DicomDataset());
-            dataset.AddOrUpdate(DicomTag.HumanPerformerName, @"Samples-TestFixture");
-            dataset.AddOrUpdate(DicomTag.PerformedStationNameCodeSequence, new DicomDataset());
-            dataset.AddOrUpdate(DicomTag.PerformedProcedureStepStartDateTime, DateTime.UtcNow);
-            dataset.AddOrUpdate(DicomTag.PerformedWorkitemCodeSequence, new DicomDataset());
-            dataset.AddOrUpdate(DicomTag.PerformedProcedureStepEndDateTime, DateTime.UtcNow);
-            dataset.AddOrUpdate(DicomTag.OutputInformationSequence, new DicomDataset());
-
-            // Default repertoire - ISO-IR 6
-            // Refer: https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.12.html#sect_C.12.1.1.2
-            dataset.AddOrUpdate(DicomTag.SpecificCharacterSet, @"ISO_IR 100");
-
-            var progressInformationSequence = new DicomSequence(DicomTag.ProcedureStepProgressInformationSequence);
-            progressInformationSequence.Items.Add(cancelRequestDataset);
-
-            dataset.AddOrUpdate(progressInformationSequence);
+            dataset.AddOrUpdate(DicomTag.UnifiedProcedureStepPerformedProcedureSequence, new DicomDataset
+            {
+                new DicomSequence(DicomTag.ActualHumanPerformersSequence, new DicomDataset
+                {
+                    new DicomSequence(DicomTag.HumanPerformerCodeSequence, new DicomDataset()),
+                    { DicomTag.HumanPerformerName, @"Samples-TestFixture" }
+                }),
+                new DicomSequence(DicomTag.PerformedStationNameCodeSequence, new DicomDataset()),
+                { DicomTag.PerformedProcedureStepStartDateTime, DateTime.UtcNow },
+                new DicomSequence(DicomTag.PerformedWorkitemCodeSequence, new DicomDataset()),
+                { DicomTag.PerformedProcedureStepEndDateTime, DateTime.UtcNow },
+                new DicomSequence(DicomTag.OutputInformationSequence, new DicomDataset())
+            });
 
             return dataset;
         }
