@@ -2053,9 +2053,9 @@ BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
+    DECLARE @newWatermark AS BIGINT;
     DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
     DECLARE @currentProcedureStepStateTagValue AS VARCHAR (64);
-    DECLARE @newWatermark AS BIGINT;
     UPDATE dbo.Workitem
     SET    Watermark = @proposedWatermark
     WHERE  WorkitemKey = @workitemKey
@@ -2094,9 +2094,9 @@ BEGIN
               AND cte.OldTagValue = targetTbl.TagValue
               AND cte.ExtendedQueryTagWatermark = targetTbl.Watermark
     WHERE  cte.TagPath = @procedureStepStateTagPath;
-    COMMIT TRANSACTION;
     IF @@ROWCOUNT = 0
-        THROW 50409, 'Workitem update failed.', 1;
+        THROW 50409, 'Workitem procedure step state update failed.', 1;
+    COMMIT TRANSACTION;
 END
 
 GO

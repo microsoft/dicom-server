@@ -23,7 +23,7 @@
     <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="$(FhirServerPackageVersion)" />
     <PackageReference Include="Polly" Version="7.2.3" />
-    <PackageReference Include="Scrutor" Version="4.0.0" />
+    <PackageReference Include="Scrutor" Version="4.1.0" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>
 

@@ -1,5 +1,4 @@
-﻿
-/*************************************************************
+﻿/*************************************************************
  Stored procedure for Updating a workitem procedure step state.
 **************************************************************/
 --
@@ -59,13 +58,13 @@ BEGIN
     SET XACT_ABORT ON
     BEGIN TRANSACTION
 
+    DECLARE @newWatermark BIGINT
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
     DECLARE @currentProcedureStepStateTagValue VARCHAR(64)
-    DECLARE @newWatermark BIGINT
 
     -- Update the workitem watermark
     -- To update the workitem watermark, current watermark MUST match.
-    -- This check is to make sure no two parties can update the workitem with an outdated data.
+    -- This check is to make sure no two parties can update the workitem with the outdated data.
     UPDATE dbo.Workitem
     SET
         Watermark = @proposedWatermark
@@ -77,7 +76,6 @@ BEGIN
         THROW 50409, 'Workitem update failed.', 1;
 
     SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence;
-
     -- Update the Tag Value
     WITH TagKeyCTE AS (
 	    SELECT
@@ -115,8 +113,10 @@ BEGIN
     WHERE
         cte.TagPath = @procedureStepStateTagPath;
 
+    IF @@ROWCOUNT = 0
+        THROW 50409, 'Workitem procedure step state update failed.', 1;
+
     COMMIT TRANSACTION
 
-    IF @@ROWCOUNT = 0
-        THROW 50409, 'Workitem update failed.', 1;
 END
+GO

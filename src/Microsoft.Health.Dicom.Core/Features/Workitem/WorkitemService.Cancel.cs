@@ -80,23 +80,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                     .GetWorkitemBlobAsync(workitemMetadata, cancellationToken)
                     .ConfigureAwait(false);
 
-                if (!workitemDataset.TryGetSequence(DicomTag.ProcedureStepProgressInformationSequence, out var progressInformationSequence))
-                {
-                    progressInformationSequence = new DicomSequence(DicomTag.ProcedureStepProgressInformationSequence);
-                    workitemDataset.Add(DicomTag.ProcedureStepProgressInformationSequence, progressInformationSequence);
-                }
-                dataset.Add(DicomTag.ProcedureStepCancellationDateTime, DateTime.UtcNow);
-                progressInformationSequence.Items.Add(dataset);
-
-                var discontinuationReasonCodeSequence = new DicomDataset();
-                if (dataset.TryGetString(DicomTag.ReasonForCancellation, out var cancellationReason))
-                {
-                    discontinuationReasonCodeSequence.Add(DicomTag.ReasonForCancellation, cancellationReason);
-                }
-                workitemDataset.AddOrUpdate(new DicomSequence(DicomTag.ProcedureStepDiscontinuationReasonCodeSequence, discontinuationReasonCodeSequence));
-
-                workitemDataset.AddOrUpdate(DicomTag.ProcedureStepCancellationDateTime, DateTime.UtcNow);
-                workitemDataset.AddOrUpdate(DicomTag.ProcedureStepState, targetProcedureStepState.GetStringValue());
+                PopulateCancelRequestAttributes(workitemDataset, dataset, targetProcedureStepState);
 
                 return workitemDataset;
             }
@@ -106,6 +90,46 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
                 throw;
             }
+        }
+
+        private static DicomDataset PopulateCancelRequestAttributes(
+            DicomDataset workitemDataset,
+            DicomDataset cancelRequestDataset,
+            ProcedureStepState procedureStepState)
+        {
+            workitemDataset.AddOrUpdate(DicomTag.ProcedureStepCancellationDateTime, DateTime.UtcNow);
+            workitemDataset.AddOrUpdate(DicomTag.ProcedureStepState, procedureStepState.GetStringValue());
+
+            var cancellationReason = cancelRequestDataset.GetSingleValueOrDefault<string>(DicomTag.ReasonForCancellation, string.Empty);
+            var discontinuationReasonCodeSequence = new DicomSequence(DicomTag.ProcedureStepDiscontinuationReasonCodeSequence, new DicomDataset
+            {
+                { DicomTag.ReasonForCancellation, cancellationReason }
+            });
+            workitemDataset.AddOrUpdate(discontinuationReasonCodeSequence);
+
+            var progressInformationSequence = new DicomSequence(DicomTag.ProcedureStepProgressInformationSequence, new DicomDataset
+            {
+                { DicomTag.ProcedureStepCancellationDateTime, DateTime.UtcNow },
+                new DicomSequence(DicomTag.ProcedureStepDiscontinuationReasonCodeSequence, new DicomDataset
+                    {
+                        { DicomTag.ReasonForCancellation, cancellationReason }
+                    }),
+                new DicomSequence(DicomTag.ProcedureStepCommunicationsURISequence, new DicomDataset
+                    {
+                        { DicomTag.ContactURI, cancelRequestDataset.GetSingleValueOrDefault<string>(DicomTag.ContactURI, string.Empty) },
+                        { DicomTag.ContactDisplayName, cancelRequestDataset.GetSingleValueOrDefault<string>(DicomTag.ContactDisplayName, string.Empty) },
+                    })
+            });
+            workitemDataset.AddOrUpdate(progressInformationSequence);
+
+            // TODO: Remove this once Update workitem feature is implemented
+            // This is a workaround for Cancel workitem to work without Update workitem
+            if (cancelRequestDataset.TryGetSequence(DicomTag.UnifiedProcedureStepPerformedProcedureSequence, out var unifiedProcedureStepPerformedProcedureSequence))
+            {
+                workitemDataset.AddOrUpdate(unifiedProcedureStepPerformedProcedureSequence);
+            }
+
+            return workitemDataset;
         }
 
         private bool ValidateCancelRequest(
