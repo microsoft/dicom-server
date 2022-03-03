@@ -385,8 +385,8 @@ namespace Microsoft.Health.Dicom.Core.Extensions
         public static void ValidateRequirement(
             this DicomDataset dataset,
             DicomTag tag,
-            FinalStateRequirementCode requirement,
             ProcedureStepState targetProcedureStepState,
+            FinalStateRequirementCode requirement,
             Func<DicomDataset, DicomTag, bool> requirementCondition = default)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
