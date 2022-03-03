@@ -88,6 +88,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cancel Reason not provided.
+        /// </summary>
+        internal static string CancelWorkitemUnknownReasonCode {
+            get {
+                return ResourceManager.GetString("CancelWorkitemUnknownReasonCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The limit must be between 1 and {0}..
         /// </summary>
         internal static string ChangeFeedLimitOutOfRange {
@@ -160,7 +169,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified DateTime value &apos;{0}&apos; for attribute {1} contains offset which is not supported..
+        ///   Looks up a localized string similar to Invalid query: specified DateTime value &apos;{0}&apos; for attribute {1} contains offset which is not supported..
         /// </summary>
         internal static string DateTimeWithOffsetNotSupported {
             get {
@@ -196,7 +205,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Cannot specify attribute &apos;SeriesInstanceUID&apos; for the given resource..
+        ///   Looks up a localized string similar to Invalid query: cannot specify attribute &apos;SeriesInstanceUID&apos; for the given resource..
         /// </summary>
         internal static string DisallowedSeriesInstanceUIDAttribute {
             get {
@@ -205,7 +214,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Cannot specify attribute &apos;StudyInstanceUID&apos; for the given resource. .
+        ///   Looks up a localized string similar to Invalid query: cannot specify attribute &apos;StudyInstanceUID&apos; for the given resource. .
         /// </summary>
         internal static string DisallowedStudyInstanceUIDAttribute {
             get {
@@ -214,7 +223,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Attribute &apos;{0}&apos; has been specified more than once using different ID formats. Each attribute is only allowed to be specified once..
+        ///   Looks up a localized string similar to Invalid query: attribute &apos;{0}&apos; has been specified more than once using different ID formats. Each attribute is only allowed to be specified once..
         /// </summary>
         internal static string DuplicateAttribute {
             get {
@@ -449,7 +458,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. IncludeField has unknown attribute &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Invalid query: IncludeField has unknown attribute &apos;{0}&apos;..
         /// </summary>
         internal static string IncludeFieldUnknownAttribute {
             get {
@@ -476,7 +485,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified date range &apos;{0}&apos; is invalid.
+        ///   Looks up a localized string similar to Invalid query: specified date range &apos;{0}&apos; is invalid.
         ///The first part date {1} should be lesser than or equal to the second part date {2}..
         /// </summary>
         internal static string InvalidDateRangeValue {
@@ -486,7 +495,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified date range &apos;{0}&apos; is invalid.
+        ///   Looks up a localized string similar to Invalid query: specified date range &apos;{0}&apos; is invalid.
         ///The first part DateTime {1} should be lesser than or equal to the second part DateTime {2}..
         /// </summary>
         internal static string InvalidDateTimeRangeValue {
@@ -496,7 +505,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified DateTime value &apos;{0}&apos; is invalid for attribute &apos;{1}&apos;. DateTime should be valid and formatted as yyyyMMddHHmmss.FFFFFF where yyyy is mandatory..
+        ///   Looks up a localized string similar to Invalid query: specified DateTime value &apos;{0}&apos; is invalid for attribute &apos;{1}&apos;. DateTime should be valid and formatted as yyyyMMddHHmmss.FFFFFF where yyyy is mandatory..
         /// </summary>
         internal static string InvalidDateTimeValue {
             get {
@@ -505,7 +514,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified Date value &apos;{0}&apos; is invalid for attribute &apos;{1}&apos;. Date should be valid and formatted as yyyyMMdd..
+        ///   Looks up a localized string similar to Invalid query: specified Date value &apos;{0}&apos; is invalid for attribute &apos;{1}&apos;. Date should be valid and formatted as yyyyMMdd..
         /// </summary>
         internal static string InvalidDateValue {
             get {
@@ -532,7 +541,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified value &apos;{0}&apos; extended query tag with path &apos;{1}&apos; is not a valid double value..
+        ///   Looks up a localized string similar to Invalid query: specified value &apos;{0}&apos; extended query tag with path &apos;{1}&apos; is not a valid double value..
         /// </summary>
         internal static string InvalidDoubleValue {
             get {
@@ -559,7 +568,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified fuzzymatch value &apos;{0}&apos; is not a valid boolean.
+        ///   Looks up a localized string similar to Invalid query: specified fuzzymatch value &apos;{0}&apos; is not a valid boolean.
         /// </summary>
         internal static string InvalidFuzzyMatchValue {
             get {
@@ -568,7 +577,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Cannot specify included fields in addition to &apos;all&apos;..
+        ///   Looks up a localized string similar to Invalid query: cannot specify included fields in addition to &apos;all&apos;..
         /// </summary>
         internal static string InvalidIncludeAllFields {
             get {
@@ -577,7 +586,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified limit value &apos;{0}&apos; is not a valid integer..
+        ///   Looks up a localized string similar to Invalid query: specified limit value &apos;{0}&apos; is not a valid integer..
         /// </summary>
         internal static string InvalidLimitValue {
             get {
@@ -586,7 +595,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified value &apos;{0}&apos; extended query tag with path &apos;{1}&apos; is not a valid long value..
+        ///   Looks up a localized string similar to Invalid query: specified value &apos;{0}&apos; extended query tag with path &apos;{1}&apos; is not a valid long value..
         /// </summary>
         internal static string InvalidLongValue {
             get {
@@ -595,7 +604,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified offset value &apos;{0}&apos; is not a valid integer..
+        ///   Looks up a localized string similar to Invalid query: specified offset value &apos;{0}&apos; is not a valid integer..
         /// </summary>
         internal static string InvalidOffsetValue {
             get {
@@ -640,7 +649,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified range is invalid.
+        ///   Looks up a localized string similar to Invalid query: specified range is invalid.
         ///Both parts in the range cannot be empty.
         ///For details on valid range queries, please refer to Search Matching section in Conformance Statement (https://github.com/microsoft/dicom-server/blob/main/docs/resources/conformance-statement.md#search-matching)..
         /// </summary>
@@ -651,7 +660,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified date range &apos;{0}&apos; is invalid.
+        ///   Looks up a localized string similar to Invalid query: specified date range &apos;{0}&apos; is invalid.
         ///The first part time {1} should be lesser than or equal to the second part time {2}..
         /// </summary>
         internal static string InvalidTimeRangeValue {
@@ -661,7 +670,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Specified Time value &apos;{0}&apos; is invalid for parameter &apos;{1}&apos;. Time should be valid and formatted as HHmmss.FFFFFF where HH is mandatory..
+        ///   Looks up a localized string similar to Invalid query: specified Time value &apos;{0}&apos; is invalid for parameter &apos;{1}&apos;. Time should be valid and formatted as HHmmss.FFFFFF where HH is mandatory..
         /// </summary>
         internal static string InvalidTimeValue {
             get {
@@ -859,7 +868,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. AttributeId &apos;{0}&apos; has empty string value that is not supported..
+        ///   Looks up a localized string similar to Invalid query: AttributeId &apos;{0}&apos; has empty string value that is not supported..
         /// </summary>
         internal static string QueryEmptyAttributeValue {
             get {
@@ -868,7 +877,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Querying is only supported at resource level Studies/Series/Instances..
+        ///   Looks up a localized string similar to Invalid query: querying is only supported at resource level Studies/Series/Instances..
         /// </summary>
         internal static string QueryInvalidResourceLevel {
             get {
@@ -886,7 +895,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query.  Specified limit value {0} is outside the allowed range of {1}..{2}..
+        ///   Looks up a localized string similar to Invalid query: specified limit value {0} is outside the allowed range of {1}..{2}..
         /// </summary>
         internal static string QueryResultCountMaxExceeded {
             get {
@@ -913,7 +922,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Requested dicom instance size is above supported limit of {0}, get the entier instance in original transferSyntax with using accept header transfer-syntax=*.
+        ///   Looks up a localized string similar to Requested DICOM instance size is above the supported limit of {0}. The entire instance can be retrieved with the original transfer syntax by specifying &apos;transfer-syntax=*&apos; in the Accept header..
         /// </summary>
         internal static string RetrieveServiceFileTooBig {
             get {
@@ -922,7 +931,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Accept transferSyntax &apos;{0}&apos; is not supported when multiples instances are matched. Try getting the instances in the original transferSyntax using accept header with transfer-syntax=*.
+        ///   Looks up a localized string similar to Accept transfer syntax &apos;{0}&apos; is not supported when multiple instances are matched. Matching instances can be retrieved with their original transfer syntax by specifying &apos;transfer-syntax=*&apos; in the Accept header..
         /// </summary>
         internal static string RetrieveServiceMultiInstanceTranscodingNotSupported {
             get {
@@ -1039,7 +1048,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. Unknown query parameter &apos;{0}&apos;. If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters, attributes and the levels..
+        ///   Looks up a localized string similar to Invalid query: unknown query parameter &apos;{0}&apos;. If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters, attributes and the levels..
         /// </summary>
         internal static string UnknownQueryParameter {
             get {
@@ -1057,7 +1066,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid QIDO-RS query. AttributeId {0} is not queryable.  If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters, attributes and the levels..
+        ///   Looks up a localized string similar to Invalid query: AttributeId {0} is not queryable.  If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters, attributes and the levels..
         /// </summary>
         internal static string UnsupportedSearchParameter {
             get {

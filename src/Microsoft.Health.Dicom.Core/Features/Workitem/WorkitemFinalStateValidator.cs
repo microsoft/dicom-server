@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
 
             // TODO: Should we consider throwing an exception here?
-            if (!dataset.TryGetSequence(sequenceTag, out var sequence))
+            if (!dataset.TryGetSequence(sequenceTag, out var sequence) || sequence.Items.Count == 0)
             {
                 return;
             }

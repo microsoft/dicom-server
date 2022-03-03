@@ -264,11 +264,23 @@ namespace Microsoft.Health.Dicom.Tests.Common
                 { DicomTag.ReasonForCancellation, cancellationReason },
                 { DicomTag.ContactURI, @"dicom-users://test-user" },
                 { DicomTag.ContactDisplayName, @"Dicom Test User" },
+                { DicomTag.ProcedureStepCancellationDateTime, DateTime.UtcNow },
             };
-            cancelRequestDataset.Add(DicomTag.ProcedureStepDiscontinuationReasonCodeSequence, new DicomDataset
-            {
-                { DicomTag.ReasonForCancellation, cancellationReason }
-            });
+
+            // This is needed to show progress on the workitem before canceling it.
+            cancelRequestDataset.Add(new DicomSequence(DicomTag.UnifiedProcedureStepPerformedProcedureSequence, new DicomDataset
+                {
+                    new DicomSequence(DicomTag.ActualHumanPerformersSequence, new DicomDataset
+                        {
+                            new DicomSequence(DicomTag.HumanPerformerCodeSequence, new DicomDataset()),
+                            { DicomTag.HumanPerformerName, @"Dicom Test User" }
+                        }),
+                    new DicomSequence(DicomTag.PerformedStationNameCodeSequence, new DicomDataset()),
+                    { DicomTag.PerformedProcedureStepStartDateTime, DateTime.UtcNow},
+                    new DicomSequence(DicomTag.PerformedWorkitemCodeSequence, new DicomDataset()),
+                    { DicomTag.PerformedProcedureStepEndDateTime, DateTime.UtcNow + TimeSpan.FromDays(2)},
+                    new DicomSequence(DicomTag.OutputInformationSequence, new DicomDataset()),
+                }));
 
             return cancelRequestDataset;
         }

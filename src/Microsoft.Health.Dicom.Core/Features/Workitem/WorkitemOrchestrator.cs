@@ -120,6 +120,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                     .GetCurrentAndNextWorkitemWatermarkAsync(workitemMetadata.WorkitemKey, cancellationToken)
                     .ConfigureAwait(false);
 
+                if (!watermarkEntry.HasValue)
+                {
+                    throw new DataStoreException(DicomCoreResource.DataStoreOperationFailed);
+                }
+
                 // store the blob with the new watermark
                 await StoreWorkitemBlobAsync(workitemMetadata, dataset, watermarkEntry.Value.NextWatermark, cancellationToken)
                     .ConfigureAwait(false);
