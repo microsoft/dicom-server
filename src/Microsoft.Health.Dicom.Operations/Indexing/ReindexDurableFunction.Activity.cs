@@ -155,7 +155,7 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             string tags = string.Join(", ", arguments.QueryTags.Select(x => x.Path));
-            logger.LogInformation("Start re-indexing instances in the range {Range} for the {TagCount} query tags {{{Tags}}}",
+            logger.LogInformation("Beginning to re-index instances in the range {Range} for the {TagCount} query tags {{{Tags}}}",
                 arguments.WatermarkRange,
                 arguments.QueryTags.Count,
                 tags);
@@ -174,7 +174,7 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
                 await Task.WhenAll(tasks);
             }
 
-            logger.LogInformation("Complete re-indexing instances in the range {Range} for the {TagCount} query tags {{{Tags}}}",
+            logger.LogInformation("Completed re-indexing instances in the range {Range} for the {TagCount} query tags {{{Tags}}}",
                 arguments.WatermarkRange,
                 arguments.QueryTags.Count,
                 tags);
