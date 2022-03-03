@@ -154,10 +154,11 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
             EnsureArg.IsNotNull(arguments, nameof(arguments));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            logger.LogInformation("Re-indexing instances in the range {Range} for the {TagCount} query tags {{{Tags}}}",
+            string tags = string.Join(", ", arguments.QueryTags.Select(x => x.Path));
+            logger.LogInformation("Start re-indexing instances in the range {Range} for the {TagCount} query tags {{{Tags}}}",
                 arguments.WatermarkRange,
                 arguments.QueryTags.Count,
-                string.Join(", ", arguments.QueryTags.Select(x => x.Path)));
+                tags);
 
             IReadOnlyList<VersionedInstanceIdentifier> instanceIdentifiers =
                 await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(arguments.WatermarkRange, IndexStatus.Created);
@@ -172,6 +173,11 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
 
                 await Task.WhenAll(tasks);
             }
+
+            logger.LogInformation("Complete re-indexing instances in the range {Range} for the {TagCount} query tags {{{Tags}}}",
+                arguments.WatermarkRange,
+                arguments.QueryTags.Count,
+                tags);
         }
 
         /// <summary>
