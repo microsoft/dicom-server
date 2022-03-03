@@ -46,6 +46,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Features\Workitem\WorkitemService - Copy.Query.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="DicomCoreResource.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

@@ -5,6 +5,7 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
@@ -26,6 +27,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var cancelDicomDataset = Samples.CreateWorkitemCancelRequestDataset(@"Test Cancel");
             using var cancelResponse = await _client.CancelWorkitemAsync(cancelDicomDataset, workitemUid);
             Assert.True(cancelResponse.IsSuccessStatusCode);
+
+            // Retrieve and Verify
+            using var retrieveResponse = await _client.RetrieveWorkitemAsync(workitemUid);
+            var dataset = await retrieveResponse.GetValueAsync();
+            Assert.NotNull(dataset);
+            Assert.Equal(ProcedureStepState.Canceled, dataset.GetProcedureState());
         }
     }
 }

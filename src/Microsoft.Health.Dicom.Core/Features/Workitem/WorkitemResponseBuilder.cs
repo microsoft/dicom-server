@@ -70,6 +70,23 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             return new CancelWorkitemResponse(status, _message);
         }
 
+        public RetrieveWorkitemResponse BuildRetrieveWorkitemResponse()
+        {
+            var status = WorkitemResponseStatus.Failure;
+
+            if (!_dataset.TryGetSingleValue<ushort>(DicomTag.FailureReason, out var failureReason))
+            {
+                // There are only success.
+                status = WorkitemResponseStatus.Success;
+            }
+            else if (failureReason == FailureReasonCodes.ProcessingFailure)
+            {
+                status = WorkitemResponseStatus.NotFound;
+            }
+
+            return new RetrieveWorkitemResponse(status, _dataset);
+        }
+
         /// <inheritdoc />
         public void AddSuccess(DicomDataset dicomDataset)
         {

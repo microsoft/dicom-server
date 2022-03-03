@@ -77,5 +77,21 @@ namespace Microsoft.Health.Dicom.Client
 
             return new DicomWebResponse(response);
         }
+
+        public async Task<DicomWebResponse<DicomDataset>> RetrieveWorkitemAsync(string workitemUid, string partitionName = default, CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(workitemUid, nameof(workitemUid));
+
+            var requestUri = GenerateWorkitemRetrieveRequestUri(workitemUid, partitionName);
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            request.Headers.Accept.Add(DicomWebConstants.MediaTypeApplicationDicomJson);
+
+            var response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+            await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+
+            return new DicomWebResponse<DicomDataset>(response, content => GetDicomDataset(content, cancellationToken));
+        }
     }
 }

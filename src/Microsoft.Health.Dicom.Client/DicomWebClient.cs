@@ -141,6 +141,11 @@ namespace Microsoft.Health.Dicom.Client
             return GenerateRequestUri(string.Format(DicomWebConstants.CancelWorkitemUriFormat, workitemUid), partitionName);
         }
 
+        private Uri GenerateWorkitemRetrieveRequestUri(string workitemUid, string partitionName = default)
+        {
+            return GenerateRequestUri(string.Format(DicomWebConstants.RetrieveWorkitemUriFormat, workitemUid), partitionName);
+        }
+
         private async IAsyncEnumerable<Stream> ReadMultipartResponseAsStreamsAsync(HttpContent httpContent, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(httpContent, nameof(httpContent));
@@ -226,6 +231,14 @@ namespace Microsoft.Health.Dicom.Client
             {
                 yield return item;
             }
+        }
+
+        private static async Task<DicomDataset> GetDicomDataset(HttpContent content, CancellationToken cancellationToken)
+        {
+            var contentText = await content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            var dataset = JsonSerializer.Deserialize<DicomDataset>(contentText, JsonSerializerOptions);
+
+            return dataset;
         }
 
         private static JsonSerializerOptions CreateJsonSerializerOptions()

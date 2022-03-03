@@ -241,5 +241,16 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             EnsureArg.IsNotNull(parameters, nameof(parameters));
             return mediator.Send(new QueryWorkitemResourceRequest(parameters), cancellationToken);
         }
+
+        public static Task<RetrieveWorkitemResponse> RetrieveWorkitemAsync(
+            this IMediator mediator,
+            string workitemInstanceUid,
+            CancellationToken cancellationToken = default)
+        {
+            EnsureArg.IsNotNull(mediator, nameof(mediator));
+            EnsureArg.IsNotNull(workitemInstanceUid, nameof(workitemInstanceUid));
+
+            return mediator.Send(new RetrieveWorkitemRequest(workitemInstanceUid), cancellationToken);
+        }
     }
 }
