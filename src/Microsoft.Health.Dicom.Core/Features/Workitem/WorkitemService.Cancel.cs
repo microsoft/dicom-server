@@ -31,8 +31,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 .GetWorkitemMetadataAsync(workitemInstanceUid, cancellationToken)
                 .ConfigureAwait(false);
 
+            if (workitemMetadata == null)
+            {
+                _responseBuilder.AddFailure(
+                    FailureReasonCodes.UpsInstanceNotFound,
+                    string.Format(DicomCoreResource.WorkitemInstanceNotFound, workitemInstanceUid),
+                    dataset);
+                return _responseBuilder.BuildCancelResponse();
+            }
+
             // Get the state transition result
-            var transitionStateResult = workitemMetadata?
+            var transitionStateResult = workitemMetadata
                 .ProcedureStepState
                 .GetTransitionState(WorkitemStateEvents.NActionToRequestCancel);
 
