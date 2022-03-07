@@ -68,7 +68,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.CancelWorkitemAsync(cancelDicomDataset, workitemUid));
 
             // Verify
-            Assert.Equal(string.Format(DicomCoreResource.WorkitemIsAlreadyCanceled, workitemUid), exception.ResponseMessage);
+            Assert.Equal("\"" + string.Format(DicomCoreResource.WorkitemIsAlreadyCanceled, workitemUid) + "\"", exception.ResponseMessage);
             Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
         }
 
@@ -91,7 +91,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             var exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.CancelWorkitemAsync(cancelDicomDataset, newWorkitemUid));
 
             // Verify
-            Assert.Equal(string.Format(DicomCoreResource.WorkitemInstanceNotFound, newWorkitemUid), exception.ResponseMessage);
+            Assert.Equal("\"" + string.Format(DicomCoreResource.WorkitemInstanceNotFound, newWorkitemUid) + "\"", exception.ResponseMessage);
             Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
         }
     }
