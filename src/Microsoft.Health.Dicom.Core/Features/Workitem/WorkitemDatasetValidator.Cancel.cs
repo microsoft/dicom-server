@@ -46,10 +46,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             if (workitemMetadata.Status != WorkitemStoreStatus.ReadWrite)
             {
                 throw new DatasetValidationException(
-                    FailureReasonCodes.ValidationFailure,
+                    FailureReasonCodes.UpsPerformerChoosesNotToCancel,
                     string.Format(
                         CultureInfo.InvariantCulture,
-                        DicomCoreResource.WorkitemUpdateIsNotAllowed,
+                        DicomCoreResource.InvalidProcedureStepStateTransition,
                         workitemUid,
                         workitemMetadata.ProcedureStepState.GetStringValue()));
             }
