@@ -140,6 +140,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     new SqlExtendedQueryTagErrorStoreV1(),
                     new SqlExtendedQueryTagErrorStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV4>.Instance),
                     new SqlExtendedQueryTagErrorStoreV6(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV6>.Instance),
+                    new SqlExtendedQueryTagErrorStoreV14(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV14>.Instance),
                }));
 
             IndexWorkitemStore = new SqlWorkitemStore(new VersionedCache<ISqlWorkitemStore>(
