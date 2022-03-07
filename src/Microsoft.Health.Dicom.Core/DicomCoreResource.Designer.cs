@@ -1120,6 +1120,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The UPS may no longer be updated..
+        /// </summary>
+        internal static string WorkitemCancelRequestRejected {
+            get {
+                return ResourceManager.GetString("WorkitemCancelRequestRejected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; has been cancelled..
         /// </summary>
         internal static string WorkitemCancelRequestSuccess {
@@ -1143,6 +1152,24 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string WorkitemInstanceNotFound {
             get {
                 return ResourceManager.GetString("WorkitemInstanceNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The UPS is already in the requested state of CANCELED..
+        /// </summary>
+        internal static string WorkitemIsAlreadyCanceled {
+            get {
+                return ResourceManager.GetString("WorkitemIsAlreadyCanceled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The UPS &apos;{0}&apos; is already COMPLETED..
+        /// </summary>
+        internal static string WorkitemIsAlreadyCompleted {
+            get {
+                return ResourceManager.GetString("WorkitemIsAlreadyCompleted", resourceCulture);
             }
         }
         

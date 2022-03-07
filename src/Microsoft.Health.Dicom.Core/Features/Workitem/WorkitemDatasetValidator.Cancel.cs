@@ -65,6 +65,26 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                         ProcedureStepState.Canceled,
                         stateTransitionResult.Code));
             }
+
+            if (workitemMetadata.ProcedureStepState == ProcedureStepState.Completed)
+            {
+                throw new DatasetValidationException(
+                    FailureReasonCodes.UpsIsAlreadyCompleted,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.WorkitemIsAlreadyCompleted,
+                        workitemUid));
+            }
+
+            if (workitemMetadata.ProcedureStepState == ProcedureStepState.Canceled)
+            {
+                throw new DatasetValidationException(
+                    FailureReasonCodes.UpsIsAlreadyCanceled,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.WorkitemIsAlreadyCanceled,
+                        workitemUid));
+            }
         }
     }
 }

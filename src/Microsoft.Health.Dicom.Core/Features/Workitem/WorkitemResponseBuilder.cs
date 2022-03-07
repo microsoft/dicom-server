@@ -9,6 +9,7 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using System.Linq;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -17,6 +18,14 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     /// </summary>
     public class WorkitemResponseBuilder : IWorkitemResponseBuilder
     {
+        private readonly static ushort[] WorkitemConflictFailureReasonCodes = new[]
+            {
+                FailureReasonCodes.UpsInstanceUpdateNotAllowed,
+                FailureReasonCodes.UpsIsAlreadyCanceled,
+                FailureReasonCodes.UpsIsAlreadyCompleted
+            };
+
+
         private readonly IUrlResolver _urlResolver;
         private DicomDataset _dataset;
         private string _message;
@@ -51,19 +60,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <inheritdoc />
         public CancelWorkitemResponse BuildCancelResponse()
         {
+
             var status = WorkitemResponseStatus.Failure;
 
             if (!_dataset.TryGetSingleValue<ushort>(DicomTag.FailureReason, out var failureReason))
             {
-                // There are only success.
+                // There are only success. - 200
                 status = WorkitemResponseStatus.Success;
             }
-            else if (failureReason == FailureReasonCodes.DatasetDoesNotMatchSOPClass)
+            else if (WorkitemConflictFailureReasonCodes.Contains(failureReason))
             {
+                // 409
                 status = WorkitemResponseStatus.Conflict;
             }
-            else if (failureReason == FailureReasonCodes.ProcessingFailure)
+            else if (failureReason == FailureReasonCodes.UpsInstanceNotFound)
             {
+                // 404
                 status = WorkitemResponseStatus.NotFound;
             }
 

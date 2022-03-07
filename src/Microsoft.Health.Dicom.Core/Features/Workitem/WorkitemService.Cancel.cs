@@ -156,19 +156,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 switch (ex)
                 {
                     case DatasetValidationException datasetValidationException:
-                        // should return 400
                         failureCode = datasetValidationException.FailureCode;
                         break;
 
                     case DicomValidationException _:
                     case ValidationException _:
-                        // should return 409
-                        failureCode = FailureReasonCodes.DatasetDoesNotMatchSOPClass;
+                        failureCode = FailureReasonCodes.UpsInstanceUpdateNotAllowed;
                         break;
 
                     case WorkitemNotFoundException:
-                        // should return 404
-                        failureCode = null;
+                        failureCode = FailureReasonCodes.UpsInstanceNotFound;
                         break;
                 }
 
