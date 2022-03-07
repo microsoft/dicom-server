@@ -21,6 +21,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         private readonly static ushort[] WorkitemConflictFailureReasonCodes = new[]
             {
                 FailureReasonCodes.UpsInstanceUpdateNotAllowed,
+                FailureReasonCodes.UpsPerformerChoosesNotToCancel,
                 FailureReasonCodes.UpsIsAlreadyCanceled,
                 FailureReasonCodes.UpsIsAlreadyCompleted
             };
