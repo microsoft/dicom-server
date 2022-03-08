@@ -15,7 +15,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
         private NullOperationStatus()
         { }
 
-        public DateTime? CreatedTime => null;
+        public DateTime? CreatedTime
+        {
+            get => null;
+            set { }
+        }
 
         public OperationProgress GetProgress()
             => new OperationProgress();

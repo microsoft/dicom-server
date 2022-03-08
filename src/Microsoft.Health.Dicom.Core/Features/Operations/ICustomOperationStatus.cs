@@ -10,7 +10,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
 {
     internal interface ICustomOperationStatus
     {
-        DateTime? CreatedTime { get; }
+        DateTime? CreatedTime { get; set; }
 
         OperationProgress GetProgress();
     }

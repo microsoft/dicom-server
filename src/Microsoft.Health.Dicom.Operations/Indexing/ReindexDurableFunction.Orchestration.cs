@@ -15,7 +15,6 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Operations.Extensions;
 using Microsoft.Health.Dicom.Operations.Indexing.Models;
-using Microsoft.Health.Dicom.Operations.Management;
 
 namespace Microsoft.Health.Dicom.Operations.Indexing
 {
@@ -47,17 +46,6 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
                 return;
             }
 
-            // Ensure we store the correct CreatedTime for future iterations
-            if (!input.Completed.HasValue)
-            {
-                DurableOrchestrationStatus status = await context.CallActivityWithRetryAsync<DurableOrchestrationStatus>(
-                    nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
-                    _options.ActivityRetryOptions,
-                    new GetInstanceStatusInput { InstanceId = context.InstanceId });
-
-                input.CreatedTime = status.CreatedTime;
-            }
-
             // Fetch the set of query tags that require re-indexing
             IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags = await GetOperationQueryTagsAsync(context, input);
             logger.LogInformation(
@@ -68,6 +56,8 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
             List<int> queryTagKeys = queryTags.Select(x => x.Key).ToList();
             if (queryTags.Count > 0)
             {
+                await input.UpdateCreatedTimeAsync(context, _options.ActivityRetryOptions);
+
                 IReadOnlyList<WatermarkRange> batches = await context.CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                     nameof(GetInstanceBatchesV2Async),
                     _options.ActivityRetryOptions,
