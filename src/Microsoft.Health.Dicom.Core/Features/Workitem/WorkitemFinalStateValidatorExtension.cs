@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Linq;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
@@ -40,18 +39,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 return;
             }
 
-            var sequenceDatasets = sequence.Items;
-
-            // TODO: Should we just search for the requirements in the 1st Dataset in the Sequence?
-            var sequenceDataset = sequenceDatasets.First();
-            foreach (var requirement in requirements)
+            foreach (var sequenceDataset in sequence.Items)
             {
-                sequenceDataset.ValidateRequirement(requirement.DicomTag, procedureStepState, requirement.RequirementCode);
-
-                if (null != requirement.SequenceRequirements)
+                foreach (var requirement in requirements)
                 {
-                    // Recursive call. Should we simplify the levels?
-                    sequenceDataset.ValidateSequence(requirement.DicomTag, procedureStepState, requirement.SequenceRequirements);
+                    sequenceDataset.ValidateRequirement(requirement.DicomTag, procedureStepState, requirement.RequirementCode);
+
+                    if (null != requirement.SequenceRequirements)
+                    {
+                        // Recursive call. Should we simplify the levels?
+                        sequenceDataset.ValidateSequence(requirement.DicomTag, procedureStepState, requirement.SequenceRequirements);
+                    }
                 }
             }
         }
