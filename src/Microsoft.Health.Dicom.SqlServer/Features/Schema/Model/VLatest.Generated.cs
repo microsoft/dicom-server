@@ -30,7 +30,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static WorkitemTable Workitem = new WorkitemTable();
         internal readonly static WorkitemQueryTagTable WorkitemQueryTag = new WorkitemQueryTagTable();
         internal readonly static AddExtendedQueryTagErrorProcedure AddExtendedQueryTagError = new AddExtendedQueryTagErrorProcedure();
-        internal readonly static AddExtendedQueryTagErrorV14Procedure AddExtendedQueryTagErrorV14 = new AddExtendedQueryTagErrorV14Procedure();
         internal readonly static AddExtendedQueryTagsProcedure AddExtendedQueryTags = new AddExtendedQueryTagsProcedure();
         internal readonly static AddInstanceV6Procedure AddInstanceV6 = new AddInstanceV6Procedure();
         internal readonly static AddPartitionProcedure AddPartition = new AddPartitionProcedure();
@@ -393,26 +392,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.AddExtendedQueryTagError";
-                _tagKey.AddParameter(command.Parameters, tagKey);
-                _errorCode.AddParameter(command.Parameters, errorCode);
-                _watermark.AddParameter(command.Parameters, watermark);
-            }
-        }
-
-        internal class AddExtendedQueryTagErrorV14Procedure : StoredProcedure
-        {
-            internal AddExtendedQueryTagErrorV14Procedure() : base("dbo.AddExtendedQueryTagErrorV14")
-            {
-            }
-
-            private readonly ParameterDefinition<System.Int32> _tagKey = new ParameterDefinition<System.Int32>("@tagKey", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.Int16> _errorCode = new ParameterDefinition<System.Int16>("@errorCode", global::System.Data.SqlDbType.SmallInt, false);
-            private readonly ParameterDefinition<System.Int64> _watermark = new ParameterDefinition<System.Int64>("@watermark", global::System.Data.SqlDbType.BigInt, false);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 tagKey, System.Int16 errorCode, System.Int64 watermark)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.AddExtendedQueryTagErrorV14";
                 _tagKey.AddParameter(command.Parameters, tagKey);
                 _errorCode.AddParameter(command.Parameters, errorCode);
                 _watermark.AddParameter(command.Parameters, watermark);

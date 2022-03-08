@@ -599,43 +599,6 @@ IF NOT EXISTS (SELECT *
                       AND Status = 1)
     THROW 50404, 'Instance does not exist or has not been created.', 1;
 IF NOT EXISTS (SELECT *
-               FROM   dbo.ExtendedQueryTag WITH (HOLDLOCK)
-               WHERE  TagKey = @tagKey
-                      AND TagStatus = 0)
-    THROW 50404, 'Tag does not exist or is not being added.', 1;
-DECLARE @addedCount AS SMALLINT;
-SET @addedCount = 1;
-MERGE INTO dbo.ExtendedQueryTagError WITH (HOLDLOCK)
- AS XQTE
-USING (SELECT @tagKey AS TagKey,
-              @errorCode AS ErrorCode,
-              @watermark AS Watermark) AS src ON src.TagKey = XQTE.TagKey
-                                                 AND src.WaterMark = XQTE.Watermark
-WHEN MATCHED THEN UPDATE 
-SET CreatedTime = @currentDate,
-    ErrorCode   = @errorCode,
-    @addedCount = 0
-WHEN NOT MATCHED THEN INSERT (TagKey, ErrorCode, Watermark, CreatedTime) VALUES (@tagKey, @errorCode, @watermark, @currentDate) OUTPUT INSERTED.TagKey;
-UPDATE dbo.ExtendedQueryTag
-SET    QueryStatus = 0,
-       ErrorCount  = ErrorCount + @addedCount
-WHERE  TagKey = @tagKey;
-COMMIT TRANSACTION;
-
-GO
-CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTagErrorV14
-@tagKey INT, @errorCode SMALLINT, @watermark BIGINT
-AS
-SET NOCOUNT ON;
-SET XACT_ABORT ON;
-BEGIN TRANSACTION;
-DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
-IF NOT EXISTS (SELECT *
-               FROM   dbo.Instance WITH (UPDLOCK)
-               WHERE  Watermark = @watermark
-                      AND Status = 1)
-    THROW 50404, 'Instance does not exist or has not been created.', 1;
-IF NOT EXISTS (SELECT *
                FROM   dbo.ExtendedQueryTag WITH (UPDLOCK)
                WHERE  TagKey = @tagKey
                       AND TagStatus = 0)

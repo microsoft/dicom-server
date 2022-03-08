@@ -30,7 +30,7 @@ GO
 -- RETURN VALUE
 --     The tag key of the error added.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTagErrorV14
+CREATE OR ALTER PROCEDURE dbo.AddExtendedQueryTagError
     @tagKey INT,
     @errorCode SMALLINT,
     @watermark BIGINT
