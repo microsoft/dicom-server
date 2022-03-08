@@ -36,27 +36,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
-        [Trait("Category", "bvt")]
-        public async Task WhenQueryingWorkitemWithFilter_TheServerShouldReturnWorkitemSuccessfully()
-        {
-            var workitemUid = TestUidGenerator.Generate();
-            DicomDataset dicomDataset = Samples.CreateRandomWorkitemInstanceDataset(workitemUid);
-
-            using DicomWebResponse response = await _client.AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);
-
-            Assert.True(response.IsSuccessStatusCode);
-
-            using DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryWorkitemAsync("ProcedureStepState=SCHEDULED");
-
-            Assert.Equal(KnownContentTypes.ApplicationDicomJson, queryResponse.ContentHeaders.ContentType.MediaType);
-            DicomDataset[] datasets = await queryResponse.ToArrayAsync();
-
-            Assert.NotNull(datasets);
-            DicomDataset testDataResponse = datasets.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.ProcedureStepState) == "SCHEDULED");
-            Assert.NotNull(testDataResponse);
-        }
-
-        [Fact]
         public async Task WhenQueryingWorkitem_TheServerShouldReturnWorkitemSuccessfully()
         {
             var workitemUid = TestUidGenerator.Generate();
