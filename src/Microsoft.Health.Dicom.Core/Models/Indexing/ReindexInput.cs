@@ -3,17 +3,21 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Models.Indexing
 {
-    internal class ReindexInput
+    internal class ReindexInput : ICustomOperationStatus
     {
         public IReadOnlyCollection<int> QueryTagKeys { get; set; }
+
+        public DateTime? CreatedTime { get; set; }
 
         public WatermarkRange? Completed { get; set; }
 

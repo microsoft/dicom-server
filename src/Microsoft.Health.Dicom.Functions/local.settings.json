@@ -1,6 +1,9 @@
 {
   "IsEncrypted": false,
   "Values": {
+    "AzureFunctionsJobHost__DicomFunctions__Indexing__BatchSize": "1",
+    "AzureFunctionsJobHost__DicomFunctions__Indexing__BatchThreadCount": "10",
+    "AzureFunctionsJobHost__DicomFunctions__Indexing__MaxParallelBatches": "1",
     "AzureFunctionsJobHost__SqlServer__ConnectionString": "server=(local);Initial Catalog=Dicom;Integrated Security=true;TrustServerCertificate=true",
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet"

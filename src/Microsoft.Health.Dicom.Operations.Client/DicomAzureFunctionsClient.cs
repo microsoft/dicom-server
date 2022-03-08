@@ -86,10 +86,11 @@ namespace Microsoft.Health.Dicom.Operations.Client
             }
 
             OperationRuntimeStatus runtimeStatus = status.GetOperationRuntimeStatus();
-            OperationProgress progress = GetOperationProgress(type, status);
+            ICustomOperationStatus customStatus = ParseOperationStatus(type, status);
+            OperationProgress progress = customStatus.GetProgress();
             return new OperationStatus
             {
-                CreatedTime = status.CreatedTime,
+                CreatedTime = customStatus.CreatedTime ?? status.CreatedTime,
                 LastUpdatedTime = status.LastUpdatedTime,
                 OperationId = operationId,
                 PercentComplete = runtimeStatus == OperationRuntimeStatus.Completed ? 100 : progress.PercentComplete,
@@ -126,17 +127,15 @@ namespace Microsoft.Health.Dicom.Operations.Client
             return confirmedTags.Count > 0 ? instanceGuid : throw new ExtendedQueryTagsAlreadyExistsException();
         }
 
-        private static OperationProgress GetOperationProgress(OperationType type, DurableOrchestrationStatus status)
-        {
-            switch (type)
+        // Note that the Durable Task Framework does not preserve the original CreatedTime
+        // when an orchestration is restarted via ContinueAsNew, so we may store the original
+        // in the CustomStatus
+        private static ICustomOperationStatus ParseOperationStatus(OperationType type, DurableOrchestrationStatus status)
+            => type switch
             {
-                case OperationType.Reindex:
-                    ReindexInput reindexInput = status.Input?.ToObject<ReindexInput>() ?? new ReindexInput();
-                    return reindexInput.GetProgress();
-                default:
-                    return new OperationProgress();
-            }
-        }
+                OperationType.Reindex => status.Input?.ToObject<ReindexInput>() ?? new ReindexInput(),
+                _ => NullOperationStatus.Value,
+            };
 
         private async Task<IReadOnlyCollection<Uri>> GetResourceUrlsAsync(
             OperationType type,

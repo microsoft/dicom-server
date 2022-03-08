@@ -15,6 +15,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Operations.Extensions;
 using Microsoft.Health.Dicom.Operations.Indexing.Models;
+using Microsoft.Health.Dicom.Operations.Management;
 
 namespace Microsoft.Health.Dicom.Operations.Indexing
 {
@@ -44,6 +45,17 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
             if (!context.HasInstanceGuid())
             {
                 return;
+            }
+
+            // Ensure we store the correct CreatedTime for future iterations
+            if (!input.Completed.HasValue)
+            {
+                DurableOrchestrationStatus status = await context.CallActivityWithRetryAsync<DurableOrchestrationStatus>(
+                    nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
+                    _options.ActivityRetryOptions,
+                    new GetInstanceStatusInput { InstanceId = context.InstanceId });
+
+                input.CreatedTime = status.CreatedTime;
             }
 
             // Fetch the set of query tags that require re-indexing
@@ -80,7 +92,13 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
                         ? new WatermarkRange(batchRange.Start, input.Completed.Value.End)
                         : batchRange;
 
-                    context.ContinueAsNew(new ReindexInput { QueryTagKeys = queryTagKeys, Completed = completed });
+                    context.ContinueAsNew(
+                        new ReindexInput
+                        {
+                            Completed = completed,
+                            CreatedTime = input.CreatedTime,
+                            QueryTagKeys = queryTagKeys,
+                        });
                 }
                 else
                 {
