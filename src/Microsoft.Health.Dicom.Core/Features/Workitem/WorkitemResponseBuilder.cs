@@ -26,7 +26,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 FailureReasonCodes.UpsIsAlreadyCompleted
             };
 
-
         private readonly IUrlResolver _urlResolver;
         private DicomDataset _dataset;
         private string _message;
@@ -61,7 +60,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         /// <inheritdoc />
         public CancelWorkitemResponse BuildCancelResponse()
         {
-
             var status = WorkitemResponseStatus.Failure;
 
             if (!_dataset.TryGetSingleValue<ushort>(DicomTag.FailureReason, out var failureReason))

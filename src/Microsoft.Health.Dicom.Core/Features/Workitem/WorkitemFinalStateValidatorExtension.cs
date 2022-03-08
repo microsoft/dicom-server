@@ -12,7 +12,7 @@ using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
     /// <summary>
-    /// 
+    /// Workitem final-state validator extension
     /// </summary>
     internal static class WorkitemFinalStateValidatorExtension
     {
@@ -35,13 +35,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
         private static void ValidateSequence(this DicomDataset dataset, DicomTag sequenceTag, ProcedureStepState procedureStepState, IReadOnlyCollection<FinalStateRequirementDetail> requirements)
         {
-            if (requirements.Count == 0)
-            {
-                return;
-            }
-
-            // TODO: Should we consider throwing an exception here?
-            if (!dataset.TryGetSequence(sequenceTag, out var sequence) || sequence.Items.Count == 0)
+            if (requirements.Count == 0 || !dataset.TryGetSequence(sequenceTag, out var sequence) || sequence.Items.Count == 0)
             {
                 return;
             }

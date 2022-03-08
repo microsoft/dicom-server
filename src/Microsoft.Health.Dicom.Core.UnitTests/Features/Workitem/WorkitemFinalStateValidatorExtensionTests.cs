@@ -21,7 +21,5 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
             WorkitemFinalStateValidatorExtension.ValidateFinalStateRequirement(dataset);
         }
-
-
     }
 }

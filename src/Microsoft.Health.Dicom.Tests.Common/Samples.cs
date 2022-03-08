@@ -304,10 +304,6 @@ namespace Microsoft.Health.Dicom.Tests.Common
 
             var dataset = CreateRandomWorkitemInstanceDataset(uid);
 
-            // Default repertoire - ISO-IR 6
-            // Refer: https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.12.html#sect_C.12.1.1.2
-            dataset.AddOrUpdate(DicomTag.SpecificCharacterSet, @"ISO_IR 100");
-
             dataset.AddOrUpdate(DicomTag.SOPClassUID, TestUidGenerator.Generate());
             dataset.AddOrUpdate(DicomTag.SOPInstanceUID, uid);
 
