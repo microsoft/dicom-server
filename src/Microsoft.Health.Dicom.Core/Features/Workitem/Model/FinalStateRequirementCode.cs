@@ -11,6 +11,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem.Model
     /// </summary>
     public enum FinalStateRequirementCode
     {
+        /// <summary>
+        /// The UPS State may be set to either COMPLETED or CANCELED if this Attribute does not have a value.
+        /// </summary>
+        O,
 
         /// <summary>
         /// The UPS State shall not be set to COMPLETED or CANCELED if this Attribute does not have a value.
@@ -31,10 +35,5 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem.Model
         /// The UPS State shall not be set to CANCELED if this Attribute does not have a value, but may be set to COMPLETED.
         /// </summary>
         X,
-
-        /// <summary>
-        /// The UPS State may be set to either COMPLETED or CANCELED if this Attribute does not have a value.
-        /// </summary>
-        O
     }
 }

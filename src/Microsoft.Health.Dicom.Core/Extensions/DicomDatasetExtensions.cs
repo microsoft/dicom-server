@@ -433,7 +433,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             }
         }
 
-        public static void ValidateRequiredAttribute(this DicomDataset dataset, DicomTag tag, bool canCheckValue = true)
+        private static void ValidateRequiredAttribute(this DicomDataset dataset, DicomTag tag, bool valueCannotBeZeroLength = true)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
 
@@ -447,7 +447,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                         tag));
             }
 
-            if (canCheckValue && dataset.GetValueCount(tag) < 1)
+            if (valueCannotBeZeroLength && dataset.GetValueCount(tag) < 1)
             {
                 throw new DatasetValidationException(
                     FailureReasonCodes.MissingAttributeValue,
