@@ -31,7 +31,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
             EnsureArg.IsNotNull(parameters, nameof(parameters));
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
-            var filterConditions = new Dictionary<DicomTag, QueryFilterCondition>();
+            var filterConditions = new Dictionary<int, QueryFilterCondition>();
             foreach (KeyValuePair<string, string> filter in parameters.Filters)
             {
                 // filter conditions with attributeId as key
@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query
                     throw new QueryParseException(string.Format(DicomCoreResource.UnsupportedSearchParameter, filter.Key));
                 }
 
-                if (!filterConditions.TryAdd(condition.QueryTag.Tag, condition))
+                if (!filterConditions.TryAdd(condition.QueryTag.WorkitemQueryTagStoreEntry.Key, condition))
                 {
                     throw new QueryParseException(string.Format(DicomCoreResource.DuplicateAttribute, filter.Key));
                 }

@@ -204,6 +204,40 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
             Assert.Equal(expectedQueryTag.Tag, BaseQueryExpression.FilterConditions.First().QueryTag.Tag);
         }
 
+        [Fact]
+        public void GivenWorkitemQueryTag_WithSameLastLevelKey_ThenReturnsSuccessfully()
+        {
+            var item1 = new DicomSequence(
+                    DicomTag.ScheduledStationClassCodeSequence,
+                        new DicomDataset[] {
+                            new DicomDataset(
+                                new DicomShortString(
+                                DicomTag.CodeValue, "Foo"))});
+            var item2 = new DicomSequence(
+                    DicomTag.ScheduledStationNameCodeSequence,
+                        new DicomDataset[] {
+                            new DicomDataset(
+                                new DicomShortString(
+                                DicomTag.CodeValue, "Bar"))});
+            QueryTag[] tags = new QueryTag[]
+            {
+              new QueryTag(Tests.Common.Extensions.DicomTagExtensions.BuildWorkitemQueryTagStoreEntry("00404025.00080100", 1, item1.ValueRepresentation.Code)),
+              new QueryTag(Tests.Common.Extensions.DicomTagExtensions.BuildWorkitemQueryTagStoreEntry("00404026.00080100", 2, item2.ValueRepresentation.Code))
+            };
+
+            var expectedQueryTag = new QueryTag(Tests.Common.Extensions.DicomTagExtensions.BuildWorkitemQueryTagStoreEntry("00080100", 1, DicomTag.AccessionNumber.GetDefaultVR().Code));
+            var filterConditions = new Dictionary<string, string>();
+            filterConditions.Add("00404025.00080100", "Foo");
+            filterConditions.Add("00404026.00080100", "Bar");
+
+            BaseQueryExpression BaseQueryExpression = _queryParser
+                 .Parse(CreateParameters(filterConditions), tags);
+
+            Assert.Equal(2, BaseQueryExpression.FilterConditions.Count);
+            Assert.Equal(expectedQueryTag.Tag, BaseQueryExpression.FilterConditions.First().QueryTag.Tag);
+            Assert.Equal(expectedQueryTag.Tag, BaseQueryExpression.FilterConditions.Last().QueryTag.Tag);
+        }
+
         private void VerifyIncludeFieldsForValidAttributeIds(params string[] values)
         {
             BaseQueryExpression BaseQueryExpression = _queryParser.Parse(
