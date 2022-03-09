@@ -70,5 +70,6 @@ AS
         WHERE TagKey = @tagKey
 
     COMMIT TRANSACTION
+GO
 
 COMMIT TRANSACTION
