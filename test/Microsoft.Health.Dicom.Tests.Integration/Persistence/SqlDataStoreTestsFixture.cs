@@ -80,8 +80,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var mediator = Substitute.For<IMediator>();
 
             var sqlConnectionStringProvider = new DefaultSqlConnectionStringProvider(configOptions);
-
-            var sqlConnectionFactory = new DefaultSqlConnectionBuilder(sqlConnectionStringProvider, configOptions);
+            var retryOption = SqlConfigurableRetryFactory.CreateExponentialRetryProvider(new SqlRetryLogicOption
+            {
+                NumberOfTries = 3,
+            });
+            var sqlConnectionFactory = new DefaultSqlConnectionBuilder(sqlConnectionStringProvider, retryOption);
 
             var schemaManagerDataStore = new SchemaManagerDataStore(sqlConnectionFactory, configOptions, NullLogger<SchemaManagerDataStore>.Instance);
 
@@ -91,7 +94,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             SqlTransactionHandler = new SqlTransactionHandler();
 
-            SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(SqlTransactionHandler, new SqlCommandWrapperFactory(), sqlConnectionFactory);
+            SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(SqlTransactionHandler, sqlConnectionFactory, retryOption);
 
             var schemaResolver = new PassthroughSchemaVersionResolver(SchemaInformation);
 

@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
             EnsureArg.EnumIsDefined(errorCode, nameof(errorCode));
 
             using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
-            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
+            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
             VLatest.AddExtendedQueryTagError.PopulateCommand(
                 sqlCommandWrapper,
                 tagKey,
@@ -79,7 +79,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
             List<ExtendedQueryTagError> results = new List<ExtendedQueryTagError>();
 
             using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
-            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
+            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
 
             VLatest.GetExtendedQueryTagErrors.PopulateCommand(sqlCommandWrapper, tagPath, limit, offset);
 
