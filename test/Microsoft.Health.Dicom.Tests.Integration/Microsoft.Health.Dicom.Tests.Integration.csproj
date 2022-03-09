@@ -12,7 +12,7 @@
     <PackageReference Include="Azure.Core" Version="1.22.0" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.10.0" />
     <PackageReference Include="Ensure.That" Version="10.1.0" />
-    <PackageReference Include="MediatR" Version="9.0.0" />
+    <PackageReference Include="MediatR" Version="10.0.1" />
     <PackageReference Include="fo-dicom" Version="$(FoDicomVersion)" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="4.1.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="$(SdkPackageVersion)" />
