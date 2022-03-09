@@ -51,6 +51,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                         CultureInfo.InvariantCulture,
                         DicomCoreResource.InvalidProcedureStepStateTransition,
                         workitemUid,
+                        stateTransitionResult.State.GetStringValue(),
                         workitemMetadata.ProcedureStepState.GetStringValue()));
             }
 
