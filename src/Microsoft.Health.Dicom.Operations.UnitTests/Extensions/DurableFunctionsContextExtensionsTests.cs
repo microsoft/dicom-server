@@ -4,9 +4,11 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Operations.Extensions;
+using Microsoft.Health.Dicom.Operations.Management;
 using NSubstitute;
 using Xunit;
 
@@ -33,6 +35,40 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Extensions
             context.InstanceId.Returns(OperationId.ToString(expected));
 
             Assert.Equal(expected, context.GetInstanceGuid());
+        }
+
+        [Fact]
+        public async Task GivenRunningOrchestration_WhenQueryingCreatedTime_ThenReturnCreatedTime()
+        {
+            // Arrange input
+            string instanceId = OperationId.Generate();
+            var expected = DateTime.UtcNow;
+
+            string operationId = OperationId.Generate();
+            IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
+            context.InstanceId.Returns(operationId);
+
+            var options = new RetryOptions(TimeSpan.FromSeconds(5), 3);
+
+            context
+                .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
+                    nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
+                    options,
+                    Arg.Is<GetInstanceStatusInput>(x => x.InstanceId == operationId))
+                .Returns(new DurableOrchestrationStatus { CreatedTime = expected });
+
+            // Invoke
+            DateTime actual = await context.GetCreatedTimeAsync(options);
+
+            // Assert behavior
+            Assert.Equal(expected, actual);
+
+            await context
+                .Received(1)
+                .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
+                    nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
+                    options,
+                    Arg.Is<GetInstanceStatusInput>(x => x.InstanceId == operationId));
         }
     }
 }
