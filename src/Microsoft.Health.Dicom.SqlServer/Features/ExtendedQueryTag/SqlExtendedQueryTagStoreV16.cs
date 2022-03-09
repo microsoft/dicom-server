@@ -16,23 +16,23 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 {
-    internal class SqlExtendedQueryTagStoreV15 : SqlExtendedQueryTagStoreV8
+    internal class SqlExtendedQueryTagStoreV16 : SqlExtendedQueryTagStoreV8
     {
-        public SqlExtendedQueryTagStoreV15(
+        public SqlExtendedQueryTagStoreV16(
            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
-           ILogger<SqlExtendedQueryTagStoreV15> logger)
+           ILogger<SqlExtendedQueryTagStoreV16> logger)
             : base(sqlConnectionWrapperFactory, logger)
         {
         }
 
-        public override SchemaVersion Version => SchemaVersion.V15;
+        public override SchemaVersion Version => SchemaVersion.V16;
 
         public override async Task DeleteExtendedQueryTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
             {
-                VLatest.DeleteExtendedQueryTagV15.PopulateCommand(sqlCommandWrapper, tagPath, (byte)ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[vr], batchSize: 1000);
+                VLatest.DeleteExtendedQueryTagV16.PopulateCommand(sqlCommandWrapper, tagPath, (byte)ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[vr], batchSize: 1000);
 
                 try
                 {

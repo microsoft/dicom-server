@@ -974,7 +974,7 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.DeleteExtendedQueryTagV15
+CREATE OR ALTER PROCEDURE dbo.DeleteExtendedQueryTagV16
 @tagPath VARCHAR (64), @dataType TINYINT, @batchSize INT=1000
 AS
 BEGIN
@@ -992,9 +992,7 @@ BEGIN
     SET    TagStatus = 2
     WHERE  dbo.ExtendedQueryTag.TagKey = @tagKey;
     COMMIT TRANSACTION;
-    BEGIN TRANSACTION;
-    DECLARE @deleted AS INT = 1;
-    WHILE @deleted > 0
+    WHILE (1 = 1)
         BEGIN
             IF @dataType = 0
                 DELETE TOP (@batchSize)
@@ -1024,19 +1022,21 @@ BEGIN
                                    dbo.ExtendedQueryTagPersonName
                             WHERE  TagKey = @tagKey
                                    AND ResourceType = @imageResourceType;
-            SET @deleted = @@ROWCOUNT;
+            IF (@@ROWCOUNT <> @batchSize)
+                BREAK;
+            EXECUTE dbo.ISleepIfBusy ;
         END
-    SET @deleted = 1;
-    WHILE @deleted > 0
+    WHILE (1 = 1)
         BEGIN
             DELETE TOP (@batchSize)
                    dbo.ExtendedQueryTagError
             WHERE  TagKey = @tagKey;
-            SET @deleted = @@ROWCOUNT;
+            IF (@@ROWCOUNT <> @batchSize)
+                BREAK;
+            EXECUTE dbo.ISleepIfBusy ;
         END
     DELETE dbo.ExtendedQueryTag
     WHERE  TagKey = @tagKey;
-    COMMIT TRANSACTION;
 END
 
 GO
@@ -1946,6 +1946,90 @@ BEGIN
         THROW;
     END CATCH
     COMMIT TRANSACTION;
+END
+
+GO
+CREATE OR ALTER PROCEDURE dbo.ISleepIfBusy
+AS
+BEGIN
+    DECLARE @throttleCount AS INT;
+    DECLARE @activeRequestCount AS INT;
+    DECLARE @sleepersCount AS INT;
+    DECLARE @throttleActiveRequestCount AS INT;
+    IF SERVERPROPERTY('Edition') = 'SQL Azure'
+        BEGIN
+            IF (@@TRANCOUNT > 0)
+                THROW 50400, 'Cannot sleep in transaction', 1;
+            DECLARE @computedThrottleActiveRequestCount AS INT;
+            WHILE (1 = 1)
+                BEGIN
+                    SELECT @throttleCount = ISNULL(SUM(CASE WHEN r.wait_type IN ('IO_QUEUE_LIMIT', 'LOG_RATE_GOVERNOR', 'SE_REPL_CATCHUP_THROTTLE', 'SE_REPL_SLOW_SECONDARY_THROTTLE', 'HADR_SYNC_COMMIT') THEN 1 ELSE 0 END), 0),
+                           @sleepersCount = ISNULL(SUM(CASE WHEN r.wait_type IN ('WAITFOR') THEN 1 ELSE 0 END), 0),
+                           @activeRequestCount = COUNT(*)
+                    FROM   sys.dm_exec_requests AS r WITH (NOLOCK)
+                           INNER JOIN
+                           sys.dm_exec_sessions AS s WITH (NOLOCK)
+                           ON s.session_id = r.session_id
+                    WHERE  r.session_id <> @@spid
+                           AND s.is_user_process = 1;
+                    SET @activeRequestCount = @activeRequestCount - @sleepersCount;
+                    IF (@throttleCount > 0)
+                        BEGIN
+                            RAISERROR ('Throttling due to write waits', 10, 0)
+                                WITH NOWAIT;
+                            WAITFOR DELAY '00:00:02';
+                        END
+                    ELSE
+                        IF (@activeRequestCount >= 0)
+                            BEGIN
+                                SET @throttleActiveRequestCount = NULL;
+                                SELECT @throttleActiveRequestCount = CONVERT (INT, Value)
+                                FROM   tbl_ResourceManagementSetting
+                                WHERE  Name = 'ThrottleActiveRequestCount';
+                                IF (@throttleActiveRequestCount IS NULL)
+                                    BEGIN
+                                        IF (@computedThrottleActiveRequestCount IS NULL)
+                                            BEGIN TRY
+                                                IF (OBJECT_ID('sys.dm_os_sys_info') IS NOT NULL)
+                                                    BEGIN
+                                                        SELECT @computedThrottleActiveRequestCount = cpu_count * 3
+                                                        FROM   sys.dm_os_sys_info;
+                                                        IF (@computedThrottleActiveRequestCount < 10)
+                                                            BEGIN
+                                                                SET @computedThrottleActiveRequestCount = 10;
+                                                            END
+                                                        ELSE
+                                                            IF (@computedThrottleActiveRequestCount > 100)
+                                                                BEGIN
+                                                                    SET @computedThrottleActiveRequestCount = 100;
+                                                                END
+                                                    END
+                                            END TRY
+                                            BEGIN CATCH
+                                            END CATCH
+                                        IF (@computedThrottleActiveRequestCount IS NULL)
+                                            BEGIN
+                                                SET @computedThrottleActiveRequestCount = 20;
+                                            END
+                                        SET @throttleActiveRequestCount = @computedThrottleActiveRequestCount;
+                                    END
+                                IF (@activeRequestCount > @throttleActiveRequestCount)
+                                    BEGIN
+                                        RAISERROR ('Throttling due to active requests being >= %d. Number of active requests = %d', 10, 0, @throttleActiveRequestCount, @activeRequestCount)
+                                            WITH NOWAIT;
+                                        WAITFOR DELAY '00:00:01';
+                                    END
+                                ELSE
+                                    BEGIN
+                                        BREAK;
+                                    END
+                            END
+                        ELSE
+                            BEGIN
+                                BREAK;
+                            END
+                END
+        END
 END
 
 GO
