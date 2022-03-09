@@ -43,9 +43,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             DicomTag.PatientName,
             DicomTag.PatientID,
 
-                // Issuer of Patient ID Macro
-                DicomTag.IssuerOfPatientID,
-                DicomTag.IssuerOfPatientIDQualifiersSequence,
+            // Issuer of Patient ID Macro
+            DicomTag.IssuerOfPatientID,
+            DicomTag.IssuerOfPatientIDQualifiersSequence,
 
             DicomTag.OtherPatientIDsSequence,
             DicomTag.PatientBirthDate,
