@@ -38,8 +38,6 @@ namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage
             await tableClient.GetEntityAsync<HealthEntity>(TestPartitionKey, TestRowKey, cancellationToken: cancellationToken);
 
             await tableClient.DeleteEntityAsync(TestPartitionKey, TestRowKey, cancellationToken: cancellationToken);
-
-            await _testServiceClient.DeleteTableAsync(TestTable, cancellationToken);
         }
     }
 }
