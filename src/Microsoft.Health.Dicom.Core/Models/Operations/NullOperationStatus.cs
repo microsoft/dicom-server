@@ -4,9 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using Microsoft.Health.Dicom.Core.Models.Operations;
 
-namespace Microsoft.Health.Dicom.Core.Features.Operations
+namespace Microsoft.Health.Dicom.Core.Models.Operations
 {
     internal sealed class NullOperationStatus : ICustomOperationStatus
     {
@@ -15,11 +14,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations
         private NullOperationStatus()
         { }
 
-        public DateTime? CreatedTime
-        {
-            get => null;
-            set { }
-        }
+        public DateTime? CreatedTime => null;
 
         public OperationProgress GetProgress()
             => new OperationProgress();
