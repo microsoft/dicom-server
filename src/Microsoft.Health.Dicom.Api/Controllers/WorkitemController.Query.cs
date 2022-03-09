@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [QueryModelStateValidator]
         public async Task<IActionResult> QueryWorkitemsAsync([FromQuery] QueryOptions options)
         {
-            _logger.LogInformation("Query workitem request received. QueryString {RequestQueryString}.", Request.QueryString);
+            _logger.LogInformation("Query workitem request received.");
 
             EnsureArg.IsNotNull(options);
             var response = await _mediator.QueryWorkitemsAsync(
