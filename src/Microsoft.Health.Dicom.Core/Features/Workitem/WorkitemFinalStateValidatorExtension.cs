@@ -47,7 +47,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
                     if (null != requirement.SequenceRequirements)
                     {
-                        // Recursive call. Should we simplify the levels?
                         sequenceDataset.ValidateSequence(requirement.DicomTag, procedureStepState, requirement.SequenceRequirements);
                     }
                 }
@@ -67,7 +66,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 // SOP Common Module
 
                 // Refer: https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.12.html#sect_C.12.1.1.2
-                new FinalStateRequirementDetail(DicomTag.SpecificCharacterSet, FinalStateRequirementCode.RC),
+                // Intentionally changed to Optional, until we support character sets.
+                new FinalStateRequirementDetail(DicomTag.SpecificCharacterSet, FinalStateRequirementCode.O),
                 new FinalStateRequirementDetail(DicomTag.SOPClassUID, FinalStateRequirementCode.R),
                 new FinalStateRequirementDetail(DicomTag.SOPInstanceUID, FinalStateRequirementCode.R),
 

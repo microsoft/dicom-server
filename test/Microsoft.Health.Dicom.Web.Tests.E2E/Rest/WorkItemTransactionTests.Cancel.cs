@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             // Cancel
             var cancelDicomDataset = Samples.CreateWorkitemCancelRequestDataset(@"Test Cancel");
-            using var cancelResponse = await _client.CancelWorkitemAsync(cancelDicomDataset, workitemUid);
+            using var cancelResponse = await _client.CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), workitemUid);
             Assert.True(cancelResponse.IsSuccessStatusCode);
 
             // Query
@@ -61,11 +61,11 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
             // Cancel
             var cancelDicomDataset = Samples.CreateWorkitemCancelRequestDataset(@"Test Cancel");
-            using var cancelResponse1 = await _client.CancelWorkitemAsync(cancelDicomDataset, workitemUid);
+            using var cancelResponse1 = await _client.CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), workitemUid);
             Assert.True(cancelResponse1.IsSuccessStatusCode);
 
             // Cancel
-            var exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.CancelWorkitemAsync(cancelDicomDataset, workitemUid));
+            var exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), workitemUid));
 
             // Verify
             Assert.Equal("\"" + string.Format(DicomCoreResource.WorkitemIsAlreadyCanceled, workitemUid) + "\"", exception.ResponseMessage);
@@ -88,7 +88,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             // Cancel
             var newWorkitemUid = TestUidGenerator.Generate();
             var cancelDicomDataset = Samples.CreateWorkitemCancelRequestDataset(@"Test Cancel");
-            var exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.CancelWorkitemAsync(cancelDicomDataset, newWorkitemUid));
+            var exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), newWorkitemUid));
 
             // Verify
             Assert.Equal("\"" + string.Format(DicomCoreResource.WorkitemInstanceNotFound, newWorkitemUid) + "\"", exception.ResponseMessage);

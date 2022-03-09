@@ -4,6 +4,7 @@ The DICOM service supports a subset of the Worklist Service (UPS-RS) defined in 
 
 - [Create](#create)
 - [Search](#search)
+- [Request Cancellation](#request-cancellation)
 
 The base URI for all operations below should include the [desired API version](../api-versioning.md) and the [data partition](data-partitions.md) if that feature is enabled.
 Throughout, the variable `{workitem}` in a URI template stands for a Workitem UID.
@@ -31,7 +32,6 @@ found in [this table](https://dicom.nema.org/medical/dicom/current/output/html/p
 Notes on dataset attributes:
 - **SOP Instance UID:** Although the reference table above says that SOP Instance UID should not be present, this guidance is specific to the DIMSE protocol and is
 handled diferently in DICOMWeb&trade;. SOP Instance UID **should be present** in the dataset if not in the URI.
-- **Scheduled Procedure Step State:** this attribute must be present, but must have no value.
 
 ### Create Response Status Codes
 
@@ -90,6 +90,7 @@ We support searching on these attributes:
 | ScheduledStationClassCodeSequence.CodeValue |
 | ScheduledStationGeographicLocationCodeSequence.CodeValue |
 | ProcedureStepState |
+| StudyInstanceUID |
 
 #### Search Matching
 
@@ -141,3 +142,45 @@ The query API will return one of the following status codes in the response:
 - Paged results are optimized to return matched *newest* instance first, this may result in duplicate records in subsequent pages if newer data matching the query was added.
 - Matching is case insensitive and accent insensitive for PN VR types.
 - Matching is case insensitive and accent sensitive for other string VR types.
+
+## Request Cancellation
+
+This transaction enables the user to request cancellation of a non-owned Workitem.
+
+There are
+[four valid Workitem states](https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.1.1-1):
+- `SCHEDULED`
+- `IN PROGRESS`
+- `CANCELED`
+- `COMPLETED`
+
+This transaction will only succeed against Workitems in the `SCHEDULED` state. Any user can claim ownership of a Workitem by
+setting its Transaction UID and changing its state to `IN PROGRESS`. From then on, a user can only modify the Workitem by providing
+the correct Transaction UID. While UPS defines Watch and Event SOP classes that allow cancellation requests and other events to be
+forwarded, this DICOM service does not implement these classes, and so cancellation requests on workitems that are `IN PROGRESS` will
+return failure. An owned Workitem can be cancelled via the Change Workitem State transaction.
+
+| Method  | Path                                            | Description                                      |
+| :------ | :---------------------------------------------- | :----------------------------------------------- |
+| POST    | ../workitems/{workitem}/cancelrequest           | Request the cancellation of a scheduled Workitem |
+
+The `Content-Type` headers is required, and must have the value `application/dicom+json`.
+
+The request payload may include Action Information as [defined in the DICOM Standard](https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.2-1).
+
+### Request Cancellation Response Status Codes
+
+| Code                         | Description |
+| :--------------------------- | :---------- |
+| 202 (Accepted)               | The request was accepted by the server, but the Target Workitem state has not necessarily changed yet. |
+| 400 (Bad Request)            | There was a problem with the syntax of the request. |
+| 401 (Unauthorized)           | The client is not authenticated. |
+| 404 (Not Found)              | The Target Workitem was not found. |
+| 409 (Conflict)               | The request is inconsistent with the current state of the Target Workitem. For example, the Target Workitem is in the SCHEDULED or COMPLETED state. |
+| 415 (Unsupported Media Type) | The provided `Content-Type` is not supported. |
+
+### Request Cancellation Response Payload
+
+A success response will have no payload, and a failure response payload will contain a message describing the failure.
+If the Workitem Instance is already in a cancelled state, the response will include the following HTTP Warning header:
+`299: The UPS is already in the requested state of CANCELED.`

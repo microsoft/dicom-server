@@ -10,7 +10,10 @@ using System.Text.Json;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Workitem;
+using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Serialization;
 using Xunit;
 
@@ -389,6 +392,158 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
             var dataset = new DicomDataset(item);
 
             Assert.Throws<DatasetValidationException>(() => dataset.ValidateRequirement(tag, requirement));
+        }
+
+        [Fact]
+        public void GivenADataset_WhenProcedureStepStateIsCanceledFinalStateRequirementRIsNotMet_ValidationFails()
+        {
+            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+            dataset.Remove(DicomTag.SOPInstanceUID);
+
+            Assert.Throws<DatasetValidationException>(() =>
+                dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Canceled, FinalStateRequirementCode.R));
+        }
+
+        [Fact]
+        public void GivenADataset_WhenProcedureStepStateIsCanceledFinalStateRequirementRCIsNotMet_ValidationFails()
+        {
+            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+            dataset.Remove(DicomTag.SOPInstanceUID);
+
+            Assert.Throws<DatasetValidationException>(() =>
+                dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Canceled, FinalStateRequirementCode.RC, (ds, t) => true));
+        }
+
+        [Fact]
+        public void GivenADataset_WhenProcedureStepStateIsCanceledFinalStateRequirementP_DoesNotValidate()
+        {
+            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+            dataset.Remove(DicomTag.SOPInstanceUID);
+
+            dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Canceled, FinalStateRequirementCode.P);
+        }
+
+        [Fact]
+        public void GivenADataset_WhenProcedureStepStateIsCanceledFinalStateRequirementXIsNotMet_ValidationFails()
+        {
+            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+            dataset.Remove(DicomTag.SOPInstanceUID);
+
+            Assert.Throws<DatasetValidationException>(() =>
+                dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Canceled, FinalStateRequirementCode.X));
+        }
+
+        [Fact]
+        public void GivenADataset_WhenProcedureStepStateIsCanceledFinalStateRequirementCIsMet_ValidationSucceeds()
+        {
+            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+
+            dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Canceled, FinalStateRequirementCode.R);
+        }
+
+        [Fact]
+        public void GivenADataset_WhenProcedureStepStateIsCanceledFinalStateRequirementRCIsMet_ValidationSucceeds()
+        {
+            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+
+            dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Canceled, FinalStateRequirementCode.RC, (ds, t) => true);
+        }
+
+        [Fact]
+        public void GivenADataset_WhenProcedureStepStateIsCanceledFinalStateRequirementPIsMet_ValidationSucceeds()
+        {
+            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+
+            dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Canceled, FinalStateRequirementCode.P);
+        }
+
+        [Fact]
+        public void GivenADataset_WhenProcedureStepStateIsCanceledFinalStateRequirementXIsMet_ValidationSucceeds()
+        {
+            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+
+            dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Canceled, FinalStateRequirementCode.X);
+        }
+
+        [Fact]
+        public void GivenADataset_WhenProcedureStepStateIsCanceledFinalStateRequirementOIsMet_ValidationSucceeds()
+        {
+            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+            dataset.Remove(DicomTag.SOPInstanceUID);
+
+            dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Canceled, FinalStateRequirementCode.O);
+        }
+
+        [Fact]
+        public void GivenADataset_WhenProcedureStepStateIsCompletedFinalStateRequirementRIsNotMet_ValidationFails()
+        {
+            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+            dataset.Remove(DicomTag.SOPInstanceUID);
+
+            Assert.Throws<DatasetValidationException>(() =>
+                dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Completed, FinalStateRequirementCode.R));
+        }
+
+        [Fact]
+        public void GivenADataset_WhenProcedureStepStateIsCompletedFinalStateRequirementRCIsNotMet_ValidationFails()
+        {
+            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+            dataset.Remove(DicomTag.SOPInstanceUID);
+
+            Assert.Throws<DatasetValidationException>(() =>
+                dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Completed, FinalStateRequirementCode.RC, (ds, t) => true));
+        }
+
+        [Fact]
+        public void GivenADataset_WhenProcedureStepStateIsCompletedFinalStateRequirementPIsNotMet_ValidationFails()
+        {
+            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+            dataset.Remove(DicomTag.SOPInstanceUID);
+
+            Assert.Throws<DatasetValidationException>(() =>
+                dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Completed, FinalStateRequirementCode.P));
+        }
+
+        [Fact]
+        public void GivenADataset_WhenProcedureStepStateIsCompletedFinalStateRequirementX_DoesNotValidate()
+        {
+            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+            dataset.Remove(DicomTag.SOPInstanceUID);
+
+            dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Completed, FinalStateRequirementCode.X);
+        }
+
+        [Fact]
+        public void GivenADataset_WhenProcedureStepStateIsCompletedFinalStateRequirementCIsMet_ValidationSucceeds()
+        {
+            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+
+            dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Completed, FinalStateRequirementCode.R);
+        }
+
+        [Fact]
+        public void GivenADataset_WhenProcedureStepStateIsCompletedFinalStateRequirementRCIsMet_ValidationSucceeds()
+        {
+            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+
+            dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Completed, FinalStateRequirementCode.RC, (ds, t) => true);
+        }
+
+        [Fact]
+        public void GivenADataset_WhenProcedureStepStateIsCompletedFinalStateRequirementPIsMet_ValidationSucceeds()
+        {
+            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+
+            dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Completed, FinalStateRequirementCode.P);
+        }
+
+        [Fact]
+        public void GivenADataset_WhenProcedureStepStateIsCompletedFinalStateRequirementOIsMet_ValidationSucceeds()
+        {
+            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+            dataset.Remove(DicomTag.SOPInstanceUID);
+
+            dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Completed, FinalStateRequirementCode.O);
         }
 
         public static IEnumerable<object[]> ValidAttributeRequirements()

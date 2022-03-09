@@ -26,13 +26,13 @@ namespace Microsoft.Health.Dicom.Client
             return await PostRequest(uri, dicomDatasets, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<DicomWebResponse> CancelWorkitemAsync(DicomDataset dicomDataset, string workitemUid, string partitionName = default, CancellationToken cancellationToken = default)
+        public async Task<DicomWebResponse> CancelWorkitemAsync(IEnumerable<DicomDataset> dicomDatasets, string workitemUid, string partitionName = default, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(dicomDatasets, nameof(dicomDatasets));
 
             var uri = GenerateWorkitemCancelRequestUri(workitemUid, partitionName);
 
-            return await PostRequest(uri, dicomDataset, cancellationToken).ConfigureAwait(false);
+            return await PostRequest(uri, dicomDatasets, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryWorkitemAsync(string queryString, string partitionName = default, CancellationToken cancellationToken = default)

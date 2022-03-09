@@ -251,7 +251,6 @@ namespace Microsoft.Health.Dicom.Tests.Common
             ds.Add(DicomTag.ActualHumanPerformersSequence, new DicomDataset());
             ds.Add(DicomTag.HumanPerformerCodeSequence, new DicomDataset());
             ds.Add(DicomTag.HumanPerformerName, @"TestFixtureUser");
-            ds.Add(DicomTag.SpecificCharacterSet, @"ISO_IR 100");
 
             return ds;
         }
@@ -260,7 +259,6 @@ namespace Microsoft.Health.Dicom.Tests.Common
         {
             var cancelRequestDataset = new DicomDataset
             {
-                { DicomTag.SpecificCharacterSet, @"ISO_IR 100"},
                 { DicomTag.ReasonForCancellation, cancellationReason },
                 { DicomTag.ContactURI, @"dicom-users://test-user" },
                 { DicomTag.ContactDisplayName, @"Dicom Test User" },

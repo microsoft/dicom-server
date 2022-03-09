@@ -392,7 +392,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             EnsureArg.IsNotNull(dataset, nameof(dataset));
             EnsureArg.IsNotNull(tag, nameof(tag));
 
-            var predicate = (requirementCondition == default) ? (ds, tag) => true : requirementCondition;
+            var predicate = (requirementCondition == default) ? (ds, tag) => false : requirementCondition;
 
             if (targetProcedureStepState != ProcedureStepState.Completed &&
                 targetProcedureStepState != ProcedureStepState.Canceled)
@@ -403,17 +403,13 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             switch (requirement)
             {
                 case FinalStateRequirementCode.R:
-                case FinalStateRequirementCode.RC:
-                    if (requirement == FinalStateRequirementCode.RC && !predicate(dataset, tag))
-                    {
-                        throw new DatasetValidationException(
-                            FailureReasonCodes.ValidationFailure,
-                            string.Format(
-                                CultureInfo.InvariantCulture,
-                                DicomCoreResource.RequiredConditionNotMet,
-                                tag));
-                    }
                     dataset.ValidateRequiredAttribute(tag);
+                    break;
+                case FinalStateRequirementCode.RC:
+                    if (predicate(dataset, tag))
+                    {
+                        dataset.ValidateRequiredAttribute(tag);
+                    }
 
                     break;
                 case FinalStateRequirementCode.P:
@@ -421,12 +417,14 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                     {
                         dataset.ValidateRequiredAttribute(tag);
                     }
+
                     break;
                 case FinalStateRequirementCode.X:
                     if (ProcedureStepState.Canceled == targetProcedureStepState)
                     {
                         dataset.ValidateRequiredAttribute(tag);
                     }
+
                     break;
                 case FinalStateRequirementCode.O:
                     break;

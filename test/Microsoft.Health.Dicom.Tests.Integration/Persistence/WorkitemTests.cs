@@ -89,6 +89,40 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
         }
 
         [Fact]
+        public async Task GivenIndexWorkitemStoreUpdateWorkitemProcedureStepStateAsync_SavesProcedureStepStateSuccessfully()
+        {
+            var workitemUid = DicomUID.Generate().UID;
+            var (patientIdTag, patientIdTagKey) = (DicomTag.PatientID, 2);
+            var (procedureStepStateTag, procedureStepStateTagKey) = (DicomTag.ProcedureStepState, 8);
+
+            var dataset = CreateSampleDataset(workitemUid, patientIdTag);
+            dataset.AddOrUpdate(procedureStepStateTag, ProcedureStepState.Scheduled.GetStringValue());
+
+            var queryTags = new List<QueryTag>()
+            {
+                new QueryTag(new WorkitemQueryTagStoreEntry(patientIdTagKey, patientIdTag.GetPath(), patientIdTag.GetDefaultVR().Code)),
+                new QueryTag(new WorkitemQueryTagStoreEntry(procedureStepStateTagKey, procedureStepStateTag.GetPath(), procedureStepStateTag.GetDefaultVR().Code)),
+            };
+
+            var identifier = await _fixture
+                .IndexWorkitemStore
+                .BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None)
+                .ConfigureAwait(false);
+
+            await _fixture.IndexWorkitemStore
+                .EndAddWorkitemAsync(DefaultPartition.Key, identifier.WorkitemKey, CancellationToken.None);
+
+            var workitemMetadata = await _fixture.IndexWorkitemStore
+                .GetWorkitemMetadataAsync(DefaultPartition.Key, workitemUid, CancellationToken.None);
+
+            (long CurrentWatermark, long NextWatermark)? result = await _fixture.IndexWorkitemStore
+                .GetCurrentAndNextWorkitemWatermarkAsync(workitemMetadata.WorkitemKey, CancellationToken.None);
+
+            await _fixture.IndexWorkitemStore
+                .UpdateWorkitemProcedureStepStateAsync(workitemMetadata, result.Value.NextWatermark, ProcedureStepState.Canceled.GetStringValue(), CancellationToken.None);
+        }
+
+        [Fact]
         public async Task WhenGetWorkitemQueryTagsIsExecuted_ReturnTagsSuccessfully()
         {
             var workitemQueryTags = await _fixture.IndexWorkitemStore.GetWorkitemQueryTagsAsync(CancellationToken.None);

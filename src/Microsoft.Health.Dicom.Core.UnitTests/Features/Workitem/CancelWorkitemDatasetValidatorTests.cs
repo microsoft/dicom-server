@@ -25,14 +25,30 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         }
 
         [Fact]
-        public void GivenMissingConditionalRequiredTag_Throws()
+        public void GivenMissingLevel1ConditionalRequiredTag_Throws()
         {
             var dataset = Samples.CreateCanceledWorkitemDataset(@"Unit Test Reason", ProcedureStepState.Canceled);
-            dataset.Remove(DicomTag.SpecificCharacterSet);
+
+            var sequence = dataset.GetSequence(DicomTag.UnifiedProcedureStepPerformedProcedureSequence);
+            sequence.Items[0].Remove(DicomTag.ActualHumanPerformersSequence);
 
             var target = new CancelWorkitemDatasetValidator();
 
             Assert.Throws<DatasetValidationException>(() => target.Validate(dataset));
+        }
+
+        [Fact]
+        public void GivenMissingLevel2ConditionalRequiredTag_Throws()
+        {
+            var dataset = Samples.CreateCanceledWorkitemDataset(@"Unit Test Reason", ProcedureStepState.Canceled);
+            var level1Sequence = dataset.GetSequence(DicomTag.UnifiedProcedureStepPerformedProcedureSequence);
+            var level2Sequence = level1Sequence.Items[0].GetSequence(DicomTag.ActualHumanPerformersSequence);
+
+            level2Sequence.Items[0].Remove(DicomTag.HumanPerformerName);
+
+            var target = new CancelWorkitemDatasetValidator();
+
+            target.Validate(dataset);
         }
 
         [Fact]
