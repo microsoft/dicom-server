@@ -5,7 +5,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.Development.IdentityProvider.Registration;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Operations.Client;
@@ -61,7 +60,6 @@ namespace Microsoft.Health.Dicom.Web
             if (!string.IsNullOrWhiteSpace(instrumentationKey))
             {
                 services.AddApplicationInsightsTelemetry(instrumentationKey);
-                services.AddLogging(loggingBuilder => loggingBuilder.AddApplicationInsights(instrumentationKey));
             }
         }
     }
