@@ -56,8 +56,6 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
             List<int> queryTagKeys = queryTags.Select(x => x.Key).ToList();
             if (queryTags.Count > 0)
             {
-                await input.UpdateCreatedTimeAsync(context, _options.ActivityRetryOptions);
-
                 IReadOnlyList<WatermarkRange> batches = await context.CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                     nameof(GetInstanceBatchesV2Async),
                     _options.ActivityRetryOptions,
@@ -86,7 +84,7 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
                         new ReindexInput
                         {
                             Completed = completed,
-                            CreatedTime = input.CreatedTime,
+                            CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.ActivityRetryOptions),
                             QueryTagKeys = queryTagKeys,
                         });
                 }

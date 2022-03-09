@@ -43,7 +43,8 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
             };
 
             // Arrange the input
-            IDurableOrchestrationContext context = CreateContext();
+            string operationId = OperationId.Generate();
+            IDurableOrchestrationContext context = CreateContext(operationId);
             context
                 .GetInput<ReindexInput>()
                 .Returns(expectedInput);
@@ -54,22 +55,10 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
                     expectedInput.QueryTagKeys)
                 .Returns(expectedTags);
             context
-                .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
-                    nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
-                    _options.ActivityRetryOptions,
-                    new GetInstanceStatusInput
-                    {
-                        InstanceId = context.InstanceId,
-                        ShowHistory = false,
-                        ShowHistoryOutput = false,
-                        ShowInput = false,
-                    })
-                .Returns(new DurableOrchestrationStatus { CreatedTime = createdTime });
-            context
                 .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                     nameof(ReindexDurableFunction.GetInstanceBatchesV2Async),
                     _options.ActivityRetryOptions,
-                    Arg.Is(GetPredicate(null)))
+                    Arg.Is(GetPredicate((long?)null)))
                 .Returns(expectedBatches);
             context
                 .CallActivityWithRetryAsync(
@@ -77,6 +66,12 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
                     _options.ActivityRetryOptions,
                     Arg.Any<ReindexBatchArguments>())
                 .Returns(Task.CompletedTask);
+            context
+                .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
+                    nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
+                    _options.ActivityRetryOptions,
+                    Arg.Is(GetPredicate(operationId)))
+                .Returns(new DurableOrchestrationStatus { CreatedTime = createdTime });
 
             // Invoke the orchestration
             await _reindexDurableFunction.ReindexInstancesAsync(context, NullLogger.Instance);
@@ -98,23 +93,11 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
                     _options.ActivityRetryOptions,
                     Arg.Any<object>());
             await context
-                 .Received(1)
-                 .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
-                    nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
-                    _options.ActivityRetryOptions,
-                    new GetInstanceStatusInput
-                    {
-                        InstanceId = context.InstanceId,
-                        ShowHistory = false,
-                        ShowHistoryOutput = false,
-                        ShowInput = false,
-                    });
-            await context
                 .Received(1)
                 .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                     nameof(ReindexDurableFunction.GetInstanceBatchesV2Async),
                     _options.ActivityRetryOptions,
-                    Arg.Is(GetPredicate(null)));
+                    Arg.Is(GetPredicate((long?)null)));
 
             foreach (WatermarkRange batch in expectedBatches)
             {
@@ -132,6 +115,12 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
                     _options.ActivityRetryOptions,
                     Arg.Any<object>());
+            await context
+                 .Received(1)
+                 .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
+                    nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
+                    _options.ActivityRetryOptions,
+                    Arg.Is(GetPredicate(operationId)));
             context
                 .Received(1)
                 .ContinueAsNew(
@@ -204,12 +193,6 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
                     _options.ActivityRetryOptions,
                     input: null);
             await context
-                 .DidNotReceive()
-                 .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
-                    nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
-                    _options.ActivityRetryOptions,
-                    Arg.Any<object>());
-            await context
                 .Received(1)
                 .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                     nameof(ReindexDurableFunction.GetInstanceBatchesV2Async),
@@ -232,6 +215,12 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
                     _options.ActivityRetryOptions,
                     Arg.Any<object>());
+            await context
+                 .DidNotReceive()
+                 .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
+                    nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
+                    _options.ActivityRetryOptions,
+                    Arg.Any<object>());
             context
                 .Received(1)
                 .ContinueAsNew(
@@ -242,8 +231,6 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
         [Fact]
         public async Task GivenNoInstances_WhenReindexingInstances_ThenComplete()
         {
-            DateTime createdTime = DateTime.UtcNow;
-
             var expectedBatches = new List<WatermarkRange>();
             var expectedInput = new ReindexInput { QueryTagKeys = new List<int> { 1, 2, 3, 4, 5 } };
             var expectedTags = new List<ExtendedQueryTagStoreEntry>
@@ -265,22 +252,10 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
                     expectedInput.QueryTagKeys)
                 .Returns(expectedTags);
             context
-                .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
-                    nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
-                    _options.ActivityRetryOptions,
-                    new GetInstanceStatusInput
-                    {
-                        InstanceId = context.InstanceId,
-                        ShowHistory = false,
-                        ShowHistoryOutput = false,
-                        ShowInput = false,
-                    })
-                .Returns(new DurableOrchestrationStatus { CreatedTime = createdTime });
-            context
                 .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                     nameof(ReindexDurableFunction.GetInstanceBatchesV2Async),
                     _options.ActivityRetryOptions,
-                    Arg.Is(GetPredicate(null)))
+                    Arg.Is(GetPredicate((long?)null)))
                 .Returns(expectedBatches);
             context
                 .CallActivityWithRetryAsync<IReadOnlyList<int>>(
@@ -309,23 +284,11 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
                     _options.ActivityRetryOptions,
                     Arg.Any<object>());
             await context
-                 .Received(1)
-                 .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
-                    nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
-                    _options.ActivityRetryOptions,
-                    new GetInstanceStatusInput
-                    {
-                        InstanceId = context.InstanceId,
-                        ShowHistory = false,
-                        ShowHistoryOutput = false,
-                        ShowInput = false,
-                    });
-            await context
                 .Received(1)
                 .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                     nameof(ReindexDurableFunction.GetInstanceBatchesV2Async),
                     _options.ActivityRetryOptions,
-                    Arg.Is(GetPredicate(null)));
+                    Arg.Is(GetPredicate((long?)null)));
             await context
                 .DidNotReceive()
                 .CallActivityWithRetryAsync(
@@ -338,6 +301,12 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
                     _options.ActivityRetryOptions,
                     Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedTags.Select(x => x.Key))));
+            await context
+                 .DidNotReceive()
+                 .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
+                    nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
+                    _options.ActivityRetryOptions,
+                    Arg.Any<object>());
             context
                 .DidNotReceiveWithAnyArgs()
                 .ContinueAsNew(default, default);
@@ -406,12 +375,6 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
                     _options.ActivityRetryOptions,
                     input: null);
             await context
-                 .DidNotReceive()
-                 .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
-                    nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
-                    _options.ActivityRetryOptions,
-                    Arg.Any<object>());
-            await context
                 .Received(1)
                 .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                     nameof(ReindexDurableFunction.GetInstanceBatchesV2Async),
@@ -429,6 +392,12 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
                     _options.ActivityRetryOptions,
                     Arg.Is<IReadOnlyList<int>>(x => x.SequenceEqual(expectedTags.Select(x => x.Key))));
+            await context
+                 .DidNotReceive()
+                 .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
+                    nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
+                    _options.ActivityRetryOptions,
+                    Arg.Any<object>());
             context
                 .DidNotReceiveWithAnyArgs()
                 .ContinueAsNew(default, default);
@@ -472,12 +441,6 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
                     _options.ActivityRetryOptions,
                     Arg.Any<object>());
             await context
-                 .DidNotReceive()
-                 .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
-                    nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
-                    _options.ActivityRetryOptions,
-                    Arg.Any<object>());
-            await context
                 .DidNotReceive()
                 .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                     nameof(ReindexDurableFunction.GetInstanceBatchesV2Async),
@@ -495,15 +458,24 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
                     nameof(ReindexDurableFunction.CompleteReindexingAsync),
                     _options.ActivityRetryOptions,
                     Arg.Any<object>());
+            await context
+                 .DidNotReceive()
+                 .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
+                    nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
+                    _options.ActivityRetryOptions,
+                    Arg.Any<object>());
             context
                 .DidNotReceiveWithAnyArgs()
                 .ContinueAsNew(default, default);
         }
 
         private static IDurableOrchestrationContext CreateContext()
+            => CreateContext(OperationId.Generate());
+
+        private static IDurableOrchestrationContext CreateContext(string operationId)
         {
             IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
-            context.InstanceId.Returns(OperationId.Generate());
+            context.InstanceId.Returns(operationId);
             return context;
         }
 
@@ -535,6 +507,14 @@ namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
             return x => ReferenceEquals(x.QueryTags, queryTags)
                 && x.WatermarkRange == expected
                 && x.ThreadCount == _options.BatchThreadCount;
+        }
+
+        private static Expression<Predicate<GetInstanceStatusInput>> GetPredicate(string instanceId)
+        {
+            return x => x.InstanceId == instanceId
+                && !x.ShowHistory
+                && !x.ShowHistoryOutput
+                && !x.ShowInput;
         }
 
         private static Predicate<object> GetPredicate(
