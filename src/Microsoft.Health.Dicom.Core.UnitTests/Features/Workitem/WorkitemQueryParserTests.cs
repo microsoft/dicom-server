@@ -205,7 +205,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         }
 
         [Fact]
-        public void GivenWorkitemQueryTag_WithSameLastLevelKey_ThenReturnsSuccessfully()
+        public void GivenTwoWorkitemQueryTags_WithSameLastLevelKey_ThenReturnsSuccessfully()
         {
             var item1 = new DicomSequence(
                     DicomTag.ScheduledStationClassCodeSequence,
@@ -213,12 +213,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
                             new DicomDataset(
                                 new DicomShortString(
                                 DicomTag.CodeValue, "Foo"))});
+
             var item2 = new DicomSequence(
                     DicomTag.ScheduledStationNameCodeSequence,
                         new DicomDataset[] {
                             new DicomDataset(
                                 new DicomShortString(
                                 DicomTag.CodeValue, "Bar"))});
+
             QueryTag[] tags = new QueryTag[]
             {
               new QueryTag(Tests.Common.Extensions.DicomTagExtensions.BuildWorkitemQueryTagStoreEntry("00404025.00080100", 1, item1.ValueRepresentation.Code)),
