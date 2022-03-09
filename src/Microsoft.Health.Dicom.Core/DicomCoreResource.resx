@@ -555,15 +555,12 @@ For details on valid range queries, please refer to Search Matching section in C
   </data>
   <data name="CancelWorkitemUnknownReasonCode" xml:space="preserve">
     <value>Cancel Reason not provided</value>
-    <comment></comment>
   </data>
   <data name="WorkitemCancelRequestRejected" xml:space="preserve">
     <value>The UPS may no longer be updated.</value>
-    <comment></comment>
   </data>
   <data name="WorkitemIsAlreadyCanceled" xml:space="preserve">
     <value>The UPS is already in the requested state of CANCELED.</value>
-    <comment>{0} WorkitemInstanceUid</comment>
   </data>
   <data name="WorkitemIsAlreadyCompleted" xml:space="preserve">
     <value>The UPS '{0}' is already COMPLETED.</value>

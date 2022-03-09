@@ -25,14 +25,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         }
 
         [Fact]
-        public void GivenMissingConditionalRequiredTag_Throws()
+        public void GivenMissingConditionalRequiredTag_DoesNotThrow()
         {
             var dataset = Samples.CreateCanceledWorkitemDataset(@"Unit Test Reason", ProcedureStepState.Canceled);
             dataset.Remove(DicomTag.SpecificCharacterSet);
 
             var target = new CancelWorkitemDatasetValidator();
 
-            Assert.Throws<DatasetValidationException>(() => target.Validate(dataset));
+            target.Validate(dataset);
         }
 
         [Fact]
