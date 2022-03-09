@@ -60,6 +60,12 @@ namespace Microsoft.Health.Dicom.Api.Controllers
                     HttpContext.RequestAborted)
                 .ConfigureAwait(false);
 
+            if (response.Status is Core.Messages.Workitem.WorkitemResponseStatus.Conflict
+                && !string.IsNullOrEmpty(response.Message))
+            {
+                Response.Headers.Warning = string.Format(DicomApiResource.WarningHeader, response.Message);
+            }
+
             return StatusCode((int)response.Status.CancelResponseToHttpStatusCode(), response.Message);
         }
     }

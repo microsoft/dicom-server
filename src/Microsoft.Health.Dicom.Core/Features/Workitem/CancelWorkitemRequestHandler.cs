@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -43,12 +45,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             request.Validate();
 
-            var workitem = await _workitemSerializer
-                .DeserializeAsync<DicomDataset>(request.RequestBody, request.RequestContentType)
+            var workitems = await _workitemSerializer
+                .DeserializeAsync<IEnumerable<DicomDataset>>(request.RequestBody, request.RequestContentType)
                 .ConfigureAwait(false);
 
             return await _workItemService
-                .ProcessCancelAsync(workitem, request.WorkitemInstanceUid, cancellationToken)
+                .ProcessCancelAsync(workitems.FirstOrDefault(), request.WorkitemInstanceUid, cancellationToken)
                 .ConfigureAwait(false);
         }
     }
