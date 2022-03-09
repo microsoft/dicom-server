@@ -1,3 +1,17 @@
+/****************************************************************************************
+Guidelines to create migration scripts - https://github.com/microsoft/healthcare-shared-components/tree/master/src/Microsoft.Health.SqlServer/SqlSchemaScriptsGuidelines.md
+This diff is broken up into several sections:
+ - The first transaction contains changes to tables and stored procedures.
+ - The second transaction contains updates to indexes.
+ - IMPORTANT: Avoid rebuiling indexes inside the transaction, it locks the table during the transaction.
+******************************************************************************************/
+
+SET XACT_ABORT ON
+
+BEGIN TRANSACTION
+
+GO
+
 /***************************************************************************************/
 -- STORED PROCEDURE
 --     AddExtendedQueryTags
@@ -78,3 +92,6 @@ BEGIN
 
     COMMIT TRANSACTION
 END
+GO
+
+COMMIT TRANSACTION
