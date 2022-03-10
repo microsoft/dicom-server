@@ -434,7 +434,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         }
 
         [Fact]
-        public void GivenADataset_WhenProcedureStepStateIsCanceledFinalStateRequirementCIsMet_ValidationSucceeds()
+        public void GivenADataset_WhenProcedureStepStateIsCanceledFinalStateRequirementRIsMet_ValidationSucceeds()
         {
             var dataset = Samples.CreateRandomWorkitemInstanceDataset();
 
@@ -514,7 +514,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
         }
 
         [Fact]
-        public void GivenADataset_WhenProcedureStepStateIsCompletedFinalStateRequirementCIsMet_ValidationSucceeds()
+        public void GivenADataset_WhenProcedureStepStateIsCompletedFinalStateRequirementRIsMet_ValidationSucceeds()
         {
             var dataset = Samples.CreateRandomWorkitemInstanceDataset();
 
