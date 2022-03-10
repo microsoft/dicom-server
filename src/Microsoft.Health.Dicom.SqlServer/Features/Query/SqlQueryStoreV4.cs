@@ -51,7 +51,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Query
             var results = new List<VersionedInstanceIdentifier>(query.EvaluatedLimit);
 
             using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
-            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
+            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
 
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
             var sqlQueryGenerator = new SqlQueryGenerator(stringBuilder, query, new SqlQueryParameterManager(sqlCommandWrapper.Parameters), Version, partitionKey);

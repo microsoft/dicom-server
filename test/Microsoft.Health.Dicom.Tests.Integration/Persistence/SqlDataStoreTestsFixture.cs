@@ -31,7 +31,6 @@ using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Schema.Manager;
 using Microsoft.Health.SqlServer.Features.Storage;
 using NSubstitute;
-using Polly;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
@@ -80,8 +79,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             var mediator = Substitute.For<IMediator>();
 
             var sqlConnectionStringProvider = new DefaultSqlConnectionStringProvider(configOptions);
-
-            var sqlConnectionFactory = new DefaultSqlConnectionBuilder(sqlConnectionStringProvider, configOptions);
+            SqlRetryLogicBaseProvider = SqlConfigurableRetryFactory.CreateExponentialRetryProvider(new SqlRetryLogicOption
+            {
+                NumberOfTries = 5,
+                DeltaTime = TimeSpan.FromSeconds(1),
+                MaxTimeInterval = TimeSpan.FromSeconds(20),
+            });
+            var sqlConnectionFactory = new DefaultSqlConnectionBuilder(sqlConnectionStringProvider, SqlRetryLogicBaseProvider);
 
             var schemaManagerDataStore = new SchemaManagerDataStore(sqlConnectionFactory, configOptions, NullLogger<SchemaManagerDataStore>.Instance);
 
@@ -91,7 +95,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
             SqlTransactionHandler = new SqlTransactionHandler();
 
-            SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(SqlTransactionHandler, new SqlCommandWrapperFactory(), sqlConnectionFactory);
+            SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(SqlTransactionHandler, sqlConnectionFactory, SqlRetryLogicBaseProvider);
 
             var schemaResolver = new PassthroughSchemaVersionResolver(SchemaInformation);
 
@@ -164,6 +168,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public SqlTransactionHandler SqlTransactionHandler { get; }
 
+        public SqlRetryLogicBaseProvider SqlRetryLogicBaseProvider { get; }
+
         public SqlConnectionWrapperFactory SqlConnectionWrapperFactory { get; }
 
         public IIndexDataStore IndexDataStore { get; }
@@ -198,38 +204,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
 
         public async Task InitializeAsync(bool forceIncrementalSchemaUpgrade)
         {
-            // Create the database
-            using (var sqlConnection = new SqlConnection(_masterConnectionString))
-            {
-                await sqlConnection.OpenAsync();
-
-                using (SqlCommand command = sqlConnection.CreateCommand())
-                {
-                    command.CommandTimeout = 600;
-                    command.CommandText = $"CREATE DATABASE {DatabaseName}";
-                    await command.ExecuteNonQueryAsync();
-                }
-            }
-
-            // verify that we can connect to the new database. This sometimes does not work right away with Azure SQL.
-            await Policy
-                .Handle<SqlException>()
-                .WaitAndRetryAsync(
-                    retryCount: 7,
-                    sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
-                .ExecuteAsync(async () =>
-                {
-                    using (var sqlConnection = new SqlConnection(TestConnectionString))
-                    {
-                        await sqlConnection.OpenAsync();
-                        using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
-                        {
-                            sqlCommand.CommandText = "SELECT 1";
-                            await sqlCommand.ExecuteScalarAsync();
-                        }
-                    }
-                });
-
+            await CreateDicomDatabaseAsync();
+            await VerifyConnectiontoDicomDatabaseAsync();
+            // create dicom schema
             await _schemaInitializer.InitializeAsync(forceIncrementalSchemaUpgrade);
         }
 
@@ -251,6 +228,28 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                     await sqlCommand.ExecuteNonQueryAsync();
                 }
             }
+        }
+
+        private async Task CreateDicomDatabaseAsync()
+        {
+            using var sqlConnection = new SqlConnection(_masterConnectionString);
+            sqlConnection.RetryLogicProvider = SqlRetryLogicBaseProvider;
+            using SqlCommand command = sqlConnection.CreateCommand();
+            await sqlConnection.OpenAsync();
+            command.CommandTimeout = 600;
+            command.CommandText = $"CREATE DATABASE {DatabaseName}";
+            await command.ExecuteNonQueryAsync();
+        }
+
+        private async Task VerifyConnectiontoDicomDatabaseAsync()
+        {
+            using var sqlConnection = new SqlConnection(TestConnectionString);
+            sqlConnection.RetryLogicProvider = SqlRetryLogicBaseProvider;
+            using SqlCommand sqlCommand = sqlConnection.CreateCommand();
+            sqlCommand.RetryLogicProvider = SqlRetryLogicBaseProvider;
+            sqlCommand.CommandText = "SELECT 1";
+            await sqlConnection.OpenAsync();
+            await sqlCommand.ExecuteScalarAsync();
         }
     }
 }

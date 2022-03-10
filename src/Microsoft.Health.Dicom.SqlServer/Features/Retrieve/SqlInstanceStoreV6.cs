@@ -62,7 +62,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             var results = new List<VersionedInstanceIdentifier>();
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
                 VLatest.GetInstancesByWatermarkRangeV6.PopulateCommand(
                     sqlCommandWrapper,
@@ -109,7 +109,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             var results = new List<VersionedInstanceIdentifier>();
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
                 VLatest.GetInstanceV6.PopulateCommand(
                     sqlCommandWrapper,

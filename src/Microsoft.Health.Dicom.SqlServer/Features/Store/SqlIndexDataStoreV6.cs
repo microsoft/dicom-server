@@ -43,7 +43,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
                 var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags.Where(tag => tag.IsExtendedQueryTag), Version);
                 V6.AddInstanceV6TableValuedParameters parameters = new V6.AddInstanceV6TableValuedParameters(
@@ -130,7 +130,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
                 VLatest.UpdateInstanceStatusV6.PopulateCommand(
                     sqlCommandWrapper,
@@ -163,7 +163,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             var results = new List<VersionedInstanceIdentifier>();
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
                 VLatest.RetrieveDeletedInstanceV6.PopulateCommand(
                     sqlCommandWrapper,
@@ -204,7 +204,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
         public override async Task DeleteDeletedInstanceAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
                 VLatest.DeleteDeletedInstanceV6.PopulateCommand(
                     sqlCommandWrapper,
@@ -228,7 +228,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
         public override async Task<int> IncrementDeletedInstanceRetryAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
                 VLatest.IncrementDeletedInstanceRetryV6.PopulateCommand(
                     sqlCommandWrapper,
@@ -253,7 +253,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
         private async Task DeleteInstanceAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
                 VLatest.DeleteInstanceV6.PopulateCommand(
                     sqlCommandWrapper,
@@ -298,7 +298,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
                 var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags, Version);
                 VLatest.IndexInstanceV6TableValuedParameters parameters = new VLatest.IndexInstanceV6TableValuedParameters(

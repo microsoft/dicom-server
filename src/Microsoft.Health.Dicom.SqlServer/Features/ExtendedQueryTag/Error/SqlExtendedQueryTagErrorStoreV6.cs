@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
             List<ExtendedQueryTagError> results = new List<ExtendedQueryTagError>();
 
             using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
-            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
+            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
 
             VLatest.GetExtendedQueryTagErrorsV6.PopulateCommand(sqlCommandWrapper, tagPath, limit, offset);
 
