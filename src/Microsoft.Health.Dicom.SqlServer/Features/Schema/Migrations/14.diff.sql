@@ -7,11 +7,9 @@ This diff is broken up into several sections:
  - The second transaction contains updates to indexes.
  - IMPORTANT: Avoid rebuiling indexes inside the transaction, it locks the table during the transaction.
 ******************************************************************************************/
-
 SET XACT_ABORT ON
 
 BEGIN TRANSACTION
-
 GO
 
 /*************************************************************
