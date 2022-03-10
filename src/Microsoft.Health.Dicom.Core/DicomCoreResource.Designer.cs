@@ -88,6 +88,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cancel Reason not provided.
+        /// </summary>
+        internal static string CancelWorkitemUnknownReasonCode {
+            get {
+                return ResourceManager.GetString("CancelWorkitemUnknownReasonCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The limit must be between 1 and {0}..
         /// </summary>
         internal static string ChangeFeedLimitOutOfRange {
@@ -631,11 +640,11 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid procedure step state for the specified WorkitemInstanceUID &apos;{1}&apos;. {2}.
+        ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; can not transition to &apos;{1}&apos; state: {2}..
         /// </summary>
-        internal static string InvalidProcedureStepState {
+        internal static string InvalidProcedureStepStateTransition {
             get {
-                return ResourceManager.GetString("InvalidProcedureStepState", resourceCulture);
+                return ResourceManager.GetString("InvalidProcedureStepStateTransition", resourceCulture);
             }
         }
         
@@ -922,6 +931,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The required condition for tag &apos;{0}&apos; is not met..
+        /// </summary>
+        internal static string RequiredConditionNotMet {
+            get {
+                return ResourceManager.GetString("RequiredConditionNotMet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Requested DICOM instance size is above the supported limit of {0}. The entire instance can be retrieved with the original transfer syntax by specifying &apos;transfer-syntax=*&apos; in the Accept header..
         /// </summary>
         internal static string RetrieveServiceFileTooBig {
@@ -1030,6 +1048,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; DicomTag is not expected for &apos;{1}&apos; operation. [WorkitemInstanceUID &apos;{2}&apos;].
+        /// </summary>
+        internal static string UnexpectedTag {
+            get {
+                return ResourceManager.GetString("UnexpectedTag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expected value &apos;{0}&apos; to be one of the following values: [{1}].
         /// </summary>
         internal static string UnexpectedValue {
@@ -1093,6 +1120,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid workitem query. AttributeId {0} is not queryable.  If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters and attributes..
+        /// </summary>
+        internal static string UnsupportedWorkitemSearchParameter {
+            get {
+                return ResourceManager.GetString("UnsupportedWorkitemSearchParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to UPS-RS feature is disabled..
         /// </summary>
         internal static string UpsRsFeatureDisabled {
@@ -1102,11 +1138,74 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The UPS may no longer be updated..
+        /// </summary>
+        internal static string WorkitemCancelRequestRejected {
+            get {
+                return ResourceManager.GetString("WorkitemCancelRequestRejected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; has been cancelled..
+        /// </summary>
+        internal static string WorkitemCancelRequestSuccess {
+            get {
+                return ResourceManager.GetString("WorkitemCancelRequestSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; already exists. Try creating using a different UID..
         /// </summary>
         internal static string WorkitemInstanceAlreadyExists {
             get {
                 return ResourceManager.GetString("WorkitemInstanceAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; is not found..
+        /// </summary>
+        internal static string WorkitemInstanceNotFound {
+            get {
+                return ResourceManager.GetString("WorkitemInstanceNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The UPS is already in the requested state of CANCELED..
+        /// </summary>
+        internal static string WorkitemIsAlreadyCanceled {
+            get {
+                return ResourceManager.GetString("WorkitemIsAlreadyCanceled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The UPS &apos;{0}&apos; is already COMPLETED..
+        /// </summary>
+        internal static string WorkitemIsAlreadyCompleted {
+            get {
+                return ResourceManager.GetString("WorkitemIsAlreadyCompleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; is already in the final state &apos;{1}&apos;. {2}..
+        /// </summary>
+        internal static string WorkitemIsInFinalState {
+            get {
+                return ResourceManager.GetString("WorkitemIsInFinalState", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; is in the state of &apos;{1}&apos;..
+        /// </summary>
+        internal static string WorkitemUpdateIsNotAllowed {
+            get {
+                return ResourceManager.GetString("WorkitemUpdateIsNotAllowed", resourceCulture);
             }
         }
     }

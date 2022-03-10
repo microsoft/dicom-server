@@ -82,7 +82,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
 
             await ExecuteAndValidateAsync(dicomInstanceEntry);
 
-            _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1, Arg.Is<ushort?>(v => v.Value == FailureReasonCodes.DataSetDoesNotMatchSOPClass));
+            _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1, Arg.Is<ushort?>(v => v.Value == FailureReasonCodes.DatasetDoesNotMatchSOPClass));
             _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(default);
         }
 

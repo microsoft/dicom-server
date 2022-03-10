@@ -28,6 +28,9 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
     /// </summary>
     public class BlobWorkitemStore : IWorkitemStore
     {
+        private const string AddWorkitemStreamTagName = nameof(BlobWorkitemStore) + "." + nameof(AddWorkitemAsync);
+        private const string GetWorkitemStreamTagName = nameof(BlobWorkitemStore) + "." + nameof(GetWorkitemAsync);
+
         private readonly BlobContainerClient _container;
         private readonly JsonSerializerOptions _jsonSerializerOptions;
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
@@ -55,23 +58,24 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         public async Task AddWorkitemAsync(
             WorkitemInstanceIdentifier identifier,
             DicomDataset dataset,
+            long? proposedWatermark = default,
             CancellationToken cancellationToken = default)
         {
             EnsureArg.IsNotNull(identifier, nameof(identifier));
             EnsureArg.IsNotNull(dataset, nameof(dataset));
 
-            var addWorkitemStreamTagName = nameof(BlobWorkitemStore) + "." + nameof(AddWorkitemAsync);
-            var blob = GetBlockBlobClient(identifier);
+            var blob = GetBlockBlobClient(identifier, proposedWatermark);
 
             try
             {
-                await using (Stream stream = _recyclableMemoryStreamManager.GetStream(addWorkitemStreamTagName))
+                await using (Stream stream = _recyclableMemoryStreamManager.GetStream(AddWorkitemStreamTagName))
                 using (Utf8JsonWriter utf8Writer = new Utf8JsonWriter(stream))
                 {
                     JsonSerializer.Serialize(utf8Writer, dataset, _jsonSerializerOptions);
                     await utf8Writer.FlushAsync(cancellationToken);
                     stream.Seek(0, SeekOrigin.Begin);
 
+                    // Uploads the blob. Overwrites the blob if it exists, otherwise creates a new one.
                     await blob.UploadAsync(
                         stream,
                         new BlobHttpHeaders()
@@ -92,16 +96,15 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
         }
 
         /// <inheritdoc />
-        public async Task<DicomDataset> GetWorkitemAsync(WorkitemInstanceIdentifier workitemInstanceIdentifier, CancellationToken cancellationToken = default)
+        public async Task<DicomDataset> GetWorkitemAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default)
         {
-            EnsureArg.IsNotNull(workitemInstanceIdentifier, nameof(workitemInstanceIdentifier));
-            var getWorkitemStreamTagName = nameof(BlobWorkitemStore) + "." + nameof(GetWorkitemAsync);
+            EnsureArg.IsNotNull(identifier, nameof(identifier));
 
-            BlockBlobClient cloudBlockBlob = GetBlockBlobClient(workitemInstanceIdentifier);
+            BlockBlobClient cloudBlockBlob = GetBlockBlobClient(identifier);
 
             try
             {
-                await using (Stream stream = _recyclableMemoryStreamManager.GetStream(getWorkitemStreamTagName))
+                await using (Stream stream = _recyclableMemoryStreamManager.GetStream(GetWorkitemStreamTagName))
                 {
                     await cloudBlockBlob.DownloadToAsync(stream, cancellationToken);
 
@@ -120,11 +123,43 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage
             }
         }
 
-        private BlockBlobClient GetBlockBlobClient(WorkitemInstanceIdentifier identifier)
+        public async Task DeleteWorkitemAsync(WorkitemInstanceIdentifier identifier, long? proposedWatermark = default, CancellationToken cancellationToken = default)
         {
-            var blobName = $"{identifier.WorkitemUid}_{identifier.WorkitemKey}_{identifier.Watermark}_workitem.json";
+            EnsureArg.IsNotNull(identifier, nameof(identifier));
+
+            var blob = GetBlockBlobClient(identifier, proposedWatermark);
+
+            try
+            {
+                await blob.DeleteIfExistsAsync(DeleteSnapshotsOption.None, null, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                throw new DataStoreException(ex);
+            }
+        }
+
+        private BlockBlobClient GetBlockBlobClient(WorkitemInstanceIdentifier identifier, long? proposedWatermark = default)
+        {
+            var blobName = $"{identifier.WorkitemUid}_{identifier.WorkitemKey}_{proposedWatermark.GetValueOrDefault(identifier.Watermark)}_workitem.json";
 
             return _container.GetBlockBlobClient(blobName);
+        }
+
+        private static async Task<T> ExecuteAsync<T>(Func<CancellationToken, Task<T>> action, CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await action(cancellationToken);
+            }
+            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
+            {
+                throw new ItemNotFoundException(ex);
+            }
+            catch (Exception ex)
+            {
+                throw new DataStoreException(ex);
+            }
         }
     }
 }

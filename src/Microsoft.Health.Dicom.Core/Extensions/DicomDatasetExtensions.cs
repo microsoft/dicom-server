@@ -15,6 +15,8 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
+using Microsoft.Health.Dicom.Core.Features.Workitem;
+using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
 using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Extensions
@@ -383,6 +385,62 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             EnsureArg.IsNotNull(tag, nameof(tag));
 
             // We only validate attributes that are mandatory for the SCU (1 or 2). We won't validate any optional attributes (3).
+            dataset.ValidateRequiredAttribute(tag, (requirement is RequirementCode.OneOne));
+        }
+
+        public static void ValidateRequirement(
+            this DicomDataset dataset,
+            DicomTag tag,
+            ProcedureStepState targetProcedureStepState,
+            FinalStateRequirementCode requirement,
+            Func<DicomDataset, DicomTag, bool> requirementCondition = default)
+        {
+            EnsureArg.IsNotNull(dataset, nameof(dataset));
+            EnsureArg.IsNotNull(tag, nameof(tag));
+
+            var predicate = (requirementCondition == default) ? (ds, tag) => false : requirementCondition;
+
+            if (targetProcedureStepState != ProcedureStepState.Completed &&
+                targetProcedureStepState != ProcedureStepState.Canceled)
+            {
+                return;
+            }
+
+            switch (requirement)
+            {
+                case FinalStateRequirementCode.R:
+                    dataset.ValidateRequiredAttribute(tag);
+                    break;
+                case FinalStateRequirementCode.RC:
+                    if (predicate(dataset, tag))
+                    {
+                        dataset.ValidateRequiredAttribute(tag);
+                    }
+
+                    break;
+                case FinalStateRequirementCode.P:
+                    if (ProcedureStepState.Completed == targetProcedureStepState)
+                    {
+                        dataset.ValidateRequiredAttribute(tag);
+                    }
+
+                    break;
+                case FinalStateRequirementCode.X:
+                    if (ProcedureStepState.Canceled == targetProcedureStepState)
+                    {
+                        dataset.ValidateRequiredAttribute(tag);
+                    }
+
+                    break;
+                case FinalStateRequirementCode.O:
+                    break;
+            }
+        }
+
+        private static void ValidateRequiredAttribute(this DicomDataset dataset, DicomTag tag, bool valueCannotBeZeroLength = true)
+        {
+            EnsureArg.IsNotNull(dataset, nameof(dataset));
+
             if (!dataset.Contains(tag))
             {
                 throw new DatasetValidationException(
@@ -392,7 +450,8 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                         DicomCoreResource.MissingRequiredTag,
                         tag));
             }
-            else if (requirement is RequirementCode.OneOne && dataset.GetValueCount(tag) < 1)
+
+            if (valueCannotBeZeroLength && dataset.GetValueCount(tag) < 1)
             {
                 throw new DatasetValidationException(
                     FailureReasonCodes.MissingAttributeValue,

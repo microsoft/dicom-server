@@ -37,3 +37,7 @@ VALUES (NEXT VALUE FOR TagKeySequence, '00741000', 'CS')
 -- Scheduled​Station​Geographic​Location​Code​Sequence.CodeValue
 INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
 VALUES (NEXT VALUE FOR TagKeySequence, '00404027.00080100', 'SQ')
+
+-- Study Instance UID
+INSERT INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
+VALUES (NEXT VALUE FOR TagKeySequence, '0020000D', 'UI')

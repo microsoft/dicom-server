@@ -11,6 +11,7 @@ using EnsureThat;
 using FellowOakDicom;
 using FellowOakDicom.Imaging;
 using FellowOakDicom.IO.Buffer;
+using Microsoft.Health.Dicom.Core.Features.Workitem;
 
 namespace Microsoft.Health.Dicom.Tests.Common
 {
@@ -218,36 +219,124 @@ namespace Microsoft.Health.Dicom.Tests.Common
                 ds = ds.NotValidated();
             }
 
-            ds.Add(DicomTag.TransactionUID, String.Empty);
+            ds.Add(DicomTag.TransactionUID, string.Empty);
             ds.Add(DicomTag.SOPInstanceUID, workitemUid ?? TestUidGenerator.Generate());
             ds.Add(DicomTag.ScheduledProcedureStepPriority, Guid.NewGuid().ToString("N").Substring(0, 14).ToUpper());
             ds.Add(DicomTag.ProcedureStepLabel, Guid.NewGuid().ToString("N"));
-            ds.Add(DicomTag.WorklistLabel, String.Empty);
+            ds.Add(DicomTag.WorklistLabel, string.Empty);
             ds.Add(DicomTag.ScheduledProcessingParametersSequence, new DicomDataset());
             ds.Add(DicomTag.ScheduledStationNameCodeSequence, new DicomDataset());
             ds.Add(DicomTag.ScheduledStationClassCodeSequence, new DicomDataset());
             ds.Add(DicomTag.ScheduledStationGeographicLocationCodeSequence, new DicomDataset());
             ds.Add(DicomTag.ScheduledProcedureStepStartDateTime, DateTime.Now);
             ds.Add(DicomTag.ScheduledWorkitemCodeSequence, new DicomDataset());
-            ds.Add(DicomTag.CommentsOnTheScheduledProcedureStep, String.Empty);
+            ds.Add(DicomTag.CommentsOnTheScheduledProcedureStep, string.Empty);
             ds.Add(DicomTag.InputReadinessState, Guid.NewGuid().ToString("N").Substring(0, 14).ToUpper());
             ds.Add(DicomTag.InputInformationSequence, new DicomDataset());
-            ds.Add(DicomTag.PatientName, String.Empty);
-            ds.Add(DicomTag.IssuerOfPatientID, String.Empty);
+            ds.Add(DicomTag.PatientName, string.Empty);
+            ds.Add(DicomTag.IssuerOfPatientID, string.Empty);
             ds.Add(DicomTag.IssuerOfPatientIDQualifiersSequence, new DicomDataset());
             ds.Add(DicomTag.OtherPatientIDsSequence, new DicomDataset());
-            ds.Add(DicomTag.PatientBirthDate, String.Empty);
-            ds.Add(DicomTag.PatientSex, String.Empty);
-            ds.Add(DicomTag.AdmissionID, String.Empty);
+            ds.Add(DicomTag.PatientBirthDate, string.Empty);
+            ds.Add(DicomTag.PatientSex, string.Empty);
+            ds.Add(DicomTag.AdmissionID, string.Empty);
             ds.Add(DicomTag.IssuerOfAdmissionIDSequence, new DicomDataset());
-            ds.Add(DicomTag.AdmittingDiagnosesDescription, String.Empty);
+            ds.Add(DicomTag.AdmittingDiagnosesDescription, string.Empty);
             ds.Add(DicomTag.AdmittingDiagnosesCodeSequence, new DicomDataset());
             ds.Add(DicomTag.ReferencedRequestSequence, new DicomDataset());
             ds.Add(DicomTag.ProcedureStepState, string.Empty);
             ds.Add(new DicomSequence(DicomTag.ProcedureStepProgressInformationSequence));
             ds.Add(new DicomSequence(DicomTag.UnifiedProcedureStepPerformedProcedureSequence));
+            ds.Add(new DicomSequence(DicomTag.ProcedureStepDiscontinuationReasonCodeSequence));
+            ds.Add(DicomTag.ActualHumanPerformersSequence, new DicomDataset());
+            ds.Add(DicomTag.HumanPerformerCodeSequence, new DicomDataset());
+            ds.Add(DicomTag.HumanPerformerName, @"TestFixtureUser");
 
             return ds;
+        }
+
+        public static DicomDataset CreateWorkitemCancelRequestDataset(string cancellationReason)
+        {
+            var cancelRequestDataset = new DicomDataset
+            {
+                { DicomTag.ReasonForCancellation, cancellationReason },
+                { DicomTag.ContactURI, @"dicom-users://test-user" },
+                { DicomTag.ContactDisplayName, @"Dicom Test User" },
+                { DicomTag.ProcedureStepCancellationDateTime, DateTime.UtcNow },
+            };
+
+            // This is needed to show progress on the workitem before canceling it.
+            cancelRequestDataset.Add(new DicomSequence(DicomTag.UnifiedProcedureStepPerformedProcedureSequence, new DicomDataset
+                {
+                    new DicomSequence(DicomTag.ActualHumanPerformersSequence, new DicomDataset
+                        {
+                            new DicomSequence(DicomTag.HumanPerformerCodeSequence, new DicomDataset()),
+                            { DicomTag.HumanPerformerName, @"Dicom Test User" }
+                        }),
+                    new DicomSequence(DicomTag.PerformedStationNameCodeSequence, new DicomDataset()),
+                    { DicomTag.PerformedProcedureStepStartDateTime, DateTime.UtcNow},
+                    new DicomSequence(DicomTag.PerformedWorkitemCodeSequence, new DicomDataset()),
+                    { DicomTag.PerformedProcedureStepEndDateTime, DateTime.UtcNow + TimeSpan.FromDays(2)},
+                    new DicomSequence(DicomTag.OutputInformationSequence, new DicomDataset()),
+                }));
+
+            return cancelRequestDataset;
+        }
+
+        public static DicomDataset CreateCanceledWorkitemDataset(
+            string cancellationReason,
+            ProcedureStepState procedureStepState = ProcedureStepState.Scheduled)
+        {
+            var uid = TestUidGenerator.Generate();
+
+            var cancelRequestDataset = new DicomDataset
+            {
+                { DicomTag.ReasonForCancellation, cancellationReason },
+                { DicomTag.ContactURI, @"dicom-users://test-user" },
+                { DicomTag.ContactDisplayName, @"Dicom Test User" },
+            };
+            cancelRequestDataset.AddOrUpdate(DicomTag.ProcedureStepDiscontinuationReasonCodeSequence, new DicomDataset
+            {
+                { DicomTag.ReasonForCancellation, cancellationReason }
+            });
+
+            var dataset = CreateRandomWorkitemInstanceDataset(uid);
+
+            dataset.AddOrUpdate(DicomTag.SOPClassUID, TestUidGenerator.Generate());
+            dataset.AddOrUpdate(DicomTag.SOPInstanceUID, uid);
+
+            // Unified Procedure Step Scheduled Procedure Information Module
+            dataset.AddOrUpdate(DicomTag.ScheduledProcedureStepPriority, Guid.NewGuid().ToString("N").Substring(0, 14).ToUpper());
+            dataset.AddOrUpdate(DicomTag.ScheduledProcedureStepModificationDateTime, DateTime.UtcNow);
+            dataset.AddOrUpdate(DicomTag.ScheduledProcedureStepStartDateTime, DateTime.UtcNow);
+            dataset.AddOrUpdate(DicomTag.InputReadinessState, Guid.NewGuid().ToString("N").Substring(0, 14).ToUpper());
+
+            dataset.AddOrUpdate(DicomTag.ProcedureStepState, procedureStepState.GetStringValue());
+            dataset.AddOrUpdate(DicomTag.ProcedureStepProgressInformationSequence, new DicomDataset
+            {
+                { DicomTag.ProcedureStepCancellationDateTime, DateTime.UtcNow },
+                new DicomSequence(DicomTag.ProcedureStepDiscontinuationReasonCodeSequence, new DicomDataset
+                {
+                    { DicomTag.ReasonForCancellation, cancellationReason }
+                })
+            });
+
+            // Unified Procedure Step Performed Procedure Information Module
+            dataset.AddOrUpdate(DicomTag.UnifiedProcedureStepPerformedProcedureSequence, new DicomDataset
+            {
+                new DicomSequence(DicomTag.ActualHumanPerformersSequence, new DicomDataset
+                {
+                    new DicomSequence(DicomTag.HumanPerformerCodeSequence, new DicomDataset()),
+                    { DicomTag.HumanPerformerName, @"Samples-TestFixture" }
+                }),
+                new DicomSequence(DicomTag.PerformedStationNameCodeSequence, new DicomDataset()),
+                { DicomTag.PerformedProcedureStepStartDateTime, DateTime.UtcNow },
+                new DicomSequence(DicomTag.PerformedWorkitemCodeSequence, new DicomDataset()),
+                { DicomTag.PerformedProcedureStepEndDateTime, DateTime.UtcNow },
+                new DicomSequence(DicomTag.OutputInformationSequence, new DicomDataset())
+            });
+
+            return dataset;
         }
 
         private static IByteBuffer CreateRandomPixelData(int pixelDataSize)

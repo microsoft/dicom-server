@@ -150,6 +150,9 @@
     <value>The field '{0}' in request body is invalid: {1}</value>
     <comment>{0} is key, {1} is error message</comment>
   </data>
+  <data name="InvalidSyntax" xml:space="preserve">
+    <value>The syntax of the request body is invalid.</value>
+  </data>
   <data name="MissingAuditInformation" xml:space="preserve">
     <value>The audit information is missing for Controller: {0} and Action: {1}. This usually means the action is not marked with appropriate attribute.</value>
     <comment>{0} is the controller name and {1} is the action name.</comment>
@@ -168,5 +171,9 @@
   <data name="UnsupportedField" xml:space="preserve">
     <value>The field is not supported: "{0}".</value>
     <comment>{0} is field.</comment>
+  </data>
+  <data name="WarningHeader" xml:space="preserve">
+    <value>299: {0}</value>
+    <comment>{0} is the warning message</comment>
   </data>
 </root>
