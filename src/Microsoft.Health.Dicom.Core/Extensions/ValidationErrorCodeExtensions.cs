@@ -33,7 +33,9 @@ namespace Microsoft.Health.Dicom.Core.Extensions
                 KeyValuePair.Create(ValidationErrorCode.DateTimeIsInvalid, DicomCoreResource.ErrorMessageDateTimeIsInvalid),
                 KeyValuePair.Create(ValidationErrorCode.TimeIsInvalid, DicomCoreResource.ErrorMessageTimeIsInvalid),
                 KeyValuePair.Create(ValidationErrorCode.IntegerStringIsInvalid, DicomCoreResource.ErrorMessageIntegerStringIsInvalid),
-                KeyValuePair.Create(ValidationErrorCode.DecimalStringIsInvalid, DicomCoreResource.ErrorMessageDecimalStringIsInvalid)
+                KeyValuePair.Create(ValidationErrorCode.DecimalStringIsInvalid, DicomCoreResource.ErrorMessageDecimalStringIsInvalid),
+                KeyValuePair.Create(ValidationErrorCode.SequenceDisallowed, DicomCoreResource.SequentialDicomTagsNotSupported),
+                KeyValuePair.Create(ValidationErrorCode.NestedSequence, DicomCoreResource.NestedSequencesNotSupported),
             });
 
         /// <summary>

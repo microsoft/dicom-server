@@ -130,5 +130,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         DecimalStringIsInvalid = 1600,
 
         #endregion
+
+        #region Sequence of Items (SQ)
+
+        /// <summary>
+        /// Sequences are not allowed.
+        /// </summary>
+        SequenceDisallowed = 1700,
+
+        /// <summary>
+        /// Nested sequences are not allowed.
+        /// </summary>
+        NestedSequence = 1701,
+
+        #endregion
     }
 }

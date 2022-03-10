@@ -125,10 +125,20 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
 
         private static void ValidateAllItems(DicomDataset dicomDataset)
         {
-            dicomDataset.Each(item =>
+            foreach (DicomItem item in dicomDataset)
             {
-                item.ValidateDicomItem();
-            });
+                try
+                {
+                    item.Validate();
+                }
+                catch (DicomValidationException ex)
+                {
+                    throw new DatasetValidationException(
+                        FailureReasonCodes.ValidationFailure,
+                        ex.Message,
+                        ex);
+                }
+            }
         }
     }
 }

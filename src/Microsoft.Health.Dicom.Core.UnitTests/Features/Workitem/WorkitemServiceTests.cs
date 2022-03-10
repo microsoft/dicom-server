@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using NSubstitute;
 using Xunit;
@@ -82,24 +83,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         }
 
         [Fact]
-        public async Task GivenValidateThrowsDicomValidationException_WhenProcessed_ThenWorkitemOrchestratorAddWorkitemIsNotCalled()
-        {
-            var workitemInstanceUid = DicomUID.Generate().UID;
-
-            _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
-
-            _datasetValidator
-                .When(dv => dv.Validate(Arg.Any<DicomDataset>()))
-                .Throw(new DicomValidationException(string.Empty, DicomVR.UN, string.Empty));
-
-            await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
-
-            await _storeOrchestrator
-                .DidNotReceive()
-                .AddWorkitemAsync(Arg.Any<DicomDataset>(), Arg.Any<CancellationToken>());
-        }
-
-        [Fact]
         public async Task GivenValidateThrowsDatasetValidationException_WhenProcessed_ThenWorkitemOrchestratorAddWorkitemIsNotCalled()
         {
             var workitemInstanceUid = DicomUID.Generate().UID;
@@ -138,27 +121,6 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
                     Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)),
                     Arg.Is<ushort>(fc => fc == failureCode),
                     Arg.Is<string>(msg => msg == errorMessage));
-        }
-
-        [Fact]
-        public async Task GivenValidateThrowsDicomValidationException_WhenProcessed_ThenResponseBuilderAddFailureIsCalled()
-        {
-            var workitemInstanceUid = DicomUID.Generate().UID;
-
-            _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
-
-            _datasetValidator
-                .When(dv => dv.Validate(Arg.Any<DicomDataset>()))
-                .Throw(new DicomValidationException(string.Empty, DicomVR.UN, string.Empty));
-
-            await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
-
-            _responseBuilder
-                .Received()
-                .AddFailure(
-                    Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)),
-                    Arg.Is<ushort>(fc => fc == FailureReasonCodes.ValidationFailure),
-                    Arg.Any<string>());
         }
 
         [Fact]
@@ -234,7 +196,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         {
             _datasetValidator
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>()))
-                .Throw(new DicomValidationException(string.Empty, DicomVR.UN, string.Empty));
+                .Throw(new ElementValidationException(string.Empty, DicomVR.UN, ValidationErrorCode.UnexpectedVR));
 
             await _target.ProcessAddAsync(new DicomDataset(), string.Empty, CancellationToken.None).ConfigureAwait(false);
 
@@ -242,7 +204,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
 
             _datasetValidator
                 .When(dv => dv.Validate(Arg.Any<DicomDataset>()))
-                .Throw(new DicomValidationException(string.Empty, DicomVR.UN, string.Empty));
+                .Throw(new ElementValidationException(string.Empty, DicomVR.UN, ValidationErrorCode.UnexpectedVR));
 
             await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 

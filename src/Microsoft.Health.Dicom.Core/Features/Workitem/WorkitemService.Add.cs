@@ -14,7 +14,6 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
-using DicomValidationException = FellowOakDicom.DicomValidationException;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -106,10 +105,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
                 switch (ex)
                 {
-                    case DicomValidationException _:
-                        failureCode = FailureReasonCodes.ValidationFailure;
-                        break;
-
                     case DatasetValidationException dicomDatasetValidationException:
                         failureCode = dicomDatasetValidationException.FailureCode;
                         break;
