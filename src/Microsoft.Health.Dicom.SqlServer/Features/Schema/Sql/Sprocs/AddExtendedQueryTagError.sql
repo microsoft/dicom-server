@@ -32,7 +32,7 @@ AS
             THROW 50404, 'Instance does not exist or has not been created.', 1;
 
         --Check if tag exists and in Adding status.
-        IF NOT EXISTS (SELECT * FROM dbo.ExtendedQueryTag WITH (HOLDLOCK) WHERE TagKey = @tagKey AND TagStatus = 0)
+        IF NOT EXISTS (SELECT * FROM dbo.ExtendedQueryTag WITH (UPDLOCK) WHERE TagKey = @tagKey AND TagStatus = 0)
             THROW 50404, 'Tag does not exist or is not being added.', 1;
 
         -- Add error
