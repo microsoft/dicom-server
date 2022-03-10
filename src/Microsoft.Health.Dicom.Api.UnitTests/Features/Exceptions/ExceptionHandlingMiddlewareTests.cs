@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -76,6 +77,22 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Exceptions
                 .ExecuteResultAsync(
                     Arg.Any<HttpContext>(),
                     Arg.Is<ContentResult>(x => x.Content == DicomApiResource.InternalServerError));
+        }
+
+        [Fact]
+        public async Task GivenAJsonException_WhenMiddlewareIsExecuted_ThenMessageShouldBeOverwritten()
+        {
+            ExceptionHandlingMiddleware baseExceptionMiddleware = CreateExceptionHandlingMiddleware(innerHttpContext => throw new JsonException("Parsing data."));
+
+            baseExceptionMiddleware.ExecuteResultAsync(Arg.Any<HttpContext>(), Arg.Any<IActionResult>()).Returns(Task.CompletedTask);
+
+            await baseExceptionMiddleware.Invoke(_context);
+
+            await baseExceptionMiddleware
+                .Received()
+                .ExecuteResultAsync(
+                    Arg.Any<HttpContext>(),
+                    Arg.Is<ContentResult>(x => x.Content == DicomApiResource.InvalidSyntax));
         }
 
         [Fact]

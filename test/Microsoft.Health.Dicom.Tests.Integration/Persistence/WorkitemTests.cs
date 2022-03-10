@@ -42,11 +42,16 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 new QueryTag(new WorkitemQueryTagStoreEntry(2, tag2.GetPath(), tag2.GetDefaultVR().Code)),
             };
 
-            var identifier = await _fixture.IndexWorkitemStore.BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
+            var identifier = await _fixture
+                .IndexWorkitemStore
+                .BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
 
+            Assert.NotNull(identifier);
             Assert.True(identifier.WorkitemKey > 0);
 
-            await _fixture.IndexWorkitemStore.EndAddWorkitemAsync(DefaultPartition.Key, identifier.WorkitemKey, CancellationToken.None);
+            await _fixture
+                .IndexWorkitemStore
+                .EndAddWorkitemAsync(DefaultPartition.Key, identifier.WorkitemKey, CancellationToken.None);
         }
 
         [Fact]
@@ -64,15 +69,57 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 new QueryTag(new WorkitemQueryTagStoreEntry(2, tag2.GetPath(), tag2.GetDefaultVR().Code)),
             };
 
-            var identifier = await _fixture.IndexWorkitemStore.BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
+            var identifier = await _fixture
+                .IndexWorkitemStore
+                .BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None)
+                .ConfigureAwait(false);
 
             await _fixture.IndexWorkitemStore.DeleteWorkitemAsync(identifier, CancellationToken.None);
 
             // Try adding it back again, if this succeeds, then assume that Delete operation has succeeded.
-            identifier = await _fixture.IndexWorkitemStore.BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
+            identifier = await _fixture
+                .IndexWorkitemStore
+                .BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None)
+                .ConfigureAwait(false);
+
+            Assert.NotNull(identifier);
             Assert.True(identifier.WorkitemKey > 0);
 
             await _fixture.IndexWorkitemStore.DeleteWorkitemAsync(identifier, CancellationToken.None);
+        }
+
+        [Fact]
+        public async Task GivenIndexWorkitemStoreUpdateWorkitemProcedureStepStateAsync_SavesProcedureStepStateSuccessfully()
+        {
+            var workitemUid = DicomUID.Generate().UID;
+            var (patientIdTag, patientIdTagKey) = (DicomTag.PatientID, 2);
+            var (procedureStepStateTag, procedureStepStateTagKey) = (DicomTag.ProcedureStepState, 8);
+
+            var dataset = CreateSampleDataset(workitemUid, patientIdTag);
+            dataset.AddOrUpdate(procedureStepStateTag, ProcedureStepState.Scheduled.GetStringValue());
+
+            var queryTags = new List<QueryTag>()
+            {
+                new QueryTag(new WorkitemQueryTagStoreEntry(patientIdTagKey, patientIdTag.GetPath(), patientIdTag.GetDefaultVR().Code)),
+                new QueryTag(new WorkitemQueryTagStoreEntry(procedureStepStateTagKey, procedureStepStateTag.GetPath(), procedureStepStateTag.GetDefaultVR().Code)),
+            };
+
+            var identifier = await _fixture
+                .IndexWorkitemStore
+                .BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None)
+                .ConfigureAwait(false);
+
+            await _fixture.IndexWorkitemStore
+                .EndAddWorkitemAsync(DefaultPartition.Key, identifier.WorkitemKey, CancellationToken.None);
+
+            var workitemMetadata = await _fixture.IndexWorkitemStore
+                .GetWorkitemMetadataAsync(DefaultPartition.Key, workitemUid, CancellationToken.None);
+
+            (long CurrentWatermark, long NextWatermark)? result = await _fixture.IndexWorkitemStore
+                .GetCurrentAndNextWorkitemWatermarkAsync(workitemMetadata.WorkitemKey, CancellationToken.None);
+
+            await _fixture.IndexWorkitemStore
+                .UpdateWorkitemProcedureStepStateAsync(workitemMetadata, result.Value.NextWatermark, ProcedureStepState.Canceled.GetStringValue(), CancellationToken.None);
         }
 
         [Fact]
@@ -96,8 +143,13 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                 new QueryTag(new WorkitemQueryTagStoreEntry(2, tag.GetPath(), tag.GetDefaultVR().Code)),
             };
 
-            var identifier = await _fixture.IndexWorkitemStore.BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
-            await _fixture.IndexWorkitemStore.EndAddWorkitemAsync(DefaultPartition.Key, identifier.WorkitemKey, CancellationToken.None);
+            var identifier = await _fixture
+                .IndexWorkitemStore
+                .BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None)
+                .ConfigureAwait(false);
+
+            await _fixture.IndexWorkitemStore
+                .EndAddWorkitemAsync(DefaultPartition.Key, identifier.WorkitemKey, CancellationToken.None);
 
             var includeField = new QueryIncludeField(new List<DicomTag> { tag });
             var queryTag = new QueryTag(new WorkitemQueryTagStoreEntry(2, tag.GetPath(), tag.GetDefaultVR().Code));
@@ -131,9 +183,11 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             };
 
             var identifier1 = await _fixture.IndexWorkitemStore.BeginAddWorkitemAsync(DefaultPartition.Key, dataset1, queryTags, CancellationToken.None);
-            await _fixture.IndexWorkitemStore.EndAddWorkitemAsync(DefaultPartition.Key, identifier1.WorkitemKey, CancellationToken.None);
+            await _fixture.IndexWorkitemStore
+                .EndAddWorkitemAsync(DefaultPartition.Key, identifier1.WorkitemKey, CancellationToken.None);
             var identifier2 = await _fixture.IndexWorkitemStore.BeginAddWorkitemAsync(DefaultPartition.Key, dataset2, queryTags, CancellationToken.None);
-            await _fixture.IndexWorkitemStore.EndAddWorkitemAsync(DefaultPartition.Key, identifier2.WorkitemKey, CancellationToken.None);
+            await _fixture.IndexWorkitemStore
+                .EndAddWorkitemAsync(DefaultPartition.Key, identifier2.WorkitemKey, CancellationToken.None);
 
             var includeField = new QueryIncludeField(new List<DicomTag> { tag });
             var queryTag = new QueryTag(new WorkitemQueryTagStoreEntry(2, tag.GetPath(), tag.GetDefaultVR().Code));

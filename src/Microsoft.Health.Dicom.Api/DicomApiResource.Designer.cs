@@ -8,10 +8,10 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Api
-{
-
-
+namespace Microsoft.Health.Dicom.Api {
+    using System;
+    
+    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Api
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class DicomApiResource {
@@ -142,6 +142,15 @@ namespace Microsoft.Health.Dicom.Api
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The syntax of the request body is invalid..
+        /// </summary>
+        internal static string InvalidSyntax {
+            get {
+                return ResourceManager.GetString("InvalidSyntax", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The audit information is missing for Controller: {0} and Action: {1}. This usually means the action is not marked with appropriate attribute..
         /// </summary>
         internal static string MissingAuditInformation {
@@ -183,6 +192,15 @@ namespace Microsoft.Health.Dicom.Api
         internal static string UnsupportedField {
             get {
                 return ResourceManager.GetString("UnsupportedField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 299: {0}.
+        /// </summary>
+        internal static string WarningHeader {
+            get {
+                return ResourceManager.GetString("WarningHeader", resourceCulture);
             }
         }
     }

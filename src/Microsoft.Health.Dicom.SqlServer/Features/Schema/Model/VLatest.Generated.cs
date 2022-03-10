@@ -47,6 +47,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetChangeFeedLatestProcedure GetChangeFeedLatest = new GetChangeFeedLatestProcedure();
         internal readonly static GetChangeFeedLatestV6Procedure GetChangeFeedLatestV6 = new GetChangeFeedLatestV6Procedure();
         internal readonly static GetChangeFeedV6Procedure GetChangeFeedV6 = new GetChangeFeedV6Procedure();
+        internal readonly static GetCurrentAndNextWorkitemWatermarkProcedure GetCurrentAndNextWorkitemWatermark = new GetCurrentAndNextWorkitemWatermarkProcedure();
         internal readonly static GetExtendedQueryTagProcedure GetExtendedQueryTag = new GetExtendedQueryTagProcedure();
         internal readonly static GetExtendedQueryTagErrorsProcedure GetExtendedQueryTagErrors = new GetExtendedQueryTagErrorsProcedure();
         internal readonly static GetExtendedQueryTagErrorsV6Procedure GetExtendedQueryTagErrorsV6 = new GetExtendedQueryTagErrorsV6Procedure();
@@ -61,6 +62,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetInstancesByWatermarkRangeV6Procedure GetInstancesByWatermarkRangeV6 = new GetInstancesByWatermarkRangeV6Procedure();
         internal readonly static GetPartitionProcedure GetPartition = new GetPartitionProcedure();
         internal readonly static GetPartitionsProcedure GetPartitions = new GetPartitionsProcedure();
+        internal readonly static GetWorkitemMetadataProcedure GetWorkitemMetadata = new GetWorkitemMetadataProcedure();
         internal readonly static GetWorkitemQueryTagsProcedure GetWorkitemQueryTags = new GetWorkitemQueryTagsProcedure();
         internal readonly static IIndexInstanceCoreV9Procedure IIndexInstanceCoreV9 = new IIndexInstanceCoreV9Procedure();
         internal readonly static IIndexWorkitemInstanceCoreProcedure IIndexWorkitemInstanceCore = new IIndexWorkitemInstanceCoreProcedure();
@@ -72,6 +74,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static UpdateExtendedQueryTagQueryStatusProcedure UpdateExtendedQueryTagQueryStatus = new UpdateExtendedQueryTagQueryStatusProcedure();
         internal readonly static UpdateInstanceStatusProcedure UpdateInstanceStatus = new UpdateInstanceStatusProcedure();
         internal readonly static UpdateInstanceStatusV6Procedure UpdateInstanceStatusV6 = new UpdateInstanceStatusV6Procedure();
+        internal readonly static UpdateWorkitemProcedureStepStateProcedure UpdateWorkitemProcedureStepState = new UpdateWorkitemProcedureStepStateProcedure();
         internal readonly static UpdateWorkitemStatusProcedure UpdateWorkitemStatus = new UpdateWorkitemStatusProcedure();
 
         internal class ChangeFeedTable : Table
@@ -363,6 +366,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly Index IXC_Workitem = new Index("IXC_Workitem");
             internal readonly Index IX_Workitem_WorkitemUid_PartitionKey = new Index("IX_Workitem_WorkitemUid_PartitionKey");
+            internal readonly Index IX_Workitem_WorkitemKey_Watermark = new Index("IX_Workitem_WorkitemKey_Watermark");
         }
 
         internal class WorkitemQueryTagTable : Table
@@ -978,6 +982,22 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
+        internal class GetCurrentAndNextWorkitemWatermarkProcedure : StoredProcedure
+        {
+            internal GetCurrentAndNextWorkitemWatermarkProcedure() : base("dbo.GetCurrentAndNextWorkitemWatermark")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int64> _workitemKey = new ParameterDefinition<System.Int64>("@workitemKey", global::System.Data.SqlDbType.BigInt, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int64 workitemKey)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetCurrentAndNextWorkitemWatermark";
+                _workitemKey.AddParameter(command.Parameters, workitemKey);
+            }
+        }
+
         internal class GetExtendedQueryTagProcedure : StoredProcedure
         {
             internal GetExtendedQueryTagProcedure() : base("dbo.GetExtendedQueryTag")
@@ -1272,6 +1292,26 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetPartitions";
+            }
+        }
+
+        internal class GetWorkitemMetadataProcedure : StoredProcedure
+        {
+            internal GetWorkitemMetadataProcedure() : base("dbo.GetWorkitemMetadata")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.String> _workitemUid = new ParameterDefinition<System.String>("@workitemUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _procedureStepStateTagPath = new ParameterDefinition<System.String>("@procedureStepStateTagPath", global::System.Data.SqlDbType.VarChar, false, 64);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String workitemUid, System.String procedureStepStateTagPath)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetWorkitemMetadata";
+                _partitionKey.AddParameter(command.Parameters, partitionKey);
+                _workitemUid.AddParameter(command.Parameters, workitemUid);
+                _procedureStepStateTagPath.AddParameter(command.Parameters, procedureStepStateTagPath);
             }
         }
 
@@ -1655,6 +1695,30 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _watermark.AddParameter(command.Parameters, watermark);
                 _status.AddParameter(command.Parameters, status);
                 _maxTagKey.AddParameter(command.Parameters, maxTagKey);
+            }
+        }
+
+        internal class UpdateWorkitemProcedureStepStateProcedure : StoredProcedure
+        {
+            internal UpdateWorkitemProcedureStepStateProcedure() : base("dbo.UpdateWorkitemProcedureStepState")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int64> _workitemKey = new ParameterDefinition<System.Int64>("@workitemKey", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.String> _procedureStepStateTagPath = new ParameterDefinition<System.String>("@procedureStepStateTagPath", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _procedureStepState = new ParameterDefinition<System.String>("@procedureStepState", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.Int64> _watermark = new ParameterDefinition<System.Int64>("@watermark", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.Int64> _proposedWatermark = new ParameterDefinition<System.Int64>("@proposedWatermark", global::System.Data.SqlDbType.BigInt, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int64 workitemKey, System.String procedureStepStateTagPath, System.String procedureStepState, System.Int64 watermark, System.Int64 proposedWatermark)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.UpdateWorkitemProcedureStepState";
+                _workitemKey.AddParameter(command.Parameters, workitemKey);
+                _procedureStepStateTagPath.AddParameter(command.Parameters, procedureStepStateTagPath);
+                _procedureStepState.AddParameter(command.Parameters, procedureStepState);
+                _watermark.AddParameter(command.Parameters, watermark);
+                _proposedWatermark.AddParameter(command.Parameters, proposedWatermark);
             }
         }
 

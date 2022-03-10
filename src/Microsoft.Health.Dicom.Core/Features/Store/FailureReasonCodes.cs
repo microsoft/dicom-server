@@ -57,6 +57,51 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
         /// <remarks>
         /// The Studies Store Transaction (Section 10.5) observed that the Data Set did not match the constraints of the SOP Class during storage of the instance.
         /// </remarks>
-        public const ushort DataSetDoesNotMatchSOPClass = 45063;
+        public const ushort DatasetDoesNotMatchSOPClass = 45063;
+
+        /// <summary>
+        /// FAILURE - Specified SOP Instance UID does not exist or is not a UPS Instance managed by this SCP
+        /// </summary>
+        /// <remarks>
+        /// Hex code are the defined ones in spec.
+        /// <see href="https://dicom.nema.org/dicom/2013/output/chtml/part04/sect_CC.2.html#table_CC.2.2-2"/>
+        /// </remarks>
+        public const ushort UpsInstanceNotFound = 0xC307;
+
+        /// <summary>
+        /// FAILURE - Refused: The UPS may no longer be updated
+        /// </summary>
+        /// <remarks>
+        /// Hex code are the defined ones in spec.
+        /// <see href="https://dicom.nema.org/dicom/2013/output/chtml/part04/sect_CC.2.html#table_CC.2.2-2"/>
+        /// </remarks>
+        public const ushort UpsInstanceUpdateNotAllowed = 0xC300;
+
+        /// <summary>
+        /// FAILURE - Refused: The UPS is already COMPLETED
+        /// </summary>
+        /// <remarks>
+        /// Hex code are the defined ones in spec.
+        /// <see href="https://dicom.nema.org/dicom/2013/output/chtml/part04/sect_CC.2.html#table_CC.2.2-2"/>
+        /// </remarks>
+        public const ushort UpsIsAlreadyCompleted = 0xC306;
+
+        /// <summary>
+        /// WARNING - The UPS is already in the requested state of CANCELED
+        /// </summary>
+        /// <remarks>
+        /// Hex code are the defined ones in spec.
+        /// <see href="https://dicom.nema.org/dicom/2013/output/chtml/part04/sect_CC.2.html#table_CC.2.2-2"/>
+        /// </remarks>
+        public const ushort UpsIsAlreadyCanceled = 0xC304;
+
+        /// <summary>
+        /// FAILURE - Failed: Performer chooses not to cancel
+        /// </summary>
+        /// <remarks>
+        /// Hex code are the defined ones in spec.
+        /// <see href="https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.2-2"/>
+        /// </remarks>
+        public const ushort UpsPerformerChoosesNotToCancel = 0xC313;
     }
 }

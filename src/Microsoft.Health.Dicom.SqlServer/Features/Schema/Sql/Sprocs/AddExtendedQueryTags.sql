@@ -28,9 +28,9 @@ BEGIN
     BEGIN TRANSACTION
 
         -- Check if total count exceed @maxCount
-        -- HOLDLOCK to prevent adding queryTags from other transactions at same time.
+        -- HOLDLOCK to prevent adding queryTags from other transactions at same time, UPDLOCK to prevent simultaneous AddExtendedQueryTags calls which could result in deadlock.
         IF (SELECT COUNT(*)
-            FROM dbo.ExtendedQueryTag AS XQT WITH(HOLDLOCK)
+            FROM dbo.ExtendedQueryTag AS XQT WITH(UPDLOCK,HOLDLOCK)
             FULL OUTER JOIN @extendedQueryTags AS input 
             ON XQT.TagPath = input.TagPath) > @maxAllowedCount
             THROW 50409, 'extended query tags exceed max allowed count', 1

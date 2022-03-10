@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using FellowOakDicom;
-using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
@@ -21,20 +20,29 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         AddWorkitemResponse BuildAddResponse();
 
         /// <summary>
+        /// Builds the response for cancel workitem.
+        /// </summary>
+        /// <returns>An instance of <see cref="CancelWorkitemResponse"/> representing the response.</returns>
+        CancelWorkitemResponse BuildCancelResponse();
+
+        /// <summary>
         /// Adds a successful entry to the response.
         /// </summary>
         /// <param name="dicomDataset">The DICOM dataset that was successfully stored.</param>
         void AddSuccess(DicomDataset dicomDataset);
 
         /// <summary>
+        /// Adds a successful entry to the response with a status message
+        /// </summary>
+        /// <param name="message">The message related to the status</param>
+        void AddSuccess(string message);
+
+        /// <summary>
         /// Adds a failed entry to the response.
         /// </summary>
-        /// <param name="dicomDataset">The DICOM dataset that failed to be stored.</param>
         /// <param name="failureReasonCode">The failure reason code.</param>
         /// <param name="message">The message related to the failure</param>
-        void AddFailure(
-            DicomDataset dicomDataset = null,
-            ushort failureReasonCode = FailureReasonCodes.ProcessingFailure,
-            string message = null);
+        /// <param name="dicomDataset">The DICOM dataset that failed to be stored.</param>
+        void AddFailure(ushort? failureReasonCode, string message = null, DicomDataset dicomDataset = null);
     }
 }

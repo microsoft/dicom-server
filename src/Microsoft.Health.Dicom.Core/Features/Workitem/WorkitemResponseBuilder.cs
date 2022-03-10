@@ -9,6 +9,7 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using System.Linq;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
 {
@@ -17,9 +18,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     /// </summary>
     public class WorkitemResponseBuilder : IWorkitemResponseBuilder
     {
+        private readonly static ushort[] WorkitemConflictFailureReasonCodes = new[]
+            {
+                FailureReasonCodes.UpsInstanceUpdateNotAllowed,
+                FailureReasonCodes.UpsPerformerChoosesNotToCancel,
+                FailureReasonCodes.UpsIsAlreadyCanceled,
+                FailureReasonCodes.UpsIsAlreadyCompleted
+            };
+
         private readonly IUrlResolver _urlResolver;
         private DicomDataset _dataset;
-        private string _failureMessage;
+        private string _message;
 
         public WorkitemResponseBuilder(IUrlResolver urlResolver)
         {
@@ -45,7 +54,31 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                 status = WorkitemResponseStatus.Conflict;
             }
 
-            return new AddWorkitemResponse(status, url, _failureMessage);
+            return new AddWorkitemResponse(status, url, _message);
+        }
+
+        /// <inheritdoc />
+        public CancelWorkitemResponse BuildCancelResponse()
+        {
+            var status = WorkitemResponseStatus.Failure;
+
+            if (!_dataset.TryGetSingleValue<ushort>(DicomTag.FailureReason, out var failureReason))
+            {
+                // There are only success. - 200
+                status = WorkitemResponseStatus.Success;
+            }
+            else if (WorkitemConflictFailureReasonCodes.Contains(failureReason))
+            {
+                // 409
+                status = WorkitemResponseStatus.Conflict;
+            }
+            else if (failureReason == FailureReasonCodes.UpsInstanceNotFound)
+            {
+                // 404
+                status = WorkitemResponseStatus.NotFound;
+            }
+
+            return new CancelWorkitemResponse(status, _message);
         }
 
         /// <inheritdoc />
@@ -57,14 +90,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
         }
 
         /// <inheritdoc />
-        public void AddFailure(DicomDataset dicomDataset = null,
-            ushort failureReasonCode = FailureReasonCodes.ProcessingFailure,
-            string message = null)
+        public void AddSuccess(string message)
         {
-            _failureMessage = message;
+            EnsureArg.IsNotNull(message, nameof(message));
+
+            _dataset = new DicomDataset();
+            _message = message;
+        }
+
+        /// <inheritdoc />
+        public void AddFailure(ushort? failureReasonCode, string message = null, DicomDataset dicomDataset = null)
+        {
+            _message = message;
             _dataset = dicomDataset ?? new DicomDataset();
 
-            _dataset.Add(DicomTag.FailureReason, failureReasonCode);
+            _dataset.Add(DicomTag.FailureReason, failureReasonCode.GetValueOrDefault(FailureReasonCodes.ProcessingFailure));
         }
     }
 }
