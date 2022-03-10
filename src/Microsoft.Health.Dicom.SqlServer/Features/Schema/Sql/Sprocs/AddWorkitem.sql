@@ -20,7 +20,7 @@
 --     @personNameExtendedQueryTags
 --         * PersonName extended query tag data
 --     @initialStatus
---         * New status of the workitem, Either 0(Creating) or 1(Created)
+--         * New status of the workitem status, Either 0(None) or 1(ReadWrite)
 -- RETURN VALUE
 --     The WorkitemKey
 ------------------------------------------------------------------------

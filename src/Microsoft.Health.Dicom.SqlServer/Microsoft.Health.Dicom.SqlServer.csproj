@@ -7,7 +7,7 @@
 
   <!-- Properties used by sql task to generate full script-->
   <PropertyGroup>
-    <LatestSchemaVersion>13</LatestSchemaVersion>
+    <LatestSchemaVersion>14</LatestSchemaVersion>
     <GeneratedFullScriptPath>Features\Schema\Migrations\$(LatestSchemaVersion).sql</GeneratedFullScriptPath>
   </PropertyGroup>
 

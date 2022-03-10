@@ -25,25 +25,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     {
         private const string WorklistLabel = "worklist";
 
-        private static readonly Action<ILogger, ushort, Exception> LogFailedToAddDelegate =
-            LoggerMessage.Define<ushort>(
-                LogLevel.Warning,
-                default,
-                "Failed to add the DICOM instance work-item entry. Failure code: {FailureCode}.");
-
-        private static readonly Action<ILogger, Exception> LogSuccessfullyAddedDelegate =
-            LoggerMessage.Define(
-                LogLevel.Information,
-                default,
-                "Successfully added the DICOM instance work-item entry.");
-
         public async Task<AddWorkitemResponse> ProcessAddAsync(DicomDataset dataset, string workitemInstanceUid, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(dataset, nameof(dataset));
 
             SetSpecifiedAttributesForCreate(dataset, workitemInstanceUid);
 
-            if (Validate(dataset))
+            if (ValidateAddRequest(dataset))
             {
                 await AddWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
             }
@@ -93,7 +81,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             }
         }
 
-        private bool Validate(DicomDataset dataset)
+        private bool ValidateAddRequest(DicomDataset dataset)
         {
             try
             {
@@ -119,9 +107,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                         break;
                 }
 
-                LogValidationFailedDelegate(_logger, failureCode, ex);
+                _logger.LogInformation(ex, "Validation failed for the DICOM instance work-item entry. Failure code: {FailureCode}.", failureCode);
 
-                _responseBuilder.AddFailure(dataset, failureCode, ex.Message);
+                _responseBuilder.AddFailure(failureCode, ex.Message, dataset);
 
                 return false;
             }
@@ -133,7 +121,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             {
                 await _workitemOrchestrator.AddWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
 
-                LogSuccessfullyAddedDelegate(_logger, null);
+                _logger.LogInformation("Successfully added the DICOM instance work-item entry.");
 
                 _responseBuilder.AddSuccess(dataset);
             }
@@ -148,10 +136,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
                         break;
                 }
 
-                LogFailedToAddDelegate(_logger, failureCode, ex);
+                _logger.LogWarning(ex, "Failed to add the DICOM instance work-item entry. Failure code: {FailureCode}.", failureCode);
 
                 // TODO: This can return the Database Error as is. We need to abstract that detail.
-                _responseBuilder.AddFailure(dataset, failureCode, ex.Message);
+                _responseBuilder.AddFailure(failureCode, ex.Message, dataset);
             }
         }
     }

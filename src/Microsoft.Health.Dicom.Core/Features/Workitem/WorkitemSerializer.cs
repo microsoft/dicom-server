@@ -4,12 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using EnsureThat;
-using FellowOakDicom;
 using FellowOakDicom.Serialization;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Core.Web;
@@ -22,7 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     public sealed class WorkitemSerializer : IWorkitemSerializer
     {
         /// <inheritdoc/>
-        public async Task<IEnumerable<DicomDataset>> DeserializeAsync(Stream stream, string contentType)
+        public async Task<T> DeserializeAsync<T>(Stream stream, string contentType)
         {
             EnsureArg.IsNotNull(stream, nameof(stream));
             EnsureArg.IsNotEmptyOrWhiteSpace(contentType, nameof(contentType));
@@ -39,7 +37,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             {
                 string json = await streamReader.ReadToEndAsync().ConfigureAwait(false);
 
-                IEnumerable<DicomDataset> datasets = JsonSerializer.Deserialize<IEnumerable<DicomDataset>>(json, serializerOptions);
+                var datasets = JsonSerializer.Deserialize<T>(json, serializerOptions);
 
                 return datasets;
             }

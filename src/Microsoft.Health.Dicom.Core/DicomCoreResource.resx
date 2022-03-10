@@ -489,9 +489,9 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="UpsRsFeatureDisabled" xml:space="preserve">
     <value>UPS-RS feature is disabled.</value>
   </data>
-  <data name="InvalidProcedureStepState" xml:space="preserve">
-    <value>'{0}' is not a valid procedure step state for the specified WorkitemInstanceUID '{1}'. {2}</value>
-    <comment>{0} ProcedureStepState. {1} WorkitemInstanceUID. {2} Error code</comment>
+  <data name="InvalidProcedureStepStateTransition" xml:space="preserve">
+    <value>The workitem instance with UID: '{0}' can not transition to '{1}' state: {2}.</value>
+    <comment>{0} WorkitemInstanceUID. {1} ProcedureStepState. {2} Error code</comment>
   </data>
   <data name="MismatchSopInstanceWorkitemInstanceUid" xml:space="preserve">
     <value>SOPInstanceUID '{0}' in the payload does not match the workitem query parameter '{1}'.</value>
@@ -501,9 +501,33 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>Duplicate value '{0}' for tag '{1}' not supported in a sequence.</value>
     <comment>{0} String Value. {1} DicomTag.</comment>
   </data>
+  <data name="UnexpectedTag" xml:space="preserve">
+    <value>'{0}' DicomTag is not expected for '{1}' operation. [WorkitemInstanceUID '{2}']</value>
+    <comment>{0} Dicom Tag. {1} Action/Operation. {2} WorkitemInstanceUID.</comment>
+  </data>
   <data name="InvalidTransactionUID" xml:space="preserve">
     <value>Invalid TransactionUID for the specified WorkitemInstanceUID '{1}'.</value>
     <comment>{0} WorkitemInstanceUID.</comment>
+  </data>
+  <data name="WorkitemInstanceNotFound" xml:space="preserve">
+    <value>The workitem instance with UID: '{0}' is not found.</value>
+    <comment>{0} Workitem UID.</comment>
+  </data>
+  <data name="WorkitemIsInFinalState" xml:space="preserve">
+    <value>The workitem instance with UID: '{0}' is already in the final state '{1}'. {2}.</value>
+    <comment>{0} Workitem UID. {1} Procedure Step State. {2} Error or Warning Code.</comment>
+  </data>
+  <data name="WorkitemUpdateIsNotAllowed" xml:space="preserve">
+    <value>The workitem instance with UID: '{0}' is in the state of '{1}'.</value>
+    <comment>{0} Workitem UID. {1} Current Procedure Step State</comment>
+  </data>
+  <data name="WorkitemCancelRequestSuccess" xml:space="preserve">
+    <value>The workitem instance with UID: '{0}' has been cancelled.</value>
+    <comment>{0} Workitem UID.</comment>
+  </data>
+  <data name="UnsupportedWorkitemSearchParameter" xml:space="preserve">
+    <value>Invalid workitem query. AttributeId {0} is not queryable.  If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters and attributes.</value>
+    <comment>{0} AttributeId name.</comment>
   </data>
   <data name="AttributeMustBeEmpty" xml:space="preserve">
     <value>The attribute with tag '{0}' must be empty.</value>
@@ -517,6 +541,10 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>The value for tag '{0}' is missing.</value>
     <comment>{0} is the DICOM tag name. E.g., StudyInstanceUID.</comment>
   </data>
+  <data name="RequiredConditionNotMet" xml:space="preserve">
+    <value>The required condition for tag '{0}' is not met.</value>
+    <comment>{0} is the DICOM tag name.</comment>
+  </data>
   <data name="RetrieveServiceFileTooBig" xml:space="preserve">
     <value>Requested DICOM instance size is above the supported limit of {0}. The entire instance can be retrieved with the original transfer syntax by specifying 'transfer-syntax=*' in the Accept header.</value>
     <comment>{0} bytes representing the support max file size</comment>
@@ -524,5 +552,18 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="RetrieveServiceMultiInstanceTranscodingNotSupported" xml:space="preserve">
     <value>Accept transfer syntax '{0}' is not supported when multiple instances are matched. Matching instances can be retrieved with their original transfer syntax by specifying 'transfer-syntax=*' in the Accept header.</value>
     <comment>{0} Accept header transfer syntax</comment>
+  </data>
+  <data name="CancelWorkitemUnknownReasonCode" xml:space="preserve">
+    <value>Cancel Reason not provided</value>
+  </data>
+  <data name="WorkitemCancelRequestRejected" xml:space="preserve">
+    <value>The UPS may no longer be updated.</value>
+  </data>
+  <data name="WorkitemIsAlreadyCanceled" xml:space="preserve">
+    <value>The UPS is already in the requested state of CANCELED.</value>
+  </data>
+  <data name="WorkitemIsAlreadyCompleted" xml:space="preserve">
+    <value>The UPS '{0}' is already COMPLETED.</value>
+    <comment>{0} WorkitemInstanceUid</comment>
   </data>
 </root>

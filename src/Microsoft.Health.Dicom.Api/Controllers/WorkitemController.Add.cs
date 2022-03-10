@@ -43,19 +43,20 @@ namespace Microsoft.Health.Dicom.Api.Controllers
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.UnsupportedMediaType)]
         [HttpPost]
-        [VersionedPartitionRoute(KnownRoutes.CreateWorkitemInstancesRoute, Name = KnownRouteNames.VersionedPartitionAddWorkitemInstance)]
-        [PartitionRoute(KnownRoutes.CreateWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedAddWorkitemInstance)]
-        [VersionedRoute(KnownRoutes.CreateWorkitemInstancesRoute, Name = KnownRouteNames.VersionedAddWorkitemInstance)]
-        [Route(KnownRoutes.CreateWorkitemInstancesRoute, Name = KnownRouteNames.AddWorkitemInstance)]
+        [VersionedPartitionRoute(KnownRoutes.AddWorkitemInstancesRoute, Name = KnownRouteNames.VersionedPartitionAddWorkitemInstance)]
+        [PartitionRoute(KnownRoutes.AddWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedAddWorkitemInstance)]
+        [VersionedRoute(KnownRoutes.AddWorkitemInstancesRoute, Name = KnownRouteNames.VersionedAddWorkitemInstance)]
+        [Route(KnownRoutes.AddWorkitemInstancesRoute, Name = KnownRouteNames.AddWorkitemInstance)]
         [AuditEventType(AuditEventSubType.AddWorkitem)]
         public async Task<IActionResult> AddAsync()
         {
             // The Workitem UID is passed as the name of the first query parameter 
             string workitemUid = HttpContext.Request.Query.Keys.FirstOrDefault();
-            return await PostAsync(workitemUid);
+
+            return await PostAddAsync(workitemUid);
         }
 
-        private async Task<IActionResult> PostAsync(string workitemInstanceUid)
+        private async Task<IActionResult> PostAddAsync(string workitemInstanceUid)
         {
             long fileSize = Request.ContentLength ?? 0;
             _logger.LogInformation("DICOM Web Add Workitem Transaction request received, with Workitem instance UID {WorkitemInstanceUid}, and file size of {FileSize} bytes",
@@ -74,7 +75,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers
                 Response.Headers.Add(HeaderNames.Location, response.Uri.ToString());
             }
 
-            return StatusCode((int)response.Status.ToHttpStatusCode(), response.Message);
+            return StatusCode((int)response.Status.AddResponseToHttpStatusCode(), response.Message);
         }
     }
 }
