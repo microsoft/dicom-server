@@ -135,7 +135,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
         public async Task UpdateWorkitemStatusAsync(int partitionKey, long workitemKey, WorkitemStoreStatus status, CancellationToken cancellationToken = default)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
                 VLatest.UpdateWorkitemStatus
                     .PopulateCommand(sqlCommandWrapper, partitionKey, workitemKey, (byte)status);
