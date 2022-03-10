@@ -80,7 +80,13 @@ namespace Microsoft.Health.Dicom.Operations.Indexing
                         ? new WatermarkRange(batchRange.Start, input.Completed.Value.End)
                         : batchRange;
 
-                    context.ContinueAsNew(new ReindexInput { QueryTagKeys = queryTagKeys, Completed = completed });
+                    context.ContinueAsNew(
+                        new ReindexInput
+                        {
+                            Completed = completed,
+                            CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.ActivityRetryOptions),
+                            QueryTagKeys = queryTagKeys,
+                        });
                 }
                 else
                 {

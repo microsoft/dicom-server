@@ -18,6 +18,13 @@ namespace Microsoft.Health.Dicom.Core.Models.Operations
         public const string FormatSpecifier = "N";
 
         /// <summary>
+        /// Creates a new pseudo-random operation ID.
+        /// </summary>
+        /// <returns>A new operation ID.</returns>
+        public static string Generate()
+            => ToString(Guid.NewGuid());
+
+        /// <summary>
         /// Gets the normalized <see cref="string"/> representation for operation IDs.
         /// </summary>
         /// <remarks>
