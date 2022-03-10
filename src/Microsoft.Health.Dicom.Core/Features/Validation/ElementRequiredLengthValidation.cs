@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using FellowOakDicom;
 using FellowOakDicom.IO.Buffer;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -54,7 +55,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         {
             if (value?.Size != ExpectedLength)
             {
-                throw ElementValidationExceptionFactory.CreateUnexpectedLengthException(name, dicomVR, ExpectedLength);
+                throw new ElementValidationException(
+                    name,
+                    dicomVR,
+                    ValidationErrorCode.UnexpectedLength,
+                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageUnexpectedLength, ExpectedLength));
             }
         }
 
@@ -72,10 +77,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
         private void ValidateStringLength(DicomVR dicomVR, string name, string value)
         {
-            value = value ?? "";
+            value ??= "";
             if (value.Length != ExpectedLength)
             {
-                throw ElementValidationExceptionFactory.CreateUnexpectedLengthException(name, dicomVR, value, ExpectedLength);
+                throw new ElementValidationException(
+                    name,
+                    dicomVR,
+                    value,
+                    ValidationErrorCode.UnexpectedLength,
+                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageUnexpectedLength, ExpectedLength));
             }
         }
     }

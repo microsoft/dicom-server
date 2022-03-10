@@ -160,7 +160,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
             DicomTag tag = DicomTag.DeviceSerialNumber;
             long watermark = await AddInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
             int tagKey = await AddTagAsync(tag);
-            ValidationErrorCode errorCode = ValidationErrorCode.MultiValues;
+            ValidationErrorCode errorCode = ValidationErrorCode.MultipleValues;
             await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, errorCode, watermark);
             var extendedQueryTagErrorBeforeTagDeletion = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), int.MaxValue, 0);
             Assert.Equal(1, extendedQueryTagErrorBeforeTagDeletion.Count);

@@ -25,13 +25,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 return;
             }
 
-            var groups = value.Split('=');
+            string[] groups = value.Split('=');
             if (groups.Length > 3)
             {
-                throw ElementValidationExceptionFactory.CreatePersonNameExceedMaxGroupsException(name, value);
+                throw new ElementValidationException(name, DicomVR.PN, value, ValidationErrorCode.PersonNameExceedMaxGroups);
             }
 
-            foreach (var group in groups)
+            foreach (string group in groups)
             {
                 try
                 {
@@ -40,19 +40,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 catch (ElementValidationException ex) when (ex.ErrorCode == ValidationErrorCode.ExceedMaxLength)
                 {
                     // Reprocess the exception to make more meaningful message
-                    throw ElementValidationExceptionFactory.CreatePersonNameGroupExceedMaxLengthException(name, value);
+                    throw new ElementValidationException(name, DicomVR.PN, value, ValidationErrorCode.PersonNameGroupExceedMaxLength);
                 }
 
                 if (ContainsControlExceptEsc(group))
                 {
-                    throw ElementValidationExceptionFactory.CreateInvalidCharactersException(name, vr, value);
+                    throw new ElementValidationException(name, vr, value, ValidationErrorCode.InvalidCharacters);
                 }
             }
 
-            var groupcomponents = groups.Select(group => group.Split('^').Length);
-            if (groupcomponents.Any(l => l > 5))
+            if (groups.Select(g => g.Split('^').Length).Any(l => l > 5))
             {
-                throw ElementValidationExceptionFactory.CreatePersonNameExceedMaxComponentsException(name, value);
+                throw new ElementValidationException(name, DicomVR.PN, value, ValidationErrorCode.PersonNameExceedMaxComponents);
             }
         }
     }

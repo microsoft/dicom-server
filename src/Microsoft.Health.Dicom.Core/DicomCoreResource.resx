@@ -525,4 +525,10 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>Accept transfer syntax '{0}' is not supported when multiple instances are matched. Matching instances can be retrieved with their original transfer syntax by specifying 'transfer-syntax=*' in the Accept header.</value>
     <comment>{0} Accept header transfer syntax</comment>
   </data>
+  <data name="ErrorMessageDecimalStringIsInvalid" xml:space="preserve">
+    <value>Value cannot be parsed as a valid decimal string.</value>
+  </data>
+  <data name="ErrorMessageIntegerStringIsInvalid" xml:space="preserve">
+    <value>Value cannot be parsed as a valid integer string.</value>
+  </data>
 </root>

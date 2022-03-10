@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
                 // only works for single value dicom element ( Since we accept empty/null value, Count = 0 is accepted).
                 if (dicomElement.Count > 1)
                 {
-                    throw ElementValidationExceptionFactory.CreateMultiValuesException(dicomElement.Tag.GetFriendlyName(), vr);
+                    throw new ElementValidationException(dicomElement.Tag.GetFriendlyName(), vr, ValidationErrorCode.MultipleValues);
                 }
             }
             else
@@ -34,9 +34,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
         }
 
         protected static bool ContainsControlExceptEsc(string text)
-        {
-            return text == null ? false : text.Any(c => char.IsControl(c) && (c != '\u001b'));
-        }
+            => text != null && text.Any(c => char.IsControl(c) && (c != '\u001b'));
 
     }
 }

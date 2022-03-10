@@ -277,11 +277,29 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Value cannot be parsed as a valid decimal string..
+        /// </summary>
+        internal static string ErrorMessageDecimalStringIsInvalid {
+            get {
+                return ResourceManager.GetString("ErrorMessageDecimalStringIsInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Value length exceeds maximum length of {0}..
         /// </summary>
         internal static string ErrorMessageExceedMaxLength {
             get {
                 return ResourceManager.GetString("ErrorMessageExceedMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value cannot be parsed as a valid integer string..
+        /// </summary>
+        internal static string ErrorMessageIntegerStringIsInvalid {
+            get {
+                return ResourceManager.GetString("ErrorMessageIntegerStringIsInvalid", resourceCulture);
             }
         }
         

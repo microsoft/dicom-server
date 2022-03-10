@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Diagnostics;
+using System.Globalization;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -35,7 +36,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             EnsureArg.IsNotNull(vr, nameof(vr));
             if (value?.Length > maxLength)
             {
-                throw ElementValidationExceptionFactory.CreateExceedMaxLengthException(name, vr, value, maxLength);
+                throw new ElementValidationException(
+                    name,
+                    vr,
+                    value,
+                    ValidationErrorCode.ExceedMaxLength,
+                    string.Format(CultureInfo.CurrentCulture, DicomCoreResource.ErrorMessageExceedMaxLength, maxLength));
             }
         }
     }

@@ -4,35 +4,37 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.Health.Dicom.Core.Features.Validation;
-using static Microsoft.Health.Dicom.Core.Features.Validation.ValidationErrorCode;
 
 namespace Microsoft.Health.Dicom.Core.Extensions
 {
     public static class ValidationErrorCodeExtensions
     {
-        private static readonly IReadOnlyDictionary<ValidationErrorCode, string> MessageMap = new Dictionary<ValidationErrorCode, string>()
-        {
-            { None, string.Empty },
+        private static readonly ImmutableDictionary<ValidationErrorCode, string> MessageMap = ImmutableDictionary.CreateRange(
+            new KeyValuePair<ValidationErrorCode, string>[]
+            {
+                KeyValuePair.Create(ValidationErrorCode.None, string.Empty),
 
-            { MultiValues, DicomCoreResource.ErrorMessageMultiValues },
-            { ExceedMaxLength, DicomCoreResource.SimpleErrorMessageExceedMaxLength },
-            { UnexpectedLength, DicomCoreResource.SimpleErrorMessageUnexpectedLength },
-            { InvalidCharacters, DicomCoreResource.ErrorMessageInvalidCharacters },
-            { UnexpectedVR, DicomCoreResource.SimpleErrorMessageUnexpectedVR },
-            { ImplicitVRNotAllowed, DicomCoreResource.ImplicitVRNotAllowed },
+                KeyValuePair.Create(ValidationErrorCode.MultipleValues, DicomCoreResource.ErrorMessageMultiValues),
+                KeyValuePair.Create(ValidationErrorCode.ExceedMaxLength, DicomCoreResource.SimpleErrorMessageExceedMaxLength),
+                KeyValuePair.Create(ValidationErrorCode.UnexpectedLength, DicomCoreResource.SimpleErrorMessageUnexpectedLength),
+                KeyValuePair.Create(ValidationErrorCode.InvalidCharacters, DicomCoreResource.ErrorMessageInvalidCharacters),
+                KeyValuePair.Create(ValidationErrorCode.UnexpectedVR, DicomCoreResource.SimpleErrorMessageUnexpectedVR),
+                KeyValuePair.Create(ValidationErrorCode.ImplicitVRNotAllowed, DicomCoreResource.ImplicitVRNotAllowed),
 
-            { PersonNameExceedMaxGroups, DicomCoreResource.ErrorMessagePersonNameExceedMaxComponents},
-            { PersonNameGroupExceedMaxLength, DicomCoreResource.ErrorMessagePersonNameGroupExceedMaxLength },
-            { PersonNameExceedMaxComponents, DicomCoreResource.ErrorMessagePersonNameExceedMaxComponents},
+                KeyValuePair.Create(ValidationErrorCode.PersonNameExceedMaxGroups, DicomCoreResource.ErrorMessagePersonNameExceedMaxComponents),
+                KeyValuePair.Create(ValidationErrorCode.PersonNameGroupExceedMaxLength, DicomCoreResource.ErrorMessagePersonNameGroupExceedMaxLength),
+                KeyValuePair.Create(ValidationErrorCode.PersonNameExceedMaxComponents, DicomCoreResource.ErrorMessagePersonNameExceedMaxComponents),
 
-            { DateIsInvalid, DicomCoreResource.ErrorMessageDateIsInvalid },
-            { DateTimeIsInvalid, DicomCoreResource.ErrorMessageDateTimeIsInvalid },
-            { TimeIsInvalid, DicomCoreResource.ErrorMessageTimeIsInvalid },
-
-            { UidIsInvalid, DicomCoreResource.ErrorMessageUidIsInvalid},
-        };
+                KeyValuePair.Create(ValidationErrorCode.DateIsInvalid, DicomCoreResource.ErrorMessageDateIsInvalid),
+                KeyValuePair.Create(ValidationErrorCode.UidIsInvalid, DicomCoreResource.ErrorMessageUidIsInvalid),
+                KeyValuePair.Create(ValidationErrorCode.DateTimeIsInvalid, DicomCoreResource.ErrorMessageDateTimeIsInvalid),
+                KeyValuePair.Create(ValidationErrorCode.TimeIsInvalid, DicomCoreResource.ErrorMessageTimeIsInvalid),
+                KeyValuePair.Create(ValidationErrorCode.IntegerStringIsInvalid, DicomCoreResource.ErrorMessageIntegerStringIsInvalid),
+                KeyValuePair.Create(ValidationErrorCode.DecimalStringIsInvalid, DicomCoreResource.ErrorMessageDecimalStringIsInvalid)
+            });
 
         /// <summary>
         /// Get error message for error code.
