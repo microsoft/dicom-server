@@ -10,17 +10,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
     /// </summary>
     public class WorkitemStateTransitionResult
     {
-        public WorkitemStateTransitionResult(string state, string code, bool isError)
+        public WorkitemStateTransitionResult(ProcedureStepState state, string code, bool isError)
         {
             State = state;
             Code = code;
             IsError = isError;
         }
 
-        public string State { get; }
+        public ProcedureStepState State { get; }
 
         public string Code { get; }
 
         public bool IsError { get; }
+
+        public bool HasWarningWithCode => !IsError && !string.IsNullOrWhiteSpace(Code);
     }
 }

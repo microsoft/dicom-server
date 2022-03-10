@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Api.Extensions
 {
     public static class WorkitemResponseStatusExtensions
     {
-        private static readonly IReadOnlyDictionary<WorkitemResponseStatus, HttpStatusCode> ResponseStatusToHttpStatusCodeMapping =
+        private static readonly IReadOnlyDictionary<WorkitemResponseStatus, HttpStatusCode> AddResponseStatusToHttpStatusCodeMapping =
             new Dictionary<WorkitemResponseStatus, HttpStatusCode>()
             {
                 { WorkitemResponseStatus.None, HttpStatusCode.NoContent },
@@ -20,12 +20,29 @@ namespace Microsoft.Health.Dicom.Api.Extensions
                 { WorkitemResponseStatus.Conflict, HttpStatusCode.Conflict },
             };
 
+        private static readonly IReadOnlyDictionary<WorkitemResponseStatus, HttpStatusCode> CancelResponseStatusToHttpStatusCodeMapping =
+            new Dictionary<WorkitemResponseStatus, HttpStatusCode>()
+            {
+                { WorkitemResponseStatus.Success, HttpStatusCode.Accepted },
+                { WorkitemResponseStatus.NotFound, HttpStatusCode.NotFound },
+                { WorkitemResponseStatus.Failure, HttpStatusCode.BadRequest },
+                { WorkitemResponseStatus.Conflict, HttpStatusCode.Conflict }
+            };
+
         /// <summary>
         /// Converts from <see cref="WorkitemResponseStatus"/> to <see cref="HttpStatusCode"/>.
         /// </summary>
         /// <param name="status">The status to convert.</param>
         /// <returns>The converted <see cref="HttpStatusCode"/>.</returns>
-        public static HttpStatusCode ToHttpStatusCode(this WorkitemResponseStatus status)
-            => ResponseStatusToHttpStatusCodeMapping[status];
+        public static HttpStatusCode AddResponseToHttpStatusCode(this WorkitemResponseStatus status)
+            => AddResponseStatusToHttpStatusCodeMapping[status];
+
+        /// <summary>
+        /// Converts from <see cref="WorkitemResponseStatus"/> to <see cref="HttpStatusCode"/>.
+        /// </summary>
+        /// <param name="status">The status to convert.</param>
+        /// <returns>The converted <see cref="HttpStatusCode"/>.</returns>
+        public static HttpStatusCode CancelResponseToHttpStatusCode(this WorkitemResponseStatus status)
+            => CancelResponseStatusToHttpStatusCodeMapping[status];
     }
 }

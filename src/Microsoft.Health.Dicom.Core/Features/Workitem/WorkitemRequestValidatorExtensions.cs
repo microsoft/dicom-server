@@ -28,5 +28,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             UidValidation.Validate(request.WorkitemInstanceUid, nameof(request.WorkitemInstanceUid), allowEmpty: true);
         }
+
+        internal static void Validate(this CancelWorkitemRequest request)
+        {
+            EnsureArg.IsNotNull(request, nameof(request));
+
+            if (request.RequestBody == null)
+            {
+                throw new BadRequestException(DicomCoreResource.MissingRequestBody);
+            }
+
+            UidValidation.Validate(request.WorkitemInstanceUid, nameof(request.WorkitemInstanceUid), allowEmpty: false);
+        }
     }
 }

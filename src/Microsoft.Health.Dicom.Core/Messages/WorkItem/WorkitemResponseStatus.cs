@@ -16,6 +16,11 @@ namespace Microsoft.Health.Dicom.Core.Messages.Workitem
         None,
 
         /// <summary>
+        /// The DICOM work-item instance is not found
+        /// </summary>
+        NotFound,
+
+        /// <summary>
         /// All DICOM work-item instance(s) have been add successfully.
         /// </summary>
         Success,

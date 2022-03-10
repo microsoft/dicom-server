@@ -13,10 +13,9 @@ CREATE TABLE dbo.Workitem (
     Watermark                   BIGINT                            DEFAULT 0 NOT NULL,
 ) WITH (DATA_COMPRESSION = PAGE)
 
--- Ordering workitems by partition and then by WorkitemKey for partition-specific retrieval
+-- Ordering workitems by WorkitemKey for retrieval
 CREATE UNIQUE CLUSTERED INDEX IXC_Workitem ON dbo.Workitem
 (
-    PartitionKey,
     WorkitemKey
 )
 
@@ -31,5 +30,12 @@ INCLUDE
     WorkitemKey,
     Status,
     TransactionUid
+)
+WITH (DATA_COMPRESSION = PAGE)
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemKey_Watermark ON dbo.Workitem
+(
+    WorkitemKey,
+    Watermark
 )
 WITH (DATA_COMPRESSION = PAGE)
