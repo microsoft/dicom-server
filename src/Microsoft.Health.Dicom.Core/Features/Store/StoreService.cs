@@ -117,9 +117,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Store
                 var isValid = await _dicomDatasetValidator.ValidateAsync(dicomDataset, _requiredStudyInstanceUid, cancellationToken);
                 if (!isValid)
                 {
-                    warningReasonCode = FailureReasonCodes.DataSetDoesNotMatchSOPClass;
+                    warningReasonCode = FailureReasonCodes.DatasetDoesNotMatchSOPClass;
 
-                    LogValidationSucceededWithWarningDelegate(_logger, index, FailureReasonCodes.DataSetDoesNotMatchSOPClass, null);
+                    LogValidationSucceededWithWarningDelegate(_logger, index, FailureReasonCodes.DatasetDoesNotMatchSOPClass, null);
                 }
             }
             catch (Exception ex)

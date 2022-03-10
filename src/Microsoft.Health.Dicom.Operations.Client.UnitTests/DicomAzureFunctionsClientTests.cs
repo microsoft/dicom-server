@@ -112,12 +112,13 @@ namespace Microsoft.Health.Dicom.Operations.Client.UnitTests
         }
 
         [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public async Task GivenReindexOperation_WhenGettingStatus_ThenReturnStatus(bool populateInput)
+        [InlineData(false, false)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public async Task GivenReindexOperation_WhenGettingStatus_ThenReturnStatus(bool populateInput, bool overrideCreatedTime)
         {
             Guid id = Guid.NewGuid();
-            var createdDateTime = new DateTime(2021, 06, 08, 1, 2, 3, DateTimeKind.Utc);
+            var createdTime = new DateTime(2021, 06, 08, 1, 2, 3, DateTimeKind.Utc);
             var tagKeys = new int[] { 1, 2, 3 };
             var tagPaths = tagKeys.Select(x => string.Join("", Enumerable.Repeat(x.ToString("D2", CultureInfo.InvariantCulture), 4))).ToArray();
             var expectedResourceUrls = tagPaths.Select(x => new Uri($"https://dicom-unit-tests/extendedquerytags/{x}", UriKind.Absolute)).ToArray();
@@ -128,7 +129,7 @@ namespace Microsoft.Health.Dicom.Operations.Client.UnitTests
                 .GetStatusAsync(OperationId.ToString(id), showInput: true)
                 .Returns(new DurableOrchestrationStatus
                 {
-                    CreatedTime = createdDateTime,
+                    CreatedTime = createdTime,
                     CustomStatus = null,
                     History = null,
                     Input = populateInput
@@ -136,11 +137,12 @@ namespace Microsoft.Health.Dicom.Operations.Client.UnitTests
                             new ReindexInput
                             {
                                 Completed = new WatermarkRange(21, 100),
+                                CreatedTime = overrideCreatedTime ? createdTime.AddHours(-1) : null,
                                 QueryTagKeys = tagKeys,
                             })
                         : null,
                     InstanceId = OperationId.ToString(id),
-                    LastUpdatedTime = createdDateTime.AddMinutes(15),
+                    LastUpdatedTime = createdTime.AddMinutes(15),
                     Name = FunctionNames.ReindexInstances,
                     Output = null,
                     RuntimeStatus = OrchestrationRuntimeStatus.Running,
@@ -170,8 +172,8 @@ namespace Microsoft.Health.Dicom.Operations.Client.UnitTests
 
             OperationStatus actual = await _client.GetStatusAsync(id, source.Token);
             Assert.NotNull(actual);
-            Assert.Equal(createdDateTime, actual.CreatedTime);
-            Assert.Equal(createdDateTime.AddMinutes(15), actual.LastUpdatedTime);
+            Assert.Equal(overrideCreatedTime ? createdTime.AddHours(-1) : createdTime, actual.CreatedTime);
+            Assert.Equal(createdTime.AddMinutes(15), actual.LastUpdatedTime);
             Assert.Equal(id, actual.OperationId);
             Assert.Equal(populateInput ? 80 : 0, actual.PercentComplete);
             Assert.True(actual.Resources.SequenceEqual(populateInput ? expectedResourceUrls : Array.Empty<Uri>()));

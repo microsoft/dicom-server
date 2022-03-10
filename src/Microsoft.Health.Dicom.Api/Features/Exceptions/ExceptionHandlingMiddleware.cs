@@ -6,6 +6,7 @@
 using System;
 using System.Net;
 using System.Runtime.ExceptionServices;
+using System.Text.Json;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
@@ -66,6 +67,11 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions
 
             switch (exception)
             {
+                case JsonException:
+                    _logger.LogError(exception, nameof(JsonException));
+                    message = DicomApiResource.InvalidSyntax;
+                    statusCode = HttpStatusCode.BadRequest;
+                    break;
                 case ValidationException _:
                 case NotSupportedException _:
                 case AuditHeaderCountExceededException _:

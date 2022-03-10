@@ -32,11 +32,25 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
             CancellationToken cancellationToken);
 
         /// <summary>
+        /// Asynchronously processes the Cancel workitem dataset
+        /// </summary>
+        /// <param name="dataset">The <see cref="DicomDataset"/> to process.</param>
+        /// <param name="workitemInstanceUid">The Work Item InstanceUID tag.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task that represents the asynchronous process operation.</returns>
+        Task<CancelWorkitemResponse> ProcessCancelAsync(
+            DicomDataset dataset,
+            string workitemInstanceUid,
+            CancellationToken cancellationToken);
+
+        /// <summary>
         /// Asynchronously process the searching of a UPS-RS workitem
         /// </summary>
         /// <param name="parameters">Query parameters that contains filters</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous process operation.</returns>
-        Task<QueryWorkitemResourceResponse> ProcessQueryAsync(BaseQueryParameters parameters, CancellationToken cancellationToken = default);
+        Task<QueryWorkitemResourceResponse> ProcessQueryAsync(
+            BaseQueryParameters parameters,
+            CancellationToken cancellationToken = default);
     }
 }

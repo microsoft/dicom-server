@@ -3,10 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Globalization;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem
@@ -74,32 +72,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem
 
             dataset.ValidateRequirement(DicomTag.UnifiedProcedureStepPerformedProcedureSequence, RequirementCode.TwoTwo);
             ValidateEmptyValue(dataset, DicomTag.UnifiedProcedureStepPerformedProcedureSequence);
-        }
-
-        private static void ValidateEmptyValue(DicomDataset dataset, DicomTag tag)
-        {
-            if (dataset.GetValueCount(tag) > 0)
-            {
-                throw new DatasetValidationException(
-                    FailureReasonCodes.ValidationFailure,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        DicomCoreResource.AttributeMustBeEmpty,
-                        tag));
-            }
-        }
-
-        private static void ValidateNotPresent(DicomDataset dataset, DicomTag tag)
-        {
-            if (dataset.Contains(tag))
-            {
-                throw new DatasetValidationException(
-                    FailureReasonCodes.ValidationFailure,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        DicomCoreResource.AttributeNotAllowed,
-                        tag));
-            }
         }
     }
 }

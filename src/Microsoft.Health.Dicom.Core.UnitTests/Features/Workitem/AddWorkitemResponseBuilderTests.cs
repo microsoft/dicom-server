@@ -54,7 +54,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         [Fact]
         public void GivenBuildResponse_WhenFailure_ThenFailureReasonTagIsAddedToDicomDataset()
         {
-            _target.AddFailure(_dataset, (ushort)WorkitemResponseStatus.Failure);
+            _target.AddFailure((ushort)WorkitemResponseStatus.Failure, dicomDataset: _dataset);
 
             var response = _target.BuildAddResponse();
 
@@ -67,7 +67,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
         [Fact]
         public void GivenBuildResponse_WhenConflict_ThenFailureReasonTagIsAddedToDicomDataset()
         {
-            _target.AddFailure(_dataset, FailureReasonCodes.SopInstanceAlreadyExists);
+            _target.AddFailure(FailureReasonCodes.SopInstanceAlreadyExists, dicomDataset: _dataset);
 
             var response = _target.BuildAddResponse();
 

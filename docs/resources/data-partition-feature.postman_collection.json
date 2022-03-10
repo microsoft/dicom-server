@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "e43ef83d-7f6c-421e-80f4-254a92917695",
+		"_postman_id": "2096f878-0365-40e6-afd6-4799a6821cd3",
 		"name": "Dicom Data Partition Feature",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -315,6 +315,63 @@
 							"key": "PatientName",
 							"value": "Last^First"
 						}
+					]
+				},
+				"description": "For the body of the request, select the red-triangle.dcm file located in the GitHub repo at ../docs/dcms.  Ensure you attach the file as `binary`.\r\n\r\n> NOTE: This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related. It allows the use of Postman to upload files to the DICOMweb service.\r\n\r\nThe following is required to upload a single DICOM file.\r\n\r\n* Path: ../studies\r\n* Method: POST\r\n* Headers:\r\n   *  `Accept: application/dicom+json`\r\n   *  `Content-Type: application/dicom`\r\n* Body:\r\n    * Contains the DICOM file as a bytes.\r\n\r\n> This API is currently not implemented\r\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Request-cancellation-workitem",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true,
+					"accept-encoding": true,
+					"connection": true,
+					"content-type": true,
+					"user-agent": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/dicom+json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {\r\n        \"00741238\": {\r\n            \"vr\": \"LT\",\r\n            \"Value\": [\r\n                \"This Workitem should be cancelled.\"\r\n            ]\r\n        },\r\n        \"0074100A\": {\r\n            \"vr\": \"UR\",\r\n            \"Value\": [\r\n                \"https://microsoft.com\"\r\n            ]\r\n        },\r\n        \"0074100C\": {\r\n            \"vr\": \"LO\",\r\n            \"Value\": [\r\n                \"Microsoft\"\r\n            ]\r\n        },\r\n        \"0074100E\": {\r\n            \"vr\": \"SQ\",\r\n            \"Value\": [\r\n                {\r\n                    \"00080100\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"ABC123\"\r\n                        ]\r\n                    },\r\n                    \"00080102\": {\r\n                        \"vr\": \"SH\",\r\n                        \"Value\": [\r\n                            \"123ABC\"\r\n                        ]\r\n                    },\r\n                    \"00080104\": {\r\n                        \"vr\": \"LO\",\r\n                        \"Value\": [\r\n                            \"Requested procedure\"\r\n                        ]\r\n                    }\r\n                }\r\n            ]\r\n        }\r\n    }\r\n]",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/partitions/{{partitionName}}/workitems/{{workitem1}}/cancelrequest",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"partitions",
+						"{{partitionName}}",
+						"workitems",
+						"{{workitem1}}",
+						"cancelrequest"
 					]
 				},
 				"description": "For the body of the request, select the red-triangle.dcm file located in the GitHub repo at ../docs/dcms.  Ensure you attach the file as `binary`.\r\n\r\n> NOTE: This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related. It allows the use of Postman to upload files to the DICOMweb service.\r\n\r\nThe following is required to upload a single DICOM file.\r\n\r\n* Path: ../studies\r\n* Method: POST\r\n* Headers:\r\n   *  `Accept: application/dicom+json`\r\n   *  `Content-Type: application/dicom`\r\n* Body:\r\n    * Contains the DICOM file as a bytes.\r\n\r\n> This API is currently not implemented\r\n"
