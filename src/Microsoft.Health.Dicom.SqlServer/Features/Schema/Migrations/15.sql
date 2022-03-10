@@ -637,7 +637,7 @@ SET XACT_ABORT ON;
 BEGIN
     BEGIN TRANSACTION;
     IF (SELECT COUNT(*)
-        FROM   dbo.ExtendedQueryTag AS XQT WITH (HOLDLOCK)
+        FROM   dbo.ExtendedQueryTag AS XQT WITH (UPDLOCK, HOLDLOCK)
                FULL OUTER JOIN
                @extendedQueryTags AS input
                ON XQT.TagPath = input.TagPath) > @maxAllowedCount
