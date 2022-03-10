@@ -29,8 +29,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         public ExtendedQueryTagTests(WebJobsIntegrationTestFixture<Startup> fixture)
         {
-            EnsureArg.IsNotNull(fixture, nameof(fixture));
-            _client = fixture.GetDicomWebClient();
+            _client = EnsureArg.IsNotNull(fixture, nameof(fixture)).GetDicomWebClient();
             _tagManager = new DicomTagsManager(_client);
             _instanceManager = new DicomInstancesManager(_client);
         }
@@ -40,20 +39,20 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         public async Task GivenExtendedQueryTag_WhenReindexing_ThenShouldSucceed()
         {
             DicomTag ageTag = DicomTag.PatientAge;
-            DicomTag newTag = new DicomTag(0x7777, 0x00AA, "Test");
+            DicomTag filmTag = DicomTag.NumberOfFilms;
 
             // Try to delete these extended query tags.
             await CleanupExtendedQueryTag(ageTag);
-            await CleanupExtendedQueryTag(newTag);
+            await CleanupExtendedQueryTag(filmTag);
 
             // Define DICOM files
             DicomDataset instance1 = Samples.CreateRandomInstanceDataset();
-            instance1.Add(ageTag, "48Y");
-            instance1.Add(newTag, "12345");
+            instance1.Add(ageTag, "048Y");
+            instance1.Add(filmTag, "12");
 
             DicomDataset instance2 = Samples.CreateRandomInstanceDataset();
-            instance2.Add(ageTag, "32Y");
-            instance2.Add(newTag, "06789");
+            instance2.Add(ageTag, "010W");
+            instance2.Add(filmTag, "03");
 
             // Upload files
             Assert.True((await _instanceManager.StoreAsync(new DicomFile(instance1))).IsSuccessStatusCode);
@@ -64,7 +63,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
                 new AddExtendedQueryTagEntry[]
                 {
                     new AddExtendedQueryTagEntry { Path = ageTag.GetPath(), VR = ageTag.GetDefaultVR().Code, Level = QueryTagLevel.Study },
-                    new AddExtendedQueryTagEntry { Path = newTag.GetPath(), VR = DicomVRCode.IS, Level = QueryTagLevel.Study },
+                    new AddExtendedQueryTagEntry { Path = filmTag.GetPath(), VR = filmTag.GetDefaultVR().Code, Level = QueryTagLevel.Study },
                 });
             Assert.Equal(OperationRuntimeStatus.Completed, operation.Status);
 
@@ -77,7 +76,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Null(entry.Errors);
             Assert.Equal(QueryStatus.Enabled, entry.QueryStatus);
 
-            getResponse = await _client.GetExtendedQueryTagAsync(newTag.GetPath());
+            getResponse = await _client.GetExtendedQueryTagAsync(filmTag.GetPath());
             entry = await getResponse.GetValueAsync();
             Assert.Null(entry.Errors);
             Assert.Equal(QueryStatus.Enabled, entry.QueryStatus);
@@ -91,7 +90,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(multipleTags[1].Path, (await _tagManager.GetTagsAsync(1, 1)).Single().Path);
 
             // QIDO
-            DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryInstancesAsync($"{newTag.GetPath()}=006789");
+            DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryInstancesAsync($"{filmTag.GetPath()}=0003");
             DicomDataset[] instances = await queryResponse.ToArrayAsync();
             Assert.Contains(instances, instance => instance.ToInstanceIdentifier().Equals(instance2.ToInstanceIdentifier()));
         }
