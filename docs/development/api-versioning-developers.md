@@ -16,7 +16,9 @@ public async Task<IActionResult> PostAsync(string studyInstanceUid = null)
 
 ## Incrementing the version
 
-We will only increment the major version of the API, and leave the minor version at 0. Ex: 1.0, 2.0, 3.0, etc.
+We will only increment the major version of the API, and leave out the minor version. Ex: 1, 2, 3, etc.
+
+Our prerelease version included the minor version: `1.0-prerelease`, but we have moved away from that syntax.
 
 ### Breaking change
 The major version must be incremented if a breaking change is introduced.
@@ -63,8 +65,8 @@ Currently we have a test in our pr and ci pipeline that checks to make sure that
 
 We can deprecate old versions by marking the version as deprecated as follows:
 ```c#
-[ApiVersion("2.0")]
-[ApiVersion("1.0", Deprecated = true)]
+[ApiVersion("2")]
+[ApiVersion("1", Deprecated = true)]
 ```
 
 TBD: When to deprecate and when to retire old versions
