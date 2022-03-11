@@ -1,15 +1,20 @@
-# Data Validation
+# Tests
 
-Because DICOM is a historical standard with a long history of implementations that conform to the standard to varying degrees,
-we expect DICOM data to vary widely in its strict adherence to the standard.
+![Testing pyramid](/docs/images/TestPyramid.png)
 
-**Our general approach is to be has lenient as possible, accepting DICOM data unless it has a direct effect on functionality.**
+- More unit tests, less integration tests, even less EnE tests.
+- Unit tests are used to test all combination of valid and invalid cases for a specific component.
+- E2E tests to validate all the integrations works for p0 scenario.
+- Manual directed bug bashes are used to augment the automated testing.
 
-This approach plays out in the following ways currently:
-1. When DICOM data is received via a STOW request, we only validate data attributes that are indexed by default or via extended query tag.
-2. We will attempt to store all other data attributes as they are. 
-3. When new data attributes are indexed, extended query tag API handles errors gracefully, by continuing on validation errors and
-getting explicit consent to allow searching partially indexed data.
-4. New functionality should account for the presence of invalid data in unindexed attributes.
+## Unit tests
+- <em>Smallest testable part of software. </em>
+- All business logic pinned with unit tests.
+ 
+## Integration tests
+- <em>Individual units are combined and tested as a group.</em>
+- DICOM uses integration tests to test the persistence layer.
 
-Data validation errors are communicated on each request by response status codes and failure codes documented in the conformance statement.
+## End to End (E2E) tests
+- <em>End to end user scenarios are tested.</em>
+- DICOM uses E2E test methodology to test Web API endpoint behaviors.
