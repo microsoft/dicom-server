@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Globalization;
 using FellowOakDicom;
 using FellowOakDicom.IO;
 using Microsoft.Health.Dicom.Core.Features.Validation;
@@ -34,12 +35,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
 
             yield return new object[] { new DicomCodeString(DicomTag.AcquisitionStartCondition, "0123456789 ") };
             yield return new object[] { new DicomDate(DicomTag.AcquisitionDate, "20210313") };
-            yield return new object[] { new DicomDecimalString(DicomTag.ActiveSourceLength, "1e1") };
 
             yield return new object[] { new DicomFloatingPointSingle(DicomTag.AnchorPoint, ByteConverter.ToByteBuffer(new float[] { float.MaxValue })) };
             yield return new object[] { new DicomFloatingPointDouble(DicomTag.DopplerCorrectionAngle, ByteConverter.ToByteBuffer(new double[] { double.MaxValue })) };
 
-            yield return new object[] { new DicomIntegerString(DicomTag.DoseReferenceNumber, "012345678912") };
+            yield return new object[] { new DicomIntegerString(DicomTag.DoseReferenceNumber, int.MaxValue.ToString("D12", CultureInfo.InvariantCulture)) };
             yield return new object[] { new DicomLongString(DicomTag.WindowCenterWidthExplanation, "0123456789012345678901234567890123456789012345678901234567891234") };
             yield return new object[] { new DicomPersonName(DicomTag.PatientName, "abc^xyz=abc^xyz^xyz^xyz^xyz=abc^xyz") };
 

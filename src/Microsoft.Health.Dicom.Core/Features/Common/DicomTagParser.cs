@@ -7,6 +7,8 @@ using System;
 using System.Globalization;
 using System.Linq;
 using FellowOakDicom;
+using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Features.Common
 {
@@ -24,18 +26,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Common
             }
 
             DicomTag[] tags = dicomTagPath
-                     .Split('.')
-                     .Select(ParseTagFromKeywordOrNumber)
-                     .ToArray();
+                .Split('.')
+                .Select(ParseTagFromKeywordOrNumber)
+                .ToArray();
 
             if (!supportMultiple && tags.Length > 1)
             {
-                throw new DicomValidationException(dicomTagPath, DicomVR.SQ, DicomCoreResource.SequentialDicomTagsNotSupported);
+                throw new ElementValidationException(dicomTagPath, DicomVR.SQ, ValidationErrorCode.SequenceDisallowed);
             }
 
             if (tags.Length > 2)
             {
-                throw new DicomValidationException(dicomTagPath, DicomVR.SQ, DicomCoreResource.NestedSequencesNotSupported);
+                throw new ElementValidationException(dicomTagPath, DicomVR.SQ, ValidationErrorCode.NestedSequence);
             }
 
             var result = tags.All(x => x != null);

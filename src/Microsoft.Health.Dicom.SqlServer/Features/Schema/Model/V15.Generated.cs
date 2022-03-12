@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V15
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -40,7 +40,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static DeleteDeletedInstanceProcedure DeleteDeletedInstance = new DeleteDeletedInstanceProcedure();
         internal readonly static DeleteDeletedInstanceV6Procedure DeleteDeletedInstanceV6 = new DeleteDeletedInstanceV6Procedure();
         internal readonly static DeleteExtendedQueryTagProcedure DeleteExtendedQueryTag = new DeleteExtendedQueryTagProcedure();
-        internal readonly static DeleteExtendedQueryTagV16Procedure DeleteExtendedQueryTagV16 = new DeleteExtendedQueryTagV16Procedure();
         internal readonly static DeleteExtendedQueryTagV8Procedure DeleteExtendedQueryTagV8 = new DeleteExtendedQueryTagV8Procedure();
         internal readonly static DeleteInstanceV6Procedure DeleteInstanceV6 = new DeleteInstanceV6Procedure();
         internal readonly static DeleteWorkitemProcedure DeleteWorkitem = new DeleteWorkitemProcedure();
@@ -67,7 +66,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetWorkitemQueryTagsProcedure GetWorkitemQueryTags = new GetWorkitemQueryTagsProcedure();
         internal readonly static IIndexInstanceCoreV9Procedure IIndexInstanceCoreV9 = new IIndexInstanceCoreV9Procedure();
         internal readonly static IIndexWorkitemInstanceCoreProcedure IIndexWorkitemInstanceCore = new IIndexWorkitemInstanceCoreProcedure();
-        internal readonly static ISleepIfBusyProcedure ISleepIfBusy = new ISleepIfBusyProcedure();
         internal readonly static IncrementDeletedInstanceRetryProcedure IncrementDeletedInstanceRetry = new IncrementDeletedInstanceRetryProcedure();
         internal readonly static IncrementDeletedInstanceRetryV6Procedure IncrementDeletedInstanceRetryV6 = new IncrementDeletedInstanceRetryV6Procedure();
         internal readonly static IndexInstanceV6Procedure IndexInstanceV6 = new IndexInstanceV6Procedure();
@@ -860,26 +858,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class DeleteExtendedQueryTagV16Procedure : StoredProcedure
-        {
-            internal DeleteExtendedQueryTagV16Procedure() : base("dbo.DeleteExtendedQueryTagV16")
-            {
-            }
-
-            private readonly ParameterDefinition<System.String> _tagPath = new ParameterDefinition<System.String>("@tagPath", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.Byte> _dataType = new ParameterDefinition<System.Byte>("@dataType", global::System.Data.SqlDbType.TinyInt, false);
-            private readonly ParameterDefinition<System.Nullable<System.Int32>> _batchSize = new ParameterDefinition<System.Nullable<System.Int32>>("@batchSize", global::System.Data.SqlDbType.Int, true);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath, System.Byte dataType, System.Nullable<System.Int32> batchSize)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.DeleteExtendedQueryTagV16";
-                _tagPath.AddParameter(command.Parameters, tagPath);
-                _dataType.AddParameter(command.Parameters, dataType);
-                _batchSize.AddParameter(command.Parameters, batchSize);
-            }
-        }
-
         internal class DeleteExtendedQueryTagV8Procedure : StoredProcedure
         {
             internal DeleteExtendedQueryTagV8Procedure() : base("dbo.DeleteExtendedQueryTagV8")
@@ -1490,19 +1468,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> StringExtendedQueryTags { get; }
             internal global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> DateTimeExtendedQueryTags { get; }
             internal global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameExtendedQueryTags { get; }
-        }
-
-        internal class ISleepIfBusyProcedure : StoredProcedure
-        {
-            internal ISleepIfBusyProcedure() : base("dbo.ISleepIfBusy")
-            {
-            }
-
-            public void PopulateCommand(SqlCommandWrapper command)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.ISleepIfBusy";
-            }
         }
 
         internal class IncrementDeletedInstanceRetryProcedure : StoredProcedure

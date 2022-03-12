@@ -295,6 +295,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Value cannot be parsed as a valid integer string..
+        /// </summary>
+        internal static string ErrorMessageIntegerStringIsInvalid {
+            get {
+                return ResourceManager.GetString("ErrorMessageIntegerStringIsInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Value contains invalid character..
         /// </summary>
         internal static string ErrorMessageInvalidCharacters {

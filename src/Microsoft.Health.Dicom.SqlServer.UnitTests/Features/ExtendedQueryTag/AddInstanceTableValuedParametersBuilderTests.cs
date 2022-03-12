@@ -126,12 +126,11 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
 
                 yield return BuildParam(DicomTag.AcquisitionStartCondition, "0123456789", schemaVersion, (tag, value) => new DicomCodeString(tag, value));
                 yield return BuildParam(DicomTag.AcquisitionDate, DateTime.Parse("2021/5/20"), schemaVersion, (tag, value) => new DicomDate(tag, value));
-                yield return BuildParam(DicomTag.ActiveSourceLength, "1e1", schemaVersion, (tag, value) => new DicomDecimalString(tag, value));
 
                 yield return BuildParam(DicomTag.TableOfParameterValues, 100.0, schemaVersion, (tag, value) => new DicomFloatingPointSingle(tag, (float)value));
                 yield return BuildParam(DicomTag.DopplerCorrectionAngle, 100.0, schemaVersion, (tag, value) => new DicomFloatingPointDouble(tag, value));
 
-                yield return BuildParam(DicomTag.DoseReferenceNumber, "0123456789", schemaVersion, (tag, value) => new DicomIntegerString(tag, value));
+                yield return BuildParam(DicomTag.DoseReferenceNumber, "0123456789", schemaVersion, (tag, value) => new DicomIntegerString(tag, value), 123456789L);
                 yield return BuildParam(DicomTag.WindowCenterWidthExplanation, "0123456789012345678901234567890123456789012345678901234567891234", schemaVersion, (tag, value) => new DicomLongString(tag, value));
                 yield return BuildParam(DicomTag.PatientName, "abc^xyz=abc^xyz^xyz^xyz^xyz=abc^xyz", schemaVersion, (tag, value) => new DicomPersonName(tag, value));
 
@@ -200,9 +199,9 @@ namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
             return new DicomTag((ushort)(uvalue / 65536), (ushort)(uvalue % 65536));
         }
 
-        private static object[] BuildParam<T>(DicomTag tag, T value, int schemaVersion, Func<DicomTag, T, DicomElement> creator)
+        private static object[] BuildParam<T>(DicomTag tag, T value, int schemaVersion, Func<DicomTag, T, DicomElement> creator, object expected = null)
         {
-            return new object[] { creator.Invoke(tag, value), schemaVersion, value };
+            return new object[] { creator.Invoke(tag, value), schemaVersion, expected ?? value };
         }
     }
 }

@@ -48,11 +48,11 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         }
 
         [Theory]
-        [InlineData("0040A30a")] // lower case is also supported
-        [InlineData("0040A30A")]
+        [InlineData("0074140c")] // lower case is also supported
+        [InlineData("0074140C")]
         public void GivenValidTag_WhenValidating_ThenShouldSucceed(string path)
         {
-            AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(path, DicomVRCode.DS);
+            AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(path, DicomVRCode.IS);
             _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry });
         }
 
@@ -66,7 +66,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         }
 
         [Fact]
-        public void GivenStandardTagWithPrivateCreator_WhenValidating_ThenShouldThrowExceptoin()
+        public void GivenStandardTagWithPrivateCreator_WhenValidating_ThenShouldThrowException()
         {
             AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(DicomTag.DeviceSerialNumber.GetPath(), null, privateCreator: "PrivateCreator");
             Assert.Throws<ExtendedQueryTagEntryValidationException>(() =>
@@ -98,6 +98,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         [Theory]
         [InlineData("0018A001", DicomVRCode.SQ, DicomVRCode.SQ)]
         [InlineData("0018A001", "", DicomVRCode.SQ)] // when VR is missing for standard tag
+        [InlineData("0040A30A", DicomVRCode.DS, DicomVRCode.DS)]
         public void GivenUnsupportedVR_WhenValidating_ThenShouldThrowException(string path, string vr, string expectedVR)
         {
             AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(path, vr);

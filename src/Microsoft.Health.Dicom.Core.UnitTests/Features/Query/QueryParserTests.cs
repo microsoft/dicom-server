@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
@@ -440,7 +441,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
         [InlineData("ReferencedRequestSequence.Requested​Procedure​ID", "Foo")]
         public void GivenSequenceTag_WithMultipleTagsNotSupported_ThenThrow(string key, string value)
         {
-            Assert.Throws<DicomValidationException>(() => _queryParser
+            Assert.Throws<ElementValidationException>(() => _queryParser
                 .Parse(CreateParameters(GetSingleton(key, value), QueryResource.AllSeries), QueryTagService.CoreQueryTags));
         }
 

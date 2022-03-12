@@ -29,8 +29,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
 
         public ExtendedQueryTagTests(WebJobsIntegrationTestFixture<Startup> fixture)
         {
-            EnsureArg.IsNotNull(fixture, nameof(fixture));
-            _client = fixture.GetDicomWebClient();
+            _client = EnsureArg.IsNotNull(fixture, nameof(fixture)).GetDicomWebClient();
             _tagManager = new DicomTagsManager(_client);
             _instanceManager = new DicomInstancesManager(_client);
         }
@@ -39,21 +38,21 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         [Trait("Category", "bvt")]
         public async Task GivenExtendedQueryTag_WhenReindexing_ThenShouldSucceed()
         {
-            DicomTag weightTag = DicomTag.PatientWeight;
-            DicomTag sizeTag = DicomTag.PatientSize;
+            DicomTag ageTag = DicomTag.PatientAge;
+            DicomTag filmTag = DicomTag.NumberOfFilms;
 
             // Try to delete these extended query tags.
-            await CleanupExtendedQueryTag(weightTag);
-            await CleanupExtendedQueryTag(sizeTag);
+            await CleanupExtendedQueryTag(ageTag);
+            await CleanupExtendedQueryTag(filmTag);
 
             // Define DICOM files
             DicomDataset instance1 = Samples.CreateRandomInstanceDataset();
-            instance1.Add(weightTag, 68.0M);
-            instance1.Add(sizeTag, 1.78M);
+            instance1.Add(ageTag, "048Y");
+            instance1.Add(filmTag, "12");
 
             DicomDataset instance2 = Samples.CreateRandomInstanceDataset();
-            instance2.Add(weightTag, 50.0M);
-            instance2.Add(sizeTag, 1.5M);
+            instance2.Add(ageTag, "010W");
+            instance2.Add(filmTag, "03");
 
             // Upload files
             Assert.True((await _instanceManager.StoreAsync(new DicomFile(instance1))).IsSuccessStatusCode);
@@ -63,8 +62,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             OperationStatus operation = await _tagManager.AddTagsAsync(
                 new AddExtendedQueryTagEntry[]
                 {
-                    new AddExtendedQueryTagEntry { Path = weightTag.GetPath(), VR = weightTag.GetDefaultVR().Code, Level = QueryTagLevel.Study },
-                    new AddExtendedQueryTagEntry { Path = sizeTag.GetPath(), VR = sizeTag.GetDefaultVR().Code, Level = QueryTagLevel.Study },
+                    new AddExtendedQueryTagEntry { Path = ageTag.GetPath(), VR = ageTag.GetDefaultVR().Code, Level = QueryTagLevel.Study },
+                    new AddExtendedQueryTagEntry { Path = filmTag.GetPath(), VR = filmTag.GetDefaultVR().Code, Level = QueryTagLevel.Study },
                 });
             Assert.Equal(OperationRuntimeStatus.Completed, operation.Status);
 
@@ -72,12 +71,12 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             DicomWebResponse<GetExtendedQueryTagEntry> getResponse;
             GetExtendedQueryTagEntry entry;
 
-            getResponse = await _client.GetExtendedQueryTagAsync(weightTag.GetPath());
+            getResponse = await _client.GetExtendedQueryTagAsync(ageTag.GetPath());
             entry = await getResponse.GetValueAsync();
             Assert.Null(entry.Errors);
             Assert.Equal(QueryStatus.Enabled, entry.QueryStatus);
 
-            getResponse = await _client.GetExtendedQueryTagAsync(sizeTag.GetPath());
+            getResponse = await _client.GetExtendedQueryTagAsync(filmTag.GetPath());
             entry = await getResponse.GetValueAsync();
             Assert.Null(entry.Errors);
             Assert.Equal(QueryStatus.Enabled, entry.QueryStatus);
@@ -91,7 +90,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
             Assert.Equal(multipleTags[1].Path, (await _tagManager.GetTagsAsync(1, 1)).Single().Path);
 
             // QIDO
-            DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryInstancesAsync($"{weightTag.GetPath()}=50.0");
+            DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryInstancesAsync($"{filmTag.GetPath()}=0003");
             DicomDataset[] instances = await queryResponse.ToArrayAsync();
             Assert.Contains(instances, instance => instance.ToInstanceIdentifier().Equals(instance2.ToInstanceIdentifier()));
         }

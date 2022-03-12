@@ -194,10 +194,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
 
         private static void AddLongRow(DicomDataset instance, HashSet<InsertLongExtendedQueryTagTableTypeV1Row> longRows, QueryTag queryTag, int tagKey)
         {
-            long? longVal = LongReaders.TryGetValue(
-                             queryTag.VR,
-                             out Func<DicomDataset, DicomTag, DicomVR, long?> reader) ? reader.Invoke(instance, queryTag.Tag, queryTag.VR) :
-                             instance.GetSingleValueOrDefault<long>(queryTag.Tag, expectedVR: queryTag.VR);
+            long? longVal = LongReaders.TryGetValue(queryTag.VR, out Func<DicomDataset, DicomTag, DicomVR, long?> reader)
+                ? reader.Invoke(instance, queryTag.Tag, queryTag.VR)
+                : instance.GetSingleValueOrDefault<long>(queryTag.Tag, queryTag.VR);
 
             if (longVal.HasValue)
             {

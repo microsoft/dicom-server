@@ -328,7 +328,13 @@ namespace Microsoft.Health.Dicom.Core.Extensions
             {
                 if (dicomElement.ValueRepresentation != queryTag.VR)
                 {
-                    throw ElementValidationExceptionFactory.CreateUnexpectedVRException(dicomElement.Tag.GetFriendlyName(), dicomElement.ValueRepresentation, queryTag.VR);
+                    string name = dicomElement.Tag.GetFriendlyName();
+                    DicomVR actualVR = dicomElement.ValueRepresentation;
+                    throw new ElementValidationException(
+                        name,
+                        actualVR,
+                        ValidationErrorCode.UnexpectedVR,
+                        string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageUnexpectedVR, name, queryTag.VR, actualVR));
                 }
 
                 minimumValidator.Validate(dicomElement);
@@ -348,7 +354,7 @@ namespace Microsoft.Health.Dicom.Core.Extensions
 
             if (dicomTags.Count != 2)
             {
-                throw new DicomValidationException(string.Join(", ", dicomTags.Select(x => x.GetPath())), DicomVR.SQ, DicomCoreResource.NestedSequencesNotSupported);
+                throw new ElementValidationException(string.Join(", ", dicomTags.Select(x => x.GetPath())), DicomVR.SQ, ValidationErrorCode.NestedSequence);
             }
 
             var foundSequence = dataset.GetSequence(dicomTags[0]);
