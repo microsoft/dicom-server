@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             var results = new List<InstanceMetadata>();
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
                 VLatest.GetInstanceWithProperties.PopulateCommand(
                     sqlCommandWrapper,

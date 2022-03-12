@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Partition
         public override async Task<PartitionEntry> AddPartitionAsync(string partitionName, CancellationToken cancellationToken)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
                 VLatest.AddPartition.PopulateCommand(sqlCommandWrapper, partitionName);
 
@@ -62,7 +62,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Partition
             var results = new List<PartitionEntry>();
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
                 VLatest.GetPartitions.PopulateCommand(sqlCommandWrapper);
 
@@ -89,7 +89,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Partition
         public override async Task<PartitionEntry> GetPartitionAsync(string partitionName, CancellationToken cancellationToken)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
                 VLatest.GetPartition.PopulateCommand(sqlCommandWrapper, partitionName);
 

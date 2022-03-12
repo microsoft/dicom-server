@@ -37,7 +37,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             var results = new List<VersionedInstanceIdentifier>();
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
                 VLatest.GetInstancesByWatermarkRange.PopulateCommand(
                     sqlCommandWrapper,
@@ -78,7 +78,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
             EnsureArg.IsGt(batchCount, 0, nameof(batchCount));
 
             using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
-            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
+            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
 
             VLatest.GetInstanceBatches.PopulateCommand(sqlCommandWrapper, batchSize, batchCount, (byte)indexStatus, maxWatermark);
 

@@ -40,7 +40,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
         public override async Task<WorkitemInstanceIdentifier> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
                 var rows = ExtendedQueryTagDataRowsBuilder.Build(dataset, queryTags, Version);
                 var parameters = new VLatest.AddWorkitemV11TableValuedParameters(
@@ -95,7 +95,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             var results = new List<WorkitemInstanceIdentifier>(query.EvaluatedLimit);
 
             using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
-            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand();
+            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
 
             var stringBuilder = new IndentedStringBuilder(new StringBuilder());
             var sqlQueryGenerator = new WorkitemSqlQueryGenerator(stringBuilder, query, new SqlQueryParameterManager(sqlCommandWrapper.Parameters), Version, partitionKey);

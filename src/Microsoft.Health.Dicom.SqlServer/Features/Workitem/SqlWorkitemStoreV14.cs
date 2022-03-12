@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             CancellationToken cancellationToken = default)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
                 var procedureStepStateTagPath = DicomTag.ProcedureStepState.GetPath();
 
@@ -86,7 +86,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             CancellationToken cancellationToken = default)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
                 var procedureStepStateTagPath = DicomTag.ProcedureStepState.GetPath();
 
@@ -114,7 +114,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
             CancellationToken cancellationToken = default)
         {
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
                 VLatest.UpdateWorkitemProcedureStepState.PopulateCommand(
                     sqlCommandWrapper,

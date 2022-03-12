@@ -38,7 +38,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store
             EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateSqlCommand())
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
                 var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags, Version);
                 V4.IndexInstanceTableValuedParameters parameters = new V4.IndexInstanceTableValuedParameters(
