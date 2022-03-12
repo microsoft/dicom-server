@@ -18,7 +18,7 @@ services:
       - azurite
 
   azurite:
-    image: mcr.microsoft.com/azure-storage/azurite:3.14.3@sha256:a9f79c01d9ef44549af22935345b5f622d45bef01c771f25a0c87c893b49f978
+    image: mcr.microsoft.com/azure-storage/azurite:3.16.0@sha256:8e186cbe7dac4dcd09acbae93369ebbc2873a5e737c81939a0ede2ffd78c5805
     restart: always
     # # Uncomment if you want to expose azure storage explorer against localhost
     # ports:

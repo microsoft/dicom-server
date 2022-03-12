@@ -122,26 +122,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
 
         #endregion
 
-        #region Decimal String (DS)
-
-        /// <summary>
-        /// Decimal String element has an invalid value.
-        /// </summary>
-        DecimalStringIsInvalid = 1600,
-
-        #endregion
-
         #region Sequence of Items (SQ)
 
         /// <summary>
         /// Sequences are not allowed.
         /// </summary>
-        SequenceDisallowed = 1700,
+        SequenceDisallowed = 1600,
 
         /// <summary>
         /// Nested sequences are not allowed.
         /// </summary>
-        NestedSequence = 1701,
+        NestedSequence = 1601,
 
         #endregion
     }

@@ -18,7 +18,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             { DicomVR.AS, new ElementRequiredLengthValidation(4) },
             { DicomVR.CS, new ElementMaxLengthValidation(16) },
             { DicomVR.DA, new DateValidation() },
-            { DicomVR.DS, new EncodedStringElementValidation() },
             { DicomVR.DT, new EncodedStringElementValidation() },
             { DicomVR.FD, new ElementRequiredLengthValidation(8) },
             { DicomVR.FL, new ElementRequiredLengthValidation(4) },

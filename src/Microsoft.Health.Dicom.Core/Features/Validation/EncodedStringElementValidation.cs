@@ -19,9 +19,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation
             DicomVR vr = element.ValueRepresentation;
             switch (vr.Code)
             {
-                case DicomVRCode.DS:
-                    Validate(element, DicomValidation.ValidateDS, ValidationErrorCode.DecimalStringIsInvalid);
-                    break;
                 case DicomVRCode.DT:
                     Validate(element, DicomValidation.ValidateDT, ValidationErrorCode.DateTimeIsInvalid);
                     break;

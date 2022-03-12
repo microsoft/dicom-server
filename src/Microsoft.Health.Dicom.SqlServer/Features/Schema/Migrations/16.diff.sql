@@ -226,10 +226,5 @@ BEGIN
     IF @@ROWCOUNT = 0
         BREAK
 
-    BEGIN TRY
-        EXEC dbo.DeleteExtendedQueryTagV16 @tagPath, 0
-    END TRY
-    BEGIN CATCH
-        -- Ignore any errors
-    END CATCH
+    EXEC dbo.DeleteExtendedQueryTagV16 @tagPath, 0 -- 0 is the 'string' data type
 END

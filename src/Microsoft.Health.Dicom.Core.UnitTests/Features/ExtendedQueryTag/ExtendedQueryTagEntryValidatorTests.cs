@@ -48,6 +48,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed
         }
 
         [Theory]
+        [InlineData("0074140c")] // lower case is also supported
+        [InlineData("0074140C")]
+        public void GivenValidTag_WhenValidating_ThenShouldSucceed(string path)
+        {
+            AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(path, DicomVRCode.IS);
+            _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry });
+        }
+
+        [Theory]
         [InlineData(null)]
         [InlineData("")]
         public void GivenStandardTagWithoutVR_WhenValidating_ThenShouldSucceed(string vr)
