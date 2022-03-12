@@ -226,5 +226,6 @@ BEGIN
     IF @@ROWCOUNT = 0
         BREAK
 
+    -- Delete the tag
     EXEC dbo.DeleteExtendedQueryTagV16 @tagPath, 0 -- 0 is the 'string' data type
 END
