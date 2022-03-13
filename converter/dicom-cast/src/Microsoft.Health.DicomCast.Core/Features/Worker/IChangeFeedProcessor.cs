@@ -7,19 +7,18 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Worker
+namespace Microsoft.Health.DicomCast.Core.Features.Worker;
+
+/// <summary>
+/// Provides functionality to process the change feed.
+/// </summary>
+public interface IChangeFeedProcessor
 {
     /// <summary>
-    /// Provides functionality to process the change feed.
+    /// Asynchronously processes the change feed.
     /// </summary>
-    public interface IChangeFeedProcessor
-    {
-        /// <summary>
-        /// Asynchronously processes the change feed.
-        /// </summary>
-        /// <param name="pollIntervalDuringCatchup">The delay between polls during catchup phase.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A task representing the asynchronous processing operation.</returns>
-        Task ProcessAsync(TimeSpan pollIntervalDuringCatchup, CancellationToken cancellationToken);
-    }
+    /// <param name="pollIntervalDuringCatchup">The delay between polls during catchup phase.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task representing the asynchronous processing operation.</returns>
+    Task ProcessAsync(TimeSpan pollIntervalDuringCatchup, CancellationToken cancellationToken);
 }

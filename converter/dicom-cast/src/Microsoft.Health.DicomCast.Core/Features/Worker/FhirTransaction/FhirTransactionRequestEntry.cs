@@ -6,45 +6,44 @@
 using EnsureThat;
 using Hl7.Fhir.Model;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
+
+/// <summary>
+/// Provides a FHIR transaction request detail.
+/// </summary>
+public class FhirTransactionRequestEntry
 {
-    /// <summary>
-    /// Provides a FHIR transaction request detail.
-    /// </summary>
-    public class FhirTransactionRequestEntry
+    public FhirTransactionRequestEntry(
+        FhirTransactionRequestMode requestMode,
+        Bundle.RequestComponent request,
+        IResourceId resourceId,
+        Resource resource)
     {
-        public FhirTransactionRequestEntry(
-            FhirTransactionRequestMode requestMode,
-            Bundle.RequestComponent request,
-            IResourceId resourceId,
-            Resource resource)
-        {
-            EnsureArg.EnumIsDefined(requestMode, nameof(requestMode));
+        EnsureArg.EnumIsDefined(requestMode, nameof(requestMode));
 
-            RequestMode = requestMode;
-            Request = request;
-            ResourceId = resourceId;
-            Resource = resource;
-        }
-
-        /// <summary>
-        /// Gets the request mode.
-        /// </summary>
-        public FhirTransactionRequestMode RequestMode { get; }
-
-        /// <summary>
-        /// Gets the request component.
-        /// </summary>
-        public Bundle.RequestComponent Request { get; }
-
-        /// <summary>
-        /// Gets the request resource id.
-        /// </summary>
-        public IResourceId ResourceId { get; }
-
-        /// <summary>
-        /// Gets the request resource.
-        /// </summary>
-        public Resource Resource { get; }
+        RequestMode = requestMode;
+        Request = request;
+        ResourceId = resourceId;
+        Resource = resource;
     }
+
+    /// <summary>
+    /// Gets the request mode.
+    /// </summary>
+    public FhirTransactionRequestMode RequestMode { get; }
+
+    /// <summary>
+    /// Gets the request component.
+    /// </summary>
+    public Bundle.RequestComponent Request { get; }
+
+    /// <summary>
+    /// Gets the request resource id.
+    /// </summary>
+    public IResourceId ResourceId { get; }
+
+    /// <summary>
+    /// Gets the request resource.
+    /// </summary>
+    public Resource Resource { get; }
 }

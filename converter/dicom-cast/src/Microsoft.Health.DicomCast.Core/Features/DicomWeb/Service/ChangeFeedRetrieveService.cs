@@ -12,39 +12,38 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Client.Models;
 
-namespace Microsoft.Health.DicomCast.Core.Features.DicomWeb.Service
+namespace Microsoft.Health.DicomCast.Core.Features.DicomWeb.Service;
+
+/// <summary>
+/// Provides functionality to retrieve the change feed from DICOMWeb.
+/// </summary>
+public class ChangeFeedRetrieveService : IChangeFeedRetrieveService
 {
-    /// <summary>
-    /// Provides functionality to retrieve the change feed from DICOMWeb.
-    /// </summary>
-    public class ChangeFeedRetrieveService : IChangeFeedRetrieveService
+    private const int DefaultLimit = 10;
+
+    private readonly IDicomWebClient _dicomWebClient;
+
+    public ChangeFeedRetrieveService(IDicomWebClient dicomWebClient)
     {
-        private const int DefaultLimit = 10;
+        EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
 
-        private readonly IDicomWebClient _dicomWebClient;
+        _dicomWebClient = dicomWebClient;
+    }
 
-        public ChangeFeedRetrieveService(IDicomWebClient dicomWebClient)
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<ChangeFeedEntry>> RetrieveChangeFeedAsync(long offset, CancellationToken cancellationToken)
+    {
+        DicomWebAsyncEnumerableResponse<ChangeFeedEntry> result = await _dicomWebClient.GetChangeFeed(
+            $"?offset={offset}&limit={DefaultLimit}&includeMetadata={true}",
+            cancellationToken);
+
+        ChangeFeedEntry[] changeFeedEntries = await result.ToArrayAsync(cancellationToken);
+
+        if (changeFeedEntries?.Any() != null)
         {
-            EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
-
-            _dicomWebClient = dicomWebClient;
+            return changeFeedEntries;
         }
 
-        /// <inheritdoc/>
-        public async Task<IReadOnlyList<ChangeFeedEntry>> RetrieveChangeFeedAsync(long offset, CancellationToken cancellationToken)
-        {
-            DicomWebAsyncEnumerableResponse<ChangeFeedEntry> result = await _dicomWebClient.GetChangeFeed(
-                $"?offset={offset}&limit={DefaultLimit}&includeMetadata={true}",
-                cancellationToken);
-
-            ChangeFeedEntry[] changeFeedEntries = await result.ToArrayAsync(cancellationToken);
-
-            if (changeFeedEntries?.Any() != null)
-            {
-                return changeFeedEntries;
-            }
-
-            return Array.Empty<ChangeFeedEntry>();
-        }
+        return Array.Empty<ChangeFeedEntry>();
     }
 }

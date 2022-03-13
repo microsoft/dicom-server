@@ -7,57 +7,56 @@ using Hl7.Fhir.Model;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Xunit;
 
-namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Fhir
+namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Fhir;
+
+public class FhirResourceValidatorTests
 {
-    public class FhirResourceValidatorTests
+    private readonly FhirResourceValidator _fhirResourceValidator = new FhirResourceValidator();
+
+    [Fact]
+    public void GivenAResourceMissingId_WhenValidated_ThenInvalidFhirResourceExceptionShouldBeThrown()
     {
-        private readonly FhirResourceValidator _fhirResourceValidator = new FhirResourceValidator();
+        var patient = new Patient();
 
-        [Fact]
-        public void GivenAResourceMissingId_WhenValidated_ThenInvalidFhirResourceExceptionShouldBeThrown()
+        Assert.Throws<FhirResourceValidationException>(() => _fhirResourceValidator.Validate(patient));
+    }
+
+    [Fact]
+    public void GivenAResourceMissingMeta_WhenValidated_ThenInvalidFhirResourceExceptionShouldBeThrown()
+    {
+        var patient = new Patient()
         {
-            var patient = new Patient();
+            Id = "p1",
+            Meta = null,
+        };
 
-            Assert.Throws<FhirResourceValidationException>(() => _fhirResourceValidator.Validate(patient));
-        }
+        Assert.Throws<FhirResourceValidationException>(() => _fhirResourceValidator.Validate(patient));
+    }
 
-        [Fact]
-        public void GivenAResourceMissingMeta_WhenValidated_ThenInvalidFhirResourceExceptionShouldBeThrown()
+    [Fact]
+    public void GivenAResourceMissingVersionId_WhenValidated_ThenInvalidFhirResourceExceptionShouldBeThrown()
+    {
+        var patient = new Patient()
         {
-            var patient = new Patient()
+            Id = "p1",
+            Meta = new Meta(),
+        };
+
+        Assert.Throws<FhirResourceValidationException>(() => _fhirResourceValidator.Validate(patient));
+    }
+
+    [Fact]
+    public void GivenAValidResource_WhenValidated_ThenItShouldNotThrowException()
+    {
+        var patient = new Patient()
+        {
+            Id = "p1",
+            Meta = new Meta()
             {
-                Id = "p1",
-                Meta = null,
-            };
+                VersionId = "1",
+            },
+        };
 
-            Assert.Throws<FhirResourceValidationException>(() => _fhirResourceValidator.Validate(patient));
-        }
-
-        [Fact]
-        public void GivenAResourceMissingVersionId_WhenValidated_ThenInvalidFhirResourceExceptionShouldBeThrown()
-        {
-            var patient = new Patient()
-            {
-                Id = "p1",
-                Meta = new Meta(),
-            };
-
-            Assert.Throws<FhirResourceValidationException>(() => _fhirResourceValidator.Validate(patient));
-        }
-
-        [Fact]
-        public void GivenAValidResource_WhenValidated_ThenItShouldNotThrowException()
-        {
-            var patient = new Patient()
-            {
-                Id = "p1",
-                Meta = new Meta()
-                {
-                    VersionId = "1",
-                },
-            };
-
-            _fhirResourceValidator.Validate(patient);
-        }
+        _fhirResourceValidator.Validate(patient);
     }
 }

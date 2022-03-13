@@ -15,87 +15,86 @@ using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
+
+public class ImagingStudySeriesPropertySynchronizer : IImagingStudySeriesPropertySynchronizer
 {
-    public class ImagingStudySeriesPropertySynchronizer : IImagingStudySeriesPropertySynchronizer
+    private readonly DicomCastConfiguration _dicomCastConfiguration;
+    private readonly IExceptionStore _exceptionStore;
+    private readonly IEnumerable<(Action<ImagingStudy.SeriesComponent, FhirTransactionContext> PropertyAction, bool RequiredProperty)> _propertiesToSync = new List<(Action<ImagingStudy.SeriesComponent, FhirTransactionContext>, bool)>()
+        {
+            (AddSeriesNumber, false),
+            (AddDescription, false),
+            (AddModalityToSeries, true),
+            (AddStartedElement, false),
+        };
+
+    public ImagingStudySeriesPropertySynchronizer(
+        IOptions<DicomCastConfiguration> dicomCastConfiguration,
+        IExceptionStore exceptionStore)
     {
-        private readonly DicomCastConfiguration _dicomCastConfiguration;
-        private readonly IExceptionStore _exceptionStore;
-        private readonly IEnumerable<(Action<ImagingStudy.SeriesComponent, FhirTransactionContext> PropertyAction, bool RequiredProperty)> _propertiesToSync = new List<(Action<ImagingStudy.SeriesComponent, FhirTransactionContext>, bool)>()
-            {
-                (AddSeriesNumber, false),
-                (AddDescription, false),
-                (AddModalityToSeries, true),
-                (AddStartedElement, false),
-            };
+        EnsureArg.IsNotNull(dicomCastConfiguration, nameof(dicomCastConfiguration));
+        EnsureArg.IsNotNull(exceptionStore, nameof(exceptionStore));
 
-        public ImagingStudySeriesPropertySynchronizer(
-            IOptions<DicomCastConfiguration> dicomCastConfiguration,
-            IExceptionStore exceptionStore)
+        _dicomCastConfiguration = dicomCastConfiguration.Value;
+        _exceptionStore = exceptionStore;
+    }
+
+    /// <inheritdoc/>
+    public async Task SynchronizeAsync(FhirTransactionContext context, ImagingStudy.SeriesComponent series, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(context, nameof(context));
+        EnsureArg.IsNotNull(context.ChangeFeedEntry, nameof(context.ChangeFeedEntry));
+        EnsureArg.IsNotNull(series, nameof(series));
+
+        DicomDataset dataset = context.ChangeFeedEntry.Metadata;
+
+        if (dataset == null)
         {
-            EnsureArg.IsNotNull(dicomCastConfiguration, nameof(dicomCastConfiguration));
-            EnsureArg.IsNotNull(exceptionStore, nameof(exceptionStore));
-
-            _dicomCastConfiguration = dicomCastConfiguration.Value;
-            _exceptionStore = exceptionStore;
+            return;
         }
 
-        /// <inheritdoc/>
-        public async Task SynchronizeAsync(FhirTransactionContext context, ImagingStudy.SeriesComponent series, CancellationToken cancellationToken)
+        foreach (var property in _propertiesToSync)
         {
-            EnsureArg.IsNotNull(context, nameof(context));
-            EnsureArg.IsNotNull(context.ChangeFeedEntry, nameof(context.ChangeFeedEntry));
-            EnsureArg.IsNotNull(series, nameof(series));
-
-            DicomDataset dataset = context.ChangeFeedEntry.Metadata;
-
-            if (dataset == null)
-            {
-                return;
-            }
-
-            foreach (var property in _propertiesToSync)
-            {
-                await ImagingStudyPipelineHelper.SynchronizePropertiesAsync(series, context, property.PropertyAction, property.RequiredProperty, _dicomCastConfiguration.Features.EnforceValidationOfTagValues, _exceptionStore, cancellationToken);
-            }
+            await ImagingStudyPipelineHelper.SynchronizePropertiesAsync(series, context, property.PropertyAction, property.RequiredProperty, _dicomCastConfiguration.Features.EnforceValidationOfTagValues, _exceptionStore, cancellationToken);
         }
+    }
 
-        private static void AddSeriesNumber(ImagingStudy.SeriesComponent series, FhirTransactionContext context)
+    private static void AddSeriesNumber(ImagingStudy.SeriesComponent series, FhirTransactionContext context)
+    {
+        DicomDataset dataset = context.ChangeFeedEntry.Metadata;
+        if (dataset.TryGetSingleValue(DicomTag.SeriesNumber, out int seriesNumber))
         {
-            DicomDataset dataset = context.ChangeFeedEntry.Metadata;
-            if (dataset.TryGetSingleValue(DicomTag.SeriesNumber, out int seriesNumber))
-            {
-                series.Number = seriesNumber;
-            }
+            series.Number = seriesNumber;
         }
+    }
 
-        private static void AddDescription(ImagingStudy.SeriesComponent series, FhirTransactionContext context)
+    private static void AddDescription(ImagingStudy.SeriesComponent series, FhirTransactionContext context)
+    {
+        DicomDataset dataset = context.ChangeFeedEntry.Metadata;
+        if (dataset.TryGetSingleValue(DicomTag.SeriesDescription, out string description))
         {
-            DicomDataset dataset = context.ChangeFeedEntry.Metadata;
-            if (dataset.TryGetSingleValue(DicomTag.SeriesDescription, out string description))
-            {
-                series.Description = description;
-            }
+            series.Description = description;
         }
+    }
 
-        // Add startedElement to series
-        private static void AddStartedElement(ImagingStudy.SeriesComponent series, FhirTransactionContext context)
+    // Add startedElement to series
+    private static void AddStartedElement(ImagingStudy.SeriesComponent series, FhirTransactionContext context)
+    {
+        DicomDataset dataset = context.ChangeFeedEntry.Metadata;
+        TimeSpan utcOffset = context.UtcDateTimeOffset;
+        series.StartedElement = dataset.GetDateTimePropertyIfNotDefaultValue(DicomTag.SeriesDate, DicomTag.SeriesTime, utcOffset);
+    }
+
+    // Add modality to series
+    private static void AddModalityToSeries(ImagingStudy.SeriesComponent series, FhirTransactionContext context)
+    {
+        DicomDataset dataset = context.ChangeFeedEntry.Metadata;
+        string modalityInString = ImagingStudyPipelineHelper.GetModalityInString(dataset);
+
+        if (modalityInString != null && !string.Equals(series.Modality?.Code, modalityInString, StringComparison.Ordinal))
         {
-            DicomDataset dataset = context.ChangeFeedEntry.Metadata;
-            TimeSpan utcOffset = context.UtcDateTimeOffset;
-            series.StartedElement = dataset.GetDateTimePropertyIfNotDefaultValue(DicomTag.SeriesDate, DicomTag.SeriesTime, utcOffset);
-        }
-
-        // Add modality to series
-        private static void AddModalityToSeries(ImagingStudy.SeriesComponent series, FhirTransactionContext context)
-        {
-            DicomDataset dataset = context.ChangeFeedEntry.Metadata;
-            string modalityInString = ImagingStudyPipelineHelper.GetModalityInString(dataset);
-
-            if (modalityInString != null && !string.Equals(series.Modality?.Code, modalityInString, StringComparison.Ordinal))
-            {
-                series.Modality = ImagingStudyPipelineHelper.GetModality(modalityInString);
-            }
+            series.Modality = ImagingStudyPipelineHelper.GetModality(modalityInString);
         }
     }
 }

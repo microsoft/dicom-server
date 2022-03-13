@@ -17,36 +17,35 @@ using Microsoft.Health.DicomCast.TableStorage.Features.Storage;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.DicomCast.TableStorage.UnitTests.Features.Storage
+namespace Microsoft.Health.DicomCast.TableStorage.UnitTests.Features.Storage;
+
+public class TableExceptionStoreTests
 {
-    public class TableExceptionStoreTests
+    private readonly TableExceptionStore _tableExceptionStore;
+    private readonly TableDataStoreConfiguration _tableStorageConfiguration = new TableDataStoreConfiguration();
+
+    public TableExceptionStoreTests()
     {
-        private readonly TableExceptionStore _tableExceptionStore;
-        private readonly TableDataStoreConfiguration _tableStorageConfiguration = new TableDataStoreConfiguration();
+        Dictionary<string, string> _tableNames = new Dictionary<string, string>();
+        _tableNames.Add("FhirFailToStoreExceptionTable", "FhirFailToStoreExceptionTable");
 
-        public TableExceptionStoreTests()
-        {
-            Dictionary<string, string> _tableNames = new Dictionary<string, string>();
-            _tableNames.Add("FhirFailToStoreExceptionTable", "FhirFailToStoreExceptionTable");
-
-            _tableStorageConfiguration.TableNamePrefix = "";
+        _tableStorageConfiguration.TableNamePrefix = "";
 
 
 
-            TableServiceClientProvider tableServiceClientProvider = new TableServiceClientProvider
-                (Substitute.For<TableServiceClient>(), Substitute.For<ITableServiceClientInitializer>(), Options.Create(_tableStorageConfiguration), NullLogger<TableServiceClientProvider>.Instance);
+        TableServiceClientProvider tableServiceClientProvider = new TableServiceClientProvider
+            (Substitute.For<TableServiceClient>(), Substitute.For<ITableServiceClientInitializer>(), Options.Create(_tableStorageConfiguration), NullLogger<TableServiceClientProvider>.Instance);
 
 
 
-            _tableExceptionStore = new TableExceptionStore(tableServiceClientProvider, NullLogger<TableExceptionStore>.Instance);
-        }
-
-        [Fact]
-        public async Task GivenTableExceptionSToreWithNoDicomCastName_WhenExceptionsAreThrown_AreStoredInTablesSuccessfully()
-        {
-
-            await _tableExceptionStore.WriteExceptionAsync(ChangeFeedGenerator.Generate(1, metadata: FhirTransactionContextBuilder.CreateDicomDataset()), new Exception("new Exception"), Core.Features.ExceptionStorage.ErrorType.FhirError, CancellationToken.None);
-        }
-
+        _tableExceptionStore = new TableExceptionStore(tableServiceClientProvider, NullLogger<TableExceptionStore>.Instance);
     }
+
+    [Fact]
+    public async Task GivenTableExceptionSToreWithNoDicomCastName_WhenExceptionsAreThrown_AreStoredInTablesSuccessfully()
+    {
+
+        await _tableExceptionStore.WriteExceptionAsync(ChangeFeedGenerator.Generate(1, metadata: FhirTransactionContextBuilder.CreateDicomDataset()), new Exception("new Exception"), Core.Features.ExceptionStorage.ErrorType.FhirError, CancellationToken.None);
+    }
+
 }

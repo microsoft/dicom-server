@@ -8,26 +8,25 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Client;
 
-namespace Microsoft.Health.DicomCast.Core.Modules
+namespace Microsoft.Health.DicomCast.Core.Modules;
+
+public class NamedCredentialProvider : ICredentialProvider
 {
-    public class NamedCredentialProvider : ICredentialProvider
+    private readonly ICredentialProvider _credentialProvider;
+
+    public NamedCredentialProvider(string name, ICredentialProvider credentialProvider)
     {
-        private readonly ICredentialProvider _credentialProvider;
+        EnsureArg.IsNotNull(name, nameof(name));
+        EnsureArg.IsNotNull(credentialProvider, nameof(credentialProvider));
 
-        public NamedCredentialProvider(string name, ICredentialProvider credentialProvider)
-        {
-            EnsureArg.IsNotNull(name, nameof(name));
-            EnsureArg.IsNotNull(credentialProvider, nameof(credentialProvider));
+        Name = name;
+        _credentialProvider = credentialProvider;
+    }
 
-            Name = name;
-            _credentialProvider = credentialProvider;
-        }
+    public string Name { get; }
 
-        public string Name { get; }
-
-        public Task<string> GetBearerToken(CancellationToken cancellationToken)
-        {
-            return _credentialProvider.GetBearerToken(cancellationToken);
-        }
+    public Task<string> GetBearerToken(CancellationToken cancellationToken)
+    {
+        return _credentialProvider.GetBearerToken(cancellationToken);
     }
 }

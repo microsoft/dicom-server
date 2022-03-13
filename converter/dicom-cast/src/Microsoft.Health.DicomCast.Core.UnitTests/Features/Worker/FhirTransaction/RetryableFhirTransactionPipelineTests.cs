@@ -19,68 +19,67 @@ using Polly.Timeout;
 using Xunit;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker
+namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker;
+
+public class RetryableFhirTransactionPipelineTests
 {
-    public class RetryableFhirTransactionPipelineTests
+    private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
+
+    private readonly IFhirTransactionPipeline _fhirTransactionPipeline = Substitute.For<IFhirTransactionPipeline>();
+    private readonly RetryableFhirTransactionPipeline _retryableFhirTransactionPipeline;
+    private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
+
+    public RetryableFhirTransactionPipelineTests()
     {
-        private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
+        RetryConfiguration config = new RetryConfiguration();
+        config.TotalRetryDuration = new TimeSpan(0, 0, 15);
+        _retryableFhirTransactionPipeline = new RetryableFhirTransactionPipeline(
+            _fhirTransactionPipeline,
+            _exceptionStore,
+            Options.Create(config));
+    }
 
-        private readonly IFhirTransactionPipeline _fhirTransactionPipeline = Substitute.For<IFhirTransactionPipeline>();
-        private readonly RetryableFhirTransactionPipeline _retryableFhirTransactionPipeline;
-        private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
+    [Fact]
+    public async Task GivenRetryableException_WhenProcessed_ThenItShouldRetry()
+    {
+        await ExecuteAndValidateRetryThenThrowTimeOut(new RetryableException());
+    }
 
-        public RetryableFhirTransactionPipelineTests()
-        {
-            RetryConfiguration config = new RetryConfiguration();
-            config.TotalRetryDuration = new TimeSpan(0, 0, 15);
-            _retryableFhirTransactionPipeline = new RetryableFhirTransactionPipeline(
-                _fhirTransactionPipeline,
-                _exceptionStore,
-                Options.Create(config));
-        }
+    [Fact]
+    public async Task GivenNotConflictException_WhenProcessed_ThenItShouldNotRetry()
+    {
+        await ExecuteAndValidate(new Exception(), 1);
+    }
 
-        [Fact]
-        public async Task GivenRetryableException_WhenProcessed_ThenItShouldRetry()
-        {
-            await ExecuteAndValidateRetryThenThrowTimeOut(new RetryableException());
-        }
+    [Fact]
+    public async Task GivenHttpRequestExceptionException_ProcessAsync_ShouldRetryRetryableException()
+    {
+        await ExecuteAndValidateRetryThenThrowTimeOut(new HttpRequestException());
+    }
 
-        [Fact]
-        public async Task GivenNotConflictException_WhenProcessed_ThenItShouldNotRetry()
-        {
-            await ExecuteAndValidate(new Exception(), 1);
-        }
+    [Fact]
+    public async Task GivenTaskCancelledExceptionException_ProcessAsync_ShouldRetryRetryableException()
+    {
+        await ExecuteAndValidateRetryThenThrowTimeOut(new TaskCanceledException());
+    }
 
-        [Fact]
-        public async Task GivenHttpRequestExceptionException_ProcessAsync_ShouldRetryRetryableException()
-        {
-            await ExecuteAndValidateRetryThenThrowTimeOut(new HttpRequestException());
-        }
+    private async Task ExecuteAndValidate(Exception ex, int expectedNumberOfCalls)
+    {
+        ChangeFeedEntry changeFeedEntry = ChangeFeedGenerator.Generate();
 
-        [Fact]
-        public async Task GivenTaskCancelledExceptionException_ProcessAsync_ShouldRetryRetryableException()
-        {
-            await ExecuteAndValidateRetryThenThrowTimeOut(new TaskCanceledException());
-        }
+        _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, DefaultCancellationToken).Throws(ex);
 
-        private async Task ExecuteAndValidate(Exception ex, int expectedNumberOfCalls)
-        {
-            ChangeFeedEntry changeFeedEntry = ChangeFeedGenerator.Generate();
+        await Assert.ThrowsAsync(ex.GetType(), () => _retryableFhirTransactionPipeline.ProcessAsync(changeFeedEntry, DefaultCancellationToken));
 
-            _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, DefaultCancellationToken).Throws(ex);
+        await _fhirTransactionPipeline.Received(expectedNumberOfCalls).ProcessAsync(changeFeedEntry, DefaultCancellationToken);
+    }
 
-            await Assert.ThrowsAsync(ex.GetType(), () => _retryableFhirTransactionPipeline.ProcessAsync(changeFeedEntry, DefaultCancellationToken));
+    private async Task ExecuteAndValidateRetryThenThrowTimeOut(Exception ex)
+    {
+        ChangeFeedEntry changeFeedEntry = ChangeFeedGenerator.Generate();
 
-            await _fhirTransactionPipeline.Received(expectedNumberOfCalls).ProcessAsync(changeFeedEntry, DefaultCancellationToken);
-        }
+        _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, DefaultCancellationToken).Throws(ex);
 
-        private async Task ExecuteAndValidateRetryThenThrowTimeOut(Exception ex)
-        {
-            ChangeFeedEntry changeFeedEntry = ChangeFeedGenerator.Generate();
-
-            _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, DefaultCancellationToken).Throws(ex);
-
-            await Assert.ThrowsAsync<TimeoutRejectedException>(() => _retryableFhirTransactionPipeline.ProcessAsync(changeFeedEntry, DefaultCancellationToken));
-        }
+        await Assert.ThrowsAsync<TimeoutRejectedException>(() => _retryableFhirTransactionPipeline.ProcessAsync(changeFeedEntry, DefaultCancellationToken));
     }
 }

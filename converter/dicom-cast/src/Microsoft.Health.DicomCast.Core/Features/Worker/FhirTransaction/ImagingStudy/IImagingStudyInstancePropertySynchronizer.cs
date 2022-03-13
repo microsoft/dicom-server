@@ -7,16 +7,15 @@ using System.Threading;
 using Hl7.Fhir.Model;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
+
+public interface IImagingStudyInstancePropertySynchronizer
 {
-    public interface IImagingStudyInstancePropertySynchronizer
-    {
-        /// <summary>
-        /// Synchronizes the DICOM properties to <paramref name="instance"/>.
-        /// </summary>
-        /// <param name="context">The transaction context.</param>
-        /// <param name="instance">The instance component within study.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        Task SynchronizeAsync(FhirTransactionContext context, ImagingStudy.InstanceComponent instance, CancellationToken cancellationToken);
-    }
+    /// <summary>
+    /// Synchronizes the DICOM properties to <paramref name="instance"/>.
+    /// </summary>
+    /// <param name="context">The transaction context.</param>
+    /// <param name="instance">The instance component within study.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    Task SynchronizeAsync(FhirTransactionContext context, ImagingStudy.InstanceComponent instance, CancellationToken cancellationToken);
 }

@@ -5,15 +5,14 @@
 
 using System;
 
-namespace Microsoft.Health.DicomCast.Core.Configurations
-{
-    public class FhirConfiguration
-    {
-        public Uri Endpoint { get; set; }
+namespace Microsoft.Health.DicomCast.Core.Configurations;
 
-        /// <summary>
-        /// Authentication settings for the FHIR server.
-        /// </summary>
-        public AuthenticationConfiguration Authentication { get; set; }
-    }
+public class FhirConfiguration
+{
+    public Uri Endpoint { get; set; }
+
+    /// <summary>
+    /// Authentication settings for the FHIR server.
+    /// </summary>
+    public AuthenticationConfiguration Authentication { get; set; }
 }

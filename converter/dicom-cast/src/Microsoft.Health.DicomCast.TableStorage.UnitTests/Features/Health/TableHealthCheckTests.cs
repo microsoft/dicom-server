@@ -13,34 +13,33 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
 
-namespace Microsoft.Health.DicomCast.TableStorage.UnitTests.Features.Health
+namespace Microsoft.Health.DicomCast.TableStorage.UnitTests.Features.Health;
+
+public class TableHealthCheckTests
 {
-    public class TableHealthCheckTests
+    private readonly ITableClientTestProvider _testProvider = Substitute.For<ITableClientTestProvider>();
+
+    private readonly TableHealthCheck _healthCheck;
+
+    public TableHealthCheckTests()
     {
-        private readonly ITableClientTestProvider _testProvider = Substitute.For<ITableClientTestProvider>();
+        _healthCheck = new TableHealthCheck(_testProvider, NullLogger<TableHealthCheck>.Instance);
+    }
 
-        private readonly TableHealthCheck _healthCheck;
+    [Fact]
+    public async Task GivenTableDataStoreIsAvailable_WhenTableIsChecked_ThenHealthyStateShouldBeReturned()
+    {
+        HealthCheckResult result = await _healthCheck.CheckHealthAsync(new HealthCheckContext());
 
-        public TableHealthCheckTests()
-        {
-            _healthCheck = new TableHealthCheck(_testProvider, NullLogger<TableHealthCheck>.Instance);
-        }
+        Assert.Equal(HealthStatus.Healthy, result.Status);
+    }
 
-        [Fact]
-        public async Task GivenTableDataStoreIsAvailable_WhenTableIsChecked_ThenHealthyStateShouldBeReturned()
-        {
-            HealthCheckResult result = await _healthCheck.CheckHealthAsync(new HealthCheckContext());
+    [Fact]
+    public async Task GivenTableDataStoreIsNotAvailable_WhenHealthIsChecked_ThenUnhealthyStateShouldBeReturned()
+    {
+        _testProvider.PerformTestAsync(default).ThrowsForAnyArgs<HttpRequestException>();
+        HealthCheckResult result = await _healthCheck.CheckHealthAsync(new HealthCheckContext());
 
-            Assert.Equal(HealthStatus.Healthy, result.Status);
-        }
-
-        [Fact]
-        public async Task GivenTableDataStoreIsNotAvailable_WhenHealthIsChecked_ThenUnhealthyStateShouldBeReturned()
-        {
-            _testProvider.PerformTestAsync(default).ThrowsForAnyArgs<HttpRequestException>();
-            HealthCheckResult result = await _healthCheck.CheckHealthAsync(new HealthCheckContext());
-
-            Assert.Equal(HealthStatus.Unhealthy, result.Status);
-        }
+        Assert.Equal(HealthStatus.Unhealthy, result.Status);
     }
 }

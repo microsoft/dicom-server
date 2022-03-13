@@ -5,18 +5,17 @@
 
 using System;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Fhir
-{
-    public class FhirNonRetryableException : Exception
-    {
-        public FhirNonRetryableException(string message)
-            : base(message)
-        {
-        }
+namespace Microsoft.Health.DicomCast.Core.Features.Fhir;
 
-        public FhirNonRetryableException(string message, Exception innerException)
-            : base(message, innerException)
-        {
-        }
+public class FhirNonRetryableException : Exception
+{
+    public FhirNonRetryableException(string message)
+        : base(message)
+    {
+    }
+
+    public FhirNonRetryableException(string message, Exception innerException)
+        : base(message, innerException)
+    {
     }
 }

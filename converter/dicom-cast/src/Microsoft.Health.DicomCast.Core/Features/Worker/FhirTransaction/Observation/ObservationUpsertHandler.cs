@@ -13,62 +13,61 @@ using Hl7.Fhir.Utility;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
+
+public class ObservationUpsertHandler : IObservationUpsertHandler
 {
-    public class ObservationUpsertHandler : IObservationUpsertHandler
+    private readonly IFhirService _fhirService;
+    private readonly ObservationParser _observationParser;
+
+    public ObservationUpsertHandler(IFhirService fhirService, ObservationParser observationParser)
     {
-        private readonly IFhirService _fhirService;
-        private readonly ObservationParser _observationParser;
+        _fhirService = EnsureArg.IsNotNull(fhirService, nameof(fhirService));
+        _observationParser = EnsureArg.IsNotNull(observationParser, nameof(observationParser));
+    }
 
-        public ObservationUpsertHandler(IFhirService fhirService, ObservationParser observationParser)
+    public async Task<IEnumerable<FhirTransactionRequestEntry>> BuildAsync(FhirTransactionContext context, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(context?.ChangeFeedEntry, nameof(context.ChangeFeedEntry));
+        EnsureArg.IsNotNull(context.Request, nameof(context.Request));
+
+        IResourceId patientId = context.Request.Patient.ResourceId;
+        IResourceId imagingStudyId = context.Request.ImagingStudy.ResourceId;
+        ChangeFeedEntry changeFeedEntry = context.ChangeFeedEntry;
+
+        Identifier identifier = IdentifierUtility.CreateIdentifier(changeFeedEntry.StudyInstanceUid);
+
+        IReadOnlyCollection<Observation> observations = _observationParser.Parse(changeFeedEntry.Metadata, patientId.ToResourceReference(), imagingStudyId.ToResourceReference(), identifier);
+
+        if (observations.Count == 0)
         {
-            _fhirService = EnsureArg.IsNotNull(fhirService, nameof(fhirService));
-            _observationParser = EnsureArg.IsNotNull(observationParser, nameof(observationParser));
+            return Enumerable.Empty<FhirTransactionRequestEntry>();
         }
 
-        public async Task<IEnumerable<FhirTransactionRequestEntry>> BuildAsync(FhirTransactionContext context, CancellationToken cancellationToken)
+        Identifier imagingStudyIdentifier = imagingStudyId.ToResourceReference().Identifier;
+        IEnumerable<Observation> existingDoseSummariesAsync = imagingStudyIdentifier != null
+            ? await _fhirService
+                .RetrieveObservationsAsync(
+                    imagingStudyId.ToResourceReference().Identifier,
+                    cancellationToken)
+            : new List<Observation>();
+
+        // TODO: Figure out a way to match existing observations with newly created ones.
+
+        List<FhirTransactionRequestEntry> fhirRequests = new List<FhirTransactionRequestEntry>();
+        foreach (var observation in observations)
         {
-            EnsureArg.IsNotNull(context?.ChangeFeedEntry, nameof(context.ChangeFeedEntry));
-            EnsureArg.IsNotNull(context.Request, nameof(context.Request));
-
-            IResourceId patientId = context.Request.Patient.ResourceId;
-            IResourceId imagingStudyId = context.Request.ImagingStudy.ResourceId;
-            ChangeFeedEntry changeFeedEntry = context.ChangeFeedEntry;
-
-            Identifier identifier = IdentifierUtility.CreateIdentifier(changeFeedEntry.StudyInstanceUid);
-
-            IReadOnlyCollection<Observation> observations = _observationParser.Parse(changeFeedEntry.Metadata, patientId.ToResourceReference(), imagingStudyId.ToResourceReference(), identifier);
-
-            if (observations.Count == 0)
-            {
-                return Enumerable.Empty<FhirTransactionRequestEntry>();
-            }
-
-            Identifier imagingStudyIdentifier = imagingStudyId.ToResourceReference().Identifier;
-            IEnumerable<Observation> existingDoseSummariesAsync = imagingStudyIdentifier != null
-                ? await _fhirService
-                    .RetrieveObservationsAsync(
-                        imagingStudyId.ToResourceReference().Identifier,
-                        cancellationToken)
-                : new List<Observation>();
-
-            // TODO: Figure out a way to match existing observations with newly created ones.
-
-            List<FhirTransactionRequestEntry> fhirRequests = new List<FhirTransactionRequestEntry>();
-            foreach (var observation in observations)
-            {
-                fhirRequests.Add(new FhirTransactionRequestEntry(
-                    FhirTransactionRequestMode.Create,
-                    new Bundle.RequestComponent()
-                    {
-                        Method = Bundle.HTTPVerb.POST,
-                        Url = ResourceType.Observation.GetLiteral()
-                    },
-                    new ClientResourceId(),
-                    observation));
-            }
-
-            return fhirRequests;
+            fhirRequests.Add(new FhirTransactionRequestEntry(
+                FhirTransactionRequestMode.Create,
+                new Bundle.RequestComponent()
+                {
+                    Method = Bundle.HTTPVerb.POST,
+                    Url = ResourceType.Observation.GetLiteral()
+                },
+                new ClientResourceId(),
+                observation));
         }
+
+        return fhirRequests;
     }
 }

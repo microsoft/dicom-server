@@ -10,30 +10,29 @@ using FellowOakDicom;
 using Hl7.Fhir.Model;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 
-namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction;
+
+public static class TestUtility
 {
-    public static class TestUtility
+    public static Expression<Predicate<Identifier>> BuildIdentifierPredicate(string system, string value)
+        => identifier => identifier != null &&
+        string.Equals(identifier.System, system, StringComparison.Ordinal) &&
+        string.Equals(identifier.Value, value, StringComparison.Ordinal);
+
+    public static TimeSpan SetDateTimeOffSet(DicomDataset metadata)
     {
-        public static Expression<Predicate<Identifier>> BuildIdentifierPredicate(string system, string value)
-            => identifier => identifier != null &&
-            string.Equals(identifier.System, system, StringComparison.Ordinal) &&
-            string.Equals(identifier.Value, value, StringComparison.Ordinal);
-
-        public static TimeSpan SetDateTimeOffSet(DicomDataset metadata)
+        if (metadata.TryGetSingleValue(DicomTag.TimezoneOffsetFromUTC, out string utcOffsetInString))
         {
-            if (metadata.TryGetSingleValue(DicomTag.TimezoneOffsetFromUTC, out string utcOffsetInString))
+            try
             {
-                try
-                {
-                    return DateTimeOffset.ParseExact(utcOffsetInString, "zzz", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).Offset;
-                }
-                catch (FormatException)
-                {
-                    throw new InvalidDicomTagValueException(nameof(DicomTag.TimezoneOffsetFromUTC), utcOffsetInString);
-                }
+                return DateTimeOffset.ParseExact(utcOffsetInString, "zzz", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).Offset;
             }
-
-            return TimeSpan.Zero;
+            catch (FormatException)
+            {
+                throw new InvalidDicomTagValueException(nameof(DicomTag.TimezoneOffsetFromUTC), utcOffsetInString);
+            }
         }
+
+        return TimeSpan.Zero;
     }
 }

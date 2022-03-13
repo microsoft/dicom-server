@@ -15,140 +15,139 @@ using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
+
+/// <summary>
+/// Builds the request for creating or updating the <see cref="ImagingStudy"/> resource.
+/// </summary>
+public class ImagingStudyUpsertHandler : IImagingStudyUpsertHandler
 {
-    /// <summary>
-    /// Builds the request for creating or updating the <see cref="ImagingStudy"/> resource.
-    /// </summary>
-    public class ImagingStudyUpsertHandler : IImagingStudyUpsertHandler
+    private readonly IFhirService _fhirService;
+    private readonly IImagingStudySynchronizer _imagingStudySynchronizer;
+    private readonly string _dicomWebEndpoint;
+
+    public ImagingStudyUpsertHandler(
+       IFhirService fhirService,
+       IImagingStudySynchronizer imagingStudySynchronizer,
+       IOptions<DicomWebConfiguration> dicomWebConfiguration)
     {
-        private readonly IFhirService _fhirService;
-        private readonly IImagingStudySynchronizer _imagingStudySynchronizer;
-        private readonly string _dicomWebEndpoint;
+        EnsureArg.IsNotNull(fhirService, nameof(fhirService));
+        EnsureArg.IsNotNull(imagingStudySynchronizer, nameof(_imagingStudySynchronizer));
+        EnsureArg.IsNotNull(dicomWebConfiguration?.Value, nameof(dicomWebConfiguration));
 
-        public ImagingStudyUpsertHandler(
-           IFhirService fhirService,
-           IImagingStudySynchronizer imagingStudySynchronizer,
-           IOptions<DicomWebConfiguration> dicomWebConfiguration)
+        _fhirService = fhirService;
+        _imagingStudySynchronizer = imagingStudySynchronizer;
+        _dicomWebEndpoint = dicomWebConfiguration.Value.Endpoint.ToString();
+    }
+
+    /// <inheritdoc/>
+    public async Task<FhirTransactionRequestEntry> BuildAsync(FhirTransactionContext context, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(context, nameof(context));
+        EnsureArg.IsNotNull(context.ChangeFeedEntry, nameof(context.ChangeFeedEntry));
+        EnsureArg.IsNotNull(context.Request, nameof(context.Request));
+
+        IResourceId patientId = context.Request.Patient.ResourceId;
+
+        ChangeFeedEntry changeFeedEntry = context.ChangeFeedEntry;
+
+        Identifier imagingStudyIdentifier = IdentifierUtility.CreateIdentifier(changeFeedEntry.StudyInstanceUid);
+
+        ImagingStudy existingImagingStudy = await _fhirService.RetrieveImagingStudyAsync(imagingStudyIdentifier, cancellationToken);
+        ImagingStudy imagingStudy = (ImagingStudy)existingImagingStudy?.DeepCopy();
+
+        FhirTransactionRequestMode requestMode = FhirTransactionRequestMode.None;
+
+        if (existingImagingStudy == null)
         {
-            EnsureArg.IsNotNull(fhirService, nameof(fhirService));
-            EnsureArg.IsNotNull(imagingStudySynchronizer, nameof(_imagingStudySynchronizer));
-            EnsureArg.IsNotNull(dicomWebConfiguration?.Value, nameof(dicomWebConfiguration));
-
-            _fhirService = fhirService;
-            _imagingStudySynchronizer = imagingStudySynchronizer;
-            _dicomWebEndpoint = dicomWebConfiguration.Value.Endpoint.ToString();
-        }
-
-        /// <inheritdoc/>
-        public async Task<FhirTransactionRequestEntry> BuildAsync(FhirTransactionContext context, CancellationToken cancellationToken)
-        {
-            EnsureArg.IsNotNull(context, nameof(context));
-            EnsureArg.IsNotNull(context.ChangeFeedEntry, nameof(context.ChangeFeedEntry));
-            EnsureArg.IsNotNull(context.Request, nameof(context.Request));
-
-            IResourceId patientId = context.Request.Patient.ResourceId;
-
-            ChangeFeedEntry changeFeedEntry = context.ChangeFeedEntry;
-
-            Identifier imagingStudyIdentifier = IdentifierUtility.CreateIdentifier(changeFeedEntry.StudyInstanceUid);
-
-            ImagingStudy existingImagingStudy = await _fhirService.RetrieveImagingStudyAsync(imagingStudyIdentifier, cancellationToken);
-            ImagingStudy imagingStudy = (ImagingStudy)existingImagingStudy?.DeepCopy();
-
-            FhirTransactionRequestMode requestMode = FhirTransactionRequestMode.None;
-
-            if (existingImagingStudy == null)
+            imagingStudy = new ImagingStudy()
             {
-                imagingStudy = new ImagingStudy()
-                {
-                    Status = ImagingStudy.ImagingStudyStatus.Available,
-                    Subject = patientId.ToResourceReference(),
-                };
-
-                imagingStudy.Identifier.Add(imagingStudyIdentifier);
-                imagingStudy.Meta = new Meta()
-                {
-                    Source = _dicomWebEndpoint,
-                };
-                requestMode = FhirTransactionRequestMode.Create;
-            }
-
-            await SynchronizeImagingStudyPropertiesAsync(context, imagingStudy, cancellationToken);
-
-            if (requestMode != FhirTransactionRequestMode.Create &&
-                !existingImagingStudy.IsExactly(imagingStudy))
-            {
-                requestMode = FhirTransactionRequestMode.Update;
-            }
-
-            Bundle.RequestComponent request = requestMode switch
-            {
-                FhirTransactionRequestMode.Create => ImagingStudyPipelineHelper.GenerateCreateRequest(imagingStudyIdentifier),
-                FhirTransactionRequestMode.Update => ImagingStudyPipelineHelper.GenerateUpdateRequest(imagingStudy),
-                _ => null,
+                Status = ImagingStudy.ImagingStudyStatus.Available,
+                Subject = patientId.ToResourceReference(),
             };
 
-            IResourceId resourceId = requestMode switch
+            imagingStudy.Identifier.Add(imagingStudyIdentifier);
+            imagingStudy.Meta = new Meta()
             {
-                FhirTransactionRequestMode.Create => new ClientResourceId(),
-                _ => existingImagingStudy.ToServerResourceId(),
+                Source = _dicomWebEndpoint,
             };
-
-            return new FhirTransactionRequestEntry(
-                requestMode,
-                request,
-                resourceId,
-                imagingStudy);
+            requestMode = FhirTransactionRequestMode.Create;
         }
 
-        private async Task SynchronizeImagingStudyPropertiesAsync(FhirTransactionContext context, ImagingStudy imagingStudy, CancellationToken cancellationToken)
-        {
-            await _imagingStudySynchronizer.SynchronizeStudyPropertiesAsync(context, imagingStudy, cancellationToken);
+        await SynchronizeImagingStudyPropertiesAsync(context, imagingStudy, cancellationToken);
 
-            await AddSeriesToImagingStudyAsync(context, imagingStudy, cancellationToken);
+        if (requestMode != FhirTransactionRequestMode.Create &&
+            !existingImagingStudy.IsExactly(imagingStudy))
+        {
+            requestMode = FhirTransactionRequestMode.Update;
         }
 
-        private async Task AddSeriesToImagingStudyAsync(FhirTransactionContext context, ImagingStudy imagingStudy, CancellationToken cancellationToken)
+        Bundle.RequestComponent request = requestMode switch
         {
-            ChangeFeedEntry changeFeedEntry = context.ChangeFeedEntry;
+            FhirTransactionRequestMode.Create => ImagingStudyPipelineHelper.GenerateCreateRequest(imagingStudyIdentifier),
+            FhirTransactionRequestMode.Update => ImagingStudyPipelineHelper.GenerateUpdateRequest(imagingStudy),
+            _ => null,
+        };
 
-            List<ImagingStudy.SeriesComponent> existingSeriesCollection = imagingStudy.Series;
+        IResourceId resourceId = requestMode switch
+        {
+            FhirTransactionRequestMode.Create => new ClientResourceId(),
+            _ => existingImagingStudy.ToServerResourceId(),
+        };
 
-            ImagingStudy.InstanceComponent instance = new ImagingStudy.InstanceComponent()
+        return new FhirTransactionRequestEntry(
+            requestMode,
+            request,
+            resourceId,
+            imagingStudy);
+    }
+
+    private async Task SynchronizeImagingStudyPropertiesAsync(FhirTransactionContext context, ImagingStudy imagingStudy, CancellationToken cancellationToken)
+    {
+        await _imagingStudySynchronizer.SynchronizeStudyPropertiesAsync(context, imagingStudy, cancellationToken);
+
+        await AddSeriesToImagingStudyAsync(context, imagingStudy, cancellationToken);
+    }
+
+    private async Task AddSeriesToImagingStudyAsync(FhirTransactionContext context, ImagingStudy imagingStudy, CancellationToken cancellationToken)
+    {
+        ChangeFeedEntry changeFeedEntry = context.ChangeFeedEntry;
+
+        List<ImagingStudy.SeriesComponent> existingSeriesCollection = imagingStudy.Series;
+
+        ImagingStudy.InstanceComponent instance = new ImagingStudy.InstanceComponent()
+        {
+            Uid = changeFeedEntry.SopInstanceUid,
+        };
+
+        // Checks if the given series already exists within a study
+        ImagingStudy.SeriesComponent series = ImagingStudyPipelineHelper.GetSeriesWithinAStudy(changeFeedEntry.SeriesInstanceUid, existingSeriesCollection);
+
+        if (series == null)
+        {
+            series = new ImagingStudy.SeriesComponent()
             {
-                Uid = changeFeedEntry.SopInstanceUid,
+                Uid = changeFeedEntry.SeriesInstanceUid,
             };
 
-            // Checks if the given series already exists within a study
-            ImagingStudy.SeriesComponent series = ImagingStudyPipelineHelper.GetSeriesWithinAStudy(changeFeedEntry.SeriesInstanceUid, existingSeriesCollection);
+            series.Instance.Add(instance);
+            imagingStudy.Series.Add(series);
+        }
+        else
+        {
+            ImagingStudy.InstanceComponent existingInstance = ImagingStudyPipelineHelper.GetInstanceWithinASeries(changeFeedEntry.SopInstanceUid, series);
 
-            if (series == null)
+            if (existingInstance == null)
             {
-                series = new ImagingStudy.SeriesComponent()
-                {
-                    Uid = changeFeedEntry.SeriesInstanceUid,
-                };
-
                 series.Instance.Add(instance);
-                imagingStudy.Series.Add(series);
             }
             else
             {
-                ImagingStudy.InstanceComponent existingInstance = ImagingStudyPipelineHelper.GetInstanceWithinASeries(changeFeedEntry.SopInstanceUid, series);
-
-                if (existingInstance == null)
-                {
-                    series.Instance.Add(instance);
-                }
-                else
-                {
-                    instance = existingInstance;
-                }
+                instance = existingInstance;
             }
-
-            await _imagingStudySynchronizer.SynchronizeSeriesPropertiesAsync(context, series, cancellationToken);
-            await _imagingStudySynchronizer.SynchronizeInstancePropertiesAsync(context, instance, cancellationToken);
         }
+
+        await _imagingStudySynchronizer.SynchronizeSeriesPropertiesAsync(context, series, cancellationToken);
+        await _imagingStudySynchronizer.SynchronizeInstancePropertiesAsync(context, instance, cancellationToken);
     }
 }

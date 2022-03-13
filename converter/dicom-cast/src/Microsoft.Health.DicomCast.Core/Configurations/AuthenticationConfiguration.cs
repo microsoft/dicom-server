@@ -5,22 +5,21 @@
 
 using Microsoft.Health.Client;
 
-namespace Microsoft.Health.DicomCast.Core.Configurations
+namespace Microsoft.Health.DicomCast.Core.Configurations;
+
+public class AuthenticationConfiguration
 {
-    public class AuthenticationConfiguration
-    {
-        public const string SectionName = "Authentication";
+    public const string SectionName = "Authentication";
 
-        public bool Enabled { get; set; }
+    public bool Enabled { get; set; }
 
-        public AuthenticationType? AuthenticationType { get; set; }
+    public AuthenticationType? AuthenticationType { get; set; }
 
-        public OAuth2ClientCertificateCredentialConfiguration OAuth2ClientCertificateCredential { get; set; }
+    public OAuth2ClientCertificateCredentialConfiguration OAuth2ClientCertificateCredential { get; set; }
 
-        public OAuth2ClientCredentialConfiguration OAuth2ClientCredential { get; set; }
+    public OAuth2ClientCredentialConfiguration OAuth2ClientCredential { get; set; }
 
-        public OAuth2UserPasswordCredentialConfiguration OAuth2UserPasswordCredential { get; set; }
+    public OAuth2UserPasswordCredentialConfiguration OAuth2UserPasswordCredential { get; set; }
 
-        public ManagedIdentityCredentialConfiguration ManagedIdentityCredential { get; set; }
-    }
+    public ManagedIdentityCredentialConfiguration ManagedIdentityCredential { get; set; }
 }

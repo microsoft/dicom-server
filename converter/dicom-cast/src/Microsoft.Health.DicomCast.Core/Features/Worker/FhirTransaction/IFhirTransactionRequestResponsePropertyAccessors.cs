@@ -5,16 +5,15 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
+
+/// <summary>
+/// Provides property accessors for <see cref="FhirTransactionRequestEntry"/> and <see cref="FhirTransactionResponseEntry"/>.
+/// </summary>
+public interface IFhirTransactionRequestResponsePropertyAccessors
 {
     /// <summary>
-    /// Provides property accessors for <see cref="FhirTransactionRequestEntry"/> and <see cref="FhirTransactionResponseEntry"/>.
+    /// Gets list of property accessors for <see cref="FhirTransactionRequestEntry"/> and <see cref="FhirTransactionResponseEntry"/>.
     /// </summary>
-    public interface IFhirTransactionRequestResponsePropertyAccessors
-    {
-        /// <summary>
-        /// Gets list of property accessors for <see cref="FhirTransactionRequestEntry"/> and <see cref="FhirTransactionResponseEntry"/>.
-        /// </summary>
-        IReadOnlyList<FhirTransactionRequestResponsePropertyAccessor> PropertyAccessors { get; }
-    }
+    IReadOnlyList<FhirTransactionRequestResponsePropertyAccessor> PropertyAccessors { get; }
 }

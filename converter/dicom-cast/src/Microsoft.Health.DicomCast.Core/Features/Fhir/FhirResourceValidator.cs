@@ -6,27 +6,26 @@
 using EnsureThat;
 using Hl7.Fhir.Model;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Fhir
+namespace Microsoft.Health.DicomCast.Core.Features.Fhir;
+
+/// <summary>
+/// Provides functionality to validate a resource.
+/// </summary>
+public class FhirResourceValidator : IFhirResourceValidator
 {
-    /// <summary>
-    /// Provides functionality to validate a resource.
-    /// </summary>
-    public class FhirResourceValidator : IFhirResourceValidator
+    /// <inheritdoc/>
+    public void Validate(Resource resource)
     {
-        /// <inheritdoc/>
-        public void Validate(Resource resource)
+        EnsureArg.IsNotNull(resource, nameof(resource));
+
+        if (string.IsNullOrWhiteSpace(resource.Id))
         {
-            EnsureArg.IsNotNull(resource, nameof(resource));
+            throw new FhirResourceValidationException(DicomCastCoreResource.InvalidFhirResourceMissingId);
+        }
 
-            if (string.IsNullOrWhiteSpace(resource.Id))
-            {
-                throw new FhirResourceValidationException(DicomCastCoreResource.InvalidFhirResourceMissingId);
-            }
-
-            if (string.IsNullOrWhiteSpace(resource.Meta?.VersionId))
-            {
-                throw new FhirResourceValidationException(DicomCastCoreResource.InvalidFhirResourceMissingVersionId);
-            }
+        if (string.IsNullOrWhiteSpace(resource.Meta?.VersionId))
+        {
+            throw new FhirResourceValidationException(DicomCastCoreResource.InvalidFhirResourceMissingVersionId);
         }
     }
 }

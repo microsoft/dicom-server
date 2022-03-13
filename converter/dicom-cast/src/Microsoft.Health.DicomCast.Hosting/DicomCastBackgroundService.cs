@@ -9,20 +9,19 @@ using EnsureThat;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Health.DicomCast.Core.Features.Worker;
 
-namespace Microsoft.Health.DicomCast.Hosting
+namespace Microsoft.Health.DicomCast.Hosting;
+
+public class DicomCastBackgroundService : BackgroundService
 {
-    public class DicomCastBackgroundService : BackgroundService
+    private readonly IDicomCastWorker _dicomCastWorker;
+
+    public DicomCastBackgroundService(IDicomCastWorker dicomCastWorker)
     {
-        private readonly IDicomCastWorker _dicomCastWorker;
+        EnsureArg.IsNotNull(dicomCastWorker, nameof(dicomCastWorker));
 
-        public DicomCastBackgroundService(IDicomCastWorker dicomCastWorker)
-        {
-            EnsureArg.IsNotNull(dicomCastWorker, nameof(dicomCastWorker));
-
-            _dicomCastWorker = dicomCastWorker;
-        }
-
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
-            => _dicomCastWorker.ExecuteAsync(stoppingToken);
+        _dicomCastWorker = dicomCastWorker;
     }
+
+    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        => _dicomCastWorker.ExecuteAsync(stoppingToken);
 }

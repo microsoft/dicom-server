@@ -5,16 +5,15 @@
 
 using System;
 
-namespace Microsoft.Health.DicomCast.Core.Configurations
+namespace Microsoft.Health.DicomCast.Core.Configurations;
+
+/// <summary>
+/// The configuration for retryable exceptions.
+/// </summary>
+public class RetryConfiguration
 {
     /// <summary>
-    /// The configuration for retryable exceptions.
+    /// The total amount of time to spend retrying a single change feed entry across all retries.
     /// </summary>
-    public class RetryConfiguration
-    {
-        /// <summary>
-        /// The total amount of time to spend retrying a single change feed entry across all retries.
-        /// </summary>
-        public TimeSpan TotalRetryDuration { get; set; } = TimeSpan.FromMinutes(10);
-    }
+    public TimeSpan TotalRetryDuration { get; set; } = TimeSpan.FromMinutes(10);
 }

@@ -13,254 +13,253 @@ using NSubstitute;
 using Xunit;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction;
+
+public class FhirTransactionPipelineTests
 {
-    public class FhirTransactionPipelineTests
+    private readonly IList<IFhirTransactionPipelineStep> _fhirTransactionPipelineSteps = new List<IFhirTransactionPipelineStep>();
+    private readonly FhirTransactionRequestResponsePropertyAccessors _fhirTransactionRequestResponsePropertyAccessors = new FhirTransactionRequestResponsePropertyAccessors();
+    private readonly IFhirTransactionExecutor _fhirTransactionExecutor = Substitute.For<IFhirTransactionExecutor>();
+
+    private readonly FhirTransactionPipeline _fhirTransactionPipeline;
+
+    private readonly IFhirTransactionPipelineStep _captureFhirTransactionContextStep = Substitute.For<IFhirTransactionPipelineStep>();
+
+    private FhirTransactionContext _capturedFhirTransactionContext;
+
+    public FhirTransactionPipelineTests()
     {
-        private readonly IList<IFhirTransactionPipelineStep> _fhirTransactionPipelineSteps = new List<IFhirTransactionPipelineStep>();
-        private readonly FhirTransactionRequestResponsePropertyAccessors _fhirTransactionRequestResponsePropertyAccessors = new FhirTransactionRequestResponsePropertyAccessors();
-        private readonly IFhirTransactionExecutor _fhirTransactionExecutor = Substitute.For<IFhirTransactionExecutor>();
+        // Use this step to capture the context. The same context will be used across all steps.
+        _captureFhirTransactionContextStep.When(pipeline => pipeline.PrepareRequestAsync(Arg.Any<FhirTransactionContext>(), CancellationToken.None))
+            .Do(callback =>
+            {
+                FhirTransactionContext context = callback.ArgAt<FhirTransactionContext>(0);
 
-        private readonly FhirTransactionPipeline _fhirTransactionPipeline;
+                _capturedFhirTransactionContext = context;
+            });
 
-        private readonly IFhirTransactionPipelineStep _captureFhirTransactionContextStep = Substitute.For<IFhirTransactionPipelineStep>();
+        _fhirTransactionPipelineSteps.Add(_captureFhirTransactionContextStep);
 
-        private FhirTransactionContext _capturedFhirTransactionContext;
+        _fhirTransactionPipeline = new FhirTransactionPipeline(
+            _fhirTransactionPipelineSteps,
+            _fhirTransactionRequestResponsePropertyAccessors,
+            _fhirTransactionExecutor);
+    }
 
-        public FhirTransactionPipelineTests()
+    [Theory]
+    [InlineData(FhirTransactionRequestMode.Create)]
+    [InlineData(FhirTransactionRequestMode.Update)]
+    public async Task GivenAResourceToProcess_WhenProcessed_ThenTransactionShouldBeExecuted(FhirTransactionRequestMode requestMode)
+    {
+        // Setup the pipeline step to simulate creating/updating patient.
+        var patientRequest = new FhirTransactionRequestEntry(
+            requestMode,
+            new Bundle.RequestComponent(),
+            new ClientResourceId(),
+            new Patient());
+
+        var pipelineStep = new MockFhirTransactionPipelineStep()
         {
-            // Use this step to capture the context. The same context will be used across all steps.
-            _captureFhirTransactionContextStep.When(pipeline => pipeline.PrepareRequestAsync(Arg.Any<FhirTransactionContext>(), CancellationToken.None))
-                .Do(callback =>
-                {
-                    FhirTransactionContext context = callback.ArgAt<FhirTransactionContext>(0);
+            OnPrepareRequestAsyncCalled = (context, cancellationToken) =>
+            {
+                context.Request.Patient = patientRequest;
 
-                    _capturedFhirTransactionContext = context;
-                });
+                Assert.Equal(CancellationToken.None, cancellationToken);
+            },
+        };
 
-            _fhirTransactionPipelineSteps.Add(_captureFhirTransactionContextStep);
+        _fhirTransactionPipelineSteps.Add(pipelineStep);
 
-            _fhirTransactionPipeline = new FhirTransactionPipeline(
-                _fhirTransactionPipelineSteps,
-                _fhirTransactionRequestResponsePropertyAccessors,
-                _fhirTransactionExecutor);
-        }
+        // Setup the transaction executor to return response.
+        var responseBundle = new Bundle();
 
-        [Theory]
-        [InlineData(FhirTransactionRequestMode.Create)]
-        [InlineData(FhirTransactionRequestMode.Update)]
-        public async Task GivenAResourceToProcess_WhenProcessed_ThenTransactionShouldBeExecuted(FhirTransactionRequestMode requestMode)
+        var responseEntry = new Bundle.EntryComponent()
         {
-            // Setup the pipeline step to simulate creating/updating patient.
-            var patientRequest = new FhirTransactionRequestEntry(
-                requestMode,
-                new Bundle.RequestComponent(),
-                new ClientResourceId(),
-                new Patient());
+            Response = new Bundle.ResponseComponent(),
+            Resource = new Patient(),
+        };
 
-            var pipelineStep = new MockFhirTransactionPipelineStep()
+        responseBundle.Entry.Add(responseEntry);
+
+        _fhirTransactionExecutor.ExecuteTransactionAsync(
+            Arg.Any<Bundle>(),
+            CancellationToken.None)
+            .Returns(call =>
             {
-                OnPrepareRequestAsyncCalled = (context, cancellationToken) =>
-                {
-                    context.Request.Patient = patientRequest;
+                // Make sure the request bundle is correct.
+                Bundle requestBundle = call.ArgAt<Bundle>(0);
 
-                    Assert.Equal(CancellationToken.None, cancellationToken);
-                },
-            };
+                Assert.NotNull(requestBundle);
+                Assert.Equal(Bundle.BundleType.Transaction, requestBundle.Type);
 
-            _fhirTransactionPipelineSteps.Add(pipelineStep);
-
-            // Setup the transaction executor to return response.
-            var responseBundle = new Bundle();
-
-            var responseEntry = new Bundle.EntryComponent()
-            {
-                Response = new Bundle.ResponseComponent(),
-                Resource = new Patient(),
-            };
-
-            responseBundle.Entry.Add(responseEntry);
-
-            _fhirTransactionExecutor.ExecuteTransactionAsync(
-                Arg.Any<Bundle>(),
-                CancellationToken.None)
-                .Returns(call =>
-                {
-                    // Make sure the request bundle is correct.
-                    Bundle requestBundle = call.ArgAt<Bundle>(0);
-
-                    Assert.NotNull(requestBundle);
-                    Assert.Equal(Bundle.BundleType.Transaction, requestBundle.Type);
-
-                    Assert.Collection(
-                        requestBundle.Entry,
-                        entry =>
-                        {
-                            Assert.Equal(patientRequest.ResourceId.ToString(), entry.FullUrl);
-                            Assert.Equal(patientRequest.Request, entry.Request);
-                            Assert.Equal(patientRequest.Resource, entry.Resource);
-                        });
-
-                    return responseBundle;
-                });
-
-            // Process
-            await _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), CancellationToken.None);
-
-            // The response should have been processed.
-            Assert.NotNull(_capturedFhirTransactionContext);
-
-            FhirTransactionResponseEntry patientResponse = _capturedFhirTransactionContext.Response.Patient;
-
-            Assert.NotNull(patientResponse);
-            Assert.Equal(responseEntry.Response, patientResponse.Response);
-            Assert.Equal(responseEntry.Resource, patientResponse.Resource);
-        }
-
-        [Fact]
-        public async Task WhenThrowAnExceptionInProcess_ThrowTheSameException()
-        {
-            var pipelineStep = new MockFhirTransactionPipelineStep()
-            {
-                OnPrepareRequestAsyncCalled = (context, cancellationToken) =>
-                {
-                    throw new Exception();
-                },
-            };
-
-            _fhirTransactionPipelineSteps.Add(pipelineStep);
-
-            // Process
-            await Assert.ThrowsAsync<Exception>(() => _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), CancellationToken.None));
-        }
-
-        [Fact]
-        public async Task GivenNoResourceToProcess_WhenProcessed_ThenTransactionShouldBeExecuted()
-        {
-            // Setup the pipeline step to simulate no requests.
-            IFhirTransactionPipelineStep pipelineStep = Substitute.For<IFhirTransactionPipelineStep>();
-
-            _fhirTransactionPipelineSteps.Add(pipelineStep);
-
-            // Process
-            await _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), CancellationToken.None);
-
-            // There should not be any response.
-            pipelineStep.DidNotReceiveWithAnyArgs().ProcessResponse(default);
-        }
-
-        [Fact]
-        public async Task GivenResourcesInMixedState_WhenProcessed_ThenOnlyResourceWithChangesShouldBeProcessed()
-        {
-            // Setup the pipeline step to simulate updating an existing patient.
-            FhirTransactionRequestEntry patientRequest = FhirTransactionRequestEntryGenerator.GenerateDefaultUpdateRequestEntry<Patient>(
-                new ServerResourceId(ResourceType.Patient, "p1"));
-
-            var patientStep = new MockFhirTransactionPipelineStep()
-            {
-                OnPrepareRequestAsyncCalled = (context, cancellationToken) =>
-                {
-                    context.Request.Patient = patientRequest;
-                },
-            };
-
-            // Setup the pipeline step to simulate no update to endpoint.
-            FhirTransactionRequestEntry endpointRequest = FhirTransactionRequestEntryGenerator.GenerateDefaultNoChangeRequestEntry<Endpoint>(
-                new ServerResourceId(ResourceType.Endpoint, "123"));
-
-            var endpointStep = new MockFhirTransactionPipelineStep()
-            {
-                OnPrepareRequestAsyncCalled = (context, cancellationToken) =>
-                {
-                    context.Request.Endpoint = endpointRequest;
-                },
-            };
-
-            // Setup the pipeline step to simulate creating a new imaging study.
-            FhirTransactionRequestEntry imagingStudyRequest = FhirTransactionRequestEntryGenerator.GenerateDefaultCreateRequestEntry<ImagingStudy>();
-
-            var imagingStudyStep = new MockFhirTransactionPipelineStep()
-            {
-                OnPrepareRequestAsyncCalled = (context, cancellationToken) =>
-                {
-                    context.Request.ImagingStudy = imagingStudyRequest;
-                },
-            };
-
-            _fhirTransactionPipelineSteps.Add(patientStep);
-            _fhirTransactionPipelineSteps.Add(endpointStep);
-            _fhirTransactionPipelineSteps.Add(imagingStudyStep);
-
-            // Setup the transaction executor to return response.
-            // The properties will be processed in alphabetical order.
-            var responseBundle = new Bundle();
-
-            var imagingStudyResponseEntry = new Bundle.EntryComponent()
-            {
-                Response = new Bundle.ResponseComponent(),
-                Resource = new ImagingStudy(),
-            };
-
-            var patientResponseEntry = new Bundle.EntryComponent()
-            {
-                Response = new Bundle.ResponseComponent(),
-                Resource = new Patient(),
-            };
-
-            responseBundle.Entry.Add(imagingStudyResponseEntry);
-            responseBundle.Entry.Add(patientResponseEntry);
-
-            _fhirTransactionExecutor.ExecuteTransactionAsync(
-                Arg.Any<Bundle>(),
-                CancellationToken.None)
-                .Returns(call =>
-                {
-                    // Make sure the request bundle is correct.
-                    Bundle requestBundle = call.ArgAt<Bundle>(0);
-
-                    var expectedEntries = new Bundle.EntryComponent[]
+                Assert.Collection(
+                    requestBundle.Entry,
+                    entry =>
                     {
-                        new Bundle.EntryComponent()
-                        {
-                            FullUrl = imagingStudyRequest.ResourceId.ToString(),
-                            Request = imagingStudyRequest.Request,
-                            Resource = imagingStudyRequest.Resource,
-                        },
-                        new Bundle.EntryComponent()
-                        {
-                            FullUrl = "Patient/p1",
-                            Request = patientRequest.Request,
-                            Resource = patientRequest.Resource,
-                        },
-                    };
+                        Assert.Equal(patientRequest.ResourceId.ToString(), entry.FullUrl);
+                        Assert.Equal(patientRequest.Request, entry.Request);
+                        Assert.Equal(patientRequest.Resource, entry.Resource);
+                    });
 
-                    Assert.True(
-                        requestBundle.Entry.Matches(expectedEntries));
+                return responseBundle;
+            });
 
-                    return responseBundle;
-                });
+        // Process
+        await _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), CancellationToken.None);
 
-            // Process
-            await _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), CancellationToken.None);
+        // The response should have been processed.
+        Assert.NotNull(_capturedFhirTransactionContext);
 
-            // The response should have been processed.
-            Assert.NotNull(_capturedFhirTransactionContext);
+        FhirTransactionResponseEntry patientResponse = _capturedFhirTransactionContext.Response.Patient;
 
-            FhirTransactionResponseEntry endpointResponse = _capturedFhirTransactionContext.Response.Endpoint;
+        Assert.NotNull(patientResponse);
+        Assert.Equal(responseEntry.Response, patientResponse.Response);
+        Assert.Equal(responseEntry.Resource, patientResponse.Resource);
+    }
 
-            FhirTransactionResponseEntry imaingStudyResponse = _capturedFhirTransactionContext.Response.ImagingStudy;
+    [Fact]
+    public async Task WhenThrowAnExceptionInProcess_ThrowTheSameException()
+    {
+        var pipelineStep = new MockFhirTransactionPipelineStep()
+        {
+            OnPrepareRequestAsyncCalled = (context, cancellationToken) =>
+            {
+                throw new Exception();
+            },
+        };
 
-            Assert.NotNull(imaingStudyResponse);
-            Assert.Same(imaingStudyResponse.Response, imagingStudyResponseEntry.Response);
-            Assert.Same(imaingStudyResponse.Resource, imagingStudyResponseEntry.Resource);
+        _fhirTransactionPipelineSteps.Add(pipelineStep);
 
-            Assert.Null(endpointResponse);
+        // Process
+        await Assert.ThrowsAsync<Exception>(() => _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), CancellationToken.None));
+    }
 
-            FhirTransactionResponseEntry patientResponse = _capturedFhirTransactionContext.Response.Patient;
+    [Fact]
+    public async Task GivenNoResourceToProcess_WhenProcessed_ThenTransactionShouldBeExecuted()
+    {
+        // Setup the pipeline step to simulate no requests.
+        IFhirTransactionPipelineStep pipelineStep = Substitute.For<IFhirTransactionPipelineStep>();
 
-            Assert.NotNull(patientResponse);
-            Assert.Same(patientResponse.Response, patientResponseEntry.Response);
-            Assert.Same(patientResponse.Resource, patientResponseEntry.Resource);
-        }
+        _fhirTransactionPipelineSteps.Add(pipelineStep);
+
+        // Process
+        await _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), CancellationToken.None);
+
+        // There should not be any response.
+        pipelineStep.DidNotReceiveWithAnyArgs().ProcessResponse(default);
+    }
+
+    [Fact]
+    public async Task GivenResourcesInMixedState_WhenProcessed_ThenOnlyResourceWithChangesShouldBeProcessed()
+    {
+        // Setup the pipeline step to simulate updating an existing patient.
+        FhirTransactionRequestEntry patientRequest = FhirTransactionRequestEntryGenerator.GenerateDefaultUpdateRequestEntry<Patient>(
+            new ServerResourceId(ResourceType.Patient, "p1"));
+
+        var patientStep = new MockFhirTransactionPipelineStep()
+        {
+            OnPrepareRequestAsyncCalled = (context, cancellationToken) =>
+            {
+                context.Request.Patient = patientRequest;
+            },
+        };
+
+        // Setup the pipeline step to simulate no update to endpoint.
+        FhirTransactionRequestEntry endpointRequest = FhirTransactionRequestEntryGenerator.GenerateDefaultNoChangeRequestEntry<Endpoint>(
+            new ServerResourceId(ResourceType.Endpoint, "123"));
+
+        var endpointStep = new MockFhirTransactionPipelineStep()
+        {
+            OnPrepareRequestAsyncCalled = (context, cancellationToken) =>
+            {
+                context.Request.Endpoint = endpointRequest;
+            },
+        };
+
+        // Setup the pipeline step to simulate creating a new imaging study.
+        FhirTransactionRequestEntry imagingStudyRequest = FhirTransactionRequestEntryGenerator.GenerateDefaultCreateRequestEntry<ImagingStudy>();
+
+        var imagingStudyStep = new MockFhirTransactionPipelineStep()
+        {
+            OnPrepareRequestAsyncCalled = (context, cancellationToken) =>
+            {
+                context.Request.ImagingStudy = imagingStudyRequest;
+            },
+        };
+
+        _fhirTransactionPipelineSteps.Add(patientStep);
+        _fhirTransactionPipelineSteps.Add(endpointStep);
+        _fhirTransactionPipelineSteps.Add(imagingStudyStep);
+
+        // Setup the transaction executor to return response.
+        // The properties will be processed in alphabetical order.
+        var responseBundle = new Bundle();
+
+        var imagingStudyResponseEntry = new Bundle.EntryComponent()
+        {
+            Response = new Bundle.ResponseComponent(),
+            Resource = new ImagingStudy(),
+        };
+
+        var patientResponseEntry = new Bundle.EntryComponent()
+        {
+            Response = new Bundle.ResponseComponent(),
+            Resource = new Patient(),
+        };
+
+        responseBundle.Entry.Add(imagingStudyResponseEntry);
+        responseBundle.Entry.Add(patientResponseEntry);
+
+        _fhirTransactionExecutor.ExecuteTransactionAsync(
+            Arg.Any<Bundle>(),
+            CancellationToken.None)
+            .Returns(call =>
+            {
+                // Make sure the request bundle is correct.
+                Bundle requestBundle = call.ArgAt<Bundle>(0);
+
+                var expectedEntries = new Bundle.EntryComponent[]
+                {
+                    new Bundle.EntryComponent()
+                    {
+                        FullUrl = imagingStudyRequest.ResourceId.ToString(),
+                        Request = imagingStudyRequest.Request,
+                        Resource = imagingStudyRequest.Resource,
+                    },
+                    new Bundle.EntryComponent()
+                    {
+                        FullUrl = "Patient/p1",
+                        Request = patientRequest.Request,
+                        Resource = patientRequest.Resource,
+                    },
+                };
+
+                Assert.True(
+                    requestBundle.Entry.Matches(expectedEntries));
+
+                return responseBundle;
+            });
+
+        // Process
+        await _fhirTransactionPipeline.ProcessAsync(ChangeFeedGenerator.Generate(), CancellationToken.None);
+
+        // The response should have been processed.
+        Assert.NotNull(_capturedFhirTransactionContext);
+
+        FhirTransactionResponseEntry endpointResponse = _capturedFhirTransactionContext.Response.Endpoint;
+
+        FhirTransactionResponseEntry imaingStudyResponse = _capturedFhirTransactionContext.Response.ImagingStudy;
+
+        Assert.NotNull(imaingStudyResponse);
+        Assert.Same(imaingStudyResponse.Response, imagingStudyResponseEntry.Response);
+        Assert.Same(imaingStudyResponse.Resource, imagingStudyResponseEntry.Resource);
+
+        Assert.Null(endpointResponse);
+
+        FhirTransactionResponseEntry patientResponse = _capturedFhirTransactionContext.Response.Patient;
+
+        Assert.NotNull(patientResponse);
+        Assert.Same(patientResponse.Response, patientResponseEntry.Response);
+        Assert.Same(patientResponse.Resource, patientResponseEntry.Resource);
     }
 }

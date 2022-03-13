@@ -14,228 +14,227 @@ using NSubstitute;
 using Xunit;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction;
+
+public class ImagingStudyPropertySynchronizerTests
 {
-    public class ImagingStudyPropertySynchronizerTests
+    private const string DefaultStudyInstanceUid = "111";
+    private const string DefaultSeriesInstanceUid = "222";
+    private const string DefaultSopInstanceUid = "333";
+    private const string DefaultPatientResourceId = "555";
+    private const string NewAccessionNumber = "2";
+    private readonly IImagingStudyPropertySynchronizer _imagingStudyPropertySynchronizer;
+
+    private readonly DicomCastConfiguration _dicomCastConfig = new DicomCastConfiguration();
+    private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
+
+    public ImagingStudyPropertySynchronizerTests()
     {
-        private const string DefaultStudyInstanceUid = "111";
-        private const string DefaultSeriesInstanceUid = "222";
-        private const string DefaultSopInstanceUid = "333";
-        private const string DefaultPatientResourceId = "555";
-        private const string NewAccessionNumber = "2";
-        private readonly IImagingStudyPropertySynchronizer _imagingStudyPropertySynchronizer;
+        _imagingStudyPropertySynchronizer = new ImagingStudyPropertySynchronizer(Options.Create(_dicomCastConfig), _exceptionStore);
+    }
 
-        private readonly DicomCastConfiguration _dicomCastConfig = new DicomCastConfiguration();
-        private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
+    [Fact]
+    public async Task GivenATransactionContexAndImagingStudy_WhenProcessedForStudy_ThenDicomPropertiesAreCorrectlyMappedtoImagingStudyAsync()
+    {
+        ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
+        FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
 
-        public ImagingStudyPropertySynchronizerTests()
-        {
-            _imagingStudyPropertySynchronizer = new ImagingStudyPropertySynchronizer(Options.Create(_dicomCastConfig), _exceptionStore);
-        }
+        await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
-        [Fact]
-        public async Task GivenATransactionContexAndImagingStudy_WhenProcessedForStudy_ThenDicomPropertiesAreCorrectlyMappedtoImagingStudyAsync()
-        {
-            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
-            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
+        Assert.Collection(
+           imagingStudy.Endpoint,
+           reference => string.Equals(reference.Reference, context.Request.Endpoint.Resource.ToString(), StringComparison.Ordinal));
 
-            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
+        Assert.Collection(
+           imagingStudy.Modality,
+           modality => string.Equals(modality.Code, "MODALITY", StringComparison.Ordinal));
 
-            Assert.Collection(
-               imagingStudy.Endpoint,
-               reference => string.Equals(reference.Reference, context.Request.Endpoint.Resource.ToString(), StringComparison.Ordinal));
+        Assert.Collection(
+           imagingStudy.Note,
+           note => string.Equals(note.Text.ToString(), "Study Description", StringComparison.Ordinal));
 
-            Assert.Collection(
-               imagingStudy.Modality,
-               modality => string.Equals(modality.Code, "MODALITY", StringComparison.Ordinal));
+        Assert.Collection(
+           imagingStudy.Identifier,
+           identifier => string.Equals(identifier.Value, $"urn:oid:{DefaultStudyInstanceUid}", StringComparison.Ordinal), // studyinstanceUid
+           identifier => string.Equals(identifier.Value, "1", StringComparison.Ordinal)); // accession number
 
-            Assert.Collection(
-               imagingStudy.Note,
-               note => string.Equals(note.Text.ToString(), "Study Description", StringComparison.Ordinal));
+        Assert.Equal(new FhirDateTime(1974, 7, 10, 7, 10, 24, TimeSpan.Zero), imagingStudy.StartedElement);
+    }
 
-            Assert.Collection(
-               imagingStudy.Identifier,
-               identifier => string.Equals(identifier.Value, $"urn:oid:{DefaultStudyInstanceUid}", StringComparison.Ordinal), // studyinstanceUid
-               identifier => string.Equals(identifier.Value, "1", StringComparison.Ordinal)); // accession number
+    [Fact]
+    public async Task GivenATransactionContexAndImagingStudyWithNewModality_WhenProcessedForStudy_ThenNewModalityIsAddedAsync()
+    {
+        ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
+        FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
 
-            Assert.Equal(new FhirDateTime(1974, 7, 10, 7, 10, 24, TimeSpan.Zero), imagingStudy.StartedElement);
-        }
+        await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
-        [Fact]
-        public async Task GivenATransactionContexAndImagingStudyWithNewModality_WhenProcessedForStudy_ThenNewModalityIsAddedAsync()
-        {
-            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
-            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
+        Assert.Collection(
+           imagingStudy.Modality,
+           modality => string.Equals(modality.Code, "MODALITY", StringComparison.Ordinal));
 
-            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
+        FhirTransactionContext newConText = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset(modalityInStudy: "NEWMODALITY", modalityInSeries: "NEWMODALITY"));
 
-            Assert.Collection(
-               imagingStudy.Modality,
-               modality => string.Equals(modality.Code, "MODALITY", StringComparison.Ordinal));
+        await _imagingStudyPropertySynchronizer.SynchronizeAsync(newConText, imagingStudy);
 
-            FhirTransactionContext newConText = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset(modalityInStudy: "NEWMODALITY", modalityInSeries: "NEWMODALITY"));
+        Assert.Collection(
+           imagingStudy.Modality,
+           modality => string.Equals(modality.Code, "MODALITY", StringComparison.Ordinal),
+           modality => string.Equals(modality.Code, "NEWMODALITY", StringComparison.Ordinal));
+    }
 
-            await _imagingStudyPropertySynchronizer.SynchronizeAsync(newConText, imagingStudy);
+    [Fact]
+    public async Task GivenATransactionContextAndImagingStudyWithExitsingModality_WhenProcessedForStudy_ThenModalityIsNotAddedAsync()
+    {
+        ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
+        FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
 
-            Assert.Collection(
-               imagingStudy.Modality,
-               modality => string.Equals(modality.Code, "MODALITY", StringComparison.Ordinal),
-               modality => string.Equals(modality.Code, "NEWMODALITY", StringComparison.Ordinal));
-        }
+        await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
-        [Fact]
-        public async Task GivenATransactionContextAndImagingStudyWithExitsingModality_WhenProcessedForStudy_ThenModalityIsNotAddedAsync()
-        {
-            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
-            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
+        Assert.Collection(
+           imagingStudy.Modality,
+           modality => string.Equals(modality.Code, "MODALITY", StringComparison.Ordinal));
 
-            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
+        await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
-            Assert.Collection(
-               imagingStudy.Modality,
-               modality => string.Equals(modality.Code, "MODALITY", StringComparison.Ordinal));
+        Assert.Collection(
+           imagingStudy.Modality,
+           modality => string.Equals(modality.Code, "MODALITY", StringComparison.Ordinal));
+    }
 
-            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
+    [Fact]
+    public async Task GivenATransactionContexAndImagingStudyWithNewAccessionNumber_WhenProcessedForStudy_ThenNewAccessionNumberIsAddedAsync()
+    {
+        ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
+        FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
 
-            Assert.Collection(
-               imagingStudy.Modality,
-               modality => string.Equals(modality.Code, "MODALITY", StringComparison.Ordinal));
-        }
+        await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
-        [Fact]
-        public async Task GivenATransactionContexAndImagingStudyWithNewAccessionNumber_WhenProcessedForStudy_ThenNewAccessionNumberIsAddedAsync()
-        {
-            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
-            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
+        Assert.Collection(
+            imagingStudy.Identifier,
+            identifier => ValidationUtility.ValidateIdentifier("urn:dicom:uid", $"urn:oid:{DefaultStudyInstanceUid}", identifier), // studyinstanceUid
+            identifier => ValidationUtility.ValidateAccessionNumber(null, FhirTransactionContextBuilder.DefaultAccessionNumber, identifier)); // accession number
 
-            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
+        FhirTransactionContext newConText = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset(accessionNumber: NewAccessionNumber));
 
-            Assert.Collection(
-                imagingStudy.Identifier,
-                identifier => ValidationUtility.ValidateIdentifier("urn:dicom:uid", $"urn:oid:{DefaultStudyInstanceUid}", identifier), // studyinstanceUid
-                identifier => ValidationUtility.ValidateAccessionNumber(null, FhirTransactionContextBuilder.DefaultAccessionNumber, identifier)); // accession number
+        await _imagingStudyPropertySynchronizer.SynchronizeAsync(newConText, imagingStudy);
 
-            FhirTransactionContext newConText = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset(accessionNumber: NewAccessionNumber));
+        Assert.Collection(
+            imagingStudy.Identifier,
+            identifier => ValidationUtility.ValidateIdentifier("urn:dicom:uid", $"urn:oid:{DefaultStudyInstanceUid}", identifier), // studyinstanceUid
+            identifier => ValidationUtility.ValidateAccessionNumber(null, FhirTransactionContextBuilder.DefaultAccessionNumber, identifier), // accession number
+            identifier => ValidationUtility.ValidateAccessionNumber(null, NewAccessionNumber, identifier)); // new accession number
+    }
 
-            await _imagingStudyPropertySynchronizer.SynchronizeAsync(newConText, imagingStudy);
+    [Fact]
+    public async Task GivenATransactionContextAndImagingStudyWithExitsingAccessionNumber_WhenProcessedForStudy_ThenAccessionNumberIsNotAddedAsync()
+    {
+        ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
+        FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
 
-            Assert.Collection(
-                imagingStudy.Identifier,
-                identifier => ValidationUtility.ValidateIdentifier("urn:dicom:uid", $"urn:oid:{DefaultStudyInstanceUid}", identifier), // studyinstanceUid
-                identifier => ValidationUtility.ValidateAccessionNumber(null, FhirTransactionContextBuilder.DefaultAccessionNumber, identifier), // accession number
-                identifier => ValidationUtility.ValidateAccessionNumber(null, NewAccessionNumber, identifier)); // new accession number
-        }
+        await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
-        [Fact]
-        public async Task GivenATransactionContextAndImagingStudyWithExitsingAccessionNumber_WhenProcessedForStudy_ThenAccessionNumberIsNotAddedAsync()
-        {
-            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
-            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
+        Assert.Collection(
+            imagingStudy.Identifier,
+            identifier => ValidationUtility.ValidateIdentifier("urn:dicom:uid", $"urn:oid:{DefaultStudyInstanceUid}", identifier),
+            identifier => ValidationUtility.ValidateAccessionNumber(null, FhirTransactionContextBuilder.DefaultAccessionNumber, identifier));
 
-            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
+        await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
-            Assert.Collection(
-                imagingStudy.Identifier,
-                identifier => ValidationUtility.ValidateIdentifier("urn:dicom:uid", $"urn:oid:{DefaultStudyInstanceUid}", identifier),
-                identifier => ValidationUtility.ValidateAccessionNumber(null, FhirTransactionContextBuilder.DefaultAccessionNumber, identifier));
+        Assert.Collection(
+            imagingStudy.Identifier,
+            identifier => ValidationUtility.ValidateIdentifier("urn:dicom:uid", $"urn:oid:{DefaultStudyInstanceUid}", identifier),
+            identifier => ValidationUtility.ValidateAccessionNumber(null, FhirTransactionContextBuilder.DefaultAccessionNumber, identifier));
+    }
 
-            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
+    [Fact]
+    public async Task GivenATransactionContextAndImagingStudyWithNoEndpoint_WhenProcessedForStudy_ThenNewEndpointIsAddedAsync()
+    {
+        ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
+        FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
 
-            Assert.Collection(
-                imagingStudy.Identifier,
-                identifier => ValidationUtility.ValidateIdentifier("urn:dicom:uid", $"urn:oid:{DefaultStudyInstanceUid}", identifier),
-                identifier => ValidationUtility.ValidateAccessionNumber(null, FhirTransactionContextBuilder.DefaultAccessionNumber, identifier));
-        }
+        await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
-        [Fact]
-        public async Task GivenATransactionContextAndImagingStudyWithNoEndpoint_WhenProcessedForStudy_ThenNewEndpointIsAddedAsync()
-        {
-            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
-            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
+        Assert.Collection(
+           imagingStudy.Endpoint,
+           endPoint => Assert.Equal(context.Request.Endpoint.ResourceId.ToResourceReference(), endPoint));
+    }
 
-            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
+    [Fact]
+    public async Task GivenATransactionContextAndImagingStudyWithExistingEndpointReference_WhenProcessedForStudy_ThenEndpointResourceIsNotAddedAsync()
+    {
+        ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
+        Endpoint endpoint = FhirResourceBuilder.CreateEndpointResource();
+        var endpointResourceId = new ServerResourceId(ResourceType.Endpoint, endpoint.Id);
+        var endpointReference = endpointResourceId.ToResourceReference();
 
-            Assert.Collection(
-               imagingStudy.Endpoint,
-               endPoint => Assert.Equal(context.Request.Endpoint.ResourceId.ToResourceReference(), endPoint));
-        }
+        FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
+        context.Request.Endpoint = FhirTransactionRequestEntryGenerator.GenerateDefaultNoChangeRequestEntry<Endpoint>(endpointResourceId);
 
-        [Fact]
-        public async Task GivenATransactionContextAndImagingStudyWithExistingEndpointReference_WhenProcessedForStudy_ThenEndpointResourceIsNotAddedAsync()
-        {
-            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
-            Endpoint endpoint = FhirResourceBuilder.CreateEndpointResource();
-            var endpointResourceId = new ServerResourceId(ResourceType.Endpoint, endpoint.Id);
-            var endpointReference = endpointResourceId.ToResourceReference();
+        imagingStudy.Endpoint.Add(endpointReference);
 
-            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
-            context.Request.Endpoint = FhirTransactionRequestEntryGenerator.GenerateDefaultNoChangeRequestEntry<Endpoint>(endpointResourceId);
+        await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
-            imagingStudy.Endpoint.Add(endpointReference);
+        Assert.Collection(
+         imagingStudy.Endpoint,
+         endPoint => Assert.Equal(endpointReference, endPoint));
+    }
 
-            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
+    [Fact]
+    public async Task GivenATransactionContextAndImagingStudyWithNewEndpointReference_WhenProcessedForStudyWithEndpoint_ThenEndpointIsAddedAsync()
+    {
+        ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
 
-            Assert.Collection(
-             imagingStudy.Endpoint,
-             endPoint => Assert.Equal(endpointReference, endPoint));
-        }
+        // Simulate the imaging study with an existing endpoint.
+        Endpoint existingEndpoint = FhirResourceBuilder.CreateEndpointResource(id: "2345", name: "new wado-rs");
+        var existingEndpointResourceId = new ServerResourceId(ResourceType.Endpoint, existingEndpoint.Id);
+        var existingEndpointReference = existingEndpointResourceId.ToResourceReference();
 
-        [Fact]
-        public async Task GivenATransactionContextAndImagingStudyWithNewEndpointReference_WhenProcessedForStudyWithEndpoint_ThenEndpointIsAddedAsync()
-        {
-            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
+        imagingStudy.Endpoint.Add(existingEndpointReference);
 
-            // Simulate the imaging study with an existing endpoint.
-            Endpoint existingEndpoint = FhirResourceBuilder.CreateEndpointResource(id: "2345", name: "new wado-rs");
-            var existingEndpointResourceId = new ServerResourceId(ResourceType.Endpoint, existingEndpoint.Id);
-            var existingEndpointReference = existingEndpointResourceId.ToResourceReference();
+        Endpoint endpoint = FhirResourceBuilder.CreateEndpointResource();
+        var endpointResourceId = new ServerResourceId(ResourceType.Endpoint, endpoint.Id);
+        var endpointReference = endpointResourceId.ToResourceReference();
 
-            imagingStudy.Endpoint.Add(existingEndpointReference);
+        FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
+        context.Request.Endpoint = FhirTransactionRequestEntryGenerator.GenerateDefaultNoChangeRequestEntry<Endpoint>(endpointResourceId);
 
-            Endpoint endpoint = FhirResourceBuilder.CreateEndpointResource();
-            var endpointResourceId = new ServerResourceId(ResourceType.Endpoint, endpoint.Id);
-            var endpointReference = endpointResourceId.ToResourceReference();
+        await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
-            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
-            context.Request.Endpoint = FhirTransactionRequestEntryGenerator.GenerateDefaultNoChangeRequestEntry<Endpoint>(endpointResourceId);
+        Assert.Collection(
+         imagingStudy.Endpoint,
+         endPoint => Assert.Equal(existingEndpointReference, endPoint),
+         endPoint => Assert.Equal(endpointReference, endPoint));
+    }
 
-            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
+    [Fact]
+    public async Task GivenATransactionContexAndImagingStudyWithNewStudyDescription_WhenProcessedForStudy_ThenNewNoteIsAddedAsync()
+    {
+        ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
+        FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
 
-            Assert.Collection(
-             imagingStudy.Endpoint,
-             endPoint => Assert.Equal(existingEndpointReference, endPoint),
-             endPoint => Assert.Equal(endpointReference, endPoint));
-        }
+        await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
-        [Fact]
-        public async Task GivenATransactionContexAndImagingStudyWithNewStudyDescription_WhenProcessedForStudy_ThenNewNoteIsAddedAsync()
-        {
-            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(DefaultStudyInstanceUid, new List<string>() { DefaultSeriesInstanceUid }, new List<string>() { DefaultSopInstanceUid }, DefaultPatientResourceId);
-            FhirTransactionContext context = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset());
+        Assert.Collection(
+           imagingStudy.Note,
+           note => string.Equals(note.Text.ToString(), "Study Description", StringComparison.Ordinal));
 
-            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
+        // When studyDescription is same, note is not added twice
 
-            Assert.Collection(
-               imagingStudy.Note,
-               note => string.Equals(note.Text.ToString(), "Study Description", StringComparison.Ordinal));
+        await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
 
-            // When studyDescription is same, note is not added twice
+        Assert.Collection(
+           imagingStudy.Note,
+           note => string.Equals(note.Text.ToString(), "Study Description", StringComparison.Ordinal));
 
-            await _imagingStudyPropertySynchronizer.SynchronizeAsync(context, imagingStudy);
+        // When study description is new, new note is added
+        FhirTransactionContext newConText = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset(studyDescription: "New Study Description"));
 
-            Assert.Collection(
-               imagingStudy.Note,
-               note => string.Equals(note.Text.ToString(), "Study Description", StringComparison.Ordinal));
+        await _imagingStudyPropertySynchronizer.SynchronizeAsync(newConText, imagingStudy);
 
-            // When study description is new, new note is added
-            FhirTransactionContext newConText = FhirTransactionContextBuilder.DefaultFhirTransactionContext(FhirTransactionContextBuilder.CreateDicomDataset(studyDescription: "New Study Description"));
-
-            await _imagingStudyPropertySynchronizer.SynchronizeAsync(newConText, imagingStudy);
-
-            Assert.Collection(
-               imagingStudy.Note,
-               note => string.Equals(note.Text.ToString(), "Study Description", StringComparison.Ordinal),
-               note => string.Equals(note.Text.ToString(), "New Study Description", StringComparison.Ordinal));
-        }
+        Assert.Collection(
+           imagingStudy.Note,
+           note => string.Equals(note.Text.ToString(), "Study Description", StringComparison.Ordinal),
+           note => string.Equals(note.Text.ToString(), "New Study Description", StringComparison.Ordinal));
     }
 }

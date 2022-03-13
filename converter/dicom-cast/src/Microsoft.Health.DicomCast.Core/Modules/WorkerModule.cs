@@ -14,147 +14,146 @@ using Microsoft.Health.DicomCast.Core.Features.Worker;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using Microsoft.Health.Extensions.DependencyInjection;
 
-namespace Microsoft.Health.DicomCast.Core.Modules
+namespace Microsoft.Health.DicomCast.Core.Modules;
+
+public class WorkerModule : IStartupModule
 {
-    public class WorkerModule : IStartupModule
+    private const string DicomCastWorkerConfigurationSectionName = "DicomCastWorker";
+    private const string DicomValidationConfigurationSectionName = "DicomCast";
+    private const string RetryConfigurationSectionName = "RetryConfiguration";
+
+    private readonly IConfiguration _configuration;
+
+    public WorkerModule(IConfiguration configuration)
     {
-        private const string DicomCastWorkerConfigurationSectionName = "DicomCastWorker";
-        private const string DicomValidationConfigurationSectionName = "DicomCast";
-        private const string RetryConfigurationSectionName = "RetryConfiguration";
+        EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-        private readonly IConfiguration _configuration;
+        _configuration = configuration;
+    }
 
-        public WorkerModule(IConfiguration configuration)
-        {
-            EnsureArg.IsNotNull(configuration, nameof(configuration));
+    public void Load(IServiceCollection services)
+    {
+        EnsureArg.IsNotNull(services, nameof(services));
 
-            _configuration = configuration;
-        }
+        DicomCastWorkerConfiguration dicomCastWorkerConfiguration = services.Configure<DicomCastWorkerConfiguration>(
+            _configuration,
+            DicomCastWorkerConfigurationSectionName);
 
-        public void Load(IServiceCollection services)
-        {
-            EnsureArg.IsNotNull(services, nameof(services));
+        DicomCastConfiguration dicomValidationConfiguration = services.Configure<DicomCastConfiguration>(
+            _configuration,
+            DicomValidationConfigurationSectionName);
 
-            DicomCastWorkerConfiguration dicomCastWorkerConfiguration = services.Configure<DicomCastWorkerConfiguration>(
-                _configuration,
-                DicomCastWorkerConfigurationSectionName);
+        RetryConfiguration retryConfiguration = services.Configure<RetryConfiguration>(
+            _configuration,
+            RetryConfigurationSectionName);
 
-            DicomCastConfiguration dicomValidationConfiguration = services.Configure<DicomCastConfiguration>(
-                _configuration,
-                DicomValidationConfigurationSectionName);
+        services.Add<DicomCastWorker>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
 
-            RetryConfiguration retryConfiguration = services.Configure<RetryConfiguration>(
-                _configuration,
-                RetryConfigurationSectionName);
+        RegisterPipeline(services);
 
-            services.Add<DicomCastWorker>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
+        services.Add<ChangeFeedProcessor>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
 
-            RegisterPipeline(services);
+        services.Decorate<IChangeFeedProcessor, LoggingChangeFeedProcessor>();
 
-            services.Add<ChangeFeedProcessor>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
+        services.Add<SyncStateService>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
 
-            services.Decorate<IChangeFeedProcessor, LoggingChangeFeedProcessor>();
+        services.AddSingleton<ObservationParser>();
+    }
 
-            services.Add<SyncStateService>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
+    private static void RegisterPipeline(IServiceCollection services)
+    {
+        services.Add<FhirTransactionPipeline>()
+            .Transient()
+            .AsSelf()
+            .AsImplementedInterfaces();
 
-            services.AddSingleton<ObservationParser>();
-        }
+        services.Decorate<IFhirTransactionPipeline, RetryableFhirTransactionPipeline>();
+        services.Decorate<IFhirTransactionPipeline, LoggingFhirTransactionPipeline>();
 
-        private static void RegisterPipeline(IServiceCollection services)
-        {
-            services.Add<FhirTransactionPipeline>()
-                .Transient()
-                .AsSelf()
-                .AsImplementedInterfaces();
+        services.Add<Func<IFhirTransactionPipeline>>(sp => () => sp.GetRequiredService<IFhirTransactionPipeline>())
+            .Transient()
+            .AsSelf();
 
-            services.Decorate<IFhirTransactionPipeline, RetryableFhirTransactionPipeline>();
-            services.Decorate<IFhirTransactionPipeline, LoggingFhirTransactionPipeline>();
+        RegisterPipelineSteps(services);
 
-            services.Add<Func<IFhirTransactionPipeline>>(sp => () => sp.GetRequiredService<IFhirTransactionPipeline>())
-                .Transient()
-                .AsSelf();
+        services.Decorate<IFhirTransactionPipelineStep, LoggingFhirTransactionPipelineStep>();
 
-            RegisterPipelineSteps(services);
+        services.Add<PatientSynchronizer>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
 
-            services.Decorate<IFhirTransactionPipelineStep, LoggingFhirTransactionPipelineStep>();
+        services.Add<PatientNameSynchronizer>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
 
-            services.Add<PatientSynchronizer>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
+        services.Add<PatientGenderSynchronizer>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
 
-            services.Add<PatientNameSynchronizer>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
+        services.Add<PatientBirthDateSynchronizer>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
 
-            services.Add<PatientGenderSynchronizer>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
+        services.Add<ImagingStudySynchronizer>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
 
-            services.Add<PatientBirthDateSynchronizer>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
+        services.Add<ImagingStudyPropertySynchronizer>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
 
-            services.Add<ImagingStudySynchronizer>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
+        services.Add<ImagingStudySeriesPropertySynchronizer>()
+           .Singleton()
+           .AsSelf()
+           .AsImplementedInterfaces();
 
-            services.Add<ImagingStudyPropertySynchronizer>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
+        services.Add<ImagingStudyInstancePropertySynchronizer>()
+           .Singleton()
+           .AsSelf()
+           .AsImplementedInterfaces();
 
-            services.Add<ImagingStudySeriesPropertySynchronizer>()
-               .Singleton()
-               .AsSelf()
-               .AsImplementedInterfaces();
+        services.Add<FhirTransactionRequestResponsePropertyAccessors>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
+    }
 
-            services.Add<ImagingStudyInstancePropertySynchronizer>()
-               .Singleton()
-               .AsSelf()
-               .AsImplementedInterfaces();
+    private static void RegisterPipelineSteps(IServiceCollection services)
+    {
+        // The order matters for the following pipeline steps.
+        services.Add<PatientPipelineStep>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
 
-            services.Add<FhirTransactionRequestResponsePropertyAccessors>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
-        }
+        services.Add<EndpointPipelineStep>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
 
-        private static void RegisterPipelineSteps(IServiceCollection services)
-        {
-            // The order matters for the following pipeline steps.
-            services.Add<PatientPipelineStep>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
+        services.Add<ImagingStudyPipelineStep>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
 
-            services.Add<EndpointPipelineStep>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<ImagingStudyPipelineStep>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<ObservationPipelineStep>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
-        }
+        services.Add<ObservationPipelineStep>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
     }
 }
