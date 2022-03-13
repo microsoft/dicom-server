@@ -6,13 +6,12 @@
 using System.Globalization;
 using Microsoft.Health.Dicom.Core.Exceptions;
 
-namespace Microsoft.Health.Dicom.Api.Web
+namespace Microsoft.Health.Dicom.Api.Web;
+
+public class InvalidRequestBodyException : ValidationException
 {
-    public class InvalidRequestBodyException : ValidationException
+    public InvalidRequestBodyException(string key, string errorMessage)
+       : base(string.Format(CultureInfo.InvariantCulture, DicomApiResource.InvalidRequestBody, key, errorMessage))
     {
-        public InvalidRequestBodyException(string key, string errorMessage)
-           : base(string.Format(CultureInfo.InvariantCulture, DicomApiResource.InvalidRequestBody, key, errorMessage))
-        {
-        }
     }
 }

@@ -5,18 +5,17 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Core.Exceptions
-{
-    public class ExtendedQueryTagEntryValidationException : ValidationException
-    {
-        public ExtendedQueryTagEntryValidationException(string message)
-            : base(message)
-        {
-        }
+namespace Microsoft.Health.Dicom.Core.Exceptions;
 
-        public ExtendedQueryTagEntryValidationException(string message, Exception innerException)
-            : base(message, innerException)
-        {
-        }
+public class ExtendedQueryTagEntryValidationException : ValidationException
+{
+    public ExtendedQueryTagEntryValidationException(string message)
+        : base(message)
+    {
+    }
+
+    public ExtendedQueryTagEntryValidationException(string message, Exception innerException)
+        : base(message, innerException)
+    {
     }
 }

@@ -10,19 +10,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Operations.Configuration;
 
 [assembly: FunctionsStartup(typeof(Microsoft.Health.Dicom.Functions.Startup))]
-namespace Microsoft.Health.Dicom.Functions
-{
-    public class Startup : FunctionsStartup
-    {
-        public override void Configure(IFunctionsHostBuilder builder)
-        {
-            EnsureArg.IsNotNull(builder, nameof(builder));
+namespace Microsoft.Health.Dicom.Functions;
 
-            IConfiguration config = builder.GetHostConfiguration();
-            builder.Services
-                .ConfigureFunctions(config)
-                .AddMetadataStorageDataStore(config)
-                .AddSqlServer(config);
-        }
+public class Startup : FunctionsStartup
+{
+    public override void Configure(IFunctionsHostBuilder builder)
+    {
+        EnsureArg.IsNotNull(builder, nameof(builder));
+
+        IConfiguration config = builder.GetHostConfiguration();
+        builder.Services
+            .ConfigureFunctions(config)
+            .AddMetadataStorageDataStore(config)
+            .AddSqlServer(config);
     }
 }

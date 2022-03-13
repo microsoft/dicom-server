@@ -5,21 +5,20 @@
 
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
-{
-    /// <summary>
-    /// Encapsulate parameters for updating extended query tag.
-    /// </summary>
-    public class UpdateExtendedQueryTagEntry
-    {
-        public UpdateExtendedQueryTagEntry(QueryStatus queryStatus)
-        {
-            QueryStatus = EnsureArg.EnumIsDefined(queryStatus, nameof(queryStatus));
-        }
+namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
-        /// <summary>
-        /// Gets or sets query status.
-        /// </summary>        
-        public QueryStatus QueryStatus { get; }
+/// <summary>
+/// Encapsulate parameters for updating extended query tag.
+/// </summary>
+public class UpdateExtendedQueryTagEntry
+{
+    public UpdateExtendedQueryTagEntry(QueryStatus queryStatus)
+    {
+        QueryStatus = EnsureArg.EnumIsDefined(queryStatus, nameof(queryStatus));
     }
+
+    /// <summary>
+    /// Gets or sets query status.
+    /// </summary>        
+    public QueryStatus QueryStatus { get; }
 }

@@ -6,12 +6,11 @@
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Store
+namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
+
+/// <summary>
+///  Sql version of IIndexDataStore.
+/// </summary>
+internal interface ISqlIndexDataStore : IIndexDataStore, IVersioned
 {
-    /// <summary>
-    ///  Sql version of IIndexDataStore.
-    /// </summary>
-    internal interface ISqlIndexDataStore : IIndexDataStore, IVersioned
-    {
-    }
 }

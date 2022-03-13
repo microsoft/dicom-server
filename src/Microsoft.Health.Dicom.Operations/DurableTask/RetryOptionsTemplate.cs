@@ -5,18 +5,17 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Operations.DurableTask
+namespace Microsoft.Health.Dicom.Operations.DurableTask;
+
+internal sealed class RetryOptionsTemplate
 {
-    internal sealed class RetryOptionsTemplate
-    {
-        public TimeSpan FirstRetryInterval { get; set; } = TimeSpan.Zero;
+    public TimeSpan FirstRetryInterval { get; set; } = TimeSpan.Zero;
 
-        public TimeSpan MaxRetryInterval { get; set; } = TimeSpan.FromDays(6.0); // Durable Function Maximum
+    public TimeSpan MaxRetryInterval { get; set; } = TimeSpan.FromDays(6.0); // Durable Function Maximum
 
-        public double BackoffCoefficient { get; set; } = 1;
+    public double BackoffCoefficient { get; set; } = 1;
 
-        public TimeSpan RetryTimeout { get; set; } = TimeSpan.MaxValue;
+    public TimeSpan RetryTimeout { get; set; } = TimeSpan.MaxValue;
 
-        public int MaxNumberOfAttempts { get; set; } = 1;
-    }
+    public int MaxNumberOfAttempts { get; set; } = 1;
 }

@@ -18,66 +18,65 @@ using Microsoft.Health.Dicom.Core.Messages.Store;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store
+namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store;
+
+public class StoreHandlerTests
 {
-    public class StoreHandlerTests
+    private const string DefaultContentType = "application/dicom";
+
+    private readonly IDicomInstanceEntryReaderManager _dicomInstanceEntryReaderManager = Substitute.For<IDicomInstanceEntryReaderManager>();
+    private readonly IStoreService _storeService = Substitute.For<IStoreService>();
+    private readonly StoreHandler _storeHandler;
+
+    public StoreHandlerTests()
     {
-        private const string DefaultContentType = "application/dicom";
+        _storeHandler = new StoreHandler(new DisabledAuthorizationService<DataActions>(), _dicomInstanceEntryReaderManager, _storeService);
+    }
 
-        private readonly IDicomInstanceEntryReaderManager _dicomInstanceEntryReaderManager = Substitute.For<IDicomInstanceEntryReaderManager>();
-        private readonly IStoreService _storeService = Substitute.For<IStoreService>();
-        private readonly StoreHandler _storeHandler;
+    [Fact]
+    public async Task GivenNullRequestBody_WhenHandled_ThenBadRequestExceptionShouldBeThrown()
+    {
+        var storeRequest = new StoreRequest(null, DefaultContentType);
 
-        public StoreHandlerTests()
-        {
-            _storeHandler = new StoreHandler(new DisabledAuthorizationService<DataActions>(), _dicomInstanceEntryReaderManager, _storeService);
-        }
+        await Assert.ThrowsAsync<BadRequestException>(() => _storeHandler.Handle(storeRequest, CancellationToken.None));
+    }
 
-        [Fact]
-        public async Task GivenNullRequestBody_WhenHandled_ThenBadRequestExceptionShouldBeThrown()
-        {
-            var storeRequest = new StoreRequest(null, DefaultContentType);
+    [Fact]
+    public async Task GivenInvalidStudyInstanceUid_WhenHandled_ThenInvalidIdentifierExceptionShouldBeThrown()
+    {
+        var storeRequest = new StoreRequest(Stream.Null, DefaultContentType, "invalid");
 
-            await Assert.ThrowsAsync<BadRequestException>(() => _storeHandler.Handle(storeRequest, CancellationToken.None));
-        }
+        await Assert.ThrowsAsync<InvalidIdentifierException>(() => _storeHandler.Handle(storeRequest, CancellationToken.None));
+    }
 
-        [Fact]
-        public async Task GivenInvalidStudyInstanceUid_WhenHandled_ThenInvalidIdentifierExceptionShouldBeThrown()
-        {
-            var storeRequest = new StoreRequest(Stream.Null, DefaultContentType, "invalid");
+    [Fact]
+    public async Task GivenUnsupportedContentType_WhenHandled_ThenUnsupportedMediaTypeExceptionShouldBeThrown()
+    {
+        _dicomInstanceEntryReaderManager.FindReader(default).ReturnsForAnyArgs((IDicomInstanceEntryReader)null);
 
-            await Assert.ThrowsAsync<InvalidIdentifierException>(() => _storeHandler.Handle(storeRequest, CancellationToken.None));
-        }
+        var storeRequest = new StoreRequest(Stream.Null, "invalid");
 
-        [Fact]
-        public async Task GivenUnsupportedContentType_WhenHandled_ThenUnsupportedMediaTypeExceptionShouldBeThrown()
-        {
-            _dicomInstanceEntryReaderManager.FindReader(default).ReturnsForAnyArgs((IDicomInstanceEntryReader)null);
+        await Assert.ThrowsAsync<UnsupportedMediaTypeException>(() => _storeHandler.Handle(storeRequest, CancellationToken.None));
+    }
 
-            var storeRequest = new StoreRequest(Stream.Null, "invalid");
+    [Fact]
+    public async Task GivenSupportedContentType_WhenHandled_ThenCorrectStoreResponseShouldBeReturned()
+    {
+        const string studyInstanceUid = "1.2.3";
 
-            await Assert.ThrowsAsync<UnsupportedMediaTypeException>(() => _storeHandler.Handle(storeRequest, CancellationToken.None));
-        }
+        IDicomInstanceEntry[] dicomInstanceEntries = Array.Empty<IDicomInstanceEntry>();
+        IDicomInstanceEntryReader dicomInstanceEntryReader = Substitute.For<IDicomInstanceEntryReader>();
+        var storeResponse = new StoreResponse(StoreResponseStatus.Success, new DicomDataset());
+        using var source = new CancellationTokenSource();
 
-        [Fact]
-        public async Task GivenSupportedContentType_WhenHandled_ThenCorrectStoreResponseShouldBeReturned()
-        {
-            const string studyInstanceUid = "1.2.3";
+        dicomInstanceEntryReader.ReadAsync(DefaultContentType, Stream.Null, source.Token).Returns(dicomInstanceEntries);
+        _dicomInstanceEntryReaderManager.FindReader(DefaultContentType).Returns(dicomInstanceEntryReader);
+        _storeService.ProcessAsync(dicomInstanceEntries, studyInstanceUid, source.Token).Returns(storeResponse);
 
-            IDicomInstanceEntry[] dicomInstanceEntries = Array.Empty<IDicomInstanceEntry>();
-            IDicomInstanceEntryReader dicomInstanceEntryReader = Substitute.For<IDicomInstanceEntryReader>();
-            var storeResponse = new StoreResponse(StoreResponseStatus.Success, new DicomDataset());
-            using var source = new CancellationTokenSource();
+        var storeRequest = new StoreRequest(Stream.Null, DefaultContentType, studyInstanceUid);
 
-            dicomInstanceEntryReader.ReadAsync(DefaultContentType, Stream.Null, source.Token).Returns(dicomInstanceEntries);
-            _dicomInstanceEntryReaderManager.FindReader(DefaultContentType).Returns(dicomInstanceEntryReader);
-            _storeService.ProcessAsync(dicomInstanceEntries, studyInstanceUid, source.Token).Returns(storeResponse);
-
-            var storeRequest = new StoreRequest(Stream.Null, DefaultContentType, studyInstanceUid);
-
-            Assert.Equal(
-                storeResponse,
-                await _storeHandler.Handle(storeRequest, source.Token));
-        }
+        Assert.Equal(
+            storeResponse,
+            await _storeHandler.Handle(storeRequest, source.Token));
     }
 }

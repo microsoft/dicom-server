@@ -3,18 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Messages.Workitem
+namespace Microsoft.Health.Dicom.Core.Messages.Workitem;
+
+public sealed class CancelWorkitemResponse
 {
-    public sealed class CancelWorkitemResponse
+    public CancelWorkitemResponse(WorkitemResponseStatus status, string message = null)
     {
-        public CancelWorkitemResponse(WorkitemResponseStatus status, string message = null)
-        {
-            Status = status;
-            Message = message;
-        }
-
-        public WorkitemResponseStatus Status { get; }
-
-        public string Message { get; }
+        Status = status;
+        Message = message;
     }
+
+    public WorkitemResponseStatus Status { get; }
+
+    public string Message { get; }
 }

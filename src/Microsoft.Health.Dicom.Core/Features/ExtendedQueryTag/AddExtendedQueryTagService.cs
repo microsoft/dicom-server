@@ -17,55 +17,54 @@ using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 
-namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
+namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+
+public class AddExtendedQueryTagService : IAddExtendedQueryTagService
 {
-    public class AddExtendedQueryTagService : IAddExtendedQueryTagService
+    private readonly IExtendedQueryTagStore _extendedQueryTagStore;
+    private readonly IDicomOperationsClient _client;
+    private readonly IExtendedQueryTagEntryValidator _extendedQueryTagEntryValidator;
+    private readonly IUrlResolver _uriResolver;
+    private readonly int _maxAllowedCount;
+
+    public AddExtendedQueryTagService(
+        IExtendedQueryTagStore extendedQueryTagStore,
+        IDicomOperationsClient client,
+        IExtendedQueryTagEntryValidator extendedQueryTagEntryValidator,
+        IUrlResolver uriResolver,
+        IOptions<ExtendedQueryTagConfiguration> extendedQueryTagConfiguration)
     {
-        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
-        private readonly IDicomOperationsClient _client;
-        private readonly IExtendedQueryTagEntryValidator _extendedQueryTagEntryValidator;
-        private readonly IUrlResolver _uriResolver;
-        private readonly int _maxAllowedCount;
+        EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
+        EnsureArg.IsNotNull(client, nameof(client));
+        EnsureArg.IsNotNull(extendedQueryTagEntryValidator, nameof(extendedQueryTagEntryValidator));
+        EnsureArg.IsNotNull(uriResolver, nameof(uriResolver));
+        EnsureArg.IsNotNull(extendedQueryTagConfiguration?.Value, nameof(extendedQueryTagConfiguration));
 
-        public AddExtendedQueryTagService(
-            IExtendedQueryTagStore extendedQueryTagStore,
-            IDicomOperationsClient client,
-            IExtendedQueryTagEntryValidator extendedQueryTagEntryValidator,
-            IUrlResolver uriResolver,
-            IOptions<ExtendedQueryTagConfiguration> extendedQueryTagConfiguration)
-        {
-            EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
-            EnsureArg.IsNotNull(client, nameof(client));
-            EnsureArg.IsNotNull(extendedQueryTagEntryValidator, nameof(extendedQueryTagEntryValidator));
-            EnsureArg.IsNotNull(uriResolver, nameof(uriResolver));
-            EnsureArg.IsNotNull(extendedQueryTagConfiguration?.Value, nameof(extendedQueryTagConfiguration));
+        _extendedQueryTagStore = extendedQueryTagStore;
+        _client = client;
+        _extendedQueryTagEntryValidator = extendedQueryTagEntryValidator;
+        _uriResolver = uriResolver;
+        _maxAllowedCount = extendedQueryTagConfiguration.Value.MaxAllowedCount;
+    }
 
-            _extendedQueryTagStore = extendedQueryTagStore;
-            _client = client;
-            _extendedQueryTagEntryValidator = extendedQueryTagEntryValidator;
-            _uriResolver = uriResolver;
-            _maxAllowedCount = extendedQueryTagConfiguration.Value.MaxAllowedCount;
-        }
+    public async Task<AddExtendedQueryTagResponse> AddExtendedQueryTagsAsync(
+        IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags,
+        CancellationToken cancellationToken = default)
+    {
+        _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(extendedQueryTags);
+        var normalized = extendedQueryTags
+            .Select(item => item.Normalize())
+            .ToList();
 
-        public async Task<AddExtendedQueryTagResponse> AddExtendedQueryTagsAsync(
-            IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags,
-            CancellationToken cancellationToken = default)
-        {
-            _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(extendedQueryTags);
-            var normalized = extendedQueryTags
-                .Select(item => item.Normalize())
-                .ToList();
+        // Add the extended query tags to the DB
+        IReadOnlyList<ExtendedQueryTagStoreEntry> added = await _extendedQueryTagStore.AddExtendedQueryTagsAsync(
+            normalized,
+            _maxAllowedCount,
+            ready: false,
+            cancellationToken: cancellationToken);
 
-            // Add the extended query tags to the DB
-            IReadOnlyList<ExtendedQueryTagStoreEntry> added = await _extendedQueryTagStore.AddExtendedQueryTagsAsync(
-                normalized,
-                _maxAllowedCount,
-                ready: false,
-                cancellationToken: cancellationToken);
-
-            // Start re-indexing
-            Guid operationId = await _client.StartReindexingInstancesAsync(added.Select(x => x.Key).ToList(), cancellationToken);
-            return new AddExtendedQueryTagResponse(new OperationReference(operationId, _uriResolver.ResolveOperationStatusUri(operationId)));
-        }
+        // Start re-indexing
+        Guid operationId = await _client.StartReindexingInstancesAsync(added.Select(x => x.Key).ToList(), cancellationToken);
+        return new AddExtendedQueryTagResponse(new OperationReference(operationId, _uriResolver.ResolveOperationStatusUri(operationId)));
     }
 }

@@ -7,15 +7,14 @@ using System.Collections.Generic;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
-namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
-{
-    public class GetExtendedQueryTagErrorsResponse
-    {
-        public GetExtendedQueryTagErrorsResponse(IReadOnlyCollection<ExtendedQueryTagError> extendedQueryTagErrors)
-        {
-            ExtendedQueryTagErrors = EnsureArg.IsNotNull(extendedQueryTagErrors);
-        }
+namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
-        public IReadOnlyCollection<ExtendedQueryTagError> ExtendedQueryTagErrors { get; }
+public class GetExtendedQueryTagErrorsResponse
+{
+    public GetExtendedQueryTagErrorsResponse(IReadOnlyCollection<ExtendedQueryTagError> extendedQueryTagErrors)
+    {
+        ExtendedQueryTagErrors = EnsureArg.IsNotNull(extendedQueryTagErrors);
     }
+
+    public IReadOnlyCollection<ExtendedQueryTagError> ExtendedQueryTagErrors { get; }
 }

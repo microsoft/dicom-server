@@ -12,33 +12,32 @@ using MediatR.Pipeline;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Extensions.DependencyInjection;
 
-namespace Microsoft.Health.Dicom.Core.Modules
+namespace Microsoft.Health.Dicom.Core.Modules;
+
+public class MediationModule : IStartupModule
 {
-    public class MediationModule : IStartupModule
+    /// <inheritdoc />
+    public void Load(IServiceCollection services)
     {
-        /// <inheritdoc />
-        public void Load(IServiceCollection services)
-        {
-            EnsureArg.IsNotNull(services, nameof(services));
+        EnsureArg.IsNotNull(services, nameof(services));
 
-            Assembly coreAssembly = typeof(MediationModule).Assembly;
+        Assembly coreAssembly = typeof(MediationModule).Assembly;
 
-            services.AddMediatR(GetType().Assembly, coreAssembly);
-            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestPreProcessorBehavior<,>));
-            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestPostProcessorBehavior<,>));
+        services.AddMediatR(GetType().Assembly, coreAssembly);
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestPreProcessorBehavior<,>));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestPostProcessorBehavior<,>));
 
-            services.TypesInSameAssemblyAs<MediationModule>()
-                .Transient()
-                .AsImplementedInterfaces(IsPipelineBehavior);
+        services.TypesInSameAssemblyAs<MediationModule>()
+            .Transient()
+            .AsImplementedInterfaces(IsPipelineBehavior);
 
-            var openRequestInterfaces = new Type[] { typeof(IRequestHandler<,>) };
+        var openRequestInterfaces = new Type[] { typeof(IRequestHandler<,>) };
 
-            services.TypesInSameAssemblyAs<MediationModule>()
-                .Where(y => y.Type.IsGenericType && openRequestInterfaces.Contains(y.Type.GetGenericTypeDefinition()))
-                .Transient();
-        }
-
-        private static bool IsPipelineBehavior(Type t)
-            => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IPipelineBehavior<,>);
+        services.TypesInSameAssemblyAs<MediationModule>()
+            .Where(y => y.Type.IsGenericType && openRequestInterfaces.Contains(y.Type.GetGenericTypeDefinition()))
+            .Transient();
     }
+
+    private static bool IsPipelineBehavior(Type t)
+        => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IPipelineBehavior<,>);
 }

@@ -5,13 +5,12 @@
 
 using Microsoft.Health.Dicom.Core.Exceptions;
 
-namespace Microsoft.Health.Dicom.Core.Features.Query
+namespace Microsoft.Health.Dicom.Core.Features.Query;
+
+public class QueryParseException : ValidationException
 {
-    public class QueryParseException : ValidationException
+    public QueryParseException(string message)
+        : base(message)
     {
-        public QueryParseException(string message)
-            : base(message)
-        {
-        }
     }
 }

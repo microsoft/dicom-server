@@ -8,41 +8,40 @@ using System.Net.Http;
 using EnsureThat;
 using Microsoft.Extensions.Hosting;
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
+namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common;
+
+/// <summary>
+/// Represents a Dicom server for end-to-end testing.
+/// </summary>
+public abstract class TestDicomWebServer : IDisposable
 {
-    /// <summary>
-    /// Represents a Dicom server for end-to-end testing.
-    /// </summary>
-    public abstract class TestDicomWebServer : IDisposable
+    protected TestDicomWebServer(Uri baseAddress)
+        : this(baseAddress, NullHost.Instance)
+    { }
+
+    protected TestDicomWebServer(Uri baseAddress, IHost webJobsHost)
     {
-        protected TestDicomWebServer(Uri baseAddress)
-            : this(baseAddress, NullHost.Instance)
-        { }
+        BaseAddress = EnsureArg.IsNotNull(baseAddress, nameof(baseAddress));
+        WebJobsHost = EnsureArg.IsNotNull(webJobsHost, nameof(webJobsHost));
+    }
 
-        protected TestDicomWebServer(Uri baseAddress, IHost webJobsHost)
+    public Uri BaseAddress { get; }
+
+    public IHost WebJobsHost { get; }
+
+    public abstract HttpMessageHandler CreateMessageHandler();
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
         {
-            BaseAddress = EnsureArg.IsNotNull(baseAddress, nameof(baseAddress));
-            WebJobsHost = EnsureArg.IsNotNull(webJobsHost, nameof(webJobsHost));
+            WebJobsHost.Dispose();
         }
+    }
 
-        public Uri BaseAddress { get; }
-
-        public IHost WebJobsHost { get; }
-
-        public abstract HttpMessageHandler CreateMessageHandler();
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                WebJobsHost.Dispose();
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
 }

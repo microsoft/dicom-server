@@ -3,18 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Configs
+namespace Microsoft.Health.Dicom.Core.Configs;
+
+public class ServicesConfiguration
 {
-    public class ServicesConfiguration
-    {
-        public DeletedInstanceCleanupConfiguration DeletedInstanceCleanup { get; } = new DeletedInstanceCleanupConfiguration();
+    public DeletedInstanceCleanupConfiguration DeletedInstanceCleanup { get; } = new DeletedInstanceCleanupConfiguration();
 
-        public StoreConfiguration StoreServiceSettings { get; } = new StoreConfiguration();
+    public StoreConfiguration StoreServiceSettings { get; } = new StoreConfiguration();
 
-        public ExtendedQueryTagConfiguration ExtendedQueryTag { get; } = new ExtendedQueryTagConfiguration();
+    public ExtendedQueryTagConfiguration ExtendedQueryTag { get; } = new ExtendedQueryTagConfiguration();
 
-        public DataPartitionConfiguration DataPartition { get; } = new DataPartitionConfiguration();
+    public DataPartitionConfiguration DataPartition { get; } = new DataPartitionConfiguration();
 
-        public RetrieveConfiguration RetrieveConfiguration { get; } = new RetrieveConfiguration();
-    }
+    public RetrieveConfiguration RetrieveConfiguration { get; } = new RetrieveConfiguration();
 }

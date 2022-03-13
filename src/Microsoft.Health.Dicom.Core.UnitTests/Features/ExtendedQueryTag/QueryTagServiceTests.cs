@@ -12,39 +12,38 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag
+namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag;
+
+public class QueryTagServiceTests
 {
-    public class QueryTagServiceTests
+    private readonly IExtendedQueryTagStore _extendedQueryTagStore;
+    private readonly IQueryTagService _queryTagService;
+    private readonly FeatureConfiguration _featureConfiguration;
+
+    public QueryTagServiceTests()
     {
-        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
-        private readonly IQueryTagService _queryTagService;
-        private readonly FeatureConfiguration _featureConfiguration;
+        _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
+        _featureConfiguration = new FeatureConfiguration() { EnableExtendedQueryTags = true };
+        _queryTagService = new QueryTagService(_extendedQueryTagStore, Options.Create(_featureConfiguration));
+    }
 
-        public QueryTagServiceTests()
-        {
-            _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
-            _featureConfiguration = new FeatureConfiguration() { EnableExtendedQueryTags = true };
-            _queryTagService = new QueryTagService(_extendedQueryTagStore, Options.Create(_featureConfiguration));
-        }
+    [Fact]
+    public async Task GivenValidInput_WhenGetExtendedQueryTagsIsCalledMultipleTimes_ThenExtendedQueryTagStoreIsCalledOnce()
+    {
+        _extendedQueryTagStore.GetExtendedQueryTagsAsync(int.MaxValue, 0, Arg.Any<CancellationToken>())
+              .Returns(Array.Empty<ExtendedQueryTagStoreJoinEntry>());
 
-        [Fact]
-        public async Task GivenValidInput_WhenGetExtendedQueryTagsIsCalledMultipleTimes_ThenExtendedQueryTagStoreIsCalledOnce()
-        {
-            _extendedQueryTagStore.GetExtendedQueryTagsAsync(int.MaxValue, 0, Arg.Any<CancellationToken>())
-                  .Returns(Array.Empty<ExtendedQueryTagStoreJoinEntry>());
+        await _queryTagService.GetQueryTagsAsync();
+        await _queryTagService.GetQueryTagsAsync();
+        await _extendedQueryTagStore.Received(1).GetExtendedQueryTagsAsync(int.MaxValue, 0, Arg.Any<CancellationToken>());
+    }
 
-            await _queryTagService.GetQueryTagsAsync();
-            await _queryTagService.GetQueryTagsAsync();
-            await _extendedQueryTagStore.Received(1).GetExtendedQueryTagsAsync(int.MaxValue, 0, Arg.Any<CancellationToken>());
-        }
-
-        [Fact]
-        public async Task GivenEnableExtendedQueryTagsIsDisabled_WhenGetExtendedQueryTagsIsCalledMultipleTimes_ThenExtendedQueryTagStoreShouldNotBeCalled()
-        {
-            FeatureConfiguration featureConfiguration = new FeatureConfiguration() { EnableExtendedQueryTags = false };
-            IQueryTagService indexableDicomTagService = new QueryTagService(_extendedQueryTagStore, Options.Create(featureConfiguration));
-            await indexableDicomTagService.GetQueryTagsAsync();
-            await _extendedQueryTagStore.DidNotReceiveWithAnyArgs().GetExtendedQueryTagsAsync(default, default, default);
-        }
+    [Fact]
+    public async Task GivenEnableExtendedQueryTagsIsDisabled_WhenGetExtendedQueryTagsIsCalledMultipleTimes_ThenExtendedQueryTagStoreShouldNotBeCalled()
+    {
+        FeatureConfiguration featureConfiguration = new FeatureConfiguration() { EnableExtendedQueryTags = false };
+        IQueryTagService indexableDicomTagService = new QueryTagService(_extendedQueryTagStore, Options.Create(featureConfiguration));
+        await indexableDicomTagService.GetQueryTagsAsync();
+        await _extendedQueryTagStore.DidNotReceiveWithAnyArgs().GetExtendedQueryTagsAsync(default, default, default);
     }
 }

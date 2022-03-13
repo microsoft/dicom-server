@@ -5,20 +5,19 @@
 
 using FellowOakDicom;
 
-namespace Microsoft.Health.Dicom.Core.Features.Common
+namespace Microsoft.Health.Dicom.Core.Features.Common;
+
+/// <summary>
+/// Provides functionality to parse dicom tag path
+/// </summary>
+public interface IDicomTagParser
 {
     /// <summary>
-    /// Provides functionality to parse dicom tag path
+    /// Parse dicom tag path. 
     /// </summary>
-    public interface IDicomTagParser
-    {
-        /// <summary>
-        /// Parse dicom tag path. 
-        /// </summary>
-        /// <param name="dicomTagPath">The dicom tag path.</param>
-        /// <param name="dicomTags">The parsed dicom tags.</param>
-        /// <param name="supportMultiple">True to support multiple dicom tags like '00101002.00100024'.</param>
-        /// <returns>True if succeed.</returns>
-        bool TryParse(string dicomTagPath, out DicomTag[] dicomTags, bool supportMultiple = false);
-    }
+    /// <param name="dicomTagPath">The dicom tag path.</param>
+    /// <param name="dicomTags">The parsed dicom tags.</param>
+    /// <param name="supportMultiple">True to support multiple dicom tags like '00101002.00100024'.</param>
+    /// <returns>True if succeed.</returns>
+    bool TryParse(string dicomTagPath, out DicomTag[] dicomTags, bool supportMultiple = false);
 }

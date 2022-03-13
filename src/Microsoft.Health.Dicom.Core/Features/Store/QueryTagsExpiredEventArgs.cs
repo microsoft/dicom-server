@@ -8,12 +8,11 @@ using System.Collections.Generic;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
-namespace Microsoft.Health.Dicom.Core.Features.Store
-{
-    public sealed class QueryTagsExpiredEventArgs : EventArgs
-    {
-        public DicomDataset DicomDataset { get; set; }
+namespace Microsoft.Health.Dicom.Core.Features.Store;
 
-        public IReadOnlyCollection<QueryTag> NewQueryTags { get; set; }
-    }
+public sealed class QueryTagsExpiredEventArgs : EventArgs
+{
+    public DicomDataset DicomDataset { get; set; }
+
+    public IReadOnlyCollection<QueryTag> NewQueryTags { get; set; }
 }

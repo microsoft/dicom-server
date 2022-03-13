@@ -10,25 +10,24 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
+namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed;
+
+internal class SqlChangeFeedStore : IChangeFeedStore
 {
-    internal class SqlChangeFeedStore : IChangeFeedStore
+    private readonly VersionedCache<ISqlChangeFeedStore> _cache;
+
+    public SqlChangeFeedStore(VersionedCache<ISqlChangeFeedStore> cache)
+        => _cache = EnsureArg.IsNotNull(cache, nameof(cache));
+
+    public async Task<ChangeFeedEntry> GetChangeFeedLatestAsync(CancellationToken cancellationToken)
     {
-        private readonly VersionedCache<ISqlChangeFeedStore> _cache;
+        ISqlChangeFeedStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+        return await store.GetChangeFeedLatestAsync(cancellationToken);
+    }
 
-        public SqlChangeFeedStore(VersionedCache<ISqlChangeFeedStore> cache)
-            => _cache = EnsureArg.IsNotNull(cache, nameof(cache));
-
-        public async Task<ChangeFeedEntry> GetChangeFeedLatestAsync(CancellationToken cancellationToken)
-        {
-            ISqlChangeFeedStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-            return await store.GetChangeFeedLatestAsync(cancellationToken);
-        }
-
-        public async Task<IReadOnlyCollection<ChangeFeedEntry>> GetChangeFeedAsync(long offset, int limit, CancellationToken cancellationToken)
-        {
-            ISqlChangeFeedStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-            return await store.GetChangeFeedAsync(offset, limit, cancellationToken);
-        }
+    public async Task<IReadOnlyCollection<ChangeFeedEntry>> GetChangeFeedAsync(long offset, int limit, CancellationToken cancellationToken)
+    {
+        ISqlChangeFeedStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+        return await store.GetChangeFeedAsync(offset, limit, cancellationToken);
     }
 }

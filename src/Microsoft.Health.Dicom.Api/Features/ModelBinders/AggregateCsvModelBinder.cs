@@ -11,21 +11,20 @@ using EnsureThat;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Primitives;
 
-namespace Microsoft.Health.Dicom.Api.Features.ModelBinders
+namespace Microsoft.Health.Dicom.Api.Features.ModelBinders;
+
+internal class AggregateCsvModelBinder : IModelBinder
 {
-    internal class AggregateCsvModelBinder : IModelBinder
+    public Task BindModelAsync(ModelBindingContext bindingContext)
     {
-        public Task BindModelAsync(ModelBindingContext bindingContext)
-        {
-            EnsureArg.IsNotNull(bindingContext, nameof(bindingContext));
-            StringValues values = bindingContext.ValueProvider.GetValue(bindingContext.ModelName).Values;
+        EnsureArg.IsNotNull(bindingContext, nameof(bindingContext));
+        StringValues values = bindingContext.ValueProvider.GetValue(bindingContext.ModelName).Values;
 
-            IReadOnlyList<string> result = values.Count == 0
-                ? Array.Empty<string>()
-                : values.SelectMany(x => x.Split(',', StringSplitOptions.TrimEntries)).ToList();
+        IReadOnlyList<string> result = values.Count == 0
+            ? Array.Empty<string>()
+            : values.SelectMany(x => x.Split(',', StringSplitOptions.TrimEntries)).ToList();
 
-            bindingContext.Result = ModelBindingResult.Success(result);
-            return Task.CompletedTask;
-        }
+        bindingContext.Result = ModelBindingResult.Success(result);
+        return Task.CompletedTask;
     }
 }

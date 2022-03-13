@@ -5,15 +5,14 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Tests.Common
-{
-    public static class EnvironmentVariables
-    {
-        public static string GetEnvironmentVariableWithDefault(string environmentVariableName, string defaultValue)
-        {
-            var environmentVariable = Environment.GetEnvironmentVariable(environmentVariableName);
+namespace Microsoft.Health.Dicom.Tests.Common;
 
-            return string.IsNullOrWhiteSpace(environmentVariable) ? defaultValue : environmentVariable;
-        }
+public static class EnvironmentVariables
+{
+    public static string GetEnvironmentVariableWithDefault(string environmentVariableName, string defaultValue)
+    {
+        var environmentVariable = Environment.GetEnvironmentVariable(environmentVariableName);
+
+        return string.IsNullOrWhiteSpace(environmentVariable) ? defaultValue : environmentVariable;
     }
 }

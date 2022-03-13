@@ -9,27 +9,26 @@ using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
+namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
+
+public class AuthenticationTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
 {
-    public class AuthenticationTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
+    private readonly HttpIntegrationTestFixture<Startup> _fixture;
+
+    public AuthenticationTests(HttpIntegrationTestFixture<Startup> fixture)
     {
-        private readonly HttpIntegrationTestFixture<Startup> _fixture;
+        _fixture = fixture;
+    }
 
-        public AuthenticationTests(HttpIntegrationTestFixture<Startup> fixture)
+    [Fact]
+    public async Task GivenDicomRequest_WithNoAuthenticationToken_ReturnUnauthorized()
+    {
+        if (AuthenticationSettings.SecurityEnabled)
         {
-            _fixture = fixture;
-        }
-
-        [Fact]
-        public async Task GivenDicomRequest_WithNoAuthenticationToken_ReturnUnauthorized()
-        {
-            if (AuthenticationSettings.SecurityEnabled)
-            {
-                IDicomWebClient client = _fixture.GetDicomWebClient(TestApplications.InvalidClient);
-                DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-                    () => client.QueryStudyAsync(string.Empty));
-                Assert.Equal(HttpStatusCode.Unauthorized, exception.StatusCode);
-            }
+            IDicomWebClient client = _fixture.GetDicomWebClient(TestApplications.InvalidClient);
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
+                () => client.QueryStudyAsync(string.Empty));
+            Assert.Equal(HttpStatusCode.Unauthorized, exception.StatusCode);
         }
     }
 }

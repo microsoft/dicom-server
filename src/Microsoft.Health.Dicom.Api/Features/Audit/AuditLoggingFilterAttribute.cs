@@ -10,34 +10,33 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Core.Features.Security;
 
-namespace Microsoft.Health.Dicom.Api.Features.Audit
+namespace Microsoft.Health.Dicom.Api.Features.Audit;
+
+[AttributeUsage(AttributeTargets.Class)]
+[SuppressMessage("Performance", "CA1813:Avoid unsealed attributes", Justification = "This attribute to meant to be extended.")]
+public class AuditLoggingFilterAttribute : ActionFilterAttribute
 {
-    [AttributeUsage(AttributeTargets.Class)]
-    [SuppressMessage("Performance", "CA1813:Avoid unsealed attributes", Justification = "This attribute to meant to be extended.")]
-    public class AuditLoggingFilterAttribute : ActionFilterAttribute
+    public AuditLoggingFilterAttribute(
+        IClaimsExtractor claimsExtractor,
+        IAuditHelper auditHelper)
     {
-        public AuditLoggingFilterAttribute(
-            IClaimsExtractor claimsExtractor,
-            IAuditHelper auditHelper)
-        {
-            EnsureArg.IsNotNull(claimsExtractor, nameof(claimsExtractor));
-            EnsureArg.IsNotNull(auditHelper, nameof(auditHelper));
+        EnsureArg.IsNotNull(claimsExtractor, nameof(claimsExtractor));
+        EnsureArg.IsNotNull(auditHelper, nameof(auditHelper));
 
-            ClaimsExtractor = claimsExtractor;
-            AuditHelper = auditHelper;
-        }
+        ClaimsExtractor = claimsExtractor;
+        AuditHelper = auditHelper;
+    }
 
-        protected IClaimsExtractor ClaimsExtractor { get; }
+    protected IClaimsExtractor ClaimsExtractor { get; }
 
-        protected IAuditHelper AuditHelper { get; }
+    protected IAuditHelper AuditHelper { get; }
 
-        public override void OnActionExecuting(ActionExecutingContext context)
-        {
-            EnsureArg.IsNotNull(context, nameof(context));
+    public override void OnActionExecuting(ActionExecutingContext context)
+    {
+        EnsureArg.IsNotNull(context, nameof(context));
 
-            AuditHelper.LogExecuting(context.HttpContext, ClaimsExtractor);
+        AuditHelper.LogExecuting(context.HttpContext, ClaimsExtractor);
 
-            base.OnActionExecuting(context);
-        }
+        base.OnActionExecuting(context);
     }
 }

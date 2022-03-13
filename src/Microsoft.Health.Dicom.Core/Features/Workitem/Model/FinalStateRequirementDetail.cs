@@ -6,21 +6,20 @@
 using System.Collections.Generic;
 using FellowOakDicom;
 
-namespace Microsoft.Health.Dicom.Core.Features.Workitem.Model
+namespace Microsoft.Health.Dicom.Core.Features.Workitem.Model;
+
+public sealed class FinalStateRequirementDetail
 {
-    public sealed class FinalStateRequirementDetail
+    public FinalStateRequirementDetail(DicomTag dicomTag, FinalStateRequirementCode requirementCode, HashSet<FinalStateRequirementDetail> sequenceRequirements = default)
     {
-        public FinalStateRequirementDetail(DicomTag dicomTag, FinalStateRequirementCode requirementCode, HashSet<FinalStateRequirementDetail> sequenceRequirements = default)
-        {
-            DicomTag = dicomTag;
-            RequirementCode = requirementCode;
-            SequenceRequirements = sequenceRequirements;
-        }
-
-        public DicomTag DicomTag { get; }
-
-        public FinalStateRequirementCode RequirementCode { get; }
-
-        public IReadOnlyCollection<FinalStateRequirementDetail> SequenceRequirements { get; }
+        DicomTag = dicomTag;
+        RequirementCode = requirementCode;
+        SequenceRequirements = sequenceRequirements;
     }
+
+    public DicomTag DicomTag { get; }
+
+    public FinalStateRequirementCode RequirementCode { get; }
+
+    public IReadOnlyCollection<FinalStateRequirementDetail> SequenceRequirements { get; }
 }

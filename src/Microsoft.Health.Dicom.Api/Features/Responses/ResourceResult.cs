@@ -19,94 +19,93 @@ using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Net.Http.Headers;
 
-namespace Microsoft.Health.Dicom.Api.Features.Responses
+namespace Microsoft.Health.Dicom.Api.Features.Responses;
+
+internal class ResourceResult : IActionResult
 {
-    internal class ResourceResult : IActionResult
+    private readonly RetrieveResourceResponse _response;
+    private readonly RetrieveConfiguration _retrieveConfiguration;
+
+    internal ResourceResult(RetrieveResourceResponse response, RetrieveConfiguration retrieveConfiguration)
     {
-        private readonly RetrieveResourceResponse _response;
-        private readonly RetrieveConfiguration _retrieveConfiguration;
+        _response = EnsureArg.IsNotNull(response);
+        _retrieveConfiguration = EnsureArg.IsNotNull(retrieveConfiguration);
+    }
 
-        internal ResourceResult(RetrieveResourceResponse response, RetrieveConfiguration retrieveConfiguration)
+    public async Task ExecuteResultAsync(ActionContext context)
+    {
+        ObjectResult objectResult = null;
+        if (_response.IsSinglePart)
         {
-            _response = EnsureArg.IsNotNull(response);
-            _retrieveConfiguration = EnsureArg.IsNotNull(retrieveConfiguration);
+            objectResult = await GetSinglePartResult(context.HttpContext, context.HttpContext.RequestAborted);
         }
-
-        public async Task ExecuteResultAsync(ActionContext context)
+        else
         {
-            ObjectResult objectResult = null;
-            if (_response.IsSinglePart)
-            {
-                objectResult = await GetSinglePartResult(context.HttpContext, context.HttpContext.RequestAborted);
-            }
-            else
-            {
-                objectResult = GetMultiPartResult(context.HttpContext, context.HttpContext.RequestAborted);
-            }
-            await objectResult.ExecuteResultAsync(context);
+            objectResult = GetMultiPartResult(context.HttpContext, context.HttpContext.RequestAborted);
         }
+        await objectResult.ExecuteResultAsync(context);
+    }
 
-        private async Task<ObjectResult> GetSinglePartResult(HttpContext context, CancellationToken cancellationToken)
+    private async Task<ObjectResult> GetSinglePartResult(HttpContext context, CancellationToken cancellationToken)
+    {
+        var enumerator = _response.GetResponseInstancesEnumerator(cancellationToken);
+        var enumResult = await enumerator.MoveNextAsync();
+
+        Debug.Assert(enumResult, "Failed to get the item in Enumerator.");
+
+        Stream stream = enumerator.Current.Stream;
+        string transferSyntax = enumerator.Current.TransferSyntaxUid;
+        context.Response.RegisterForDispose(stream);
+        var objectResult = new ObjectResult(stream)
         {
-            var enumerator = _response.GetResponseInstancesEnumerator(cancellationToken);
-            var enumResult = await enumerator.MoveNextAsync();
+            StatusCode = (int)HttpStatusCode.OK,
+        };
 
-            Debug.Assert(enumResult, "Failed to get the item in Enumerator.");
+        var singlePartMediaType = new MediaTypeHeaderValue(KnownContentTypes.ApplicationDicom);
+        singlePartMediaType.Parameters.Add(new NameValueHeaderValue(KnownContentTypes.TransferSyntax, transferSyntax));
 
-            Stream stream = enumerator.Current.Stream;
-            string transferSyntax = enumerator.Current.TransferSyntaxUid;
-            context.Response.RegisterForDispose(stream);
-            var objectResult = new ObjectResult(stream)
-            {
-                StatusCode = (int)HttpStatusCode.OK,
-            };
+        objectResult.ContentTypes.Add(singlePartMediaType);
+        return objectResult;
+    }
 
-            var singlePartMediaType = new MediaTypeHeaderValue(KnownContentTypes.ApplicationDicom);
-            singlePartMediaType.Parameters.Add(new NameValueHeaderValue(KnownContentTypes.TransferSyntax, transferSyntax));
-
-            objectResult.ContentTypes.Add(singlePartMediaType);
-            return objectResult;
-        }
-
-        private ObjectResult GetMultiPartResult(HttpContext context, CancellationToken cancellationToken)
-        {
-            string boundary = Guid.NewGuid().ToString();
-            var mediaType = new MediaTypeHeaderValue(KnownContentTypes.MultipartRelated);
-            mediaType.Parameters.Add(new NameValueHeaderValue(KnownContentTypes.Boundary, boundary));
+    private ObjectResult GetMultiPartResult(HttpContext context, CancellationToken cancellationToken)
+    {
+        string boundary = Guid.NewGuid().ToString();
+        var mediaType = new MediaTypeHeaderValue(KnownContentTypes.MultipartRelated);
+        mediaType.Parameters.Add(new NameValueHeaderValue(KnownContentTypes.Boundary, boundary));
 #pragma warning disable CA2000 // Dispose objects before losing scope, registered for dispose in response
-            LazyMultipartReadOnlyStream lazyStream = new LazyMultipartReadOnlyStream(
-                GetAsyncEnumerableStreamContent(context, _response.GetResponseInstancesEnumerator(cancellationToken), _response.ContentType),
-                boundary,
-                _retrieveConfiguration.LazyResponseStreamBufferSize,
-                cancellationToken);
+        LazyMultipartReadOnlyStream lazyStream = new LazyMultipartReadOnlyStream(
+            GetAsyncEnumerableStreamContent(context, _response.GetResponseInstancesEnumerator(cancellationToken), _response.ContentType),
+            boundary,
+            _retrieveConfiguration.LazyResponseStreamBufferSize,
+            cancellationToken);
 #pragma warning restore CA2000 // Dispose objects before losing scope
-            context.Response.RegisterForDispose(lazyStream);
-            var result = new ObjectResult(lazyStream)
-            {
-                StatusCode = (int)HttpStatusCode.OK,
-            };
-            result.ContentTypes.Add(mediaType);
-            return result;
-        }
-
-        private static async IAsyncEnumerable<DicomStreamContent> GetAsyncEnumerableStreamContent(
-            HttpContext context,
-            IAsyncEnumerator<RetrieveResourceInstance> lazyInstanceEnumerator,
-            string contentType)
+        context.Response.RegisterForDispose(lazyStream);
+        var result = new ObjectResult(lazyStream)
         {
-            while (await lazyInstanceEnumerator.MoveNextAsync())
-            {
-                context.Response.RegisterForDispose(lazyInstanceEnumerator.Current.Stream);
-                yield return
-                    new DicomStreamContent()
+            StatusCode = (int)HttpStatusCode.OK,
+        };
+        result.ContentTypes.Add(mediaType);
+        return result;
+    }
+
+    private static async IAsyncEnumerable<DicomStreamContent> GetAsyncEnumerableStreamContent(
+        HttpContext context,
+        IAsyncEnumerator<RetrieveResourceInstance> lazyInstanceEnumerator,
+        string contentType)
+    {
+        while (await lazyInstanceEnumerator.MoveNextAsync())
+        {
+            context.Response.RegisterForDispose(lazyInstanceEnumerator.Current.Stream);
+            yield return
+                new DicomStreamContent()
+                {
+                    Stream = lazyInstanceEnumerator.Current.Stream,
+                    Headers = new List<KeyValuePair<string, IEnumerable<string>>>()
                     {
-                        Stream = lazyInstanceEnumerator.Current.Stream,
-                        Headers = new List<KeyValuePair<string, IEnumerable<string>>>()
-                        {
-                            new KeyValuePair<string, IEnumerable<string>>(KnownContentTypes.ContentType, new []{ $"{contentType}; {KnownContentTypes.TransferSyntax}={lazyInstanceEnumerator.Current.TransferSyntaxUid}"})
-                        }
-                    };
-            }
+                        new KeyValuePair<string, IEnumerable<string>>(KnownContentTypes.ContentType, new []{ $"{contentType}; {KnownContentTypes.TransferSyntax}={lazyInstanceEnumerator.Current.TransferSyntaxUid}"})
+                    }
+                };
         }
     }
 }

@@ -5,13 +5,12 @@
 
 using Microsoft.Health.Dicom.Core.Models.Operations;
 
-namespace Microsoft.Health.Dicom.Core.Serialization
+namespace Microsoft.Health.Dicom.Core.Serialization;
+
+internal class OperationIdJsonConverter : JsonGuidConverter
 {
-    internal class OperationIdJsonConverter : JsonGuidConverter
+    public OperationIdJsonConverter()
+        : base(OperationId.FormatSpecifier, exactMatch: false)
     {
-        public OperationIdJsonConverter()
-            : base(OperationId.FormatSpecifier, exactMatch: false)
-        {
-        }
     }
 }

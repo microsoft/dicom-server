@@ -5,18 +5,17 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Core.Exceptions
-{
-    public class ResourceNotFoundException : DicomServerException
-    {
-        public ResourceNotFoundException(string message)
-            : base(message)
-        {
-        }
+namespace Microsoft.Health.Dicom.Core.Exceptions;
 
-        public ResourceNotFoundException(string message, Exception innerException)
-            : base(message, innerException)
-        {
-        }
+public class ResourceNotFoundException : DicomServerException
+{
+    public ResourceNotFoundException(string message)
+        : base(message)
+    {
+    }
+
+    public ResourceNotFoundException(string message, Exception innerException)
+        : base(message, innerException)
+    {
     }
 }

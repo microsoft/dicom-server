@@ -8,35 +8,34 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
+namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common;
+
+internal sealed class NullHost : IHost
 {
-    internal sealed class NullHost : IHost
+    public static IHost Instance { get; } = new NullHost();
+
+    public IServiceProvider Services => NullServiceProvider.Instance;
+
+    private NullHost()
+    { }
+
+    public void Dispose()
+    { }
+
+    public Task StartAsync(CancellationToken cancellationToken = default)
+        => Task.CompletedTask;
+
+    public Task StopAsync(CancellationToken cancellationToken = default)
+        => Task.CompletedTask;
+
+    private sealed class NullServiceProvider : IServiceProvider
     {
-        public static IHost Instance { get; } = new NullHost();
+        public static IServiceProvider Instance { get; } = new NullServiceProvider();
 
-        public IServiceProvider Services => NullServiceProvider.Instance;
-
-        private NullHost()
+        private NullServiceProvider()
         { }
 
-        public void Dispose()
-        { }
-
-        public Task StartAsync(CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-
-        public Task StopAsync(CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-
-        private sealed class NullServiceProvider : IServiceProvider
-        {
-            public static IServiceProvider Instance { get; } = new NullServiceProvider();
-
-            private NullServiceProvider()
-            { }
-
-            public object GetService(Type serviceType)
-                => null;
-        }
+        public object GetService(Type serviceType)
+            => null;
     }
 }

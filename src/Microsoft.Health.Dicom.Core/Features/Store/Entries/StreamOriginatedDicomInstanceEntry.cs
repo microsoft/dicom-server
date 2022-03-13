@@ -11,56 +11,55 @@ using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Features.Common;
 
-namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
+namespace Microsoft.Health.Dicom.Core.Features.Store.Entries;
+
+/// <summary>
+/// Represents a DICOM instance entry originated from stream.
+/// </summary>
+public sealed class StreamOriginatedDicomInstanceEntry : IDicomInstanceEntry
 {
+    private readonly Stream _stream;
+    private readonly AsyncCache<DicomFile> _dicomFileCache;
+
     /// <summary>
-    /// Represents a DICOM instance entry originated from stream.
+    /// Initializes a new instance of the <see cref="StreamOriginatedDicomInstanceEntry"/> class.
     /// </summary>
-    public sealed class StreamOriginatedDicomInstanceEntry : IDicomInstanceEntry
+    /// <param name="seekableStream">The stream.</param>
+    /// <remarks>The <paramref name="seekableStream"/> must be seekable.</remarks>
+    internal StreamOriginatedDicomInstanceEntry(Stream seekableStream)
     {
-        private readonly Stream _stream;
-        private readonly AsyncCache<DicomFile> _dicomFileCache;
+        // The stream must be seekable.
+        EnsureArg.IsNotNull(seekableStream, nameof(seekableStream));
+        EnsureArg.IsTrue(seekableStream.CanSeek, nameof(seekableStream));
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="StreamOriginatedDicomInstanceEntry"/> class.
-        /// </summary>
-        /// <param name="seekableStream">The stream.</param>
-        /// <remarks>The <paramref name="seekableStream"/> must be seekable.</remarks>
-        internal StreamOriginatedDicomInstanceEntry(Stream seekableStream)
+        _stream = seekableStream;
+        _dicomFileCache = new AsyncCache<DicomFile>(_ => DicomFile.OpenAsync(_stream, FileReadOption.SkipLargeTags));
+    }
+
+    /// <inheritdoc />
+    public async ValueTask<DicomDataset> GetDicomDatasetAsync(CancellationToken cancellationToken)
+    {
+        try
         {
-            // The stream must be seekable.
-            EnsureArg.IsNotNull(seekableStream, nameof(seekableStream));
-            EnsureArg.IsTrue(seekableStream.CanSeek, nameof(seekableStream));
-
-            _stream = seekableStream;
-            _dicomFileCache = new AsyncCache<DicomFile>(_ => DicomFile.OpenAsync(_stream, FileReadOption.SkipLargeTags));
+            DicomFile file = await _dicomFileCache.GetAsync(cancellationToken: cancellationToken);
+            return file.Dataset;
         }
-
-        /// <inheritdoc />
-        public async ValueTask<DicomDataset> GetDicomDatasetAsync(CancellationToken cancellationToken)
+        catch (DicomFileException)
         {
-            try
-            {
-                DicomFile file = await _dicomFileCache.GetAsync(cancellationToken: cancellationToken);
-                return file.Dataset;
-            }
-            catch (DicomFileException)
-            {
-                throw new InvalidInstanceException(DicomCoreResource.InvalidDicomInstance);
-            }
+            throw new InvalidInstanceException(DicomCoreResource.InvalidDicomInstance);
         }
+    }
 
-        /// <inheritdoc />
-        public ValueTask<Stream> GetStreamAsync(CancellationToken cancellationToken)
-        {
-            _stream.Seek(0, SeekOrigin.Begin);
-            return new ValueTask<Stream>(_stream);
-        }
+    /// <inheritdoc />
+    public ValueTask<Stream> GetStreamAsync(CancellationToken cancellationToken)
+    {
+        _stream.Seek(0, SeekOrigin.Begin);
+        return new ValueTask<Stream>(_stream);
+    }
 
-        public async ValueTask DisposeAsync()
-        {
-            _dicomFileCache.Dispose();
-            await _stream.DisposeAsync();
-        }
+    public async ValueTask DisposeAsync()
+    {
+        _dicomFileCache.Dispose();
+        await _stream.DisposeAsync();
     }
 }

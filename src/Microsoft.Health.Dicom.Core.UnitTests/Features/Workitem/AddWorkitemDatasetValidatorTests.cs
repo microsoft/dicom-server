@@ -10,43 +10,42 @@ using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
+namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem;
+
+public class AddWorkitemDatasetValidatorTests
 {
-    public class AddWorkitemDatasetValidatorTests
+    [Fact]
+    public void GivenMissingRequiredTag_Throws()
     {
-        [Fact]
-        public void GivenMissingRequiredTag_Throws()
-        {
-            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
-            var validator = new AddWorkitemDatasetValidator();
+        var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+        var validator = new AddWorkitemDatasetValidator();
 
-            dataset = dataset.Remove(DicomTag.TransactionUID);
+        dataset = dataset.Remove(DicomTag.TransactionUID);
 
-            Assert.Throws<DatasetValidationException>(() => validator.Validate(dataset));
-        }
+        Assert.Throws<DatasetValidationException>(() => validator.Validate(dataset));
+    }
 
-        [Fact]
-        public void GivenNotAllowedTag_WhenPresent_Throws()
-        {
-            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+    [Fact]
+    public void GivenNotAllowedTag_WhenPresent_Throws()
+    {
+        var dataset = Samples.CreateRandomWorkitemInstanceDataset();
 
-            dataset = dataset.Add(new DicomDateTime(DicomTag.ProcedureStepCancellationDateTime, DateTime.UtcNow));
+        dataset = dataset.Add(new DicomDateTime(DicomTag.ProcedureStepCancellationDateTime, DateTime.UtcNow));
 
-            var validator = new AddWorkitemDatasetValidator();
+        var validator = new AddWorkitemDatasetValidator();
 
-            Assert.Throws<DatasetValidationException>(() => validator.Validate(dataset));
-        }
+        Assert.Throws<DatasetValidationException>(() => validator.Validate(dataset));
+    }
 
-        [Fact]
-        public void GivenTagShouldBeEmpty_WhenHasValue_Throws()
-        {
-            var dataset = Samples.CreateRandomWorkitemInstanceDataset();
+    [Fact]
+    public void GivenTagShouldBeEmpty_WhenHasValue_Throws()
+    {
+        var dataset = Samples.CreateRandomWorkitemInstanceDataset();
 
-            dataset = dataset.AddOrUpdate(new DicomUniqueIdentifier(DicomTag.TransactionUID, "123"));
+        dataset = dataset.AddOrUpdate(new DicomUniqueIdentifier(DicomTag.TransactionUID, "123"));
 
-            var validator = new AddWorkitemDatasetValidator();
+        var validator = new AddWorkitemDatasetValidator();
 
-            Assert.Throws<DatasetValidationException>(() => validator.Validate(dataset));
-        }
+        Assert.Throws<DatasetValidationException>(() => validator.Validate(dataset));
     }
 }

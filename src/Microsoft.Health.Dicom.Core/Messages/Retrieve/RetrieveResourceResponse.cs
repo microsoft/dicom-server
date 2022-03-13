@@ -7,29 +7,28 @@ using System.Collections.Generic;
 using System.Threading;
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
+namespace Microsoft.Health.Dicom.Core.Messages.Retrieve;
+
+public class RetrieveResourceResponse
 {
-    public class RetrieveResourceResponse
+    public RetrieveResourceResponse(IAsyncEnumerable<RetrieveResourceInstance> responseStreams, string contentType, bool isSinglePart = false)
     {
-        public RetrieveResourceResponse(IAsyncEnumerable<RetrieveResourceInstance> responseStreams, string contentType, bool isSinglePart = false)
-        {
-            ResponseInstances = EnsureArg.IsNotNull(responseStreams, nameof(responseStreams));
-            ContentType = EnsureArg.IsNotEmptyOrWhiteSpace(contentType, nameof(contentType));
-            IsSinglePart = isSinglePart;
-        }
+        ResponseInstances = EnsureArg.IsNotNull(responseStreams, nameof(responseStreams));
+        ContentType = EnsureArg.IsNotEmptyOrWhiteSpace(contentType, nameof(contentType));
+        IsSinglePart = isSinglePart;
+    }
 
-        /// <summary>
-        /// Collection of instance streams and properties used in response
-        /// </summary>
-        public IAsyncEnumerable<RetrieveResourceInstance> ResponseInstances { get; }
+    /// <summary>
+    /// Collection of instance streams and properties used in response
+    /// </summary>
+    public IAsyncEnumerable<RetrieveResourceInstance> ResponseInstances { get; }
 
-        public string ContentType { get; }
+    public string ContentType { get; }
 
-        public bool IsSinglePart { get; }
+    public bool IsSinglePart { get; }
 
-        public IAsyncEnumerator<RetrieveResourceInstance> GetResponseInstancesEnumerator(CancellationToken cancellationToken)
-        {
-            return ResponseInstances.GetAsyncEnumerator(cancellationToken);
-        }
+    public IAsyncEnumerator<RetrieveResourceInstance> GetResponseInstancesEnumerator(CancellationToken cancellationToken)
+    {
+        return ResponseInstances.GetAsyncEnumerator(cancellationToken);
     }
 }

@@ -13,28 +13,27 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
-namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
+namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+
+public class GetExtendedQueryTagErrorsHandler : BaseHandler, IRequestHandler<GetExtendedQueryTagErrorsRequest, GetExtendedQueryTagErrorsResponse>
 {
-    public class GetExtendedQueryTagErrorsHandler : BaseHandler, IRequestHandler<GetExtendedQueryTagErrorsRequest, GetExtendedQueryTagErrorsResponse>
+    private readonly IExtendedQueryTagErrorsService _getExtendedQueryTagErrorsService;
+
+    public GetExtendedQueryTagErrorsHandler(IAuthorizationService<DataActions> authorizationService, IExtendedQueryTagErrorsService getExtendedQueryTagErrorsService)
+        : base(authorizationService)
     {
-        private readonly IExtendedQueryTagErrorsService _getExtendedQueryTagErrorsService;
+        _getExtendedQueryTagErrorsService = EnsureArg.IsNotNull(getExtendedQueryTagErrorsService, nameof(getExtendedQueryTagErrorsService));
+    }
 
-        public GetExtendedQueryTagErrorsHandler(IAuthorizationService<DataActions> authorizationService, IExtendedQueryTagErrorsService getExtendedQueryTagErrorsService)
-            : base(authorizationService)
+    public async Task<GetExtendedQueryTagErrorsResponse> Handle(GetExtendedQueryTagErrorsRequest request, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(request, nameof(request));
+
+        if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
         {
-            _getExtendedQueryTagErrorsService = EnsureArg.IsNotNull(getExtendedQueryTagErrorsService, nameof(getExtendedQueryTagErrorsService));
+            throw new UnauthorizedDicomActionException(DataActions.Read);
         }
 
-        public async Task<GetExtendedQueryTagErrorsResponse> Handle(GetExtendedQueryTagErrorsRequest request, CancellationToken cancellationToken)
-        {
-            EnsureArg.IsNotNull(request, nameof(request));
-
-            if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
-            {
-                throw new UnauthorizedDicomActionException(DataActions.Read);
-            }
-
-            return await _getExtendedQueryTagErrorsService.GetExtendedQueryTagErrorsAsync(request.Path, request.Limit, request.Offset, cancellationToken);
-        }
+        return await _getExtendedQueryTagErrorsService.GetExtendedQueryTagErrorsAsync(request.Path, request.Limit, request.Offset, cancellationToken);
     }
 }

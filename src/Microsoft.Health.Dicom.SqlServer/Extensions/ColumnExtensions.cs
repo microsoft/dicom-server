@@ -5,13 +5,12 @@
 
 using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-namespace Microsoft.Health.Dicom.SqlServer.Extensions
-{
-    internal static class ColumnExtensions
-    {
-        // TODO: Support additional types
+namespace Microsoft.Health.Dicom.SqlServer.Extensions;
 
-        public static NullableUniqueIdentifierColumn AsNullable(this UniqueIdentifierColumn column)
-            => new NullableUniqueIdentifierColumn(column.Metadata.Name);
-    }
+internal static class ColumnExtensions
+{
+    // TODO: Support additional types
+
+    public static NullableUniqueIdentifierColumn AsNullable(this UniqueIdentifierColumn column)
+        => new NullableUniqueIdentifierColumn(column.Metadata.Name);
 }

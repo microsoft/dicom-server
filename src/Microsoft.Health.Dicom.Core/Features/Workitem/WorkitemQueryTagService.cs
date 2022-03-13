@@ -16,52 +16,51 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Features.Common;
 
-namespace Microsoft.Health.Dicom.Core.Features.Workitem
+namespace Microsoft.Health.Dicom.Core.Features.Workitem;
+
+public sealed class WorkitemQueryTagService : IWorkitemQueryTagService, IDisposable
 {
-    public sealed class WorkitemQueryTagService : IWorkitemQueryTagService, IDisposable
+    private readonly IIndexWorkitemStore _indexWorkitemStore;
+    private readonly AsyncCache<IReadOnlyCollection<QueryTag>> _queryTagCache;
+    private readonly IDicomTagParser _dicomTagParser;
+    private readonly ILogger _logger;
+
+    public WorkitemQueryTagService(IIndexWorkitemStore indexWorkitemStore, IDicomTagParser dicomTagParser, ILogger<WorkitemQueryTagService> logger)
     {
-        private readonly IIndexWorkitemStore _indexWorkitemStore;
-        private readonly AsyncCache<IReadOnlyCollection<QueryTag>> _queryTagCache;
-        private readonly IDicomTagParser _dicomTagParser;
-        private readonly ILogger _logger;
+        _indexWorkitemStore = EnsureArg.IsNotNull(indexWorkitemStore, nameof(indexWorkitemStore));
+        _queryTagCache = new AsyncCache<IReadOnlyCollection<QueryTag>>(ResolveQueryTagsAsync);
+        _dicomTagParser = EnsureArg.IsNotNull(dicomTagParser, nameof(dicomTagParser));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+    }
 
-        public WorkitemQueryTagService(IIndexWorkitemStore indexWorkitemStore, IDicomTagParser dicomTagParser, ILogger<WorkitemQueryTagService> logger)
+    public void Dispose()
+    {
+        _queryTagCache.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
+    public async Task<IReadOnlyCollection<QueryTag>> GetQueryTagsAsync(CancellationToken cancellationToken = default)
+    {
+        return await _queryTagCache.GetAsync(cancellationToken: cancellationToken);
+    }
+
+    private async Task<IReadOnlyCollection<QueryTag>> ResolveQueryTagsAsync(CancellationToken cancellationToken)
+    {
+        var workitemQueryTags = await _indexWorkitemStore.GetWorkitemQueryTagsAsync(cancellationToken);
+
+        foreach (var tag in workitemQueryTags)
         {
-            _indexWorkitemStore = EnsureArg.IsNotNull(indexWorkitemStore, nameof(indexWorkitemStore));
-            _queryTagCache = new AsyncCache<IReadOnlyCollection<QueryTag>>(ResolveQueryTagsAsync);
-            _dicomTagParser = EnsureArg.IsNotNull(dicomTagParser, nameof(dicomTagParser));
-            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-        }
-
-        public void Dispose()
-        {
-            _queryTagCache.Dispose();
-            GC.SuppressFinalize(this);
-        }
-
-        public async Task<IReadOnlyCollection<QueryTag>> GetQueryTagsAsync(CancellationToken cancellationToken = default)
-        {
-            return await _queryTagCache.GetAsync(cancellationToken: cancellationToken);
-        }
-
-        private async Task<IReadOnlyCollection<QueryTag>> ResolveQueryTagsAsync(CancellationToken cancellationToken)
-        {
-            var workitemQueryTags = await _indexWorkitemStore.GetWorkitemQueryTagsAsync(cancellationToken);
-
-            foreach (var tag in workitemQueryTags)
+            if (_dicomTagParser.TryParse(tag.Path, out DicomTag[] dicomTags, true))
             {
-                if (_dicomTagParser.TryParse(tag.Path, out DicomTag[] dicomTags, true))
-                {
-                    tag.PathTags = Array.AsReadOnly(dicomTags);
-                }
-                else
-                {
-                    _logger.LogError("Failed to parse dicom path '{TagPath}' to dicom tags.", tag.Path);
-                    throw new DataStoreException(DicomCoreResource.DataStoreOperationFailed);
-                }
+                tag.PathTags = Array.AsReadOnly(dicomTags);
             }
-
-            return workitemQueryTags.Select(x => new QueryTag(x)).ToList();
+            else
+            {
+                _logger.LogError("Failed to parse dicom path '{TagPath}' to dicom tags.", tag.Path);
+                throw new DataStoreException(DicomCoreResource.DataStoreOperationFailed);
+            }
         }
+
+        return workitemQueryTags.Select(x => new QueryTag(x)).ToList();
     }
 }

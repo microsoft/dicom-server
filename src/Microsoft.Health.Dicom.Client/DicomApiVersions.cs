@@ -3,12 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Client
+namespace Microsoft.Health.Dicom.Client;
+
+public static class DicomApiVersions
 {
-    public static class DicomApiVersions
-    {
-        public const string V1Prerelease = "v1.0-prerelease";
-        public const string V1 = "v1";
-        public const string Latest = "v1";
-    }
+    public const string V1Prerelease = "v1.0-prerelease";
+    public const string V1 = "v1";
+    public const string Latest = "v1";
 }

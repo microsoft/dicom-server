@@ -13,28 +13,27 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 
-namespace Microsoft.Health.Dicom.Core.Features.Query
+namespace Microsoft.Health.Dicom.Core.Features.Query;
+
+public class QueryHandler : BaseHandler, IRequestHandler<QueryResourceRequest, QueryResourceResponse>
 {
-    public class QueryHandler : BaseHandler, IRequestHandler<QueryResourceRequest, QueryResourceResponse>
+    private readonly IQueryService _queryService;
+
+    public QueryHandler(IAuthorizationService<DataActions> authorizationService, IQueryService queryService)
+        : base(authorizationService)
     {
-        private readonly IQueryService _queryService;
+        _queryService = EnsureArg.IsNotNull(queryService, nameof(queryService));
+    }
 
-        public QueryHandler(IAuthorizationService<DataActions> authorizationService, IQueryService queryService)
-            : base(authorizationService)
+    public async Task<QueryResourceResponse> Handle(QueryResourceRequest request, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(request, nameof(request));
+
+        if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
         {
-            _queryService = EnsureArg.IsNotNull(queryService, nameof(queryService));
+            throw new UnauthorizedDicomActionException(DataActions.Read);
         }
 
-        public async Task<QueryResourceResponse> Handle(QueryResourceRequest request, CancellationToken cancellationToken)
-        {
-            EnsureArg.IsNotNull(request, nameof(request));
-
-            if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
-            {
-                throw new UnauthorizedDicomActionException(DataActions.Read);
-            }
-
-            return await _queryService.QueryAsync(request.Parameters, cancellationToken);
-        }
+        return await _queryService.QueryAsync(request.Parameters, cancellationToken);
     }
 }

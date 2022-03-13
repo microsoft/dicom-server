@@ -6,21 +6,20 @@
 using System;
 using Microsoft.Health.Abstractions.Exceptions;
 
-namespace Microsoft.Health.Dicom.Core.Exceptions
-{
-    /// <summary>
-    /// Base class for all server exceptions
-    /// </summary>
-    public abstract class DicomServerException : MicrosoftHealthException
-    {
-        protected DicomServerException(string message)
-            : base(message)
-        {
-        }
+namespace Microsoft.Health.Dicom.Core.Exceptions;
 
-        protected DicomServerException(string message, Exception innerException)
-            : base(message, innerException)
-        {
-        }
+/// <summary>
+/// Base class for all server exceptions
+/// </summary>
+public abstract class DicomServerException : MicrosoftHealthException
+{
+    protected DicomServerException(string message)
+        : base(message)
+    {
+    }
+
+    protected DicomServerException(string message, Exception innerException)
+        : base(message, innerException)
+    {
     }
 }

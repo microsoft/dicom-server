@@ -14,97 +14,96 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
+namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters;
+
+public class AcceptTransferSyntaxFilterAttributeTests
 {
-    public class AcceptTransferSyntaxFilterAttributeTests
+    private const string DefaultTransferSyntax = "*";
+    private const string TransferSyntaxHeaderPrefix = "transfer-syntax";
+    private AcceptTransferSyntaxFilterAttribute _filter;
+    private readonly ActionExecutingContext _context;
+
+    public AcceptTransferSyntaxFilterAttributeTests()
     {
-        private const string DefaultTransferSyntax = "*";
-        private const string TransferSyntaxHeaderPrefix = "transfer-syntax";
-        private AcceptTransferSyntaxFilterAttribute _filter;
-        private readonly ActionExecutingContext _context;
+        _context = CreateContext();
+    }
 
-        public AcceptTransferSyntaxFilterAttributeTests()
-        {
-            _context = CreateContext();
-        }
+    [Theory]
+    [InlineData("hello")]
+    [InlineData("1.2.840.10008.1.2.4.50")]
+    public void GivenARequestWithUnsupportedTransferSyntax_WhenValidatingTheTransferSyntaxAgainstTransferSyntaxFilter_ThenCorrectStatusCodeShouldBeReturned(string parsedTransferSyntax)
+    {
+        _filter = CreateFilter(new[] { DefaultTransferSyntax });
+        _context.ModelState.SetModelValue(TransferSyntaxHeaderPrefix, new ValueProviderResult(parsedTransferSyntax));
 
-        [Theory]
-        [InlineData("hello")]
-        [InlineData("1.2.840.10008.1.2.4.50")]
-        public void GivenARequestWithUnsupportedTransferSyntax_WhenValidatingTheTransferSyntaxAgainstTransferSyntaxFilter_ThenCorrectStatusCodeShouldBeReturned(string parsedTransferSyntax)
-        {
-            _filter = CreateFilter(new[] { DefaultTransferSyntax });
-            _context.ModelState.SetModelValue(TransferSyntaxHeaderPrefix, new ValueProviderResult(parsedTransferSyntax));
+        _filter.OnActionExecuting(_context);
 
-            _filter.OnActionExecuting(_context);
+        Assert.Equal((int)HttpStatusCode.NotAcceptable, (_context.Result as StatusCodeResult)?.StatusCode);
+    }
 
-            Assert.Equal((int)HttpStatusCode.NotAcceptable, (_context.Result as StatusCodeResult)?.StatusCode);
-        }
+    [Theory]
+    [InlineData("*")]
+    public void GivenARequestWithSupportedTransferSyntax_WhenValidatingTheTransferSyntaxAgainstTransferSyntaxFilter_ThenFilterShouldPass(string parsedTransferSyntax)
+    {
+        _filter = CreateFilter(new[] { DefaultTransferSyntax });
+        _context.ModelState.SetModelValue(TransferSyntaxHeaderPrefix, new ValueProviderResult(parsedTransferSyntax));
 
-        [Theory]
-        [InlineData("*")]
-        public void GivenARequestWithSupportedTransferSyntax_WhenValidatingTheTransferSyntaxAgainstTransferSyntaxFilter_ThenFilterShouldPass(string parsedTransferSyntax)
-        {
-            _filter = CreateFilter(new[] { DefaultTransferSyntax });
-            _context.ModelState.SetModelValue(TransferSyntaxHeaderPrefix, new ValueProviderResult(parsedTransferSyntax));
+        _filter.OnActionExecuting(_context);
 
-            _filter.OnActionExecuting(_context);
+        Assert.Null((_context.Result as StatusCodeResult)?.StatusCode);
+    }
 
-            Assert.Null((_context.Result as StatusCodeResult)?.StatusCode);
-        }
+    [Fact]
+    public void GivenARequestWithNoTransferSyntaxValue_WhenValidatingTheTransferSyntaxAgainstTransferSyntaxFilter_ThenNotAcceptableStatusCodeShouldBeReturned()
+    {
+        _filter = CreateFilter(new[] { DefaultTransferSyntax });
+        _context.ModelState.SetModelValue(TransferSyntaxHeaderPrefix, null, null);
 
-        [Fact]
-        public void GivenARequestWithNoTransferSyntaxValue_WhenValidatingTheTransferSyntaxAgainstTransferSyntaxFilter_ThenNotAcceptableStatusCodeShouldBeReturned()
-        {
-            _filter = CreateFilter(new[] { DefaultTransferSyntax });
-            _context.ModelState.SetModelValue(TransferSyntaxHeaderPrefix, null, null);
+        _filter.OnActionExecuting(_context);
 
-            _filter.OnActionExecuting(_context);
+        Assert.Equal((int)HttpStatusCode.NotAcceptable, (_context.Result as StatusCodeResult)?.StatusCode);
+    }
 
-            Assert.Equal((int)HttpStatusCode.NotAcceptable, (_context.Result as StatusCodeResult)?.StatusCode);
-        }
+    [Fact]
+    public void GivenARequestWithNoTransferSyntaxValue_WhenValidatingTheTransferSyntaxAgainstTransferSyntaxFilterWhichAllowMissing_ThenFilterShouldPass()
+    {
+        _filter = CreateFilter(new[] { DefaultTransferSyntax }, allowMissing: true);
+        _context.ModelState.SetModelValue(TransferSyntaxHeaderPrefix, null, null);
 
-        [Fact]
-        public void GivenARequestWithNoTransferSyntaxValue_WhenValidatingTheTransferSyntaxAgainstTransferSyntaxFilterWhichAllowMissing_ThenFilterShouldPass()
-        {
-            _filter = CreateFilter(new[] { DefaultTransferSyntax }, allowMissing: true);
-            _context.ModelState.SetModelValue(TransferSyntaxHeaderPrefix, null, null);
+        _filter.OnActionExecuting(_context);
 
-            _filter.OnActionExecuting(_context);
+        Assert.Null((_context.Result as StatusCodeResult)?.StatusCode);
+    }
 
-            Assert.Null((_context.Result as StatusCodeResult)?.StatusCode);
-        }
+    [Fact]
+    public void GivenARequestWithNoSetTransferSyntaxHeader_WhenValidatingTheTransferSyntaxAgainstTransferSyntaxFilter_ThenNotAcceptableStatusCodeShouldBeReturned()
+    {
+        _filter = CreateFilter(new[] { DefaultTransferSyntax });
+        _filter.OnActionExecuting(_context);
 
-        [Fact]
-        public void GivenARequestWithNoSetTransferSyntaxHeader_WhenValidatingTheTransferSyntaxAgainstTransferSyntaxFilter_ThenNotAcceptableStatusCodeShouldBeReturned()
-        {
-            _filter = CreateFilter(new[] { DefaultTransferSyntax });
-            _filter.OnActionExecuting(_context);
+        Assert.Equal((int)HttpStatusCode.NotAcceptable, (_context.Result as StatusCodeResult)?.StatusCode);
+    }
 
-            Assert.Equal((int)HttpStatusCode.NotAcceptable, (_context.Result as StatusCodeResult)?.StatusCode);
-        }
+    [Fact]
+    public void GivenARequestWithNoSetTransferSyntaxHeader_WhenValidatingTheTransferSyntaxAgainstTransferSyntaxFilterWhichAllowMissing_ThenFilterShouldPass()
+    {
+        _filter = CreateFilter(new[] { DefaultTransferSyntax }, allowMissing: true);
+        _filter.OnActionExecuting(_context);
 
-        [Fact]
-        public void GivenARequestWithNoSetTransferSyntaxHeader_WhenValidatingTheTransferSyntaxAgainstTransferSyntaxFilterWhichAllowMissing_ThenFilterShouldPass()
-        {
-            _filter = CreateFilter(new[] { DefaultTransferSyntax }, allowMissing: true);
-            _filter.OnActionExecuting(_context);
+        Assert.Null((_context.Result as StatusCodeResult)?.StatusCode);
+    }
 
-            Assert.Null((_context.Result as StatusCodeResult)?.StatusCode);
-        }
+    private AcceptTransferSyntaxFilterAttribute CreateFilter(string[] supportedTransferSyntaxes, bool allowMissing = false)
+    {
+        return new AcceptTransferSyntaxFilterAttribute(supportedTransferSyntaxes, allowMissing);
+    }
 
-        private AcceptTransferSyntaxFilterAttribute CreateFilter(string[] supportedTransferSyntaxes, bool allowMissing = false)
-        {
-            return new AcceptTransferSyntaxFilterAttribute(supportedTransferSyntaxes, allowMissing);
-        }
-
-        private static ActionExecutingContext CreateContext()
-        {
-            return new ActionExecutingContext(
-                new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor()),
-                new List<IFilterMetadata>(),
-                new Dictionary<string, object>(),
-                null);
-        }
+    private static ActionExecutingContext CreateContext()
+    {
+        return new ActionExecutingContext(
+            new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor()),
+            new List<IFilterMetadata>(),
+            new Dictionary<string, object>(),
+            null);
     }
 }

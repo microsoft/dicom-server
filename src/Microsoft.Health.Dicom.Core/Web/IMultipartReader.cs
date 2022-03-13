@@ -6,18 +6,17 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Health.Dicom.Core.Web
+namespace Microsoft.Health.Dicom.Core.Web;
+
+/// <summary>
+/// Provides functionalities to read multipart message.
+/// </summary>
+public interface IMultipartReader
 {
     /// <summary>
-    /// Provides functionalities to read multipart message.
+    /// Read the next body part of a multipart message.
     /// </summary>
-    public interface IMultipartReader
-    {
-        /// <summary>
-        /// Read the next body part of a multipart message.
-        /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>An instance of <see cref="MultipartBodyPart"/> representing the read body part.</returns>
-        Task<MultipartBodyPart> ReadNextBodyPartAsync(CancellationToken cancellationToken = default);
-    }
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>An instance of <see cref="MultipartBodyPart"/> representing the read body part.</returns>
+    Task<MultipartBodyPart> ReadNextBodyPartAsync(CancellationToken cancellationToken = default);
 }

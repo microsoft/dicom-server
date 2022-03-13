@@ -9,43 +9,42 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace Microsoft.Health.Dicom.Core.Features.HealthCheck
+namespace Microsoft.Health.Dicom.Core.Features.HealthCheck;
+
+public class BackgroundServiceHealthCheckCache
 {
-    public class BackgroundServiceHealthCheckCache
+    private readonly MemoryCache _cache;
+
+    private const string OldestDeleteInstanceCacheKey = "_oldestDeleted";
+    private const string NumDeleteMaxRetryCacheKey = "_numMaxRetries";
+
+    public BackgroundServiceHealthCheckCache()
+        : this(new MemoryCache(new MemoryCacheOptions()))
     {
-        private readonly MemoryCache _cache;
+    }
 
-        private const string OldestDeleteInstanceCacheKey = "_oldestDeleted";
-        private const string NumDeleteMaxRetryCacheKey = "_numMaxRetries";
+    internal BackgroundServiceHealthCheckCache(MemoryCache memoryCache)
+    {
+        EnsureArg.IsNotNull(memoryCache, nameof(memoryCache));
 
-        public BackgroundServiceHealthCheckCache()
-            : this(new MemoryCache(new MemoryCacheOptions()))
+        _cache = memoryCache;
+    }
+
+    public Task<DateTimeOffset> GetOrAddOldestTimeAsync(Func<CancellationToken, Task<DateTimeOffset>> getOldestTime, CancellationToken cancellationToken)
+    {
+        return _cache.GetOrCreateAsync(OldestDeleteInstanceCacheKey, entry =>
         {
-        }
+            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+            return getOldestTime(cancellationToken);
+        });
+    }
 
-        internal BackgroundServiceHealthCheckCache(MemoryCache memoryCache)
+    public Task<int> GetOrAddNumExhaustedDeletionAttemptsAsync(Func<CancellationToken, Task<int>> getRetries, CancellationToken cancellationToken)
+    {
+        return _cache.GetOrCreateAsync(NumDeleteMaxRetryCacheKey, entry =>
         {
-            EnsureArg.IsNotNull(memoryCache, nameof(memoryCache));
-
-            _cache = memoryCache;
-        }
-
-        public Task<DateTimeOffset> GetOrAddOldestTimeAsync(Func<CancellationToken, Task<DateTimeOffset>> getOldestTime, CancellationToken cancellationToken)
-        {
-            return _cache.GetOrCreateAsync(OldestDeleteInstanceCacheKey, entry =>
-            {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
-                return getOldestTime(cancellationToken);
-            });
-        }
-
-        public Task<int> GetOrAddNumExhaustedDeletionAttemptsAsync(Func<CancellationToken, Task<int>> getRetries, CancellationToken cancellationToken)
-        {
-            return _cache.GetOrCreateAsync(NumDeleteMaxRetryCacheKey, entry =>
-            {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
-                return getRetries(cancellationToken);
-            });
-        }
+            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+            return getRetries(cancellationToken);
+        });
     }
 }

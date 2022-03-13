@@ -20,68 +20,67 @@ using Microsoft.IO;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
+namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
+
+public class DataStoreTestsFixture : IAsyncLifetime
 {
-    public class DataStoreTestsFixture : IAsyncLifetime
+    private readonly BlobDataStoreConfiguration _blobDataStoreConfiguration;
+    private readonly BlobContainerConfiguration _blobContainerConfiguration;
+    private readonly BlobContainerConfiguration _metadataContainerConfiguration;
+    private BlobServiceClient _blobClient;
+
+    public DataStoreTestsFixture()
     {
-        private readonly BlobDataStoreConfiguration _blobDataStoreConfiguration;
-        private readonly BlobContainerConfiguration _blobContainerConfiguration;
-        private readonly BlobContainerConfiguration _metadataContainerConfiguration;
-        private BlobServiceClient _blobClient;
+        IConfiguration environment = new ConfigurationBuilder()
+            .AddEnvironmentVariables()
+            .Build();
 
-        public DataStoreTestsFixture()
+        _blobContainerConfiguration = new BlobContainerConfiguration { ContainerName = Guid.NewGuid().ToString() };
+        _metadataContainerConfiguration = new BlobContainerConfiguration { ContainerName = Guid.NewGuid().ToString() };
+        _blobDataStoreConfiguration = new BlobDataStoreConfiguration
         {
-            IConfiguration environment = new ConfigurationBuilder()
-                .AddEnvironmentVariables()
-                .Build();
+            ConnectionString = environment["BlobStore:ConnectionString"] ?? BlobLocalEmulator.ConnectionString,
+        };
+        RecyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
+    }
 
-            _blobContainerConfiguration = new BlobContainerConfiguration { ContainerName = Guid.NewGuid().ToString() };
-            _metadataContainerConfiguration = new BlobContainerConfiguration { ContainerName = Guid.NewGuid().ToString() };
-            _blobDataStoreConfiguration = new BlobDataStoreConfiguration
-            {
-                ConnectionString = environment["BlobStore:ConnectionString"] ?? BlobLocalEmulator.ConnectionString,
-            };
-            RecyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
-        }
+    public IFileStore FileStore { get; private set; }
 
-        public IFileStore FileStore { get; private set; }
+    public IMetadataStore MetadataStore { get; private set; }
 
-        public IMetadataStore MetadataStore { get; private set; }
+    public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; }
 
-        public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; }
+    public async Task InitializeAsync()
+    {
+        IOptionsMonitor<BlobContainerConfiguration> optionsMonitor = Substitute.For<IOptionsMonitor<BlobContainerConfiguration>>();
+        optionsMonitor.Get(Constants.BlobContainerConfigurationName).Returns(_blobContainerConfiguration);
+        optionsMonitor.Get(Constants.MetadataContainerConfigurationName).Returns(_metadataContainerConfiguration);
 
-        public async Task InitializeAsync()
+        IBlobClientTestProvider testProvider = new BlobClientReadWriteTestProvider(RecyclableMemoryStreamManager, NullLogger<BlobClientReadWriteTestProvider>.Instance);
+
+        _blobClient = BlobClientFactory.Create(_blobDataStoreConfiguration);
+
+        var blobClientInitializer = new BlobInitializer(_blobClient, testProvider, NullLogger<BlobInitializer>.Instance);
+
+        var blobContainerInitializer = new BlobContainerInitializer(_blobContainerConfiguration.ContainerName, NullLogger<BlobContainerInitializer>.Instance);
+        var metadataContainerInitializer = new BlobContainerInitializer(_metadataContainerConfiguration.ContainerName, NullLogger<BlobContainerInitializer>.Instance);
+
+        await blobClientInitializer.InitializeDataStoreAsync(
+                                        new List<IBlobContainerInitializer> { blobContainerInitializer, metadataContainerInitializer });
+
+        FileStore = new BlobFileStore(_blobClient, optionsMonitor, Options.Create(Substitute.For<BlobOperationOptions>()));
+        MetadataStore = new BlobMetadataStore(_blobClient, RecyclableMemoryStreamManager, optionsMonitor, Options.Create(AppSerializerOptions.Json));
+    }
+
+    public async Task DisposeAsync()
+    {
+        using (_blobClient as IDisposable)
         {
-            IOptionsMonitor<BlobContainerConfiguration> optionsMonitor = Substitute.For<IOptionsMonitor<BlobContainerConfiguration>>();
-            optionsMonitor.Get(Constants.BlobContainerConfigurationName).Returns(_blobContainerConfiguration);
-            optionsMonitor.Get(Constants.MetadataContainerConfigurationName).Returns(_metadataContainerConfiguration);
+            BlobContainerClient blobContainer = _blobClient.GetBlobContainerClient(_blobContainerConfiguration.ContainerName);
+            await blobContainer.DeleteIfExistsAsync();
 
-            IBlobClientTestProvider testProvider = new BlobClientReadWriteTestProvider(RecyclableMemoryStreamManager, NullLogger<BlobClientReadWriteTestProvider>.Instance);
-
-            _blobClient = BlobClientFactory.Create(_blobDataStoreConfiguration);
-
-            var blobClientInitializer = new BlobInitializer(_blobClient, testProvider, NullLogger<BlobInitializer>.Instance);
-
-            var blobContainerInitializer = new BlobContainerInitializer(_blobContainerConfiguration.ContainerName, NullLogger<BlobContainerInitializer>.Instance);
-            var metadataContainerInitializer = new BlobContainerInitializer(_metadataContainerConfiguration.ContainerName, NullLogger<BlobContainerInitializer>.Instance);
-
-            await blobClientInitializer.InitializeDataStoreAsync(
-                                            new List<IBlobContainerInitializer> { blobContainerInitializer, metadataContainerInitializer });
-
-            FileStore = new BlobFileStore(_blobClient, optionsMonitor, Options.Create(Substitute.For<BlobOperationOptions>()));
-            MetadataStore = new BlobMetadataStore(_blobClient, RecyclableMemoryStreamManager, optionsMonitor, Options.Create(AppSerializerOptions.Json));
-        }
-
-        public async Task DisposeAsync()
-        {
-            using (_blobClient as IDisposable)
-            {
-                BlobContainerClient blobContainer = _blobClient.GetBlobContainerClient(_blobContainerConfiguration.ContainerName);
-                await blobContainer.DeleteIfExistsAsync();
-
-                BlobContainerClient metadataContainer = _blobClient.GetBlobContainerClient(_metadataContainerConfiguration.ContainerName);
-                await metadataContainer.DeleteIfExistsAsync();
-            }
+            BlobContainerClient metadataContainer = _blobClient.GetBlobContainerClient(_metadataContainerConfiguration.ContainerName);
+            await metadataContainer.DeleteIfExistsAsync();
         }
     }
 }

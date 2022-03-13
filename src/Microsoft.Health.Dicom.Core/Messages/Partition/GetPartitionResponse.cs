@@ -5,15 +5,14 @@
 
 using Microsoft.Health.Dicom.Core.Features.Partition;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Partition
-{
-    public class GetPartitionResponse
-    {
-        public GetPartitionResponse(PartitionEntry partitionEntry)
-        {
-            PartitionEntry = partitionEntry;
-        }
+namespace Microsoft.Health.Dicom.Core.Messages.Partition;
 
-        public PartitionEntry PartitionEntry { get; }
+public class GetPartitionResponse
+{
+    public GetPartitionResponse(PartitionEntry partitionEntry)
+    {
+        PartitionEntry = partitionEntry;
     }
+
+    public PartitionEntry PartitionEntry { get; }
 }

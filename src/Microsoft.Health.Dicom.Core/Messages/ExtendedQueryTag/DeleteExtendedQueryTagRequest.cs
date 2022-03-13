@@ -5,15 +5,14 @@
 
 using MediatR;
 
-namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
-{
-    public class DeleteExtendedQueryTagRequest : IRequest<DeleteExtendedQueryTagResponse>
-    {
-        public DeleteExtendedQueryTagRequest(string tagPath)
-        {
-            TagPath = tagPath;
-        }
+namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
-        public string TagPath { get; }
+public class DeleteExtendedQueryTagRequest : IRequest<DeleteExtendedQueryTagResponse>
+{
+    public DeleteExtendedQueryTagRequest(string tagPath)
+    {
+        TagPath = tagPath;
     }
+
+    public string TagPath { get; }
 }

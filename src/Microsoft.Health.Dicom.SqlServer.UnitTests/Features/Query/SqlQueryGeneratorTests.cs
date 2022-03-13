@@ -18,109 +18,109 @@ using Microsoft.Health.SqlServer;
 using Microsoft.Health.SqlServer.Features.Storage;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query
+namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Features.Query;
+
+public class SqlQueryGeneratorTests
 {
-    public class SqlQueryGeneratorTests
+    private const string SqlDateFormat = "yyyy-MM-dd HH:mm:ss.ffffff";
+
+    [Fact]
+    public void VersionGTE6_GivenStudyDate_WhenIELevelStudy_ValidatePartitionKeySpecified()
     {
-        private const string SqlDateFormat = "yyyy-MM-dd HH:mm:ss.ffffff";
+        var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+        var includeField = new QueryIncludeField(new List<DicomTag>());
+        var minDate = new DateTime(2020, 2, 1);
+        var maxDate = new DateTime(2020, 3, 1);
 
-        [Fact]
-        public void VersionGTE6_GivenStudyDate_WhenIELevelStudy_ValidatePartitionKeySpecified()
+        var filters = new List<QueryFilterCondition>()
         {
-            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(new List<DicomTag>());
-            var minDate = new DateTime(2020, 2, 1);
-            var maxDate = new DateTime(2020, 3, 1);
+            new DateRangeValueMatchCondition(new QueryTag(DicomTag.StudyDate), minDate, maxDate),
+        };
+        var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
 
-            var filters = new List<QueryFilterCondition>()
-            {
-                new DateRangeValueMatchCondition(new QueryTag(DicomTag.StudyDate), minDate, maxDate),
-            };
-            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
+        var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
+        new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V6, DefaultPartition.Key);
 
-            var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V6, DefaultPartition.Key);
-
-            string expectedDistinctSelect = @"SELECT 
+        string expectedDistinctSelect = @"SELECT 
 st.StudyKey
 FROM dbo.Study st
 WHERE 1 = 1
 AND st.PartitionKey = 1";
 
-            Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
-        }
+        Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
+    }
 
-        [Fact]
-        public void GivenStudyDate_WhenIELevelStudy_ValidateDistinctStudyStudies()
+    [Fact]
+    public void GivenStudyDate_WhenIELevelStudy_ValidateDistinctStudyStudies()
+    {
+        var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+        var includeField = new QueryIncludeField(new List<DicomTag>());
+        var minDate = new DateTime(2020, 2, 1);
+        var maxDate = new DateTime(2020, 3, 1);
+
+        var filters = new List<QueryFilterCondition>()
         {
-            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(new List<DicomTag>());
-            var minDate = new DateTime(2020, 2, 1);
-            var maxDate = new DateTime(2020, 3, 1);
+            new DateRangeValueMatchCondition(new QueryTag(DicomTag.StudyDate), minDate, maxDate),
+        };
+        var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
 
-            var filters = new List<QueryFilterCondition>()
-            {
-                new DateRangeValueMatchCondition(new QueryTag(DicomTag.StudyDate), minDate, maxDate),
-            };
-            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
+        var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
+        new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
-            var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
-
-            string expectedDistinctSelect = @"SELECT 
+        string expectedDistinctSelect = @"SELECT 
 st.StudyKey
 FROM dbo.Study st
 WHERE 1 = 1";
 
-            string expectedCrossApply = @"
+        string expectedCrossApply = @"
 FROM dbo.Instance a
 WHERE 1 = 1
 AND a.StudyKey = f.StudyKey
 AND a.Status = 1 
 ORDER BY a.Watermark DESC";
 
-            string expectedFilterAndPage = @"
+        string expectedFilterAndPage = @"
 AND st.StudyDate BETWEEN @p0 AND @p1
 ORDER BY st.StudyKey DESC
 OFFSET 0 ROWS
 FETCH NEXT 100 ROWS ONLY";
 
-            string partitionFilter = "AND st.PartitionKey = 1";
+        string partitionFilter = "AND st.PartitionKey = 1";
 
-            Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
-            Assert.Contains(expectedCrossApply, stringBuilder.ToString());
-            Assert.Contains(expectedFilterAndPage, stringBuilder.ToString());
-            Assert.DoesNotContain(partitionFilter, stringBuilder.ToString());
-        }
+        Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
+        Assert.Contains(expectedCrossApply, stringBuilder.ToString());
+        Assert.Contains(expectedFilterAndPage, stringBuilder.ToString());
+        Assert.DoesNotContain(partitionFilter, stringBuilder.ToString());
+    }
 
-        [Fact]
-        public void GivenModality_WhenIELevelSeries_ValidateDistinctSeries()
+    [Fact]
+    public void GivenModality_WhenIELevelSeries_ValidateDistinctSeries()
+    {
+        var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+        var includeField = new QueryIncludeField(new List<DicomTag>());
+        var filters = new List<QueryFilterCondition>()
         {
-            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(new List<DicomTag>());
-            var filters = new List<QueryFilterCondition>()
-            {
-                new StringSingleValueMatchCondition(new QueryTag(DicomTag.Modality), "123"),
-            };
-            var query = new QueryExpression(QueryResource.AllSeries, includeField, false, 0, 0, filters, Array.Empty<string>());
+            new StringSingleValueMatchCondition(new QueryTag(DicomTag.Modality), "123"),
+        };
+        var query = new QueryExpression(QueryResource.AllSeries, includeField, false, 0, 0, filters, Array.Empty<string>());
 
-            var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
+        var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
+        new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
-            string expectedDistinctSelect = @"SELECT 
+        string expectedDistinctSelect = @"SELECT 
 st.StudyKey
 ,se.SeriesKey
 FROM dbo.Study st
 INNER JOIN dbo.Series se
 ON se.StudyKey = st.StudyKey";
 
-            string expectedFilterAndPage = @"
+        string expectedFilterAndPage = @"
 AND se.Modality=@p0
 ORDER BY se.SeriesKey DESC
 OFFSET 0 ROWS
 FETCH NEXT 100 ROWS ONLY";
 
-            string expectedCrossApply = @"
+        string expectedCrossApply = @"
 FROM dbo.Instance a
 WHERE 1 = 1
 AND a.StudyKey = f.StudyKey
@@ -130,26 +130,26 @@ ORDER BY a.Watermark DESC";
 
 
 
-            Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
-            Assert.Contains(expectedCrossApply, stringBuilder.ToString());
-            Assert.Contains(expectedFilterAndPage, stringBuilder.ToString());
-        }
+        Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
+        Assert.Contains(expectedCrossApply, stringBuilder.ToString());
+        Assert.Contains(expectedFilterAndPage, stringBuilder.ToString());
+    }
 
-        [Fact]
-        public void GivenNonUidFilter_WhenIELevelInstance_ValidateDistinctInstances()
+    [Fact]
+    public void GivenNonUidFilter_WhenIELevelInstance_ValidateDistinctInstances()
+    {
+        var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+        var includeField = new QueryIncludeField(new List<DicomTag>());
+        var filters = new List<QueryFilterCondition>()
         {
-            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(new List<DicomTag>());
-            var filters = new List<QueryFilterCondition>()
-            {
-                new StringSingleValueMatchCondition(new QueryTag(DicomTag.Modality), "123"),
-            };
-            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
+            new StringSingleValueMatchCondition(new QueryTag(DicomTag.Modality), "123"),
+        };
+        var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
 
-            var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
+        var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
+        new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
-            string expectedDistinctSelect = @"SELECT 
+        string expectedDistinctSelect = @"SELECT 
 i.StudyInstanceUid
 ,i.SeriesInstanceUid
 ,i.SopInstanceUid
@@ -160,289 +160,289 @@ ON se.StudyKey = st.StudyKey
 INNER JOIN dbo.Instance i
 ON i.SeriesKey = se.SeriesKey";
 
-            string expectedFilters = @"AND se.Modality=@p0";
+        string expectedFilters = @"AND se.Modality=@p0";
 
-            string expectedPage = @"ORDER BY i.Watermark DESC
+        string expectedPage = @"ORDER BY i.Watermark DESC
 OFFSET 0 ROWS
 FETCH NEXT 100 ROWS ONLY";
 
-            Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
-            Assert.Contains(expectedFilters, stringBuilder.ToString());
-            Assert.Contains(expectedPage, stringBuilder.ToString());
-            Assert.DoesNotContain("CROSS APPLY", stringBuilder.ToString());
-        }
+        Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
+        Assert.Contains(expectedFilters, stringBuilder.ToString());
+        Assert.Contains(expectedPage, stringBuilder.ToString());
+        Assert.DoesNotContain("CROSS APPLY", stringBuilder.ToString());
+    }
 
-        [Fact]
-        public void GivenStringExtendedQueryTagFilter_WhenIELevelStudy_ValidateExtendedQueryTagFilter()
+    [Fact]
+    public void GivenStringExtendedQueryTagFilter_WhenIELevelStudy_ValidateExtendedQueryTagFilter()
+    {
+        var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+        var includeField = new QueryIncludeField(new List<DicomTag>());
+        var queryTag = new QueryTag(DicomTag.ModelGroupUID.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
+        var filter = new StringSingleValueMatchCondition(queryTag, "123");
+        filter.QueryTag = queryTag;
+        var filters = new List<QueryFilterCondition>()
         {
-            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(new List<DicomTag>());
-            var queryTag = new QueryTag(DicomTag.ModelGroupUID.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
-            var filter = new StringSingleValueMatchCondition(queryTag, "123");
-            filter.QueryTag = queryTag;
-            var filters = new List<QueryFilterCondition>()
-            {
-                filter,
-            };
-            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
+            filter,
+        };
+        var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
 
-            SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
-            var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
+        SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
+        var parm = new SqlQueryParameterManager(sqlParameterCollection);
+        new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
-            string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagString cts1
+        string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagString cts1
 ON cts1.PartitionKey = st.PartitionKey
 AND cts1.StudyKey = st.StudyKey
 WHERE";
 
-            string expectedFilters = @"AND cts1.TagKey=@p0
+        string expectedFilters = @"AND cts1.TagKey=@p0
 AND cts1.TagValue=@p1";
 
-            string builtString = stringBuilder.ToString();
-            Assert.Equal(queryTag.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
-            Assert.Equal(filter.Value.ToString(), sqlParameterCollection[1].Value.ToString());
-            Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
-            Assert.Contains(expectedFilters, builtString);
-        }
+        string builtString = stringBuilder.ToString();
+        Assert.Equal(queryTag.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
+        Assert.Equal(filter.Value.ToString(), sqlParameterCollection[1].Value.ToString());
+        Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
+        Assert.Contains(expectedFilters, builtString);
+    }
 
-        [Fact]
-        public void GivenLongExtendedQueryTagFilter_WhenIELevelStudy_ValidateExtendedQueryTagFilter()
+    [Fact]
+    public void GivenLongExtendedQueryTagFilter_WhenIELevelStudy_ValidateExtendedQueryTagFilter()
+    {
+        var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+        var includeField = new QueryIncludeField(new List<DicomTag>());
+        var queryTag = new QueryTag(DicomTag.NumberOfAssessmentObservations.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
+        var filter = new LongSingleValueMatchCondition(queryTag, 123);
+        filter.QueryTag = queryTag;
+        var filters = new List<QueryFilterCondition>()
         {
-            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(new List<DicomTag>());
-            var queryTag = new QueryTag(DicomTag.NumberOfAssessmentObservations.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
-            var filter = new LongSingleValueMatchCondition(queryTag, 123);
-            filter.QueryTag = queryTag;
-            var filters = new List<QueryFilterCondition>()
-            {
-                filter,
-            };
-            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
+            filter,
+        };
+        var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
 
-            SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
-            var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
+        SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
+        var parm = new SqlQueryParameterManager(sqlParameterCollection);
+        new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
-            string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagLong ctl1
+        string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagLong ctl1
 ON ctl1.PartitionKey = st.PartitionKey
 AND ctl1.StudyKey = st.StudyKey
 WHERE";
 
-            string expectedFilters = @"AND ctl1.TagKey=@p0
+        string expectedFilters = @"AND ctl1.TagKey=@p0
 AND ctl1.TagValue=@p1";
 
-            string builtString = stringBuilder.ToString();
-            Assert.Equal(queryTag.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
-            Assert.Equal(filter.Value.ToString(), sqlParameterCollection[1].Value.ToString());
-            Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
-            Assert.Contains(expectedFilters, builtString);
-        }
+        string builtString = stringBuilder.ToString();
+        Assert.Equal(queryTag.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
+        Assert.Equal(filter.Value.ToString(), sqlParameterCollection[1].Value.ToString());
+        Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
+        Assert.Contains(expectedFilters, builtString);
+    }
 
-        [Fact]
-        public void GivenDoubleExtendedQueryTagFilter_WhenIELevelStudy_ValidateExtendedQueryTagFilter()
+    [Fact]
+    public void GivenDoubleExtendedQueryTagFilter_WhenIELevelStudy_ValidateExtendedQueryTagFilter()
+    {
+        var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+        var includeField = new QueryIncludeField(new List<DicomTag>());
+        var queryTag = new QueryTag(DicomTag.FloatingPointValue.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
+        var filter = new DoubleSingleValueMatchCondition(queryTag, 123D);
+        filter.QueryTag = queryTag;
+        var filters = new List<QueryFilterCondition>()
         {
-            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(new List<DicomTag>());
-            var queryTag = new QueryTag(DicomTag.FloatingPointValue.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
-            var filter = new DoubleSingleValueMatchCondition(queryTag, 123D);
-            filter.QueryTag = queryTag;
-            var filters = new List<QueryFilterCondition>()
-            {
-                filter,
-            };
-            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
+            filter,
+        };
+        var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
 
-            SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
-            var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
+        SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
+        var parm = new SqlQueryParameterManager(sqlParameterCollection);
+        new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
-            string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagDouble ctd1
+        string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagDouble ctd1
 ON ctd1.PartitionKey = st.PartitionKey
 AND ctd1.StudyKey = st.StudyKey
 WHERE";
 
-            string expectedFilters = @"AND ctd1.TagKey=@p0
+        string expectedFilters = @"AND ctd1.TagKey=@p0
 AND ctd1.TagValue=@p1";
 
-            string builtString = stringBuilder.ToString();
-            Assert.Equal(queryTag.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
-            Assert.Equal(filter.Value.ToString(), sqlParameterCollection[1].Value.ToString());
-            Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
-            Assert.Contains(expectedFilters, builtString);
-        }
+        string builtString = stringBuilder.ToString();
+        Assert.Equal(queryTag.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
+        Assert.Equal(filter.Value.ToString(), sqlParameterCollection[1].Value.ToString());
+        Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
+        Assert.Contains(expectedFilters, builtString);
+    }
 
-        [Fact]
-        public void GivenDateExtendedQueryTagFilter_WhenIELevelStudy_ValidateExtendedQueryTagFilter()
+    [Fact]
+    public void GivenDateExtendedQueryTagFilter_WhenIELevelStudy_ValidateExtendedQueryTagFilter()
+    {
+        var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+        var includeField = new QueryIncludeField(new List<DicomTag>());
+        var queryTag = new QueryTag(DicomTag.Date.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
+        var filter = new DateRangeValueMatchCondition(queryTag, DateTime.ParseExact("19510910", QueryParser.DateTagValueFormat, null), DateTime.ParseExact("19571110", QueryParser.DateTagValueFormat, null));
+
+        filter.QueryTag = queryTag;
+        var filters = new List<QueryFilterCondition>()
         {
-            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(new List<DicomTag>());
-            var queryTag = new QueryTag(DicomTag.Date.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
-            var filter = new DateRangeValueMatchCondition(queryTag, DateTime.ParseExact("19510910", QueryParser.DateTagValueFormat, null), DateTime.ParseExact("19571110", QueryParser.DateTagValueFormat, null));
+            filter,
+        };
+        var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
 
-            filter.QueryTag = queryTag;
-            var filters = new List<QueryFilterCondition>()
-            {
-                filter,
-            };
-            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
+        SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
+        var parm = new SqlQueryParameterManager(sqlParameterCollection);
+        new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
-            SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
-            var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
-
-            string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagDateTime ctdt1
+        string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagDateTime ctdt1
 ON ctdt1.PartitionKey = st.PartitionKey
 AND ctdt1.StudyKey = st.StudyKey
 WHERE";
 
-            string expectedFilters = @"AND ctdt1.TagKey=@p0
+        string expectedFilters = @"AND ctdt1.TagKey=@p0
 AND ctdt1.TagValue BETWEEN @p1 AND @p2";
 
-            string builtString = stringBuilder.ToString();
-            Assert.Equal(queryTag.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
-            Assert.Equal(filter.Minimum.ToString(SqlDateFormat), sqlParameterCollection[1].Value.ToString());
-            Assert.Equal(filter.Maximum.ToString(SqlDateFormat), sqlParameterCollection[2].Value.ToString());
-            Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
-            Assert.Contains(expectedFilters, builtString);
-        }
+        string builtString = stringBuilder.ToString();
+        Assert.Equal(queryTag.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
+        Assert.Equal(filter.Minimum.ToString(SqlDateFormat), sqlParameterCollection[1].Value.ToString());
+        Assert.Equal(filter.Maximum.ToString(SqlDateFormat), sqlParameterCollection[2].Value.ToString());
+        Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
+        Assert.Contains(expectedFilters, builtString);
+    }
 
-        [Fact]
-        public void GivenDateTimeExtendedQueryTagFilter_WhenIELevelStudy_ValidateExtendedQueryTagFilter()
+    [Fact]
+    public void GivenDateTimeExtendedQueryTagFilter_WhenIELevelStudy_ValidateExtendedQueryTagFilter()
+    {
+        var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+        var includeField = new QueryIncludeField(new List<DicomTag>());
+        var queryTag = new QueryTag(DicomTag.DateTime.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
+        var filter = new DateRangeValueMatchCondition(queryTag, DateTime.ParseExact("19510910111213.123", QueryParser.DateTimeTagValueFormats, null), DateTime.ParseExact("19571110111213.123", QueryParser.DateTimeTagValueFormats, null));
+
+        filter.QueryTag = queryTag;
+        var filters = new List<QueryFilterCondition>()
         {
-            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(new List<DicomTag>());
-            var queryTag = new QueryTag(DicomTag.DateTime.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
-            var filter = new DateRangeValueMatchCondition(queryTag, DateTime.ParseExact("19510910111213.123", QueryParser.DateTimeTagValueFormats, null), DateTime.ParseExact("19571110111213.123", QueryParser.DateTimeTagValueFormats, null));
+            filter,
+        };
+        var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
 
-            filter.QueryTag = queryTag;
-            var filters = new List<QueryFilterCondition>()
-            {
-                filter,
-            };
-            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
+        SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
+        var parm = new SqlQueryParameterManager(sqlParameterCollection);
+        new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
-            SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
-            var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
-
-            string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagDateTime ctdt1
+        string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagDateTime ctdt1
 ON ctdt1.PartitionKey = st.PartitionKey
 AND ctdt1.StudyKey = st.StudyKey
 WHERE";
 
-            string expectedFilters = @"AND ctdt1.TagKey=@p0
+        string expectedFilters = @"AND ctdt1.TagKey=@p0
 AND ctdt1.TagValue BETWEEN @p1 AND @p2";
 
-            string builtString = stringBuilder.ToString();
-            Assert.Equal(queryTag.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
-            Assert.Equal(filter.Minimum.ToString(SqlDateFormat), sqlParameterCollection[1].Value.ToString());
-            Assert.Equal(filter.Maximum.ToString(SqlDateFormat), sqlParameterCollection[2].Value.ToString());
-            Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
-            Assert.Contains(expectedFilters, builtString);
-        }
+        string builtString = stringBuilder.ToString();
+        Assert.Equal(queryTag.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
+        Assert.Equal(filter.Minimum.ToString(SqlDateFormat), sqlParameterCollection[1].Value.ToString());
+        Assert.Equal(filter.Maximum.ToString(SqlDateFormat), sqlParameterCollection[2].Value.ToString());
+        Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
+        Assert.Contains(expectedFilters, builtString);
+    }
 
-        [Fact]
-        public void GivenTimeExtendedQueryTagFilter_WhenIELevelStudy_ValidateExtendedQueryTagFilter()
+    [Fact]
+    public void GivenTimeExtendedQueryTagFilter_WhenIELevelStudy_ValidateExtendedQueryTagFilter()
+    {
+        var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+        var includeField = new QueryIncludeField(new List<DicomTag>());
+        var queryTag = new QueryTag(DicomTag.Time.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
+
+        long minTicks = new DicomTime(queryTag.Tag, new string[] { "111213.123" }).Get<DateTime>().Ticks;
+        long maxTicks = new DicomTime(queryTag.Tag, new string[] { "111214.123" }).Get<DateTime>().Ticks;
+        var filter = new LongRangeValueMatchCondition(queryTag, minTicks, maxTicks);
+
+        filter.QueryTag = queryTag;
+        var filters = new List<QueryFilterCondition>()
         {
-            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(new List<DicomTag>());
-            var queryTag = new QueryTag(DicomTag.Time.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Study));
+            filter,
+        };
+        var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
 
-            long minTicks = new DicomTime(queryTag.Tag, new string[] { "111213.123" }).Get<DateTime>().Ticks;
-            long maxTicks = new DicomTime(queryTag.Tag, new string[] { "111214.123" }).Get<DateTime>().Ticks;
-            var filter = new LongRangeValueMatchCondition(queryTag, minTicks, maxTicks);
+        SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
+        var parm = new SqlQueryParameterManager(sqlParameterCollection);
+        new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
-            filter.QueryTag = queryTag;
-            var filters = new List<QueryFilterCondition>()
-            {
-                filter,
-            };
-            var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
-
-            SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
-            var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
-
-            string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagLong ctl1
+        string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagLong ctl1
 ON ctl1.PartitionKey = st.PartitionKey
 AND ctl1.StudyKey = st.StudyKey
 WHERE";
 
-            string expectedFilters = @"AND ctl1.TagKey=@p0
+        string expectedFilters = @"AND ctl1.TagKey=@p0
 AND ctl1.TagValue BETWEEN @p1 AND @p2";
 
-            string builtString = stringBuilder.ToString();
-            Assert.Equal(queryTag.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
-            Assert.Equal(filter.Minimum.ToString(), sqlParameterCollection[1].Value.ToString());
-            Assert.Equal(filter.Maximum.ToString(), sqlParameterCollection[2].Value.ToString());
-            Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
-            Assert.Contains(expectedFilters, builtString);
-        }
+        string builtString = stringBuilder.ToString();
+        Assert.Equal(queryTag.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
+        Assert.Equal(filter.Minimum.ToString(), sqlParameterCollection[1].Value.ToString());
+        Assert.Equal(filter.Maximum.ToString(), sqlParameterCollection[2].Value.ToString());
+        Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
+        Assert.Contains(expectedFilters, builtString);
+    }
 
-        [Fact]
-        public void GivenExtendedQueryTagFilterWithNonUidFilter_WhenIELevelSeries_ValidateExtendedQueryTagFilter()
+    [Fact]
+    public void GivenExtendedQueryTagFilterWithNonUidFilter_WhenIELevelSeries_ValidateExtendedQueryTagFilter()
+    {
+        var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+        var includeField = new QueryIncludeField(new List<DicomTag>());
+        var queryTag = new QueryTag(DicomTag.ModelGroupUID.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Series));
+        var extendedQueryTagFilter = new StringSingleValueMatchCondition(queryTag, "123");
+        extendedQueryTagFilter.QueryTag = queryTag;
+        var filter = new StringSingleValueMatchCondition(new QueryTag(DicomTag.Modality), "abc");
+        var filters = new List<QueryFilterCondition>()
         {
-            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(new List<DicomTag>());
-            var queryTag = new QueryTag(DicomTag.ModelGroupUID.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Series));
-            var extendedQueryTagFilter = new StringSingleValueMatchCondition(queryTag, "123");
-            extendedQueryTagFilter.QueryTag = queryTag;
-            var filter = new StringSingleValueMatchCondition(new QueryTag(DicomTag.Modality), "abc");
-            var filters = new List<QueryFilterCondition>()
-            {
-                filter,
-                extendedQueryTagFilter,
-            };
-            var query = new QueryExpression(QueryResource.StudySeries, includeField, false, 0, 0, filters, Array.Empty<string>());
+            filter,
+            extendedQueryTagFilter,
+        };
+        var query = new QueryExpression(QueryResource.StudySeries, includeField, false, 0, 0, filters, Array.Empty<string>());
 
-            SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
-            var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
+        SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
+        var parm = new SqlQueryParameterManager(sqlParameterCollection);
+        new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
-            string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagString cts1
+        string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagString cts1
 ON cts1.PartitionKey = st.PartitionKey
 AND cts1.StudyKey = st.StudyKey
 AND cts1.SeriesKey = se.SeriesKey
 WHERE";
 
-            string expectedFilter = @"AND se.Modality=@p0";
-            string expectedExtendedQueryTagFilter = @"AND cts1.TagKey=@p1
+        string expectedFilter = @"AND se.Modality=@p0";
+        string expectedExtendedQueryTagFilter = @"AND cts1.TagKey=@p1
 AND cts1.TagValue=@p2";
 
-            string builtString = stringBuilder.ToString();
-            Assert.Equal(queryTag.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[1].Value.ToString());
-            Assert.Equal(extendedQueryTagFilter.Value.ToString(), sqlParameterCollection[2].Value.ToString());
-            Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
-            Assert.Contains(expectedFilter, builtString);
-            Assert.Contains(expectedExtendedQueryTagFilter, builtString);
-        }
+        string builtString = stringBuilder.ToString();
+        Assert.Equal(queryTag.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[1].Value.ToString());
+        Assert.Equal(extendedQueryTagFilter.Value.ToString(), sqlParameterCollection[2].Value.ToString());
+        Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
+        Assert.Contains(expectedFilter, builtString);
+        Assert.Contains(expectedExtendedQueryTagFilter, builtString);
+    }
 
-        [Fact]
-        public void GivenMultipleExtendedQueryTagFiltersOnSameLevel_WhenIELevelInstance_ValidateExtendedQueryTagFilter()
+    [Fact]
+    public void GivenMultipleExtendedQueryTagFiltersOnSameLevel_WhenIELevelInstance_ValidateExtendedQueryTagFilter()
+    {
+        var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+        var includeField = new QueryIncludeField(new List<DicomTag>());
+        var queryTag1 = new QueryTag(DicomTag.ModelGroupUID.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Series));
+        var filter1 = new StringSingleValueMatchCondition(queryTag1, "abc");
+        filter1.QueryTag = queryTag1;
+        var queryTag2 = new QueryTag(DicomTag.ContainerDescription.BuildExtendedQueryTagStoreEntry(key: 2, level: QueryTagLevel.Series));
+        var filter2 = new StringSingleValueMatchCondition(queryTag2, "description");
+        filter2.QueryTag = queryTag2;
+        var filters = new List<QueryFilterCondition>()
         {
-            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(new List<DicomTag>());
-            var queryTag1 = new QueryTag(DicomTag.ModelGroupUID.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Series));
-            var filter1 = new StringSingleValueMatchCondition(queryTag1, "abc");
-            filter1.QueryTag = queryTag1;
-            var queryTag2 = new QueryTag(DicomTag.ContainerDescription.BuildExtendedQueryTagStoreEntry(key: 2, level: QueryTagLevel.Series));
-            var filter2 = new StringSingleValueMatchCondition(queryTag2, "description");
-            filter2.QueryTag = queryTag2;
-            var filters = new List<QueryFilterCondition>()
-            {
-                filter1,
-                filter2,
-            };
-            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
+            filter1,
+            filter2,
+        };
+        var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
 
-            SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
-            var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
+        SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
+        var parm = new SqlQueryParameterManager(sqlParameterCollection);
+        new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
-            // cts1 is associated with filter1 which is at the instance level. This means the join should be on all three keys.
-            // cts2 is associated with filter2 which is at the series level. This means the join should be on only study and series keys.
-            // ctl4 is associated with filter3 which is at the study level. This means the join should be on only the study key.
-            string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagString cts1
+        // cts1 is associated with filter1 which is at the instance level. This means the join should be on all three keys.
+        // cts2 is associated with filter2 which is at the series level. This means the join should be on only study and series keys.
+        // ctl4 is associated with filter3 which is at the study level. This means the join should be on only the study key.
+        string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagString cts1
 ON cts1.PartitionKey = st.PartitionKey
 AND cts1.StudyKey = st.StudyKey
 AND cts1.SeriesKey = se.SeriesKey
@@ -452,52 +452,52 @@ AND cts2.StudyKey = st.StudyKey
 AND cts2.SeriesKey = se.SeriesKey
 WHERE";
 
-            string expectedFilters = @"AND cts1.TagKey=@p0
+        string expectedFilters = @"AND cts1.TagKey=@p0
 AND cts1.TagValue=@p1
 AND cts2.TagKey=@p2
 AND cts2.TagValue=@p3";
 
-            string builtString = stringBuilder.ToString();
-            Assert.Equal(queryTag1.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
-            Assert.Equal(filter1.Value.ToString(), sqlParameterCollection[1].Value.ToString());
-            Assert.Equal(queryTag2.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[2].Value.ToString());
-            Assert.Equal(filter2.Value.ToString(), sqlParameterCollection[3].Value.ToString());
-            Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
-            Assert.Contains(expectedFilters, builtString);
-        }
+        string builtString = stringBuilder.ToString();
+        Assert.Equal(queryTag1.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
+        Assert.Equal(filter1.Value.ToString(), sqlParameterCollection[1].Value.ToString());
+        Assert.Equal(queryTag2.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[2].Value.ToString());
+        Assert.Equal(filter2.Value.ToString(), sqlParameterCollection[3].Value.ToString());
+        Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
+        Assert.Contains(expectedFilters, builtString);
+    }
 
-        [Fact]
-        public void GivenMultipleExtendedQueryTagFiltersOnDifferentLevels_WhenIELevelInstance_ValidateExtendedQueryTagFilter()
+    [Fact]
+    public void GivenMultipleExtendedQueryTagFiltersOnDifferentLevels_WhenIELevelInstance_ValidateExtendedQueryTagFilter()
+    {
+        var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+        var includeField = new QueryIncludeField(new List<DicomTag>());
+        var queryTag1 = new QueryTag(DicomTag.ModelGroupUID.BuildExtendedQueryTagStoreEntry(key: 1, level: QueryTagLevel.Instance));
+        var filter1 = new StringSingleValueMatchCondition(queryTag1, "abc");
+        filter1.QueryTag = queryTag1;
+
+        var queryTag2 = new QueryTag(DicomTag.ContainerDescription.BuildExtendedQueryTagStoreEntry(key: 2, level: QueryTagLevel.Series));
+        var filter2 = new StringSingleValueMatchCondition(queryTag2, "description");
+        filter2.QueryTag = queryTag2;
+
+        var queryTag3 = new QueryTag(DicomTag.NumberOfAssessmentObservations.BuildExtendedQueryTagStoreEntry(key: 4, level: QueryTagLevel.Study));
+        var filter3 = new LongSingleValueMatchCondition(queryTag3, 123);
+        filter3.QueryTag = queryTag3;
+        var filters = new List<QueryFilterCondition>()
         {
-            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(new List<DicomTag>());
-            var queryTag1 = new QueryTag(DicomTag.ModelGroupUID.BuildExtendedQueryTagStoreEntry(key: 1, level: QueryTagLevel.Instance));
-            var filter1 = new StringSingleValueMatchCondition(queryTag1, "abc");
-            filter1.QueryTag = queryTag1;
+            filter1,
+            filter2,
+            filter3,
+        };
+        var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
 
-            var queryTag2 = new QueryTag(DicomTag.ContainerDescription.BuildExtendedQueryTagStoreEntry(key: 2, level: QueryTagLevel.Series));
-            var filter2 = new StringSingleValueMatchCondition(queryTag2, "description");
-            filter2.QueryTag = queryTag2;
+        SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
+        var parm = new SqlQueryParameterManager(sqlParameterCollection);
+        new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
-            var queryTag3 = new QueryTag(DicomTag.NumberOfAssessmentObservations.BuildExtendedQueryTagStoreEntry(key: 4, level: QueryTagLevel.Study));
-            var filter3 = new LongSingleValueMatchCondition(queryTag3, 123);
-            filter3.QueryTag = queryTag3;
-            var filters = new List<QueryFilterCondition>()
-            {
-                filter1,
-                filter2,
-                filter3,
-            };
-            var query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
-
-            SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
-            var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
-
-            // cts1 is associated with filter1 which is at the instance level. This means the join should be on all three keys.
-            // cts2 is associated with filter2 which is at the series level. This means the join should be on only study and series keys.
-            // ctl4 is associated with filter3 which is at the study level. This means the join should be on only the study key.
-            string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagString cts1
+        // cts1 is associated with filter1 which is at the instance level. This means the join should be on all three keys.
+        // cts2 is associated with filter2 which is at the series level. This means the join should be on only study and series keys.
+        // ctl4 is associated with filter3 which is at the study level. This means the join should be on only the study key.
+        string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagString cts1
 ON cts1.PartitionKey = st.PartitionKey
 AND cts1.StudyKey = st.StudyKey
 AND cts1.SeriesKey = se.SeriesKey
@@ -511,76 +511,75 @@ ON ctl4.PartitionKey = st.PartitionKey
 AND ctl4.StudyKey = st.StudyKey
 WHERE";
 
-            string expectedFilters = @"AND cts1.TagKey=@p0
+        string expectedFilters = @"AND cts1.TagKey=@p0
 AND cts1.TagValue=@p1
 AND cts2.TagKey=@p2
 AND cts2.TagValue=@p3
 AND ctl4.TagKey=@p4
 AND ctl4.TagValue=@p5";
 
-            string builtString = stringBuilder.ToString();
-            Assert.Equal(queryTag1.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
-            Assert.Equal(filter1.Value.ToString(), sqlParameterCollection[1].Value.ToString());
-            Assert.Equal(queryTag2.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[2].Value.ToString());
-            Assert.Equal(filter2.Value.ToString(), sqlParameterCollection[3].Value.ToString());
-            Assert.Equal(queryTag3.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[4].Value.ToString());
-            Assert.Equal(filter3.Value.ToString(), sqlParameterCollection[5].Value.ToString());
-            Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
-            Assert.Contains(expectedFilters, builtString);
-        }
+        string builtString = stringBuilder.ToString();
+        Assert.Equal(queryTag1.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
+        Assert.Equal(filter1.Value.ToString(), sqlParameterCollection[1].Value.ToString());
+        Assert.Equal(queryTag2.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[2].Value.ToString());
+        Assert.Equal(filter2.Value.ToString(), sqlParameterCollection[3].Value.ToString());
+        Assert.Equal(queryTag3.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[4].Value.ToString());
+        Assert.Equal(filter3.Value.ToString(), sqlParameterCollection[5].Value.ToString());
+        Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
+        Assert.Contains(expectedFilters, builtString);
+    }
 
-        [Fact]
-        public void GivenPatientNameFilter_WithFuzzyMatchMultiWord_ValidateContainsFilterGenerated()
+    [Fact]
+    public void GivenPatientNameFilter_WithFuzzyMatchMultiWord_ValidateContainsFilterGenerated()
+    {
+        var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+        var includeField = new QueryIncludeField(new List<DicomTag>());
+        var filters = new List<QueryFilterCondition>()
         {
-            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(new List<DicomTag>());
-            var filters = new List<QueryFilterCondition>()
-            {
-                new PersonNameFuzzyMatchCondition(new QueryTag(DicomTag.PatientName), "Fall 6"),
-            };
-            var query = new QueryExpression(QueryResource.AllStudies, includeField, true, 10, 0, filters, Array.Empty<string>());
-            SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
-            var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
+            new PersonNameFuzzyMatchCondition(new QueryTag(DicomTag.PatientName), "Fall 6"),
+        };
+        var query = new QueryExpression(QueryResource.AllStudies, includeField, true, 10, 0, filters, Array.Empty<string>());
+        SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
+        var parm = new SqlQueryParameterManager(sqlParameterCollection);
+        new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
-            string expectedParam = $"\"Fall 6*\"";
+        string expectedParam = $"\"Fall 6*\"";
 
-            string expectedFilters = @"AND CONTAINS(st.PatientNameWords, @p0)";
+        string expectedFilters = @"AND CONTAINS(st.PatientNameWords, @p0)";
 
-            Assert.Equal(expectedParam, sqlParameterCollection[0].Value.ToString());
-            Assert.Contains(expectedFilters, stringBuilder.ToString());
-        }
+        Assert.Equal(expectedParam, sqlParameterCollection[0].Value.ToString());
+        Assert.Contains(expectedFilters, stringBuilder.ToString());
+    }
 
-        [Fact]
-        public void GivenPatientNameFilterForExtendedQueryTag_WithFuzzyMatchMultiWord_ValidateContainsFilterGenerated()
+    [Fact]
+    public void GivenPatientNameFilterForExtendedQueryTag_WithFuzzyMatchMultiWord_ValidateContainsFilterGenerated()
+    {
+        var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+        var includeField = new QueryIncludeField(new List<DicomTag>());
+        var queryTag = new QueryTag(DicomTag.ConsultingPhysicianName.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Series));
+        var filter = new PersonNameFuzzyMatchCondition(queryTag, "Fall 6");
+        filter.QueryTag = queryTag;
+        var filters = new List<QueryFilterCondition>()
         {
-            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var includeField = new QueryIncludeField(new List<DicomTag>());
-            var queryTag = new QueryTag(DicomTag.ConsultingPhysicianName.BuildExtendedQueryTagStoreEntry(level: QueryTagLevel.Series));
-            var filter = new PersonNameFuzzyMatchCondition(queryTag, "Fall 6");
-            filter.QueryTag = queryTag;
-            var filters = new List<QueryFilterCondition>()
-            {
-                filter,
-            };
-            var query = new QueryExpression(QueryResource.AllInstances, includeField, true, 10, 0, filters, Array.Empty<string>());
-            SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
-            var parm = new SqlQueryParameterManager(sqlParameterCollection);
-            new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
+            filter,
+        };
+        var query = new QueryExpression(QueryResource.AllInstances, includeField, true, 10, 0, filters, Array.Empty<string>());
+        SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
+        var parm = new SqlQueryParameterManager(sqlParameterCollection);
+        new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V4, DefaultPartition.Key);
 
-            string expectedParam = $"\"Fall 6*\"";
+        string expectedParam = $"\"Fall 6*\"";
 
-            string expectedFilters = @"AND ctpn1.TagKey=@p0
+        string expectedFilters = @"AND ctpn1.TagKey=@p0
 AND CONTAINS(ctpn1.TagValueWords, @p1)";
 
-            Assert.Equal(queryTag.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
-            Assert.Equal(expectedParam, sqlParameterCollection[1].Value.ToString());
-            Assert.Contains(expectedFilters, stringBuilder.ToString());
-        }
+        Assert.Equal(queryTag.ExtendedQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
+        Assert.Equal(expectedParam, sqlParameterCollection[1].Value.ToString());
+        Assert.Contains(expectedFilters, stringBuilder.ToString());
+    }
 
-        private SqlParameterCollection CreateSqlParameterCollection()
-        {
-            return (SqlParameterCollection)typeof(SqlParameterCollection).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, Type.EmptyTypes, null).Invoke(null);
-        }
+    private SqlParameterCollection CreateSqlParameterCollection()
+    {
+        return (SqlParameterCollection)typeof(SqlParameterCollection).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, Type.EmptyTypes, null).Invoke(null);
     }
 }

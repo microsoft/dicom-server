@@ -16,42 +16,41 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
 
-namespace Microsoft.Health.Dicom.Core.Features.Workitem
+namespace Microsoft.Health.Dicom.Core.Features.Workitem;
+
+public class CancelWorkitemRequestHandler : BaseHandler, IRequestHandler<CancelWorkitemRequest, CancelWorkitemResponse>
 {
-    public class CancelWorkitemRequestHandler : BaseHandler, IRequestHandler<CancelWorkitemRequest, CancelWorkitemResponse>
+    private readonly IWorkitemService _workItemService;
+    private readonly IWorkitemSerializer _workitemSerializer;
+
+    public CancelWorkitemRequestHandler(
+        IAuthorizationService<DataActions> authorizationService,
+        IWorkitemSerializer workitemSerializer,
+        IWorkitemService workItemService)
+        : base(authorizationService)
     {
-        private readonly IWorkitemService _workItemService;
-        private readonly IWorkitemSerializer _workitemSerializer;
+        _workItemService = EnsureArg.IsNotNull(workItemService, nameof(workItemService));
+        _workitemSerializer = workitemSerializer;
+    }
 
-        public CancelWorkitemRequestHandler(
-            IAuthorizationService<DataActions> authorizationService,
-            IWorkitemSerializer workitemSerializer,
-            IWorkitemService workItemService)
-            : base(authorizationService)
+    /// <inheritdoc />
+    public async Task<CancelWorkitemResponse> Handle(CancelWorkitemRequest request, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(request, nameof(request));
+
+        if (await AuthorizationService.CheckAccess(DataActions.Write, cancellationToken).ConfigureAwait(false) != DataActions.Write)
         {
-            _workItemService = EnsureArg.IsNotNull(workItemService, nameof(workItemService));
-            _workitemSerializer = workitemSerializer;
+            throw new UnauthorizedDicomActionException(DataActions.Write);
         }
 
-        /// <inheritdoc />
-        public async Task<CancelWorkitemResponse> Handle(CancelWorkitemRequest request, CancellationToken cancellationToken)
-        {
-            EnsureArg.IsNotNull(request, nameof(request));
+        request.Validate();
 
-            if (await AuthorizationService.CheckAccess(DataActions.Write, cancellationToken).ConfigureAwait(false) != DataActions.Write)
-            {
-                throw new UnauthorizedDicomActionException(DataActions.Write);
-            }
+        var workitems = await _workitemSerializer
+            .DeserializeAsync<IEnumerable<DicomDataset>>(request.RequestBody, request.RequestContentType)
+            .ConfigureAwait(false);
 
-            request.Validate();
-
-            var workitems = await _workitemSerializer
-                .DeserializeAsync<IEnumerable<DicomDataset>>(request.RequestBody, request.RequestContentType)
-                .ConfigureAwait(false);
-
-            return await _workItemService
-                .ProcessCancelAsync(workitems.FirstOrDefault(), request.WorkitemInstanceUid, cancellationToken)
-                .ConfigureAwait(false);
-        }
+        return await _workItemService
+            .ProcessCancelAsync(workitems.FirstOrDefault(), request.WorkitemInstanceUid, cancellationToken)
+            .ConfigureAwait(false);
     }
 }

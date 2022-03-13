@@ -11,73 +11,72 @@ using Microsoft.Health.Core.Features.Context;
 using Microsoft.Health.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Features.Context;
 
-namespace Microsoft.Health.Dicom.Api.Features.Audit
+namespace Microsoft.Health.Dicom.Api.Features.Audit;
+
+public class AuditHelper : IAuditHelper
 {
-    public class AuditHelper : IAuditHelper
+    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
+    private readonly IAuditLogger _auditLogger;
+    private readonly IAuditHeaderReader _auditHeaderReader;
+
+    public AuditHelper(
+        IDicomRequestContextAccessor dicomRequestContextAccessor,
+        IAuditLogger auditLogger,
+        IAuditHeaderReader auditHeaderReader)
     {
-        private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
-        private readonly IAuditLogger _auditLogger;
-        private readonly IAuditHeaderReader _auditHeaderReader;
+        EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
+        EnsureArg.IsNotNull(auditLogger, nameof(auditLogger));
+        EnsureArg.IsNotNull(auditHeaderReader, nameof(auditHeaderReader));
 
-        public AuditHelper(
-            IDicomRequestContextAccessor dicomRequestContextAccessor,
-            IAuditLogger auditLogger,
-            IAuditHeaderReader auditHeaderReader)
+        _dicomRequestContextAccessor = dicomRequestContextAccessor;
+        _auditLogger = auditLogger;
+        _auditHeaderReader = auditHeaderReader;
+    }
+
+    /// <inheritdoc />
+    public void LogExecuting(HttpContext httpContext, IClaimsExtractor claimsExtractor)
+    {
+        EnsureArg.IsNotNull(claimsExtractor, nameof(claimsExtractor));
+        EnsureArg.IsNotNull(httpContext, nameof(httpContext));
+
+        Log(AuditAction.Executing, statusCode: null, httpContext, claimsExtractor);
+    }
+
+    /// <summary>
+    /// Logs an executed audit entry for the current operation.
+    /// </summary>
+    /// <param name="httpContext">The HTTP context.</param>
+    /// <param name="claimsExtractor">The extractor used to extract claims.</param>
+    /// <param name="shouldCheckForAuthXFailure">
+    /// Should check for AuthX failure and print LogExecuted messages only if it is AuthX failure.
+    /// This is no-op in DICOM as all the log executed messages are written at one place.
+    /// </param>
+    public void LogExecuted(HttpContext httpContext, IClaimsExtractor claimsExtractor, bool shouldCheckForAuthXFailure)
+    {
+        EnsureArg.IsNotNull(claimsExtractor, nameof(claimsExtractor));
+        EnsureArg.IsNotNull(httpContext, nameof(httpContext));
+
+        Log(AuditAction.Executed, (HttpStatusCode)httpContext.Response.StatusCode, httpContext, claimsExtractor);
+    }
+
+    private void Log(AuditAction auditAction, HttpStatusCode? statusCode, HttpContext httpContext, IClaimsExtractor claimsExtractor)
+    {
+        IRequestContext dicomRequestContext = _dicomRequestContextAccessor.RequestContext;
+
+        string auditEventType = dicomRequestContext.AuditEventType;
+
+        // Audit the call if an audit event type is associated with the action.
+        if (!string.IsNullOrEmpty(auditEventType))
         {
-            EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
-            EnsureArg.IsNotNull(auditLogger, nameof(auditLogger));
-            EnsureArg.IsNotNull(auditHeaderReader, nameof(auditHeaderReader));
-
-            _dicomRequestContextAccessor = dicomRequestContextAccessor;
-            _auditLogger = auditLogger;
-            _auditHeaderReader = auditHeaderReader;
-        }
-
-        /// <inheritdoc />
-        public void LogExecuting(HttpContext httpContext, IClaimsExtractor claimsExtractor)
-        {
-            EnsureArg.IsNotNull(claimsExtractor, nameof(claimsExtractor));
-            EnsureArg.IsNotNull(httpContext, nameof(httpContext));
-
-            Log(AuditAction.Executing, statusCode: null, httpContext, claimsExtractor);
-        }
-
-        /// <summary>
-        /// Logs an executed audit entry for the current operation.
-        /// </summary>
-        /// <param name="httpContext">The HTTP context.</param>
-        /// <param name="claimsExtractor">The extractor used to extract claims.</param>
-        /// <param name="shouldCheckForAuthXFailure">
-        /// Should check for AuthX failure and print LogExecuted messages only if it is AuthX failure.
-        /// This is no-op in DICOM as all the log executed messages are written at one place.
-        /// </param>
-        public void LogExecuted(HttpContext httpContext, IClaimsExtractor claimsExtractor, bool shouldCheckForAuthXFailure)
-        {
-            EnsureArg.IsNotNull(claimsExtractor, nameof(claimsExtractor));
-            EnsureArg.IsNotNull(httpContext, nameof(httpContext));
-
-            Log(AuditAction.Executed, (HttpStatusCode)httpContext.Response.StatusCode, httpContext, claimsExtractor);
-        }
-
-        private void Log(AuditAction auditAction, HttpStatusCode? statusCode, HttpContext httpContext, IClaimsExtractor claimsExtractor)
-        {
-            IRequestContext dicomRequestContext = _dicomRequestContextAccessor.RequestContext;
-
-            string auditEventType = dicomRequestContext.AuditEventType;
-
-            // Audit the call if an audit event type is associated with the action.
-            if (!string.IsNullOrEmpty(auditEventType))
-            {
-                _auditLogger.LogAudit(
-                    auditAction,
-                    operation: auditEventType,
-                    requestUri: dicomRequestContext.Uri,
-                    statusCode: statusCode,
-                    correlationId: dicomRequestContext.CorrelationId,
-                    callerIpAddress: httpContext.Connection?.RemoteIpAddress?.ToString(),
-                    callerClaims: claimsExtractor.Extract(),
-                    customHeaders: _auditHeaderReader.Read(httpContext));
-            }
+            _auditLogger.LogAudit(
+                auditAction,
+                operation: auditEventType,
+                requestUri: dicomRequestContext.Uri,
+                statusCode: statusCode,
+                correlationId: dicomRequestContext.CorrelationId,
+                callerIpAddress: httpContext.Connection?.RemoteIpAddress?.ToString(),
+                callerClaims: claimsExtractor.Extract(),
+                customHeaders: _auditHeaderReader.Read(httpContext));
         }
     }
 }

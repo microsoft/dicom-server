@@ -9,19 +9,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
-namespace Microsoft.Health.Dicom.Tests.Common.Extensions
+namespace Microsoft.Health.Dicom.Tests.Common.Extensions;
+
+public static class RetrieveResourceResponseExtensions
 {
-    public static class RetrieveResourceResponseExtensions
+    public static async Task<IEnumerable<Stream>> GetStreamsAsync(this RetrieveResourceResponse response)
     {
-        public static async Task<IEnumerable<Stream>> GetStreamsAsync(this RetrieveResourceResponse response)
+        await using IAsyncEnumerator<RetrieveResourceInstance> enumerator = response.ResponseInstances.GetAsyncEnumerator(CancellationToken.None);
+        List<Stream> streams = new List<Stream>();
+        while (await enumerator.MoveNextAsync())
         {
-            await using IAsyncEnumerator<RetrieveResourceInstance> enumerator = response.ResponseInstances.GetAsyncEnumerator(CancellationToken.None);
-            List<Stream> streams = new List<Stream>();
-            while (await enumerator.MoveNextAsync())
-            {
-                streams.Add(enumerator.Current.Stream);
-            }
-            return streams;
+            streams.Add(enumerator.Current.Stream);
         }
+        return streams;
     }
 }

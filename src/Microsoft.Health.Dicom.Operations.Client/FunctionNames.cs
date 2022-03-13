@@ -3,10 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Operations.Client
+namespace Microsoft.Health.Dicom.Operations.Client;
+
+internal static class FunctionNames
 {
-    internal static class FunctionNames
-    {
-        public const string ReindexInstances = "ReindexInstancesAsync";
-    }
+    public const string ReindexInstances = "ReindexInstancesAsync";
 }

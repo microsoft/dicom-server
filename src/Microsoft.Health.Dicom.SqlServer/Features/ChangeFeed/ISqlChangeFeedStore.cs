@@ -6,12 +6,11 @@
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
+namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed;
+
+/// <summary>
+///  Sql version of IChangeFeedStore.
+/// </summary>
+internal interface ISqlChangeFeedStore : IChangeFeedStore, IVersioned
 {
-    /// <summary>
-    ///  Sql version of IChangeFeedStore.
-    /// </summary>
-    internal interface ISqlChangeFeedStore : IChangeFeedStore, IVersioned
-    {
-    }
 }

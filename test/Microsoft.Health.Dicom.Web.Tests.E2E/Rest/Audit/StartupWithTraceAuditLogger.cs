@@ -8,19 +8,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Dicom.Api.Features.Audit;
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit
-{
-    public class StartupWithTraceAuditLogger : StartupBaseForCustomProviders
-    {
-        public StartupWithTraceAuditLogger(IConfiguration configuration)
-            : base(configuration)
-        {
-        }
+namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit;
 
-        public override void ConfigureServices(IServiceCollection services)
-        {
-            base.ConfigureServices(services);
-            services.Replace(new ServiceDescriptor(typeof(IAuditLogger), typeof(TraceAuditLogger), ServiceLifetime.Singleton));
-        }
+public class StartupWithTraceAuditLogger : StartupBaseForCustomProviders
+{
+    public StartupWithTraceAuditLogger(IConfiguration configuration)
+        : base(configuration)
+    {
+    }
+
+    public override void ConfigureServices(IServiceCollection services)
+    {
+        base.ConfigureServices(services);
+        services.Replace(new ServiceDescriptor(typeof(IAuditLogger), typeof(TraceAuditLogger), ServiceLifetime.Singleton));
     }
 }

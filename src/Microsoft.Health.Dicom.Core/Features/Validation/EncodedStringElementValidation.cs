@@ -8,43 +8,42 @@ using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 
-namespace Microsoft.Health.Dicom.Core.Features.Validation
+namespace Microsoft.Health.Dicom.Core.Features.Validation;
+
+internal class EncodedStringElementValidation : ElementValidation
 {
-    internal class EncodedStringElementValidation : ElementValidation
+    public override void Validate(DicomElement element)
     {
-        public override void Validate(DicomElement element)
-        {
-            base.Validate(element);
+        base.Validate(element);
 
-            DicomVR vr = element.ValueRepresentation;
-            switch (vr.Code)
-            {
-                case DicomVRCode.DT:
-                    Validate(element, DicomValidation.ValidateDT, ValidationErrorCode.DateTimeIsInvalid);
-                    break;
-                case DicomVRCode.IS:
-                    Validate(element, DicomValidation.ValidateIS, ValidationErrorCode.IntegerStringIsInvalid);
-                    break;
-                case DicomVRCode.TM:
-                    Validate(element, DicomValidation.ValidateTM, ValidationErrorCode.TimeIsInvalid);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(element));
-            };
+        DicomVR vr = element.ValueRepresentation;
+        switch (vr.Code)
+        {
+            case DicomVRCode.DT:
+                Validate(element, DicomValidation.ValidateDT, ValidationErrorCode.DateTimeIsInvalid);
+                break;
+            case DicomVRCode.IS:
+                Validate(element, DicomValidation.ValidateIS, ValidationErrorCode.IntegerStringIsInvalid);
+                break;
+            case DicomVRCode.TM:
+                Validate(element, DicomValidation.ValidateTM, ValidationErrorCode.TimeIsInvalid);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(element));
+        };
+    }
+
+    private static void Validate(DicomElement element, Action<string> validate, ValidationErrorCode errorCode)
+    {
+        string value = element.Get<string>();
+
+        try
+        {
+            validate(value);
         }
-
-        private static void Validate(DicomElement element, Action<string> validate, ValidationErrorCode errorCode)
+        catch (DicomValidationException)
         {
-            string value = element.Get<string>();
-
-            try
-            {
-                validate(value);
-            }
-            catch (DicomValidationException)
-            {
-                throw new ElementValidationException(element.Tag.GetFriendlyName(), element.ValueRepresentation, value, errorCode);
-            }
+            throw new ElementValidationException(element.Tag.GetFriendlyName(), element.ValueRepresentation, value, errorCode);
         }
     }
 }

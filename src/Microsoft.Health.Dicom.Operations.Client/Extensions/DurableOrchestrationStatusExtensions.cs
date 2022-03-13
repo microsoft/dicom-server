@@ -8,35 +8,34 @@ using EnsureThat;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 
-namespace Microsoft.Health.Dicom.Operations.Client.Extensions
+namespace Microsoft.Health.Dicom.Operations.Client.Extensions;
+
+internal static class DurableOrchestrationStatusExtensions
 {
-    internal static class DurableOrchestrationStatusExtensions
+    public static OperationType GetOperationType(this DurableOrchestrationStatus durableOrchestrationStatus)
     {
-        public static OperationType GetOperationType(this DurableOrchestrationStatus durableOrchestrationStatus)
+        EnsureArg.IsNotNull(durableOrchestrationStatus, nameof(durableOrchestrationStatus));
+
+        return durableOrchestrationStatus.Name != null &&
+            durableOrchestrationStatus.Name.StartsWith(FunctionNames.ReindexInstances, StringComparison.OrdinalIgnoreCase)
+            ? OperationType.Reindex
+            : OperationType.Unknown;
+    }
+
+    public static OperationRuntimeStatus GetOperationRuntimeStatus(this DurableOrchestrationStatus durableOrchestrationStatus)
+    {
+        EnsureArg.IsNotNull(durableOrchestrationStatus, nameof(durableOrchestrationStatus));
+
+        return durableOrchestrationStatus.RuntimeStatus switch
         {
-            EnsureArg.IsNotNull(durableOrchestrationStatus, nameof(durableOrchestrationStatus));
-
-            return durableOrchestrationStatus.Name != null &&
-                durableOrchestrationStatus.Name.StartsWith(FunctionNames.ReindexInstances, StringComparison.OrdinalIgnoreCase)
-                ? OperationType.Reindex
-                : OperationType.Unknown;
-        }
-
-        public static OperationRuntimeStatus GetOperationRuntimeStatus(this DurableOrchestrationStatus durableOrchestrationStatus)
-        {
-            EnsureArg.IsNotNull(durableOrchestrationStatus, nameof(durableOrchestrationStatus));
-
-            return durableOrchestrationStatus.RuntimeStatus switch
-            {
-                OrchestrationRuntimeStatus.Pending => OperationRuntimeStatus.NotStarted,
-                OrchestrationRuntimeStatus.Running => OperationRuntimeStatus.Running,
-                OrchestrationRuntimeStatus.ContinuedAsNew => OperationRuntimeStatus.Running,
-                OrchestrationRuntimeStatus.Completed => OperationRuntimeStatus.Completed,
-                OrchestrationRuntimeStatus.Failed => OperationRuntimeStatus.Failed,
-                OrchestrationRuntimeStatus.Canceled => OperationRuntimeStatus.Canceled,
-                OrchestrationRuntimeStatus.Terminated => OperationRuntimeStatus.Canceled,
-                _ => OperationRuntimeStatus.Unknown
-            };
-        }
+            OrchestrationRuntimeStatus.Pending => OperationRuntimeStatus.NotStarted,
+            OrchestrationRuntimeStatus.Running => OperationRuntimeStatus.Running,
+            OrchestrationRuntimeStatus.ContinuedAsNew => OperationRuntimeStatus.Running,
+            OrchestrationRuntimeStatus.Completed => OperationRuntimeStatus.Completed,
+            OrchestrationRuntimeStatus.Failed => OperationRuntimeStatus.Failed,
+            OrchestrationRuntimeStatus.Canceled => OperationRuntimeStatus.Canceled,
+            OrchestrationRuntimeStatus.Terminated => OperationRuntimeStatus.Canceled,
+            _ => OperationRuntimeStatus.Unknown
+        };
     }
 }

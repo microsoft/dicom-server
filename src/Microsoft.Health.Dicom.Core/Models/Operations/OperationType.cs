@@ -3,21 +3,20 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Models.Operations
+namespace Microsoft.Health.Dicom.Core.Models.Operations;
+
+/// <summary>
+/// Specifies the category of a DICOM operation.
+/// </summary>
+public enum OperationType
 {
     /// <summary>
-    /// Specifies the category of a DICOM operation.
+    /// Specifies an operation whose type is missing or unrecognized.
     /// </summary>
-    public enum OperationType
-    {
-        /// <summary>
-        /// Specifies an operation whose type is missing or unrecognized.
-        /// </summary>
-        Unknown,
+    Unknown,
 
-        /// <summary>
-        /// Specifies a reindexing operation that updates the indicies for previously added data based on new tags.
-        /// </summary>
-        Reindex,
-    }
+    /// <summary>
+    /// Specifies a reindexing operation that updates the indicies for previously added data based on new tags.
+    /// </summary>
+    Reindex,
 }

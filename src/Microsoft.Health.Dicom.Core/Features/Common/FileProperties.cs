@@ -3,10 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Features.Common
+namespace Microsoft.Health.Dicom.Core.Features.Common;
+
+public class FileProperties
 {
-    public class FileProperties
-    {
-        public long ContentLength { get; init; }
-    }
+    public long ContentLength { get; init; }
 }

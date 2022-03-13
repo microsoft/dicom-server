@@ -10,46 +10,45 @@ using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 
-namespace Microsoft.Health.Dicom.Core.Features.Operations
+namespace Microsoft.Health.Dicom.Core.Features.Operations;
+
+/// <summary>
+/// Represents a client for interacting with long-running DICOM operations.
+/// </summary>
+public interface IDicomOperationsClient
 {
     /// <summary>
-    /// Represents a client for interacting with long-running DICOM operations.
+    /// Fetches the status of a long-running operation for the given <paramref name="operationId"/>.
     /// </summary>
-    public interface IDicomOperationsClient
-    {
-        /// <summary>
-        /// Fetches the status of a long-running operation for the given <paramref name="operationId"/>.
-        /// </summary>
-        /// <param name="operationId">The unique ID for a particular DICOM operation.</param>
-        /// <param name="cancellationToken">
-        /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
-        /// </param>
-        /// <returns>
-        /// A task representing the <see cref="GetStatusAsync"/> operation. The value of its
-        /// <see cref="Task{TResult}.Result"/> property contains the status of the operation
-        /// with the specified <paramref name="operationId"/>, if found; otherwise <see langword="null"/>.
-        /// </returns>
-        /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-        Task<OperationStatus> GetStatusAsync(Guid operationId, CancellationToken cancellationToken = default);
+    /// <param name="operationId">The unique ID for a particular DICOM operation.</param>
+    /// <param name="cancellationToken">
+    /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
+    /// </param>
+    /// <returns>
+    /// A task representing the <see cref="GetStatusAsync"/> operation. The value of its
+    /// <see cref="Task{TResult}.Result"/> property contains the status of the operation
+    /// with the specified <paramref name="operationId"/>, if found; otherwise <see langword="null"/>.
+    /// </returns>
+    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+    Task<OperationStatus> GetStatusAsync(Guid operationId, CancellationToken cancellationToken = default);
 
-        /// <summary>
-        /// Begins the re-indexing of existing DICOM instances on the tags with the specified <paramref name="tagKeys"/>.
-        /// </summary>
-        /// <param name="tagKeys">A collection of 1 or more existing query tag keys.</param>
-        /// <param name="cancellationToken">
-        /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
-        /// </param>
-        /// <returns>
-        /// A task representing the <see cref="StartReindexingInstancesAsync(IReadOnlyCollection{int}, CancellationToken)"/>
-        /// operation. The value of its <see cref="Task{TResult}.Result"/> property contains the ID of the operation
-        /// that is performing the asynchronous addition.
-        /// </returns>
-        /// <exception cref="ArgumentException"><paramref name="tagKeys"/> is empty.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="tagKeys"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ExtendedQueryTagsAlreadyExistsException">
-        /// One or more values in <paramref name="tagKeys"/> has already been indexed.
-        /// </exception>
-        /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-        Task<Guid> StartReindexingInstancesAsync(IReadOnlyCollection<int> tagKeys, CancellationToken cancellationToken = default);
-    }
+    /// <summary>
+    /// Begins the re-indexing of existing DICOM instances on the tags with the specified <paramref name="tagKeys"/>.
+    /// </summary>
+    /// <param name="tagKeys">A collection of 1 or more existing query tag keys.</param>
+    /// <param name="cancellationToken">
+    /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
+    /// </param>
+    /// <returns>
+    /// A task representing the <see cref="StartReindexingInstancesAsync(IReadOnlyCollection{int}, CancellationToken)"/>
+    /// operation. The value of its <see cref="Task{TResult}.Result"/> property contains the ID of the operation
+    /// that is performing the asynchronous addition.
+    /// </returns>
+    /// <exception cref="ArgumentException"><paramref name="tagKeys"/> is empty.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="tagKeys"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ExtendedQueryTagsAlreadyExistsException">
+    /// One or more values in <paramref name="tagKeys"/> has already been indexed.
+    /// </exception>
+    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+    Task<Guid> StartReindexingInstancesAsync(IReadOnlyCollection<int> tagKeys, CancellationToken cancellationToken = default);
 }

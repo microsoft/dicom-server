@@ -6,17 +6,16 @@
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
-{
-    public class WebJobsIntegrationTestFixture<T> : HttpIntegrationTestFixture<T>, IAsyncLifetime
-    {
-        public async Task DisposeAsync()
-        {
-            await TestDicomWebServer.WebJobsHost.StopAsync();
-            Dispose();
-        }
+namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
-        public Task InitializeAsync()
-            => TestDicomWebServer.WebJobsHost.StartAsync();
+public class WebJobsIntegrationTestFixture<T> : HttpIntegrationTestFixture<T>, IAsyncLifetime
+{
+    public async Task DisposeAsync()
+    {
+        await TestDicomWebServer.WebJobsHost.StopAsync();
+        Dispose();
     }
+
+    public Task InitializeAsync()
+        => TestDicomWebServer.WebJobsHost.StartAsync();
 }

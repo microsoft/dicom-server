@@ -6,17 +6,16 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
+namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+
+public interface IUpdateExtendedQueryTagService
 {
-    public interface IUpdateExtendedQueryTagService
-    {
-        /// <summary>
-        /// Update extended query tag.
-        /// </summary>
-        /// <param name="tagPath">The tag path.</param>
-        /// <param name="newValue">The new value.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The return tag entry.</returns>
-        public Task<GetExtendedQueryTagEntry> UpdateExtendedQueryTagAsync(string tagPath, UpdateExtendedQueryTagEntry newValue, CancellationToken cancellationToken = default);
-    }
+    /// <summary>
+    /// Update extended query tag.
+    /// </summary>
+    /// <param name="tagPath">The tag path.</param>
+    /// <param name="newValue">The new value.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The return tag entry.</returns>
+    public Task<GetExtendedQueryTagEntry> UpdateExtendedQueryTagAsync(string tagPath, UpdateExtendedQueryTagEntry newValue, CancellationToken cancellationToken = default);
 }

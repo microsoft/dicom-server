@@ -6,20 +6,19 @@
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Store;
 
-namespace Microsoft.Health.Dicom.Core.Features.Workitem
-{
-    /// <summary>
-    /// Peforms validation on incoming dataset that will be added as a workitem
-    /// </summary>
-    public interface IWorkitemDatasetValidator
-    {
-        string Name { get; }
+namespace Microsoft.Health.Dicom.Core.Features.Workitem;
 
-        /// <summary>
-        /// Validates the <paramref name="dataset"/>.
-        /// </summary>
-        /// <param name="dataset">The DICOM dataset to validate.</param>
-        /// <exception cref="DatasetValidationException">Thrown when the validation fails.</exception>
-        void Validate(DicomDataset dataset);
-    }
+/// <summary>
+/// Peforms validation on incoming dataset that will be added as a workitem
+/// </summary>
+public interface IWorkitemDatasetValidator
+{
+    string Name { get; }
+
+    /// <summary>
+    /// Validates the <paramref name="dataset"/>.
+    /// </summary>
+    /// <param name="dataset">The DICOM dataset to validate.</param>
+    /// <exception cref="DatasetValidationException">Thrown when the validation fails.</exception>
+    void Validate(DicomDataset dataset);
 }

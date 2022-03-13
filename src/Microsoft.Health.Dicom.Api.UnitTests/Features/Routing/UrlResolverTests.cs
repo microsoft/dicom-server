@@ -15,150 +15,149 @@ using Microsoft.Health.Dicom.Core.Models.Operations;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Routing
+namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Routing;
+
+public class UrlResolverTests
 {
-    public class UrlResolverTests
+    private const string DefaultScheme = "http";
+    private const string DefaultHost = "test";
+
+    private readonly IUrlHelperFactory _urlHelperFactory = Substitute.For<IUrlHelperFactory>();
+    private readonly IHttpContextAccessor _httpContextAccessor = Substitute.For<IHttpContextAccessor>();
+    private readonly IActionContextAccessor _actionContextAccessor = Substitute.For<IActionContextAccessor>();
+
+    private readonly UrlResolver _urlResolver;
+
+    private readonly IUrlHelper _urlHelper = Substitute.For<IUrlHelper>();
+    private readonly DefaultHttpContext _httpContext = new DefaultHttpContext();
+    private readonly ActionContext _actionContext = new ActionContext();
+
+    private UrlRouteContext _capturedUrlRouteContext;
+
+    public UrlResolverTests()
     {
-        private const string DefaultScheme = "http";
-        private const string DefaultHost = "test";
+        _httpContext.Request.Scheme = DefaultScheme;
+        _httpContext.Request.Host = new HostString(DefaultHost);
 
-        private readonly IUrlHelperFactory _urlHelperFactory = Substitute.For<IUrlHelperFactory>();
-        private readonly IHttpContextAccessor _httpContextAccessor = Substitute.For<IHttpContextAccessor>();
-        private readonly IActionContextAccessor _actionContextAccessor = Substitute.For<IActionContextAccessor>();
+        _httpContextAccessor.HttpContext.Returns(_httpContext);
 
-        private readonly UrlResolver _urlResolver;
+        _actionContextAccessor.ActionContext.Returns(_actionContext);
 
-        private readonly IUrlHelper _urlHelper = Substitute.For<IUrlHelper>();
-        private readonly DefaultHttpContext _httpContext = new DefaultHttpContext();
-        private readonly ActionContext _actionContext = new ActionContext();
+        _urlHelper.RouteUrl(
+            Arg.Do<UrlRouteContext>(c => _capturedUrlRouteContext = c));
 
-        private UrlRouteContext _capturedUrlRouteContext;
+        _urlHelperFactory.GetUrlHelper(_actionContext).Returns(_urlHelper);
 
-        public UrlResolverTests()
-        {
-            _httpContext.Request.Scheme = DefaultScheme;
-            _httpContext.Request.Host = new HostString(DefaultHost);
+        _urlHelper.RouteUrl(Arg.Any<UrlRouteContext>()).Returns($"{DefaultScheme}://{DefaultHost}");
 
-            _httpContextAccessor.HttpContext.Returns(_httpContext);
+        _urlResolver = new UrlResolver(
+               _urlHelperFactory,
+               _httpContextAccessor,
+               _actionContextAccessor);
+    }
 
-            _actionContextAccessor.ActionContext.Returns(_actionContext);
+    [Fact]
+    public void GivenOperationId_WhenRetrieveOperationStatusUriIsResolved_ThenCorrectUrlShouldBeReturned()
+    {
+        Guid operationId = Guid.NewGuid();
 
-            _urlHelper.RouteUrl(
-                Arg.Do<UrlRouteContext>(c => _capturedUrlRouteContext = c));
+        _urlResolver.ResolveOperationStatusUri(operationId);
 
-            _urlHelperFactory.GetUrlHelper(_actionContext).Returns(_urlHelper);
+        ValidateUrlRouteContext(
+            KnownRouteNames.OperationStatus,
+            routeValues =>
+            {
+                Assert.Equal(OperationId.ToString(operationId), routeValues[KnownActionParameterNames.OperationId]);
+            });
+    }
 
-            _urlHelper.RouteUrl(Arg.Any<UrlRouteContext>()).Returns($"{DefaultScheme}://{DefaultHost}");
+    [Fact]
+    public void GivenAStudy_WhenRetrieveStudyUriIsResolved_ThenCorrectUrlShouldBeReturned()
+    {
+        const string studyInstanceUid = "123.123";
 
-            _urlResolver = new UrlResolver(
-                   _urlHelperFactory,
-                   _httpContextAccessor,
-                   _actionContextAccessor);
-        }
+        _urlResolver.ResolveRetrieveStudyUri(studyInstanceUid);
 
-        [Fact]
-        public void GivenOperationId_WhenRetrieveOperationStatusUriIsResolved_ThenCorrectUrlShouldBeReturned()
-        {
-            Guid operationId = Guid.NewGuid();
+        ValidateUrlRouteContext(
+            KnownRouteNames.RetrieveStudy,
+            routeValues =>
+            {
+                Assert.Equal(studyInstanceUid, routeValues[KnownActionParameterNames.StudyInstanceUid]);
+            });
+    }
 
-            _urlResolver.ResolveOperationStatusUri(operationId);
+    [Theory]
+    [InlineData("v1.0-prerelease")]
+    [InlineData("v1")]
+    public void GivenAStudy_WhenRetrieveStudyUriWithPartitionIdAndVersionIsResolved_ThenCorrectUrlShouldBeReturned(string version)
+    {
+        const string studyInstanceUid = "123.123";
+        const string partitionName = "partition1";
+        _httpContext.Request.RouteValues.Add(KnownActionParameterNames.PartitionName, partitionName);
+        _httpContext.Request.RouteValues.Add(KnownActionParameterNames.Version, version);
 
-            ValidateUrlRouteContext(
-                KnownRouteNames.OperationStatus,
-                routeValues =>
-                {
-                    Assert.Equal(OperationId.ToString(operationId), routeValues[KnownActionParameterNames.OperationId]);
-                });
-        }
+        _urlResolver.ResolveRetrieveStudyUri(studyInstanceUid);
 
-        [Fact]
-        public void GivenAStudy_WhenRetrieveStudyUriIsResolved_ThenCorrectUrlShouldBeReturned()
-        {
-            const string studyInstanceUid = "123.123";
+        ValidateUrlRouteContext(
+            KnownRouteNames.VersionedPartitionRetrieveStudy,
+            routeValues =>
+            {
+                Assert.Equal(studyInstanceUid, routeValues[KnownActionParameterNames.StudyInstanceUid]);
+                Assert.Equal(partitionName, routeValues[KnownActionParameterNames.PartitionName]);
+            });
+    }
 
-            _urlResolver.ResolveRetrieveStudyUri(studyInstanceUid);
+    [Fact]
+    public void GivenAnInstance_WhenRetrieveInstanceUriIsResolved_ThenCorrectUrlShouldBeReturned()
+    {
+        const string studyInstanceUid = "123.123";
+        const string seriesInstanceUid = "456.456";
+        const string sopInstanceUid = "789.789";
 
-            ValidateUrlRouteContext(
-                KnownRouteNames.RetrieveStudy,
-                routeValues =>
-                {
-                    Assert.Equal(studyInstanceUid, routeValues[KnownActionParameterNames.StudyInstanceUid]);
-                });
-        }
+        var instance = new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-        [Theory]
-        [InlineData("v1.0-prerelease")]
-        [InlineData("v1")]
-        public void GivenAStudy_WhenRetrieveStudyUriWithPartitionIdAndVersionIsResolved_ThenCorrectUrlShouldBeReturned(string version)
-        {
-            const string studyInstanceUid = "123.123";
-            const string partitionName = "partition1";
-            _httpContext.Request.RouteValues.Add(KnownActionParameterNames.PartitionName, partitionName);
-            _httpContext.Request.RouteValues.Add(KnownActionParameterNames.Version, version);
+        _urlResolver.ResolveRetrieveInstanceUri(instance);
 
-            _urlResolver.ResolveRetrieveStudyUri(studyInstanceUid);
+        ValidateUrlRouteContext(
+            KnownRouteNames.RetrieveInstance,
+            routeValues =>
+            {
+                Assert.Equal(studyInstanceUid, routeValues[KnownActionParameterNames.StudyInstanceUid]);
+                Assert.Equal(seriesInstanceUid, routeValues[KnownActionParameterNames.SeriesInstanceUid]);
+                Assert.Equal(sopInstanceUid, routeValues[KnownActionParameterNames.SopInstanceUid]);
+            });
+    }
 
-            ValidateUrlRouteContext(
-                KnownRouteNames.VersionedPartitionRetrieveStudy,
-                routeValues =>
-                {
-                    Assert.Equal(studyInstanceUid, routeValues[KnownActionParameterNames.StudyInstanceUid]);
-                    Assert.Equal(partitionName, routeValues[KnownActionParameterNames.PartitionName]);
-                });
-        }
+    [Fact]
+    public void GivenAnInstance_WhenResolveRetrieveWorkitemUriResolved_ThenCorrectUrlShouldBeReturned()
+    {
+        const string workitemInstanceUid = "123.123";
+        const string partitionName = "partition1";
+        const string version = "v1.0-prerelease";
+        _httpContext.Request.RouteValues.Add(KnownActionParameterNames.PartitionName, partitionName);
+        _httpContext.Request.RouteValues.Add(KnownActionParameterNames.Version, version);
 
-        [Fact]
-        public void GivenAnInstance_WhenRetrieveInstanceUriIsResolved_ThenCorrectUrlShouldBeReturned()
-        {
-            const string studyInstanceUid = "123.123";
-            const string seriesInstanceUid = "456.456";
-            const string sopInstanceUid = "789.789";
+        _urlResolver.ResolveRetrieveWorkitemUri(workitemInstanceUid);
 
-            var instance = new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        ValidateUrlRouteContext(
+            KnownRouteNames.VersionedPartitionRetrieveWorkitemInstance,
+            routeValues =>
+            {
+                Assert.Equal(workitemInstanceUid, routeValues[KnownActionParameterNames.WorkItemInstanceUid]);
+                Assert.Equal(partitionName, routeValues[KnownActionParameterNames.PartitionName]);
+            });
+    }
 
-            _urlResolver.ResolveRetrieveInstanceUri(instance);
+    private void ValidateUrlRouteContext(string routeName, Action<RouteValueDictionary> routeValuesValidator = null)
+    {
+        Assert.NotNull(_capturedUrlRouteContext);
 
-            ValidateUrlRouteContext(
-                KnownRouteNames.RetrieveInstance,
-                routeValues =>
-                {
-                    Assert.Equal(studyInstanceUid, routeValues[KnownActionParameterNames.StudyInstanceUid]);
-                    Assert.Equal(seriesInstanceUid, routeValues[KnownActionParameterNames.SeriesInstanceUid]);
-                    Assert.Equal(sopInstanceUid, routeValues[KnownActionParameterNames.SopInstanceUid]);
-                });
-        }
+        Assert.Equal(routeName, _capturedUrlRouteContext.RouteName);
+        Assert.Equal(DefaultScheme, _capturedUrlRouteContext.Protocol);
+        Assert.Equal(DefaultHost, _capturedUrlRouteContext.Host);
 
-        [Fact]
-        public void GivenAnInstance_WhenResolveRetrieveWorkitemUriResolved_ThenCorrectUrlShouldBeReturned()
-        {
-            const string workitemInstanceUid = "123.123";
-            const string partitionName = "partition1";
-            const string version = "v1.0-prerelease";
-            _httpContext.Request.RouteValues.Add(KnownActionParameterNames.PartitionName, partitionName);
-            _httpContext.Request.RouteValues.Add(KnownActionParameterNames.Version, version);
+        RouteValueDictionary routeValues = Assert.IsType<RouteValueDictionary>(_capturedUrlRouteContext.Values);
 
-            _urlResolver.ResolveRetrieveWorkitemUri(workitemInstanceUid);
-
-            ValidateUrlRouteContext(
-                KnownRouteNames.VersionedPartitionRetrieveWorkitemInstance,
-                routeValues =>
-                {
-                    Assert.Equal(workitemInstanceUid, routeValues[KnownActionParameterNames.WorkItemInstanceUid]);
-                    Assert.Equal(partitionName, routeValues[KnownActionParameterNames.PartitionName]);
-                });
-        }
-
-        private void ValidateUrlRouteContext(string routeName, Action<RouteValueDictionary> routeValuesValidator = null)
-        {
-            Assert.NotNull(_capturedUrlRouteContext);
-
-            Assert.Equal(routeName, _capturedUrlRouteContext.RouteName);
-            Assert.Equal(DefaultScheme, _capturedUrlRouteContext.Protocol);
-            Assert.Equal(DefaultHost, _capturedUrlRouteContext.Host);
-
-            RouteValueDictionary routeValues = Assert.IsType<RouteValueDictionary>(_capturedUrlRouteContext.Values);
-
-            routeValuesValidator(routeValues);
-        }
+        routeValuesValidator(routeValues);
     }
 }

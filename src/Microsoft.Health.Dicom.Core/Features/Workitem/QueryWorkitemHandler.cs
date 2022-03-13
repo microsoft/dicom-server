@@ -13,28 +13,27 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
 
-namespace Microsoft.Health.Dicom.Core.Features.Workitem
+namespace Microsoft.Health.Dicom.Core.Features.Workitem;
+
+public class QueryWorkitemHandler : BaseHandler, IRequestHandler<QueryWorkitemResourceRequest, QueryWorkitemResourceResponse>
 {
-    public class QueryWorkitemHandler : BaseHandler, IRequestHandler<QueryWorkitemResourceRequest, QueryWorkitemResourceResponse>
+    private readonly IWorkitemService _workItemService;
+
+    public QueryWorkitemHandler(IAuthorizationService<DataActions> authorizationService, IWorkitemService workItemService)
+        : base(authorizationService)
     {
-        private readonly IWorkitemService _workItemService;
+        _workItemService = EnsureArg.IsNotNull(workItemService, nameof(workItemService));
+    }
 
-        public QueryWorkitemHandler(IAuthorizationService<DataActions> authorizationService, IWorkitemService workItemService)
-            : base(authorizationService)
+    public async Task<QueryWorkitemResourceResponse> Handle(QueryWorkitemResourceRequest request, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(request, nameof(request));
+
+        if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
         {
-            _workItemService = EnsureArg.IsNotNull(workItemService, nameof(workItemService));
+            throw new UnauthorizedDicomActionException(DataActions.Read);
         }
 
-        public async Task<QueryWorkitemResourceResponse> Handle(QueryWorkitemResourceRequest request, CancellationToken cancellationToken)
-        {
-            EnsureArg.IsNotNull(request, nameof(request));
-
-            if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
-            {
-                throw new UnauthorizedDicomActionException(DataActions.Read);
-            }
-
-            return await _workItemService.ProcessQueryAsync(request.Parameters, cancellationToken);
-        }
+        return await _workItemService.ProcessQueryAsync(request.Parameters, cancellationToken);
     }
 }

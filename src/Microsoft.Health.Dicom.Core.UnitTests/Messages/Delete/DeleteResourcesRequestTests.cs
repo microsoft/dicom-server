@@ -8,29 +8,28 @@ using Microsoft.Health.Dicom.Core.Messages.Delete;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Delete
+namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Delete;
+
+public class DeleteResourcesRequestTests
 {
-    public class DeleteResourcesRequestTests
+    [Fact]
+    public void GivenDicomDeleteResourcesRequestForStudy_OnConstruction_StudyResourceTypeIsSet()
     {
-        [Fact]
-        public void GivenDicomDeleteResourcesRequestForStudy_OnConstruction_StudyResourceTypeIsSet()
-        {
-            var request = new DeleteResourcesRequest(TestUidGenerator.Generate());
-            Assert.Equal(ResourceType.Study, request.ResourceType);
-        }
+        var request = new DeleteResourcesRequest(TestUidGenerator.Generate());
+        Assert.Equal(ResourceType.Study, request.ResourceType);
+    }
 
-        [Fact]
-        public void GivenDicomDeleteResourcesRequestForSeries_OnConstruction_SeriesResourceTypeIsSet()
-        {
-            var request = new DeleteResourcesRequest(TestUidGenerator.Generate(), TestUidGenerator.Generate());
-            Assert.Equal(ResourceType.Series, request.ResourceType);
-        }
+    [Fact]
+    public void GivenDicomDeleteResourcesRequestForSeries_OnConstruction_SeriesResourceTypeIsSet()
+    {
+        var request = new DeleteResourcesRequest(TestUidGenerator.Generate(), TestUidGenerator.Generate());
+        Assert.Equal(ResourceType.Series, request.ResourceType);
+    }
 
-        [Fact]
-        public void GivenDicomDeleteResourcesRequestForInstance_OnConstruction_InstanceResourceTypeIsSet()
-        {
-            var request = new DeleteResourcesRequest(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate());
-            Assert.Equal(ResourceType.Instance, request.ResourceType);
-        }
+    [Fact]
+    public void GivenDicomDeleteResourcesRequestForInstance_OnConstruction_InstanceResourceTypeIsSet()
+    {
+        var request = new DeleteResourcesRequest(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate());
+        Assert.Equal(ResourceType.Instance, request.ResourceType);
     }
 }

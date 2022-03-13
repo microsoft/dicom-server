@@ -9,34 +9,33 @@ using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Health.Dicom.Core.Exceptions;
 
-namespace Microsoft.Health.Dicom.Api.Features.Security
+namespace Microsoft.Health.Dicom.Api.Features.Security;
+
+internal class QueryStringValidatorMiddleware
 {
-    internal class QueryStringValidatorMiddleware
+    private const char UnEncodedLessThan = '<';
+    private const string EncodedLessThan = "%3c";
+
+    private readonly RequestDelegate _next;
+
+    public QueryStringValidatorMiddleware(RequestDelegate next)
     {
-        private const char UnEncodedLessThan = '<';
-        private const string EncodedLessThan = "%3c";
+        EnsureArg.IsNotNull(next, nameof(next));
 
-        private readonly RequestDelegate _next;
+        _next = next;
+    }
 
-        public QueryStringValidatorMiddleware(RequestDelegate next)
+    public async Task Invoke(HttpContext context)
+    {
+        EnsureArg.IsNotNull(context, nameof(context));
+
+        if (context.Request.QueryString.HasValue
+            && (context.Request.QueryString.Value.Contains(UnEncodedLessThan, StringComparison.InvariantCulture)
+            || context.Request.QueryString.Value.Contains(EncodedLessThan, StringComparison.InvariantCultureIgnoreCase)))
         {
-            EnsureArg.IsNotNull(next, nameof(next));
-
-            _next = next;
+            throw new InvalidQueryStringException();
         }
 
-        public async Task Invoke(HttpContext context)
-        {
-            EnsureArg.IsNotNull(context, nameof(context));
-
-            if (context.Request.QueryString.HasValue
-                && (context.Request.QueryString.Value.Contains(UnEncodedLessThan, StringComparison.InvariantCulture)
-                || context.Request.QueryString.Value.Contains(EncodedLessThan, StringComparison.InvariantCultureIgnoreCase)))
-            {
-                throw new InvalidQueryStringException();
-            }
-
-            await _next(context);
-        }
+        await _next(context);
     }
 }

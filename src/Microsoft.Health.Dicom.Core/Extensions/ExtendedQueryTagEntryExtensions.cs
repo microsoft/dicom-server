@@ -9,52 +9,51 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
-namespace Microsoft.Health.Dicom.Core.Extensions
+namespace Microsoft.Health.Dicom.Core.Extensions;
+
+/// <summary>
+/// Extension methods for <see cref="GetExtendedQueryTagEntry"/>.
+/// </summary>
+internal static class ExtendedQueryTagEntryExtensions
 {
     /// <summary>
-    /// Extension methods for <see cref="GetExtendedQueryTagEntry"/>.
+    /// Normalize extended query tag entry before saving to ExtendedQueryTagStore.
     /// </summary>
-    internal static class ExtendedQueryTagEntryExtensions
+    /// <param name="extendedQueryTagEntry">The extended query tag entry.</param>
+    /// <returns>Normalize extended query tag entry.</returns>
+    public static AddExtendedQueryTagEntry Normalize(this AddExtendedQueryTagEntry extendedQueryTagEntry)
     {
-        /// <summary>
-        /// Normalize extended query tag entry before saving to ExtendedQueryTagStore.
-        /// </summary>
-        /// <param name="extendedQueryTagEntry">The extended query tag entry.</param>
-        /// <returns>Normalize extended query tag entry.</returns>
-        public static AddExtendedQueryTagEntry Normalize(this AddExtendedQueryTagEntry extendedQueryTagEntry)
+        DicomTagParser dicomTagParser = new DicomTagParser();
+        DicomTag[] tags;
+        if (!dicomTagParser.TryParse(extendedQueryTagEntry.Path, out tags))
         {
-            DicomTagParser dicomTagParser = new DicomTagParser();
-            DicomTag[] tags;
-            if (!dicomTagParser.TryParse(extendedQueryTagEntry.Path, out tags))
-            {
-                // not a valid dicom tag path
-                throw new ExtendedQueryTagEntryValidationException(
-                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidExtendedQueryTag, extendedQueryTagEntry));
-            }
-
-            DicomTag tag = tags[0];
-            string path = tag.GetPath();
-            string vr = extendedQueryTagEntry.VR;
-            string privateCreator = string.IsNullOrWhiteSpace(extendedQueryTagEntry.PrivateCreator) ? null : extendedQueryTagEntry.PrivateCreator;
-
-            // when VR is not specified for known tags
-            if (tag.DictionaryEntry != DicomDictionary.UnknownTag)
-            {
-                if (string.IsNullOrWhiteSpace(vr))
-                {
-                    vr = tag.GetDefaultVR()?.Code;
-                }
-            }
-
-            vr = vr?.ToUpperInvariant();
-
-            return new AddExtendedQueryTagEntry()
-            {
-                Path = path,
-                VR = vr,
-                PrivateCreator = privateCreator,
-                Level = extendedQueryTagEntry.Level,
-            };
+            // not a valid dicom tag path
+            throw new ExtendedQueryTagEntryValidationException(
+                string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidExtendedQueryTag, extendedQueryTagEntry));
         }
+
+        DicomTag tag = tags[0];
+        string path = tag.GetPath();
+        string vr = extendedQueryTagEntry.VR;
+        string privateCreator = string.IsNullOrWhiteSpace(extendedQueryTagEntry.PrivateCreator) ? null : extendedQueryTagEntry.PrivateCreator;
+
+        // when VR is not specified for known tags
+        if (tag.DictionaryEntry != DicomDictionary.UnknownTag)
+        {
+            if (string.IsNullOrWhiteSpace(vr))
+            {
+                vr = tag.GetDefaultVR()?.Code;
+            }
+        }
+
+        vr = vr?.ToUpperInvariant();
+
+        return new AddExtendedQueryTagEntry()
+        {
+            Path = path,
+            VR = vr,
+            PrivateCreator = privateCreator,
+            Level = extendedQueryTagEntry.Level,
+        };
     }
 }

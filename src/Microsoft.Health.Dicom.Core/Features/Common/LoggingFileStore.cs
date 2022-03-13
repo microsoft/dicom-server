@@ -12,161 +12,160 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
-namespace Microsoft.Health.Dicom.Core.Features.Common
+namespace Microsoft.Health.Dicom.Core.Features.Common;
+
+public class LoggingFileStore : IFileStore
 {
-    public class LoggingFileStore : IFileStore
+    private static readonly Action<ILogger, string, Exception> LogStoreFileDelegate =
+        LoggerMessage.Define<string>(
+            LogLevel.Debug,
+            default,
+            "Storing DICOM instance file with '{DicomInstanceIdentifier}'.");
+
+    private static readonly Action<ILogger, string, Exception> LogDeleteFileDelegate =
+        LoggerMessage.Define<string>(
+            LogLevel.Debug,
+            default,
+            "Deleting DICOM instance file with '{DicomInstanceIdentifier}'.");
+
+    private static readonly Action<ILogger, string, Exception> LogGetFileDelegate =
+        LoggerMessage.Define<string>(
+            LogLevel.Debug,
+            default,
+            "Getting the DICOM instance file with '{DicomInstanceIdentifier}'.");
+
+    private static readonly Action<ILogger, Exception> LogOperationSucceededDelegate =
+        LoggerMessage.Define(
+            LogLevel.Debug,
+            default,
+            "The operation completed successfully.");
+
+    private static readonly Action<ILogger, Exception> LogOperationFailedDelegate =
+        LoggerMessage.Define(
+            LogLevel.Warning,
+            default,
+            "The operation failed.");
+
+    private static readonly Action<ILogger, string, Exception> LogFileDoesNotExistDelegate =
+        LoggerMessage.Define<string>(
+            LogLevel.Warning,
+            default,
+            "The DICOM instance file with '{DicomInstanceIdentifier}' does not exist.");
+
+    private readonly IFileStore _fileStore;
+    private readonly ILogger _logger;
+
+    public LoggingFileStore(IFileStore fileStore, ILogger<LoggingFileStore> logger)
     {
-        private static readonly Action<ILogger, string, Exception> LogStoreFileDelegate =
-            LoggerMessage.Define<string>(
-                LogLevel.Debug,
-                default,
-                "Storing DICOM instance file with '{DicomInstanceIdentifier}'.");
+        EnsureArg.IsNotNull(fileStore, nameof(fileStore));
+        EnsureArg.IsNotNull(logger, nameof(logger));
 
-        private static readonly Action<ILogger, string, Exception> LogDeleteFileDelegate =
-            LoggerMessage.Define<string>(
-                LogLevel.Debug,
-                default,
-                "Deleting DICOM instance file with '{DicomInstanceIdentifier}'.");
+        _fileStore = fileStore;
+        _logger = logger;
+    }
 
-        private static readonly Action<ILogger, string, Exception> LogGetFileDelegate =
-            LoggerMessage.Define<string>(
-                LogLevel.Debug,
-                default,
-                "Getting the DICOM instance file with '{DicomInstanceIdentifier}'.");
+    /// <inheritdoc />
+    public async Task<Uri> StoreFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, Stream stream, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-        private static readonly Action<ILogger, Exception> LogOperationSucceededDelegate =
-            LoggerMessage.Define(
-                LogLevel.Debug,
-                default,
-                "The operation completed successfully.");
+        LogStoreFileDelegate(_logger, versionedInstanceIdentifier.ToString(), null);
 
-        private static readonly Action<ILogger, Exception> LogOperationFailedDelegate =
-            LoggerMessage.Define(
-                LogLevel.Warning,
-                default,
-                "The operation failed.");
-
-        private static readonly Action<ILogger, string, Exception> LogFileDoesNotExistDelegate =
-            LoggerMessage.Define<string>(
-                LogLevel.Warning,
-                default,
-                "The DICOM instance file with '{DicomInstanceIdentifier}' does not exist.");
-
-        private readonly IFileStore _fileStore;
-        private readonly ILogger _logger;
-
-        public LoggingFileStore(IFileStore fileStore, ILogger<LoggingFileStore> logger)
+        try
         {
-            EnsureArg.IsNotNull(fileStore, nameof(fileStore));
-            EnsureArg.IsNotNull(logger, nameof(logger));
+            Uri uri = await _fileStore.StoreFileAsync(versionedInstanceIdentifier, stream, cancellationToken);
 
-            _fileStore = fileStore;
-            _logger = logger;
+            LogOperationSucceededDelegate(_logger, null);
+
+            return uri;
         }
-
-        /// <inheritdoc />
-        public async Task<Uri> StoreFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, Stream stream, CancellationToken cancellationToken)
+        catch (Exception ex)
         {
-            EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+            LogOperationFailedDelegate(_logger, ex);
 
-            LogStoreFileDelegate(_logger, versionedInstanceIdentifier.ToString(), null);
-
-            try
-            {
-                Uri uri = await _fileStore.StoreFileAsync(versionedInstanceIdentifier, stream, cancellationToken);
-
-                LogOperationSucceededDelegate(_logger, null);
-
-                return uri;
-            }
-            catch (Exception ex)
-            {
-                LogOperationFailedDelegate(_logger, ex);
-
-                throw;
-            }
+            throw;
         }
+    }
 
-        /// <inheritdoc />
-        public async Task DeleteFileIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    /// <inheritdoc />
+    public async Task DeleteFileIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+
+        LogDeleteFileDelegate(_logger, versionedInstanceIdentifier.ToString(), null);
+
+        try
         {
-            EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+            await _fileStore.DeleteFileIfExistsAsync(versionedInstanceIdentifier, cancellationToken);
 
-            LogDeleteFileDelegate(_logger, versionedInstanceIdentifier.ToString(), null);
-
-            try
-            {
-                await _fileStore.DeleteFileIfExistsAsync(versionedInstanceIdentifier, cancellationToken);
-
-                LogOperationSucceededDelegate(_logger, null);
-            }
-            catch (Exception ex)
-            {
-                LogOperationFailedDelegate(_logger, ex);
-
-                throw;
-            }
+            LogOperationSucceededDelegate(_logger, null);
         }
-
-        /// <inheritdoc />
-        public async Task<Stream> GetFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+        catch (Exception ex)
         {
-            EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+            LogOperationFailedDelegate(_logger, ex);
 
-            string instanceIdentifierInString = versionedInstanceIdentifier.ToString();
-
-            LogGetFileDelegate(_logger, instanceIdentifierInString, null);
-
-            try
-            {
-                Stream stream = await _fileStore.GetFileAsync(versionedInstanceIdentifier, cancellationToken);
-
-                LogOperationSucceededDelegate(_logger, null);
-
-                return stream;
-            }
-            catch (ItemNotFoundException ex)
-            {
-                LogFileDoesNotExistDelegate(_logger, instanceIdentifierInString, ex);
-
-                throw;
-            }
-            catch (Exception ex)
-            {
-                LogOperationFailedDelegate(_logger, ex);
-
-                throw;
-            }
+            throw;
         }
+    }
 
-        public async Task<FileProperties> GetFilePropertiesAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
+    /// <inheritdoc />
+    public async Task<Stream> GetFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+
+        string instanceIdentifierInString = versionedInstanceIdentifier.ToString();
+
+        LogGetFileDelegate(_logger, instanceIdentifierInString, null);
+
+        try
         {
-            EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+            Stream stream = await _fileStore.GetFileAsync(versionedInstanceIdentifier, cancellationToken);
 
-            string instanceIdentifierInString = versionedInstanceIdentifier.ToString();
+            LogOperationSucceededDelegate(_logger, null);
 
-            LogGetFileDelegate(_logger, instanceIdentifierInString, null);
+            return stream;
+        }
+        catch (ItemNotFoundException ex)
+        {
+            LogFileDoesNotExistDelegate(_logger, instanceIdentifierInString, ex);
 
-            try
-            {
-                FileProperties fileProperties = await _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifier, cancellationToken);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            LogOperationFailedDelegate(_logger, ex);
 
-                LogOperationSucceededDelegate(_logger, null);
+            throw;
+        }
+    }
 
-                return fileProperties;
-            }
-            catch (ItemNotFoundException ex)
-            {
-                LogFileDoesNotExistDelegate(_logger, instanceIdentifierInString, ex);
+    public async Task<FileProperties> GetFilePropertiesAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-                throw;
-            }
-            catch (Exception ex)
-            {
-                LogOperationFailedDelegate(_logger, ex);
+        string instanceIdentifierInString = versionedInstanceIdentifier.ToString();
 
-                throw;
-            }
+        LogGetFileDelegate(_logger, instanceIdentifierInString, null);
+
+        try
+        {
+            FileProperties fileProperties = await _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifier, cancellationToken);
+
+            LogOperationSucceededDelegate(_logger, null);
+
+            return fileProperties;
+        }
+        catch (ItemNotFoundException ex)
+        {
+            LogFileDoesNotExistDelegate(_logger, instanceIdentifierInString, ex);
+
+            throw;
+        }
+        catch (Exception ex)
+        {
+            LogOperationFailedDelegate(_logger, ex);
+
+            throw;
         }
     }
 }

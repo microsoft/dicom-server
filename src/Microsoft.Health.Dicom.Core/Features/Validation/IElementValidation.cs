@@ -5,18 +5,17 @@
 
 using FellowOakDicom;
 
-namespace Microsoft.Health.Dicom.Core.Features.Validation
+namespace Microsoft.Health.Dicom.Core.Features.Validation;
+
+/// <summary>
+/// Validation on Dicom Element.
+/// </summary>
+internal interface IElementValidation
 {
     /// <summary>
-    /// Validation on Dicom Element.
+    /// Validate DicomElement
     /// </summary>
-    internal interface IElementValidation
-    {
-        /// <summary>
-        /// Validate DicomElement
-        /// </summary>
-        /// <param name="dicomElement">The dicom element</param>
-        /// <exception cref="ElementValidation"/>
-        void Validate(DicomElement dicomElement);
-    }
+    /// <param name="dicomElement">The dicom element</param>
+    /// <exception cref="ElementValidation"/>
+    void Validate(DicomElement dicomElement);
 }

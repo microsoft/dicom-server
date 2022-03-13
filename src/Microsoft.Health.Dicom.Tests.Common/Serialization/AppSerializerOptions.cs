@@ -6,18 +6,17 @@
 using System.Text.Json;
 using Microsoft.Health.Dicom.Core.Extensions;
 
-namespace Microsoft.Health.Dicom.Tests.Common.Serialization
+namespace Microsoft.Health.Dicom.Tests.Common.Serialization;
+
+public static class AppSerializerOptions
 {
-    public static class AppSerializerOptions
+    public static JsonSerializerOptions Json { get; } = CreateJsonSerializerOptions();
+
+    private static JsonSerializerOptions CreateJsonSerializerOptions()
     {
-        public static JsonSerializerOptions Json { get; } = CreateJsonSerializerOptions();
+        var options = new JsonSerializerOptions();
+        options.ConfigureDefaultDicomSettings();
 
-        private static JsonSerializerOptions CreateJsonSerializerOptions()
-        {
-            var options = new JsonSerializerOptions();
-            options.ConfigureDefaultDicomSettings();
-
-            return options;
-        }
+        return options;
     }
 }

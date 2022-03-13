@@ -6,20 +6,19 @@
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Newtonsoft.Json;
 
-namespace Microsoft.Health.Dicom.Operations.Client.Serialization
+namespace Microsoft.Health.Dicom.Operations.Client.Serialization;
+
+// TODO: Migrate to common package
+internal class MessageSerializerSettingsFactory : IMessageSerializerSettingsFactory
 {
-    // TODO: Migrate to common package
-    internal class MessageSerializerSettingsFactory : IMessageSerializerSettingsFactory
+    public JsonSerializerSettings CreateJsonSerializerSettings()
     {
-        public JsonSerializerSettings CreateJsonSerializerSettings()
+        // Based on the framework settings:
+        // https://github.com/Azure/azure-functions-durable-extension/blob/v2.6.0/src/WebJobs.Extensions.DurableTask/MessageSerializerSettingsFactory.cs
+        return new JsonSerializerSettings
         {
-            // Based on the framework settings:
-            // https://github.com/Azure/azure-functions-durable-extension/blob/v2.6.0/src/WebJobs.Extensions.DurableTask/MessageSerializerSettingsFactory.cs
-            return new JsonSerializerSettings
-            {
-                TypeNameHandling = TypeNameHandling.None,
-                DateParseHandling = DateParseHandling.None,
-            };
-        }
+            TypeNameHandling = TypeNameHandling.None,
+            DateParseHandling = DateParseHandling.None,
+        };
     }
 }

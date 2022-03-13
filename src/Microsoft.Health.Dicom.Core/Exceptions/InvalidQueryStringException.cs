@@ -5,13 +5,12 @@
 
 using System.Globalization;
 
-namespace Microsoft.Health.Dicom.Core.Exceptions
+namespace Microsoft.Health.Dicom.Core.Exceptions;
+
+public class InvalidQueryStringException : ValidationException
 {
-    public class InvalidQueryStringException : ValidationException
+    public InvalidQueryStringException()
+        : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidQueryString))
     {
-        public InvalidQueryStringException()
-            : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidQueryString))
-        {
-        }
     }
 }

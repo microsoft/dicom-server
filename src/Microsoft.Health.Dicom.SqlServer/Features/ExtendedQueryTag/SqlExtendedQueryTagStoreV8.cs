@@ -14,39 +14,38 @@ using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
+namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
+
+internal class SqlExtendedQueryTagStoreV8 : SqlExtendedQueryTagStoreV4
 {
-    internal class SqlExtendedQueryTagStoreV8 : SqlExtendedQueryTagStoreV4
+    public SqlExtendedQueryTagStoreV8(
+       SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
+       ILogger<SqlExtendedQueryTagStoreV8> logger)
+        : base(sqlConnectionWrapperFactory, logger)
     {
-        public SqlExtendedQueryTagStoreV8(
-           SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
-           ILogger<SqlExtendedQueryTagStoreV8> logger)
-            : base(sqlConnectionWrapperFactory, logger)
-        {
-        }
+    }
 
-        public override SchemaVersion Version => SchemaVersion.V8;
+    public override SchemaVersion Version => SchemaVersion.V8;
 
-        public override async Task DeleteExtendedQueryTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default)
+    public override async Task DeleteExtendedQueryTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default)
+    {
+        using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+            VLatest.DeleteExtendedQueryTagV8.PopulateCommand(sqlCommandWrapper, tagPath, (byte)ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[vr]);
+
+            try
             {
-                VLatest.DeleteExtendedQueryTagV8.PopulateCommand(sqlCommandWrapper, tagPath, (byte)ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[vr]);
-
-                try
+                await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
+            }
+            catch (SqlException ex)
+            {
+                throw ex.Number switch
                 {
-                    await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
-                }
-                catch (SqlException ex)
-                {
-                    throw ex.Number switch
-                    {
-                        SqlErrorCodes.NotFound => new ExtendedQueryTagNotFoundException(
-                            string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.ExtendedQueryTagNotFound, tagPath)),
-                        _ => new DataStoreException(ex),
-                    };
-                }
+                    SqlErrorCodes.NotFound => new ExtendedQueryTagNotFoundException(
+                        string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.ExtendedQueryTagNotFound, tagPath)),
+                    _ => new DataStoreException(ex),
+                };
             }
         }
     }

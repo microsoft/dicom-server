@@ -10,48 +10,47 @@ using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
+namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem;
+
+public sealed class WorkitemRequestValidatorExtensionsTests
 {
-    public sealed class WorkitemRequestValidatorExtensionsTests
+    [Fact]
+    public void GivenAddWorkitemRequest_WhenRequestBodyIsNull_ThenBadRequestExceptionIsThrown()
     {
-        [Fact]
-        public void GivenAddWorkitemRequest_WhenRequestBodyIsNull_ThenBadRequestExceptionIsThrown()
-        {
-            var target = new AddWorkitemRequest(null, @"application/json", Guid.NewGuid().ToString());
+        var target = new AddWorkitemRequest(null, @"application/json", Guid.NewGuid().ToString());
 
-            Assert.Throws<BadRequestException>(() => target.Validate());
-        }
+        Assert.Throws<BadRequestException>(() => target.Validate());
+    }
 
-        [Fact]
-        public void GivenAddWorkitemRequest_WhenWorkitemInstanceUidIsNull_ThenNoExceptionIsThrown()
-        {
-            var target = new AddWorkitemRequest(Stream.Null, @"application/json", null);
+    [Fact]
+    public void GivenAddWorkitemRequest_WhenWorkitemInstanceUidIsNull_ThenNoExceptionIsThrown()
+    {
+        var target = new AddWorkitemRequest(Stream.Null, @"application/json", null);
 
-            target.Validate();
-        }
+        target.Validate();
+    }
 
-        [Fact]
-        public void GivenAddWorkitemRequest_WhenWorkitemInstanceUidIsLongerThan64Chars_ThenInvalidIdentifierExceptionIsThrown()
-        {
-            var target = new AddWorkitemRequest(Stream.Null, @"application/json", Guid.NewGuid().ToString());
+    [Fact]
+    public void GivenAddWorkitemRequest_WhenWorkitemInstanceUidIsLongerThan64Chars_ThenInvalidIdentifierExceptionIsThrown()
+    {
+        var target = new AddWorkitemRequest(Stream.Null, @"application/json", Guid.NewGuid().ToString());
 
-            Assert.Throws<InvalidIdentifierException>(() => target.Validate());
-        }
+        Assert.Throws<InvalidIdentifierException>(() => target.Validate());
+    }
 
-        [Fact]
-        public void GivenAddWorkitemRequest_WhenWorkitemInstanceUidIsInvalid_ThenInvalidIdentifierExceptionIsThrown()
-        {
-            var target = new AddWorkitemRequest(Stream.Null, @"application/json", @"12346.8234234.abc.234");
+    [Fact]
+    public void GivenAddWorkitemRequest_WhenWorkitemInstanceUidIsInvalid_ThenInvalidIdentifierExceptionIsThrown()
+    {
+        var target = new AddWorkitemRequest(Stream.Null, @"application/json", @"12346.8234234.abc.234");
 
-            Assert.Throws<InvalidIdentifierException>(() => target.Validate());
-        }
+        Assert.Throws<InvalidIdentifierException>(() => target.Validate());
+    }
 
-        [Fact]
-        public void GivenAddWorkitemRequest_WhenWorkitemInstanceUidIsValid_ThenNoExceptionIsThrown()
-        {
-            var target = new AddWorkitemRequest(Stream.Null, @"application/json", @"12346.8234234.234");
+    [Fact]
+    public void GivenAddWorkitemRequest_WhenWorkitemInstanceUidIsValid_ThenNoExceptionIsThrown()
+    {
+        var target = new AddWorkitemRequest(Stream.Null, @"application/json", @"12346.8234234.234");
 
-            target.Validate();
-        }
+        target.Validate();
     }
 }

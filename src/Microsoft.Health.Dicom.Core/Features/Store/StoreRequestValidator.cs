@@ -8,29 +8,28 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 
-namespace Microsoft.Health.Dicom.Core.Features.Store
+namespace Microsoft.Health.Dicom.Core.Features.Store;
+
+/// <summary>
+/// Provides functionality to validate an <see cref="StoreRequest"/>.
+/// </summary>
+public static class StoreRequestValidator
 {
     /// <summary>
-    /// Provides functionality to validate an <see cref="StoreRequest"/>.
+    /// Validates an <see cref="StoreRequest"/>.
     /// </summary>
-    public static class StoreRequestValidator
+    /// <param name="request">The request to validate.</param>
+    /// <exception cref="BadRequestException">Thrown when request body is missing.</exception>
+    /// <exception cref="UidValidation">Thrown when the specified StudyInstanceUID is not a valid identifier.</exception>
+    // TODO cleanup this method with Unit tests #72595
+    public static void ValidateRequest(StoreRequest request)
     {
-        /// <summary>
-        /// Validates an <see cref="StoreRequest"/>.
-        /// </summary>
-        /// <param name="request">The request to validate.</param>
-        /// <exception cref="BadRequestException">Thrown when request body is missing.</exception>
-        /// <exception cref="UidValidation">Thrown when the specified StudyInstanceUID is not a valid identifier.</exception>
-        // TODO cleanup this method with Unit tests #72595
-        public static void ValidateRequest(StoreRequest request)
+        EnsureArg.IsNotNull(request, nameof(request));
+        if (request.RequestBody == null)
         {
-            EnsureArg.IsNotNull(request, nameof(request));
-            if (request.RequestBody == null)
-            {
-                throw new BadRequestException(DicomCoreResource.MissingRequestBody);
-            }
-
-            UidValidation.Validate(request.StudyInstanceUid, nameof(request.StudyInstanceUid), allowEmpty: true);
+            throw new BadRequestException(DicomCoreResource.MissingRequestBody);
         }
+
+        UidValidation.Validate(request.StudyInstanceUid, nameof(request.StudyInstanceUid), allowEmpty: true);
     }
 }

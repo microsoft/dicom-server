@@ -7,16 +7,15 @@ using System.Collections.Generic;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
-namespace Microsoft.Health.Dicom.Core.Features.Query.Model
-{
-    public class QueryResult
-    {
-        public QueryResult(IEnumerable<VersionedInstanceIdentifier> entries)
-        {
-            EnsureArg.IsNotNull(entries, nameof(entries));
-            DicomInstances = entries;
-        }
+namespace Microsoft.Health.Dicom.Core.Features.Query.Model;
 
-        public IEnumerable<VersionedInstanceIdentifier> DicomInstances { get; }
+public class QueryResult
+{
+    public QueryResult(IEnumerable<VersionedInstanceIdentifier> entries)
+    {
+        EnsureArg.IsNotNull(entries, nameof(entries));
+        DicomInstances = entries;
     }
+
+    public IEnumerable<VersionedInstanceIdentifier> DicomInstances { get; }
 }

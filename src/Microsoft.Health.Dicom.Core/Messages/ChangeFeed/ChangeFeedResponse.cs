@@ -7,17 +7,16 @@ using System.Collections.Generic;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 
-namespace Microsoft.Health.Dicom.Core.Messages.ChangeFeed
+namespace Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
+
+public class ChangeFeedResponse
 {
-    public class ChangeFeedResponse
+    public ChangeFeedResponse(IReadOnlyCollection<ChangeFeedEntry> entries)
     {
-        public ChangeFeedResponse(IReadOnlyCollection<ChangeFeedEntry> entries)
-        {
-            EnsureArg.IsNotNull(entries, nameof(entries));
+        EnsureArg.IsNotNull(entries, nameof(entries));
 
-            Entries = entries;
-        }
-
-        public IReadOnlyCollection<ChangeFeedEntry> Entries { get; }
+        Entries = entries;
     }
+
+    public IReadOnlyCollection<ChangeFeedEntry> Entries { get; }
 }

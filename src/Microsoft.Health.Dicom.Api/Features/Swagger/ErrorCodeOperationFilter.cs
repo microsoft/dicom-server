@@ -8,38 +8,37 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace Microsoft.Health.Dicom.Api.Features.Swagger
+namespace Microsoft.Health.Dicom.Api.Features.Swagger;
+
+public class ErrorCodeOperationFilter : IOperationFilter
 {
-    public class ErrorCodeOperationFilter : IOperationFilter
+    public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
-        public void Apply(OpenApiOperation operation, OperationFilterContext context)
+        EnsureArg.IsNotNull(operation, nameof(operation));
+        EnsureArg.IsNotNull(context, nameof(context));
+
+        foreach (ApiResponseType responseType in context.ApiDescription.SupportedResponseTypes)
         {
-            EnsureArg.IsNotNull(operation, nameof(operation));
-            EnsureArg.IsNotNull(context, nameof(context));
-
-            foreach (ApiResponseType responseType in context.ApiDescription.SupportedResponseTypes)
+            if (responseType.StatusCode == 400 || responseType.StatusCode == 404 || responseType.StatusCode == 406 || responseType.StatusCode == 415)
             {
-                if (responseType.StatusCode == 400 || responseType.StatusCode == 404 || responseType.StatusCode == 406 || responseType.StatusCode == 415)
+                string responseKey = responseType.IsDefaultResponse ? "default" : responseType.StatusCode.ToString();
+
+                OpenApiResponse response = operation.Responses[responseKey];
+
+                foreach (string contentType in response.Content.Keys)
                 {
-                    string responseKey = responseType.IsDefaultResponse ? "default" : responseType.StatusCode.ToString();
-
-                    OpenApiResponse response = operation.Responses[responseKey];
-
-                    foreach (string contentType in response.Content.Keys)
+                    if (response.Content.Count == 1)
                     {
-                        if (response.Content.Count == 1)
-                        {
-                            OpenApiMediaType value = response.Content[contentType];
-                            response.Content.Remove(contentType);
-                            response.Content.Add("application/json", value);
-                            break;
-                        }
-
+                        OpenApiMediaType value = response.Content[contentType];
                         response.Content.Remove(contentType);
+                        response.Content.Add("application/json", value);
+                        break;
                     }
 
-                    operation.Responses[responseKey] = response;
+                    response.Content.Remove(contentType);
                 }
+
+                operation.Responses[responseKey] = response;
             }
         }
     }

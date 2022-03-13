@@ -6,23 +6,22 @@
 using System.Text.RegularExpressions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 
-namespace Microsoft.Health.Dicom.Core.Features.Validation
+namespace Microsoft.Health.Dicom.Core.Features.Validation;
+
+public static class PartitionNameValidator
 {
-    public static class PartitionNameValidator
+    private static readonly Regex ValidIdentifierCharactersFormat = new Regex("^[A-Za-z0-9_.-]*$", RegexOptions.Compiled);
+
+    public static void Validate(string value)
     {
-        private static readonly Regex ValidIdentifierCharactersFormat = new Regex("^[A-Za-z0-9_.-]*$", RegexOptions.Compiled);
-
-        public static void Validate(string value)
+        if (string.IsNullOrWhiteSpace(value))
         {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                throw new InvalidPartitionNameException(value);
-            }
+            throw new InvalidPartitionNameException(value);
+        }
 
-            if (value.Length > 64 || !ValidIdentifierCharactersFormat.IsMatch(value))
-            {
-                throw new InvalidPartitionNameException(value);
-            }
+        if (value.Length > 64 || !ValidIdentifierCharactersFormat.IsMatch(value))
+        {
+            throw new InvalidPartitionNameException(value);
         }
     }
 }

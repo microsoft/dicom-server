@@ -21,76 +21,75 @@ using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Store
+namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
+
+/// <summary>
+/// Sql IndexDataStore version 2.
+/// </summary>
+internal class SqlIndexDataStoreV2 : SqlIndexDataStoreV1
 {
-    /// <summary>
-    /// Sql IndexDataStore version 2.
-    /// </summary>
-    internal class SqlIndexDataStoreV2 : SqlIndexDataStoreV1
+    private readonly SqlConnectionWrapperFactory _sqlConnectionFactoryWrapper;
+
+    public SqlIndexDataStoreV2(
+        SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+        : base(sqlConnectionWrapperFactory)
     {
-        private readonly SqlConnectionWrapperFactory _sqlConnectionFactoryWrapper;
+        EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
+        _sqlConnectionFactoryWrapper = sqlConnectionWrapperFactory;
+    }
 
-        public SqlIndexDataStoreV2(
-            SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
-            : base(sqlConnectionWrapperFactory)
+    public override SchemaVersion Version => SchemaVersion.V2;
+
+    public override async Task<long> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(instance, nameof(instance));
+        EnsureArg.IsNotNull(queryTags, nameof(queryTags));
+
+        using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
+        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
-            _sqlConnectionFactoryWrapper = sqlConnectionWrapperFactory;
-        }
+            var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags.Where(tag => tag.IsExtendedQueryTag), Version);
 
-        public override SchemaVersion Version => SchemaVersion.V2;
+            V2.AddInstanceTableValuedParameters parameters = new V2.AddInstanceTableValuedParameters(
+                rows.StringRows,
+                rows.LongRows,
+                rows.DoubleRows,
+                rows.DateTimeRows,
+                rows.PersonNameRows);
 
-        public override async Task<long> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
-        {
-            EnsureArg.IsNotNull(instance, nameof(instance));
-            EnsureArg.IsNotNull(queryTags, nameof(queryTags));
+            V2.AddInstance.PopulateCommand(
+                sqlCommandWrapper,
+                instance.GetString(DicomTag.StudyInstanceUID),
+                instance.GetString(DicomTag.SeriesInstanceUID),
+                instance.GetString(DicomTag.SOPInstanceUID),
+                instance.GetSingleValueOrDefault<string>(DicomTag.PatientID),
+                instance.GetSingleValueOrDefault<string>(DicomTag.PatientName),
+                instance.GetSingleValueOrDefault<string>(DicomTag.ReferringPhysicianName),
+                instance.GetStringDateAsDate(DicomTag.StudyDate),
+                instance.GetSingleValueOrDefault<string>(DicomTag.StudyDescription),
+                instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
+                instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
+                instance.GetStringDateAsDate(DicomTag.PerformedProcedureStepStartDate),
+                (byte)IndexStatus.Creating,
+                parameters);
 
-            using (SqlConnectionWrapper sqlConnectionWrapper = await _sqlConnectionFactoryWrapper.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+            try
             {
-                var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags.Where(tag => tag.IsExtendedQueryTag), Version);
-
-                V2.AddInstanceTableValuedParameters parameters = new V2.AddInstanceTableValuedParameters(
-                    rows.StringRows,
-                    rows.LongRows,
-                    rows.DoubleRows,
-                    rows.DateTimeRows,
-                    rows.PersonNameRows);
-
-                V2.AddInstance.PopulateCommand(
-                    sqlCommandWrapper,
-                    instance.GetString(DicomTag.StudyInstanceUID),
-                    instance.GetString(DicomTag.SeriesInstanceUID),
-                    instance.GetString(DicomTag.SOPInstanceUID),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.PatientID),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.PatientName),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.ReferringPhysicianName),
-                    instance.GetStringDateAsDate(DicomTag.StudyDate),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.StudyDescription),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.AccessionNumber),
-                    instance.GetSingleValueOrDefault<string>(DicomTag.Modality),
-                    instance.GetStringDateAsDate(DicomTag.PerformedProcedureStepStartDate),
-                    (byte)IndexStatus.Creating,
-                    parameters);
-
-                try
+                return (long)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken));
+            }
+            catch (SqlException ex)
+            {
+                if (ex.Number == SqlErrorCodes.Conflict)
                 {
-                    return (long)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken));
-                }
-                catch (SqlException ex)
-                {
-                    if (ex.Number == SqlErrorCodes.Conflict)
+                    if (ex.State == (byte)IndexStatus.Creating)
                     {
-                        if (ex.State == (byte)IndexStatus.Creating)
-                        {
-                            throw new PendingInstanceException();
-                        }
-
-                        throw new InstanceAlreadyExistsException();
+                        throw new PendingInstanceException();
                     }
 
-                    throw new DataStoreException(ex);
+                    throw new InstanceAlreadyExistsException();
                 }
+
+                throw new DataStoreException(ex);
             }
         }
     }

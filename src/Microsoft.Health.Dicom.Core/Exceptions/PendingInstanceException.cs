@@ -5,12 +5,11 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Core.Exceptions
+namespace Microsoft.Health.Dicom.Core.Exceptions;
+
+/// <summary>
+/// Exception thrown when there is already a pending DICOM instance being created.
+/// </summary>
+public class PendingInstanceException : Exception
 {
-    /// <summary>
-    /// Exception thrown when there is already a pending DICOM instance being created.
-    /// </summary>
-    public class PendingInstanceException : Exception
-    {
-    }
 }

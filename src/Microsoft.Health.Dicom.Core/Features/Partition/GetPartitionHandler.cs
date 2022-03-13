@@ -13,28 +13,27 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Messages.Partition;
 
-namespace Microsoft.Health.Dicom.Core.Features.Partition
+namespace Microsoft.Health.Dicom.Core.Features.Partition;
+
+public class GetPartitionHandler : BaseHandler, IRequestHandler<GetPartitionRequest, GetPartitionResponse>
 {
-    public class GetPartitionHandler : BaseHandler, IRequestHandler<GetPartitionRequest, GetPartitionResponse>
+    private readonly IPartitionService _partitionService;
+
+    public GetPartitionHandler(IAuthorizationService<DataActions> authorizationService, IPartitionService partitionService)
+        : base(authorizationService)
     {
-        private readonly IPartitionService _partitionService;
+        _partitionService = EnsureArg.IsNotNull(partitionService, nameof(partitionService));
+    }
 
-        public GetPartitionHandler(IAuthorizationService<DataActions> authorizationService, IPartitionService partitionService)
-            : base(authorizationService)
+    public async Task<GetPartitionResponse> Handle(GetPartitionRequest request, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(request, nameof(request));
+
+        if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
         {
-            _partitionService = EnsureArg.IsNotNull(partitionService, nameof(partitionService));
+            throw new UnauthorizedDicomActionException(DataActions.Read);
         }
 
-        public async Task<GetPartitionResponse> Handle(GetPartitionRequest request, CancellationToken cancellationToken)
-        {
-            EnsureArg.IsNotNull(request, nameof(request));
-
-            if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
-            {
-                throw new UnauthorizedDicomActionException(DataActions.Read);
-            }
-
-            return await _partitionService.GetPartitionAsync(request.PartitionName, cancellationToken);
-        }
+        return await _partitionService.GetPartitionAsync(request.PartitionName, cancellationToken);
     }
 }

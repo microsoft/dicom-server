@@ -6,20 +6,19 @@
 using System.IO;
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Core.Web
+namespace Microsoft.Health.Dicom.Core.Web;
+
+public class MultipartBodyPart
 {
-    public class MultipartBodyPart
+    public MultipartBodyPart(string contentType, Stream seekableStream)
     {
-        public MultipartBodyPart(string contentType, Stream seekableStream)
-        {
-            EnsureArg.IsNotNull(seekableStream, nameof(seekableStream));
+        EnsureArg.IsNotNull(seekableStream, nameof(seekableStream));
 
-            ContentType = contentType;
-            SeekableStream = seekableStream;
-        }
-
-        public string ContentType { get; }
-
-        public Stream SeekableStream { get; }
+        ContentType = contentType;
+        SeekableStream = seekableStream;
     }
+
+    public string ContentType { get; }
+
+    public Stream SeekableStream { get; }
 }

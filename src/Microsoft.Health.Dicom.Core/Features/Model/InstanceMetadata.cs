@@ -5,16 +5,15 @@
 
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Core.Features.Model
+namespace Microsoft.Health.Dicom.Core.Features.Model;
+
+public class InstanceMetadata
 {
-    public class InstanceMetadata
+    public InstanceMetadata(VersionedInstanceIdentifier versionedInstanceIdentifier, InstanceProperties instanceProperties)
     {
-        public InstanceMetadata(VersionedInstanceIdentifier versionedInstanceIdentifier, InstanceProperties instanceProperties)
-        {
-            VersionedInstanceIdentifier = EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-            InstanceProperties = EnsureArg.IsNotNull(instanceProperties, nameof(instanceProperties));
-        }
-        public VersionedInstanceIdentifier VersionedInstanceIdentifier { get; }
-        public InstanceProperties InstanceProperties { get; }
+        VersionedInstanceIdentifier = EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+        InstanceProperties = EnsureArg.IsNotNull(instanceProperties, nameof(instanceProperties));
     }
+    public VersionedInstanceIdentifier VersionedInstanceIdentifier { get; }
+    public InstanceProperties InstanceProperties { get; }
 }

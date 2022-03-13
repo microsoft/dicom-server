@@ -27,202 +27,201 @@ using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
-namespace Microsoft.Health.Dicom.Api.Controllers
+namespace Microsoft.Health.Dicom.Api.Controllers;
+
+[ApiVersion("1.0-prerelease")]
+[ApiVersion("1")]
+[QueryModelStateValidator]
+[ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
+[ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
+public class RetrieveController : ControllerBase
 {
-    [ApiVersion("1.0-prerelease")]
-    [ApiVersion("1")]
-    [QueryModelStateValidator]
-    [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
-    [ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
-    public class RetrieveController : ControllerBase
+    private readonly IMediator _mediator;
+    private readonly ILogger<RetrieveController> _logger;
+    private readonly RetrieveConfiguration _retrieveConfiguration;
+    private const string IfNoneMatch = "If-None-Match";
+
+    public RetrieveController(IMediator mediator, ILogger<RetrieveController> logger, IOptionsSnapshot<RetrieveConfiguration> retrieveConfiguration)
     {
-        private readonly IMediator _mediator;
-        private readonly ILogger<RetrieveController> _logger;
-        private readonly RetrieveConfiguration _retrieveConfiguration;
-        private const string IfNoneMatch = "If-None-Match";
+        EnsureArg.IsNotNull(mediator, nameof(mediator));
+        EnsureArg.IsNotNull(logger, nameof(logger));
+        EnsureArg.IsNotNull(retrieveConfiguration?.Value, nameof(retrieveConfiguration));
 
-        public RetrieveController(IMediator mediator, ILogger<RetrieveController> logger, IOptionsSnapshot<RetrieveConfiguration> retrieveConfiguration)
-        {
-            EnsureArg.IsNotNull(mediator, nameof(mediator));
-            EnsureArg.IsNotNull(logger, nameof(logger));
-            EnsureArg.IsNotNull(retrieveConfiguration?.Value, nameof(retrieveConfiguration));
+        _mediator = mediator;
+        _logger = logger;
+        _retrieveConfiguration = retrieveConfiguration.Value;
+    }
 
-            _mediator = mediator;
-            _logger = logger;
-            _retrieveConfiguration = retrieveConfiguration.Value;
-        }
+    [Produces(KnownContentTypes.MultipartRelated)]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
+    [HttpGet]
+    [VersionedPartitionRoute(KnownRoutes.StudyRoute, Name = KnownRouteNames.VersionedPartitionRetrieveStudy)]
+    [PartitionRoute(KnownRoutes.StudyRoute, Name = KnownRouteNames.PartitionRetrieveStudy)]
+    [VersionedRoute(KnownRoutes.StudyRoute, Name = KnownRouteNames.VersionedRetrieveStudy)]
+    [Route(KnownRoutes.StudyRoute, Name = KnownRouteNames.RetrieveStudy)]
+    [AuditEventType(AuditEventSubType.Retrieve)]
+    public async Task<IActionResult> GetStudyAsync(string studyInstanceUid)
+    {
+        _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: {StudyInstanceUid}.", studyInstanceUid);
 
-        [Produces(KnownContentTypes.MultipartRelated)]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
-        [HttpGet]
-        [VersionedPartitionRoute(KnownRoutes.StudyRoute, Name = KnownRouteNames.VersionedPartitionRetrieveStudy)]
-        [PartitionRoute(KnownRoutes.StudyRoute, Name = KnownRouteNames.PartitionRetrieveStudy)]
-        [VersionedRoute(KnownRoutes.StudyRoute, Name = KnownRouteNames.VersionedRetrieveStudy)]
-        [Route(KnownRoutes.StudyRoute, Name = KnownRouteNames.RetrieveStudy)]
-        [AuditEventType(AuditEventSubType.Retrieve)]
-        public async Task<IActionResult> GetStudyAsync(string studyInstanceUid)
-        {
-            _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: {StudyInstanceUid}.", studyInstanceUid);
+        RetrieveResourceResponse response = await _mediator.RetrieveDicomStudyAsync(studyInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
-            RetrieveResourceResponse response = await _mediator.RetrieveDicomStudyAsync(studyInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
+        return CreateResult(response);
+    }
 
-            return CreateResult(response);
-        }
+    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+    [Produces(KnownContentTypes.ApplicationDicomJson)]
+    [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
+    [ProducesResponseType((int)HttpStatusCode.NotModified)]
+    [HttpGet]
+    [VersionedPartitionRoute(KnownRoutes.StudyMetadataRoute)]
+    [PartitionRoute(KnownRoutes.StudyMetadataRoute)]
+    [VersionedRoute(KnownRoutes.StudyMetadataRoute)]
+    [Route(KnownRoutes.StudyMetadataRoute)]
+    [AuditEventType(AuditEventSubType.RetrieveMetadata)]
+    public async Task<IActionResult> GetStudyMetadataAsync([FromHeader(Name = IfNoneMatch)] string ifNoneMatch, string studyInstanceUid)
+    {
+        _logger.LogInformation("DICOM Web Retrieve Metadata Transaction request received, for study: {StudyInstanceUid}.", studyInstanceUid);
 
-        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
-        [Produces(KnownContentTypes.ApplicationDicomJson)]
-        [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
-        [ProducesResponseType((int)HttpStatusCode.NotModified)]
-        [HttpGet]
-        [VersionedPartitionRoute(KnownRoutes.StudyMetadataRoute)]
-        [PartitionRoute(KnownRoutes.StudyMetadataRoute)]
-        [VersionedRoute(KnownRoutes.StudyMetadataRoute)]
-        [Route(KnownRoutes.StudyMetadataRoute)]
-        [AuditEventType(AuditEventSubType.RetrieveMetadata)]
-        public async Task<IActionResult> GetStudyMetadataAsync([FromHeader(Name = IfNoneMatch)] string ifNoneMatch, string studyInstanceUid)
-        {
-            _logger.LogInformation("DICOM Web Retrieve Metadata Transaction request received, for study: {StudyInstanceUid}.", studyInstanceUid);
+        RetrieveMetadataResponse response = await _mediator.RetrieveDicomStudyMetadataAsync(studyInstanceUid, ifNoneMatch, HttpContext.RequestAborted);
 
-            RetrieveMetadataResponse response = await _mediator.RetrieveDicomStudyMetadataAsync(studyInstanceUid, ifNoneMatch, HttpContext.RequestAborted);
+        return CreateResult(response);
+    }
 
-            return CreateResult(response);
-        }
+    [Produces(KnownContentTypes.MultipartRelated)]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
+    [HttpGet]
+    [VersionedPartitionRoute(KnownRoutes.SeriesRoute, Name = KnownRouteNames.VersionedPartitionRetrieveSeries)]
+    [PartitionRoute(KnownRoutes.SeriesRoute, Name = KnownRouteNames.PartitionRetrieveSeries)]
+    [VersionedRoute(KnownRoutes.SeriesRoute, Name = KnownRouteNames.VersionedRetrieveSeries)]
+    [Route(KnownRoutes.SeriesRoute, Name = KnownRouteNames.RetrieveSeries)]
+    [AuditEventType(AuditEventSubType.Retrieve)]
+    public async Task<IActionResult> GetSeriesAsync(
+        string studyInstanceUid,
+        string seriesInstanceUid)
+    {
+        _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: {StudyInstanceUid}, series: {SeriesInstanceUid}.", studyInstanceUid, seriesInstanceUid);
 
-        [Produces(KnownContentTypes.MultipartRelated)]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
-        [HttpGet]
-        [VersionedPartitionRoute(KnownRoutes.SeriesRoute, Name = KnownRouteNames.VersionedPartitionRetrieveSeries)]
-        [PartitionRoute(KnownRoutes.SeriesRoute, Name = KnownRouteNames.PartitionRetrieveSeries)]
-        [VersionedRoute(KnownRoutes.SeriesRoute, Name = KnownRouteNames.VersionedRetrieveSeries)]
-        [Route(KnownRoutes.SeriesRoute, Name = KnownRouteNames.RetrieveSeries)]
-        [AuditEventType(AuditEventSubType.Retrieve)]
-        public async Task<IActionResult> GetSeriesAsync(
-            string studyInstanceUid,
-            string seriesInstanceUid)
-        {
-            _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: {StudyInstanceUid}, series: {SeriesInstanceUid}.", studyInstanceUid, seriesInstanceUid);
+        RetrieveResourceResponse response = await _mediator.RetrieveDicomSeriesAsync(
+            studyInstanceUid, seriesInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
-            RetrieveResourceResponse response = await _mediator.RetrieveDicomSeriesAsync(
-                studyInstanceUid, seriesInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
+        return CreateResult(response);
+    }
 
-            return CreateResult(response);
-        }
+    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+    [Produces(KnownContentTypes.ApplicationDicomJson)]
+    [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
+    [ProducesResponseType((int)HttpStatusCode.NotModified)]
+    [HttpGet]
+    [VersionedPartitionRoute(KnownRoutes.SeriesMetadataRoute)]
+    [PartitionRoute(KnownRoutes.SeriesMetadataRoute)]
+    [VersionedRoute(KnownRoutes.SeriesMetadataRoute)]
+    [Route(KnownRoutes.SeriesMetadataRoute)]
+    [AuditEventType(AuditEventSubType.RetrieveMetadata)]
+    public async Task<IActionResult> GetSeriesMetadataAsync([FromHeader(Name = IfNoneMatch)] string ifNoneMatch, string studyInstanceUid, string seriesInstanceUid)
+    {
+        _logger.LogInformation("DICOM Web Retrieve Metadata Transaction request received, for study: {StudyInstanceUid}, series: {SeriesInstanceUid}.", studyInstanceUid, seriesInstanceUid);
 
-        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
-        [Produces(KnownContentTypes.ApplicationDicomJson)]
-        [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
-        [ProducesResponseType((int)HttpStatusCode.NotModified)]
-        [HttpGet]
-        [VersionedPartitionRoute(KnownRoutes.SeriesMetadataRoute)]
-        [PartitionRoute(KnownRoutes.SeriesMetadataRoute)]
-        [VersionedRoute(KnownRoutes.SeriesMetadataRoute)]
-        [Route(KnownRoutes.SeriesMetadataRoute)]
-        [AuditEventType(AuditEventSubType.RetrieveMetadata)]
-        public async Task<IActionResult> GetSeriesMetadataAsync([FromHeader(Name = IfNoneMatch)] string ifNoneMatch, string studyInstanceUid, string seriesInstanceUid)
-        {
-            _logger.LogInformation("DICOM Web Retrieve Metadata Transaction request received, for study: {StudyInstanceUid}, series: {SeriesInstanceUid}.", studyInstanceUid, seriesInstanceUid);
+        RetrieveMetadataResponse response = await _mediator.RetrieveDicomSeriesMetadataAsync(
+            studyInstanceUid, seriesInstanceUid, ifNoneMatch, HttpContext.RequestAborted);
 
-            RetrieveMetadataResponse response = await _mediator.RetrieveDicomSeriesMetadataAsync(
-                studyInstanceUid, seriesInstanceUid, ifNoneMatch, HttpContext.RequestAborted);
+        return CreateResult(response);
+    }
 
-            return CreateResult(response);
-        }
+    [Produces(KnownContentTypes.ApplicationDicom, KnownContentTypes.MultipartRelated)]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
+    [HttpGet]
+    [VersionedPartitionRoute(KnownRoutes.InstanceRoute, Name = KnownRouteNames.VersionedPartitionRetrieveInstance)]
+    [PartitionRoute(KnownRoutes.InstanceRoute, Name = KnownRouteNames.PartitionRetrieveInstance)]
+    [VersionedRoute(KnownRoutes.InstanceRoute, Name = KnownRouteNames.VersionedRetrieveInstance)]
+    [Route(KnownRoutes.InstanceRoute, Name = KnownRouteNames.RetrieveInstance)]
+    [AuditEventType(AuditEventSubType.Retrieve)]
+    public async Task<IActionResult> GetInstanceAsync(
+        string studyInstanceUid,
+        string seriesInstanceUid,
+        string sopInstanceUid)
+    {
+        _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: '{StudyInstanceUid}', series: '{SeriesInstanceUid}', instance: '{SopInstanceUid}'.", studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-        [Produces(KnownContentTypes.ApplicationDicom, KnownContentTypes.MultipartRelated)]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
-        [HttpGet]
-        [VersionedPartitionRoute(KnownRoutes.InstanceRoute, Name = KnownRouteNames.VersionedPartitionRetrieveInstance)]
-        [PartitionRoute(KnownRoutes.InstanceRoute, Name = KnownRouteNames.PartitionRetrieveInstance)]
-        [VersionedRoute(KnownRoutes.InstanceRoute, Name = KnownRouteNames.VersionedRetrieveInstance)]
-        [Route(KnownRoutes.InstanceRoute, Name = KnownRouteNames.RetrieveInstance)]
-        [AuditEventType(AuditEventSubType.Retrieve)]
-        public async Task<IActionResult> GetInstanceAsync(
-            string studyInstanceUid,
-            string seriesInstanceUid,
-            string sopInstanceUid)
-        {
-            _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: '{StudyInstanceUid}', series: '{SeriesInstanceUid}', instance: '{SopInstanceUid}'.", studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        RetrieveResourceResponse response = await _mediator.RetrieveDicomInstanceAsync(
+            studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
-            RetrieveResourceResponse response = await _mediator.RetrieveDicomInstanceAsync(
-                studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
+        return CreateResult(response);
+    }
 
-            return CreateResult(response);
-        }
+    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+    [Produces(KnownContentTypes.ApplicationDicomJson)]
+    [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
+    [ProducesResponseType((int)HttpStatusCode.NotModified)]
+    [HttpGet]
+    [VersionedPartitionRoute(KnownRoutes.InstanceMetadataRoute)]
+    [PartitionRoute(KnownRoutes.InstanceMetadataRoute)]
+    [VersionedRoute(KnownRoutes.InstanceMetadataRoute)]
+    [Route(KnownRoutes.InstanceMetadataRoute)]
+    [AuditEventType(AuditEventSubType.RetrieveMetadata)]
+    public async Task<IActionResult> GetInstanceMetadataAsync(
+        [FromHeader(Name = IfNoneMatch)] string ifNoneMatch,
+        string studyInstanceUid,
+        string seriesInstanceUid,
+        string sopInstanceUid)
+    {
+        _logger.LogInformation("DICOM Web Retrieve Metadata Transaction request received, for study: {StudyInstanceUid}, series: {SeriesInstanceUid}, instance: {SopInstanceUid}.", studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
-        [Produces(KnownContentTypes.ApplicationDicomJson)]
-        [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
-        [ProducesResponseType((int)HttpStatusCode.NotModified)]
-        [HttpGet]
-        [VersionedPartitionRoute(KnownRoutes.InstanceMetadataRoute)]
-        [PartitionRoute(KnownRoutes.InstanceMetadataRoute)]
-        [VersionedRoute(KnownRoutes.InstanceMetadataRoute)]
-        [Route(KnownRoutes.InstanceMetadataRoute)]
-        [AuditEventType(AuditEventSubType.RetrieveMetadata)]
-        public async Task<IActionResult> GetInstanceMetadataAsync(
-            [FromHeader(Name = IfNoneMatch)] string ifNoneMatch,
-            string studyInstanceUid,
-            string seriesInstanceUid,
-            string sopInstanceUid)
-        {
-            _logger.LogInformation("DICOM Web Retrieve Metadata Transaction request received, for study: {StudyInstanceUid}, series: {SeriesInstanceUid}, instance: {SopInstanceUid}.", studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        RetrieveMetadataResponse response = await _mediator.RetrieveDicomInstanceMetadataAsync(
+           studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch, HttpContext.RequestAborted);
 
-            RetrieveMetadataResponse response = await _mediator.RetrieveDicomInstanceMetadataAsync(
-               studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch, HttpContext.RequestAborted);
+        return CreateResult(response);
+    }
 
-            return CreateResult(response);
-        }
+    [Produces(KnownContentTypes.MultipartRelated)]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
+    [HttpGet]
+    [PartitionRoute(KnownRoutes.FrameRoute, Name = KnownRouteNames.PartitionRetrieveFrame)]
+    [VersionedPartitionRoute(KnownRoutes.FrameRoute, Name = KnownRouteNames.VersionedPartitionRetrieveFrame)]
+    [VersionedRoute(KnownRoutes.FrameRoute, Name = KnownRouteNames.VersionedRetrieveFrame)]
+    [Route(KnownRoutes.FrameRoute, Name = KnownRouteNames.RetrieveFrame)]
+    [AuditEventType(AuditEventSubType.Retrieve)]
+    public async Task<IActionResult> GetFramesAsync(
+        string studyInstanceUid,
+        string seriesInstanceUid,
+        string sopInstanceUid,
+        [FromRoute][ModelBinder(typeof(IntArrayModelBinder))] int[] frames)
+    {
+        _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: {StudyInstanceUid}, series: {SeriesInstanceUid}, instance: {SopInstanceUid}, frames: {Frames}.", studyInstanceUid, seriesInstanceUid, sopInstanceUid, string.Join(", ", frames ?? Array.Empty<int>()));
+        RetrieveResourceResponse response = await _mediator.RetrieveDicomFramesAsync(
+            studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
-        [Produces(KnownContentTypes.MultipartRelated)]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
-        [HttpGet]
-        [PartitionRoute(KnownRoutes.FrameRoute, Name = KnownRouteNames.PartitionRetrieveFrame)]
-        [VersionedPartitionRoute(KnownRoutes.FrameRoute, Name = KnownRouteNames.VersionedPartitionRetrieveFrame)]
-        [VersionedRoute(KnownRoutes.FrameRoute, Name = KnownRouteNames.VersionedRetrieveFrame)]
-        [Route(KnownRoutes.FrameRoute, Name = KnownRouteNames.RetrieveFrame)]
-        [AuditEventType(AuditEventSubType.Retrieve)]
-        public async Task<IActionResult> GetFramesAsync(
-            string studyInstanceUid,
-            string seriesInstanceUid,
-            string sopInstanceUid,
-            [FromRoute][ModelBinder(typeof(IntArrayModelBinder))] int[] frames)
-        {
-            _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: {StudyInstanceUid}, series: {SeriesInstanceUid}, instance: {SopInstanceUid}, frames: {Frames}.", studyInstanceUid, seriesInstanceUid, sopInstanceUid, string.Join(", ", frames ?? Array.Empty<int>()));
-            RetrieveResourceResponse response = await _mediator.RetrieveDicomFramesAsync(
-                studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
+        return CreateResult(response);
+    }
 
-            return CreateResult(response);
-        }
+    private static IActionResult CreateResult(RetrieveMetadataResponse response)
+    {
+        return new MetadataResult(response);
+    }
 
-        private static IActionResult CreateResult(RetrieveMetadataResponse response)
-        {
-            return new MetadataResult(response);
-        }
-
-        private IActionResult CreateResult(RetrieveResourceResponse response)
-        {
-            return new ResourceResult(response, _retrieveConfiguration);
-        }
+    private IActionResult CreateResult(RetrieveResourceResponse response)
+    {
+        return new ResourceResult(response, _retrieveConfiguration);
     }
 }

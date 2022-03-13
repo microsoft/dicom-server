@@ -7,13 +7,12 @@ using EnsureThat;
 using MediatR;
 using Microsoft.Health.Dicom.Core.Features.Query;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Query
-{
-    public class QueryResourceRequest : IRequest<QueryResourceResponse>
-    {
-        public QueryResourceRequest(QueryParameters parameters)
-            => Parameters = EnsureArg.IsNotNull(parameters, nameof(parameters));
+namespace Microsoft.Health.Dicom.Core.Messages.Query;
 
-        public QueryParameters Parameters { get; }
-    }
+public class QueryResourceRequest : IRequest<QueryResourceResponse>
+{
+    public QueryResourceRequest(QueryParameters parameters)
+        => Parameters = EnsureArg.IsNotNull(parameters, nameof(parameters));
+
+    public QueryParameters Parameters { get; }
 }

@@ -7,12 +7,11 @@ using System.IO;
 using System.Threading.Tasks;
 using FellowOakDicom;
 
-namespace Microsoft.Health.Dicom.Core.Features.Retrieve
-{
-    public interface ITranscoder
-    {
-        public Task<Stream> TranscodeFileAsync(Stream stream, string requestedTransferSyntax);
+namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 
-        Stream TranscodeFrame(DicomFile dicomFile, int frameIndex, string requestedTransferSyntax);
-    }
+public interface ITranscoder
+{
+    public Task<Stream> TranscodeFileAsync(Stream stream, string requestedTransferSyntax);
+
+    Stream TranscodeFrame(DicomFile dicomFile, int frameIndex, string requestedTransferSyntax);
 }

@@ -11,24 +11,23 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error
+namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error;
+
+internal class SqlExtendedQueryTagErrorStoreV1 : ISqlExtendedQueryTagErrorStore
 {
-    internal class SqlExtendedQueryTagErrorStoreV1 : ISqlExtendedQueryTagErrorStore
+    public virtual SchemaVersion Version => SchemaVersion.V1;
+
+    public virtual Task AddExtendedQueryTagErrorAsync(
+        int tagKey,
+        ValidationErrorCode errorCode,
+        long watermark,
+        CancellationToken cancellationToken = default)
     {
-        public virtual SchemaVersion Version => SchemaVersion.V1;
+        throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+    }
 
-        public virtual Task AddExtendedQueryTagErrorAsync(
-            int tagKey,
-            ValidationErrorCode errorCode,
-            long watermark,
-            CancellationToken cancellationToken = default)
-        {
-            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
-        }
-
-        public virtual Task<IReadOnlyList<ExtendedQueryTagError>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, int offset, CancellationToken cancellationToken = default)
-        {
-            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
-        }
+    public virtual Task<IReadOnlyList<ExtendedQueryTagError>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, int offset, CancellationToken cancellationToken = default)
+    {
+        throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }
 }

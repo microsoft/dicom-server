@@ -8,13 +8,12 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Health.Dicom.Api.Features.ModelBinders;
 
-namespace Microsoft.Health.Dicom.Api.Models
-{
-    public class QueryOptions : PaginationOptions
-    {
-        public bool FuzzyMatching { get; set; }
+namespace Microsoft.Health.Dicom.Api.Models;
 
-        [ModelBinder(typeof(AggregateCsvModelBinder))]
-        public IReadOnlyList<string> IncludeField { get; set; } = Array.Empty<string>();
-    }
+public class QueryOptions : PaginationOptions
+{
+    public bool FuzzyMatching { get; set; }
+
+    [ModelBinder(typeof(AggregateCsvModelBinder))]
+    public IReadOnlyList<string> IncludeField { get; set; } = Array.Empty<string>();
 }

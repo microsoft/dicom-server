@@ -16,84 +16,83 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Core.Web;
 
-namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
+namespace Microsoft.Health.Dicom.Core.Features.Store.Entries;
+
+/// <summary>
+/// Provides functionality to read DICOM instance entries from HTTP multipart request.
+/// </summary>
+public class DicomInstanceEntryReaderForMultipartRequest : IDicomInstanceEntryReader
 {
-    /// <summary>
-    /// Provides functionality to read DICOM instance entries from HTTP multipart request.
-    /// </summary>
-    public class DicomInstanceEntryReaderForMultipartRequest : IDicomInstanceEntryReader
+    private readonly IMultipartReaderFactory _multipartReaderFactory;
+    private readonly ILogger _logger;
+
+    public DicomInstanceEntryReaderForMultipartRequest(
+        IMultipartReaderFactory multipartReaderFactory,
+        ILogger<DicomInstanceEntryReaderForMultipartRequest> logger)
     {
-        private readonly IMultipartReaderFactory _multipartReaderFactory;
-        private readonly ILogger _logger;
+        EnsureArg.IsNotNull(multipartReaderFactory, nameof(multipartReaderFactory));
+        EnsureArg.IsNotNull(logger, nameof(logger));
 
-        public DicomInstanceEntryReaderForMultipartRequest(
-            IMultipartReaderFactory multipartReaderFactory,
-            ILogger<DicomInstanceEntryReaderForMultipartRequest> logger)
+        _multipartReaderFactory = multipartReaderFactory;
+        _logger = logger;
+    }
+
+    /// <inheritdoc />
+    public bool CanRead(string contentType)
+    {
+        return MediaTypeHeaderValue.TryParse(contentType, out MediaTypeHeaderValue media) &&
+            string.Equals(KnownContentTypes.MultipartRelated, media.MediaType, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<IDicomInstanceEntry>> ReadAsync(string contentType, Stream stream, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNullOrWhiteSpace(contentType, nameof(contentType));
+        EnsureArg.IsNotNull(stream, nameof(stream));
+
+        IMultipartReader multipartReader = _multipartReaderFactory.Create(contentType, stream);
+
+        var dicomInstanceEntries = new List<StreamOriginatedDicomInstanceEntry>();
+
+        MultipartBodyPart bodyPart;
+
+        try
         {
-            EnsureArg.IsNotNull(multipartReaderFactory, nameof(multipartReaderFactory));
-            EnsureArg.IsNotNull(logger, nameof(logger));
-
-            _multipartReaderFactory = multipartReaderFactory;
-            _logger = logger;
-        }
-
-        /// <inheritdoc />
-        public bool CanRead(string contentType)
-        {
-            return MediaTypeHeaderValue.TryParse(contentType, out MediaTypeHeaderValue media) &&
-                string.Equals(KnownContentTypes.MultipartRelated, media.MediaType, StringComparison.OrdinalIgnoreCase);
-        }
-
-        /// <inheritdoc />
-        public async Task<IReadOnlyList<IDicomInstanceEntry>> ReadAsync(string contentType, Stream stream, CancellationToken cancellationToken)
-        {
-            EnsureArg.IsNotNullOrWhiteSpace(contentType, nameof(contentType));
-            EnsureArg.IsNotNull(stream, nameof(stream));
-
-            IMultipartReader multipartReader = _multipartReaderFactory.Create(contentType, stream);
-
-            var dicomInstanceEntries = new List<StreamOriginatedDicomInstanceEntry>();
-
-            MultipartBodyPart bodyPart;
-
-            try
+            while ((bodyPart = await multipartReader.ReadNextBodyPartAsync(cancellationToken)) != null)
             {
-                while ((bodyPart = await multipartReader.ReadNextBodyPartAsync(cancellationToken)) != null)
+                // Check the content type to make sure we can process.
+                if (!KnownContentTypes.ApplicationDicom.Equals(bodyPart.ContentType, StringComparison.OrdinalIgnoreCase))
                 {
-                    // Check the content type to make sure we can process.
-                    if (!KnownContentTypes.ApplicationDicom.Equals(bodyPart.ContentType, StringComparison.OrdinalIgnoreCase))
-                    {
-                        // TODO: Currently, we only support application/dicom. Support for metadata + bulkdata is coming.
-                        throw new UnsupportedMediaTypeException(
-                            string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedContentType, bodyPart.ContentType));
-                    }
-
-                    dicomInstanceEntries.Add(new StreamOriginatedDicomInstanceEntry(bodyPart.SeekableStream));
+                    // TODO: Currently, we only support application/dicom. Support for metadata + bulkdata is coming.
+                    throw new UnsupportedMediaTypeException(
+                        string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedContentType, bodyPart.ContentType));
                 }
+
+                dicomInstanceEntries.Add(new StreamOriginatedDicomInstanceEntry(bodyPart.SeekableStream));
             }
-            catch (Exception)
-            {
-                // Encountered an error while processing, release all resources.
-                IEnumerable<Task> disposeTasks = dicomInstanceEntries.Select(DisposeResourceAsync);
+        }
+        catch (Exception)
+        {
+            // Encountered an error while processing, release all resources.
+            IEnumerable<Task> disposeTasks = dicomInstanceEntries.Select(DisposeResourceAsync);
 
-                await Task.WhenAll(disposeTasks);
+            await Task.WhenAll(disposeTasks);
 
-                throw;
-            }
-
-            return dicomInstanceEntries;
+            throw;
         }
 
-        private async Task DisposeResourceAsync(IDicomInstanceEntry resource)
+        return dicomInstanceEntries;
+    }
+
+    private async Task DisposeResourceAsync(IDicomInstanceEntry resource)
+    {
+        try
         {
-            try
-            {
-                await resource.DisposeAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to dispose the resource.");
-            }
+            await resource.DisposeAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to dispose the resource.");
         }
     }
 }

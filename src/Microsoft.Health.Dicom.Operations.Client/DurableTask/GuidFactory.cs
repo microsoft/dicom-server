@@ -5,25 +5,24 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Operations.Client.DurableTask
+namespace Microsoft.Health.Dicom.Operations.Client.DurableTask;
+
+/// <summary>
+/// Represents a factory that leverages <see cref="Guid.NewGuid"/> for generating <see cref="Guid"/> values.
+/// </summary>
+public sealed class GuidFactory : IGuidFactory
 {
-    /// <summary>
-    /// Represents a factory that leverages <see cref="Guid.NewGuid"/> for generating <see cref="Guid"/> values.
-    /// </summary>
-    public sealed class GuidFactory : IGuidFactory
+    private GuidFactory()
     {
-        private GuidFactory()
-        {
-        }
-
-        /// <summary>
-        /// Gets the default <see cref="IGuidFactory"/> that uses <see cref="Guid.NewGuid"/>.
-        /// </summary>
-        /// <value>The singleton <see cref="GuidFactory"/> instance.</value>
-        public static IGuidFactory Default { get; } = new GuidFactory();
-
-        /// <inheritdoc />
-        public Guid Create()
-            => Guid.NewGuid();
     }
+
+    /// <summary>
+    /// Gets the default <see cref="IGuidFactory"/> that uses <see cref="Guid.NewGuid"/>.
+    /// </summary>
+    /// <value>The singleton <see cref="GuidFactory"/> instance.</value>
+    public static IGuidFactory Default { get; } = new GuidFactory();
+
+    /// <inheritdoc />
+    public Guid Create()
+        => Guid.NewGuid();
 }

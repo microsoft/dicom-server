@@ -3,16 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
+namespace Microsoft.Health.Dicom.SqlServer.Features.Schema;
+
+/// <summary>
+///  Support versioning.
+/// </summary>
+internal interface IVersioned
 {
     /// <summary>
-    ///  Support versioning.
+    /// Get the Schema version
     /// </summary>
-    internal interface IVersioned
-    {
-        /// <summary>
-        /// Get the Schema version
-        /// </summary>
-        SchemaVersion Version { get; }
-    }
+    SchemaVersion Version { get; }
 }

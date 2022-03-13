@@ -7,14 +7,13 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Health.Dicom.Core.Features.Partition
+namespace Microsoft.Health.Dicom.Core.Features.Partition;
+
+public interface IPartitionStore
 {
-    public interface IPartitionStore
-    {
-        Task<PartitionEntry> AddPartitionAsync(string partitionName, CancellationToken cancellationToken = default);
+    Task<PartitionEntry> AddPartitionAsync(string partitionName, CancellationToken cancellationToken = default);
 
-        Task<IEnumerable<PartitionEntry>> GetPartitionsAsync(CancellationToken cancellationToken = default);
+    Task<IEnumerable<PartitionEntry>> GetPartitionsAsync(CancellationToken cancellationToken = default);
 
-        Task<PartitionEntry> GetPartitionAsync(string partitionName, CancellationToken cancellationToken = default);
-    }
+    Task<PartitionEntry> GetPartitionAsync(string partitionName, CancellationToken cancellationToken = default);
 }

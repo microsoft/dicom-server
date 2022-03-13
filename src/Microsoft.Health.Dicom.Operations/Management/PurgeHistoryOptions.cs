@@ -7,20 +7,19 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 
-namespace Microsoft.Health.Dicom.Operations.Management
+namespace Microsoft.Health.Dicom.Operations.Management;
+
+public class PurgeHistoryOptions
 {
-    public class PurgeHistoryOptions
-    {
-        internal const string SectionName = "PurgeHistory";
+    internal const string SectionName = "PurgeHistory";
 
-        [Required]
-        [MinLength(1)]
-        public IReadOnlyCollection<OrchestrationRuntimeStatus> RuntimeStatuses { get; set; }
+    [Required]
+    [MinLength(1)]
+    public IReadOnlyCollection<OrchestrationRuntimeStatus> RuntimeStatuses { get; set; }
 
-        [Range(0, 365)]
-        public int MinimumAgeDays { get; set; } = 30;
+    [Range(0, 365)]
+    public int MinimumAgeDays { get; set; } = 30;
 
-        [Required]
-        public string Frequency { get; set; }
-    }
+    [Required]
+    public string Frequency { get; set; }
 }

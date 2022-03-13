@@ -7,12 +7,11 @@ using System.Collections.Generic;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 
-namespace Microsoft.Health.Dicom.Core.Features.Query
+namespace Microsoft.Health.Dicom.Core.Features.Query;
+
+public interface IQueryParser<TQueryExpression, TQueryParameters>
+     where TQueryExpression : BaseQueryExpression
+     where TQueryParameters : BaseQueryParameters
 {
-    public interface IQueryParser<TQueryExpression, TQueryParameters>
-         where TQueryExpression : BaseQueryExpression
-         where TQueryParameters : BaseQueryParameters
-    {
-        TQueryExpression Parse(TQueryParameters parameters, IReadOnlyCollection<QueryTag> queryTags);
-    }
+    TQueryExpression Parse(TQueryParameters parameters, IReadOnlyCollection<QueryTag> queryTags);
 }

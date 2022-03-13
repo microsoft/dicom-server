@@ -7,17 +7,16 @@ using Azure.Storage.Blobs.Models;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Common;
 
-namespace Microsoft.Health.Dicom.Blob.Features.Storage
+namespace Microsoft.Health.Dicom.Blob.Features.Storage;
+
+public static class BlobPropertiesExtension
 {
-    public static class BlobPropertiesExtension
+    public static FileProperties ToFileProperties(this BlobProperties blobProperties)
     {
-        public static FileProperties ToFileProperties(this BlobProperties blobProperties)
+        EnsureArg.IsNotNull(blobProperties, nameof(blobProperties));
+        return new FileProperties()
         {
-            EnsureArg.IsNotNull(blobProperties, nameof(blobProperties));
-            return new FileProperties()
-            {
-                ContentLength = blobProperties.ContentLength,
-            };
-        }
+            ContentLength = blobProperties.ContentLength,
+        };
     }
 }

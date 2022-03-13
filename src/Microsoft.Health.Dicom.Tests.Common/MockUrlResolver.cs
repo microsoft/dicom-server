@@ -9,52 +9,51 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 
-namespace Microsoft.Health.Dicom.Tests.Common
+namespace Microsoft.Health.Dicom.Tests.Common;
+
+public class MockUrlResolver : IUrlResolver
 {
-    public class MockUrlResolver : IUrlResolver
+    public Uri ResolveOperationStatusUri(Guid operationId)
     {
-        public Uri ResolveOperationStatusUri(Guid operationId)
-        {
-            return new Uri("/" + OperationId.ToString(operationId), UriKind.Relative);
-        }
+        return new Uri("/" + OperationId.ToString(operationId), UriKind.Relative);
+    }
 
-        /// <inheritdoc />
-        public Uri ResolveQueryTagUri(string tagPath)
-        {
-            EnsureArg.IsNotNull(tagPath, nameof(tagPath));
+    /// <inheritdoc />
+    public Uri ResolveQueryTagUri(string tagPath)
+    {
+        EnsureArg.IsNotNull(tagPath, nameof(tagPath));
 
-            return new Uri("/" + tagPath, UriKind.Relative);
-        }
+        return new Uri("/" + tagPath, UriKind.Relative);
+    }
 
-        /// <inheritdoc />
-        public Uri ResolveQueryTagErrorsUri(string tagPath)
-        {
-            EnsureArg.IsNotNull(tagPath, nameof(tagPath));
+    /// <inheritdoc />
+    public Uri ResolveQueryTagErrorsUri(string tagPath)
+    {
+        EnsureArg.IsNotNull(tagPath, nameof(tagPath));
 
-            return new Uri("/" + tagPath + "/errors", UriKind.Relative);
-        }
+        return new Uri("/" + tagPath + "/errors", UriKind.Relative);
+    }
 
-        public Uri ResolveRetrieveInstanceUri(InstanceIdentifier instanceIdentifier)
-        {
-            EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
+    public Uri ResolveRetrieveInstanceUri(InstanceIdentifier instanceIdentifier)
+    {
+        EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
 
-            return new Uri(
-                $"/{instanceIdentifier.StudyInstanceUid}/{instanceIdentifier.SeriesInstanceUid}/{instanceIdentifier.SopInstanceUid}",
-                UriKind.Relative);
-        }
+        return new Uri(
+            $"/{instanceIdentifier.StudyInstanceUid}/{instanceIdentifier.SeriesInstanceUid}/{instanceIdentifier.SopInstanceUid}",
+            UriKind.Relative);
+    }
 
-        public Uri ResolveRetrieveStudyUri(string studyInstanceUid)
-        {
-            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+    public Uri ResolveRetrieveStudyUri(string studyInstanceUid)
+    {
+        EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
 
-            return new Uri(studyInstanceUid, UriKind.Relative);
-        }
+        return new Uri(studyInstanceUid, UriKind.Relative);
+    }
 
-        public Uri ResolveRetrieveWorkitemUri(string workitemInstanceUid)
-        {
-            EnsureArg.IsNotNullOrWhiteSpace(workitemInstanceUid, nameof(workitemInstanceUid));
+    public Uri ResolveRetrieveWorkitemUri(string workitemInstanceUid)
+    {
+        EnsureArg.IsNotNullOrWhiteSpace(workitemInstanceUid, nameof(workitemInstanceUid));
 
-            return new Uri("/" + workitemInstanceUid, UriKind.Relative);
-        }
+        return new Uri("/" + workitemInstanceUid, UriKind.Relative);
     }
 }

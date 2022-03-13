@@ -8,20 +8,19 @@ using Microsoft.Health.Api.Features.Cors;
 using Microsoft.Health.Core.Configs;
 using Microsoft.Health.Dicom.Core.Configs;
 
-namespace Microsoft.Health.Dicom.Api.Configs
+namespace Microsoft.Health.Dicom.Api.Configs;
+
+public class DicomServerConfiguration : IApiConfiguration
 {
-    public class DicomServerConfiguration : IApiConfiguration
-    {
-        public FeatureConfiguration Features { get; } = new FeatureConfiguration();
+    public FeatureConfiguration Features { get; } = new FeatureConfiguration();
 
-        public SecurityConfiguration Security { get; } = new SecurityConfiguration();
+    public SecurityConfiguration Security { get; } = new SecurityConfiguration();
 
-        public CorsConfiguration Cors { get; } = new CorsConfiguration();
+    public CorsConfiguration Cors { get; } = new CorsConfiguration();
 
-        public ServicesConfiguration Services { get; } = new ServicesConfiguration();
+    public ServicesConfiguration Services { get; } = new ServicesConfiguration();
 
-        public AuditConfiguration Audit { get; } = new AuditConfiguration("X-MS-AZUREDICOM-AUDIT-");
+    public AuditConfiguration Audit { get; } = new AuditConfiguration("X-MS-AZUREDICOM-AUDIT-");
 
-        public SwaggerConfiguration Swagger { get; } = new SwaggerConfiguration();
-    }
+    public SwaggerConfiguration Swagger { get; } = new SwaggerConfiguration();
 }

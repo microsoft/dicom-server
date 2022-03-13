@@ -8,12 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
 
-namespace Microsoft.Health.Dicom.Client
+namespace Microsoft.Health.Dicom.Client;
+
+public partial interface IDicomWebClient
 {
-    public partial interface IDicomWebClient
-    {
-        Task<DicomWebResponse> AddWorkitemAsync(IEnumerable<DicomDataset> dicomDatasets, string workitemUid = default, string partitionName = default, CancellationToken cancellationToken = default);
-        Task<DicomWebResponse> CancelWorkitemAsync(IEnumerable<DicomDataset> dicomDatasets, string workitemUid, string partitionName = default, CancellationToken cancellationToken = default);
-        Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryWorkitemAsync(string queryString, string partitionName = default, CancellationToken cancellationToken = default);
-    }
+    Task<DicomWebResponse> AddWorkitemAsync(IEnumerable<DicomDataset> dicomDatasets, string workitemUid = default, string partitionName = default, CancellationToken cancellationToken = default);
+    Task<DicomWebResponse> CancelWorkitemAsync(IEnumerable<DicomDataset> dicomDatasets, string workitemUid, string partitionName = default, CancellationToken cancellationToken = default);
+    Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryWorkitemAsync(string queryString, string partitionName = default, CancellationToken cancellationToken = default);
 }

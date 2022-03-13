@@ -23,126 +23,125 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.IO;
 
-namespace Microsoft.Health.Dicom.Blob.Features.Storage
+namespace Microsoft.Health.Dicom.Blob.Features.Storage;
+
+/// <summary>
+/// Provides functionality for managing the DICOM instance metadata.
+/// </summary>
+public class BlobMetadataStore : IMetadataStore
 {
-    /// <summary>
-    /// Provides functionality for managing the DICOM instance metadata.
-    /// </summary>
-    public class BlobMetadataStore : IMetadataStore
+    private const string GetInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(GetInstanceMetadataAsync);
+    private const string StoreInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceMetadataAsync);
+
+    private readonly BlobContainerClient _container;
+    private readonly JsonSerializerOptions _jsonSerializerOptions;
+    private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+
+    public BlobMetadataStore(
+        BlobServiceClient client,
+        RecyclableMemoryStreamManager recyclableMemoryStreamManager,
+        IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
+        IOptions<JsonSerializerOptions> jsonSerializerOptions)
     {
-        private const string GetInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(GetInstanceMetadataAsync);
-        private const string StoreInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceMetadataAsync);
+        EnsureArg.IsNotNull(client, nameof(client));
+        EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
+        EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
+        EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
 
-        private readonly BlobContainerClient _container;
-        private readonly JsonSerializerOptions _jsonSerializerOptions;
-        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+        BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
+            .Get(Constants.MetadataContainerConfigurationName);
 
-        public BlobMetadataStore(
-            BlobServiceClient client,
-            RecyclableMemoryStreamManager recyclableMemoryStreamManager,
-            IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
-            IOptions<JsonSerializerOptions> jsonSerializerOptions)
+        _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
+        _jsonSerializerOptions = jsonSerializerOptions.Value;
+        _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
+    }
+
+    /// <inheritdoc />
+    public async Task StoreInstanceMetadataAsync(
+        DicomDataset dicomDataset,
+        long version,
+        CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+
+        // Creates a copy of the dataset with bulk data removed.
+        DicomDataset dicomDatasetWithoutBulkData = dicomDataset.CopyWithoutBulkDataItems();
+
+        BlockBlobClient blob = GetInstanceBlockBlob(dicomDatasetWithoutBulkData.ToVersionedInstanceIdentifier(version));
+
+        try
         {
-            EnsureArg.IsNotNull(client, nameof(client));
-            EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
-            EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
-            EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
-
-            BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
-                .Get(Constants.MetadataContainerConfigurationName);
-
-            _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
-            _jsonSerializerOptions = jsonSerializerOptions.Value;
-            _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
-        }
-
-        /// <inheritdoc />
-        public async Task StoreInstanceMetadataAsync(
-            DicomDataset dicomDataset,
-            long version,
-            CancellationToken cancellationToken)
-        {
-            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
-
-            // Creates a copy of the dataset with bulk data removed.
-            DicomDataset dicomDatasetWithoutBulkData = dicomDataset.CopyWithoutBulkDataItems();
-
-            BlockBlobClient blob = GetInstanceBlockBlob(dicomDatasetWithoutBulkData.ToVersionedInstanceIdentifier(version));
-
-            try
+            await using (Stream stream = _recyclableMemoryStreamManager.GetStream(StoreInstanceMetadataStreamTagName))
+            await using (Utf8JsonWriter utf8Writer = new Utf8JsonWriter(stream))
             {
-                await using (Stream stream = _recyclableMemoryStreamManager.GetStream(StoreInstanceMetadataStreamTagName))
-                await using (Utf8JsonWriter utf8Writer = new Utf8JsonWriter(stream))
-                {
-                    // TODO: Use SerializeAsync in .NET 6
-                    JsonSerializer.Serialize(utf8Writer, dicomDatasetWithoutBulkData, _jsonSerializerOptions);
-                    await utf8Writer.FlushAsync(cancellationToken);
-                    stream.Seek(0, SeekOrigin.Begin);
-                    await blob.UploadAsync(
-                        stream,
-                        new BlobHttpHeaders { ContentType = KnownContentTypes.ApplicationJson },
-                        metadata: null,
-                        conditions: null,
-                        accessTier: null,
-                        progressHandler: null,
-                        cancellationToken);
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new DataStoreException(ex);
+                // TODO: Use SerializeAsync in .NET 6
+                JsonSerializer.Serialize(utf8Writer, dicomDatasetWithoutBulkData, _jsonSerializerOptions);
+                await utf8Writer.FlushAsync(cancellationToken);
+                stream.Seek(0, SeekOrigin.Begin);
+                await blob.UploadAsync(
+                    stream,
+                    new BlobHttpHeaders { ContentType = KnownContentTypes.ApplicationJson },
+                    metadata: null,
+                    conditions: null,
+                    accessTier: null,
+                    progressHandler: null,
+                    cancellationToken);
             }
         }
-
-        /// <inheritdoc />
-        public async Task DeleteInstanceMetadataIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+        catch (Exception ex)
         {
-            EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-            BlockBlobClient blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
-
-            await ExecuteAsync(t => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken);
+            throw new DataStoreException(ex);
         }
+    }
 
-        /// <inheritdoc />
-        public Task<DicomDataset> GetInstanceMetadataAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    /// <inheritdoc />
+    public async Task DeleteInstanceMetadataIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+        BlockBlobClient blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
+
+        await ExecuteAsync(t => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<DicomDataset> GetInstanceMetadataAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+        BlockBlobClient cloudBlockBlob = GetInstanceBlockBlob(versionedInstanceIdentifier);
+
+        return ExecuteAsync(async t =>
         {
-            EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-            BlockBlobClient cloudBlockBlob = GetInstanceBlockBlob(versionedInstanceIdentifier);
-
-            return ExecuteAsync(async t =>
+            await using (Stream stream = _recyclableMemoryStreamManager.GetStream(GetInstanceMetadataStreamTagName))
             {
-                await using (Stream stream = _recyclableMemoryStreamManager.GetStream(GetInstanceMetadataStreamTagName))
-                {
-                    await cloudBlockBlob.DownloadToAsync(stream, cancellationToken);
+                await cloudBlockBlob.DownloadToAsync(stream, cancellationToken);
 
-                    stream.Seek(0, SeekOrigin.Begin);
+                stream.Seek(0, SeekOrigin.Begin);
 
-                    return await JsonSerializer.DeserializeAsync<DicomDataset>(stream, _jsonSerializerOptions, t);
-                }
-            }, cancellationToken);
+                return await JsonSerializer.DeserializeAsync<DicomDataset>(stream, _jsonSerializerOptions, t);
+            }
+        }, cancellationToken);
+    }
+
+    private BlockBlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
+    {
+        var blobName = $"{versionedInstanceIdentifier.StudyInstanceUid}/{versionedInstanceIdentifier.SeriesInstanceUid}/{versionedInstanceIdentifier.SopInstanceUid}_{versionedInstanceIdentifier.Version}_metadata.json";
+
+        return _container.GetBlockBlobClient(blobName);
+    }
+
+    private static async Task<T> ExecuteAsync<T>(Func<CancellationToken, Task<T>> action, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await action(cancellationToken);
         }
-
-        private BlockBlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
+        catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
         {
-            var blobName = $"{versionedInstanceIdentifier.StudyInstanceUid}/{versionedInstanceIdentifier.SeriesInstanceUid}/{versionedInstanceIdentifier.SopInstanceUid}_{versionedInstanceIdentifier.Version}_metadata.json";
-
-            return _container.GetBlockBlobClient(blobName);
+            throw new ItemNotFoundException(ex);
         }
-
-        private static async Task<T> ExecuteAsync<T>(Func<CancellationToken, Task<T>> action, CancellationToken cancellationToken)
+        catch (Exception ex)
         {
-            try
-            {
-                return await action(cancellationToken);
-            }
-            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
-            {
-                throw new ItemNotFoundException(ex);
-            }
-            catch (Exception ex)
-            {
-                throw new DataStoreException(ex);
-            }
+            throw new DataStoreException(ex);
         }
     }
 }

@@ -17,54 +17,53 @@ using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 
-namespace Microsoft.Health.Dicom.Core.Features.Store
+namespace Microsoft.Health.Dicom.Core.Features.Store;
+
+public class StoreHandler : BaseHandler, IRequestHandler<StoreRequest, StoreResponse>
 {
-    public class StoreHandler : BaseHandler, IRequestHandler<StoreRequest, StoreResponse>
+    private readonly IDicomInstanceEntryReaderManager _dicomInstanceEntryReaderManager;
+    private readonly IStoreService _storeService;
+
+    public StoreHandler(
+        IAuthorizationService<DataActions> authorizationService,
+        IDicomInstanceEntryReaderManager dicomInstanceEntryReaderManager,
+        IStoreService storeService)
+        : base(authorizationService)
     {
-        private readonly IDicomInstanceEntryReaderManager _dicomInstanceEntryReaderManager;
-        private readonly IStoreService _storeService;
+        _dicomInstanceEntryReaderManager = EnsureArg.IsNotNull(dicomInstanceEntryReaderManager, nameof(dicomInstanceEntryReaderManager));
+        _storeService = EnsureArg.IsNotNull(storeService, nameof(storeService));
+    }
 
-        public StoreHandler(
-            IAuthorizationService<DataActions> authorizationService,
-            IDicomInstanceEntryReaderManager dicomInstanceEntryReaderManager,
-            IStoreService storeService)
-            : base(authorizationService)
+    /// <inheritdoc />
+    public async Task<StoreResponse> Handle(
+        StoreRequest request,
+        CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(request, nameof(request));
+
+        if (await AuthorizationService.CheckAccess(DataActions.Write, cancellationToken) != DataActions.Write)
         {
-            _dicomInstanceEntryReaderManager = EnsureArg.IsNotNull(dicomInstanceEntryReaderManager, nameof(dicomInstanceEntryReaderManager));
-            _storeService = EnsureArg.IsNotNull(storeService, nameof(storeService));
+            throw new UnauthorizedDicomActionException(DataActions.Write);
         }
 
-        /// <inheritdoc />
-        public async Task<StoreResponse> Handle(
-            StoreRequest request,
-            CancellationToken cancellationToken)
+        StoreRequestValidator.ValidateRequest(request);
+
+        // Find a reader that can parse the request body.
+        IDicomInstanceEntryReader dicomInstanceEntryReader = _dicomInstanceEntryReaderManager.FindReader(request.RequestContentType);
+
+        if (dicomInstanceEntryReader == null)
         {
-            EnsureArg.IsNotNull(request, nameof(request));
-
-            if (await AuthorizationService.CheckAccess(DataActions.Write, cancellationToken) != DataActions.Write)
-            {
-                throw new UnauthorizedDicomActionException(DataActions.Write);
-            }
-
-            StoreRequestValidator.ValidateRequest(request);
-
-            // Find a reader that can parse the request body.
-            IDicomInstanceEntryReader dicomInstanceEntryReader = _dicomInstanceEntryReaderManager.FindReader(request.RequestContentType);
-
-            if (dicomInstanceEntryReader == null)
-            {
-                throw new UnsupportedMediaTypeException(
-                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedContentType, request.RequestContentType));
-            }
-
-            // Read list of entries.
-            IReadOnlyList<IDicomInstanceEntry> instanceEntries = await dicomInstanceEntryReader.ReadAsync(
-                    request.RequestContentType,
-                    request.RequestBody,
-                    cancellationToken);
-
-            // Process list of entries.
-            return await _storeService.ProcessAsync(instanceEntries, request.StudyInstanceUid, cancellationToken);
+            throw new UnsupportedMediaTypeException(
+                string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UnsupportedContentType, request.RequestContentType));
         }
+
+        // Read list of entries.
+        IReadOnlyList<IDicomInstanceEntry> instanceEntries = await dicomInstanceEntryReader.ReadAsync(
+                request.RequestContentType,
+                request.RequestBody,
+                cancellationToken);
+
+        // Process list of entries.
+        return await _storeService.ProcessAsync(instanceEntries, request.StudyInstanceUid, cancellationToken);
     }
 }

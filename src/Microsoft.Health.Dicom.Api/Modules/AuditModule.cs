@@ -10,30 +10,29 @@ using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Extensions.DependencyInjection;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
-namespace Microsoft.Health.Dicom.Api.Modules
+namespace Microsoft.Health.Dicom.Api.Modules;
+
+public class AuditModule : IStartupModule
 {
-    public class AuditModule : IStartupModule
+    public void Load(IServiceCollection services)
     {
-        public void Load(IServiceCollection services)
-        {
-            EnsureArg.IsNotNull(services, nameof(services));
+        EnsureArg.IsNotNull(services, nameof(services));
 
-            services.Add<DicomAudit.AuditLoggingFilterAttribute>()
-                .Singleton()
-                .AsSelf();
+        services.Add<DicomAudit.AuditLoggingFilterAttribute>()
+            .Singleton()
+            .AsSelf();
 
-            services.AddSingleton<DicomAudit.IAuditLogger, DicomAudit.AuditLogger>();
+        services.AddSingleton<DicomAudit.IAuditLogger, DicomAudit.AuditLogger>();
 
-            services.AddSingleton<IAuditHeaderReader, AuditHeaderReader>();
+        services.AddSingleton<IAuditHeaderReader, AuditHeaderReader>();
 
-            services.Add<DicomAudit.AuditHelper>()
-                .Singleton()
-                .AsService<IAuditHelper>();
+        services.Add<DicomAudit.AuditHelper>()
+            .Singleton()
+            .AsService<IAuditHelper>();
 
-            services.Add<AuditEventTypeMapping>()
-                .Singleton()
-                .AsService<IAuditEventTypeMapping>()
-                .AsService<IHostedService>();
-        }
+        services.Add<AuditEventTypeMapping>()
+            .Singleton()
+            .AsService<IAuditEventTypeMapping>()
+            .AsService<IHostedService>();
     }
 }

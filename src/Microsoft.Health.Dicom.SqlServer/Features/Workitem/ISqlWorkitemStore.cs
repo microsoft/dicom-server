@@ -6,12 +6,11 @@
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
+namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem;
+
+/// <summary>
+///  Sql version of IWorkitemStore.
+/// </summary>
+internal interface ISqlWorkitemStore : IIndexWorkitemStore, IVersioned
 {
-    /// <summary>
-    ///  Sql version of IWorkitemStore.
-    /// </summary>
-    internal interface ISqlWorkitemStore : IIndexWorkitemStore, IVersioned
-    {
-    }
 }

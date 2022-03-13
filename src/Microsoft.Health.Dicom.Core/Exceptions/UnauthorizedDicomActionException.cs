@@ -5,16 +5,15 @@
 
 using Microsoft.Health.Dicom.Core.Features.Security;
 
-namespace Microsoft.Health.Dicom.Core.Exceptions
-{
-    public class UnauthorizedDicomActionException : DicomServerException
-    {
-        public UnauthorizedDicomActionException(DataActions expectedDataActions)
-            : base(DicomCoreResource.Forbidden)
-        {
-            ExpectedDataActions = expectedDataActions;
-        }
+namespace Microsoft.Health.Dicom.Core.Exceptions;
 
-        public DataActions ExpectedDataActions { get; }
+public class UnauthorizedDicomActionException : DicomServerException
+{
+    public UnauthorizedDicomActionException(DataActions expectedDataActions)
+        : base(DicomCoreResource.Forbidden)
+    {
+        ExpectedDataActions = expectedDataActions;
     }
+
+    public DataActions ExpectedDataActions { get; }
 }
