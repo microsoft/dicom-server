@@ -12,42 +12,41 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Client;
 
-namespace QidoFunctionApp
+namespace QidoFunctionApp;
+
+public static class Qido
 {
-    public static class Qido
+    private static IDicomWebClient s_client;
+
+    [FunctionName("Qido")]
+    public static void Run([ServiceBusTrigger(KnownTopics.Qido, KnownSubscriptions.S1, Connection = "ServiceBusConnectionString")] byte[] message, ILogger log)
     {
-        private static IDicomWebClient s_client;
-
-        [FunctionName("Qido")]
-        public static void Run([ServiceBusTrigger(KnownTopics.Qido, KnownSubscriptions.S1, Connection = "ServiceBusConnectionString")] byte[] message, ILogger log)
+        var queryParam = Encoding.UTF8.GetString(message);
+        log.LogInformation($"C# ServiceBus topic trigger function processed message: {queryParam}");
+        using var httpClient = new HttpClient
         {
-            var queryParam = Encoding.UTF8.GetString(message);
-            log.LogInformation($"C# ServiceBus topic trigger function processed message: {queryParam}");
-            using var httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(KnownApplicationUrls.DicomServerUrl),
-            };
+            BaseAddress = new Uri(KnownApplicationUrls.DicomServerUrl),
+        };
 
-            SetupDicomWebClient(httpClient);
+        SetupDicomWebClient(httpClient);
 
-            try
-            {
-                ProcessMessageWithQueryUrl(queryParam);
-            }
-            catch (Exception ex)
-            {
-                log.LogError(ex.Message);
-            }
-        }
-
-        private static void ProcessMessageWithQueryUrl(string queryParam)
+        try
         {
-            s_client.QueryStudyAsync(queryParam).Wait();
+            ProcessMessageWithQueryUrl(queryParam);
         }
-
-        private static void SetupDicomWebClient(HttpClient httpClient)
+        catch (Exception ex)
         {
-            s_client = new DicomWebClient(httpClient);
+            log.LogError(ex.Message);
         }
+    }
+
+    private static void ProcessMessageWithQueryUrl(string queryParam)
+    {
+        s_client.QueryStudyAsync(queryParam).Wait();
+    }
+
+    private static void SetupDicomWebClient(HttpClient httpClient)
+    {
+        s_client = new DicomWebClient(httpClient);
     }
 }
