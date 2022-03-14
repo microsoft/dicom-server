@@ -14,80 +14,79 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Operations.Configuration;
 
-namespace Microsoft.Health.Dicom.Operations.Management
+namespace Microsoft.Health.Dicom.Operations.Management;
+
+public class PurgeOrchestrationInstanceHistory
 {
-    public class PurgeOrchestrationInstanceHistory
+    private readonly PurgeHistoryOptions _purgeConfig;
+    private readonly Func<DateTime> _getUtcNow;
+
+    public const string PurgeFrequencyVariable = "%"
+        + AzureFunctionsJobHost.RootConfigurationSectionName + ":"
+        + DicomFunctionsConfiguration.SectionName + ":"
+        + PurgeHistoryOptions.SectionName + ":"
+        + nameof(PurgeHistoryOptions.Frequency) + "%";
+
+    public PurgeOrchestrationInstanceHistory(IOptions<PurgeHistoryOptions> cleanupOptions)
+        : this(cleanupOptions, () => DateTime.UtcNow)
+    { }
+
+    internal PurgeOrchestrationInstanceHistory(IOptions<PurgeHistoryOptions> cleanupOptions, Func<DateTime> getDateTimeUtcNow)
     {
-        private readonly PurgeHistoryOptions _purgeConfig;
-        private readonly Func<DateTime> _getUtcNow;
+        _purgeConfig = EnsureArg.IsNotNull(cleanupOptions?.Value, nameof(cleanupOptions));
+        _getUtcNow = EnsureArg.IsNotNull(getDateTimeUtcNow, nameof(getDateTimeUtcNow));
+    }
 
-        public const string PurgeFrequencyVariable = "%"
-            + AzureFunctionsJobHost.RootConfigurationSectionName + ":"
-            + DicomFunctionsConfiguration.SectionName + ":"
-            + PurgeHistoryOptions.SectionName + ":"
-            + nameof(PurgeHistoryOptions.Frequency) + "%";
+    [FunctionName(nameof(PurgeOrchestrationInstanceHistory))]
+    public async Task Run(
+        [TimerTrigger(PurgeFrequencyVariable)] TimerInfo myTimer,
+        [DurableClient] IDurableOrchestrationClient client,
+        ILogger log,
+        CancellationToken hostCancellationToken)
+    {
+        EnsureArg.IsNotNull(client, nameof(client));
+        EnsureArg.IsNotNull(myTimer, nameof(myTimer));
+        EnsureArg.IsNotNull(log, nameof(log));
 
-        public PurgeOrchestrationInstanceHistory(IOptions<PurgeHistoryOptions> cleanupOptions)
-            : this(cleanupOptions, () => DateTime.UtcNow)
-        { }
+        var orchestrationInstanceIdList = new List<string>();
 
-        internal PurgeOrchestrationInstanceHistory(IOptions<PurgeHistoryOptions> cleanupOptions, Func<DateTime> getDateTimeUtcNow)
+        log.LogInformation("Purging orchestration instance history at: {Timestamp}", _getUtcNow());
+        if (myTimer.IsPastDue)
         {
-            _purgeConfig = EnsureArg.IsNotNull(cleanupOptions?.Value, nameof(cleanupOptions));
-            _getUtcNow = EnsureArg.IsNotNull(getDateTimeUtcNow, nameof(getDateTimeUtcNow));
+            log.LogWarning("Current function invocation is later than scheduled.");
         }
 
-        [FunctionName(nameof(PurgeOrchestrationInstanceHistory))]
-        public async Task Run(
-            [TimerTrigger(PurgeFrequencyVariable)] TimerInfo myTimer,
-            [DurableClient] IDurableOrchestrationClient client,
-            ILogger log,
-            CancellationToken hostCancellationToken)
+        // Specify conditions for orchestration instances.
+        var condition = new OrchestrationStatusQueryCondition
         {
-            EnsureArg.IsNotNull(client, nameof(client));
-            EnsureArg.IsNotNull(myTimer, nameof(myTimer));
-            EnsureArg.IsNotNull(log, nameof(log));
+            RuntimeStatus = _purgeConfig.RuntimeStatuses,
+            CreatedTimeFrom = DateTime.MinValue,
+            CreatedTimeTo = _getUtcNow().AddDays(-_purgeConfig.MinimumAgeDays),
+            ContinuationToken = null
+        };
 
-            var orchestrationInstanceIdList = new List<string>();
+        do
+        {
+            OrchestrationStatusQueryResult listOfOrchestrators =
+               await client.ListInstancesAsync(condition, hostCancellationToken);
+            condition.ContinuationToken = listOfOrchestrators.ContinuationToken;
 
-            log.LogInformation("Purging orchestration instance history at: {Timestamp}", _getUtcNow());
-            if (myTimer.IsPastDue)
+            // Loop through the orchestration instances and purge them.
+            foreach (DurableOrchestrationStatus orchestration in listOfOrchestrators.DurableOrchestrationState)
             {
-                log.LogWarning("Current function invocation is later than scheduled.");
+                orchestrationInstanceIdList.Add(orchestration.InstanceId);
+                await client.PurgeInstanceHistoryAsync(orchestration.InstanceId);
             }
+        } while (condition.ContinuationToken != null);
 
-            // Specify conditions for orchestration instances.
-            var condition = new OrchestrationStatusQueryCondition
-            {
-                RuntimeStatus = _purgeConfig.RuntimeStatuses,
-                CreatedTimeFrom = DateTime.MinValue,
-                CreatedTimeTo = _getUtcNow().AddDays(-_purgeConfig.MinimumAgeDays),
-                ContinuationToken = null
-            };
-
-            do
-            {
-                OrchestrationStatusQueryResult listOfOrchestrators =
-                   await client.ListInstancesAsync(condition, hostCancellationToken);
-                condition.ContinuationToken = listOfOrchestrators.ContinuationToken;
-
-                // Loop through the orchestration instances and purge them.
-                foreach (DurableOrchestrationStatus orchestration in listOfOrchestrators.DurableOrchestrationState)
-                {
-                    orchestrationInstanceIdList.Add(orchestration.InstanceId);
-                    await client.PurgeInstanceHistoryAsync(orchestration.InstanceId);
-                }
-            } while (condition.ContinuationToken != null);
-
-            if (orchestrationInstanceIdList.Count != 0)
-            {
-                log.LogInformation("{Count} Durable Functions cleaned up successfully.", orchestrationInstanceIdList.Count);
-                log.LogDebug("List of cleaned instance IDs: {list}", string.Join(", ", orchestrationInstanceIdList));
-            }
-            else
-            {
-                log.LogInformation("No Orchestration instances found within given conditions.");
-            }
+        if (orchestrationInstanceIdList.Count != 0)
+        {
+            log.LogInformation("{Count} Durable Functions cleaned up successfully.", orchestrationInstanceIdList.Count);
+            log.LogDebug("List of cleaned instance IDs: {list}", string.Join(", ", orchestrationInstanceIdList));
+        }
+        else
+        {
+            log.LogInformation("No Orchestration instances found within given conditions.");
         }
     }
 }

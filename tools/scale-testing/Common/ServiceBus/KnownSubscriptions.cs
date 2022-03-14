@@ -3,10 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Common.ServiceBus
+namespace Common.ServiceBus;
+
+public static class KnownSubscriptions
 {
-    public static class KnownSubscriptions
-    {
-        public const string S1 = "s1";
-    }
+    public const string S1 = "s1";
 }

@@ -5,17 +5,16 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
+namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+
+/// <summary>
+/// Validate if given extended query tag entries are valid
+/// </summary>
+public interface IExtendedQueryTagEntryValidator
 {
     /// <summary>
-    /// Validate if given extended query tag entries are valid
+    /// Validate if given extended query tag entries are valid.
     /// </summary>
-    public interface IExtendedQueryTagEntryValidator
-    {
-        /// <summary>
-        /// Validate if given extended query tag entries are valid.
-        /// </summary>
-        /// <param name="extendedQueryTagEntries">The extended query tag entries</param>
-        void ValidateExtendedQueryTags(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries);
-    }
+    /// <param name="extendedQueryTagEntries">The extended query tag entries</param>
+    void ValidateExtendedQueryTags(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTagEntries);
 }

@@ -5,17 +5,16 @@
 
 using System.IO;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
-{
-    public class RetrieveResourceInstance
-    {
-        public RetrieveResourceInstance(Stream stream, string transferSyntaxUid = null)
-        {
-            Stream = stream;
-            TransferSyntaxUid = transferSyntaxUid;
-        }
+namespace Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
-        public Stream Stream { get; }
-        public string TransferSyntaxUid { get; }
+public class RetrieveResourceInstance
+{
+    public RetrieveResourceInstance(Stream stream, string transferSyntaxUid = null)
+    {
+        Stream = stream;
+        TransferSyntaxUid = transferSyntaxUid;
     }
+
+    public Stream Stream { get; }
+    public string TransferSyntaxUid { get; }
 }

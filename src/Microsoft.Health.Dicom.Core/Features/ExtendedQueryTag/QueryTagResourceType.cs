@@ -3,21 +3,20 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
+namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+
+/// <summary>
+/// Resource type of a query tag.
+/// </summary>
+public enum QueryTagResourceType
 {
     /// <summary>
-    /// Resource type of a query tag.
+    /// The image instance resource type
     /// </summary>
-    public enum QueryTagResourceType
-    {
-        /// <summary>
-        /// The image instance resource type
-        /// </summary>
-        Image = 0,
+    Image = 0,
 
-        /// <summary>
-        /// The workitem instance resource type
-        /// </summary>
-        Workitem = 1
-    }
+    /// <summary>
+    /// The workitem instance resource type
+    /// </summary>
+    Workitem = 1
 }

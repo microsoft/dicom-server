@@ -8,24 +8,23 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 
-namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction;
+
+public class MockFhirTransactionPipelineStep : IFhirTransactionPipelineStep
 {
-    public class MockFhirTransactionPipelineStep : IFhirTransactionPipelineStep
+    public Action<FhirTransactionContext, CancellationToken> OnPrepareRequestAsyncCalled { get; set; }
+
+    public Action<FhirTransactionContext> OnProcessResponseCalled { get; set; }
+
+    public Task PrepareRequestAsync(FhirTransactionContext context, CancellationToken cancellationToken)
     {
-        public Action<FhirTransactionContext, CancellationToken> OnPrepareRequestAsyncCalled { get; set; }
+        OnPrepareRequestAsyncCalled?.Invoke(context, cancellationToken);
 
-        public Action<FhirTransactionContext> OnProcessResponseCalled { get; set; }
+        return Task.CompletedTask;
+    }
 
-        public Task PrepareRequestAsync(FhirTransactionContext context, CancellationToken cancellationToken)
-        {
-            OnPrepareRequestAsyncCalled?.Invoke(context, cancellationToken);
-
-            return Task.CompletedTask;
-        }
-
-        public void ProcessResponse(FhirTransactionContext context)
-        {
-            OnProcessResponseCalled?.Invoke(context);
-        }
+    public void ProcessResponse(FhirTransactionContext context)
+    {
+        OnProcessResponseCalled?.Invoke(context);
     }
 }

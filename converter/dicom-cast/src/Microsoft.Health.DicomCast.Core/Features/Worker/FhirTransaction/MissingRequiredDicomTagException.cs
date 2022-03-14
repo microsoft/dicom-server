@@ -6,23 +6,22 @@
 using EnsureThat;
 using Microsoft.Health.DicomCast.Core.Exceptions;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
+
+/// <summary>
+/// Exception thrown when required DICOM tag is missing.
+/// </summary>
+public class MissingRequiredDicomTagException : DicomTagException
 {
-    /// <summary>
-    /// Exception thrown when required DICOM tag is missing.
-    /// </summary>
-    public class MissingRequiredDicomTagException : DicomTagException
+    public MissingRequiredDicomTagException(string dicomTagName)
+        : base(FormatMessage(dicomTagName))
     {
-        public MissingRequiredDicomTagException(string dicomTagName)
-            : base(FormatMessage(dicomTagName))
-        {
-        }
+    }
 
-        private static string FormatMessage(string dicomTagName)
-        {
-            EnsureArg.IsNotNullOrWhiteSpace(dicomTagName, nameof(dicomTagName));
+    private static string FormatMessage(string dicomTagName)
+    {
+        EnsureArg.IsNotNullOrWhiteSpace(dicomTagName, nameof(dicomTagName));
 
-            return string.Format(DicomCastCoreResource.MissingRequiredDicomTag, dicomTagName);
-        }
+        return string.Format(DicomCastCoreResource.MissingRequiredDicomTag, dicomTagName);
     }
 }

@@ -8,68 +8,67 @@ using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
 
-namespace Microsoft.Health.Dicom.Tests.Common.Comparers
+namespace Microsoft.Health.Dicom.Tests.Common.Comparers;
+
+public class DicomItemCollectionEqualityComparer : IEqualityComparer<IEnumerable<DicomItem>>
 {
-    public class DicomItemCollectionEqualityComparer : IEqualityComparer<IEnumerable<DicomItem>>
+    public static DicomItemCollectionEqualityComparer Default { get; } = new DicomItemCollectionEqualityComparer();
+
+    private readonly IEnumerable<DicomTag> _ignoredTags;
+
+    public DicomItemCollectionEqualityComparer()
+        : this(new DicomTag[] { DicomTag.ImplementationVersionName })
     {
-        public static DicomItemCollectionEqualityComparer Default { get; } = new DicomItemCollectionEqualityComparer();
+    }
 
-        private readonly IEnumerable<DicomTag> _ignoredTags;
+    public DicomItemCollectionEqualityComparer(IEnumerable<DicomTag> ignoredTags)
+    {
+        EnsureArg.IsNotNull(ignoredTags, nameof(ignoredTags));
+        _ignoredTags = ignoredTags;
+    }
 
-        public DicomItemCollectionEqualityComparer()
-            : this(new DicomTag[] { DicomTag.ImplementationVersionName })
+
+    public bool Equals(IEnumerable<DicomItem> x, IEnumerable<DicomItem> y)
+    {
+        if (x == null || y == null)
         {
+            return object.ReferenceEquals(x, y);
         }
 
-        public DicomItemCollectionEqualityComparer(IEnumerable<DicomTag> ignoredTags)
+        IEqualityComparer<DicomItem> dicomItemComparer = new DicomItemEqualityComparer();
+
+        ISet<DicomTag> ignoredSet = new HashSet<DicomTag>(_ignoredTags);
+        IDictionary<DicomTag, DicomItem> xDict = x.ToDictionary(item => item.Tag);
+        IDictionary<DicomTag, DicomItem> yDict = y.ToDictionary(item => item.Tag);
+
+        if (xDict.Count != yDict.Count)
         {
-            EnsureArg.IsNotNull(ignoredTags, nameof(ignoredTags));
-            _ignoredTags = ignoredTags;
+            return false;
         }
 
-
-        public bool Equals(IEnumerable<DicomItem> x, IEnumerable<DicomItem> y)
+        foreach (DicomTag tag in xDict.Keys)
         {
-            if (x == null || y == null)
+            if (ignoredSet.Contains(tag))
             {
-                return object.ReferenceEquals(x, y);
+                continue;
             }
 
-            IEqualityComparer<DicomItem> dicomItemComparer = new DicomItemEqualityComparer();
-
-            ISet<DicomTag> ignoredSet = new HashSet<DicomTag>(_ignoredTags);
-            IDictionary<DicomTag, DicomItem> xDict = x.ToDictionary(item => item.Tag);
-            IDictionary<DicomTag, DicomItem> yDict = y.ToDictionary(item => item.Tag);
-
-            if (xDict.Count != yDict.Count)
+            if (!yDict.ContainsKey(tag))
             {
                 return false;
             }
 
-            foreach (DicomTag tag in xDict.Keys)
+            if (!dicomItemComparer.Equals(xDict[tag], yDict[tag]))
             {
-                if (ignoredSet.Contains(tag))
-                {
-                    continue;
-                }
-
-                if (!yDict.ContainsKey(tag))
-                {
-                    return false;
-                }
-
-                if (!dicomItemComparer.Equals(xDict[tag], yDict[tag]))
-                {
-                    return false;
-                }
+                return false;
             }
-
-            return true;
         }
 
-        public int GetHashCode(IEnumerable<DicomItem> obj)
-        {
-            return obj.GetHashCode();
-        }
+        return true;
+    }
+
+    public int GetHashCode(IEnumerable<DicomItem> obj)
+    {
+        return obj.GetHashCode();
     }
 }

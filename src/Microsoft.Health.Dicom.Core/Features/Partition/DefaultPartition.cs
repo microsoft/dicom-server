@@ -3,11 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Features.Partition
+namespace Microsoft.Health.Dicom.Core.Features.Partition;
+
+public static class DefaultPartition
 {
-    public static class DefaultPartition
-    {
-        public const string Name = "Microsoft.Default";
-        public const int Key = 1;
-    }
+    public const string Name = "Microsoft.Default";
+    public const int Key = 1;
 }

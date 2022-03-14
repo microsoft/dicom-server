@@ -5,17 +5,16 @@
 
 using Hl7.Fhir.Model;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Fhir
+namespace Microsoft.Health.DicomCast.Core.Features.Fhir;
+
+/// <summary>
+/// Provides functionality to validate a resource.
+/// </summary>
+public interface IFhirResourceValidator
 {
     /// <summary>
-    /// Provides functionality to validate a resource.
+    /// Validates the <paramref name="resource"/>.
     /// </summary>
-    public interface IFhirResourceValidator
-    {
-        /// <summary>
-        /// Validates the <paramref name="resource"/>.
-        /// </summary>
-        /// <param name="resource">The resource to be validated.</param>
-        void Validate(Resource resource);
-    }
+    /// <param name="resource">The resource to be validated.</param>
+    void Validate(Resource resource);
 }

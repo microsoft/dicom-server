@@ -15,32 +15,31 @@ using Microsoft.Health.Dicom.Core.Messages.Workitem;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
+namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem;
+
+public sealed class AddWorkitemRequestHandlerTests
 {
-    public sealed class AddWorkitemRequestHandlerTests
+    private readonly IWorkitemSerializer _workitemSerializer = Substitute.For<IWorkitemSerializer>();
+    private readonly IWorkitemService _workitemService = Substitute.For<IWorkitemService>();
+    private readonly AddWorkitemRequestHandler _target;
+
+    public AddWorkitemRequestHandlerTests()
     {
-        private readonly IWorkitemSerializer _workitemSerializer = Substitute.For<IWorkitemSerializer>();
-        private readonly IWorkitemService _workitemService = Substitute.For<IWorkitemService>();
-        private readonly AddWorkitemRequestHandler _target;
+        _target = new AddWorkitemRequestHandler(new DisabledAuthorizationService<DataActions>(), _workitemSerializer, _workitemService);
+    }
 
-        public AddWorkitemRequestHandlerTests()
-        {
-            _target = new AddWorkitemRequestHandler(new DisabledAuthorizationService<DataActions>(), _workitemSerializer, _workitemService);
-        }
+    [Fact]
+    public async Task GivenSupportedContentType_WhenHandled_ThenCorrectStoreResponseShouldBeReturned()
+    {
+        var workitemInstanceUid = string.Empty;
+        var request = new AddWorkitemRequest(Stream.Null, @"application/json", workitemInstanceUid);
 
-        [Fact]
-        public async Task GivenSupportedContentType_WhenHandled_ThenCorrectStoreResponseShouldBeReturned()
-        {
-            var workitemInstanceUid = string.Empty;
-            var request = new AddWorkitemRequest(Stream.Null, @"application/json", workitemInstanceUid);
+        var response = new AddWorkitemResponse(WorkitemResponseStatus.Success, new Uri(@"https://www.microsoft.com"));
 
-            var response = new AddWorkitemResponse(WorkitemResponseStatus.Success, new Uri(@"https://www.microsoft.com"));
+        _workitemService
+            .ProcessAddAsync(Arg.Any<DicomDataset>(), workitemInstanceUid, CancellationToken.None)
+            .Returns(response);
 
-            _workitemService
-                .ProcessAddAsync(Arg.Any<DicomDataset>(), workitemInstanceUid, CancellationToken.None)
-                .Returns(response);
-
-            Assert.Same(response, await _target.Handle(request, CancellationToken.None));
-        }
+        Assert.Same(response, await _target.Handle(request, CancellationToken.None));
     }
 }

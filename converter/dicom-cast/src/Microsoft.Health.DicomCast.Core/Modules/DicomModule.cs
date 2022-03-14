@@ -13,41 +13,40 @@ using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.DicomWeb.Service;
 using Microsoft.Health.Extensions.DependencyInjection;
 
-namespace Microsoft.Health.DicomCast.Core.Modules
+namespace Microsoft.Health.DicomCast.Core.Modules;
+
+public class DicomModule : IStartupModule
 {
-    public class DicomModule : IStartupModule
+    private const string DicomWebConfigurationSectionName = "DicomWeb";
+
+    private readonly IConfiguration _configuration;
+
+    public DicomModule(IConfiguration configuration)
     {
-        private const string DicomWebConfigurationSectionName = "DicomWeb";
+        EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-        private readonly IConfiguration _configuration;
+        _configuration = configuration;
+    }
 
-        public DicomModule(IConfiguration configuration)
-        {
-            EnsureArg.IsNotNull(configuration, nameof(configuration));
+    public void Load(IServiceCollection services)
+    {
+        EnsureArg.IsNotNull(services, nameof(services));
 
-            _configuration = configuration;
-        }
+        var dicomWebConfiguration = new DicomWebConfiguration();
+        IConfigurationSection dicomWebConfigurationSection = _configuration.GetSection(DicomWebConfigurationSectionName);
+        dicomWebConfigurationSection.Bind(dicomWebConfiguration);
 
-        public void Load(IServiceCollection services)
-        {
-            EnsureArg.IsNotNull(services, nameof(services));
+        services.AddSingleton(Options.Create(dicomWebConfiguration));
 
-            var dicomWebConfiguration = new DicomWebConfiguration();
-            IConfigurationSection dicomWebConfigurationSection = _configuration.GetSection(DicomWebConfigurationSectionName);
-            dicomWebConfigurationSection.Bind(dicomWebConfiguration);
+        services.AddHttpClient<IDicomWebClient, DicomWebClient>(sp =>
+            {
+                sp.BaseAddress = dicomWebConfiguration.Endpoint;
+            })
+            .AddAuthenticationHandler(services, dicomWebConfigurationSection.GetSection(AuthenticationConfiguration.SectionName), DicomWebConfigurationSectionName);
 
-            services.AddSingleton(Options.Create(dicomWebConfiguration));
-
-            services.AddHttpClient<IDicomWebClient, DicomWebClient>(sp =>
-                {
-                    sp.BaseAddress = dicomWebConfiguration.Endpoint;
-                })
-                .AddAuthenticationHandler(services, dicomWebConfigurationSection.GetSection(AuthenticationConfiguration.SectionName), DicomWebConfigurationSectionName);
-
-            services.Add<ChangeFeedRetrieveService>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
-        }
+        services.Add<ChangeFeedRetrieveService>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
     }
 }

@@ -11,31 +11,30 @@ using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Memory;
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
+namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions;
+
+internal static class EnvironmentConfig
 {
-    internal static class EnvironmentConfig
+    public static IConfigurationSource FromLocalSettings(string filePath)
     {
-        public static IConfigurationSource FromLocalSettings(string filePath)
+        using FileStream file = File.OpenRead(Path.Combine(filePath, ScriptConstants.LocalSettingsFileName));
+        Settings settings = JsonSerializer.Deserialize<Settings>(file);
+
+        if (settings.Encrypted)
         {
-            using FileStream file = File.OpenRead(Path.Combine(filePath, ScriptConstants.LocalSettingsFileName));
-            Settings settings = JsonSerializer.Deserialize<Settings>(file);
-
-            if (settings.Encrypted)
-            {
-                throw new InvalidOperationException($"Cannot process encrypted settings at '{filePath}'.");
-            }
-
-            return new MemoryConfigurationSource
-            {
-                InitialData = settings.Values.Select(x => KeyValuePair.Create(x.Key.Replace("__", ":"), x.Value)),
-            };
+            throw new InvalidOperationException($"Cannot process encrypted settings at '{filePath}'.");
         }
 
-        private sealed class Settings
+        return new MemoryConfigurationSource
         {
-            public bool Encrypted { get; set; }
+            InitialData = settings.Values.Select(x => KeyValuePair.Create(x.Key.Replace("__", ":"), x.Value)),
+        };
+    }
 
-            public Dictionary<string, string> Values { get; set; }
-        }
+    private sealed class Settings
+    {
+        public bool Encrypted { get; set; }
+
+        public Dictionary<string, string> Values { get; set; }
     }
 }

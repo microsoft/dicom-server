@@ -10,22 +10,21 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 
-namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
+namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
+
+public interface IExtendedQueryTagStoreTestHelper
 {
-    public interface IExtendedQueryTagStoreTestHelper
-    {
-        Task ClearExtendedQueryTagTablesAsync();
+    Task ClearExtendedQueryTagTablesAsync();
 
-        internal Task<IReadOnlyList<ExtendedQueryTagDataRow>> GetExtendedQueryTagDataAsync(
-            ExtendedQueryTagDataType dataType,
-            int tagKey,
-            long studyKey,
-            long? seriesKey = null,
-            long? instanceKey = null,
-            CancellationToken cancellationToken = default);
+    internal Task<IReadOnlyList<ExtendedQueryTagDataRow>> GetExtendedQueryTagDataAsync(
+        ExtendedQueryTagDataType dataType,
+        int tagKey,
+        long studyKey,
+        long? seriesKey = null,
+        long? instanceKey = null,
+        CancellationToken cancellationToken = default);
 
-        internal Task<IReadOnlyList<ExtendedQueryTagDataRow>> GetExtendedQueryTagDataForTagKeyAsync(ExtendedQueryTagDataType dataType, int tagKey, CancellationToken cancellationToken = default);
+    internal Task<IReadOnlyList<ExtendedQueryTagDataRow>> GetExtendedQueryTagDataForTagKeyAsync(ExtendedQueryTagDataType dataType, int tagKey, CancellationToken cancellationToken = default);
 
-        Task SetTagStatusAsync(int tagKey, ExtendedQueryTagStatus status, CancellationToken cancellationToken = default);
-    }
+    Task SetTagStatusAsync(int tagKey, ExtendedQueryTagStatus status, CancellationToken cancellationToken = default);
 }

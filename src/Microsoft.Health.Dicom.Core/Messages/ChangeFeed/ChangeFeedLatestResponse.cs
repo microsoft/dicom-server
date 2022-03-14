@@ -5,15 +5,14 @@
 
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 
-namespace Microsoft.Health.Dicom.Core.Messages.ChangeFeed
-{
-    public class ChangeFeedLatestResponse
-    {
-        public ChangeFeedLatestResponse(ChangeFeedEntry entry)
-        {
-            Entry = entry;
-        }
+namespace Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
 
-        public ChangeFeedEntry Entry { get; }
+public class ChangeFeedLatestResponse
+{
+    public ChangeFeedLatestResponse(ChangeFeedEntry entry)
+    {
+        Entry = entry;
     }
+
+    public ChangeFeedEntry Entry { get; }
 }

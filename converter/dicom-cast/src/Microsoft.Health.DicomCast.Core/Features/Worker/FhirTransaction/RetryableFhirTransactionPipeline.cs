@@ -15,72 +15,71 @@ using Microsoft.Health.DicomCast.Core.Exceptions;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Polly;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
+
+/// <summary>
+/// Provides retry functionality to <see cref="IFhirTransactionPipeline"/>.
+/// </summary>
+public class RetryableFhirTransactionPipeline : IFhirTransactionPipeline
 {
-    /// <summary>
-    /// Provides retry functionality to <see cref="IFhirTransactionPipeline"/>.
-    /// </summary>
-    public class RetryableFhirTransactionPipeline : IFhirTransactionPipeline
+    private readonly IFhirTransactionPipeline _fhirTransactionPipeline;
+    private readonly IExceptionStore _exceptionStore;
+    private readonly IAsyncPolicy _retryPolicy;
+    private readonly IAsyncPolicy _timeoutPolicy;
+
+    public RetryableFhirTransactionPipeline(IFhirTransactionPipeline fhirTransactionPipeline, IExceptionStore exceptionStore, IOptions<RetryConfiguration> retryConfiguration)
     {
-        private readonly IFhirTransactionPipeline _fhirTransactionPipeline;
-        private readonly IExceptionStore _exceptionStore;
-        private readonly IAsyncPolicy _retryPolicy;
-        private readonly IAsyncPolicy _timeoutPolicy;
+        EnsureArg.IsNotNull(fhirTransactionPipeline, nameof(fhirTransactionPipeline));
+        EnsureArg.IsNotNull(exceptionStore, nameof(exceptionStore));
+        EnsureArg.IsNotNull(retryConfiguration, nameof(retryConfiguration));
 
-        public RetryableFhirTransactionPipeline(IFhirTransactionPipeline fhirTransactionPipeline, IExceptionStore exceptionStore, IOptions<RetryConfiguration> retryConfiguration)
-        {
-            EnsureArg.IsNotNull(fhirTransactionPipeline, nameof(fhirTransactionPipeline));
-            EnsureArg.IsNotNull(exceptionStore, nameof(exceptionStore));
-            EnsureArg.IsNotNull(retryConfiguration, nameof(retryConfiguration));
-
-            _fhirTransactionPipeline = fhirTransactionPipeline;
-            _exceptionStore = exceptionStore;
-            _timeoutPolicy = Policy.TimeoutAsync(retryConfiguration.Value.TotalRetryDuration);
-            _retryPolicy = Policy
-                .Handle<RetryableException>()
-                .WaitAndRetryForeverAsync(
-                    (retryAttempt, exception, context) =>
-                    {
-                        return TimeSpan.FromSeconds(Math.Min(60, Math.Pow(2, retryAttempt)));
-                    },
-                    (exception, retryCount, timeSpan, context) =>
-                    {
-                        var changeFeedEntry = (ChangeFeedEntry)context[nameof(ChangeFeedEntry)];
-
-                        return _exceptionStore.WriteRetryableExceptionAsync(
-                            changeFeedEntry,
-                            retryCount,
-                            timeSpan,
-                            exception);
-                    });
-        }
-
-        /// <inheritdoc/>
-        public Task ProcessAsync(ChangeFeedEntry changeFeedEntry, CancellationToken cancellationToken)
-        {
-            var context = new Context
-            {
-                { nameof(ChangeFeedEntry), changeFeedEntry },
-            };
-
-            return _timeoutPolicy.WrapAsync(_retryPolicy).ExecuteAsync(
-                async (ctx, tkn) =>
+        _fhirTransactionPipeline = fhirTransactionPipeline;
+        _exceptionStore = exceptionStore;
+        _timeoutPolicy = Policy.TimeoutAsync(retryConfiguration.Value.TotalRetryDuration);
+        _retryPolicy = Policy
+            .Handle<RetryableException>()
+            .WaitAndRetryForeverAsync(
+                (retryAttempt, exception, context) =>
                 {
-                    try
-                    {
-                        await _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, cancellationToken);
-                    }
-                    catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
-                    {
-                        throw new RetryableException(ex);
-                    }
-                    catch (HttpRequestException ex)
-                    {
-                        throw new RetryableException(ex);
-                    }
+                    return TimeSpan.FromSeconds(Math.Min(60, Math.Pow(2, retryAttempt)));
                 },
-                context,
-                cancellationToken);
-        }
+                (exception, retryCount, timeSpan, context) =>
+                {
+                    var changeFeedEntry = (ChangeFeedEntry)context[nameof(ChangeFeedEntry)];
+
+                    return _exceptionStore.WriteRetryableExceptionAsync(
+                        changeFeedEntry,
+                        retryCount,
+                        timeSpan,
+                        exception);
+                });
+    }
+
+    /// <inheritdoc/>
+    public Task ProcessAsync(ChangeFeedEntry changeFeedEntry, CancellationToken cancellationToken)
+    {
+        var context = new Context
+        {
+            { nameof(ChangeFeedEntry), changeFeedEntry },
+        };
+
+        return _timeoutPolicy.WrapAsync(_retryPolicy).ExecuteAsync(
+            async (ctx, tkn) =>
+            {
+                try
+                {
+                    await _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, cancellationToken);
+                }
+                catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+                {
+                    throw new RetryableException(ex);
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new RetryableException(ex);
+                }
+            },
+            context,
+            cancellationToken);
     }
 }

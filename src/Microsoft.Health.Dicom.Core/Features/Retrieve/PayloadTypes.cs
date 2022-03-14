@@ -5,14 +5,13 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Core.Features.Retrieve
+namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
+
+[Flags]
+public enum PayloadTypes
 {
-    [Flags]
-    public enum PayloadTypes
-    {
-        None = 0,
-        SinglePart = 1,
-        MultipartRelated = 2,
-        SinglePartOrMultipartRelated = SinglePart | MultipartRelated,
-    }
+    None = 0,
+    SinglePart = 1,
+    MultipartRelated = 2,
+    SinglePartOrMultipartRelated = SinglePart | MultipartRelated,
 }

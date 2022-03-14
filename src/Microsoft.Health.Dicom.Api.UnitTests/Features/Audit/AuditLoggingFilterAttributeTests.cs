@@ -17,275 +17,274 @@ using NSubstitute;
 using Xunit;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
-namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
+namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit;
+
+public class AuditLoggingFilterAttributeTests
 {
-    public class AuditLoggingFilterAttributeTests
+    private readonly IClaimsExtractor _claimsExtractor = Substitute.For<IClaimsExtractor>();
+    private readonly IAuditHelper _auditHelper = Substitute.For<IAuditHelper>();
+
+    private readonly DicomAudit.AuditLoggingFilterAttribute _filter;
+
+    private readonly HttpContext _httpContext = new DefaultHttpContext();
+
+    public AuditLoggingFilterAttributeTests()
     {
-        private readonly IClaimsExtractor _claimsExtractor = Substitute.For<IClaimsExtractor>();
-        private readonly IAuditHelper _auditHelper = Substitute.For<IAuditHelper>();
+        _filter = new DicomAudit.AuditLoggingFilterAttribute(_claimsExtractor, _auditHelper);
+    }
 
-        private readonly DicomAudit.AuditLoggingFilterAttribute _filter;
+    [Fact]
+    public void GivenChangeFeedController_WhenExecutingAction_ThenAuditLogShouldBeLogged()
+    {
+        var actionExecutingContext = new ActionExecutingContext(
+            new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executing ChangeFeed." }),
+            new List<IFilterMetadata>(),
+            new Dictionary<string, object>(),
+            FilterTestsHelper.CreateMockChangeFeedController());
 
-        private readonly HttpContext _httpContext = new DefaultHttpContext();
+        _filter.OnActionExecuting(actionExecutingContext);
 
-        public AuditLoggingFilterAttributeTests()
-        {
-            _filter = new DicomAudit.AuditLoggingFilterAttribute(_claimsExtractor, _auditHelper);
-        }
+        _auditHelper.Received(1).LogExecuting(_httpContext, _claimsExtractor);
+    }
 
-        [Fact]
-        public void GivenChangeFeedController_WhenExecutingAction_ThenAuditLogShouldBeLogged()
-        {
-            var actionExecutingContext = new ActionExecutingContext(
-                new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executing ChangeFeed." }),
-                new List<IFilterMetadata>(),
-                new Dictionary<string, object>(),
-                FilterTestsHelper.CreateMockChangeFeedController());
+    [Fact]
+    public void GivenChangeFeedController_WhenExecutedActionThrowsException_ThenAuditLogShouldNotBeLogged()
+    {
+        var result = new NoContentResult();
 
-            _filter.OnActionExecuting(actionExecutingContext);
+        var actionExecutedContext = new ActionExecutedContext(
+            new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed ChangeFeed." }),
+            new List<IFilterMetadata>(),
+            FilterTestsHelper.CreateMockChangeFeedController());
 
-            _auditHelper.Received(1).LogExecuting(_httpContext, _claimsExtractor);
-        }
+        actionExecutedContext.Exception = new Exception("Test Exception.");
 
-        [Fact]
-        public void GivenChangeFeedController_WhenExecutedActionThrowsException_ThenAuditLogShouldNotBeLogged()
-        {
-            var result = new NoContentResult();
+        _filter.OnActionExecuted(actionExecutedContext);
 
-            var actionExecutedContext = new ActionExecutedContext(
-                new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed ChangeFeed." }),
-                new List<IFilterMetadata>(),
-                FilterTestsHelper.CreateMockChangeFeedController());
+        _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
+            httpContext: default,
+            claimsExtractor: default);
+    }
 
-            actionExecutedContext.Exception = new Exception("Test Exception.");
+    [Fact]
+    public void GivenChangeFeedController_WhenExecutedAction_ThenAuditLogShouldNotBeLogged()
+    {
+        var result = new NoContentResult();
 
-            _filter.OnActionExecuted(actionExecutedContext);
+        var resultExecutedContext = new ResultExecutedContext(
+            new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed ChangeFeed." }),
+            new List<IFilterMetadata>(),
+            result,
+            FilterTestsHelper.CreateMockChangeFeedController());
 
-            _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
-                httpContext: default,
-                claimsExtractor: default);
-        }
+        _filter.OnResultExecuted(resultExecutedContext);
 
-        [Fact]
-        public void GivenChangeFeedController_WhenExecutedAction_ThenAuditLogShouldNotBeLogged()
-        {
-            var result = new NoContentResult();
+        _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
+            httpContext: default,
+            claimsExtractor: default);
+    }
 
-            var resultExecutedContext = new ResultExecutedContext(
-                new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed ChangeFeed." }),
-                new List<IFilterMetadata>(),
-                result,
-                FilterTestsHelper.CreateMockChangeFeedController());
+    [Fact]
+    public void GivenDeleteController_WhenExecutingAction_ThenAuditLogShouldBeLogged()
+    {
+        var actionExecutingContext = new ActionExecutingContext(
+            new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executing Delete." }),
+            new List<IFilterMetadata>(),
+            new Dictionary<string, object>(),
+            FilterTestsHelper.CreateMockDeleteController());
 
-            _filter.OnResultExecuted(resultExecutedContext);
+        _filter.OnActionExecuting(actionExecutingContext);
 
-            _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
-                httpContext: default,
-                claimsExtractor: default);
-        }
+        _auditHelper.Received(1).LogExecuting(_httpContext, _claimsExtractor);
+    }
 
-        [Fact]
-        public void GivenDeleteController_WhenExecutingAction_ThenAuditLogShouldBeLogged()
-        {
-            var actionExecutingContext = new ActionExecutingContext(
-                new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executing Delete." }),
-                new List<IFilterMetadata>(),
-                new Dictionary<string, object>(),
-                FilterTestsHelper.CreateMockDeleteController());
+    [Fact]
+    public void GivenDeleteController_WhenExecutedActionThrowsException_ThenAuditLogShouldNotBeLogged()
+    {
+        var result = new NoContentResult();
 
-            _filter.OnActionExecuting(actionExecutingContext);
+        var actionExecutedContext = new ActionExecutedContext(
+            new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed Delete." }),
+            new List<IFilterMetadata>(),
+            FilterTestsHelper.CreateMockDeleteController());
 
-            _auditHelper.Received(1).LogExecuting(_httpContext, _claimsExtractor);
-        }
+        actionExecutedContext.Exception = new Exception("Test Exception.");
 
-        [Fact]
-        public void GivenDeleteController_WhenExecutedActionThrowsException_ThenAuditLogShouldNotBeLogged()
-        {
-            var result = new NoContentResult();
+        _filter.OnActionExecuted(actionExecutedContext);
 
-            var actionExecutedContext = new ActionExecutedContext(
-                new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed Delete." }),
-                new List<IFilterMetadata>(),
-                FilterTestsHelper.CreateMockDeleteController());
+        _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
+            httpContext: default,
+            claimsExtractor: default);
+    }
 
-            actionExecutedContext.Exception = new Exception("Test Exception.");
+    [Fact]
+    public void GivenDeleteController_WhenExecutedAction_ThenAuditLogShouldNotBeLogged()
+    {
+        var result = new NoContentResult();
 
-            _filter.OnActionExecuted(actionExecutedContext);
+        var resultExecutedContext = new ResultExecutedContext(
+            new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed Delete." }),
+            new List<IFilterMetadata>(),
+            result,
+            FilterTestsHelper.CreateMockDeleteController());
 
-            _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
-                httpContext: default,
-                claimsExtractor: default);
-        }
+        _filter.OnResultExecuted(resultExecutedContext);
 
-        [Fact]
-        public void GivenDeleteController_WhenExecutedAction_ThenAuditLogShouldNotBeLogged()
-        {
-            var result = new NoContentResult();
+        _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
+            httpContext: default,
+            claimsExtractor: default);
+    }
 
-            var resultExecutedContext = new ResultExecutedContext(
-                new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed Delete." }),
-                new List<IFilterMetadata>(),
-                result,
-                FilterTestsHelper.CreateMockDeleteController());
+    [Fact]
+    public void GivenQueryController_WhenExecutingAction_ThenAuditLogShouldBeLogged()
+    {
+        var actionExecutingContext = new ActionExecutingContext(
+            new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executing Query." }),
+            new List<IFilterMetadata>(),
+            new Dictionary<string, object>(),
+            FilterTestsHelper.CreateMockQueryController());
 
-            _filter.OnResultExecuted(resultExecutedContext);
+        _filter.OnActionExecuting(actionExecutingContext);
 
-            _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
-                httpContext: default,
-                claimsExtractor: default);
-        }
+        _auditHelper.Received(1).LogExecuting(_httpContext, _claimsExtractor);
+    }
 
-        [Fact]
-        public void GivenQueryController_WhenExecutingAction_ThenAuditLogShouldBeLogged()
-        {
-            var actionExecutingContext = new ActionExecutingContext(
-                new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executing Query." }),
-                new List<IFilterMetadata>(),
-                new Dictionary<string, object>(),
-                FilterTestsHelper.CreateMockQueryController());
+    [Fact]
+    public void GivenQueryController_WhenExecutedActionThrowsException_ThenAuditLogShouldNotBeLogged()
+    {
+        var result = new NoContentResult();
 
-            _filter.OnActionExecuting(actionExecutingContext);
+        var actionExecutedContext = new ActionExecutedContext(
+            new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed Query." }),
+            new List<IFilterMetadata>(),
+            FilterTestsHelper.CreateMockQueryController());
 
-            _auditHelper.Received(1).LogExecuting(_httpContext, _claimsExtractor);
-        }
+        actionExecutedContext.Exception = new Exception("Test Exception.");
 
-        [Fact]
-        public void GivenQueryController_WhenExecutedActionThrowsException_ThenAuditLogShouldNotBeLogged()
-        {
-            var result = new NoContentResult();
+        _filter.OnActionExecuted(actionExecutedContext);
 
-            var actionExecutedContext = new ActionExecutedContext(
-                new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed Query." }),
-                new List<IFilterMetadata>(),
-                FilterTestsHelper.CreateMockQueryController());
+        _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
+            httpContext: default,
+            claimsExtractor: default);
+    }
 
-            actionExecutedContext.Exception = new Exception("Test Exception.");
+    [Fact]
+    public void GivenQueryController_WhenExecutedAction_ThenAuditLogShouldNotBeLogged()
+    {
+        var result = new NoContentResult();
 
-            _filter.OnActionExecuted(actionExecutedContext);
+        var resultExecutedContext = new ResultExecutedContext(
+            new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed Query." }),
+            new List<IFilterMetadata>(),
+            result,
+            FilterTestsHelper.CreateMockQueryController());
 
-            _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
-                httpContext: default,
-                claimsExtractor: default);
-        }
+        _filter.OnResultExecuted(resultExecutedContext);
 
-        [Fact]
-        public void GivenQueryController_WhenExecutedAction_ThenAuditLogShouldNotBeLogged()
-        {
-            var result = new NoContentResult();
+        _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
+            httpContext: default,
+            claimsExtractor: default);
+    }
 
-            var resultExecutedContext = new ResultExecutedContext(
-                new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed Query." }),
-                new List<IFilterMetadata>(),
-                result,
-                FilterTestsHelper.CreateMockQueryController());
+    [Fact]
+    public void GivenRetrieveController_WhenExecutingAction_ThenAuditLogShouldBeLogged()
+    {
+        var actionExecutingContext = new ActionExecutingContext(
+            new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executing Retrieve." }),
+            new List<IFilterMetadata>(),
+            new Dictionary<string, object>(),
+            FilterTestsHelper.CreateMockRetrieveController());
 
-            _filter.OnResultExecuted(resultExecutedContext);
+        _filter.OnActionExecuting(actionExecutingContext);
 
-            _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
-                httpContext: default,
-                claimsExtractor: default);
-        }
+        _auditHelper.Received(1).LogExecuting(_httpContext, _claimsExtractor);
+    }
 
-        [Fact]
-        public void GivenRetrieveController_WhenExecutingAction_ThenAuditLogShouldBeLogged()
-        {
-            var actionExecutingContext = new ActionExecutingContext(
-                new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executing Retrieve." }),
-                new List<IFilterMetadata>(),
-                new Dictionary<string, object>(),
-                FilterTestsHelper.CreateMockRetrieveController());
+    [Fact]
+    public void GivenRetrieveController_WhenExecutedActionThrowsException_ThenAuditLogShouldNotBeLogged()
+    {
+        var result = new NoContentResult();
 
-            _filter.OnActionExecuting(actionExecutingContext);
+        var actionExecutedContext = new ActionExecutedContext(
+            new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed Retrieve." }),
+            new List<IFilterMetadata>(),
+            FilterTestsHelper.CreateMockRetrieveController());
 
-            _auditHelper.Received(1).LogExecuting(_httpContext, _claimsExtractor);
-        }
+        actionExecutedContext.Exception = new Exception("Test Exception.");
 
-        [Fact]
-        public void GivenRetrieveController_WhenExecutedActionThrowsException_ThenAuditLogShouldNotBeLogged()
-        {
-            var result = new NoContentResult();
+        _filter.OnActionExecuted(actionExecutedContext);
 
-            var actionExecutedContext = new ActionExecutedContext(
-                new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed Retrieve." }),
-                new List<IFilterMetadata>(),
-                FilterTestsHelper.CreateMockRetrieveController());
+        _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
+            httpContext: default,
+            claimsExtractor: default);
+    }
 
-            actionExecutedContext.Exception = new Exception("Test Exception.");
+    [Fact]
+    public void GivenRetrieveController_WhenExecutedAction_ThenAuditLogShouldNotBeLogged()
+    {
+        var result = new NoContentResult();
 
-            _filter.OnActionExecuted(actionExecutedContext);
+        var resultExecutedContext = new ResultExecutedContext(
+            new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed Retrieve." }),
+            new List<IFilterMetadata>(),
+            result,
+            FilterTestsHelper.CreateMockRetrieveController());
 
-            _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
-                httpContext: default,
-                claimsExtractor: default);
-        }
+        _filter.OnResultExecuted(resultExecutedContext);
 
-        [Fact]
-        public void GivenRetrieveController_WhenExecutedAction_ThenAuditLogShouldNotBeLogged()
-        {
-            var result = new NoContentResult();
+        _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
+            httpContext: default,
+            claimsExtractor: default);
+    }
 
-            var resultExecutedContext = new ResultExecutedContext(
-                new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed Retrieve." }),
-                new List<IFilterMetadata>(),
-                result,
-                FilterTestsHelper.CreateMockRetrieveController());
+    [Fact]
+    public void GivenStoreController_WhenExecutingAction_ThenAuditLogShouldBeLogged()
+    {
+        var actionExecutingContext = new ActionExecutingContext(
+            new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executing Store." }),
+            new List<IFilterMetadata>(),
+            new Dictionary<string, object>(),
+            FilterTestsHelper.CreateMockStoreController());
 
-            _filter.OnResultExecuted(resultExecutedContext);
+        _filter.OnActionExecuting(actionExecutingContext);
 
-            _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
-                httpContext: default,
-                claimsExtractor: default);
-        }
+        _auditHelper.Received(1).LogExecuting(_httpContext, _claimsExtractor);
+    }
 
-        [Fact]
-        public void GivenStoreController_WhenExecutingAction_ThenAuditLogShouldBeLogged()
-        {
-            var actionExecutingContext = new ActionExecutingContext(
-                new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executing Store." }),
-                new List<IFilterMetadata>(),
-                new Dictionary<string, object>(),
-                FilterTestsHelper.CreateMockStoreController());
+    [Fact]
+    public void GivenStoreController_WhenExecutedActionThrowsException_ThenAuditLogShouldNotBeLogged()
+    {
+        var result = new NoContentResult();
 
-            _filter.OnActionExecuting(actionExecutingContext);
+        var actionExecutedContext = new ActionExecutedContext(
+            new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed Store." }),
+            new List<IFilterMetadata>(),
+            FilterTestsHelper.CreateMockStoreController());
 
-            _auditHelper.Received(1).LogExecuting(_httpContext, _claimsExtractor);
-        }
+        actionExecutedContext.Exception = new Exception("Test Exception.");
 
-        [Fact]
-        public void GivenStoreController_WhenExecutedActionThrowsException_ThenAuditLogShouldNotBeLogged()
-        {
-            var result = new NoContentResult();
+        _filter.OnActionExecuted(actionExecutedContext);
 
-            var actionExecutedContext = new ActionExecutedContext(
-                new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed Store." }),
-                new List<IFilterMetadata>(),
-                FilterTestsHelper.CreateMockStoreController());
+        _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
+            httpContext: default,
+            claimsExtractor: default);
+    }
 
-            actionExecutedContext.Exception = new Exception("Test Exception.");
+    [Fact]
+    public void GivenStoreController_WhenExecutedAction_ThenAuditLogShouldNotBeLogged()
+    {
+        var result = new NoContentResult();
 
-            _filter.OnActionExecuted(actionExecutedContext);
+        var resultExecutedContext = new ResultExecutedContext(
+            new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed Store." }),
+            new List<IFilterMetadata>(),
+            result,
+            FilterTestsHelper.CreateMockStoreController());
 
-            _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
-                httpContext: default,
-                claimsExtractor: default);
-        }
+        _filter.OnResultExecuted(resultExecutedContext);
 
-        [Fact]
-        public void GivenStoreController_WhenExecutedAction_ThenAuditLogShouldNotBeLogged()
-        {
-            var result = new NoContentResult();
-
-            var resultExecutedContext = new ResultExecutedContext(
-                new ActionContext(_httpContext, new RouteData(), new ControllerActionDescriptor() { DisplayName = "Executed Store." }),
-                new List<IFilterMetadata>(),
-                result,
-                FilterTestsHelper.CreateMockStoreController());
-
-            _filter.OnResultExecuted(resultExecutedContext);
-
-            _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
-                httpContext: default,
-                claimsExtractor: default);
-        }
+        _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
+            httpContext: default,
+            claimsExtractor: default);
     }
 }

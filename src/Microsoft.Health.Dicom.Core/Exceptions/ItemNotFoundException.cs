@@ -5,13 +5,12 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Core.Exceptions
+namespace Microsoft.Health.Dicom.Core.Exceptions;
+
+public class ItemNotFoundException : DicomServerException
 {
-    public class ItemNotFoundException : DicomServerException
+    public ItemNotFoundException(Exception innerException)
+        : base(DicomCoreResource.ItemNotFound, innerException)
     {
-        public ItemNotFoundException(Exception innerException)
-            : base(DicomCoreResource.ItemNotFound, innerException)
-        {
-        }
     }
 }

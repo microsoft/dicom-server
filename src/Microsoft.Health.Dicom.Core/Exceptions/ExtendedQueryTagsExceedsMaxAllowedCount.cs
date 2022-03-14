@@ -5,16 +5,15 @@
 
 using System.Globalization;
 
-namespace Microsoft.Health.Dicom.Core.Exceptions
+namespace Microsoft.Health.Dicom.Core.Exceptions;
+
+/// <summary>
+/// Exception thrown when the extended query tags exceeds max allowed count.
+/// </summary>
+public class ExtendedQueryTagsExceedsMaxAllowedCountException : DicomServerException
 {
-    /// <summary>
-    /// Exception thrown when the extended query tags exceeds max allowed count.
-    /// </summary>
-    public class ExtendedQueryTagsExceedsMaxAllowedCountException : DicomServerException
+    public ExtendedQueryTagsExceedsMaxAllowedCountException(int maxAllowedCount)
+        : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExtendedQueryTagsExceedsMaxAllowedCount, maxAllowedCount))
     {
-        public ExtendedQueryTagsExceedsMaxAllowedCountException(int maxAllowedCount)
-            : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExtendedQueryTagsExceedsMaxAllowedCount, maxAllowedCount))
-        {
-        }
     }
 }

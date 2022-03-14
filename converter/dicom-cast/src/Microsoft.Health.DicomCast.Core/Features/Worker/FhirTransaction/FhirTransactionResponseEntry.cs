@@ -6,31 +6,30 @@
 using EnsureThat;
 using Hl7.Fhir.Model;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
+
+/// <summary>
+/// Provides a FHIR transaction response detail.
+/// </summary>
+public class FhirTransactionResponseEntry
 {
-    /// <summary>
-    /// Provides a FHIR transaction response detail.
-    /// </summary>
-    public class FhirTransactionResponseEntry
+    public FhirTransactionResponseEntry(
+        Bundle.ResponseComponent response,
+        Resource resource)
     {
-        public FhirTransactionResponseEntry(
-            Bundle.ResponseComponent response,
-            Resource resource)
-        {
-            EnsureArg.IsNotNull(response, nameof(response));
+        EnsureArg.IsNotNull(response, nameof(response));
 
-            Response = response;
-            Resource = resource;
-        }
-
-        /// <summary>
-        /// Gets the response component.
-        /// </summary>
-        public Bundle.ResponseComponent Response { get; }
-
-        /// <summary>
-        /// Gets the response resource.
-        /// </summary>
-        public Resource Resource { get; }
+        Response = response;
+        Resource = resource;
     }
+
+    /// <summary>
+    /// Gets the response component.
+    /// </summary>
+    public Bundle.ResponseComponent Response { get; }
+
+    /// <summary>
+    /// Gets the response resource.
+    /// </summary>
+    public Resource Resource { get; }
 }

@@ -11,38 +11,37 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.DicomCast.TableStorage.Features.Storage;
 
-namespace Microsoft.Health.DicomCast.TableStorage.Features.Health
+namespace Microsoft.Health.DicomCast.TableStorage.Features.Health;
+
+public class TableHealthCheck : IHealthCheck
 {
-    public class TableHealthCheck : IHealthCheck
+    private readonly ITableClientTestProvider _testProvider;
+    private readonly ILogger<TableHealthCheck> _logger;
+
+    public TableHealthCheck(
+        ITableClientTestProvider testProvider,
+        ILogger<TableHealthCheck> logger)
     {
-        private readonly ITableClientTestProvider _testProvider;
-        private readonly ILogger<TableHealthCheck> _logger;
+        EnsureArg.IsNotNull(testProvider, nameof(testProvider));
+        EnsureArg.IsNotNull(logger, nameof(logger));
 
-        public TableHealthCheck(
-            ITableClientTestProvider testProvider,
-            ILogger<TableHealthCheck> logger)
+        _testProvider = testProvider;
+        _logger = logger;
+    }
+
+    public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+    {
+        try
         {
-            EnsureArg.IsNotNull(testProvider, nameof(testProvider));
-            EnsureArg.IsNotNull(logger, nameof(logger));
+            await _testProvider.PerformTestAsync(cancellationToken);
 
-            _testProvider = testProvider;
-            _logger = logger;
+            return HealthCheckResult.Healthy("Successfully connected to the table data store.");
         }
-
-        public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+        catch (Exception ex)
         {
-            try
-            {
-                await _testProvider.PerformTestAsync(cancellationToken);
+            _logger.LogWarning(ex, "Failed to connect to the table data store.");
 
-                return HealthCheckResult.Healthy("Successfully connected to the table data store.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to connect to the table data store.");
-
-                return HealthCheckResult.Unhealthy("Failed to connect to the table data store.");
-            }
+            return HealthCheckResult.Unhealthy("Failed to connect to the table data store.");
         }
     }
 }

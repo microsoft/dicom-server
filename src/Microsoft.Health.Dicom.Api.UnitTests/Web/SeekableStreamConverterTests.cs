@@ -15,62 +15,61 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Api.UnitTests.Web
+namespace Microsoft.Health.Dicom.Api.UnitTests.Web;
+
+public class SeekableStreamConverterTests
 {
-    public class SeekableStreamConverterTests
+    private readonly SeekableStreamConverter _seekableStreamConverter;
+
+    public SeekableStreamConverterTests()
     {
-        private readonly SeekableStreamConverter _seekableStreamConverter;
-
-        public SeekableStreamConverterTests()
+        IOptions<StoreConfiguration> configuration = Substitute.For<IOptions<StoreConfiguration>>();
+        configuration.Value.Returns(new StoreConfiguration
         {
-            IOptions<StoreConfiguration> configuration = Substitute.For<IOptions<StoreConfiguration>>();
-            configuration.Value.Returns(new StoreConfiguration
-            {
-                MaxAllowedDicomFileSize = 1000000,
-            });
-            _seekableStreamConverter = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>());
-        }
+            MaxAllowedDicomFileSize = 1000000,
+        });
+        _seekableStreamConverter = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>());
+    }
 
-        [Fact]
-        public async Task GivenANonSeekableStream_WhenConverted_ThenANewSeekableStreamShouldBeReturned()
-        {
-            Stream nonseekableStream = Substitute.For<Stream>();
+    [Fact]
+    public async Task GivenANonSeekableStream_WhenConverted_ThenANewSeekableStreamShouldBeReturned()
+    {
+        Stream nonseekableStream = Substitute.For<Stream>();
 
-            nonseekableStream.CanSeek.Returns(false);
+        nonseekableStream.CanSeek.Returns(false);
 
-            Stream seekableStream = await _seekableStreamConverter.ConvertAsync(nonseekableStream, CancellationToken.None);
+        Stream seekableStream = await _seekableStreamConverter.ConvertAsync(nonseekableStream, CancellationToken.None);
 
-            Assert.NotNull(seekableStream);
-            Assert.True(seekableStream.CanSeek);
-        }
+        Assert.NotNull(seekableStream);
+        Assert.True(seekableStream.CanSeek);
+    }
 
-        [Fact]
-        public async Task GivenAnIOExceptionReadingStream_WhenConverted_ThenIOExceptionShouldBeRethrown()
-        {
-            Stream nonseekableStream = SetupNonSeekableStreamException<IOException>();
+    [Fact]
+    public async Task GivenAnIOExceptionReadingStream_WhenConverted_ThenIOExceptionShouldBeRethrown()
+    {
+        Stream nonseekableStream = SetupNonSeekableStreamException<IOException>();
 
-            await Assert.ThrowsAsync<IOException>(
-                () => _seekableStreamConverter.ConvertAsync(nonseekableStream, CancellationToken.None));
-        }
+        await Assert.ThrowsAsync<IOException>(
+            () => _seekableStreamConverter.ConvertAsync(nonseekableStream, CancellationToken.None));
+    }
 
-        [Fact]
-        public async Task GivenANoneIOExceptionReadingStream_WhenConverted_ThenExceptionShouldBeRethrown()
-        {
-            Stream nonseekableStream = SetupNonSeekableStreamException<InvalidOperationException>();
+    [Fact]
+    public async Task GivenANoneIOExceptionReadingStream_WhenConverted_ThenExceptionShouldBeRethrown()
+    {
+        Stream nonseekableStream = SetupNonSeekableStreamException<InvalidOperationException>();
 
-            await Assert.ThrowsAsync<InvalidOperationException>(
-                () => _seekableStreamConverter.ConvertAsync(nonseekableStream, CancellationToken.None));
-        }
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _seekableStreamConverter.ConvertAsync(nonseekableStream, CancellationToken.None));
+    }
 
-        private Stream SetupNonSeekableStreamException<TException>()
-            where TException : Exception, new()
-        {
-            Stream nonseekableStream = Substitute.For<Stream>();
+    private Stream SetupNonSeekableStreamException<TException>()
+        where TException : Exception, new()
+    {
+        Stream nonseekableStream = Substitute.For<Stream>();
 
-            nonseekableStream.CanSeek.Returns(false);
-            nonseekableStream.ReadAsync(Arg.Any<Memory<byte>>(), Arg.Any<CancellationToken>()).ThrowsForAnyArgs<TException>();
+        nonseekableStream.CanSeek.Returns(false);
+        nonseekableStream.ReadAsync(Arg.Any<Memory<byte>>(), Arg.Any<CancellationToken>()).ThrowsForAnyArgs<TException>();
 
-            return nonseekableStream;
-        }
+        return nonseekableStream;
     }
 }

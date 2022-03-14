@@ -8,25 +8,24 @@ using System.Collections.Generic;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
-namespace Microsoft.Health.Dicom.Operations.Indexing.Models
+namespace Microsoft.Health.Dicom.Operations.Indexing.Models;
+
+/// <summary>
+///  Represents input to <see cref="ReindexDurableFunction.ReindexBatchAsync"/>
+/// </summary>
+[Obsolete("Please use ReindexBatchArguments instead.")]
+public class ReindexBatch
 {
     /// <summary>
-    ///  Represents input to <see cref="ReindexDurableFunction.ReindexBatchAsync"/>
+    /// Gets or sets the inclusive watermark range.
     /// </summary>
-    [Obsolete("Please use ReindexBatchArguments instead.")]
-    public class ReindexBatch
-    {
-        /// <summary>
-        /// Gets or sets the inclusive watermark range.
-        /// </summary>
-        public WatermarkRange WatermarkRange { get; set; }
+    public WatermarkRange WatermarkRange { get; set; }
 
-        /// <summary>
-        /// Gets or sets the tag entries.
-        /// </summary>
-        public IReadOnlyCollection<ExtendedQueryTagStoreEntry> QueryTags { get; set; }
+    /// <summary>
+    /// Gets or sets the tag entries.
+    /// </summary>
+    public IReadOnlyCollection<ExtendedQueryTagStoreEntry> QueryTags { get; set; }
 
-        internal ReindexBatchArguments ToArguments(int threadCount)
-            => new ReindexBatchArguments(QueryTags, WatermarkRange, threadCount);
-    }
+    internal ReindexBatchArguments ToArguments(int threadCount)
+        => new ReindexBatchArguments(QueryTags, WatermarkRange, threadCount);
 }

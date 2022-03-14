@@ -17,82 +17,81 @@ using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
-namespace Microsoft.Health.Dicom.Api.Controllers
+namespace Microsoft.Health.Dicom.Api.Controllers;
+
+[ApiVersion("1.0-prerelease")]
+[ApiVersion("1")]
+[QueryModelStateValidator]
+[ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
+[ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
+public class DeleteController : ControllerBase
 {
-    [ApiVersion("1.0-prerelease")]
-    [ApiVersion("1")]
-    [QueryModelStateValidator]
-    [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
-    [ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
-    public class DeleteController : ControllerBase
+    private readonly IMediator _mediator;
+    private readonly ILogger<DeleteController> _logger;
+
+    public DeleteController(IMediator mediator, ILogger<DeleteController> logger)
     {
-        private readonly IMediator _mediator;
-        private readonly ILogger<DeleteController> _logger;
+        EnsureArg.IsNotNull(mediator, nameof(mediator));
+        EnsureArg.IsNotNull(logger, nameof(logger));
 
-        public DeleteController(IMediator mediator, ILogger<DeleteController> logger)
-        {
-            EnsureArg.IsNotNull(mediator, nameof(mediator));
-            EnsureArg.IsNotNull(logger, nameof(logger));
+        _mediator = mediator;
+        _logger = logger;
+    }
 
-            _mediator = mediator;
-            _logger = logger;
-        }
+    [HttpDelete]
+    [ProducesResponseType((int)HttpStatusCode.NoContent)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+    [VersionedPartitionRoute(KnownRoutes.StudyRoute)]
+    [PartitionRoute(KnownRoutes.StudyRoute)]
+    [VersionedRoute(KnownRoutes.StudyRoute)]
+    [Route(KnownRoutes.StudyRoute)]
+    [AuditEventType(AuditEventSubType.Delete)]
+    public async Task<IActionResult> DeleteStudyAsync(string studyInstanceUid)
+    {
+        _logger.LogInformation("DICOM Web Delete Study request received, with study instance UID {StudyInstanceUid}.", studyInstanceUid);
 
-        [HttpDelete]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-        [VersionedPartitionRoute(KnownRoutes.StudyRoute)]
-        [PartitionRoute(KnownRoutes.StudyRoute)]
-        [VersionedRoute(KnownRoutes.StudyRoute)]
-        [Route(KnownRoutes.StudyRoute)]
-        [AuditEventType(AuditEventSubType.Delete)]
-        public async Task<IActionResult> DeleteStudyAsync(string studyInstanceUid)
-        {
-            _logger.LogInformation("DICOM Web Delete Study request received, with study instance UID {StudyInstanceUid}.", studyInstanceUid);
+        DeleteResourcesResponse deleteResponse = await _mediator.DeleteDicomStudyAsync(
+            studyInstanceUid, cancellationToken: HttpContext.RequestAborted);
 
-            DeleteResourcesResponse deleteResponse = await _mediator.DeleteDicomStudyAsync(
-                studyInstanceUid, cancellationToken: HttpContext.RequestAborted);
+        return NoContent();
+    }
 
-            return NoContent();
-        }
+    [HttpDelete]
+    [ProducesResponseType((int)HttpStatusCode.NoContent)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+    [VersionedPartitionRoute(KnownRoutes.SeriesRoute)]
+    [PartitionRoute(KnownRoutes.SeriesRoute)]
+    [VersionedRoute(KnownRoutes.SeriesRoute)]
+    [Route(KnownRoutes.SeriesRoute)]
+    [AuditEventType(AuditEventSubType.Delete)]
+    public async Task<IActionResult> DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid)
+    {
+        _logger.LogInformation("DICOM Web Delete Series request received, with study instance UID {StudyInstanceUid} and series UID {SeriesInstanceUid}.", studyInstanceUid, seriesInstanceUid);
 
-        [HttpDelete]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-        [VersionedPartitionRoute(KnownRoutes.SeriesRoute)]
-        [PartitionRoute(KnownRoutes.SeriesRoute)]
-        [VersionedRoute(KnownRoutes.SeriesRoute)]
-        [Route(KnownRoutes.SeriesRoute)]
-        [AuditEventType(AuditEventSubType.Delete)]
-        public async Task<IActionResult> DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid)
-        {
-            _logger.LogInformation("DICOM Web Delete Series request received, with study instance UID {StudyInstanceUid} and series UID {SeriesInstanceUid}.", studyInstanceUid, seriesInstanceUid);
+        DeleteResourcesResponse deleteResponse = await _mediator.DeleteDicomSeriesAsync(
+            studyInstanceUid, seriesInstanceUid, cancellationToken: HttpContext.RequestAborted);
 
-            DeleteResourcesResponse deleteResponse = await _mediator.DeleteDicomSeriesAsync(
-                studyInstanceUid, seriesInstanceUid, cancellationToken: HttpContext.RequestAborted);
+        return NoContent();
+    }
 
-            return NoContent();
-        }
+    [HttpDelete]
+    [ProducesResponseType((int)HttpStatusCode.NoContent)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+    [VersionedPartitionRoute(KnownRoutes.InstanceRoute)]
+    [PartitionRoute(KnownRoutes.InstanceRoute)]
+    [VersionedRoute(KnownRoutes.InstanceRoute)]
+    [Route(KnownRoutes.InstanceRoute)]
+    [AuditEventType(AuditEventSubType.Delete)]
+    public async Task<IActionResult> DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+    {
+        _logger.LogInformation("DICOM Web Delete Instance request received, with study instance UID {StudyInstanceUid}, series UID {SeriesInstanceUid} and instance UID {SopInstanceUid}.", studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-        [HttpDelete]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-        [VersionedPartitionRoute(KnownRoutes.InstanceRoute)]
-        [PartitionRoute(KnownRoutes.InstanceRoute)]
-        [VersionedRoute(KnownRoutes.InstanceRoute)]
-        [Route(KnownRoutes.InstanceRoute)]
-        [AuditEventType(AuditEventSubType.Delete)]
-        public async Task<IActionResult> DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
-        {
-            _logger.LogInformation("DICOM Web Delete Instance request received, with study instance UID {StudyInstanceUid}, series UID {SeriesInstanceUid} and instance UID {SopInstanceUid}.", studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        DeleteResourcesResponse deleteResponse = await _mediator.DeleteDicomInstanceAsync(
+            studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken: HttpContext.RequestAborted);
 
-            DeleteResourcesResponse deleteResponse = await _mediator.DeleteDicomInstanceAsync(
-                studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken: HttpContext.RequestAborted);
-
-            return NoContent();
-        }
+        return NoContent();
     }
 }

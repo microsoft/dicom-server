@@ -6,12 +6,11 @@
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve
+namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
+
+/// <summary>
+///  Sql version of IInstanceStore.
+/// </summary>
+internal interface ISqlInstanceStore : IInstanceStore, IVersioned
 {
-    /// <summary>
-    ///  Sql version of IInstanceStore.
-    /// </summary>
-    internal interface ISqlInstanceStore : IInstanceStore, IVersioned
-    {
-    }
 }

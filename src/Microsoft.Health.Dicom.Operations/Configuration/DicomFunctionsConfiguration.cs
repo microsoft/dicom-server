@@ -3,10 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Operations.Configuration
+namespace Microsoft.Health.Dicom.Operations.Configuration;
+
+internal static class DicomFunctionsConfiguration
 {
-    internal static class DicomFunctionsConfiguration
-    {
-        public const string SectionName = "DicomFunctions";
-    }
+    public const string SectionName = "DicomFunctions";
 }

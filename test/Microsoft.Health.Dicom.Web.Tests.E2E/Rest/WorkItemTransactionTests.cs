@@ -7,16 +7,15 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Client;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
-{
-    public partial class WorkItemTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
-    {
-        private readonly IDicomWebClient _client;
+namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
-        public WorkItemTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
-        {
-            EnsureArg.IsNotNull(fixture, nameof(fixture));
-            _client = fixture.GetDicomWebClient();
-        }
+public partial class WorkItemTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
+{
+    private readonly IDicomWebClient _client;
+
+    public WorkItemTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
+    {
+        EnsureArg.IsNotNull(fixture, nameof(fixture));
+        _client = fixture.GetDicomWebClient();
     }
 }

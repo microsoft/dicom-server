@@ -6,14 +6,13 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace Microsoft.Health.Dicom.Api.Models
-{
-    public class PaginationOptions
-    {
-        [Range(0, int.MaxValue)]
-        public int Offset { get; set; }
+namespace Microsoft.Health.Dicom.Api.Models;
 
-        [Range(1, 200)]
-        public int Limit { get; set; } = 100;
-    }
+public class PaginationOptions
+{
+    [Range(0, int.MaxValue)]
+    public int Offset { get; set; }
+
+    [Range(1, 200)]
+    public int Limit { get; set; } = 100;
 }

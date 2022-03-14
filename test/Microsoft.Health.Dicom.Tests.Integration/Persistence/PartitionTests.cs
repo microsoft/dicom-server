@@ -8,42 +8,41 @@ using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
+namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
+
+public class PartitionTests : IClassFixture<SqlDataStoreTestsFixture>
 {
-    public class PartitionTests : IClassFixture<SqlDataStoreTestsFixture>
+    private readonly SqlDataStoreTestsFixture _fixture;
+
+    public PartitionTests(SqlDataStoreTestsFixture fixture)
     {
-        private readonly SqlDataStoreTestsFixture _fixture;
+        _fixture = fixture;
+    }
 
-        public PartitionTests(SqlDataStoreTestsFixture fixture)
-        {
-            _fixture = fixture;
-        }
+    [Fact]
+    public async Task WhenNewPartitionIsCreated_Then_ItIsRetrievable()
+    {
+        string partitionName = "test";
 
-        [Fact]
-        public async Task WhenNewPartitionIsCreated_Then_ItIsRetrievable()
-        {
-            string partitionName = "test";
+        await _fixture.PartitionStore.AddPartitionAsync(partitionName);
+        PartitionEntry partition = await _fixture.PartitionStore.GetPartitionAsync(partitionName);
 
-            await _fixture.PartitionStore.AddPartitionAsync(partitionName);
-            PartitionEntry partition = await _fixture.PartitionStore.GetPartitionAsync(partitionName);
+        Assert.NotNull(partition);
+    }
 
-            Assert.NotNull(partition);
-        }
+    [Fact]
+    public async Task WhenGetPartitionsIsCalled_Then_DefaultPartitionRecordIsReturned()
+    {
+        IEnumerable<PartitionEntry> partitionEntries = await _fixture.PartitionStore.GetPartitionsAsync();
 
-        [Fact]
-        public async Task WhenGetPartitionsIsCalled_Then_DefaultPartitionRecordIsReturned()
-        {
-            IEnumerable<PartitionEntry> partitionEntries = await _fixture.PartitionStore.GetPartitionsAsync();
+        Assert.Contains(partitionEntries, p => p.PartitionKey == DefaultPartition.Key);
+    }
 
-            Assert.Contains(partitionEntries, p => p.PartitionKey == DefaultPartition.Key);
-        }
+    [Fact]
+    public async Task WhenGetPartitionIsCalledWithDefaultPartitionName_Then_DefaultPartitionRecordIsReturned()
+    {
+        PartitionEntry partitionEntry = await _fixture.PartitionStore.GetPartitionAsync(DefaultPartition.Name);
 
-        [Fact]
-        public async Task WhenGetPartitionIsCalledWithDefaultPartitionName_Then_DefaultPartitionRecordIsReturned()
-        {
-            PartitionEntry partitionEntry = await _fixture.PartitionStore.GetPartitionAsync(DefaultPartition.Name);
-
-            Assert.Equal(DefaultPartition.Key, partitionEntry.PartitionKey);
-        }
+        Assert.Equal(DefaultPartition.Key, partitionEntry.PartitionKey);
     }
 }

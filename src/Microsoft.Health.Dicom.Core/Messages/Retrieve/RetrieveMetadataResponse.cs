@@ -7,22 +7,21 @@ using System.Collections.Generic;
 using EnsureThat;
 using FellowOakDicom;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
+namespace Microsoft.Health.Dicom.Core.Messages.Retrieve;
+
+public class RetrieveMetadataResponse
 {
-    public class RetrieveMetadataResponse
+    public RetrieveMetadataResponse(IEnumerable<DicomDataset> responseMetadata, bool isCacheValid = false, string eTag = null)
     {
-        public RetrieveMetadataResponse(IEnumerable<DicomDataset> responseMetadata, bool isCacheValid = false, string eTag = null)
-        {
-            EnsureArg.IsNotNull(responseMetadata, nameof(responseMetadata));
-            ResponseMetadata = responseMetadata;
-            IsCacheValid = isCacheValid;
-            ETag = eTag;
-        }
-
-        public IEnumerable<DicomDataset> ResponseMetadata { get; }
-
-        public bool IsCacheValid { get; }
-
-        public string ETag { get; }
+        EnsureArg.IsNotNull(responseMetadata, nameof(responseMetadata));
+        ResponseMetadata = responseMetadata;
+        IsCacheValid = isCacheValid;
+        ETag = eTag;
     }
+
+    public IEnumerable<DicomDataset> ResponseMetadata { get; }
+
+    public bool IsCacheValid { get; }
+
+    public string ETag { get; }
 }

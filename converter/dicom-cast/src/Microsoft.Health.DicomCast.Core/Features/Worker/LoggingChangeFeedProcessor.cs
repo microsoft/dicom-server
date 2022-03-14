@@ -9,37 +9,36 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Worker
+namespace Microsoft.Health.DicomCast.Core.Features.Worker;
+
+/// <summary>
+/// Provides logging for <see cref="IChangeFeedProcessor"/>.
+/// </summary>
+public class LoggingChangeFeedProcessor : IChangeFeedProcessor
 {
-    /// <summary>
-    /// Provides logging for <see cref="IChangeFeedProcessor"/>.
-    /// </summary>
-    public class LoggingChangeFeedProcessor : IChangeFeedProcessor
+    private static readonly Func<ILogger, IDisposable> LogProcessingDelegate =
+        LoggerMessage.DefineScope("Processing change feed.");
+
+    private readonly IChangeFeedProcessor _changeFeedProcessor;
+    private readonly ILogger _logger;
+
+    public LoggingChangeFeedProcessor(
+        IChangeFeedProcessor changeFeedProcessor,
+        ILogger<LoggingChangeFeedProcessor> logger)
     {
-        private static readonly Func<ILogger, IDisposable> LogProcessingDelegate =
-            LoggerMessage.DefineScope("Processing change feed.");
+        EnsureArg.IsNotNull(changeFeedProcessor, nameof(changeFeedProcessor));
+        EnsureArg.IsNotNull(logger, nameof(logger));
 
-        private readonly IChangeFeedProcessor _changeFeedProcessor;
-        private readonly ILogger _logger;
+        _changeFeedProcessor = changeFeedProcessor;
+        _logger = logger;
+    }
 
-        public LoggingChangeFeedProcessor(
-            IChangeFeedProcessor changeFeedProcessor,
-            ILogger<LoggingChangeFeedProcessor> logger)
+    /// <inheritdoc/>
+    public async Task ProcessAsync(TimeSpan pollIntervalDuringCatchup, CancellationToken cancellationToken)
+    {
+        using (LogProcessingDelegate(_logger))
         {
-            EnsureArg.IsNotNull(changeFeedProcessor, nameof(changeFeedProcessor));
-            EnsureArg.IsNotNull(logger, nameof(logger));
-
-            _changeFeedProcessor = changeFeedProcessor;
-            _logger = logger;
-        }
-
-        /// <inheritdoc/>
-        public async Task ProcessAsync(TimeSpan pollIntervalDuringCatchup, CancellationToken cancellationToken)
-        {
-            using (LogProcessingDelegate(_logger))
-            {
-                await _changeFeedProcessor.ProcessAsync(pollIntervalDuringCatchup, cancellationToken);
-            }
+            await _changeFeedProcessor.ProcessAsync(pollIntervalDuringCatchup, cancellationToken);
         }
     }
 }

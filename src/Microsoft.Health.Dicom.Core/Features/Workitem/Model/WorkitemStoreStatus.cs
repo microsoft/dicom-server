@@ -5,21 +5,20 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.Health.Dicom.Core.Features.Workitem.Model
+namespace Microsoft.Health.Dicom.Core.Features.Workitem.Model;
+
+/// <summary>
+/// 
+/// </summary>
+[SuppressMessage("Design", "CA1028:Enum Storage should be Int32", Justification = "Value is stored in SQL as TINYINT.")]
+public enum WorkitemStoreStatus : byte
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    [SuppressMessage("Design", "CA1028:Enum Storage should be Int32", Justification = "Value is stored in SQL as TINYINT.")]
-    public enum WorkitemStoreStatus : byte
-    {
-        /// Workitem being created
-        None = 0,
+    /// Workitem being created
+    None = 0,
 
-        /// Workitem created or updated
-        ReadWrite = 1,
+    /// Workitem created or updated
+    ReadWrite = 1,
 
-        /// Workitem being updated/deleted, etc.
-        Read = 2
-    }
+    /// Workitem being updated/deleted, etc.
+    Read = 2
 }

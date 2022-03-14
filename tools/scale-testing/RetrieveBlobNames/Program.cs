@@ -16,56 +16,55 @@ using Common;
 using Common.KeyVault;
 using EnsureThat;
 
-namespace RetrieveBlobNames
+namespace RetrieveBlobNames;
+
+public static class Program
 {
-    public static class Program
+    private static string s_containerConnectionString;
+    private const string ContainerName = "metadatacontainer";
+
+    public static async Task Main(string[] args)
     {
-        private static string s_containerConnectionString;
-        private const string ContainerName = "metadatacontainer";
+        EnsureArg.IsNotNull(args, nameof(args));
 
-        public static async Task Main(string[] args)
+        var options = new SecretClientOptions()
         {
-            EnsureArg.IsNotNull(args, nameof(args));
-
-            var options = new SecretClientOptions()
+            Retry =
             {
-                Retry =
-                {
-                    Delay = TimeSpan.FromSeconds(2),
-                    MaxDelay = TimeSpan.FromSeconds(16),
-                    MaxRetries = 5,
-                    Mode = RetryMode.Exponential,
-                },
-            };
-            var client = new SecretClient(new Uri(KnownApplicationUrls.KeyVaultUrl), new DefaultAzureCredential(), options);
+                Delay = TimeSpan.FromSeconds(2),
+                MaxDelay = TimeSpan.FromSeconds(16),
+                MaxRetries = 5,
+                Mode = RetryMode.Exponential,
+            },
+        };
+        var client = new SecretClient(new Uri(KnownApplicationUrls.KeyVaultUrl), new DefaultAzureCredential(), options);
 
-            KeyVaultSecret secret = await client.GetSecretAsync(KnownSecretNames.BlobStoreConnectionString);
+        KeyVaultSecret secret = await client.GetSecretAsync(KnownSecretNames.BlobStoreConnectionString);
 
-            s_containerConnectionString = secret.Value;
+        s_containerConnectionString = secret.Value;
 
-            string filepath = args[0];
+        string filepath = args[0];
 
-            var container = new BlobContainerClient(s_containerConnectionString, ContainerName);
-            int i = 0;
-            var studies = new HashSet<string>();
-            var series = new HashSet<string>();
-            using (var sw = new StreamWriter(filepath))
+        var container = new BlobContainerClient(s_containerConnectionString, ContainerName);
+        int i = 0;
+        var studies = new HashSet<string>();
+        var series = new HashSet<string>();
+        using (var sw = new StreamWriter(filepath))
+        {
+            await foreach (BlobItem blob in container.GetBlobsAsync())
             {
-                await foreach (BlobItem blob in container.GetBlobsAsync())
-                {
-                    string[] parsedInstanceName = blob.Name.Split(KnownSeparators.MessageSeparators, StringSplitOptions.RemoveEmptyEntries);
-                    studies.Add(parsedInstanceName[0]);
-                    series.Add(parsedInstanceName[0] + " " + parsedInstanceName[1]);
-                    await sw.WriteLineAsync(blob.Name);
-                    i++;
-                    Console.WriteLine(blob.Name + " Count:" + i);
-                }
+                string[] parsedInstanceName = blob.Name.Split(KnownSeparators.MessageSeparators, StringSplitOptions.RemoveEmptyEntries);
+                studies.Add(parsedInstanceName[0]);
+                series.Add(parsedInstanceName[0] + " " + parsedInstanceName[1]);
+                await sw.WriteLineAsync(blob.Name);
+                i++;
+                Console.WriteLine(blob.Name + " Count:" + i);
             }
-
-            string seriesPath = args[1];
-            File.WriteAllLines(seriesPath, series);
-            string studiesPath = args[2];
-            File.WriteAllLines(studiesPath, studies);
         }
+
+        string seriesPath = args[1];
+        File.WriteAllLines(seriesPath, series);
+        string studiesPath = args[2];
+        File.WriteAllLines(studiesPath, studies);
     }
 }

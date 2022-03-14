@@ -6,16 +6,15 @@
 using EnsureThat;
 using Microsoft.AspNetCore.Builder;
 
-namespace Microsoft.Health.Dicom.Api.Features.Context
-{
-    public static class DicomRequestContextMiddlewareExtensions
-    {
-        public static IApplicationBuilder UseDicomRequestContext(
-            this IApplicationBuilder builder)
-        {
-            EnsureArg.IsNotNull(builder, nameof(builder));
+namespace Microsoft.Health.Dicom.Api.Features.Context;
 
-            return builder.UseMiddleware<DicomRequestContextMiddleware>();
-        }
+public static class DicomRequestContextMiddlewareExtensions
+{
+    public static IApplicationBuilder UseDicomRequestContext(
+        this IApplicationBuilder builder)
+    {
+        EnsureArg.IsNotNull(builder, nameof(builder));
+
+        return builder.UseMiddleware<DicomRequestContextMiddleware>();
     }
 }

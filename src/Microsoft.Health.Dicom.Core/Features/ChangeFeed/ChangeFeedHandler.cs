@@ -14,30 +14,29 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
 
-namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
+namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed;
+
+public class ChangeFeedHandler : BaseHandler, IRequestHandler<ChangeFeedRequest, ChangeFeedResponse>
 {
-    public class ChangeFeedHandler : BaseHandler, IRequestHandler<ChangeFeedRequest, ChangeFeedResponse>
+    private readonly IChangeFeedService _changeFeedService;
+
+    public ChangeFeedHandler(IAuthorizationService<DataActions> authorizationService, IChangeFeedService changeFeedService)
+        : base(authorizationService)
     {
-        private readonly IChangeFeedService _changeFeedService;
+        _changeFeedService = EnsureArg.IsNotNull(changeFeedService, nameof(changeFeedService));
+    }
 
-        public ChangeFeedHandler(IAuthorizationService<DataActions> authorizationService, IChangeFeedService changeFeedService)
-            : base(authorizationService)
+    public async Task<ChangeFeedResponse> Handle(ChangeFeedRequest request, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(request, nameof(request));
+
+        if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
         {
-            _changeFeedService = EnsureArg.IsNotNull(changeFeedService, nameof(changeFeedService));
+            throw new UnauthorizedDicomActionException(DataActions.Read);
         }
 
-        public async Task<ChangeFeedResponse> Handle(ChangeFeedRequest request, CancellationToken cancellationToken)
-        {
-            EnsureArg.IsNotNull(request, nameof(request));
+        IReadOnlyCollection<ChangeFeedEntry> changeFeedEntries = await _changeFeedService.GetChangeFeedAsync(request.Offset, request.Limit, request.IncludeMetadata, cancellationToken);
 
-            if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
-            {
-                throw new UnauthorizedDicomActionException(DataActions.Read);
-            }
-
-            IReadOnlyCollection<ChangeFeedEntry> changeFeedEntries = await _changeFeedService.GetChangeFeedAsync(request.Offset, request.Limit, request.IncludeMetadata, cancellationToken);
-
-            return new ChangeFeedResponse(changeFeedEntries);
-        }
+        return new ChangeFeedResponse(changeFeedEntries);
     }
 }

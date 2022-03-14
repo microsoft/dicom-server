@@ -15,43 +15,42 @@ using Microsoft.Health.Dicom.Api.Web;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters
+namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters;
+
+public class BodyModelStateValidatorAttributeTests
 {
-    public class BodyModelStateValidatorAttributeTests
+    private readonly BodyModelStateValidatorAttribute _filter;
+    private readonly ActionExecutingContext _context;
+
+    public BodyModelStateValidatorAttributeTests()
     {
-        private readonly BodyModelStateValidatorAttribute _filter;
-        private readonly ActionExecutingContext _context;
+        _context = CreateContext();
+        _filter = new BodyModelStateValidatorAttribute();
+    }
 
-        public BodyModelStateValidatorAttributeTests()
-        {
-            _context = CreateContext();
-            _filter = new BodyModelStateValidatorAttribute();
-        }
+    [Fact]
+    public void GivenModelError_WhenOnActionExecution_ThenShouldThrowInvalidRequestBodyException()
+    {
+        string key1 = "key1";
+        string key2 = "key2";
+        string key3 = "key3";
+        string error1 = "error1";
+        string error2 = "error2";
+        string error3 = "error3";
+        _context.ModelState.SetModelValue(key1, new ValueProviderResult("world"));
+        _context.ModelState.AddModelError(key2, error1);
+        _context.ModelState.AddModelError(key2, error2);
+        _context.ModelState.AddModelError(key3, error3);
+        var exp = Assert.Throws<InvalidRequestBodyException>(() => _filter.OnActionExecuting(_context));
+        Assert.Equal($"The field '{key3}' in request body is invalid: {error3}", exp.Message);
+    }
 
-        [Fact]
-        public void GivenModelError_WhenOnActionExecution_ThenShouldThrowInvalidRequestBodyException()
-        {
-            string key1 = "key1";
-            string key2 = "key2";
-            string key3 = "key3";
-            string error1 = "error1";
-            string error2 = "error2";
-            string error3 = "error3";
-            _context.ModelState.SetModelValue(key1, new ValueProviderResult("world"));
-            _context.ModelState.AddModelError(key2, error1);
-            _context.ModelState.AddModelError(key2, error2);
-            _context.ModelState.AddModelError(key3, error3);
-            var exp = Assert.Throws<InvalidRequestBodyException>(() => _filter.OnActionExecuting(_context));
-            Assert.Equal($"The field '{key3}' in request body is invalid: {error3}", exp.Message);
-        }
-
-        private static ActionExecutingContext CreateContext()
-        {
-            return Substitute.For<ActionExecutingContext>(
-                new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor()),
-                new List<IFilterMetadata>(),
-                new Dictionary<string, object>(),
-                null);
-        }
+    private static ActionExecutingContext CreateContext()
+    {
+        return Substitute.For<ActionExecutingContext>(
+            new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor()),
+            new List<IFilterMetadata>(),
+            new Dictionary<string, object>(),
+            null);
     }
 }

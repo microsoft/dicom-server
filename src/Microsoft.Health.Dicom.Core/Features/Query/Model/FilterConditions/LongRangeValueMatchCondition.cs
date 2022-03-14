@@ -5,19 +5,18 @@
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
-namespace Microsoft.Health.Dicom.Core.Features.Query
-{
-    public class LongRangeValueMatchCondition : RangeValueMatchCondition<long>
-    {
-        internal LongRangeValueMatchCondition(QueryTag tag, long minimum, long maximum)
-            : base(tag, minimum, maximum)
-        {
-        }
+namespace Microsoft.Health.Dicom.Core.Features.Query;
 
-        public override void Accept(QueryFilterConditionVisitor visitor)
-        {
-            EnsureArg.IsNotNull(visitor, nameof(visitor));
-            visitor.Visit(this);
-        }
+public class LongRangeValueMatchCondition : RangeValueMatchCondition<long>
+{
+    internal LongRangeValueMatchCondition(QueryTag tag, long minimum, long maximum)
+        : base(tag, minimum, maximum)
+    {
+    }
+
+    public override void Accept(QueryFilterConditionVisitor visitor)
+    {
+        EnsureArg.IsNotNull(visitor, nameof(visitor));
+        visitor.Visit(this);
     }
 }

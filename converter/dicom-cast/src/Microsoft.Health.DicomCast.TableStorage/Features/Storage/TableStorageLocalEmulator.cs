@@ -3,10 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.DicomCast.TableStorage
+namespace Microsoft.Health.DicomCast.TableStorage;
+
+internal static class TableStorageLocalEmulator
 {
-    internal static class TableStorageLocalEmulator
-    {
-        public const string ConnectionString = "UseDevelopmentStorage=true";
-    }
+    public const string ConnectionString = "UseDevelopmentStorage=true";
 }

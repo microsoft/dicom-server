@@ -5,15 +5,14 @@
 
 using Microsoft.Health.DicomCast.Core.Exceptions;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Fhir
+namespace Microsoft.Health.DicomCast.Core.Features.Fhir;
+
+/// <summary>
+/// Exception thrown when resource cannot be created or updated because the resource has been updated.
+/// </summary>
+public class ResourceConflictException : RetryableException
 {
-    /// <summary>
-    /// Exception thrown when resource cannot be created or updated because the resource has been updated.
-    /// </summary>
-    public class ResourceConflictException : RetryableException
+    public ResourceConflictException()
     {
-        public ResourceConflictException()
-        {
-        }
     }
 }

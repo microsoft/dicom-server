@@ -6,22 +6,21 @@
 using System;
 using System.Net.Http;
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
-{
-    /// <summary>
-    /// Represents a <see cref="TestDicomWebServer"/> that resides out of process that we will
-    /// communicate with over TCP/IP.
-    /// </summary>
-    public class RemoteTestDicomWebServer : TestDicomWebServer
-    {
-        public RemoteTestDicomWebServer(Uri environmentUrl)
-            : base(environmentUrl)
-        {
-        }
+namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 
-        public override HttpMessageHandler CreateMessageHandler()
-        {
-            return new HttpClientHandler();
-        }
+/// <summary>
+/// Represents a <see cref="TestDicomWebServer"/> that resides out of process that we will
+/// communicate with over TCP/IP.
+/// </summary>
+public class RemoteTestDicomWebServer : TestDicomWebServer
+{
+    public RemoteTestDicomWebServer(Uri environmentUrl)
+        : base(environmentUrl)
+    {
+    }
+
+    public override HttpMessageHandler CreateMessageHandler()
+    {
+        return new HttpClientHandler();
     }
 }

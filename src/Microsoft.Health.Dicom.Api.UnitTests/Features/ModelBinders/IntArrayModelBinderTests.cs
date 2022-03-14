@@ -11,48 +11,47 @@ using Microsoft.Health.Dicom.Api.Features.ModelBinders;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Api.UnitTests.Features.ModelBinders
+namespace Microsoft.Health.Dicom.Api.UnitTests.Features.ModelBinders;
+
+public class IntArrayModelBinderTests
 {
-    public class IntArrayModelBinderTests
+    [Theory]
+    [InlineData("", new int[0])]
+    [InlineData(null, new int[0])]
+    [InlineData("1, -234, 34", new int[] { 1, -234, 34 })]
+    public async Task GivenStringContent_WhenBindingIntArrayData_ModelIsSetAndExpectedResultIsParsed(string contextValue, int[] expectedResult)
     {
-        [Theory]
-        [InlineData("", new int[0])]
-        [InlineData(null, new int[0])]
-        [InlineData("1, -234, 34", new int[] { 1, -234, 34 })]
-        public async Task GivenStringContent_WhenBindingIntArrayData_ModelIsSetAndExpectedResultIsParsed(string contextValue, int[] expectedResult)
+        EnsureArg.IsNotNull(expectedResult, nameof(expectedResult));
+        ModelBindingContext bindingContext = Substitute.For<ModelBindingContext>();
+        bindingContext.ValueProvider.GetValue(bindingContext.ModelName).Returns(new ValueProviderResult(new StringValues(contextValue)));
+
+        IModelBinder modelBinder = new IntArrayModelBinder();
+        await modelBinder.BindModelAsync(bindingContext);
+
+        Assert.True(bindingContext.Result.IsModelSet);
+
+        var actualResult = bindingContext.Result.Model as int[];
+        Assert.Equal(expectedResult.Length, actualResult.Length);
+
+        for (var i = 0; i < expectedResult.Length; i++)
         {
-            EnsureArg.IsNotNull(expectedResult, nameof(expectedResult));
-            ModelBindingContext bindingContext = Substitute.For<ModelBindingContext>();
-            bindingContext.ValueProvider.GetValue(bindingContext.ModelName).Returns(new ValueProviderResult(new StringValues(contextValue)));
-
-            IModelBinder modelBinder = new IntArrayModelBinder();
-            await modelBinder.BindModelAsync(bindingContext);
-
-            Assert.True(bindingContext.Result.IsModelSet);
-
-            var actualResult = bindingContext.Result.Model as int[];
-            Assert.Equal(expectedResult.Length, actualResult.Length);
-
-            for (var i = 0; i < expectedResult.Length; i++)
-            {
-                Assert.Equal(expectedResult[i], actualResult[i]);
-            }
+            Assert.Equal(expectedResult[i], actualResult[i]);
         }
+    }
 
-        [Theory]
-        [InlineData("1, 2, helloworld")]
-        [InlineData("1, #5$, 3")]
-        public async Task GivenInvalidStringContent_WhenBindingIntArrayData_ModelIsNotSet(string contextValue)
-        {
-            ModelBindingContext bindingContext = Substitute.For<ModelBindingContext>();
-            bindingContext.ModelName = "foo";
-            bindingContext.ModelState = new ModelStateDictionary();
-            bindingContext.ValueProvider.GetValue(bindingContext.ModelName).Returns(new ValueProviderResult(new StringValues(contextValue)));
+    [Theory]
+    [InlineData("1, 2, helloworld")]
+    [InlineData("1, #5$, 3")]
+    public async Task GivenInvalidStringContent_WhenBindingIntArrayData_ModelIsNotSet(string contextValue)
+    {
+        ModelBindingContext bindingContext = Substitute.For<ModelBindingContext>();
+        bindingContext.ModelName = "foo";
+        bindingContext.ModelState = new ModelStateDictionary();
+        bindingContext.ValueProvider.GetValue(bindingContext.ModelName).Returns(new ValueProviderResult(new StringValues(contextValue)));
 
-            IModelBinder modelBinder = new IntArrayModelBinder();
-            await modelBinder.BindModelAsync(bindingContext);
+        IModelBinder modelBinder = new IntArrayModelBinder();
+        await modelBinder.BindModelAsync(bindingContext);
 
-            Assert.Equal(1, bindingContext.ModelState.ErrorCount);
-        }
+        Assert.Equal(1, bindingContext.ModelState.ErrorCount);
     }
 }

@@ -5,37 +5,36 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Core.Models.Operations
+namespace Microsoft.Health.Dicom.Core.Models.Operations;
+
+/// <summary>
+/// A <see langword="static"/> class for utilities related to operation IDs.
+/// </summary>
+public static class OperationId
 {
     /// <summary>
-    /// A <see langword="static"/> class for utilities related to operation IDs.
+    /// Gets the <see cref="Guid"/> format specifier for normalizing operation ID string values.
     /// </summary>
-    public static class OperationId
-    {
-        /// <summary>
-        /// Gets the <see cref="Guid"/> format specifier for normalizing operation ID string values.
-        /// </summary>
-        public const string FormatSpecifier = "N";
+    public const string FormatSpecifier = "N";
 
-        /// <summary>
-        /// Creates a new pseudo-random operation ID.
-        /// </summary>
-        /// <returns>A new operation ID.</returns>
-        public static string Generate()
-            => ToString(Guid.NewGuid());
+    /// <summary>
+    /// Creates a new pseudo-random operation ID.
+    /// </summary>
+    /// <returns>A new operation ID.</returns>
+    public static string Generate()
+        => ToString(Guid.NewGuid());
 
-        /// <summary>
-        /// Gets the normalized <see cref="string"/> representation for operation IDs.
-        /// </summary>
-        /// <remarks>
-        /// Other <see cref="Guid"/> formats are valid, but the DICOM APIs return a consistent representation.
-        /// </remarks>
-        /// <param name="operationId">A unique operation ID.</param>
-        /// <returns>
-        /// The <see cref="string"/> representation for the <paramref name="operationId"/> using
-        /// the <see cref="FormatSpecifier"/>.
-        /// </returns>
-        public static string ToString(Guid operationId)
-            => operationId.ToString(FormatSpecifier);
-    }
+    /// <summary>
+    /// Gets the normalized <see cref="string"/> representation for operation IDs.
+    /// </summary>
+    /// <remarks>
+    /// Other <see cref="Guid"/> formats are valid, but the DICOM APIs return a consistent representation.
+    /// </remarks>
+    /// <param name="operationId">A unique operation ID.</param>
+    /// <returns>
+    /// The <see cref="string"/> representation for the <paramref name="operationId"/> using
+    /// the <see cref="FormatSpecifier"/>.
+    /// </returns>
+    public static string ToString(Guid operationId)
+        => operationId.ToString(FormatSpecifier);
 }

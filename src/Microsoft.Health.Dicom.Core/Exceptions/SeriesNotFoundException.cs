@@ -3,18 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Exceptions
-{
-    public class SeriesNotFoundException : ResourceNotFoundException
-    {
-        public SeriesNotFoundException()
-            : base(DicomCoreResource.SeriesNotFound)
-        {
-        }
+namespace Microsoft.Health.Dicom.Core.Exceptions;
 
-        public SeriesNotFoundException(string message)
-            : base(message)
-        {
-        }
+public class SeriesNotFoundException : ResourceNotFoundException
+{
+    public SeriesNotFoundException()
+        : base(DicomCoreResource.SeriesNotFound)
+    {
+    }
+
+    public SeriesNotFoundException(string message)
+        : base(message)
+    {
     }
 }

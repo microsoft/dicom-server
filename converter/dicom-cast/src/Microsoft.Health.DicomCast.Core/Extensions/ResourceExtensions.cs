@@ -7,15 +7,14 @@ using EnsureThat;
 using Hl7.Fhir.Model;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 
-namespace Microsoft.Health.DicomCast.Core.Extensions
-{
-    public static class ResourceExtensions
-    {
-        public static ServerResourceId ToServerResourceId(this Resource resource)
-        {
-            EnsureArg.IsNotNull(resource, nameof(resource));
+namespace Microsoft.Health.DicomCast.Core.Extensions;
 
-            return new ServerResourceId(resource.TypeName, resource.Id);
-        }
+public static class ResourceExtensions
+{
+    public static ServerResourceId ToServerResourceId(this Resource resource)
+    {
+        EnsureArg.IsNotNull(resource, nameof(resource));
+
+        return new ServerResourceId(resource.TypeName, resource.Id);
     }
 }

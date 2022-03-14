@@ -7,12 +7,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
-namespace Microsoft.Health.Dicom.Core.Features.Retrieve
+namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
+
+public interface IRetrieveResourceService
 {
-    public interface IRetrieveResourceService
-    {
-        Task<RetrieveResourceResponse> GetInstanceResourceAsync(
-            RetrieveResourceRequest message,
-            CancellationToken cancellationToken = default);
-    }
+    Task<RetrieveResourceResponse> GetInstanceResourceAsync(
+        RetrieveResourceRequest message,
+        CancellationToken cancellationToken = default);
 }

@@ -9,61 +9,60 @@ using Hl7.Fhir.Model;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using Xunit;
 
-namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction;
+
+public class PatientBirthDateSynchronizerTests
 {
-    public class PatientBirthDateSynchronizerTests
+    private readonly PatientBirthDateSynchronizer _patientBirthDateSynchronizer = new PatientBirthDateSynchronizer();
+
+    private readonly Patient _patient = new Patient();
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void GivenNoPatientBirthDate_WhenSynchronized_ThenNoBirthDateShouldBeAdded(bool isNewPatient)
     {
-        private readonly PatientBirthDateSynchronizer _patientBirthDateSynchronizer = new PatientBirthDateSynchronizer();
+        _patientBirthDateSynchronizer.Synchronize(new DicomDataset(), _patient, isNewPatient);
 
-        private readonly Patient _patient = new Patient();
+        Assert.Null(_patient.BirthDate);
+    }
 
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void GivenNoPatientBirthDate_WhenSynchronized_ThenNoBirthDateShouldBeAdded(bool isNewPatient)
+    [Fact]
+    public void GivenBirthDateWhileCreating_WhenSynchronized_ThenCorrectBirthDateShouldBeAdded()
+    {
+        DateTime birthDate = new DateTime(1990, 01, 01, 12, 12, 12);
+        _patientBirthDateSynchronizer.Synchronize(CreateDicomDataset(birthDate), _patient, true);
+
+        ValidateDate(birthDate, _patient.BirthDateElement);
+    }
+
+    [Fact]
+    public void GivenBirthDateWithExistingPatient_WhenSynchronized_ThenNoBirthDateShouldBeAdded()
+    {
+        DateTime birthDate = new DateTime(1990, 01, 01, 12, 12, 12);
+
+        _patientBirthDateSynchronizer.Synchronize(CreateDicomDataset(birthDate), _patient, false);
+
+        Assert.Null(_patient.BirthDate);
+    }
+
+    private static DicomDataset CreateDicomDataset(DateTime patientBirthDate)
+        => new DicomDataset()
         {
-            _patientBirthDateSynchronizer.Synchronize(new DicomDataset(), _patient, isNewPatient);
+            { DicomTag.PatientBirthDate, patientBirthDate },
+        };
 
-            Assert.Null(_patient.BirthDate);
+    private static void ValidateDate(
+        DateTime? expectedDate,
+        Date actualDate)
+    {
+        if (!expectedDate.HasValue)
+        {
+            Assert.Null(actualDate);
+            return;
         }
 
-        [Fact]
-        public void GivenBirthDateWhileCreating_WhenSynchronized_ThenCorrectBirthDateShouldBeAdded()
-        {
-            DateTime birthDate = new DateTime(1990, 01, 01, 12, 12, 12);
-            _patientBirthDateSynchronizer.Synchronize(CreateDicomDataset(birthDate), _patient, true);
-
-            ValidateDate(birthDate, _patient.BirthDateElement);
-        }
-
-        [Fact]
-        public void GivenBirthDateWithExistingPatient_WhenSynchronized_ThenNoBirthDateShouldBeAdded()
-        {
-            DateTime birthDate = new DateTime(1990, 01, 01, 12, 12, 12);
-
-            _patientBirthDateSynchronizer.Synchronize(CreateDicomDataset(birthDate), _patient, false);
-
-            Assert.Null(_patient.BirthDate);
-        }
-
-        private static DicomDataset CreateDicomDataset(DateTime patientBirthDate)
-            => new DicomDataset()
-            {
-                { DicomTag.PatientBirthDate, patientBirthDate },
-            };
-
-        private static void ValidateDate(
-            DateTime? expectedDate,
-            Date actualDate)
-        {
-            if (!expectedDate.HasValue)
-            {
-                Assert.Null(actualDate);
-                return;
-            }
-
-            Assert.NotNull(actualDate.ToDateTimeOffset());
-            Assert.Equal(expectedDate.Value.Date, actualDate.ToDateTimeOffset().Value.DateTime);
-        }
+        Assert.NotNull(actualDate.ToDateTimeOffset());
+        Assert.Equal(expectedDate.Value.Date, actualDate.ToDateTimeOffset().Value.DateTime);
     }
 }

@@ -3,17 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Query
+namespace Microsoft.Health.Dicom.SqlServer.Features.Query;
+
+public enum SqlTableType : int
 {
-    public enum SqlTableType : int
-    {
-        StudyTable,
-        SeriesTable,
-        InstanceTable,
-        ExtendedQueryTagLongTable,
-        ExtendedQueryTagDateTimeTable,
-        ExtendedQueryTagDoubleTable,
-        ExtendedQueryTagPersonNameTable,
-        ExtendedQueryTagStringTable,
-    }
+    StudyTable,
+    SeriesTable,
+    InstanceTable,
+    ExtendedQueryTagLongTable,
+    ExtendedQueryTagDateTimeTable,
+    ExtendedQueryTagDoubleTable,
+    ExtendedQueryTagPersonNameTable,
+    ExtendedQueryTagStringTable,
 }

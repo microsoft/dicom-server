@@ -5,27 +5,26 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.Health.Dicom.Client.Models
+namespace Microsoft.Health.Dicom.Client.Models;
+
+/// <summary>
+/// Status of extended query tag.
+/// </summary>
+[SuppressMessage("Design", "CA1028:Enum Storage should be Int32", Justification = "Value is stored in SQL as TINYINT.")]
+public enum ExtendedQueryTagStatus : byte
 {
     /// <summary>
-    /// Status of extended query tag.
+    /// The query tag is being added.
     /// </summary>
-    [SuppressMessage("Design", "CA1028:Enum Storage should be Int32", Justification = "Value is stored in SQL as TINYINT.")]
-    public enum ExtendedQueryTagStatus : byte
-    {
-        /// <summary>
-        /// The query tag is being added.
-        /// </summary>
-        Adding = 0,
+    Adding = 0,
 
-        /// <summary>
-        /// The query tag has been added to system.
-        /// </summary>
-        Ready = 1,
+    /// <summary>
+    /// The query tag has been added to system.
+    /// </summary>
+    Ready = 1,
 
-        /// <summary>
-        /// The query tag is being deleting.
-        /// </summary>
-        Deleting = 2,
-    }
+    /// <summary>
+    /// The query tag is being deleting.
+    /// </summary>
+    Deleting = 2,
 }

@@ -9,47 +9,46 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Client
+namespace Microsoft.Health.Dicom.Client;
+
+public class DicomWebResponse : IDisposable
 {
-    public class DicomWebResponse : IDisposable
+    private readonly HttpResponseMessage _response;
+    private bool _disposed;
+
+    public DicomWebResponse(HttpResponseMessage response)
     {
-        private readonly HttpResponseMessage _response;
-        private bool _disposed;
+        EnsureArg.IsNotNull(response, nameof(response));
 
-        public DicomWebResponse(HttpResponseMessage response)
+        _response = response;
+    }
+
+    public HttpStatusCode StatusCode => _response.StatusCode;
+
+    public bool IsSuccessStatusCode => _response.IsSuccessStatusCode;
+
+    public HttpResponseHeaders ResponseHeaders => _response.Headers;
+
+    public HttpContentHeaders ContentHeaders => _response.Content?.Headers;
+
+    public HttpContent Content => _response.Content;
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
         {
-            EnsureArg.IsNotNull(response, nameof(response));
-
-            _response = response;
-        }
-
-        public HttpStatusCode StatusCode => _response.StatusCode;
-
-        public bool IsSuccessStatusCode => _response.IsSuccessStatusCode;
-
-        public HttpResponseHeaders ResponseHeaders => _response.Headers;
-
-        public HttpContentHeaders ContentHeaders => _response.Content?.Headers;
-
-        public HttpContent Content => _response.Content;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
+            if (disposing)
             {
-                if (disposing)
-                {
-                    _response.Dispose();
-                }
-
-                _disposed = true;
+                _response.Dispose();
             }
-        }
 
-        public void Dispose()
-        {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            _disposed = true;
         }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

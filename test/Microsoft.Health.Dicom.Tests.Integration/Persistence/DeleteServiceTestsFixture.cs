@@ -17,66 +17,65 @@ using Microsoft.IO;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
+namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
+
+public class DeleteServiceTestsFixture : IAsyncLifetime
 {
-    public class DeleteServiceTestsFixture : IAsyncLifetime
+    private readonly SqlDataStoreTestsFixture _sqlDataStoreTestsFixture;
+    private readonly DataStoreTestsFixture _blobStorageTestsFixture;
+
+    public DeleteServiceTestsFixture()
     {
-        private readonly SqlDataStoreTestsFixture _sqlDataStoreTestsFixture;
-        private readonly DataStoreTestsFixture _blobStorageTestsFixture;
+        _sqlDataStoreTestsFixture = new SqlDataStoreTestsFixture();
+        _blobStorageTestsFixture = new DataStoreTestsFixture();
 
-        public DeleteServiceTestsFixture()
+        RecyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
+    }
+
+    public DeleteService DeleteService { get; private set; }
+
+    public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; }
+
+    public IIndexDataStore IndexDataStore => _sqlDataStoreTestsFixture.IndexDataStore;
+
+    public IIndexDataStoreTestHelper IndexDataStoreTestHelper => _sqlDataStoreTestsFixture.IndexDataStoreTestHelper;
+
+    public IFileStore FileStore => _blobStorageTestsFixture.FileStore;
+
+    public IMetadataStore MetadataStore => _blobStorageTestsFixture.MetadataStore;
+
+    public async Task InitializeAsync()
+    {
+        await _sqlDataStoreTestsFixture.InitializeAsync();
+        await _blobStorageTestsFixture.InitializeAsync();
+
+        var cleanupConfiguration = new DeletedInstanceCleanupConfiguration
         {
-            _sqlDataStoreTestsFixture = new SqlDataStoreTestsFixture();
-            _blobStorageTestsFixture = new DataStoreTestsFixture();
+            BatchSize = 10,
+            DeleteDelay = TimeSpan.FromSeconds(1),
+            MaxRetries = 3,
+            PollingInterval = TimeSpan.FromSeconds(1),
+            RetryBackOff = TimeSpan.FromSeconds(2),
+        };
 
-            RecyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
-        }
+        var optionsConfiguration = Substitute.For<IOptions<DeletedInstanceCleanupConfiguration>>();
+        optionsConfiguration.Value.Returns(cleanupConfiguration);
+        var dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+        dicomRequestContextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
 
-        public DeleteService DeleteService { get; private set; }
+        DeleteService = new DeleteService(
+            _sqlDataStoreTestsFixture.IndexDataStore,
+            _blobStorageTestsFixture.MetadataStore,
+            _blobStorageTestsFixture.FileStore,
+            optionsConfiguration,
+            _sqlDataStoreTestsFixture.SqlTransactionHandler,
+            NullLogger<DeleteService>.Instance,
+            dicomRequestContextAccessor);
+    }
 
-        public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; }
-
-        public IIndexDataStore IndexDataStore => _sqlDataStoreTestsFixture.IndexDataStore;
-
-        public IIndexDataStoreTestHelper IndexDataStoreTestHelper => _sqlDataStoreTestsFixture.IndexDataStoreTestHelper;
-
-        public IFileStore FileStore => _blobStorageTestsFixture.FileStore;
-
-        public IMetadataStore MetadataStore => _blobStorageTestsFixture.MetadataStore;
-
-        public async Task InitializeAsync()
-        {
-            await _sqlDataStoreTestsFixture.InitializeAsync();
-            await _blobStorageTestsFixture.InitializeAsync();
-
-            var cleanupConfiguration = new DeletedInstanceCleanupConfiguration
-            {
-                BatchSize = 10,
-                DeleteDelay = TimeSpan.FromSeconds(1),
-                MaxRetries = 3,
-                PollingInterval = TimeSpan.FromSeconds(1),
-                RetryBackOff = TimeSpan.FromSeconds(2),
-            };
-
-            var optionsConfiguration = Substitute.For<IOptions<DeletedInstanceCleanupConfiguration>>();
-            optionsConfiguration.Value.Returns(cleanupConfiguration);
-            var dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-            dicomRequestContextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
-
-            DeleteService = new DeleteService(
-                _sqlDataStoreTestsFixture.IndexDataStore,
-                _blobStorageTestsFixture.MetadataStore,
-                _blobStorageTestsFixture.FileStore,
-                optionsConfiguration,
-                _sqlDataStoreTestsFixture.SqlTransactionHandler,
-                NullLogger<DeleteService>.Instance,
-                dicomRequestContextAccessor);
-        }
-
-        public async Task DisposeAsync()
-        {
-            await _sqlDataStoreTestsFixture.DisposeAsync();
-            await _blobStorageTestsFixture.DisposeAsync();
-        }
+    public async Task DisposeAsync()
+    {
+        await _sqlDataStoreTestsFixture.DisposeAsync();
+        await _blobStorageTestsFixture.DisposeAsync();
     }
 }

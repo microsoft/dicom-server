@@ -15,181 +15,180 @@ using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 using DicomValidationException = FellowOakDicom.DicomValidationException;
 
-namespace Microsoft.Health.Dicom.Core.Features.Store
+namespace Microsoft.Health.Dicom.Core.Features.Store;
+
+/// <summary>
+/// Provides functionality to process the list of <see cref="IDicomInstanceEntry"/>.
+/// </summary>
+public class StoreService : IStoreService
 {
-    /// <summary>
-    /// Provides functionality to process the list of <see cref="IDicomInstanceEntry"/>.
-    /// </summary>
-    public class StoreService : IStoreService
+    private static readonly Action<ILogger, int, ushort, Exception> LogValidationFailedDelegate =
+        LoggerMessage.Define<int, ushort>(
+            LogLevel.Information,
+            default,
+            "Validation failed for the DICOM instance entry at index '{DicomInstanceEntryIndex}'. Failure code: {FailureCode}.");
+
+    private static readonly Action<ILogger, int, ushort, Exception> LogValidationSucceededWithWarningDelegate =
+        LoggerMessage.Define<int, ushort>(
+            LogLevel.Warning,
+            default,
+            "Validation succeeded with warning(s) for the DICOM instance entry at index '{DicomInstanceEntryIndex}'. {WarningCode}");
+
+    private static readonly Action<ILogger, int, ushort, Exception> LogFailedToStoreDelegate =
+        LoggerMessage.Define<int, ushort>(
+            LogLevel.Warning,
+            default,
+            "Failed to store the DICOM instance entry at index '{DicomInstanceEntryIndex}'. Failure code: {FailureCode}.");
+
+    private static readonly Action<ILogger, int, Exception> LogSuccessfullyStoredDelegate =
+        LoggerMessage.Define<int>(
+            LogLevel.Information,
+            default,
+            "Successfully stored the DICOM instance entry at index '{DicomInstanceEntryIndex}'.");
+
+    private static readonly Action<ILogger, int, Exception> LogFailedToDisposeDelegate =
+        LoggerMessage.Define<int>(
+            LogLevel.Warning,
+            default,
+            "Failed to dispose the DICOM instance entry at index '{DicomInstanceEntryIndex}'.");
+
+    private readonly IStoreResponseBuilder _storeResponseBuilder;
+    private readonly IStoreDatasetValidator _dicomDatasetValidator;
+    private readonly IStoreOrchestrator _storeOrchestrator;
+    private readonly ILogger _logger;
+
+    private IReadOnlyList<IDicomInstanceEntry> _dicomInstanceEntries;
+    private string _requiredStudyInstanceUid;
+
+    public StoreService(
+        IStoreResponseBuilder storeResponseBuilder,
+        IStoreDatasetValidator dicomDatasetValidator,
+        IStoreOrchestrator storeOrchestrator,
+        ILogger<StoreService> logger)
     {
-        private static readonly Action<ILogger, int, ushort, Exception> LogValidationFailedDelegate =
-            LoggerMessage.Define<int, ushort>(
-                LogLevel.Information,
-                default,
-                "Validation failed for the DICOM instance entry at index '{DicomInstanceEntryIndex}'. Failure code: {FailureCode}.");
+        _storeResponseBuilder = EnsureArg.IsNotNull(storeResponseBuilder, nameof(storeResponseBuilder));
+        _dicomDatasetValidator = EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
+        _storeOrchestrator = EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+    }
 
-        private static readonly Action<ILogger, int, ushort, Exception> LogValidationSucceededWithWarningDelegate =
-            LoggerMessage.Define<int, ushort>(
-                LogLevel.Warning,
-                default,
-                "Validation succeeded with warning(s) for the DICOM instance entry at index '{DicomInstanceEntryIndex}'. {WarningCode}");
-
-        private static readonly Action<ILogger, int, ushort, Exception> LogFailedToStoreDelegate =
-            LoggerMessage.Define<int, ushort>(
-                LogLevel.Warning,
-                default,
-                "Failed to store the DICOM instance entry at index '{DicomInstanceEntryIndex}'. Failure code: {FailureCode}.");
-
-        private static readonly Action<ILogger, int, Exception> LogSuccessfullyStoredDelegate =
-            LoggerMessage.Define<int>(
-                LogLevel.Information,
-                default,
-                "Successfully stored the DICOM instance entry at index '{DicomInstanceEntryIndex}'.");
-
-        private static readonly Action<ILogger, int, Exception> LogFailedToDisposeDelegate =
-            LoggerMessage.Define<int>(
-                LogLevel.Warning,
-                default,
-                "Failed to dispose the DICOM instance entry at index '{DicomInstanceEntryIndex}'.");
-
-        private readonly IStoreResponseBuilder _storeResponseBuilder;
-        private readonly IStoreDatasetValidator _dicomDatasetValidator;
-        private readonly IStoreOrchestrator _storeOrchestrator;
-        private readonly ILogger _logger;
-
-        private IReadOnlyList<IDicomInstanceEntry> _dicomInstanceEntries;
-        private string _requiredStudyInstanceUid;
-
-        public StoreService(
-            IStoreResponseBuilder storeResponseBuilder,
-            IStoreDatasetValidator dicomDatasetValidator,
-            IStoreOrchestrator storeOrchestrator,
-            ILogger<StoreService> logger)
+    /// <inheritdoc />
+    public async Task<StoreResponse> ProcessAsync(
+        IReadOnlyList<IDicomInstanceEntry> instanceEntries,
+        string requiredStudyInstanceUid,
+        CancellationToken cancellationToken)
+    {
+        if (instanceEntries != null)
         {
-            _storeResponseBuilder = EnsureArg.IsNotNull(storeResponseBuilder, nameof(storeResponseBuilder));
-            _dicomDatasetValidator = EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
-            _storeOrchestrator = EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
-            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-        }
+            _dicomInstanceEntries = instanceEntries;
+            _requiredStudyInstanceUid = requiredStudyInstanceUid;
 
-        /// <inheritdoc />
-        public async Task<StoreResponse> ProcessAsync(
-            IReadOnlyList<IDicomInstanceEntry> instanceEntries,
-            string requiredStudyInstanceUid,
-            CancellationToken cancellationToken)
-        {
-            if (instanceEntries != null)
+            for (int index = 0; index < instanceEntries.Count; index++)
             {
-                _dicomInstanceEntries = instanceEntries;
-                _requiredStudyInstanceUid = requiredStudyInstanceUid;
-
-                for (int index = 0; index < instanceEntries.Count; index++)
+                try
                 {
-                    try
-                    {
-                        await ProcessDicomInstanceEntryAsync(index, cancellationToken);
-                    }
-                    finally
-                    {
-                        // Fire and forget.
-                        int capturedIndex = index;
-
-                        _ = Task.Run(() => DisposeResourceAsync(capturedIndex), CancellationToken.None);
-                    }
+                    await ProcessDicomInstanceEntryAsync(index, cancellationToken);
                 }
-            }
-
-            return _storeResponseBuilder.BuildResponse(requiredStudyInstanceUid);
-        }
-
-        private async Task ProcessDicomInstanceEntryAsync(int index, CancellationToken cancellationToken)
-        {
-            IDicomInstanceEntry dicomInstanceEntry = _dicomInstanceEntries[index];
-
-            var warningReasonCode = (ushort?)null;
-            DicomDataset dicomDataset = null;
-
-            try
-            {
-                // Open and validate the DICOM instance.
-                dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
-
-                var isValid = await _dicomDatasetValidator.ValidateAsync(dicomDataset, _requiredStudyInstanceUid, cancellationToken);
-                if (!isValid)
+                finally
                 {
-                    warningReasonCode = FailureReasonCodes.DatasetDoesNotMatchSOPClass;
+                    // Fire and forget.
+                    int capturedIndex = index;
 
-                    LogValidationSucceededWithWarningDelegate(_logger, index, FailureReasonCodes.DatasetDoesNotMatchSOPClass, null);
+                    _ = Task.Run(() => DisposeResourceAsync(capturedIndex), CancellationToken.None);
                 }
-            }
-            catch (Exception ex)
-            {
-                ushort failureCode = FailureReasonCodes.ProcessingFailure;
-
-                switch (ex)
-                {
-                    case DicomValidationException _:
-                        failureCode = FailureReasonCodes.ValidationFailure;
-                        break;
-
-                    case DatasetValidationException dicomDatasetValidationException:
-                        failureCode = dicomDatasetValidationException.FailureCode;
-                        break;
-
-                    case ValidationException _:
-                        failureCode = FailureReasonCodes.ValidationFailure;
-                        break;
-                }
-
-                LogValidationFailedDelegate(_logger, index, failureCode, ex);
-
-                _storeResponseBuilder.AddFailure(dicomDataset, failureCode);
-
-                return;
-            }
-
-            try
-            {
-                // Store the instance.
-                await _storeOrchestrator.StoreDicomInstanceEntryAsync(
-                    dicomInstanceEntry,
-                    cancellationToken);
-
-                LogSuccessfullyStoredDelegate(_logger, index, null);
-
-                _storeResponseBuilder.AddSuccess(dicomDataset, warningReasonCode);
-            }
-            catch (Exception ex)
-            {
-                ushort failureCode = FailureReasonCodes.ProcessingFailure;
-
-                switch (ex)
-                {
-                    case PendingInstanceException _:
-                        failureCode = FailureReasonCodes.PendingSopInstance;
-                        break;
-
-                    case InstanceAlreadyExistsException _:
-                        failureCode = FailureReasonCodes.SopInstanceAlreadyExists;
-                        break;
-                }
-
-                LogFailedToStoreDelegate(_logger, index, failureCode, ex);
-
-                _storeResponseBuilder.AddFailure(dicomDataset, failureCode);
             }
         }
 
-        private async Task DisposeResourceAsync(int index)
+        return _storeResponseBuilder.BuildResponse(requiredStudyInstanceUid);
+    }
+
+    private async Task ProcessDicomInstanceEntryAsync(int index, CancellationToken cancellationToken)
+    {
+        IDicomInstanceEntry dicomInstanceEntry = _dicomInstanceEntries[index];
+
+        var warningReasonCode = (ushort?)null;
+        DicomDataset dicomDataset = null;
+
+        try
         {
-            try
+            // Open and validate the DICOM instance.
+            dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
+
+            var isValid = await _dicomDatasetValidator.ValidateAsync(dicomDataset, _requiredStudyInstanceUid, cancellationToken);
+            if (!isValid)
             {
-                await _dicomInstanceEntries[index].DisposeAsync();
+                warningReasonCode = FailureReasonCodes.DatasetDoesNotMatchSOPClass;
+
+                LogValidationSucceededWithWarningDelegate(_logger, index, FailureReasonCodes.DatasetDoesNotMatchSOPClass, null);
             }
-            catch (Exception ex)
+        }
+        catch (Exception ex)
+        {
+            ushort failureCode = FailureReasonCodes.ProcessingFailure;
+
+            switch (ex)
             {
-                LogFailedToDisposeDelegate(_logger, index, ex);
+                case DicomValidationException _:
+                    failureCode = FailureReasonCodes.ValidationFailure;
+                    break;
+
+                case DatasetValidationException dicomDatasetValidationException:
+                    failureCode = dicomDatasetValidationException.FailureCode;
+                    break;
+
+                case ValidationException _:
+                    failureCode = FailureReasonCodes.ValidationFailure;
+                    break;
             }
+
+            LogValidationFailedDelegate(_logger, index, failureCode, ex);
+
+            _storeResponseBuilder.AddFailure(dicomDataset, failureCode);
+
+            return;
+        }
+
+        try
+        {
+            // Store the instance.
+            await _storeOrchestrator.StoreDicomInstanceEntryAsync(
+                dicomInstanceEntry,
+                cancellationToken);
+
+            LogSuccessfullyStoredDelegate(_logger, index, null);
+
+            _storeResponseBuilder.AddSuccess(dicomDataset, warningReasonCode);
+        }
+        catch (Exception ex)
+        {
+            ushort failureCode = FailureReasonCodes.ProcessingFailure;
+
+            switch (ex)
+            {
+                case PendingInstanceException _:
+                    failureCode = FailureReasonCodes.PendingSopInstance;
+                    break;
+
+                case InstanceAlreadyExistsException _:
+                    failureCode = FailureReasonCodes.SopInstanceAlreadyExists;
+                    break;
+            }
+
+            LogFailedToStoreDelegate(_logger, index, failureCode, ex);
+
+            _storeResponseBuilder.AddFailure(dicomDataset, failureCode);
+        }
+    }
+
+    private async Task DisposeResourceAsync(int index)
+    {
+        try
+        {
+            await _dicomInstanceEntries[index].DisposeAsync();
+        }
+        catch (Exception ex)
+        {
+            LogFailedToDisposeDelegate(_logger, index, ex);
         }
     }
 }

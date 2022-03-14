@@ -13,93 +13,92 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Messages;
 
-namespace Microsoft.Health.Dicom.Core.Features.Retrieve
+namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
+
+public static class InstanceStoreExtensions
 {
-    public static class InstanceStoreExtensions
+    public static async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstancesToRetrieve(
+            this IInstanceStore instanceStore,
+            ResourceType resourceType,
+            int partitionKey,
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string sopInstanceUid,
+            CancellationToken cancellationToken)
     {
-        public static async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstancesToRetrieve(
-                this IInstanceStore instanceStore,
-                ResourceType resourceType,
-                int partitionKey,
-                string studyInstanceUid,
-                string seriesInstanceUid,
-                string sopInstanceUid,
-                CancellationToken cancellationToken)
+        EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
+
+        IEnumerable<VersionedInstanceIdentifier> instancesToRetrieve = Enumerable.Empty<VersionedInstanceIdentifier>();
+
+        switch (resourceType)
         {
-            EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
-
-            IEnumerable<VersionedInstanceIdentifier> instancesToRetrieve = Enumerable.Empty<VersionedInstanceIdentifier>();
-
-            switch (resourceType)
-            {
-                case ResourceType.Frames:
-                case ResourceType.Instance:
-                    instancesToRetrieve = await instanceStore.GetInstanceIdentifierAsync(
-                        partitionKey,
-                        studyInstanceUid,
-                        seriesInstanceUid,
-                        sopInstanceUid,
-                        cancellationToken);
-                    break;
-                case ResourceType.Series:
-                    instancesToRetrieve = await instanceStore.GetInstanceIdentifiersInSeriesAsync(
-                        partitionKey,
-                        studyInstanceUid,
-                        seriesInstanceUid,
-                        cancellationToken);
-                    break;
-                case ResourceType.Study:
-                    instancesToRetrieve = await instanceStore.GetInstanceIdentifiersInStudyAsync(
-                        partitionKey,
-                        studyInstanceUid,
-                        cancellationToken);
-                    break;
-                default:
-                    Debug.Fail($"Unknown retrieve transaction type: {resourceType}", nameof(resourceType));
-                    break;
-            }
-
-            if (!instancesToRetrieve.Any())
-            {
-                ThrowNotFoundException(resourceType);
-            }
-
-            return instancesToRetrieve;
+            case ResourceType.Frames:
+            case ResourceType.Instance:
+                instancesToRetrieve = await instanceStore.GetInstanceIdentifierAsync(
+                    partitionKey,
+                    studyInstanceUid,
+                    seriesInstanceUid,
+                    sopInstanceUid,
+                    cancellationToken);
+                break;
+            case ResourceType.Series:
+                instancesToRetrieve = await instanceStore.GetInstanceIdentifiersInSeriesAsync(
+                    partitionKey,
+                    studyInstanceUid,
+                    seriesInstanceUid,
+                    cancellationToken);
+                break;
+            case ResourceType.Study:
+                instancesToRetrieve = await instanceStore.GetInstanceIdentifiersInStudyAsync(
+                    partitionKey,
+                    studyInstanceUid,
+                    cancellationToken);
+                break;
+            default:
+                Debug.Fail($"Unknown retrieve transaction type: {resourceType}", nameof(resourceType));
+                break;
         }
 
-        public static async Task<IEnumerable<InstanceMetadata>> GetInstancesWithProperties(
-                this IInstanceStore instanceStore,
-                ResourceType resourceType,
-                int partitionKey,
-                string studyInstanceUid,
-                string seriesInstanceUid,
-                string sopInstanceUid,
-                CancellationToken cancellationToken)
+        if (!instancesToRetrieve.Any())
         {
-            EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
-
-            IEnumerable<InstanceMetadata> instancesToRetrieve = await instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
-
-            if (!instancesToRetrieve.Any())
-            {
-                ThrowNotFoundException(resourceType);
-            }
-
-            return instancesToRetrieve;
+            ThrowNotFoundException(resourceType);
         }
 
-        private static void ThrowNotFoundException(ResourceType resourceType)
+        return instancesToRetrieve;
+    }
+
+    public static async Task<IEnumerable<InstanceMetadata>> GetInstancesWithProperties(
+            this IInstanceStore instanceStore,
+            ResourceType resourceType,
+            int partitionKey,
+            string studyInstanceUid,
+            string seriesInstanceUid,
+            string sopInstanceUid,
+            CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
+
+        IEnumerable<InstanceMetadata> instancesToRetrieve = await instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
+
+        if (!instancesToRetrieve.Any())
         {
-            switch (resourceType)
-            {
-                case ResourceType.Frames:
-                case ResourceType.Instance:
-                    throw new InstanceNotFoundException();
-                case ResourceType.Series:
-                    throw new InstanceNotFoundException(DicomCoreResource.SeriesInstanceNotFound);
-                case ResourceType.Study:
-                    throw new InstanceNotFoundException(DicomCoreResource.StudyInstanceNotFound);
-            }
+            ThrowNotFoundException(resourceType);
+        }
+
+        return instancesToRetrieve;
+    }
+
+    private static void ThrowNotFoundException(ResourceType resourceType)
+    {
+        switch (resourceType)
+        {
+            case ResourceType.Frames:
+            case ResourceType.Instance:
+                throw new InstanceNotFoundException();
+            case ResourceType.Series:
+                throw new InstanceNotFoundException(DicomCoreResource.SeriesInstanceNotFound);
+            case ResourceType.Study:
+                throw new InstanceNotFoundException(DicomCoreResource.StudyInstanceNotFound);
         }
     }
 }

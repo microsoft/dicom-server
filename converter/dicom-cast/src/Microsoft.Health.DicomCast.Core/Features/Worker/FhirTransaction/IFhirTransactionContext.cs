@@ -5,26 +5,25 @@
 
 using Microsoft.Health.Dicom.Client.Models;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
+
+/// <summary>
+/// Provides the context of a FHIR transaction.
+/// </summary>
+public interface IFhirTransactionContext
 {
     /// <summary>
-    /// Provides the context of a FHIR transaction.
+    /// Gets the change feed used for this transaction.
     /// </summary>
-    public interface IFhirTransactionContext
-    {
-        /// <summary>
-        /// Gets the change feed used for this transaction.
-        /// </summary>
-        ChangeFeedEntry ChangeFeedEntry { get; }
+    ChangeFeedEntry ChangeFeedEntry { get; }
 
-        /// <summary>
-        /// Gets the request.
-        /// </summary>
-        FhirTransactionRequest Request { get; }
+    /// <summary>
+    /// Gets the request.
+    /// </summary>
+    FhirTransactionRequest Request { get; }
 
-        /// <summary>
-        /// Gets the response.
-        /// </summary>
-        FhirTransactionResponse Response { get; }
-    }
+    /// <summary>
+    /// Gets the response.
+    /// </summary>
+    FhirTransactionResponse Response { get; }
 }

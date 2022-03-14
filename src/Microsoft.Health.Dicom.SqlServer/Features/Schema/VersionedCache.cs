@@ -13,44 +13,43 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Features.Common;
 using Microsoft.Health.Dicom.SqlServer.Exceptions;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Schema
+namespace Microsoft.Health.Dicom.SqlServer.Features.Schema;
+
+internal sealed class VersionedCache<T> : IDisposable where T : IVersioned
 {
-    internal sealed class VersionedCache<T> : IDisposable where T : IVersioned
+    private readonly ISchemaVersionResolver _schemaVersionResolver;
+    private readonly IEnumerable<T> _entities;
+    private readonly AsyncCache<T> _cache;
+
+    public VersionedCache(ISchemaVersionResolver schemaVersionResolver, IEnumerable<T> versionedEntities)
     {
-        private readonly ISchemaVersionResolver _schemaVersionResolver;
-        private readonly IEnumerable<T> _entities;
-        private readonly AsyncCache<T> _cache;
+        _schemaVersionResolver = EnsureArg.IsNotNull(schemaVersionResolver, nameof(schemaVersionResolver));
+        _entities = EnsureArg.IsNotNull(versionedEntities, nameof(versionedEntities))
+            .Where(x => x != null)
+            .OrderByDescending(x => x.Version);
+        _cache = new AsyncCache<T>(ResolveAsync);
+    }
 
-        public VersionedCache(ISchemaVersionResolver schemaVersionResolver, IEnumerable<T> versionedEntities)
+    public void Dispose()
+        => _cache.Dispose();
+
+    public Task<T> GetAsync(CancellationToken cancellationToken = default)
+        => _cache.GetAsync(forceRefresh: false, cancellationToken: cancellationToken); // prevent users from forcing refresh
+
+    private async Task<T> ResolveAsync(CancellationToken cancellationToken = default)
+    {
+        SchemaVersion current = await _schemaVersionResolver.GetCurrentVersionAsync(cancellationToken);
+
+        // Return the latest version of the entity. If the entity is not found, throw an exception.
+        T value = _entities.FirstOrDefault(x => x.Version <= current);
+
+        if (value == null)
         {
-            _schemaVersionResolver = EnsureArg.IsNotNull(schemaVersionResolver, nameof(schemaVersionResolver));
-            _entities = EnsureArg.IsNotNull(versionedEntities, nameof(versionedEntities))
-                .Where(x => x != null)
-                .OrderByDescending(x => x.Version);
-            _cache = new AsyncCache<T>(ResolveAsync);
+            throw new InvalidSchemaVersionException(current == SchemaVersion.Unknown
+                ? DicomSqlServerResource.UnknownSchemaVersion
+                : string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.SchemaVersionOutOfRange, current));
         }
 
-        public void Dispose()
-            => _cache.Dispose();
-
-        public Task<T> GetAsync(CancellationToken cancellationToken = default)
-            => _cache.GetAsync(forceRefresh: false, cancellationToken: cancellationToken); // prevent users from forcing refresh
-
-        private async Task<T> ResolveAsync(CancellationToken cancellationToken = default)
-        {
-            SchemaVersion current = await _schemaVersionResolver.GetCurrentVersionAsync(cancellationToken);
-
-            // Return the latest version of the entity. If the entity is not found, throw an exception.
-            T value = _entities.FirstOrDefault(x => x.Version <= current);
-
-            if (value == null)
-            {
-                throw new InvalidSchemaVersionException(current == SchemaVersion.Unknown
-                    ? DicomSqlServerResource.UnknownSchemaVersion
-                    : string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.SchemaVersionOutOfRange, current));
-            }
-
-            return value;
-        }
+        return value;
     }
 }

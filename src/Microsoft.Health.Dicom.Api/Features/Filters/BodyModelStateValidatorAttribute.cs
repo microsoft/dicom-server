@@ -8,18 +8,17 @@ using EnsureThat;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Health.Dicom.Api.Web;
 
-namespace Microsoft.Health.Dicom.Api.Features.Filters
+namespace Microsoft.Health.Dicom.Api.Features.Filters;
+
+public sealed class BodyModelStateValidatorAttribute : ActionFilterAttribute
 {
-    public sealed class BodyModelStateValidatorAttribute : ActionFilterAttribute
+    public override void OnActionExecuting(ActionExecutingContext context)
     {
-        public override void OnActionExecuting(ActionExecutingContext context)
+        EnsureArg.IsNotNull(context, nameof(context));
+        if (!context.ModelState.IsValid)
         {
-            EnsureArg.IsNotNull(context, nameof(context));
-            if (!context.ModelState.IsValid)
-            {
-                var error = context.ModelState.Last(x => x.Value.ValidationState == AspNetCore.Mvc.ModelBinding.ModelValidationState.Invalid);
-                throw new InvalidRequestBodyException(error.Key, error.Value.Errors.First().ErrorMessage);
-            }
+            var error = context.ModelState.Last(x => x.Value.ValidationState == AspNetCore.Mvc.ModelBinding.ModelValidationState.Invalid);
+            throw new InvalidRequestBodyException(error.Key, error.Value.Errors.First().ErrorMessage);
         }
     }
 }

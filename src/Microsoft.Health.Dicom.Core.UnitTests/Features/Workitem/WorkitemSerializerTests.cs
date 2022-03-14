@@ -14,53 +14,52 @@ using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Core.Web;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
+namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem;
+
+public sealed class WorkitemSerializerTests
 {
-    public sealed class WorkitemSerializerTests
+    private readonly WorkitemSerializer _target;
+
+    public WorkitemSerializerTests()
     {
-        private readonly WorkitemSerializer _target;
+        _target = new WorkitemSerializer();
+    }
 
-        public WorkitemSerializerTests()
+    [Fact]
+    public async Task GivenUnsupportedContentType_WhenHandled_ThenUnsupportedMediaTypeExceptionShouldBeThrown()
+    {
+        await Assert.ThrowsAsync<UnsupportedMediaTypeException>(() => _target.DeserializeAsync<DicomDataset>(Stream.Null, @"invalid"));
+    }
+
+    [Fact]
+    public async Task GivenNullStream_WhenDeserialized_ThrowsArgumentNullException()
+    {
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _target.DeserializeAsync<DicomDataset>(null, KnownContentTypes.ApplicationDicomJson));
+    }
+
+    [Fact]
+    public async Task GivenValidStream_WhenDeserialized_ReturnsDicomDataset()
+    {
+        using (var stream = new MemoryStream(await GetWorkitemBytesAsync()))
         {
-            _target = new WorkitemSerializer();
+            var datasets = await _target.DeserializeAsync<IEnumerable<DicomDataset>>(stream, KnownContentTypes.ApplicationDicomJson);
+
+            Assert.NotNull(datasets);
+            Assert.True(datasets.Any());
+        }
+    }
+
+    private static async Task<byte[]> GetWorkitemBytesAsync()
+    {
+        var stream = new MemoryStream();
+        using (var streamWriter = new StreamWriter(stream))
+        {
+            await streamWriter.WriteAsync("[{\"00081080\": {\"vr\": \"LO\"},\"00081084\": {\"vr\": \"SQ\"}}]");
+            await streamWriter.FlushAsync();
+
+            stream.Position = 0;
         }
 
-        [Fact]
-        public async Task GivenUnsupportedContentType_WhenHandled_ThenUnsupportedMediaTypeExceptionShouldBeThrown()
-        {
-            await Assert.ThrowsAsync<UnsupportedMediaTypeException>(() => _target.DeserializeAsync<DicomDataset>(Stream.Null, @"invalid"));
-        }
-
-        [Fact]
-        public async Task GivenNullStream_WhenDeserialized_ThrowsArgumentNullException()
-        {
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _target.DeserializeAsync<DicomDataset>(null, KnownContentTypes.ApplicationDicomJson));
-        }
-
-        [Fact]
-        public async Task GivenValidStream_WhenDeserialized_ReturnsDicomDataset()
-        {
-            using (var stream = new MemoryStream(await GetWorkitemBytesAsync()))
-            {
-                var datasets = await _target.DeserializeAsync<IEnumerable<DicomDataset>>(stream, KnownContentTypes.ApplicationDicomJson);
-
-                Assert.NotNull(datasets);
-                Assert.True(datasets.Any());
-            }
-        }
-
-        private static async Task<byte[]> GetWorkitemBytesAsync()
-        {
-            var stream = new MemoryStream();
-            using (var streamWriter = new StreamWriter(stream))
-            {
-                await streamWriter.WriteAsync("[{\"00081080\": {\"vr\": \"LO\"},\"00081084\": {\"vr\": \"SQ\"}}]");
-                await streamWriter.FlushAsync();
-
-                stream.Position = 0;
-            }
-
-            return stream.ToArray();
-        }
+        return stream.ToArray();
     }
 }

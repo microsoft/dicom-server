@@ -4,13 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using Microsoft.AspNetCore.Mvc;
-namespace Microsoft.Health.Dicom.Api.Features.Routing
+namespace Microsoft.Health.Dicom.Api.Features.Routing;
+
+public sealed class PartitionRouteAttribute : RouteAttribute
 {
-    public sealed class PartitionRouteAttribute : RouteAttribute
+    public PartitionRouteAttribute(string template)
+        : base(KnownRoutes.PartitionRoute + "/" + template)
     {
-        public PartitionRouteAttribute(string template)
-            : base(KnownRoutes.PartitionRoute + "/" + template)
-        {
-        }
     }
 }

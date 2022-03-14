@@ -5,27 +5,26 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.Health.DicomCast.TableStorage
+namespace Microsoft.Health.DicomCast.TableStorage;
+
+internal static class Constants
 {
-    internal static class Constants
-    {
-        public const string FhirExceptionTableName = "FhirFailToStoreExceptionTable";
+    public const string FhirExceptionTableName = "FhirFailToStoreExceptionTable";
 
-        public const string DicomExceptionTableName = "DicomFailToStoreExceptionTable";
+    public const string DicomExceptionTableName = "DicomFailToStoreExceptionTable";
 
-        public const string DicomValidationTableName = "InvalidDicomTagExceptionTable";
+    public const string DicomValidationTableName = "InvalidDicomTagExceptionTable";
 
-        public const string TransientFailureTableName = "TransientFailureExceptionTable";
+    public const string TransientFailureTableName = "TransientFailureExceptionTable";
 
-        public const string TransientRetryTableName = "TransientRetryExceptionTable";
+    public const string TransientRetryTableName = "TransientRetryExceptionTable";
 
-        public const string SyncStateTableName = "SyncStateTable";
+    public const string SyncStateTableName = "SyncStateTable";
 
-        public const string SyncStatePartitionKey = "SyncStatePartitionKey";
+    public const string SyncStatePartitionKey = "SyncStatePartitionKey";
 
-        public const string SyncStateRowKey = "SyncStateRowKey";
+    public const string SyncStateRowKey = "SyncStateRowKey";
 
-        // List of all the table name suffixes that need to be initialized
-        public static readonly List<string> AllTables = new List<string> { SyncStateTableName, FhirExceptionTableName, DicomExceptionTableName, TransientFailureTableName, DicomValidationTableName, TransientRetryTableName };
-    }
+    // List of all the table name suffixes that need to be initialized
+    public static readonly List<string> AllTables = new List<string> { SyncStateTableName, FhirExceptionTableName, DicomExceptionTableName, TransientFailureTableName, DicomValidationTableName, TransientRetryTableName };
 }

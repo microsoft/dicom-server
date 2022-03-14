@@ -21,269 +21,268 @@ using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
+namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
+
+/// <summary>
+///  Tests for InstanceStore.
+/// </summary>
+public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
 {
-    /// <summary>
-    ///  Tests for InstanceStore.
-    /// </summary>
-    public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
+    private readonly IInstanceStore _instanceStore;
+    private readonly IIndexDataStore _indexDataStore;
+    private readonly IExtendedQueryTagStore _extendedQueryTagStore;
+    private readonly IIndexDataStoreTestHelper _indexDataStoreTestHelper;
+    private readonly IExtendedQueryTagStoreTestHelper _extendedQueryTagStoreTestHelper;
+    private readonly IPartitionStore _partitionStore;
+
+    public InstanceStoreTests(SqlDataStoreTestsFixture fixture)
     {
-        private readonly IInstanceStore _instanceStore;
-        private readonly IIndexDataStore _indexDataStore;
-        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
-        private readonly IIndexDataStoreTestHelper _indexDataStoreTestHelper;
-        private readonly IExtendedQueryTagStoreTestHelper _extendedQueryTagStoreTestHelper;
-        private readonly IPartitionStore _partitionStore;
+        _instanceStore = EnsureArg.IsNotNull(fixture?.InstanceStore, nameof(fixture.InstanceStore));
+        _indexDataStore = EnsureArg.IsNotNull(fixture?.IndexDataStore, nameof(fixture.IndexDataStore));
+        _extendedQueryTagStore = EnsureArg.IsNotNull(fixture?.ExtendedQueryTagStore, nameof(fixture.ExtendedQueryTagStore));
+        _indexDataStoreTestHelper = EnsureArg.IsNotNull(fixture?.IndexDataStoreTestHelper, nameof(fixture.IndexDataStoreTestHelper));
+        _extendedQueryTagStoreTestHelper = EnsureArg.IsNotNull(fixture?.ExtendedQueryTagStoreTestHelper, nameof(fixture.ExtendedQueryTagStoreTestHelper));
+        _partitionStore = EnsureArg.IsNotNull(fixture?.PartitionStore, nameof(fixture.PartitionStore));
+    }
 
-        public InstanceStoreTests(SqlDataStoreTestsFixture fixture)
+    [Fact]
+    public async Task GivenInstances_WhenGetInstanceIdentifiersByWatermarkRange_ThenItShouldReturnInstancesInRange()
+    {
+        await AddRandomInstanceAsync();
+        var instance1 = await AddRandomInstanceAsync();
+        var instance2 = await AddRandomInstanceAsync();
+        var instance3 = await AddRandomInstanceAsync();
+        var instance4 = await AddRandomInstanceAsync();
+        await AddRandomInstanceAsync();
+
+        IReadOnlyList<VersionedInstanceIdentifier> instances = await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(
+            new WatermarkRange(instance1.Version, instance4.Version),
+            IndexStatus.Creating);
+
+        Assert.Equal(instances, new[] { instance1, instance2, instance3, instance4 });
+    }
+
+    [Fact]
+    public async Task GivenStudyTag_WhenReindexWithNewInstance_ThenTagValueShouldBeUpdated()
+    {
+        DicomTag tag = DicomTag.DeviceSerialNumber;
+        string tagValue1 = "test1";
+        string tagValue2 = "test2";
+        string tagValue3 = "test3";
+
+        string studyUid = TestUidGenerator.Generate();
+
+        DicomDataset dataset1 = Samples.CreateRandomInstanceDataset(studyUid);
+        dataset1.Add(tag, tagValue1);
+        DicomDataset dataset2 = Samples.CreateRandomInstanceDataset(studyUid);
+        dataset2.Add(tag, tagValue2);
+        DicomDataset dataset3 = Samples.CreateRandomInstanceDataset(studyUid);
+        dataset3.Add(tag, tagValue3);
+
+        Instance instance1 = await CreateInstanceIndexAsync(dataset1);
+        Instance instance2 = await CreateInstanceIndexAsync(dataset2);
+        Instance instance3 = await CreateInstanceIndexAsync(dataset3);
+
+        var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Study));
+        QueryTag queryTag = new QueryTag(tagStoreEntry);
+
+        // Simulate re-indexing, which may re-index an instance which may re-index
+        // the instances for a particular study or series out-of-order
+        await _indexDataStore.ReindexInstanceAsync(dataset2, instance2.Watermark, new[] { queryTag });
+        ExtendedQueryTagDataRow row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, null, null)).Single();
+        Assert.Equal(tagValue2, row.TagValue); // Added
+
+        await _indexDataStore.ReindexInstanceAsync(dataset3, instance3.Watermark, new[] { queryTag });
+        row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, null, null)).Single();
+        Assert.Equal(tagValue3, row.TagValue); // Overwrite
+
+        await _indexDataStore.ReindexInstanceAsync(dataset1, instance1.Watermark, new[] { queryTag });
+        row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, null, null)).Single();
+        Assert.Equal(tagValue3, row.TagValue); // Do not overwrite
+    }
+
+    [Fact]
+    public async Task GivenSeriesTag_WhenReindexWithOldInstance_ThenTagValueShouldNotBeUpdated()
+    {
+        DicomTag tag = DicomTag.AcquisitionDeviceProcessingCode;
+        string tagValue1 = "test1";
+        string tagValue2 = "test2";
+
+        string studyUid = TestUidGenerator.Generate();
+        string seriesUid = TestUidGenerator.Generate();
+
+        DicomDataset dataset1 = Samples.CreateRandomInstanceDataset(studyUid, seriesUid);
+        dataset1.Add(tag, tagValue1);
+        DicomDataset dataset2 = Samples.CreateRandomInstanceDataset(studyUid, seriesUid);
+        dataset2.Add(tag, tagValue2);
+        Instance instance1 = await CreateInstanceIndexAsync(dataset1);
+        Instance instance2 = await CreateInstanceIndexAsync(dataset2);
+
+        var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Series));
+        QueryTag queryTag = new QueryTag(tagStoreEntry);
+
+        await _indexDataStore.ReindexInstanceAsync(dataset2, instance2.Watermark, new[] { queryTag });
+        await _indexDataStore.ReindexInstanceAsync(dataset1, instance1.Watermark, new[] { queryTag });
+
+        var row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, null)).First();
+        Assert.Equal(tagValue2, row.TagValue);
+    }
+
+    [Fact]
+    public async Task GivenInstanceTag_WhenReindexWithNotIndexedInstance_ThenTagValueShouldBeInserted()
+    {
+        DicomTag tag = DicomTag.AcquisitionDeviceProcessingDescription;
+        string tagValue = "test";
+
+        DicomDataset dataset = Samples.CreateRandomInstanceDataset();
+        dataset.Add(tag, tagValue);
+
+        Instance instance = await CreateInstanceIndexAsync(dataset);
+
+        var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Instance));
+
+        await _indexDataStore.ReindexInstanceAsync(dataset, instance.Watermark, new[] { new QueryTag(tagStoreEntry) });
+
+        var row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance.StudyKey, instance.SeriesKey, instance.InstanceKey)).First();
+        Assert.Equal(tagValue, row.TagValue);
+    }
+
+    [Fact]
+    public async Task GivenInstanceTag_WhenReindexWithIndexedInstance_ThenTagValueShouldNotBeUpdated()
+    {
+        DicomTag tag = DicomTag.DeviceLabel;
+        string tagValue = "test";
+        var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Instance));
+
+        DicomDataset dataset = Samples.CreateRandomInstanceDataset();
+        dataset.Add(tag, tagValue);
+        var instance = await CreateInstanceIndexAsync(dataset);
+
+        await _indexDataStore.ReindexInstanceAsync(dataset, instance.Watermark, new[] { new QueryTag(tagStoreEntry) });
+
+        var row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance.StudyKey, instance.SeriesKey, instance.InstanceKey)).First();
+        Assert.Equal(tagValue, row.TagValue);
+
+    }
+
+    [Fact]
+    public async Task GivenInstanceNotExist_WhenReindex_ThenShouldThrowException()
+    {
+        DicomTag tag = DicomTag.DeviceID;
+        var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Instance));
+
+        DicomDataset dataset = Samples.CreateRandomInstanceDataset();
+        await Assert.ThrowsAsync<InstanceNotFoundException>(() => _indexDataStore.ReindexInstanceAsync(dataset, 0, new[] { new QueryTag(tagStoreEntry) }));
+    }
+
+    [Fact]
+    public async Task GivenPendingInstance_WhenReindex_ThenShouldThrowException()
+    {
+        DicomTag tag = DicomTag.DeviceDescription;
+        var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Instance));
+
+        DicomDataset dataset = Samples.CreateRandomInstanceDataset();
+
+        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+        await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.ReindexInstanceAsync(dataset, watermark, new[] { new QueryTag(tagStoreEntry) }));
+    }
+
+    [Fact]
+    public async Task GivenInstances_WhenGettingInstanceBatches_ThenStartAtEnd()
+    {
+        var instances = new List<VersionedInstanceIdentifier>
         {
-            _instanceStore = EnsureArg.IsNotNull(fixture?.InstanceStore, nameof(fixture.InstanceStore));
-            _indexDataStore = EnsureArg.IsNotNull(fixture?.IndexDataStore, nameof(fixture.IndexDataStore));
-            _extendedQueryTagStore = EnsureArg.IsNotNull(fixture?.ExtendedQueryTagStore, nameof(fixture.ExtendedQueryTagStore));
-            _indexDataStoreTestHelper = EnsureArg.IsNotNull(fixture?.IndexDataStoreTestHelper, nameof(fixture.IndexDataStoreTestHelper));
-            _extendedQueryTagStoreTestHelper = EnsureArg.IsNotNull(fixture?.ExtendedQueryTagStoreTestHelper, nameof(fixture.ExtendedQueryTagStoreTestHelper));
-            _partitionStore = EnsureArg.IsNotNull(fixture?.PartitionStore, nameof(fixture.PartitionStore));
-        }
+            await AddRandomInstanceAsync(),
+            await AddRandomInstanceAsync(),
+            await AddRandomInstanceAsync(),
+            await AddRandomInstanceAsync(),
+            await AddRandomInstanceAsync(),
+            await AddRandomInstanceAsync(), // Deleted
+            await AddRandomInstanceAsync(),
+            await AddRandomInstanceAsync(),
+        };
 
-        [Fact]
-        public async Task GivenInstances_WhenGetInstanceIdentifiersByWatermarkRange_ThenItShouldReturnInstancesInRange()
-        {
-            await AddRandomInstanceAsync();
-            var instance1 = await AddRandomInstanceAsync();
-            var instance2 = await AddRandomInstanceAsync();
-            var instance3 = await AddRandomInstanceAsync();
-            var instance4 = await AddRandomInstanceAsync();
-            await AddRandomInstanceAsync();
+        // Create a gap within the data
+        await _indexDataStore.DeleteInstanceIndexAsync(
+            new InstanceIdentifier(
+                instances[^3].StudyInstanceUid,
+                instances[^3].SeriesInstanceUid,
+                instances[^3].SopInstanceUid,
+                DefaultPartition.Key));
 
-            IReadOnlyList<VersionedInstanceIdentifier> instances = await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(
-                new WatermarkRange(instance1.Version, instance4.Version),
-                IndexStatus.Creating);
+        IReadOnlyList<WatermarkRange> batches;
 
-            Assert.Equal(instances, new[] { instance1, instance2, instance3, instance4 });
-        }
+        // No Max Watermark
+        batches = await _instanceStore.GetInstanceBatchesAsync(3, 2, IndexStatus.Creating);
 
-        [Fact]
-        public async Task GivenStudyTag_WhenReindexWithNewInstance_ThenTagValueShouldBeUpdated()
-        {
-            DicomTag tag = DicomTag.DeviceSerialNumber;
-            string tagValue1 = "test1";
-            string tagValue2 = "test2";
-            string tagValue3 = "test3";
+        Assert.Equal(2, batches.Count);
+        Assert.Equal(new WatermarkRange(instances[^4].Version, instances[^1].Version), batches[0]);
+        Assert.Equal(new WatermarkRange(instances[^7].Version, instances[^5].Version), batches[1]);
 
-            string studyUid = TestUidGenerator.Generate();
+        // With Max Watermark
+        batches = await _instanceStore.GetInstanceBatchesAsync(3, 2, IndexStatus.Creating, instances[^2].Version);
 
-            DicomDataset dataset1 = Samples.CreateRandomInstanceDataset(studyUid);
-            dataset1.Add(tag, tagValue1);
-            DicomDataset dataset2 = Samples.CreateRandomInstanceDataset(studyUid);
-            dataset2.Add(tag, tagValue2);
-            DicomDataset dataset3 = Samples.CreateRandomInstanceDataset(studyUid);
-            dataset3.Add(tag, tagValue3);
+        Assert.Equal(2, batches.Count);
+        Assert.Equal(new WatermarkRange(instances[^5].Version, instances[^2].Version), batches[0]);
+        Assert.Equal(new WatermarkRange(instances[^8].Version, instances[^6].Version), batches[1]);
+    }
 
-            Instance instance1 = await CreateInstanceIndexAsync(dataset1);
-            Instance instance2 = await CreateInstanceIndexAsync(dataset2);
-            Instance instance3 = await CreateInstanceIndexAsync(dataset3);
+    [Fact]
+    public async Task WhenAddingTheSameInstanceToTwoPartitions_ThenTheyAreRetrievedCorrectly()
+    {
+        var partition1 = "partition1";
+        var partition2 = "partition2";
 
-            var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Study));
-            QueryTag queryTag = new QueryTag(tagStoreEntry);
+        var partitionEntry1 = await _partitionStore.AddPartitionAsync(partition1);
+        var partitionEntry2 = await _partitionStore.AddPartitionAsync(partition2);
 
-            // Simulate re-indexing, which may re-index an instance which may re-index
-            // the instances for a particular study or series out-of-order
-            await _indexDataStore.ReindexInstanceAsync(dataset2, instance2.Watermark, new[] { queryTag });
-            ExtendedQueryTagDataRow row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, null, null)).Single();
-            Assert.Equal(tagValue2, row.TagValue); // Added
+        string studyInstanceUID = TestUidGenerator.Generate();
 
-            await _indexDataStore.ReindexInstanceAsync(dataset3, instance3.Watermark, new[] { queryTag });
-            row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, null, null)).Single();
-            Assert.Equal(tagValue3, row.TagValue); // Overwrite
+        DicomDataset dataset1 = Samples.CreateRandomInstanceDataset(studyInstanceUID);
+        DicomDataset dataset2 = Samples.CreateRandomInstanceDataset(studyInstanceUID);
 
-            await _indexDataStore.ReindexInstanceAsync(dataset1, instance1.Watermark, new[] { queryTag });
-            row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, null, null)).Single();
-            Assert.Equal(tagValue3, row.TagValue); // Do not overwrite
-        }
+        Instance instance1 = await CreateInstanceIndexAsync(dataset1, partitionEntry1.PartitionKey);
+        Instance instance2 = await CreateInstanceIndexAsync(dataset2, partitionEntry2.PartitionKey);
 
-        [Fact]
-        public async Task GivenSeriesTag_WhenReindexWithOldInstance_ThenTagValueShouldNotBeUpdated()
-        {
-            DicomTag tag = DicomTag.AcquisitionDeviceProcessingCode;
-            string tagValue1 = "test1";
-            string tagValue2 = "test2";
+        Assert.Equal(partitionEntry1.PartitionKey, instance1.PartitionKey);
+        Assert.Equal(partitionEntry2.PartitionKey, instance2.PartitionKey);
+    }
 
-            string studyUid = TestUidGenerator.Generate();
-            string seriesUid = TestUidGenerator.Generate();
+    [Fact]
+    public async Task WhenRetrievingAnInstanceFromTheWrongPartition_ThenResultSetIsEmpty()
+    {
+        var partition = "partition3";
+        var partitionEntry = await _partitionStore.AddPartitionAsync(partition);
 
-            DicomDataset dataset1 = Samples.CreateRandomInstanceDataset(studyUid, seriesUid);
-            dataset1.Add(tag, tagValue1);
-            DicomDataset dataset2 = Samples.CreateRandomInstanceDataset(studyUid, seriesUid);
-            dataset2.Add(tag, tagValue2);
-            Instance instance1 = await CreateInstanceIndexAsync(dataset1);
-            Instance instance2 = await CreateInstanceIndexAsync(dataset2);
+        var identifier = await AddRandomInstanceAsync(partitionEntry.PartitionKey);
 
-            var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Series));
-            QueryTag queryTag = new QueryTag(tagStoreEntry);
+        var instances = await _indexDataStoreTestHelper.GetInstancesAsync(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, DefaultPartition.Key);
+        Assert.Empty(instances);
+    }
 
-            await _indexDataStore.ReindexInstanceAsync(dataset2, instance2.Watermark, new[] { queryTag });
-            await _indexDataStore.ReindexInstanceAsync(dataset1, instance1.Watermark, new[] { queryTag });
+    private async Task<ExtendedQueryTagStoreEntry> AddExtendedQueryTagAsync(AddExtendedQueryTagEntry addExtendedQueryTagEntry)
+        => (await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new[] { addExtendedQueryTagEntry }, 128))[0];
 
-            var row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, null)).First();
-            Assert.Equal(tagValue2, row.TagValue);
-        }
+    private async Task<Instance> CreateInstanceIndexAsync(DicomDataset dataset, int partitionKey = DefaultPartition.Key)
+    {
+        string studyUid = dataset.GetString(DicomTag.StudyInstanceUID);
+        string seriesUid = dataset.GetString(DicomTag.SeriesInstanceUID);
+        string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
+        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
+        await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dataset, watermark);
 
-        [Fact]
-        public async Task GivenInstanceTag_WhenReindexWithNotIndexedInstance_ThenTagValueShouldBeInserted()
-        {
-            DicomTag tag = DicomTag.AcquisitionDeviceProcessingDescription;
-            string tagValue = "test";
+        return await _indexDataStoreTestHelper.GetInstanceAsync(studyUid, seriesUid, sopInstanceUid, watermark);
+    }
 
-            DicomDataset dataset = Samples.CreateRandomInstanceDataset();
-            dataset.Add(tag, tagValue);
+    private async Task<VersionedInstanceIdentifier> AddRandomInstanceAsync(int partitionKey = DefaultPartition.Key)
+    {
+        DicomDataset dataset = Samples.CreateRandomInstanceDataset();
 
-            Instance instance = await CreateInstanceIndexAsync(dataset);
+        string studyInstanceUid = dataset.GetString(DicomTag.StudyInstanceUID);
+        string seriesInstanceUid = dataset.GetString(DicomTag.SeriesInstanceUID);
+        string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
 
-            var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Instance));
-
-            await _indexDataStore.ReindexInstanceAsync(dataset, instance.Watermark, new[] { new QueryTag(tagStoreEntry) });
-
-            var row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance.StudyKey, instance.SeriesKey, instance.InstanceKey)).First();
-            Assert.Equal(tagValue, row.TagValue);
-        }
-
-        [Fact]
-        public async Task GivenInstanceTag_WhenReindexWithIndexedInstance_ThenTagValueShouldNotBeUpdated()
-        {
-            DicomTag tag = DicomTag.DeviceLabel;
-            string tagValue = "test";
-            var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Instance));
-
-            DicomDataset dataset = Samples.CreateRandomInstanceDataset();
-            dataset.Add(tag, tagValue);
-            var instance = await CreateInstanceIndexAsync(dataset);
-
-            await _indexDataStore.ReindexInstanceAsync(dataset, instance.Watermark, new[] { new QueryTag(tagStoreEntry) });
-
-            var row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance.StudyKey, instance.SeriesKey, instance.InstanceKey)).First();
-            Assert.Equal(tagValue, row.TagValue);
-
-        }
-
-        [Fact]
-        public async Task GivenInstanceNotExist_WhenReindex_ThenShouldThrowException()
-        {
-            DicomTag tag = DicomTag.DeviceID;
-            var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Instance));
-
-            DicomDataset dataset = Samples.CreateRandomInstanceDataset();
-            await Assert.ThrowsAsync<InstanceNotFoundException>(() => _indexDataStore.ReindexInstanceAsync(dataset, 0, new[] { new QueryTag(tagStoreEntry) }));
-        }
-
-        [Fact]
-        public async Task GivenPendingInstance_WhenReindex_ThenShouldThrowException()
-        {
-            DicomTag tag = DicomTag.DeviceDescription;
-            var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Instance));
-
-            DicomDataset dataset = Samples.CreateRandomInstanceDataset();
-
-            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
-            await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.ReindexInstanceAsync(dataset, watermark, new[] { new QueryTag(tagStoreEntry) }));
-        }
-
-        [Fact]
-        public async Task GivenInstances_WhenGettingInstanceBatches_ThenStartAtEnd()
-        {
-            var instances = new List<VersionedInstanceIdentifier>
-            {
-                await AddRandomInstanceAsync(),
-                await AddRandomInstanceAsync(),
-                await AddRandomInstanceAsync(),
-                await AddRandomInstanceAsync(),
-                await AddRandomInstanceAsync(),
-                await AddRandomInstanceAsync(), // Deleted
-                await AddRandomInstanceAsync(),
-                await AddRandomInstanceAsync(),
-            };
-
-            // Create a gap within the data
-            await _indexDataStore.DeleteInstanceIndexAsync(
-                new InstanceIdentifier(
-                    instances[^3].StudyInstanceUid,
-                    instances[^3].SeriesInstanceUid,
-                    instances[^3].SopInstanceUid,
-                    DefaultPartition.Key));
-
-            IReadOnlyList<WatermarkRange> batches;
-
-            // No Max Watermark
-            batches = await _instanceStore.GetInstanceBatchesAsync(3, 2, IndexStatus.Creating);
-
-            Assert.Equal(2, batches.Count);
-            Assert.Equal(new WatermarkRange(instances[^4].Version, instances[^1].Version), batches[0]);
-            Assert.Equal(new WatermarkRange(instances[^7].Version, instances[^5].Version), batches[1]);
-
-            // With Max Watermark
-            batches = await _instanceStore.GetInstanceBatchesAsync(3, 2, IndexStatus.Creating, instances[^2].Version);
-
-            Assert.Equal(2, batches.Count);
-            Assert.Equal(new WatermarkRange(instances[^5].Version, instances[^2].Version), batches[0]);
-            Assert.Equal(new WatermarkRange(instances[^8].Version, instances[^6].Version), batches[1]);
-        }
-
-        [Fact]
-        public async Task WhenAddingTheSameInstanceToTwoPartitions_ThenTheyAreRetrievedCorrectly()
-        {
-            var partition1 = "partition1";
-            var partition2 = "partition2";
-
-            var partitionEntry1 = await _partitionStore.AddPartitionAsync(partition1);
-            var partitionEntry2 = await _partitionStore.AddPartitionAsync(partition2);
-
-            string studyInstanceUID = TestUidGenerator.Generate();
-
-            DicomDataset dataset1 = Samples.CreateRandomInstanceDataset(studyInstanceUID);
-            DicomDataset dataset2 = Samples.CreateRandomInstanceDataset(studyInstanceUID);
-
-            Instance instance1 = await CreateInstanceIndexAsync(dataset1, partitionEntry1.PartitionKey);
-            Instance instance2 = await CreateInstanceIndexAsync(dataset2, partitionEntry2.PartitionKey);
-
-            Assert.Equal(partitionEntry1.PartitionKey, instance1.PartitionKey);
-            Assert.Equal(partitionEntry2.PartitionKey, instance2.PartitionKey);
-        }
-
-        [Fact]
-        public async Task WhenRetrievingAnInstanceFromTheWrongPartition_ThenResultSetIsEmpty()
-        {
-            var partition = "partition3";
-            var partitionEntry = await _partitionStore.AddPartitionAsync(partition);
-
-            var identifier = await AddRandomInstanceAsync(partitionEntry.PartitionKey);
-
-            var instances = await _indexDataStoreTestHelper.GetInstancesAsync(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, DefaultPartition.Key);
-            Assert.Empty(instances);
-        }
-
-        private async Task<ExtendedQueryTagStoreEntry> AddExtendedQueryTagAsync(AddExtendedQueryTagEntry addExtendedQueryTagEntry)
-            => (await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new[] { addExtendedQueryTagEntry }, 128))[0];
-
-        private async Task<Instance> CreateInstanceIndexAsync(DicomDataset dataset, int partitionKey = DefaultPartition.Key)
-        {
-            string studyUid = dataset.GetString(DicomTag.StudyInstanceUID);
-            string seriesUid = dataset.GetString(DicomTag.SeriesInstanceUID);
-            string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
-            long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
-            await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dataset, watermark);
-
-            return await _indexDataStoreTestHelper.GetInstanceAsync(studyUid, seriesUid, sopInstanceUid, watermark);
-        }
-
-        private async Task<VersionedInstanceIdentifier> AddRandomInstanceAsync(int partitionKey = DefaultPartition.Key)
-        {
-            DicomDataset dataset = Samples.CreateRandomInstanceDataset();
-
-            string studyInstanceUid = dataset.GetString(DicomTag.StudyInstanceUID);
-            string seriesInstanceUid = dataset.GetString(DicomTag.SeriesInstanceUID);
-            string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
-
-            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
-            return new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version, partitionKey);
-        }
+        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
+        return new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version, partitionKey);
     }
 }

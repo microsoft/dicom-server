@@ -6,16 +6,15 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
+namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+
+public interface IDeleteExtendedQueryTagService
 {
-    public interface IDeleteExtendedQueryTagService
-    {
-        /// <summary>
-        /// Delete extended query tag.
-        /// </summary>
-        /// <param name="tagPath">The extended query tag path.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The task.</returns>
-        public Task DeleteExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default);
-    }
+    /// <summary>
+    /// Delete extended query tag.
+    /// </summary>
+    /// <param name="tagPath">The extended query tag path.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The task.</returns>
+    public Task DeleteExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default);
 }

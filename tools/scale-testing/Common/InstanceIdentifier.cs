@@ -6,48 +6,47 @@
 using System;
 using EnsureThat;
 
-namespace Common
+namespace Common;
+
+public class InstanceIdentifier
 {
-    public class InstanceIdentifier
+    private const StringComparison EqualsStringComparison = StringComparison.Ordinal;
+
+    public InstanceIdentifier(
+        string studyInstanceUid,
+        string seriesInstanceUid,
+        string sopInstanceUid)
     {
-        private const StringComparison EqualsStringComparison = StringComparison.Ordinal;
+        EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+        EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
+        EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
 
-        public InstanceIdentifier(
-            string studyInstanceUid,
-            string seriesInstanceUid,
-            string sopInstanceUid)
-        {
-            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
-            EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
-            EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
-
-            StudyInstanceUid = studyInstanceUid;
-            SeriesInstanceUid = seriesInstanceUid;
-            SopInstanceUid = sopInstanceUid;
-        }
-
-        public string StudyInstanceUid { get; }
-
-        public string SeriesInstanceUid { get; }
-
-        public string SopInstanceUid { get; }
-
-        public override bool Equals(object obj)
-        {
-            if (obj is InstanceIdentifier identifier)
-            {
-                return StudyInstanceUid.Equals(identifier.StudyInstanceUid, EqualsStringComparison) &&
-                        SeriesInstanceUid.Equals(identifier.SeriesInstanceUid, EqualsStringComparison) &&
-                        SopInstanceUid.Equals(identifier.SopInstanceUid, EqualsStringComparison);
-            }
-
-            return false;
-        }
-
-        public override int GetHashCode()
-            => (StudyInstanceUid + SeriesInstanceUid + SopInstanceUid).GetHashCode(EqualsStringComparison);
-
-        public override string ToString()
-            => $"StudyInstanceUID: {StudyInstanceUid}, SeriesInstanceUID: {SeriesInstanceUid}, SOPInstanceUID: {SopInstanceUid}";
+        StudyInstanceUid = studyInstanceUid;
+        SeriesInstanceUid = seriesInstanceUid;
+        SopInstanceUid = sopInstanceUid;
     }
+
+    public string StudyInstanceUid { get; }
+
+    public string SeriesInstanceUid { get; }
+
+    public string SopInstanceUid { get; }
+
+    public override bool Equals(object obj)
+    {
+        if (obj is InstanceIdentifier identifier)
+        {
+            return StudyInstanceUid.Equals(identifier.StudyInstanceUid, EqualsStringComparison) &&
+                    SeriesInstanceUid.Equals(identifier.SeriesInstanceUid, EqualsStringComparison) &&
+                    SopInstanceUid.Equals(identifier.SopInstanceUid, EqualsStringComparison);
+        }
+
+        return false;
+    }
+
+    public override int GetHashCode()
+        => (StudyInstanceUid + SeriesInstanceUid + SopInstanceUid).GetHashCode(EqualsStringComparison);
+
+    public override string ToString()
+        => $"StudyInstanceUID: {StudyInstanceUid}, SeriesInstanceUID: {SeriesInstanceUid}, SOPInstanceUID: {SopInstanceUid}";
 }

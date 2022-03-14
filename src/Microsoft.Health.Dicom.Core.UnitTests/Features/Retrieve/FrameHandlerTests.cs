@@ -18,120 +18,119 @@ using Microsoft.IO;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve
+namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve;
+
+public class FrameHandlerTests
 {
-    public class FrameHandlerTests
+    private readonly IFrameHandler _frameHandler;
+    private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+
+    public FrameHandlerTests()
     {
-        private readonly IFrameHandler _frameHandler;
-        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+        _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
+        _frameHandler = new FrameHandler(Substitute.For<ITranscoder>(), _recyclableMemoryStreamManager);
+    }
 
-        public FrameHandlerTests()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1, 2)]
+    [InlineData(0, 1, 2)]
+    public async Task GivenDicomFileWithFrames_WhenRetrievingFrameWithOriginalTransferSyntax_ThenExpectedFramesAreReturned(params int[] frames)
+    {
+        EnsureArg.IsNotNull(frames, nameof(frames));
+        (DicomFile file, Stream stream) = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(), 3).Result;
+        IReadOnlyCollection<Stream> framesStream = await _frameHandler.GetFramesResourceAsync(stream, frames, true, "*");
+        var framesOutput = framesStream.ToArray();
+
+        for (int i = 0; i < frames.Length; i++)
         {
-            _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
-            _frameHandler = new FrameHandler(Substitute.For<ITranscoder>(), _recyclableMemoryStreamManager);
+            AssertPixelDataEqual(DicomPixelData.Create(file.Dataset).GetFrame(frames[i]), framesOutput[i]);
         }
+    }
 
-        [Theory]
-        [InlineData(0)]
-        [InlineData(1, 2)]
-        [InlineData(0, 1, 2)]
-        public async Task GivenDicomFileWithFrames_WhenRetrievingFrameWithOriginalTransferSyntax_ThenExpectedFramesAreReturned(params int[] frames)
+    [Theory]
+    [InlineData(0)]
+    public async Task GivenDicomFileWithoutFrames_WhenRetrievingFrameWithOriginalTransferSyntax_ThenFrameNotFoundExceptionIsThrown(params int[] frames)
+    {
+        (DicomFile file, Stream stream) = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers()).Result;
+        await Assert.ThrowsAsync<FrameNotFoundException>(() => _frameHandler.GetFramesResourceAsync(stream, frames, true, "*"));
+    }
+
+    [Theory]
+    [InlineData(3)]
+    [InlineData(0, 3)]
+    [InlineData(0, 1, 2, 3)]
+    public async Task GivenDicomFileWithFrames_WhenRetrievingNonExistentFrameWithOriginalTransferSyntax_ThenFrameNotFoundExceptionIsThrown(params int[] frames)
+    {
+        (DicomFile file, Stream stream) = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(), 3).Result;
+        await Assert.ThrowsAsync<FrameNotFoundException>(() => _frameHandler.GetFramesResourceAsync(stream, frames, true, "*"));
+    }
+
+    [Theory]
+    [MemberData(nameof(TestDataForInvokingTranscoderOrNotTests))]
+    public async Task GivenDicomFileWithFrames_WhenRetrievingWithTransferSyntax_ThenTranscoderShouldBeInvokedAsExpected(bool originalTransferSyntaxRequested, string requestedRepresentation, bool shouldBeInvoked)
+    {
+        (DicomFile file, Stream stream) = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(), 1).Result;
+        ITranscoder transcoder = Substitute.For<ITranscoder>();
+        transcoder.TranscodeFrame(Arg.Any<DicomFile>(), Arg.Any<int>(), Arg.Any<string>()).Returns(_recyclableMemoryStreamManager.GetStream());
+        FrameHandler frameHandler = new FrameHandler(transcoder, _recyclableMemoryStreamManager);
+        IReadOnlyCollection<Stream> result = await frameHandler.GetFramesResourceAsync(stream, new int[] { 0 }, originalTransferSyntaxRequested, requestedRepresentation);
+
+        // Call Position of LazyTransformReadOnlyStream so that transcoder.TranscodeFrame is invoked
+        long pos = result.First().Position;
+        if (shouldBeInvoked)
         {
-            EnsureArg.IsNotNull(frames, nameof(frames));
-            (DicomFile file, Stream stream) = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(), 3).Result;
-            IReadOnlyCollection<Stream> framesStream = await _frameHandler.GetFramesResourceAsync(stream, frames, true, "*");
-            var framesOutput = framesStream.ToArray();
-
-            for (int i = 0; i < frames.Length; i++)
-            {
-                AssertPixelDataEqual(DicomPixelData.Create(file.Dataset).GetFrame(frames[i]), framesOutput[i]);
-            }
+            transcoder.Received().TranscodeFrame(Arg.Any<DicomFile>(), Arg.Any<int>(), Arg.Any<string>());
         }
-
-        [Theory]
-        [InlineData(0)]
-        public async Task GivenDicomFileWithoutFrames_WhenRetrievingFrameWithOriginalTransferSyntax_ThenFrameNotFoundExceptionIsThrown(params int[] frames)
+        else
         {
-            (DicomFile file, Stream stream) = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers()).Result;
-            await Assert.ThrowsAsync<FrameNotFoundException>(() => _frameHandler.GetFramesResourceAsync(stream, frames, true, "*"));
+            transcoder.DidNotReceive().TranscodeFrame(Arg.Any<DicomFile>(), Arg.Any<int>(), Arg.Any<string>());
         }
+    }
 
-        [Theory]
-        [InlineData(3)]
-        [InlineData(0, 3)]
-        [InlineData(0, 1, 2, 3)]
-        public async Task GivenDicomFileWithFrames_WhenRetrievingNonExistentFrameWithOriginalTransferSyntax_ThenFrameNotFoundExceptionIsThrown(params int[] frames)
+    public static IEnumerable<object[]> TestDataForInvokingTranscoderOrNotTests()
+    {
+        yield return new object[] { true, DicomTransferSyntaxUids.Original, false };
+        yield return new object[] { false, DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID, false }; // Created Dataset is on transferSyntax ExplicitVRLittleEndian
+        yield return new object[] { false, DicomTransferSyntax.JPEGProcess1.UID.UID, true };
+    }
+
+    private DicomDataset GenerateDatasetsFromIdentifiers()
+    {
+        var ds = new DicomDataset(DicomTransferSyntax.ExplicitVRLittleEndian)
         {
-            (DicomFile file, Stream stream) = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(), 3).Result;
-            await Assert.ThrowsAsync<FrameNotFoundException>(() => _frameHandler.GetFramesResourceAsync(stream, frames, true, "*"));
-        }
+            { DicomTag.StudyInstanceUID, TestUidGenerator.Generate() },
+            { DicomTag.SeriesInstanceUID, TestUidGenerator.Generate() },
+            { DicomTag.SOPInstanceUID, TestUidGenerator.Generate() },
+            { DicomTag.SOPClassUID, TestUidGenerator.Generate() },
+            { DicomTag.PatientID, TestUidGenerator.Generate() },
+            { DicomTag.BitsAllocated, (ushort)8 },
+            { DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value },
+        };
 
-        [Theory]
-        [MemberData(nameof(TestDataForInvokingTranscoderOrNotTests))]
-        public async Task GivenDicomFileWithFrames_WhenRetrievingWithTransferSyntax_ThenTranscoderShouldBeInvokedAsExpected(bool originalTransferSyntaxRequested, string requestedRepresentation, bool shouldBeInvoked)
+        return ds;
+    }
+
+    private async Task<(DicomFile, Stream)> StreamAndStoredFileFromDataset(DicomDataset dataset, int frames = 0)
+    {
+        // Create DicomFile associated with input dataset with random pixel data.
+        var dicomFile = new DicomFile(dataset);
+        Samples.AppendRandomPixelData(5, 5, frames, dicomFile);
+
+        MemoryStream stream = _recyclableMemoryStreamManager.GetStream();
+        await dicomFile.SaveAsync(stream);
+        stream.Position = 0;
+
+        return (dicomFile, stream);
+    }
+
+    private static void AssertPixelDataEqual(IByteBuffer expectedPixelData, Stream actualPixelData)
+    {
+        Assert.Equal(expectedPixelData.Size, actualPixelData.Length);
+        Assert.Equal(0, actualPixelData.Position);
+        for (var i = 0; i < expectedPixelData.Size; i++)
         {
-            (DicomFile file, Stream stream) = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(), 1).Result;
-            ITranscoder transcoder = Substitute.For<ITranscoder>();
-            transcoder.TranscodeFrame(Arg.Any<DicomFile>(), Arg.Any<int>(), Arg.Any<string>()).Returns(_recyclableMemoryStreamManager.GetStream());
-            FrameHandler frameHandler = new FrameHandler(transcoder, _recyclableMemoryStreamManager);
-            IReadOnlyCollection<Stream> result = await frameHandler.GetFramesResourceAsync(stream, new int[] { 0 }, originalTransferSyntaxRequested, requestedRepresentation);
-
-            // Call Position of LazyTransformReadOnlyStream so that transcoder.TranscodeFrame is invoked
-            long pos = result.First().Position;
-            if (shouldBeInvoked)
-            {
-                transcoder.Received().TranscodeFrame(Arg.Any<DicomFile>(), Arg.Any<int>(), Arg.Any<string>());
-            }
-            else
-            {
-                transcoder.DidNotReceive().TranscodeFrame(Arg.Any<DicomFile>(), Arg.Any<int>(), Arg.Any<string>());
-            }
-        }
-
-        public static IEnumerable<object[]> TestDataForInvokingTranscoderOrNotTests()
-        {
-            yield return new object[] { true, DicomTransferSyntaxUids.Original, false };
-            yield return new object[] { false, DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID, false }; // Created Dataset is on transferSyntax ExplicitVRLittleEndian
-            yield return new object[] { false, DicomTransferSyntax.JPEGProcess1.UID.UID, true };
-        }
-
-        private DicomDataset GenerateDatasetsFromIdentifiers()
-        {
-            var ds = new DicomDataset(DicomTransferSyntax.ExplicitVRLittleEndian)
-            {
-                { DicomTag.StudyInstanceUID, TestUidGenerator.Generate() },
-                { DicomTag.SeriesInstanceUID, TestUidGenerator.Generate() },
-                { DicomTag.SOPInstanceUID, TestUidGenerator.Generate() },
-                { DicomTag.SOPClassUID, TestUidGenerator.Generate() },
-                { DicomTag.PatientID, TestUidGenerator.Generate() },
-                { DicomTag.BitsAllocated, (ushort)8 },
-                { DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value },
-            };
-
-            return ds;
-        }
-
-        private async Task<(DicomFile, Stream)> StreamAndStoredFileFromDataset(DicomDataset dataset, int frames = 0)
-        {
-            // Create DicomFile associated with input dataset with random pixel data.
-            var dicomFile = new DicomFile(dataset);
-            Samples.AppendRandomPixelData(5, 5, frames, dicomFile);
-
-            MemoryStream stream = _recyclableMemoryStreamManager.GetStream();
-            await dicomFile.SaveAsync(stream);
-            stream.Position = 0;
-
-            return (dicomFile, stream);
-        }
-
-        private static void AssertPixelDataEqual(IByteBuffer expectedPixelData, Stream actualPixelData)
-        {
-            Assert.Equal(expectedPixelData.Size, actualPixelData.Length);
-            Assert.Equal(0, actualPixelData.Position);
-            for (var i = 0; i < expectedPixelData.Size; i++)
-            {
-                Assert.Equal(expectedPixelData.Data[i], actualPixelData.ReadByte());
-            }
+            Assert.Equal(expectedPixelData.Data[i], actualPixelData.ReadByte());
         }
     }
 }

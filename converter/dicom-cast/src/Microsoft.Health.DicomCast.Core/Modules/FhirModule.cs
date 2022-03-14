@@ -14,70 +14,69 @@ using Microsoft.Health.Extensions.DependencyInjection;
 using FhirClient = Microsoft.Health.Fhir.Client.FhirClient;
 using IFhirClient = Microsoft.Health.Fhir.Client.IFhirClient;
 
-namespace Microsoft.Health.DicomCast.Core.Modules
+namespace Microsoft.Health.DicomCast.Core.Modules;
+
+public class FhirModule : IStartupModule
 {
-    public class FhirModule : IStartupModule
+    private const string FhirConfigurationSectionName = "Fhir";
+
+    private readonly IConfiguration _configuration;
+
+    public FhirModule(IConfiguration configuration)
     {
-        private const string FhirConfigurationSectionName = "Fhir";
+        EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-        private readonly IConfiguration _configuration;
+        _configuration = configuration;
+    }
 
-        public FhirModule(IConfiguration configuration)
-        {
-            EnsureArg.IsNotNull(configuration, nameof(configuration));
+    public void Load(IServiceCollection services)
+    {
+        EnsureArg.IsNotNull(services, nameof(services));
 
-            _configuration = configuration;
-        }
+        var fhirConfiguration = new FhirConfiguration();
+        IConfigurationSection fhirConfigurationSection = _configuration.GetSection(FhirConfigurationSectionName);
 
-        public void Load(IServiceCollection services)
-        {
-            EnsureArg.IsNotNull(services, nameof(services));
+        fhirConfigurationSection.Bind(fhirConfiguration);
 
-            var fhirConfiguration = new FhirConfiguration();
-            IConfigurationSection fhirConfigurationSection = _configuration.GetSection(FhirConfigurationSectionName);
+        services.AddHttpClient<IFhirClient, FhirClient>(sp =>
+            {
+                sp.BaseAddress = fhirConfiguration.Endpoint;
+            })
+            .AddAuthenticationHandler(services, fhirConfigurationSection.GetSection(AuthenticationConfiguration.SectionName), FhirConfigurationSectionName);
 
-            fhirConfigurationSection.Bind(fhirConfiguration);
+        services.Add<FhirResourceValidator>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
 
-            services.AddHttpClient<IFhirClient, FhirClient>(sp =>
-                {
-                    sp.BaseAddress = fhirConfiguration.Endpoint;
-                })
-                .AddAuthenticationHandler(services, fhirConfigurationSection.GetSection(AuthenticationConfiguration.SectionName), FhirConfigurationSectionName);
+        services.Add<FhirService>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
 
-            services.Add<FhirResourceValidator>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
+        services.Add<FhirTransactionExecutor>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
 
-            services.Add<FhirService>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
+        services.Add<ImagingStudyUpsertHandler>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
 
-            services.Add<FhirTransactionExecutor>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
+        services.Add<ImagingStudyDeleteHandler>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
 
-            services.Add<ImagingStudyUpsertHandler>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
+        services.Add<ObservationDeleteHandler>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
 
-            services.Add<ImagingStudyDeleteHandler>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<ObservationDeleteHandler>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<ObservationUpsertHandler>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
-        }
+        services.Add<ObservationUpsertHandler>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
     }
 }

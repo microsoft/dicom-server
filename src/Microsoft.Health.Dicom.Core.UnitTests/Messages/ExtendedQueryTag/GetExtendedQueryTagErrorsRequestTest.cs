@@ -7,16 +7,15 @@ using System;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.ExtendedQueryTag
+namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.ExtendedQueryTag;
+
+public class GetExtendedQueryTagErrorsRequestTest
 {
-    public class GetExtendedQueryTagErrorsRequestTest
+    [Fact]
+    public void GivenInvalidParameters_WhenCreateRequest_ThenThrowArgumentOutOfRangeException()
     {
-        [Fact]
-        public void GivenInvalidParameters_WhenCreateRequest_ThenThrowArgumentOutOfRangeException()
-        {
-            Assert.Throws<ArgumentOutOfRangeException>(() => new GetExtendedQueryTagErrorsRequest("foo", 0, 0));
-            Assert.Throws<ArgumentOutOfRangeException>(() => new GetExtendedQueryTagErrorsRequest("bar", 201, 0));
-            Assert.Throws<ArgumentOutOfRangeException>(() => new GetExtendedQueryTagErrorsRequest("baz", 10, -12));
-        }
+        Assert.Throws<ArgumentOutOfRangeException>(() => new GetExtendedQueryTagErrorsRequest("foo", 0, 0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new GetExtendedQueryTagErrorsRequest("bar", 201, 0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new GetExtendedQueryTagErrorsRequest("baz", 10, -12));
     }
 }

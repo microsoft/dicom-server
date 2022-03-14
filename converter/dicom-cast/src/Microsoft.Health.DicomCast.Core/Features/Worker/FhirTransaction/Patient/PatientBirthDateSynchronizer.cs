@@ -8,23 +8,22 @@ using FellowOakDicom;
 using Hl7.Fhir.Model;
 using Microsoft.Health.DicomCast.Core.Extensions;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
-{
-    /// <summary>
-    /// Provides functionality to synchronize DICOM properties to a specific <see cref="Patient.BirthDate"/> property.
-    /// </summary>
-    public class PatientBirthDateSynchronizer : IPatientPropertySynchronizer
-    {
-        /// <inheritdoc/>
-        public void Synchronize(DicomDataset dataset, Patient patient, bool isNewPatient)
-        {
-            if (isNewPatient)
-            {
-                EnsureArg.IsNotNull(dataset, nameof(dataset));
-                EnsureArg.IsNotNull(patient, nameof(patient));
+namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 
-                patient.BirthDateElement = dataset.GetDatePropertyIfNotDefaultValue(DicomTag.PatientBirthDate);
-            }
+/// <summary>
+/// Provides functionality to synchronize DICOM properties to a specific <see cref="Patient.BirthDate"/> property.
+/// </summary>
+public class PatientBirthDateSynchronizer : IPatientPropertySynchronizer
+{
+    /// <inheritdoc/>
+    public void Synchronize(DicomDataset dataset, Patient patient, bool isNewPatient)
+    {
+        if (isNewPatient)
+        {
+            EnsureArg.IsNotNull(dataset, nameof(dataset));
+            EnsureArg.IsNotNull(patient, nameof(patient));
+
+            patient.BirthDateElement = dataset.GetDatePropertyIfNotDefaultValue(DicomTag.PatientBirthDate);
         }
     }
 }

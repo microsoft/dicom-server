@@ -3,10 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Features.Context
+namespace Microsoft.Health.Dicom.Core.Features.Context;
+
+public interface IDicomRequestContextAccessor
 {
-    public interface IDicomRequestContextAccessor
-    {
-        IDicomRequestContext RequestContext { get; set; }
-    }
+    IDicomRequestContext RequestContext { get; set; }
 }

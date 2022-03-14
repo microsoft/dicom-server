@@ -6,24 +6,23 @@
 using System.IO;
 using MediatR;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Store
+namespace Microsoft.Health.Dicom.Core.Messages.Store;
+
+public class StoreRequest : IRequest<StoreResponse>
 {
-    public class StoreRequest : IRequest<StoreResponse>
+    public StoreRequest(
+        Stream requestBody,
+        string requestContentType,
+        string studyInstanceUid = null)
     {
-        public StoreRequest(
-            Stream requestBody,
-            string requestContentType,
-            string studyInstanceUid = null)
-        {
-            StudyInstanceUid = studyInstanceUid;
-            RequestBody = requestBody;
-            RequestContentType = requestContentType;
-        }
-
-        public string StudyInstanceUid { get; }
-
-        public Stream RequestBody { get; }
-
-        public string RequestContentType { get; }
+        StudyInstanceUid = studyInstanceUid;
+        RequestBody = requestBody;
+        RequestContentType = requestContentType;
     }
+
+    public string StudyInstanceUid { get; }
+
+    public Stream RequestBody { get; }
+
+    public string RequestContentType { get; }
 }

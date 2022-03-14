@@ -7,15 +7,14 @@ using System.Collections.Generic;
 using MediatR;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
-namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
-{
-    public class AddExtendedQueryTagRequest : IRequest<AddExtendedQueryTagResponse>
-    {
-        public AddExtendedQueryTagRequest(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags)
-        {
-            ExtendedQueryTags = extendedQueryTags;
-        }
+namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
-        public IEnumerable<AddExtendedQueryTagEntry> ExtendedQueryTags { get; }
+public class AddExtendedQueryTagRequest : IRequest<AddExtendedQueryTagResponse>
+{
+    public AddExtendedQueryTagRequest(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags)
+    {
+        ExtendedQueryTags = extendedQueryTags;
     }
+
+    public IEnumerable<AddExtendedQueryTagEntry> ExtendedQueryTags { get; }
 }

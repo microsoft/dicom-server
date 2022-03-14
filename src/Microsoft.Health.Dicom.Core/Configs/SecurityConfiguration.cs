@@ -8,16 +8,15 @@ using System.Collections.Generic;
 using Microsoft.Health.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Security;
 
-namespace Microsoft.Health.Dicom.Core.Configs
+namespace Microsoft.Health.Dicom.Core.Configs;
+
+public class SecurityConfiguration
 {
-    public class SecurityConfiguration
-    {
-        public bool Enabled { get; set; }
+    public bool Enabled { get; set; }
 
-        public AuthenticationConfiguration Authentication { get; set; } = new AuthenticationConfiguration();
+    public AuthenticationConfiguration Authentication { get; set; } = new AuthenticationConfiguration();
 
-        public virtual HashSet<string> PrincipalClaims { get; } = new HashSet<string>(StringComparer.Ordinal);
+    public virtual HashSet<string> PrincipalClaims { get; } = new HashSet<string>(StringComparer.Ordinal);
 
-        public AuthorizationConfiguration<DataActions> Authorization { get; set; } = new AuthorizationConfiguration<DataActions>();
-    }
+    public AuthorizationConfiguration<DataActions> Authorization { get; set; } = new AuthorizationConfiguration<DataActions>();
 }

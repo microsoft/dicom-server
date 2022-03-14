@@ -11,55 +11,54 @@ using Microsoft.Health.Dicom.Operations.Serialization;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Operations.UnitTests.Serialization
+namespace Microsoft.Health.Dicom.Operations.UnitTests.Serialization;
+
+public class MessageSerializerSettingsFactoryTests
 {
-    public class MessageSerializerSettingsFactoryTests
+    private readonly static JsonSerializerSettings JsonSerializerSettings = new MessageSerializerSettingsFactory().CreateJsonSerializerSettings();
+
+    [Fact]
+    public void GivenPreviouslySerializedMessage_WhenDeserializingWithNewSettings_ThenDeserializeSuccessfully()
     {
-        private readonly static JsonSerializerSettings JsonSerializerSettings = new MessageSerializerSettingsFactory().CreateJsonSerializerSettings();
-
-        [Fact]
-        public void GivenPreviouslySerializedMessage_WhenDeserializingWithNewSettings_ThenDeserializeSuccessfully()
+        var queryTags = new List<ExtendedQueryTagStoreEntry>
         {
-            var queryTags = new List<ExtendedQueryTagStoreEntry>
+            new ExtendedQueryTagStoreEntry(1, "01", "DT", "foo", QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding, QueryStatus.Enabled, 0),
+            new ExtendedQueryTagStoreEntry(2, "02", "DT", "bar", QueryTagLevel.Study, ExtendedQueryTagStatus.Adding, QueryStatus.Enabled, 0),
+        };
+        var range = new WatermarkRange(5, 10);
+        const int threadCount = 7;
+
+        var before = new ReindexBatchArguments(queryTags, range, threadCount);
+        string json = JsonConvert.SerializeObject(
+            before,
+            new JsonSerializerSettings
             {
-                new ExtendedQueryTagStoreEntry(1, "01", "DT", "foo", QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding, QueryStatus.Enabled, 0),
-                new ExtendedQueryTagStoreEntry(2, "02", "DT", "bar", QueryTagLevel.Study, ExtendedQueryTagStatus.Adding, QueryStatus.Enabled, 0),
-            };
-            var range = new WatermarkRange(5, 10);
-            const int threadCount = 7;
+                TypeNameHandling = TypeNameHandling.Objects,
+                TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
+            });
 
-            var before = new ReindexBatchArguments(queryTags, range, threadCount);
-            string json = JsonConvert.SerializeObject(
-                before,
-                new JsonSerializerSettings
-                {
-                    TypeNameHandling = TypeNameHandling.Objects,
-                    TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
-                });
+        ReindexBatchArguments actual = JsonConvert.DeserializeObject<ReindexBatchArguments>(json, JsonSerializerSettings);
 
-            ReindexBatchArguments actual = JsonConvert.DeserializeObject<ReindexBatchArguments>(json, JsonSerializerSettings);
+        Assert.Equal(before.QueryTags, actual.QueryTags, new TagEntryComparer());
+        Assert.Equal(before.ThreadCount, actual.ThreadCount);
+        Assert.Equal(before.WatermarkRange, actual.WatermarkRange);
+    }
 
-            Assert.Equal(before.QueryTags, actual.QueryTags, new TagEntryComparer());
-            Assert.Equal(before.ThreadCount, actual.ThreadCount);
-            Assert.Equal(before.WatermarkRange, actual.WatermarkRange);
-        }
+    private sealed class TagEntryComparer : IEqualityComparer<ExtendedQueryTagStoreEntry>
+    {
+        public bool Equals(ExtendedQueryTagStoreEntry x, ExtendedQueryTagStoreEntry y)
+            => x.ErrorCount == y.ErrorCount
+            || x.Key == y.Key
+            || x.Level == y.Level
+            || x.Path == y.Path
+            || x.PrivateCreator == y.PrivateCreator
+            || x.QueryStatus == y.QueryStatus
+            || x.Status == y.Status
+            || x.VR == y.VR;
 
-        private sealed class TagEntryComparer : IEqualityComparer<ExtendedQueryTagStoreEntry>
+        public int GetHashCode(ExtendedQueryTagStoreEntry obj)
         {
-            public bool Equals(ExtendedQueryTagStoreEntry x, ExtendedQueryTagStoreEntry y)
-                => x.ErrorCount == y.ErrorCount
-                || x.Key == y.Key
-                || x.Level == y.Level
-                || x.Path == y.Path
-                || x.PrivateCreator == y.PrivateCreator
-                || x.QueryStatus == y.QueryStatus
-                || x.Status == y.Status
-                || x.VR == y.VR;
-
-            public int GetHashCode(ExtendedQueryTagStoreEntry obj)
-            {
-                throw new System.NotImplementedException();
-            }
+            throw new System.NotImplementedException();
         }
     }
 }

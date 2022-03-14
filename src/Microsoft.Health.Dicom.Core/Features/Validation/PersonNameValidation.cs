@@ -8,51 +8,50 @@ using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 
-namespace Microsoft.Health.Dicom.Core.Features.Validation
+namespace Microsoft.Health.Dicom.Core.Features.Validation;
+
+internal class PersonNameValidation : ElementValidation
 {
-    internal class PersonNameValidation : ElementValidation
+    public override void Validate(DicomElement dicomElement)
     {
-        public override void Validate(DicomElement dicomElement)
+        base.Validate(dicomElement);
+
+        string value = dicomElement.Get<string>();
+        string name = dicomElement.Tag.GetFriendlyName();
+        DicomVR vr = dicomElement.ValueRepresentation;
+        if (string.IsNullOrEmpty(value))
         {
-            base.Validate(dicomElement);
+            // empty values allowed
+            return;
+        }
 
-            string value = dicomElement.Get<string>();
-            string name = dicomElement.Tag.GetFriendlyName();
-            DicomVR vr = dicomElement.ValueRepresentation;
-            if (string.IsNullOrEmpty(value))
+        string[] groups = value.Split('=');
+        if (groups.Length > 3)
+        {
+            throw new ElementValidationException(name, DicomVR.PN, value, ValidationErrorCode.PersonNameExceedMaxGroups);
+        }
+
+        foreach (string group in groups)
+        {
+            try
             {
-                // empty values allowed
-                return;
+                ElementMaxLengthValidation.Validate(group, 64, name, dicomElement.ValueRepresentation);
+            }
+            catch (ElementValidationException ex) when (ex.ErrorCode == ValidationErrorCode.ExceedMaxLength)
+            {
+                // Reprocess the exception to make more meaningful message
+                throw new ElementValidationException(name, DicomVR.PN, value, ValidationErrorCode.PersonNameGroupExceedMaxLength);
             }
 
-            string[] groups = value.Split('=');
-            if (groups.Length > 3)
+            if (ContainsControlExceptEsc(group))
             {
-                throw new ElementValidationException(name, DicomVR.PN, value, ValidationErrorCode.PersonNameExceedMaxGroups);
+                throw new ElementValidationException(name, vr, value, ValidationErrorCode.InvalidCharacters);
             }
+        }
 
-            foreach (string group in groups)
-            {
-                try
-                {
-                    ElementMaxLengthValidation.Validate(group, 64, name, dicomElement.ValueRepresentation);
-                }
-                catch (ElementValidationException ex) when (ex.ErrorCode == ValidationErrorCode.ExceedMaxLength)
-                {
-                    // Reprocess the exception to make more meaningful message
-                    throw new ElementValidationException(name, DicomVR.PN, value, ValidationErrorCode.PersonNameGroupExceedMaxLength);
-                }
-
-                if (ContainsControlExceptEsc(group))
-                {
-                    throw new ElementValidationException(name, vr, value, ValidationErrorCode.InvalidCharacters);
-                }
-            }
-
-            if (groups.Select(g => g.Split('^').Length).Any(l => l > 5))
-            {
-                throw new ElementValidationException(name, DicomVR.PN, value, ValidationErrorCode.PersonNameExceedMaxComponents);
-            }
+        if (groups.Select(g => g.Split('^').Length).Any(l => l > 5))
+        {
+            throw new ElementValidationException(name, DicomVR.PN, value, ValidationErrorCode.PersonNameExceedMaxComponents);
         }
     }
 }

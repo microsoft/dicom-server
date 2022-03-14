@@ -6,18 +6,17 @@
 using EnsureThat;
 using MediatR;
 
-namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
+namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
+
+public class GetExtendedQueryTagsRequest : IRequest<GetExtendedQueryTagsResponse>
 {
-    public class GetExtendedQueryTagsRequest : IRequest<GetExtendedQueryTagsResponse>
+    public GetExtendedQueryTagsRequest(int limit, int offset)
     {
-        public GetExtendedQueryTagsRequest(int limit, int offset)
-        {
-            Limit = EnsureArg.IsInRange(limit, 1, 200, nameof(limit));
-            Offset = EnsureArg.IsGte(offset, 0, nameof(offset));
-        }
-
-        public int Limit { get; }
-
-        public int Offset { get; }
+        Limit = EnsureArg.IsInRange(limit, 1, 200, nameof(limit));
+        Offset = EnsureArg.IsGte(offset, 0, nameof(offset));
     }
+
+    public int Limit { get; }
+
+    public int Offset { get; }
 }

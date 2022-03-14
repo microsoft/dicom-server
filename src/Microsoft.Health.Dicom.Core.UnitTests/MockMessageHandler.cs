@@ -8,26 +8,25 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests
+namespace Microsoft.Health.Dicom.Core.UnitTests;
+
+internal sealed class MockMessageHandler : HttpMessageHandler
 {
-    internal sealed class MockMessageHandler : HttpMessageHandler
+    public event Action<HttpRequestMessage, CancellationToken> Sending;
+
+    public int SentMessages { get; private set; }
+
+    private readonly HttpResponseMessage _expected;
+
+    public MockMessageHandler(HttpResponseMessage expected)
     {
-        public event Action<HttpRequestMessage, CancellationToken> Sending;
+        _expected = expected;
+    }
 
-        public int SentMessages { get; private set; }
-
-        private readonly HttpResponseMessage _expected;
-
-        public MockMessageHandler(HttpResponseMessage expected)
-        {
-            _expected = expected;
-        }
-
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-        {
-            Sending?.Invoke(request, cancellationToken);
-            SentMessages++;
-            return Task.FromResult(_expected);
-        }
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        Sending?.Invoke(request, cancellationToken);
+        SentMessages++;
+        return Task.FromResult(_expected);
     }
 }

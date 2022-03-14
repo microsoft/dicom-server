@@ -5,21 +5,20 @@
 
 using System;
 
-namespace Microsoft.Health.DicomCast.Core.Configurations
+namespace Microsoft.Health.DicomCast.Core.Configurations;
+
+/// <summary>
+/// The configuration related to <see cref="Features.Worker.DicomCastWorker"/>.
+/// </summary>
+public class DicomCastWorkerConfiguration
 {
     /// <summary>
-    /// The configuration related to <see cref="Features.Worker.DicomCastWorker"/>.
+    /// The period of time to wait before polling new changes feed from DICOMWeb when previous poll indicates there are no more new changes.
     /// </summary>
-    public class DicomCastWorkerConfiguration
-    {
-        /// <summary>
-        /// The period of time to wait before polling new changes feed from DICOMWeb when previous poll indicates there are no more new changes.
-        /// </summary>
-        public TimeSpan PollInterval { get; set; } = TimeSpan.FromMinutes(1);
+    public TimeSpan PollInterval { get; set; } = TimeSpan.FromMinutes(1);
 
-        /// <summary>
-        /// The period of time to wait before polling new changes feed from DICOMWeb when previous poll indicates there are potentially new changes.
-        /// </summary>
-        public TimeSpan PollIntervalDuringCatchup { get; set; } = TimeSpan.Zero;
-    }
+    /// <summary>
+    /// The period of time to wait before polling new changes feed from DICOMWeb when previous poll indicates there are potentially new changes.
+    /// </summary>
+    public TimeSpan PollIntervalDuringCatchup { get; set; } = TimeSpan.Zero;
 }

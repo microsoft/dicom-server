@@ -10,30 +10,29 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 
-namespace Microsoft.Health.Dicom.Api.Features.Filters
+namespace Microsoft.Health.Dicom.Api.Features.Filters;
+
+public sealed class UpsRsFeatureFilterAttribute : ActionFilterAttribute
 {
-    public sealed class UpsRsFeatureFilterAttribute : ActionFilterAttribute
+    private readonly bool _isUpsRsEnabled;
+
+    public UpsRsFeatureFilterAttribute(IOptions<FeatureConfiguration> featureConfiguration)
     {
-        private readonly bool _isUpsRsEnabled;
+        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
 
-        public UpsRsFeatureFilterAttribute(IOptions<FeatureConfiguration> featureConfiguration)
+        // UPS-RS can be enabled independently, but will be enabled if data partitions are enabled
+        _isUpsRsEnabled = featureConfiguration.Value.EnableUpsRs || featureConfiguration.Value.EnableDataPartitions;
+    }
+
+    public async override Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+    {
+        EnsureArg.IsNotNull(context, nameof(context));
+
+        if (!_isUpsRsEnabled)
         {
-            EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
-
-            // UPS-RS can be enabled independently, but will be enabled if data partitions are enabled
-            _isUpsRsEnabled = featureConfiguration.Value.EnableUpsRs || featureConfiguration.Value.EnableDataPartitions;
+            throw new UpsRsFeatureDisabledException();
         }
 
-        public async override Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
-        {
-            EnsureArg.IsNotNull(context, nameof(context));
-
-            if (!_isUpsRsEnabled)
-            {
-                throw new UpsRsFeatureDisabledException();
-            }
-
-            await base.OnActionExecutionAsync(context, next);
-        }
+        await base.OnActionExecutionAsync(context, next);
     }
 }

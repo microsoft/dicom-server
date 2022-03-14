@@ -13,61 +13,60 @@ using FellowOakDicom.Imaging;
 using FellowOakDicom.IO.Buffer;
 using Microsoft.IO;
 
-namespace Microsoft.Health.Dicom.Core.Features.Retrieve
+namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
+
+public class FrameHandler : IFrameHandler
 {
-    public class FrameHandler : IFrameHandler
+    private readonly ITranscoder _transcoder;
+    private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+
+    public FrameHandler(
+        ITranscoder transcoder,
+        RecyclableMemoryStreamManager recyclableMemoryStreamManager)
     {
-        private readonly ITranscoder _transcoder;
-        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+        EnsureArg.IsNotNull(transcoder, nameof(transcoder));
+        EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
 
-        public FrameHandler(
-            ITranscoder transcoder,
-            RecyclableMemoryStreamManager recyclableMemoryStreamManager)
+        _transcoder = transcoder;
+        _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
+    }
+
+    public async Task<IReadOnlyCollection<Stream>> GetFramesResourceAsync(Stream stream, IEnumerable<int> frames, bool originalTransferSyntaxRequested, string requestedRepresentation)
+    {
+        EnsureArg.IsNotNull(stream, nameof(stream));
+        EnsureArg.IsNotNull(frames, nameof(frames));
+
+        // The default behavior is to read only small data elements (<= 64 kb) and save a stream reference for downloading
+        // large tags such as pixel data. However, as demonstrated in #1248 there is an issue with fo-dicom reading buffered
+        // streams. Until the fix is released, we will force reading all data into memory. 
+        DicomFile dicomFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadAll);
+
+        // Validate requested frame index exists in file and retrieve the pixel data associated with the file.
+        DicomPixelData pixelData = dicomFile.GetPixelDataAndValidateFrames(frames);
+
+        if (!originalTransferSyntaxRequested && !dicomFile.Dataset.InternalTransferSyntax.Equals(DicomTransferSyntax.Parse(requestedRepresentation)))
         {
-            EnsureArg.IsNotNull(transcoder, nameof(transcoder));
-            EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
-
-            _transcoder = transcoder;
-            _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
+            return frames.Select(frame => new LazyTransformReadOnlyStream<DicomFile>(
+                    dicomFile,
+                    df => _transcoder.TranscodeFrame(df, frame, requestedRepresentation)))
+            .ToArray();
         }
-
-        public async Task<IReadOnlyCollection<Stream>> GetFramesResourceAsync(Stream stream, IEnumerable<int> frames, bool originalTransferSyntaxRequested, string requestedRepresentation)
+        else
         {
-            EnsureArg.IsNotNull(stream, nameof(stream));
-            EnsureArg.IsNotNull(frames, nameof(frames));
-
-            // The default behavior is to read only small data elements (<= 64 kb) and save a stream reference for downloading
-            // large tags such as pixel data. However, as demonstrated in #1248 there is an issue with fo-dicom reading buffered
-            // streams. Until the fix is released, we will force reading all data into memory. 
-            DicomFile dicomFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadAll);
-
-            // Validate requested frame index exists in file and retrieve the pixel data associated with the file.
-            DicomPixelData pixelData = dicomFile.GetPixelDataAndValidateFrames(frames);
-
-            if (!originalTransferSyntaxRequested && !dicomFile.Dataset.InternalTransferSyntax.Equals(DicomTransferSyntax.Parse(requestedRepresentation)))
-            {
-                return frames.Select(frame => new LazyTransformReadOnlyStream<DicomFile>(
+            return frames.Select(
+                    frame => new LazyTransformReadOnlyStream<DicomFile>(
                         dicomFile,
-                        df => _transcoder.TranscodeFrame(df, frame, requestedRepresentation)))
+                        df => GetFrameAsDicomData(pixelData, frame)))
                 .ToArray();
-            }
-            else
-            {
-                return frames.Select(
-                        frame => new LazyTransformReadOnlyStream<DicomFile>(
-                            dicomFile,
-                            df => GetFrameAsDicomData(pixelData, frame)))
-                    .ToArray();
-            }
         }
+    }
 
-        private Stream GetFrameAsDicomData(DicomPixelData pixelData, int frame)
-        {
-            EnsureArg.IsNotNull(pixelData, nameof(pixelData));
+    private Stream GetFrameAsDicomData(DicomPixelData pixelData, int frame)
+    {
+        EnsureArg.IsNotNull(pixelData, nameof(pixelData));
 
-            IByteBuffer resultByteBuffer = pixelData.GetFrame(frame);
+        IByteBuffer resultByteBuffer = pixelData.GetFrame(frame);
 
-            return _recyclableMemoryStreamManager.GetStream("FrameHandler.GetFrameAsDicomData", resultByteBuffer.Data, 0, resultByteBuffer.Data.Length);
-        }
+        return _recyclableMemoryStreamManager.GetStream("FrameHandler.GetFrameAsDicomData", resultByteBuffer.Data, 0, resultByteBuffer.Data.Length);
     }
 }

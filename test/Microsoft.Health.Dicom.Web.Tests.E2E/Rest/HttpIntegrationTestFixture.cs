@@ -15,113 +15,112 @@ using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.IO;
 using NSubstitute;
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
+namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
+
+public class HttpIntegrationTestFixture<TStartup> : IDisposable
 {
-    public class HttpIntegrationTestFixture<TStartup> : IDisposable
+    private readonly Dictionary<(string, string), AuthenticationHttpMessageHandler> _authenticationHandlers = new Dictionary<(string, string), AuthenticationHttpMessageHandler>();
+
+    public HttpIntegrationTestFixture()
+        : this(Path.Combine("src"))
     {
-        private readonly Dictionary<(string, string), AuthenticationHttpMessageHandler> _authenticationHandlers = new Dictionary<(string, string), AuthenticationHttpMessageHandler>();
+    }
 
-        public HttpIntegrationTestFixture()
-            : this(Path.Combine("src"))
+    protected HttpIntegrationTestFixture(string targetProjectParentDirectory, bool enableDataPartitions = false)
+    {
+        TestDicomWebServer = TestDicomWebServerFactory.GetTestDicomWebServer(typeof(TStartup), enableDataPartitions);
+    }
+
+    public bool IsInProcess => TestDicomWebServer is InProcTestDicomWebServer;
+
+    protected TestDicomWebServer TestDicomWebServer { get; }
+
+    public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; } = new RecyclableMemoryStreamManager();
+
+    public IDicomWebClient GetDicomWebClient()
+    {
+        return GetDicomWebClient(TestApplications.GlobalAdminServicePrincipal);
+    }
+
+    public IDicomWebClient GetDicomWebClient(TestApplication clientApplication, TestUser testUser = null)
+    {
+        EnsureArg.IsNotNull(clientApplication, nameof(clientApplication));
+        HttpMessageHandler messageHandler = TestDicomWebServer.CreateMessageHandler();
+        if (AuthenticationSettings.SecurityEnabled && !clientApplication.Equals(TestApplications.InvalidClient))
         {
-        }
-
-        protected HttpIntegrationTestFixture(string targetProjectParentDirectory, bool enableDataPartitions = false)
-        {
-            TestDicomWebServer = TestDicomWebServerFactory.GetTestDicomWebServer(typeof(TStartup), enableDataPartitions);
-        }
-
-        public bool IsInProcess => TestDicomWebServer is InProcTestDicomWebServer;
-
-        protected TestDicomWebServer TestDicomWebServer { get; }
-
-        public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; } = new RecyclableMemoryStreamManager();
-
-        public IDicomWebClient GetDicomWebClient()
-        {
-            return GetDicomWebClient(TestApplications.GlobalAdminServicePrincipal);
-        }
-
-        public IDicomWebClient GetDicomWebClient(TestApplication clientApplication, TestUser testUser = null)
-        {
-            EnsureArg.IsNotNull(clientApplication, nameof(clientApplication));
-            HttpMessageHandler messageHandler = TestDicomWebServer.CreateMessageHandler();
-            if (AuthenticationSettings.SecurityEnabled && !clientApplication.Equals(TestApplications.InvalidClient))
+            if (_authenticationHandlers.ContainsKey((clientApplication.ClientId, testUser?.UserId)))
             {
-                if (_authenticationHandlers.ContainsKey((clientApplication.ClientId, testUser?.UserId)))
+                messageHandler = _authenticationHandlers[(clientApplication.ClientId, testUser?.UserId)];
+            }
+            else
+            {
+                ICredentialProvider credentialProvider;
+                if (testUser != null)
                 {
-                    messageHandler = _authenticationHandlers[(clientApplication.ClientId, testUser?.UserId)];
+                    var credentialConfiguration = new OAuth2UserPasswordCredentialConfiguration(
+                        AuthenticationSettings.TokenUri,
+                        AuthenticationSettings.Resource,
+                        AuthenticationSettings.Scope,
+                        clientApplication.ClientId,
+                        clientApplication.ClientSecret,
+                        testUser.UserId,
+                        testUser.Password);
+
+                    IOptionsMonitor<OAuth2UserPasswordCredentialConfiguration> optionsMonitor = CreateOptionsMonitor(credentialConfiguration);
+                    credentialProvider = new OAuth2UserPasswordCredentialProvider(optionsMonitor, new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress });
                 }
                 else
                 {
-                    ICredentialProvider credentialProvider;
-                    if (testUser != null)
-                    {
-                        var credentialConfiguration = new OAuth2UserPasswordCredentialConfiguration(
-                            AuthenticationSettings.TokenUri,
-                            AuthenticationSettings.Resource,
-                            AuthenticationSettings.Scope,
-                            clientApplication.ClientId,
-                            clientApplication.ClientSecret,
-                            testUser.UserId,
-                            testUser.Password);
+                    var credentialConfiguration = new OAuth2ClientCredentialConfiguration(
+                        AuthenticationSettings.TokenUri,
+                        AuthenticationSettings.Resource,
+                        AuthenticationSettings.Scope,
+                        clientApplication.ClientId,
+                        clientApplication.ClientSecret);
 
-                        IOptionsMonitor<OAuth2UserPasswordCredentialConfiguration> optionsMonitor = CreateOptionsMonitor(credentialConfiguration);
-                        credentialProvider = new OAuth2UserPasswordCredentialProvider(optionsMonitor, new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress });
-                    }
-                    else
-                    {
-                        var credentialConfiguration = new OAuth2ClientCredentialConfiguration(
-                            AuthenticationSettings.TokenUri,
-                            AuthenticationSettings.Resource,
-                            AuthenticationSettings.Scope,
-                            clientApplication.ClientId,
-                            clientApplication.ClientSecret);
-
-                        IOptionsMonitor<OAuth2ClientCredentialConfiguration> optionsMonitor = CreateOptionsMonitor(credentialConfiguration);
-                        credentialProvider = new OAuth2ClientCredentialProvider(optionsMonitor, new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress });
-                    }
-
-                    var authHandler = new AuthenticationHttpMessageHandler(credentialProvider)
-                    {
-                        InnerHandler = messageHandler,
-                    };
-
-                    _authenticationHandlers.Add((clientApplication.ClientId, testUser?.UserId), authHandler);
-                    messageHandler = authHandler;
+                    IOptionsMonitor<OAuth2ClientCredentialConfiguration> optionsMonitor = CreateOptionsMonitor(credentialConfiguration);
+                    credentialProvider = new OAuth2ClientCredentialProvider(optionsMonitor, new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress });
                 }
-            }
 
-            var httpClient = new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress };
+                var authHandler = new AuthenticationHttpMessageHandler(credentialProvider)
+                {
+                    InnerHandler = messageHandler,
+                };
 
-            var dicomWebClient = new DicomWebClient(httpClient, DicomApiVersions.V1)
-            {
-                GetMemoryStream = () => RecyclableMemoryStreamManager.GetStream(),
-            };
-            return dicomWebClient;
-        }
-
-        public void Dispose()
-        {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                TestDicomWebServer.Dispose();
+                _authenticationHandlers.Add((clientApplication.ClientId, testUser?.UserId), authHandler);
+                messageHandler = authHandler;
             }
         }
 
-        private static IOptionsMonitor<T> CreateOptionsMonitor<T>(T configuration)
-        {
-            var optionsMonitor = Substitute.For<IOptionsMonitor<T>>();
-            optionsMonitor.CurrentValue.Returns(configuration);
-            optionsMonitor.Get(default).ReturnsForAnyArgs(configuration);
+        var httpClient = new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress };
 
-            return optionsMonitor;
+        var dicomWebClient = new DicomWebClient(httpClient, DicomApiVersions.V1)
+        {
+            GetMemoryStream = () => RecyclableMemoryStreamManager.GetStream(),
+        };
+        return dicomWebClient;
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            TestDicomWebServer.Dispose();
         }
+    }
+
+    private static IOptionsMonitor<T> CreateOptionsMonitor<T>(T configuration)
+    {
+        var optionsMonitor = Substitute.For<IOptionsMonitor<T>>();
+        optionsMonitor.CurrentValue.Returns(configuration);
+        optionsMonitor.Get(default).ReturnsForAnyArgs(configuration);
+
+        return optionsMonitor;
     }
 }

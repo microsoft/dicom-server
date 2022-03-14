@@ -14,54 +14,53 @@ using Microsoft.Health.DicomCast.Core.Modules;
 using Microsoft.Health.DicomCast.TableStorage;
 using Microsoft.Health.Extensions.DependencyInjection;
 
-namespace Microsoft.Health.DicomCast.Hosting
+namespace Microsoft.Health.DicomCast.Hosting;
+
+public static class Program
 {
-    public static class Program
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
-        {
-            IHost host = Host.CreateDefaultBuilder(args)
-                .ConfigureAppConfiguration((hostContext, builder) =>
-                {
-                    var builtConfig = builder.Build();
-
-                    var keyVaultEndpoint = builtConfig["KeyVault:Endpoint"];
-                    if (!string.IsNullOrEmpty(keyVaultEndpoint))
-                    {
-                        var azureServiceTokenProvider = new AzureServiceTokenProvider();
-                        var keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
-                        builder.AddAzureKeyVault(keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
-                    }
-                })
-                .ConfigureServices((hostContext, services) =>
-                {
-                    IConfiguration configuration = hostContext.Configuration;
-
-                    services.RegisterAssemblyModules(typeof(WorkerModule).Assembly, configuration);
-
-                    services.AddTableStorageDataStore(configuration);
-
-                    services.AddHostedService<DicomCastBackgroundService>();
-
-                    AddApplicationInsightsTelemetry(services, configuration);
-                })
-                .Build();
-
-            host.Run();
-        }
-
-        /// <summary>
-        /// Adds ApplicationInsights for telemetry and logging.
-        /// </summary>
-        private static void AddApplicationInsightsTelemetry(IServiceCollection services, IConfiguration configuration)
-        {
-            string instrumentationKey = configuration["ApplicationInsights:InstrumentationKey"];
-
-            if (!string.IsNullOrWhiteSpace(instrumentationKey))
+        IHost host = Host.CreateDefaultBuilder(args)
+            .ConfigureAppConfiguration((hostContext, builder) =>
             {
-                services.AddApplicationInsightsTelemetryWorkerService(instrumentationKey);
-                services.AddLogging(loggingBuilder => loggingBuilder.AddApplicationInsights(instrumentationKey));
-            }
+                var builtConfig = builder.Build();
+
+                var keyVaultEndpoint = builtConfig["KeyVault:Endpoint"];
+                if (!string.IsNullOrEmpty(keyVaultEndpoint))
+                {
+                    var azureServiceTokenProvider = new AzureServiceTokenProvider();
+                    var keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
+                    builder.AddAzureKeyVault(keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
+                }
+            })
+            .ConfigureServices((hostContext, services) =>
+            {
+                IConfiguration configuration = hostContext.Configuration;
+
+                services.RegisterAssemblyModules(typeof(WorkerModule).Assembly, configuration);
+
+                services.AddTableStorageDataStore(configuration);
+
+                services.AddHostedService<DicomCastBackgroundService>();
+
+                AddApplicationInsightsTelemetry(services, configuration);
+            })
+            .Build();
+
+        host.Run();
+    }
+
+    /// <summary>
+    /// Adds ApplicationInsights for telemetry and logging.
+    /// </summary>
+    private static void AddApplicationInsightsTelemetry(IServiceCollection services, IConfiguration configuration)
+    {
+        string instrumentationKey = configuration["ApplicationInsights:InstrumentationKey"];
+
+        if (!string.IsNullOrWhiteSpace(instrumentationKey))
+        {
+            services.AddApplicationInsightsTelemetryWorkerService(instrumentationKey);
+            services.AddLogging(loggingBuilder => loggingBuilder.AddApplicationInsights(instrumentationKey));
         }
     }
 }

@@ -12,19 +12,18 @@ using Microsoft.Health.Dicom.Client;
 using Microsoft.Net.Http.Headers;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E
+namespace Microsoft.Health.Dicom.Web.Tests.E2E;
+
+public static class DicomWebClientHelpers
 {
-    public static class DicomWebClientHelpers
+    public static async Task ValidateResponseStatusCodeAsync(this IDicomWebClient dicomWebClient, Uri requestUri, string acceptHeader, HttpStatusCode expectedStatusCode)
     {
-        public static async Task ValidateResponseStatusCodeAsync(this IDicomWebClient dicomWebClient, Uri requestUri, string acceptHeader, HttpStatusCode expectedStatusCode)
-        {
-            EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
-            using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
-            request.Headers.Add(HeaderNames.Accept, acceptHeader);
+        EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
+        using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+        request.Headers.Add(HeaderNames.Accept, acceptHeader);
 
-            using HttpResponseMessage response = await dicomWebClient.HttpClient.SendAsync(request);
+        using HttpResponseMessage response = await dicomWebClient.HttpClient.SendAsync(request);
 
-            Assert.Equal(expectedStatusCode, response.StatusCode);
-        }
+        Assert.Equal(expectedStatusCode, response.StatusCode);
     }
 }

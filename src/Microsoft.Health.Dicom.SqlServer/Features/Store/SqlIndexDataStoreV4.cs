@@ -17,53 +17,52 @@ using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Store
+namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
+
+/// <summary>
+/// Sql IndexDataStore version 4.
+/// </summary>
+internal class SqlIndexDataStoreV4 : SqlIndexDataStoreV3
 {
-    /// <summary>
-    /// Sql IndexDataStore version 4.
-    /// </summary>
-    internal class SqlIndexDataStoreV4 : SqlIndexDataStoreV3
+    public SqlIndexDataStoreV4(
+        SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+        : base(sqlConnectionWrapperFactory)
     {
-        public SqlIndexDataStoreV4(
-            SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
-            : base(sqlConnectionWrapperFactory)
+    }
+
+    public override SchemaVersion Version => SchemaVersion.V4;
+
+    public override async Task ReindexInstanceAsync(DicomDataset instance, long watermark, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(instance, nameof(instance));
+        EnsureArg.IsNotNull(queryTags, nameof(queryTags));
+
+        using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-        }
+            var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags, Version);
+            V4.IndexInstanceTableValuedParameters parameters = new V4.IndexInstanceTableValuedParameters(
+                rows.StringRows,
+                rows.LongRows,
+                rows.DoubleRows,
+                rows.DateTimeRows,
+                rows.PersonNameRows);
 
-        public override SchemaVersion Version => SchemaVersion.V4;
+            V4.IndexInstance.PopulateCommand(sqlCommandWrapper, watermark, parameters);
 
-        public override async Task ReindexInstanceAsync(DicomDataset instance, long watermark, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
-        {
-            EnsureArg.IsNotNull(instance, nameof(instance));
-            EnsureArg.IsNotNull(queryTags, nameof(queryTags));
-
-            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+            try
             {
-                var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags, Version);
-                V4.IndexInstanceTableValuedParameters parameters = new V4.IndexInstanceTableValuedParameters(
-                    rows.StringRows,
-                    rows.LongRows,
-                    rows.DoubleRows,
-                    rows.DateTimeRows,
-                    rows.PersonNameRows);
-
-                V4.IndexInstance.PopulateCommand(sqlCommandWrapper, watermark, parameters);
-
-                try
+                await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
+            }
+            catch (SqlException ex)
+            {
+                throw ex.Number switch
                 {
-                    await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
-                }
-                catch (SqlException ex)
-                {
-                    throw ex.Number switch
-                    {
-                        SqlErrorCodes.NotFound => new InstanceNotFoundException(),
-                        SqlErrorCodes.Conflict => new PendingInstanceException(),
-                        _ => new DataStoreException(ex),
-                    };
+                    SqlErrorCodes.NotFound => new InstanceNotFoundException(),
+                    SqlErrorCodes.Conflict => new PendingInstanceException(),
+                    _ => new DataStoreException(ex),
+                };
 
-                }
             }
         }
     }

@@ -9,18 +9,17 @@ using System.Linq;
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Microsoft.Health.DicomCast.Core.Modules
+namespace Microsoft.Health.DicomCast.Core.Modules;
+
+public static class ServiceProviderExtensions
 {
-    public static class ServiceProviderExtensions
+    public static NamedCredentialProvider ResolveNamedCredentialProvider(this IServiceProvider serviceProvider, string name)
     {
-        public static NamedCredentialProvider ResolveNamedCredentialProvider(this IServiceProvider serviceProvider, string name)
-        {
-            EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
-            EnsureArg.IsNotNullOrWhiteSpace(name, nameof(name));
+        EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
+        EnsureArg.IsNotNullOrWhiteSpace(name, nameof(name));
 
-            IEnumerable<NamedCredentialProvider> namedCredentialProviders = serviceProvider.GetServices<NamedCredentialProvider>();
+        IEnumerable<NamedCredentialProvider> namedCredentialProviders = serviceProvider.GetServices<NamedCredentialProvider>();
 
-            return namedCredentialProviders.First(x => x.Name.Equals(name, StringComparison.Ordinal));
-        }
+        return namedCredentialProviders.First(x => x.Name.Equals(name, StringComparison.Ordinal));
     }
 }

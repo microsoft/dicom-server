@@ -7,18 +7,17 @@ using System.Collections.Generic;
 using EnsureThat;
 using FellowOakDicom;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Query
+namespace Microsoft.Health.Dicom.Core.Messages.Query;
+
+public sealed class QueryResourceResponse
 {
-    public sealed class QueryResourceResponse
+    public QueryResourceResponse(IEnumerable<DicomDataset> responseDataset, IReadOnlyCollection<string> erroneousTags)
     {
-        public QueryResourceResponse(IEnumerable<DicomDataset> responseDataset, IReadOnlyCollection<string> erroneousTags)
-        {
-            ResponseDataset = EnsureArg.IsNotNull(responseDataset, nameof(responseDataset));
-            ErroneousTags = EnsureArg.IsNotNull(erroneousTags, nameof(erroneousTags));
-        }
-
-        public IEnumerable<DicomDataset> ResponseDataset { get; }
-
-        public IReadOnlyCollection<string> ErroneousTags { get; }
+        ResponseDataset = EnsureArg.IsNotNull(responseDataset, nameof(responseDataset));
+        ErroneousTags = EnsureArg.IsNotNull(erroneousTags, nameof(erroneousTags));
     }
+
+    public IEnumerable<DicomDataset> ResponseDataset { get; }
+
+    public IReadOnlyCollection<string> ErroneousTags { get; }
 }

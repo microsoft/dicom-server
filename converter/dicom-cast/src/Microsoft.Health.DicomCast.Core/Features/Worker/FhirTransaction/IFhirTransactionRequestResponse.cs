@@ -5,32 +5,31 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
+
+/// <summary>
+/// Provides list of request/responses used to execute or returned by executing the FHIR transaction.
+/// </summary>
+/// <typeparam name="T">The type of the object used by the request or response.</typeparam>
+public interface IFhirTransactionRequestResponse<T>
 {
     /// <summary>
-    /// Provides list of request/responses used to execute or returned by executing the FHIR transaction.
+    /// Gets or sets the patient.
     /// </summary>
-    /// <typeparam name="T">The type of the object used by the request or response.</typeparam>
-    public interface IFhirTransactionRequestResponse<T>
-    {
-        /// <summary>
-        /// Gets or sets the patient.
-        /// </summary>
-        T Patient { get; set; }
+    T Patient { get; set; }
 
-        /// <summary>
-        /// Gets or sets the endpoint to DicomWeb used by ImagingStudy.
-        /// </summary>
-        T Endpoint { get; set; }
+    /// <summary>
+    /// Gets or sets the endpoint to DicomWeb used by ImagingStudy.
+    /// </summary>
+    T Endpoint { get; set; }
 
-        /// <summary>
-        /// Gets or sets the imaging study.
-        /// </summary>
-        T ImagingStudy { get; set; }
+    /// <summary>
+    /// Gets or sets the imaging study.
+    /// </summary>
+    T ImagingStudy { get; set; }
 
-        /// <summary>
-        /// Gets or sets the observation
-        /// </summary>
-        IEnumerable<T> Observation { get; set; }
-    }
+    /// <summary>
+    /// Gets or sets the observation
+    /// </summary>
+    IEnumerable<T> Observation { get; set; }
 }

@@ -5,17 +5,16 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Operations.Client.DurableTask
+namespace Microsoft.Health.Dicom.Operations.Client.DurableTask;
+
+/// <summary>
+/// Represents a factory for generating unique <see cref="Guid"/> values.
+/// </summary>
+public interface IGuidFactory
 {
     /// <summary>
-    /// Represents a factory for generating unique <see cref="Guid"/> values.
+    /// Creates a unique <see cref="Guid"/> value.
     /// </summary>
-    public interface IGuidFactory
-    {
-        /// <summary>
-        /// Creates a unique <see cref="Guid"/> value.
-        /// </summary>
-        /// <returns>A unique <see cref="Guid"/> value.</returns>
-        Guid Create();
-    }
+    /// <returns>A unique <see cref="Guid"/> value.</returns>
+    Guid Create();
 }

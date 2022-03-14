@@ -5,36 +5,35 @@
 
 using System;
 
-namespace Microsoft.Health.DicomCast.Core.Features.State
+namespace Microsoft.Health.DicomCast.Core.Features.State;
+
+/// <summary>
+/// Current state of sync
+/// </summary>
+public class SyncState
 {
-    /// <summary>
-    /// Current state of sync
-    /// </summary>
-    public class SyncState
+    public SyncState(long syncedSequence, DateTimeOffset syncedDate)
     {
-        public SyncState(long syncedSequence, DateTimeOffset syncedDate)
-        {
-            SyncedSequence = syncedSequence;
-            SyncedDate = syncedDate;
-        }
+        SyncedSequence = syncedSequence;
+        SyncedDate = syncedDate;
+    }
 
-        /// <summary>
-        /// Sequence number of the processed dicom event.
-        /// </summary>
-        public long SyncedSequence { get; }
+    /// <summary>
+    /// Sequence number of the processed dicom event.
+    /// </summary>
+    public long SyncedSequence { get; }
 
-        /// <summary>
-        /// Server time when the last dicom event was processed.
-        /// </summary>
-        public DateTimeOffset SyncedDate { get; }
+    /// <summary>
+    /// Server time when the last dicom event was processed.
+    /// </summary>
+    public DateTimeOffset SyncedDate { get; }
 
-        /// <summary>
-        /// Creates the model with initial state before the sync starts
-        /// </summary>
-        /// <returns>SyncState</returns>
-        public static SyncState CreateInitialSyncState()
-        {
-            return new SyncState(0, DateTime.MinValue);
-        }
+    /// <summary>
+    /// Creates the model with initial state before the sync starts
+    /// </summary>
+    /// <returns>SyncState</returns>
+    public static SyncState CreateInitialSyncState()
+    {
+        return new SyncState(0, DateTime.MinValue);
     }
 }

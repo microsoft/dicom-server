@@ -10,32 +10,31 @@ using Microsoft.Health.Dicom.Api.Features.ModelBinders;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Api.UnitTests.Features.ModelBinders
+namespace Microsoft.Health.Dicom.Api.UnitTests.Features.ModelBinders;
+
+public class TransferSyntaxModelBinderTests
 {
-    public class TransferSyntaxModelBinderTests
+    private const string TransferSyntaxHeaderPrefix = "transfer-syntax";
+
+    [Theory]
+    [InlineData("application/dicom;traNSFer-sYNTAx=*", "*")]
+    [InlineData("application/dicom;traNSFer-sYNTAx=\"*\"", "*")]
+    [InlineData("application/dicom;traNSFer-sYNTAx=\"LittleEndian\"", "LittleEndian")]
+    public async Task GivenHeaderWithValidTransferSyntax_WhenBindingTransferSyntax_ModelIsSetAndExpectedResultIsParsed(string contextValue, string expectedResult)
     {
-        private const string TransferSyntaxHeaderPrefix = "transfer-syntax";
+        ModelBindingContext bindingContext = Substitute.For<ModelBindingContext>();
+        bindingContext.HttpContext.Request.Headers.Accept.Returns(new StringValues(contextValue));
 
-        [Theory]
-        [InlineData("application/dicom;traNSFer-sYNTAx=*", "*")]
-        [InlineData("application/dicom;traNSFer-sYNTAx=\"*\"", "*")]
-        [InlineData("application/dicom;traNSFer-sYNTAx=\"LittleEndian\"", "LittleEndian")]
-        public async Task GivenHeaderWithValidTransferSyntax_WhenBindingTransferSyntax_ModelIsSetAndExpectedResultIsParsed(string contextValue, string expectedResult)
-        {
-            ModelBindingContext bindingContext = Substitute.For<ModelBindingContext>();
-            bindingContext.HttpContext.Request.Headers.Accept.Returns(new StringValues(contextValue));
+        ModelStateDictionary modelStateDictionary = new ModelStateDictionary();
+        bindingContext.ModelState.Returns(modelStateDictionary);
 
-            ModelStateDictionary modelStateDictionary = new ModelStateDictionary();
-            bindingContext.ModelState.Returns(modelStateDictionary);
+        IModelBinder modelBinder = new TransferSyntaxModelBinder();
+        await modelBinder.BindModelAsync(bindingContext);
 
-            IModelBinder modelBinder = new TransferSyntaxModelBinder();
-            await modelBinder.BindModelAsync(bindingContext);
+        Assert.True(bindingContext.Result.IsModelSet);
 
-            Assert.True(bindingContext.Result.IsModelSet);
-
-            var actualResult = bindingContext.Result.Model as string;
-            Assert.Equal(expectedResult, actualResult);
-            Assert.Equal(expectedResult, bindingContext.ModelState[TransferSyntaxHeaderPrefix].RawValue);
-        }
+        var actualResult = bindingContext.Result.Model as string;
+        Assert.Equal(expectedResult, actualResult);
+        Assert.Equal(expectedResult, bindingContext.ModelState[TransferSyntaxHeaderPrefix].RawValue);
     }
 }

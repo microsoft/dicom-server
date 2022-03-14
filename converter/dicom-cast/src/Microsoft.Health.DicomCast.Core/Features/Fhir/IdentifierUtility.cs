@@ -6,28 +6,27 @@
 using EnsureThat;
 using Hl7.Fhir.Model;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Fhir
+namespace Microsoft.Health.DicomCast.Core.Features.Fhir;
+
+/// <summary>
+/// Utility for creating an identifier for <see cref="ImagingStudy"/>.
+/// </summary>
+public static class IdentifierUtility
 {
+    private const string DicomIdentifierSystem = "urn:dicom:uid";
+
     /// <summary>
-    /// Utility for creating an identifier for <see cref="ImagingStudy"/>.
+    /// Creates an <see cref="Identifier"/> that represents the study specified by <paramref name="studyInstanceUid"/>.
     /// </summary>
-    public static class IdentifierUtility
+    /// <remarks>
+    /// The identifier is generated based on the rules specified by https://www.hl7.org/fhir/imagingstudy.html#notes.
+    /// </remarks>
+    /// <param name="studyInstanceUid">The study instance UID.</param>
+    /// <returns>The <see cref="Identifier"/> that represents this study.</returns>
+    public static Identifier CreateIdentifier(string studyInstanceUid)
     {
-        private const string DicomIdentifierSystem = "urn:dicom:uid";
+        EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
 
-        /// <summary>
-        /// Creates an <see cref="Identifier"/> that represents the study specified by <paramref name="studyInstanceUid"/>.
-        /// </summary>
-        /// <remarks>
-        /// The identifier is generated based on the rules specified by https://www.hl7.org/fhir/imagingstudy.html#notes.
-        /// </remarks>
-        /// <param name="studyInstanceUid">The study instance UID.</param>
-        /// <returns>The <see cref="Identifier"/> that represents this study.</returns>
-        public static Identifier CreateIdentifier(string studyInstanceUid)
-        {
-            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
-
-            return new Identifier(DicomIdentifierSystem, $"urn:oid:{studyInstanceUid}");
-        }
+        return new Identifier(DicomIdentifierSystem, $"urn:oid:{studyInstanceUid}");
     }
 }

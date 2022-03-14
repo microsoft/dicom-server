@@ -6,9 +6,8 @@
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag
+namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
+
+internal interface ISqlExtendedQueryTagStore : IExtendedQueryTagStore, IVersioned
 {
-    internal interface ISqlExtendedQueryTagStore : IExtendedQueryTagStore, IVersioned
-    {
-    }
 }

@@ -8,21 +8,20 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Client
+namespace Microsoft.Health.Dicom.Client;
+
+public class DicomWebResponse<T> : DicomWebResponse
 {
-    public class DicomWebResponse<T> : DicomWebResponse
+    private readonly Func<HttpContent, Task<T>> _valueFactory;
+
+    public DicomWebResponse(HttpResponseMessage response, Func<HttpContent, Task<T>> valueFactory)
+        : base(response)
     {
-        private readonly Func<HttpContent, Task<T>> _valueFactory;
+        EnsureArg.IsNotNull(valueFactory, nameof(valueFactory));
 
-        public DicomWebResponse(HttpResponseMessage response, Func<HttpContent, Task<T>> valueFactory)
-            : base(response)
-        {
-            EnsureArg.IsNotNull(valueFactory, nameof(valueFactory));
-
-            _valueFactory = valueFactory;
-        }
-
-        public Task<T> GetValueAsync()
-            => _valueFactory(Content);
+        _valueFactory = valueFactory;
     }
+
+    public Task<T> GetValueAsync()
+        => _valueFactory(Content);
 }

@@ -8,19 +8,18 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
-namespace Microsoft.Health.Dicom.Tests.Common
+namespace Microsoft.Health.Dicom.Tests.Common;
+
+public static class AcceptHeaderDescriptorHelpers
 {
-    public static class AcceptHeaderDescriptorHelpers
+    public static AcceptHeaderDescriptor CreateAcceptHeaderDescriptor(AcceptHeader acceptHeader, bool match = true)
     {
-        public static AcceptHeaderDescriptor CreateAcceptHeaderDescriptor(AcceptHeader acceptHeader, bool match = true)
-        {
-            EnsureArg.IsNotNull(acceptHeader, nameof(acceptHeader));
-            return new AcceptHeaderDescriptor(
-                payloadType: acceptHeader.PayloadType,
-                mediaType: acceptHeader.MediaType.Value,
-                isTransferSyntaxMandatory: true,
-                transferSyntaxWhenMissing: string.Empty,
-                acceptableTransferSyntaxes: match ? new HashSet<string>() { acceptHeader.TransferSyntax.Value } : new HashSet<string>());
-        }
+        EnsureArg.IsNotNull(acceptHeader, nameof(acceptHeader));
+        return new AcceptHeaderDescriptor(
+            payloadType: acceptHeader.PayloadType,
+            mediaType: acceptHeader.MediaType.Value,
+            isTransferSyntaxMandatory: true,
+            transferSyntaxWhenMissing: string.Empty,
+            acceptableTransferSyntaxes: match ? new HashSet<string>() { acceptHeader.TransferSyntax.Value } : new HashSet<string>());
     }
 }

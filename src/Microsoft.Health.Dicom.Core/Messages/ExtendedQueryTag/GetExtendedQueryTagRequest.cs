@@ -5,18 +5,17 @@
 
 using MediatR;
 
-namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
-{
-    public class GetExtendedQueryTagRequest : IRequest<GetExtendedQueryTagResponse>
-    {
-        public GetExtendedQueryTagRequest(string extendedQueryTagPath)
-        {
-            ExtendedQueryTagPath = extendedQueryTagPath;
-        }
+namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
-        /// <summary>
-        /// Path for the extended query tag that is requested.
-        /// </summary>
-        public string ExtendedQueryTagPath { get; }
+public class GetExtendedQueryTagRequest : IRequest<GetExtendedQueryTagResponse>
+{
+    public GetExtendedQueryTagRequest(string extendedQueryTagPath)
+    {
+        ExtendedQueryTagPath = extendedQueryTagPath;
     }
+
+    /// <summary>
+    /// Path for the extended query tag that is requested.
+    /// </summary>
+    public string ExtendedQueryTagPath { get; }
 }

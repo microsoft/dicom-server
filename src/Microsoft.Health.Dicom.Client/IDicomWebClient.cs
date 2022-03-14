@@ -7,11 +7,10 @@ using System;
 using System.IO;
 using System.Net.Http;
 
-namespace Microsoft.Health.Dicom.Client
+namespace Microsoft.Health.Dicom.Client;
+
+public partial interface IDicomWebClient
 {
-    public partial interface IDicomWebClient
-    {
-        Func<MemoryStream> GetMemoryStream { get; set; }
-        HttpClient HttpClient { get; }
-    }
+    Func<MemoryStream> GetMemoryStream { get; set; }
+    HttpClient HttpClient { get; }
 }

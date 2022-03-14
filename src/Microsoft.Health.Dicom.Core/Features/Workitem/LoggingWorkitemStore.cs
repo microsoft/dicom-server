@@ -10,85 +10,84 @@ using FellowOakDicom;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.Health.Dicom.Core.Features.Workitem
+namespace Microsoft.Health.Dicom.Core.Features.Workitem;
+
+public class LoggingWorkitemStore : IWorkitemStore
 {
-    public class LoggingWorkitemStore : IWorkitemStore
+    private readonly IWorkitemStore _workitemStore;
+    private readonly ILogger _logger;
+
+    public LoggingWorkitemStore(IWorkitemStore workitemStore, ILogger<LoggingWorkitemStore> logger)
     {
-        private readonly IWorkitemStore _workitemStore;
-        private readonly ILogger _logger;
+        EnsureArg.IsNotNull(workitemStore, nameof(workitemStore));
+        EnsureArg.IsNotNull(logger, nameof(logger));
 
-        public LoggingWorkitemStore(IWorkitemStore workitemStore, ILogger<LoggingWorkitemStore> logger)
+        _workitemStore = workitemStore;
+        _logger = logger;
+    }
+
+    /// <inheritdoc />
+    public async Task AddWorkitemAsync(WorkitemInstanceIdentifier identifier, DicomDataset dataset, long? proposedWatermark = default, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(identifier, nameof(identifier));
+
+        _logger.LogDebug("Adding workitem '{WorkitemInstanceIdentifier}'.", identifier);
+
+        try
         {
-            EnsureArg.IsNotNull(workitemStore, nameof(workitemStore));
-            EnsureArg.IsNotNull(logger, nameof(logger));
+            await _workitemStore.AddWorkitemAsync(identifier, dataset, proposedWatermark, cancellationToken);
 
-            _workitemStore = workitemStore;
-            _logger = logger;
+            _logger.LogDebug("The operation completed successfully.");
         }
-
-        /// <inheritdoc />
-        public async Task AddWorkitemAsync(WorkitemInstanceIdentifier identifier, DicomDataset dataset, long? proposedWatermark = default, CancellationToken cancellationToken = default)
+        catch (Exception ex)
         {
-            EnsureArg.IsNotNull(identifier, nameof(identifier));
+            _logger.LogWarning(ex, "The operation failed.");
 
-            _logger.LogDebug("Adding workitem '{WorkitemInstanceIdentifier}'.", identifier);
-
-            try
-            {
-                await _workitemStore.AddWorkitemAsync(identifier, dataset, proposedWatermark, cancellationToken);
-
-                _logger.LogDebug("The operation completed successfully.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "The operation failed.");
-
-                throw;
-            }
+            throw;
         }
+    }
 
-        /// <inheritdoc />
-        public async Task<DicomDataset> GetWorkitemAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default)
+    /// <inheritdoc />
+    public async Task<DicomDataset> GetWorkitemAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(identifier, nameof(identifier));
+
+        _logger.LogDebug("Getting workitem with identifier '[{WorkitemInstanceIdentifier}]'.", identifier);
+
+        try
         {
-            EnsureArg.IsNotNull(identifier, nameof(identifier));
+            var result = await _workitemStore.GetWorkitemAsync(identifier, cancellationToken);
 
-            _logger.LogDebug("Getting workitem with identifier '[{WorkitemInstanceIdentifier}]'.", identifier);
+            _logger.LogDebug("The operation completed successfully.");
 
-            try
-            {
-                var result = await _workitemStore.GetWorkitemAsync(identifier, cancellationToken);
-
-                _logger.LogDebug("The operation completed successfully.");
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "The operation failed.");
-
-                throw;
-            }
+            return result;
         }
-
-        /// <inheritdoc />
-        public async Task DeleteWorkitemAsync(WorkitemInstanceIdentifier identifier, long? proposedWatermark = default, CancellationToken cancellationToken = default)
+        catch (Exception ex)
         {
-            EnsureArg.IsNotNull(identifier, nameof(identifier));
+            _logger.LogWarning(ex, "The operation failed.");
 
-            _logger.LogDebug("Deleting workitem with identifier '[{WorkitemInstanceIdentifier}]'.", identifier);
+            throw;
+        }
+    }
 
-            try
-            {
-                await _workitemStore.DeleteWorkitemAsync(identifier, proposedWatermark, cancellationToken);
+    /// <inheritdoc />
+    public async Task DeleteWorkitemAsync(WorkitemInstanceIdentifier identifier, long? proposedWatermark = default, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(identifier, nameof(identifier));
 
-                _logger.LogDebug("The operation completed successfully.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "The operation failed.");
+        _logger.LogDebug("Deleting workitem with identifier '[{WorkitemInstanceIdentifier}]'.", identifier);
 
-                throw;
-            }
+        try
+        {
+            await _workitemStore.DeleteWorkitemAsync(identifier, proposedWatermark, cancellationToken);
+
+            _logger.LogDebug("The operation completed successfully.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "The operation failed.");
+
+            throw;
         }
     }
 }

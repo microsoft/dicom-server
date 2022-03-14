@@ -5,17 +5,16 @@
 
 using System;
 
-namespace Microsoft.Health.DicomCast.Core.Exceptions
-{
-    public class RetryableException : Exception
-    {
-        public RetryableException()
-        {
-        }
+namespace Microsoft.Health.DicomCast.Core.Exceptions;
 
-        public RetryableException(Exception innerException)
-            : base(DicomCastCoreResource.RetryableException, innerException)
-        {
-        }
+public class RetryableException : Exception
+{
+    public RetryableException()
+    {
+    }
+
+    public RetryableException(Exception innerException)
+        : base(DicomCastCoreResource.RetryableException, innerException)
+    {
     }
 }

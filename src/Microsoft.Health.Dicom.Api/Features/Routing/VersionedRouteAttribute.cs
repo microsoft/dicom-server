@@ -5,13 +5,12 @@
 
 using Microsoft.AspNetCore.Mvc;
 
-namespace Microsoft.Health.Dicom.Api.Features.Routing
+namespace Microsoft.Health.Dicom.Api.Features.Routing;
+
+public sealed class VersionedRouteAttribute : RouteAttribute
 {
-    public sealed class VersionedRouteAttribute : RouteAttribute
+    public VersionedRouteAttribute(string template)
+        : base("v{version:apiVersion}/" + template)
     {
-        public VersionedRouteAttribute(string template)
-            : base("v{version:apiVersion}/" + template)
-        {
-        }
     }
 }

@@ -7,19 +7,18 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 
-namespace Microsoft.Health.Dicom.Client
+namespace Microsoft.Health.Dicom.Client;
+
+public class DicomWebAsyncEnumerableResponse<T> : DicomWebResponse, IAsyncEnumerable<T>
 {
-    public class DicomWebAsyncEnumerableResponse<T> : DicomWebResponse, IAsyncEnumerable<T>
+    private readonly IAsyncEnumerable<T> _enumerable;
+
+    public DicomWebAsyncEnumerableResponse(HttpResponseMessage response, IAsyncEnumerable<T> enumerable)
+        : base(response)
     {
-        private readonly IAsyncEnumerable<T> _enumerable;
-
-        public DicomWebAsyncEnumerableResponse(HttpResponseMessage response, IAsyncEnumerable<T> enumerable)
-            : base(response)
-        {
-            _enumerable = enumerable;
-        }
-
-        public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
-            => _enumerable.GetAsyncEnumerator(cancellationToken);
+        _enumerable = enumerable;
     }
+
+    public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+        => _enumerable.GetAsyncEnumerator(cancellationToken);
 }

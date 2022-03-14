@@ -6,14 +6,13 @@
 using EnsureThat;
 using Microsoft.Health.Dicom.Api.Features.Exceptions;
 
-namespace Microsoft.AspNetCore.Builder
+namespace Microsoft.AspNetCore.Builder;
+
+public static class ExceptionHandlingMiddlewareExtensions
 {
-    public static class ExceptionHandlingMiddlewareExtensions
+    public static IApplicationBuilder UseExceptionHandling(this IApplicationBuilder builder)
     {
-        public static IApplicationBuilder UseExceptionHandling(this IApplicationBuilder builder)
-        {
-            EnsureArg.IsNotNull(builder);
-            return builder.UseMiddleware<ExceptionHandlingMiddleware>();
-        }
+        EnsureArg.IsNotNull(builder);
+        return builder.UseMiddleware<ExceptionHandlingMiddleware>();
     }
 }

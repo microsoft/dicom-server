@@ -5,21 +5,20 @@
 
 using MediatR;
 
-namespace Microsoft.Health.Dicom.Core.Messages.ChangeFeed
+namespace Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
+
+public class ChangeFeedRequest : IRequest<ChangeFeedResponse>
 {
-    public class ChangeFeedRequest : IRequest<ChangeFeedResponse>
+    public ChangeFeedRequest(long offset, int limit, bool includeMetadata)
     {
-        public ChangeFeedRequest(long offset, int limit, bool includeMetadata)
-        {
-            Offset = offset;
-            Limit = limit;
-            IncludeMetadata = includeMetadata;
-        }
-
-        public int Limit { get; }
-
-        public long Offset { get; }
-
-        public bool IncludeMetadata { get; }
+        Offset = offset;
+        Limit = limit;
+        IncludeMetadata = includeMetadata;
     }
+
+    public int Limit { get; }
+
+    public long Offset { get; }
+
+    public bool IncludeMetadata { get; }
 }

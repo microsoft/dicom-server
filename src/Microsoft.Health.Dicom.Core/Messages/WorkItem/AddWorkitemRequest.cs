@@ -6,24 +6,23 @@
 using System.IO;
 using MediatR;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Workitem
+namespace Microsoft.Health.Dicom.Core.Messages.Workitem;
+
+public class AddWorkitemRequest : IRequest<AddWorkitemResponse>
 {
-    public class AddWorkitemRequest : IRequest<AddWorkitemResponse>
+    public AddWorkitemRequest(
+        Stream requestBody,
+        string requestContentType,
+        string workItemInstanceUid)
     {
-        public AddWorkitemRequest(
-            Stream requestBody,
-            string requestContentType,
-            string workItemInstanceUid)
-        {
-            WorkitemInstanceUid = workItemInstanceUid;
-            RequestBody = requestBody;
-            RequestContentType = requestContentType;
-        }
-
-        public string WorkitemInstanceUid { get; }
-
-        public Stream RequestBody { get; }
-
-        public string RequestContentType { get; }
+        WorkitemInstanceUid = workItemInstanceUid;
+        RequestBody = requestBody;
+        RequestContentType = requestContentType;
     }
+
+    public string WorkitemInstanceUid { get; }
+
+    public Stream RequestBody { get; }
+
+    public string RequestContentType { get; }
 }

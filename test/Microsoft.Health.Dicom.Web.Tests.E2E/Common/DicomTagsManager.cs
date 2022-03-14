@@ -15,105 +15,104 @@ using Polly;
 using Polly.Retry;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
+namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common;
+
+internal class DicomTagsManager : IAsyncDisposable
 {
-    internal class DicomTagsManager : IAsyncDisposable
+    private readonly IDicomWebClient _dicomWebClient;
+    private readonly HashSet<string> _tags;
+
+    private static readonly AsyncRetryPolicy<OperationStatus> GetOperationStatusRetryPolicy = Policy
+       .HandleResult<OperationStatus>(status => status.IsInProgress())
+       .WaitAndRetryAsync(100, x => TimeSpan.FromSeconds(3)); // Retry 100 times and wait for 3 seconds after each retry
+
+    public DicomTagsManager(IDicomWebClient dicomWebClient)
     {
-        private readonly IDicomWebClient _dicomWebClient;
-        private readonly HashSet<string> _tags;
+        _dicomWebClient = EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
+        _tags = new HashSet<string>();
+    }
 
-        private static readonly AsyncRetryPolicy<OperationStatus> GetOperationStatusRetryPolicy = Policy
-           .HandleResult<OperationStatus>(status => status.IsInProgress())
-           .WaitAndRetryAsync(100, x => TimeSpan.FromSeconds(3)); // Retry 100 times and wait for 3 seconds after each retry
-
-        public DicomTagsManager(IDicomWebClient dicomWebClient)
+    public async ValueTask DisposeAsync()
+    {
+        foreach (var tag in _tags)
         {
-            _dicomWebClient = EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
-            _tags = new HashSet<string>();
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            foreach (var tag in _tags)
+            try
             {
-                try
-                {
-                    await _dicomWebClient.DeleteExtendedQueryTagAsync(tag);
-                }
-                catch (DicomWebException)
-                {
+                await _dicomWebClient.DeleteExtendedQueryTagAsync(tag);
+            }
+            catch (DicomWebException)
+            {
 
-                }
             }
         }
+    }
 
-        public async Task<OperationStatus> AddTagsAsync(IEnumerable<AddExtendedQueryTagEntry> entries, CancellationToken cancellationToken = default)
+    public async Task<OperationStatus> AddTagsAsync(IEnumerable<AddExtendedQueryTagEntry> entries, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(entries, nameof(entries));
+        foreach (AddExtendedQueryTagEntry entry in entries)
         {
-            EnsureArg.IsNotNull(entries, nameof(entries));
-            foreach (AddExtendedQueryTagEntry entry in entries)
-            {
-                _tags.Add(entry.Path);
-            }
-
-            DicomWebResponse<OperationReference> response = await _dicomWebClient.AddExtendedQueryTagAsync(entries, cancellationToken);
-            OperationReference operation = await response.GetValueAsync();
-
-            OperationStatus result = await GetOperationStatusRetryPolicy.ExecuteAsync(async () =>
-            {
-                var operationStatus = await _dicomWebClient.GetOperationStatusAsync(operation.Id);
-                return await operationStatus.GetValueAsync();
-            });
-
-            // Check reference
-            DicomWebResponse<OperationStatus> actualResponse = await _dicomWebClient.ResolveReferenceAsync(operation, cancellationToken);
-            OperationStatus actual = await actualResponse.GetValueAsync();
-            Assert.Equal(result.OperationId, actual.OperationId);
-            Assert.Equal(result.Status, actual.Status);
-
-            return result;
+            _tags.Add(entry.Path);
         }
 
-        public async Task<GetExtendedQueryTagEntry> GetTagAsync(string tagPath, CancellationToken cancellationToken = default)
+        DicomWebResponse<OperationReference> response = await _dicomWebClient.AddExtendedQueryTagAsync(entries, cancellationToken);
+        OperationReference operation = await response.GetValueAsync();
+
+        OperationStatus result = await GetOperationStatusRetryPolicy.ExecuteAsync(async () =>
         {
-            EnsureArg.IsNotNull(tagPath, nameof(tagPath));
+            var operationStatus = await _dicomWebClient.GetOperationStatusAsync(operation.Id);
+            return await operationStatus.GetValueAsync();
+        });
 
-            var response = await _dicomWebClient.GetExtendedQueryTagAsync(tagPath, cancellationToken);
-            return await response.GetValueAsync();
-        }
+        // Check reference
+        DicomWebResponse<OperationStatus> actualResponse = await _dicomWebClient.ResolveReferenceAsync(operation, cancellationToken);
+        OperationStatus actual = await actualResponse.GetValueAsync();
+        Assert.Equal(result.OperationId, actual.OperationId);
+        Assert.Equal(result.Status, actual.Status);
 
-        public async Task<IReadOnlyList<GetExtendedQueryTagEntry>> GetTagsAsync(int limit, int offset, CancellationToken cancellationToken = default)
-        {
-            EnsureArg.IsGte(limit, 1, nameof(limit));
-            EnsureArg.IsGte(offset, 0, nameof(offset));
+        return result;
+    }
 
-            var response = await _dicomWebClient.GetExtendedQueryTagsAsync(limit, offset, cancellationToken);
-            return await response.GetValueAsync();
-        }
+    public async Task<GetExtendedQueryTagEntry> GetTagAsync(string tagPath, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(tagPath, nameof(tagPath));
 
-        public async Task<IReadOnlyList<ExtendedQueryTagError>> GetTagErrorsAsync(string tagPath, int limit, int offset, CancellationToken cancellationToken = default)
-        {
-            EnsureArg.IsNotNull(tagPath, nameof(tagPath));
-            EnsureArg.IsGte(limit, 1, nameof(limit));
-            EnsureArg.IsGte(offset, 0, nameof(offset));
+        var response = await _dicomWebClient.GetExtendedQueryTagAsync(tagPath, cancellationToken);
+        return await response.GetValueAsync();
+    }
 
-            var response = await _dicomWebClient.GetExtendedQueryTagErrorsAsync(tagPath, limit, offset, cancellationToken);
-            return await response.GetValueAsync();
-        }
+    public async Task<IReadOnlyList<GetExtendedQueryTagEntry>> GetTagsAsync(int limit, int offset, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsGte(limit, 1, nameof(limit));
+        EnsureArg.IsGte(offset, 0, nameof(offset));
 
-        public async Task<GetExtendedQueryTagEntry> UpdateExtendedQueryTagAsync(string tagPath, UpdateExtendedQueryTagEntry newValue, CancellationToken cancellationToken = default)
-        {
-            EnsureArg.IsNotNull(tagPath, nameof(tagPath));
+        var response = await _dicomWebClient.GetExtendedQueryTagsAsync(limit, offset, cancellationToken);
+        return await response.GetValueAsync();
+    }
 
-            var response = await _dicomWebClient.UpdateExtendedQueryTagAsync(tagPath, newValue, cancellationToken);
-            return await response.GetValueAsync();
-        }
+    public async Task<IReadOnlyList<ExtendedQueryTagError>> GetTagErrorsAsync(string tagPath, int limit, int offset, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(tagPath, nameof(tagPath));
+        EnsureArg.IsGte(limit, 1, nameof(limit));
+        EnsureArg.IsGte(offset, 0, nameof(offset));
 
-        public async Task<bool> DeleteExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default)
-        {
-            EnsureArg.IsNotNull(tagPath, nameof(tagPath));
+        var response = await _dicomWebClient.GetExtendedQueryTagErrorsAsync(tagPath, limit, offset, cancellationToken);
+        return await response.GetValueAsync();
+    }
 
-            var response = await _dicomWebClient.DeleteExtendedQueryTagAsync(tagPath, cancellationToken);
-            return response.StatusCode == System.Net.HttpStatusCode.NoContent;
-        }
+    public async Task<GetExtendedQueryTagEntry> UpdateExtendedQueryTagAsync(string tagPath, UpdateExtendedQueryTagEntry newValue, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(tagPath, nameof(tagPath));
+
+        var response = await _dicomWebClient.UpdateExtendedQueryTagAsync(tagPath, newValue, cancellationToken);
+        return await response.GetValueAsync();
+    }
+
+    public async Task<bool> DeleteExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(tagPath, nameof(tagPath));
+
+        var response = await _dicomWebClient.DeleteExtendedQueryTagAsync(tagPath, cancellationToken);
+        return response.StatusCode == System.Net.HttpStatusCode.NoContent;
     }
 }

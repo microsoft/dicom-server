@@ -5,11 +5,10 @@
 
 using System.Globalization;
 
-namespace Microsoft.Health.Dicom.Api.Features.ModelBinders
+namespace Microsoft.Health.Dicom.Api.Features.ModelBinders;
+
+internal class IntArrayModelBinder : CsvModelBinder<int>
 {
-    internal class IntArrayModelBinder : CsvModelBinder<int>
-    {
-        protected override bool TryParse(string value, out int result)
-            => int.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out result);
-    }
+    protected override bool TryParse(string value, out int result)
+        => int.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out result);
 }

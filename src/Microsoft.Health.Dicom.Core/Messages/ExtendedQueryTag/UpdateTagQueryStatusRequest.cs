@@ -7,18 +7,17 @@ using EnsureThat;
 using MediatR;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
-namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
+namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
+
+public class UpdateExtendedQueryTagRequest : IRequest<UpdateExtendedQueryTagResponse>
 {
-    public class UpdateExtendedQueryTagRequest : IRequest<UpdateExtendedQueryTagResponse>
+    public UpdateExtendedQueryTagRequest(string tagPath, UpdateExtendedQueryTagEntry newValue)
     {
-        public UpdateExtendedQueryTagRequest(string tagPath, UpdateExtendedQueryTagEntry newValue)
-        {
-            TagPath = EnsureArg.IsNotNull(tagPath, nameof(tagPath));
-            NewValue = EnsureArg.IsNotNull(newValue, nameof(newValue));
-        }
-
-        public string TagPath { get; }
-
-        public UpdateExtendedQueryTagEntry NewValue { get; }
+        TagPath = EnsureArg.IsNotNull(tagPath, nameof(tagPath));
+        NewValue = EnsureArg.IsNotNull(newValue, nameof(newValue));
     }
+
+    public string TagPath { get; }
+
+    public UpdateExtendedQueryTagEntry NewValue { get; }
 }

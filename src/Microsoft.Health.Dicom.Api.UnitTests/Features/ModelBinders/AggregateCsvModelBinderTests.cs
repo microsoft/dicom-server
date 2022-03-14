@@ -13,39 +13,38 @@ using Microsoft.Health.Dicom.Api.Features.ModelBinders;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Api.UnitTests.Features.ModelBinders
+namespace Microsoft.Health.Dicom.Api.UnitTests.Features.ModelBinders;
+
+public class AggregateCsvModelBinderTests
 {
-    public class AggregateCsvModelBinderTests
+    [Fact]
+    public async Task GivenNoValues_WhenBindingModel_ThenReturnNoValue()
     {
-        [Fact]
-        public async Task GivenNoValues_WhenBindingModel_ThenReturnNoValue()
-        {
-            ModelBindingContext context = Substitute.For<ModelBindingContext>();
-            context.ModelName = "Example";
-            context.ValueProvider.GetValue(context.ModelName).Returns(new ValueProviderResult(new StringValues()));
+        ModelBindingContext context = Substitute.For<ModelBindingContext>();
+        context.ModelName = "Example";
+        context.ValueProvider.GetValue(context.ModelName).Returns(new ValueProviderResult(new StringValues()));
 
-            IModelBinder binder = new AggregateCsvModelBinder();
-            await binder.BindModelAsync(context);
+        IModelBinder binder = new AggregateCsvModelBinder();
+        await binder.BindModelAsync(context);
 
-            Assert.True(context.Result.IsModelSet);
-            Assert.Empty(context.Result.Model as IEnumerable<string>);
-        }
+        Assert.True(context.Result.IsModelSet);
+        Assert.Empty(context.Result.Model as IEnumerable<string>);
+    }
 
-        [Theory]
-        [InlineData("foo", "foo")]
-        [InlineData("1,2", "1", "2")]
-        [InlineData(" a  , b,c\t", "a", "b", "c")]
-        public async Task GivenValues_WhenBindingModel_ThenSplitByComma(string input, params string[] expected)
-        {
-            ModelBindingContext context = Substitute.For<ModelBindingContext>();
-            context.ModelName = "Example";
-            context.ValueProvider.GetValue(context.ModelName).Returns(new ValueProviderResult(new StringValues(input)));
+    [Theory]
+    [InlineData("foo", "foo")]
+    [InlineData("1,2", "1", "2")]
+    [InlineData(" a  , b,c\t", "a", "b", "c")]
+    public async Task GivenValues_WhenBindingModel_ThenSplitByComma(string input, params string[] expected)
+    {
+        ModelBindingContext context = Substitute.For<ModelBindingContext>();
+        context.ModelName = "Example";
+        context.ValueProvider.GetValue(context.ModelName).Returns(new ValueProviderResult(new StringValues(input)));
 
-            IModelBinder binder = new AggregateCsvModelBinder();
-            await binder.BindModelAsync(context);
+        IModelBinder binder = new AggregateCsvModelBinder();
+        await binder.BindModelAsync(context);
 
-            Assert.True(context.Result.IsModelSet);
-            Assert.True((context.Result.Model as IEnumerable<string>).SequenceEqual(expected));
-        }
+        Assert.True(context.Result.IsModelSet);
+        Assert.True((context.Result.Model as IEnumerable<string>).SequenceEqual(expected));
     }
 }

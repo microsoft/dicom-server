@@ -6,12 +6,11 @@
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Partition
+namespace Microsoft.Health.Dicom.SqlServer.Features.Partition;
+
+/// <summary>
+///  Sql version of IPartitionStore.
+/// </summary>
+internal interface ISqlPartitionStore : IPartitionStore, IVersioned
 {
-    /// <summary>
-    ///  Sql version of IPartitionStore.
-    /// </summary>
-    internal interface ISqlPartitionStore : IPartitionStore, IVersioned
-    {
-    }
 }

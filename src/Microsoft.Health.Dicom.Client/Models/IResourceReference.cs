@@ -5,18 +5,17 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Client.Models
+namespace Microsoft.Health.Dicom.Client.Models;
+
+/// <summary>
+/// Represents a reference to a RESTful resource.
+/// </summary>
+/// <typeparam name="T">The type of resource.</typeparam>
+public interface IResourceReference<T>
 {
     /// <summary>
-    /// Represents a reference to a RESTful resource.
+    /// Gets the endpoint that returns resources of type <typeparamref name="T"/>.
     /// </summary>
-    /// <typeparam name="T">The type of resource.</typeparam>
-    public interface IResourceReference<T>
-    {
-        /// <summary>
-        /// Gets the endpoint that returns resources of type <typeparamref name="T"/>.
-        /// </summary>
-        /// <value>The resource URL.</value>
-        Uri Href { get; }
-    }
+    /// <value>The resource URL.</value>
+    Uri Href { get; }
 }

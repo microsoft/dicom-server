@@ -9,18 +9,17 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Client.Models;
 
-namespace Microsoft.Health.Dicom.Client
-{
-    public partial class DicomWebClient : IDicomWebClient
-    {
-        public async Task<DicomWebResponse<T>> ResolveReferenceAsync<T>(IResourceReference<T> resourceReference, CancellationToken cancellationToken = default)
-        {
-            EnsureArg.IsNotNull(resourceReference, nameof(resourceReference));
+namespace Microsoft.Health.Dicom.Client;
 
-            using var request = new HttpRequestMessage(HttpMethod.Get, resourceReference.Href);
-            HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
-            return new DicomWebResponse<T>(response, ValueFactory<T>);
-        }
+public partial class DicomWebClient : IDicomWebClient
+{
+    public async Task<DicomWebResponse<T>> ResolveReferenceAsync<T>(IResourceReference<T> resourceReference, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(resourceReference, nameof(resourceReference));
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, resourceReference.Href);
+        HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+        return new DicomWebResponse<T>(response, ValueFactory<T>);
     }
 }

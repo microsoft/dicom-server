@@ -6,18 +6,17 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Worker
+namespace Microsoft.Health.DicomCast.Core.Features.Worker;
+
+/// <summary>
+/// The worker for DicomCast.
+/// </summary>
+public interface IDicomCastWorker
 {
     /// <summary>
-    /// The worker for DicomCast.
+    /// Asynchronously executes the worker.
     /// </summary>
-    public interface IDicomCastWorker
-    {
-        /// <summary>
-        /// Asynchronously executes the worker.
-        /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A task that represents asynchronous worker execution.</returns>
-        Task ExecuteAsync(CancellationToken cancellationToken);
-    }
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents asynchronous worker execution.</returns>
+    Task ExecuteAsync(CancellationToken cancellationToken);
 }

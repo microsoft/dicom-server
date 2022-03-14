@@ -7,18 +7,17 @@ using System.IO;
 using EnsureThat;
 using FellowOakDicom;
 
-namespace Microsoft.Health.Dicom.Tests.Common.Extensions
+namespace Microsoft.Health.Dicom.Tests.Common.Extensions;
+
+public static class DicomFileExtensions
 {
-    public static class DicomFileExtensions
+    public static byte[] ToByteArray(this DicomFile dicomFile)
     {
-        public static byte[] ToByteArray(this DicomFile dicomFile)
+        using (MemoryStream ms = new MemoryStream())
         {
-            using (MemoryStream ms = new MemoryStream())
-            {
-                EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
-                dicomFile.Save(ms);
-                return ms.ToArray();
-            }
+            EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
+            dicomFile.Save(ms);
+            return ms.ToArray();
         }
     }
 }

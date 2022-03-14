@@ -5,16 +5,15 @@
 
 using System.Globalization;
 
-namespace Microsoft.Health.Dicom.Core.Exceptions
+namespace Microsoft.Health.Dicom.Core.Exceptions;
+
+/// <summary>
+/// Exception that is thrown when data partitions feature is disabled.
+/// </summary>
+public class DataPartitionsFeatureDisabledException : BadRequestException
 {
-    /// <summary>
-    /// Exception that is thrown when data partitions feature is disabled.
-    /// </summary>
-    public class DataPartitionsFeatureDisabledException : BadRequestException
+    public DataPartitionsFeatureDisabledException()
+        : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.DataPartitionsFeatureDisabled))
     {
-        public DataPartitionsFeatureDisabledException()
-            : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.DataPartitionsFeatureDisabled))
-        {
-        }
     }
 }

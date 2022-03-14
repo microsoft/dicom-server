@@ -7,79 +7,78 @@ using System;
 using System.Collections.Generic;
 using EnsureThat;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
+
+/// <summary>
+/// Provides delegate to getting the <see cref="FhirTransactionRequestEntry"/> and setting the <see cref="FhirTransactionResponseEntry"/> for a given property.
+/// </summary>
+public struct FhirTransactionRequestResponsePropertyAccessor : IEquatable<FhirTransactionRequestResponsePropertyAccessor>
 {
-    /// <summary>
-    /// Provides delegate to getting the <see cref="FhirTransactionRequestEntry"/> and setting the <see cref="FhirTransactionResponseEntry"/> for a given property.
-    /// </summary>
-    public struct FhirTransactionRequestResponsePropertyAccessor : IEquatable<FhirTransactionRequestResponsePropertyAccessor>
+    public FhirTransactionRequestResponsePropertyAccessor(
+        string propertyName,
+        Func<FhirTransactionRequest, IEnumerable<FhirTransactionRequestEntry>> requestEntryGetter,
+        Action<FhirTransactionResponse, IEnumerable<FhirTransactionResponseEntry>> responseEntrySetter)
     {
-        public FhirTransactionRequestResponsePropertyAccessor(
-            string propertyName,
-            Func<FhirTransactionRequest, IEnumerable<FhirTransactionRequestEntry>> requestEntryGetter,
-            Action<FhirTransactionResponse, IEnumerable<FhirTransactionResponseEntry>> responseEntrySetter)
-        {
-            EnsureArg.IsNotNullOrWhiteSpace(propertyName, nameof(propertyName));
-            EnsureArg.IsNotNull(requestEntryGetter, nameof(requestEntryGetter));
-            EnsureArg.IsNotNull(responseEntrySetter, nameof(responseEntrySetter));
+        EnsureArg.IsNotNullOrWhiteSpace(propertyName, nameof(propertyName));
+        EnsureArg.IsNotNull(requestEntryGetter, nameof(requestEntryGetter));
+        EnsureArg.IsNotNull(responseEntrySetter, nameof(responseEntrySetter));
 
-            PropertyName = propertyName;
-            RequestEntryGetter = requestEntryGetter;
-            ResponseEntrySetter = responseEntrySetter;
+        PropertyName = propertyName;
+        RequestEntryGetter = requestEntryGetter;
+        ResponseEntrySetter = responseEntrySetter;
+    }
+
+    /// <summary>
+    /// Gets the property name.
+    /// </summary>
+    public string PropertyName { get; }
+
+    /// <summary>
+    /// Gets the property getter for <see cref="FhirTransactionRequestEntry"/>.
+    /// </summary>
+    public Func<FhirTransactionRequest, IEnumerable<FhirTransactionRequestEntry>> RequestEntryGetter { get; }
+
+    /// <summary>
+    /// Gets the property setter for <see cref="FhirTransactionResponseEntry"/>.
+    /// </summary>
+    public Action<FhirTransactionResponse, IEnumerable<FhirTransactionResponseEntry>> ResponseEntrySetter { get; }
+
+    public static bool operator ==(FhirTransactionRequestResponsePropertyAccessor left, FhirTransactionRequestResponsePropertyAccessor right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(FhirTransactionRequestResponsePropertyAccessor left, FhirTransactionRequestResponsePropertyAccessor right)
+    {
+        return !(left == right);
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (!(obj is FhirTransactionRequestResponsePropertyAccessor other))
+        {
+            return false;
         }
 
-        /// <summary>
-        /// Gets the property name.
-        /// </summary>
-        public string PropertyName { get; }
+        return Equals(other);
+    }
 
-        /// <summary>
-        /// Gets the property getter for <see cref="FhirTransactionRequestEntry"/>.
-        /// </summary>
-        public Func<FhirTransactionRequest, IEnumerable<FhirTransactionRequestEntry>> RequestEntryGetter { get; }
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(PropertyName, RequestEntryGetter.Method, ResponseEntrySetter.Method);
+    }
 
-        /// <summary>
-        /// Gets the property setter for <see cref="FhirTransactionResponseEntry"/>.
-        /// </summary>
-        public Action<FhirTransactionResponse, IEnumerable<FhirTransactionResponseEntry>> ResponseEntrySetter { get; }
-
-        public static bool operator ==(FhirTransactionRequestResponsePropertyAccessor left, FhirTransactionRequestResponsePropertyAccessor right)
+    public bool Equals(FhirTransactionRequestResponsePropertyAccessor other)
+    {
+        if (GetType() != other.GetType())
         {
-            return left.Equals(right);
+            return false;
         }
-
-        public static bool operator !=(FhirTransactionRequestResponsePropertyAccessor left, FhirTransactionRequestResponsePropertyAccessor right)
+        else
         {
-            return !(left == right);
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (!(obj is FhirTransactionRequestResponsePropertyAccessor other))
-            {
-                return false;
-            }
-
-            return Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(PropertyName, RequestEntryGetter.Method, ResponseEntrySetter.Method);
-        }
-
-        public bool Equals(FhirTransactionRequestResponsePropertyAccessor other)
-        {
-            if (GetType() != other.GetType())
-            {
-                return false;
-            }
-            else
-            {
-                return string.Equals(PropertyName, other.PropertyName, StringComparison.Ordinal) &&
-                    Equals(RequestEntryGetter, other.RequestEntryGetter) &&
-                    Equals(ResponseEntrySetter, other.ResponseEntrySetter);
-            }
+            return string.Equals(PropertyName, other.PropertyName, StringComparison.Ordinal) &&
+                Equals(RequestEntryGetter, other.RequestEntryGetter) &&
+                Equals(ResponseEntrySetter, other.ResponseEntrySetter);
         }
     }
 }
