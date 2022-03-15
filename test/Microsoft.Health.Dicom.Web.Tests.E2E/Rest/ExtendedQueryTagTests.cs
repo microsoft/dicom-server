@@ -27,6 +27,8 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
     private readonly DicomTagsManager _tagManager;
     private readonly DicomInstancesManager _instanceManager;
 
+    // Note: Different tags should be used for BVTs so they can be run concurrently without issues
+
     public ExtendedQueryTagTests(WebJobsIntegrationTestFixture<Startup> fixture)
     {
         _client = EnsureArg.IsNotNull(fixture, nameof(fixture)).GetDicomWebClient();
@@ -38,20 +40,20 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
     [Trait("Category", "bvt")]
     public async Task GivenExtendedQueryTag_WhenReindexing_ThenShouldSucceed()
     {
-        DicomTag ageTag = DicomTag.PatientAge;
+        DicomTag genderTag = DicomTag.PatientSex;
         DicomTag filmTag = DicomTag.NumberOfFilms;
 
         // Try to delete these extended query tags.
-        await CleanupExtendedQueryTag(ageTag);
+        await CleanupExtendedQueryTag(genderTag);
         await CleanupExtendedQueryTag(filmTag);
 
         // Define DICOM files
         DicomDataset instance1 = Samples.CreateRandomInstanceDataset();
-        instance1.Add(ageTag, "048Y");
+        instance1.Add(genderTag, "M");
         instance1.Add(filmTag, "12");
 
         DicomDataset instance2 = Samples.CreateRandomInstanceDataset();
-        instance2.Add(ageTag, "010W");
+        instance2.Add(genderTag, "O");
         instance2.Add(filmTag, "03");
 
         // Upload files
@@ -62,7 +64,7 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         OperationStatus operation = await _tagManager.AddTagsAsync(
             new AddExtendedQueryTagEntry[]
             {
-                new AddExtendedQueryTagEntry { Path = ageTag.GetPath(), VR = ageTag.GetDefaultVR().Code, Level = QueryTagLevel.Study },
+                new AddExtendedQueryTagEntry { Path = genderTag.GetPath(), VR = genderTag.GetDefaultVR().Code, Level = QueryTagLevel.Study },
                 new AddExtendedQueryTagEntry { Path = filmTag.GetPath(), VR = filmTag.GetDefaultVR().Code, Level = QueryTagLevel.Study },
             });
         Assert.Equal(OperationRuntimeStatus.Completed, operation.Status);
@@ -71,7 +73,7 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         DicomWebResponse<GetExtendedQueryTagEntry> getResponse;
         GetExtendedQueryTagEntry entry;
 
-        getResponse = await _client.GetExtendedQueryTagAsync(ageTag.GetPath());
+        getResponse = await _client.GetExtendedQueryTagAsync(genderTag.GetPath());
         entry = await getResponse.GetValueAsync();
         Assert.Null(entry.Errors);
         Assert.Equal(QueryStatus.Enabled, entry.QueryStatus);
