@@ -19,7 +19,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 public partial class WorkItemTransactionTests
 {
     [Fact]
-    [Trait("Category", "bvt")]
     [Trait("Category", "bvt-fe")]
     public async Task GivenSearchRequest_WithUnsupportedTag_ReturnBadRequest()
     {
@@ -31,7 +30,6 @@ public partial class WorkItemTransactionTests
     }
 
     [Fact]
-    [Trait("Category", "bvt")]
     [Trait("Category", "bvt-fe")]
     public async Task GivenSearchRequest_WithValidParamsAndNoMatchingResult_ReturnNoContent()
     {
@@ -40,7 +38,6 @@ public partial class WorkItemTransactionTests
     }
 
     [Fact]
-    [Trait("Category", "bvt")]
     [Trait("Category", "bvt-fe")]
     public async Task WhenQueryingWorkitem_TheServerShouldReturnWorkitemSuccessfully()
     {
@@ -63,7 +60,6 @@ public partial class WorkItemTransactionTests
     }
 
     [Fact]
-    [Trait("Category", "bvt")]
     [Trait("Category", "bvt-fe")]
     public async Task WhenQueryingWorkitemWithFilter_TheServerShouldReturnWorkitemSuccessfully()
     {
@@ -85,7 +81,6 @@ public partial class WorkItemTransactionTests
     }
 
     [Fact]
-    [Trait("Category", "bvt")]
     [Trait("Category", "bvt-fe")]
     public async Task WhenQueryingWorkitemWithSequenceMatching_TheServerShouldReturnWorkitemSuccessfully()
     {
@@ -115,7 +110,6 @@ public partial class WorkItemTransactionTests
     }
 
     [Fact]
-    [Trait("Category", "bvt")]
     [Trait("Category", "bvt-fe")]
     public async Task GivenSearchRequest_PatientNameFuzzyMatch_MatchResult()
     {
@@ -149,7 +143,6 @@ public partial class WorkItemTransactionTests
     }
 
     [Fact]
-    [Trait("Category", "bvt")]
     [Trait("Category", "bvt-fe")]
     public async Task GivenSearchRequest_WithHigherLimit_ReturnBadRequest()
     {
