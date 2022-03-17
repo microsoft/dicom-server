@@ -6,10 +6,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 
-namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
+namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
+
+public interface ISqlChangeFeedStoreTestHelper
 {
-    public interface ISqlChangeFeedStoreTestHelper
-    {
-        Task<IReadOnlyList<ChangeFeedRow>> GetChangeFeedRowsAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid);
-    }
+    Task<IReadOnlyList<ChangeFeedRow>> GetChangeFeedRowsAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid);
 }

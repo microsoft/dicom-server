@@ -10,45 +10,44 @@ using FellowOakDicom;
 using FellowOakDicom.Imaging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 
-namespace Microsoft.Health.Dicom.Core.Features.Retrieve
+namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
+
+public static class DicomFileExtensions
 {
-    public static class DicomFileExtensions
+    public static DicomPixelData GetPixelDataAndValidateFrames(this DicomFile dicomFile, IEnumerable<int> frames)
     {
-        public static DicomPixelData GetPixelDataAndValidateFrames(this DicomFile dicomFile, IEnumerable<int> frames)
-        {
-            var pixelData = GetPixelData(dicomFile);
-            ValidateFrames(pixelData, frames);
+        var pixelData = GetPixelData(dicomFile);
+        ValidateFrames(pixelData, frames);
 
-            return pixelData;
+        return pixelData;
+    }
+
+    public static DicomPixelData GetPixelData(this DicomFile dicomFile)
+    {
+        EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
+        DicomDataset dataset = dicomFile.Dataset;
+
+        // Validate the dataset has the correct DICOM tags.
+        if (!dataset.Contains(DicomTag.BitsAllocated) ||
+            !dataset.Contains(DicomTag.Columns) ||
+            !dataset.Contains(DicomTag.Rows) ||
+            !dataset.Contains(DicomTag.PixelData))
+        {
+            throw new FrameNotFoundException();
         }
 
-        public static DicomPixelData GetPixelData(this DicomFile dicomFile)
+        return DicomPixelData.Create(dataset);
+    }
+
+    public static void ValidateFrames(DicomPixelData pixelData, IEnumerable<int> frames)
+    {
+        // Note: We look for any frame value that is less than zero, or greater than number of frames.
+        var missingFrames = frames.Where(x => x >= pixelData.NumberOfFrames || x < 0).ToArray();
+
+        // If any missing frames, throw not found exception for the specific frames not found.
+        if (missingFrames.Length > 0)
         {
-            EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
-            DicomDataset dataset = dicomFile.Dataset;
-
-            // Validate the dataset has the correct DICOM tags.
-            if (!dataset.Contains(DicomTag.BitsAllocated) ||
-                !dataset.Contains(DicomTag.Columns) ||
-                !dataset.Contains(DicomTag.Rows) ||
-                !dataset.Contains(DicomTag.PixelData))
-            {
-                throw new FrameNotFoundException();
-            }
-
-            return DicomPixelData.Create(dataset);
-        }
-
-        public static void ValidateFrames(DicomPixelData pixelData, IEnumerable<int> frames)
-        {
-            // Note: We look for any frame value that is less than zero, or greater than number of frames.
-            var missingFrames = frames.Where(x => x >= pixelData.NumberOfFrames || x < 0).ToArray();
-
-            // If any missing frames, throw not found exception for the specific frames not found.
-            if (missingFrames.Length > 0)
-            {
-                throw new FrameNotFoundException();
-            }
+            throw new FrameNotFoundException();
         }
     }
 }

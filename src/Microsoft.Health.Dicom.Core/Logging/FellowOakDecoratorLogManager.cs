@@ -8,16 +8,15 @@ using Microsoft.Extensions.Logging;
 using IFellowOakLogger = FellowOakDicom.Log.ILogger;
 using IFellowOakLogManager = FellowOakDicom.Log.ILogManager;
 
-namespace Microsoft.Health.Dicom.Core.Logging
+namespace Microsoft.Health.Dicom.Core.Logging;
+
+internal class FellowOakDecoratorLogManager : IFellowOakLogManager
 {
-    internal class FellowOakDecoratorLogManager : IFellowOakLogManager
-    {
-        private readonly ILoggerFactory _factory;
+    private readonly ILoggerFactory _factory;
 
-        public FellowOakDecoratorLogManager(ILoggerFactory factory)
-            => _factory = EnsureArg.IsNotNull(factory, nameof(factory));
+    public FellowOakDecoratorLogManager(ILoggerFactory factory)
+        => _factory = EnsureArg.IsNotNull(factory, nameof(factory));
 
-        public IFellowOakLogger GetLogger(string name)
-            => new FellowOakLoggerDecorator(_factory.CreateLogger(name));
-    }
+    public IFellowOakLogger GetLogger(string name)
+        => new FellowOakLoggerDecorator(_factory.CreateLogger(name));
 }

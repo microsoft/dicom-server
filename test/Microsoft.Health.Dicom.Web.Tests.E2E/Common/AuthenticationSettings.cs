@@ -6,21 +6,20 @@ using System;
 using Microsoft.Health.Development.IdentityProvider.Configuration;
 using static Microsoft.Health.Dicom.Tests.Common.EnvironmentVariables;
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
+namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common;
+
+/// <summary>
+/// Gets the Authentication settings to run E2E tests
+/// In PR Pipelines: The environment variables are set
+/// In Dev Env: It is defaulted to in-prc identity provider settings
+/// </summary>
+public static class AuthenticationSettings
 {
-    /// <summary>
-    /// Gets the Authentication settings to run E2E tests
-    /// In PR Pipelines: The environment variables are set
-    /// In Dev Env: It is defaulted to in-prc identity provider settings
-    /// </summary>
-    public static class AuthenticationSettings
-    {
-        public static string Scope => GetEnvironmentVariableWithDefault("security_scope", DevelopmentIdentityProviderConfiguration.Audience);
+    public static string Scope => GetEnvironmentVariableWithDefault("security_scope", DevelopmentIdentityProviderConfiguration.Audience);
 
-        public static string Resource => GetEnvironmentVariableWithDefault("security_resource", DevelopmentIdentityProviderConfiguration.Audience);
+    public static string Resource => GetEnvironmentVariableWithDefault("security_resource", DevelopmentIdentityProviderConfiguration.Audience);
 
-        public static Uri TokenUri => new Uri(GetEnvironmentVariableWithDefault("security_tokenUrl", "https://inprochost/connect/token"));
+    public static Uri TokenUri => new Uri(GetEnvironmentVariableWithDefault("security_tokenUrl", "https://inprochost/connect/token"));
 
-        public static bool SecurityEnabled => string.Equals(GetEnvironmentVariableWithDefault("security_enabled", bool.FalseString), bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
-    }
+    public static bool SecurityEnabled => string.Equals(GetEnvironmentVariableWithDefault("security_enabled", bool.FalseString), bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
 }

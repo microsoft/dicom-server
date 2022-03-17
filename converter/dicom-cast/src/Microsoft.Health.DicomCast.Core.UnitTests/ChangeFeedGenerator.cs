@@ -7,51 +7,50 @@ using System;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client.Models;
 
-namespace Microsoft.Health.DicomCast.Core.UnitTests
+namespace Microsoft.Health.DicomCast.Core.UnitTests;
+
+public static class ChangeFeedGenerator
 {
-    public static class ChangeFeedGenerator
+    public static ChangeFeedEntry Generate(long? sequence = null, ChangeFeedAction? action = null, string studyInstanceUid = null, string seriesInstanceUid = null, string sopInstanceUid = null, ChangeFeedState? state = null, DicomDataset metadata = null)
     {
-        public static ChangeFeedEntry Generate(long? sequence = null, ChangeFeedAction? action = null, string studyInstanceUid = null, string seriesInstanceUid = null, string sopInstanceUid = null, ChangeFeedState? state = null, DicomDataset metadata = null)
+        if (sequence == null)
         {
-            if (sequence == null)
-            {
-                sequence = 1;
-            }
-
-            if (action == null)
-            {
-                action = ChangeFeedAction.Create;
-            }
-
-            if (string.IsNullOrEmpty(studyInstanceUid))
-            {
-                studyInstanceUid = DicomUID.Generate().UID;
-            }
-
-            if (string.IsNullOrEmpty(seriesInstanceUid))
-            {
-                seriesInstanceUid = DicomUID.Generate().UID;
-            }
-
-            if (string.IsNullOrEmpty(sopInstanceUid))
-            {
-                sopInstanceUid = DicomUID.Generate().UID;
-            }
-
-            if (state == null)
-            {
-                state = ChangeFeedState.Current;
-            }
-
-            return new ChangeFeedEntry(
-                sequence.Value,
-                DateTimeOffset.UtcNow,
-                action.Value,
-                studyInstanceUid,
-                seriesInstanceUid,
-                sopInstanceUid,
-                state.Value,
-                metadata: metadata);
+            sequence = 1;
         }
+
+        if (action == null)
+        {
+            action = ChangeFeedAction.Create;
+        }
+
+        if (string.IsNullOrEmpty(studyInstanceUid))
+        {
+            studyInstanceUid = DicomUID.Generate().UID;
+        }
+
+        if (string.IsNullOrEmpty(seriesInstanceUid))
+        {
+            seriesInstanceUid = DicomUID.Generate().UID;
+        }
+
+        if (string.IsNullOrEmpty(sopInstanceUid))
+        {
+            sopInstanceUid = DicomUID.Generate().UID;
+        }
+
+        if (state == null)
+        {
+            state = ChangeFeedState.Current;
+        }
+
+        return new ChangeFeedEntry(
+            sequence.Value,
+            DateTimeOffset.UtcNow,
+            action.Value,
+            studyInstanceUid,
+            seriesInstanceUid,
+            sopInstanceUid,
+            state.Value,
+            metadata: metadata);
     }
 }

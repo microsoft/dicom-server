@@ -20,37 +20,36 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Web;
 
-namespace Microsoft.Health.Dicom.Api.Controllers
+namespace Microsoft.Health.Dicom.Api.Controllers;
+
+public partial class WorkitemController
 {
-    public partial class WorkitemController
+    /// <summary>
+    /// This transaction searches the Worklist for Workitems that match the specified Query Parameters and returns a list of matching Workitems.
+    /// Each Workitem in the returned list includes return Attributes specified in the request. The transaction corresponds to the UPS DIMSE C-FIND operation.
+    /// </summary>
+    /// <returns>ObjectResult which contains list of dicomdataset</returns>
+    [HttpGet]
+    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+    [Produces(KnownContentTypes.ApplicationDicomJson)]
+    [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.NoContent)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+    [VersionedPartitionRoute(KnownRoutes.SearchWorkitemInstancesRoute)]
+    [PartitionRoute(KnownRoutes.SearchWorkitemInstancesRoute)]
+    [VersionedRoute(KnownRoutes.SearchWorkitemInstancesRoute)]
+    [Route(KnownRoutes.SearchWorkitemInstancesRoute)]
+    [AuditEventType(AuditEventSubType.QueryWorkitem)]
+    [QueryModelStateValidator]
+    public async Task<IActionResult> QueryWorkitemsAsync([FromQuery] QueryOptions options)
     {
-        /// <summary>
-        /// This transaction searches the Worklist for Workitems that match the specified Query Parameters and returns a list of matching Workitems.
-        /// Each Workitem in the returned list includes return Attributes specified in the request. The transaction corresponds to the UPS DIMSE C-FIND operation.
-        /// </summary>
-        /// <returns>ObjectResult which contains list of dicomdataset</returns>
-        [HttpGet]
-        [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
-        [Produces(KnownContentTypes.ApplicationDicomJson)]
-        [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-        [VersionedPartitionRoute(KnownRoutes.SearchWorkitemInstancesRoute)]
-        [PartitionRoute(KnownRoutes.SearchWorkitemInstancesRoute)]
-        [VersionedRoute(KnownRoutes.SearchWorkitemInstancesRoute)]
-        [Route(KnownRoutes.SearchWorkitemInstancesRoute)]
-        [AuditEventType(AuditEventSubType.QueryWorkitem)]
-        [QueryModelStateValidator]
-        public async Task<IActionResult> QueryWorkitemsAsync([FromQuery] QueryOptions options)
-        {
-            _logger.LogInformation("Query workitem request received.");
+        _logger.LogInformation("Query workitem request received.");
 
-            EnsureArg.IsNotNull(options);
-            var response = await _mediator.QueryWorkitemsAsync(
-                options.ToBaseQueryParameters(Request.Query),
-                cancellationToken: HttpContext.RequestAborted);
+        EnsureArg.IsNotNull(options);
+        var response = await _mediator.QueryWorkitemsAsync(
+            options.ToBaseQueryParameters(Request.Query),
+            cancellationToken: HttpContext.RequestAborted);
 
-            return response.ResponseDatasets.Any() ? StatusCode((int)HttpStatusCode.OK, response.ResponseDatasets) : NoContent();
-        }
+        return response.ResponseDatasets.Any() ? StatusCode((int)HttpStatusCode.OK, response.ResponseDatasets) : NoContent();
     }
 }

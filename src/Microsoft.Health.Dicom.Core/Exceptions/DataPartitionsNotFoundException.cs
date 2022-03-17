@@ -5,16 +5,15 @@
 
 using System.Globalization;
 
-namespace Microsoft.Health.Dicom.Core.Exceptions
+namespace Microsoft.Health.Dicom.Core.Exceptions;
+
+/// <summary>
+/// Exception that is thrown when partition name is not found
+/// </summary>
+public class DataPartitionsNotFoundException : BadRequestException
 {
-    /// <summary>
-    /// Exception that is thrown when partition name is not found
-    /// </summary>
-    public class DataPartitionsNotFoundException : BadRequestException
+    public DataPartitionsNotFoundException(string partitionName)
+        : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.DataPartitionNotFound, partitionName))
     {
-        public DataPartitionsNotFoundException(string partitionName)
-            : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.DataPartitionNotFound, partitionName))
-        {
-        }
     }
 }

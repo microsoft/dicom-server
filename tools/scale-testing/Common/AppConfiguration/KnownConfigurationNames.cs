@@ -3,10 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Common.AppConfiguration
+namespace Common.AppConfiguration;
+
+public static class KnownConfigurationNames
 {
-    public static class KnownConfigurationNames
-    {
-        public const string RunType = "RunType";
-    }
+    public const string RunType = "RunType";
 }

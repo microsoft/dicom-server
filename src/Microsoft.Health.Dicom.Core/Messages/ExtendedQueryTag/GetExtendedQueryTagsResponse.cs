@@ -6,15 +6,14 @@
 using System.Collections.Generic;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
-namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
-{
-    public class GetExtendedQueryTagsResponse
-    {
-        public GetExtendedQueryTagsResponse(IEnumerable<GetExtendedQueryTagEntry> extendedQueryTagEntries)
-        {
-            ExtendedQueryTags = extendedQueryTagEntries;
-        }
+namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
-        public IEnumerable<GetExtendedQueryTagEntry> ExtendedQueryTags { get; }
+public class GetExtendedQueryTagsResponse
+{
+    public GetExtendedQueryTagsResponse(IEnumerable<GetExtendedQueryTagEntry> extendedQueryTagEntries)
+    {
+        ExtendedQueryTags = extendedQueryTagEntries;
     }
+
+    public IEnumerable<GetExtendedQueryTagEntry> ExtendedQueryTags { get; }
 }

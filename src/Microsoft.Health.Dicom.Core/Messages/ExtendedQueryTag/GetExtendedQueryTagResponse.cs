@@ -5,15 +5,14 @@
 
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
-namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
-{
-    public class GetExtendedQueryTagResponse
-    {
-        public GetExtendedQueryTagResponse(GetExtendedQueryTagEntry extendedQueryTagEntry)
-        {
-            ExtendedQueryTag = extendedQueryTagEntry;
-        }
+namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
-        public GetExtendedQueryTagEntry ExtendedQueryTag { get; }
+public class GetExtendedQueryTagResponse
+{
+    public GetExtendedQueryTagResponse(GetExtendedQueryTagEntry extendedQueryTagEntry)
+    {
+        ExtendedQueryTag = extendedQueryTagEntry;
     }
+
+    public GetExtendedQueryTagEntry ExtendedQueryTag { get; }
 }

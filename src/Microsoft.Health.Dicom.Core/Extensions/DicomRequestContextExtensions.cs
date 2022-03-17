@@ -6,17 +6,16 @@
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Context;
 
-namespace Microsoft.Health.Dicom.Core.Extensions
-{
-    public static class DicomRequestContextExtensions
-    {
-        public static int GetPartitionKey(this IDicomRequestContext dicomRequestContext)
-        {
-            EnsureArg.IsNotNull(dicomRequestContext, nameof(dicomRequestContext));
+namespace Microsoft.Health.Dicom.Core.Extensions;
 
-            var partitionKey = dicomRequestContext.DataPartitionEntry?.PartitionKey;
-            EnsureArg.IsTrue(partitionKey.HasValue, nameof(partitionKey));
-            return partitionKey.Value;
-        }
+public static class DicomRequestContextExtensions
+{
+    public static int GetPartitionKey(this IDicomRequestContext dicomRequestContext)
+    {
+        EnsureArg.IsNotNull(dicomRequestContext, nameof(dicomRequestContext));
+
+        var partitionKey = dicomRequestContext.DataPartitionEntry?.PartitionKey;
+        EnsureArg.IsTrue(partitionKey.HasValue, nameof(partitionKey));
+        return partitionKey.Value;
     }
 }

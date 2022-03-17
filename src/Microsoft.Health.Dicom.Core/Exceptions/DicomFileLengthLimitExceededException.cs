@@ -5,13 +5,12 @@
 
 using System.Globalization;
 
-namespace Microsoft.Health.Dicom.Core.Exceptions
+namespace Microsoft.Health.Dicom.Core.Exceptions;
+
+public class DicomFileLengthLimitExceededException : ValidationException
 {
-    public class DicomFileLengthLimitExceededException : ValidationException
+    public DicomFileLengthLimitExceededException(long maxAllowedLength)
+       : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.DicomFileLengthLimitExceeded, maxAllowedLength))
     {
-        public DicomFileLengthLimitExceededException(long maxAllowedLength)
-           : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.DicomFileLengthLimitExceeded, maxAllowedLength))
-        {
-        }
     }
 }

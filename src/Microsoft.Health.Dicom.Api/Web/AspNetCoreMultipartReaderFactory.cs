@@ -9,35 +9,34 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Web;
 
-namespace Microsoft.Health.Dicom.Api.Web
+namespace Microsoft.Health.Dicom.Api.Web;
+
+/// <summary>
+/// Provides functionality to create a new instance of <see cref="AspNetCoreMultipartReader"/>.
+/// </summary>
+internal class AspNetCoreMultipartReaderFactory : IMultipartReaderFactory
 {
-    /// <summary>
-    /// Provides functionality to create a new instance of <see cref="AspNetCoreMultipartReader"/>.
-    /// </summary>
-    internal class AspNetCoreMultipartReaderFactory : IMultipartReaderFactory
+    private readonly ISeekableStreamConverter _seekableStreamConverter;
+    private readonly IOptions<StoreConfiguration> _storeConfiguration;
+
+    public AspNetCoreMultipartReaderFactory(
+        ISeekableStreamConverter seekableStreamConverter,
+        IOptions<StoreConfiguration> storeConfiguration)
     {
-        private readonly ISeekableStreamConverter _seekableStreamConverter;
-        private readonly IOptions<StoreConfiguration> _storeConfiguration;
+        EnsureArg.IsNotNull(seekableStreamConverter, nameof(seekableStreamConverter));
+        EnsureArg.IsNotNull(storeConfiguration?.Value, nameof(storeConfiguration));
 
-        public AspNetCoreMultipartReaderFactory(
-            ISeekableStreamConverter seekableStreamConverter,
-            IOptions<StoreConfiguration> storeConfiguration)
-        {
-            EnsureArg.IsNotNull(seekableStreamConverter, nameof(seekableStreamConverter));
-            EnsureArg.IsNotNull(storeConfiguration?.Value, nameof(storeConfiguration));
+        _seekableStreamConverter = seekableStreamConverter;
+        _storeConfiguration = storeConfiguration;
+    }
 
-            _seekableStreamConverter = seekableStreamConverter;
-            _storeConfiguration = storeConfiguration;
-        }
-
-        /// <inheritdoc />
-        public IMultipartReader Create(string contentType, Stream body)
-        {
-            return new AspNetCoreMultipartReader(
-                contentType,
-                body,
-                _seekableStreamConverter,
-                _storeConfiguration);
-        }
+    /// <inheritdoc />
+    public IMultipartReader Create(string contentType, Stream body)
+    {
+        return new AspNetCoreMultipartReader(
+            contentType,
+            body,
+            _seekableStreamConverter,
+            _storeConfiguration);
     }
 }

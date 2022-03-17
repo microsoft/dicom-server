@@ -9,52 +9,51 @@ using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation
+namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation;
+
+public class ImplicitValueRepresentationValidatorTests
 {
-    public class ImplicitValueRepresentationValidatorTests
+    [Theory]
+    [MemberData(nameof(GetExplicitVRTransferSyntax))]
+    public void GivenDicomDatasetWithNonImplicitVR_WhenValidating_ReturnsTrue(DicomTransferSyntax transferSyntax)
     {
-        [Theory]
-        [MemberData(nameof(GetExplicitVRTransferSyntax))]
-        public void GivenDicomDatasetWithNonImplicitVR_WhenValidating_ReturnsTrue(DicomTransferSyntax transferSyntax)
-        {
-            var dicomDataset = Samples
-                .CreateRandomInstanceDataset(dicomTransferSyntax: transferSyntax)
-                .NotValidated();
+        var dicomDataset = Samples
+            .CreateRandomInstanceDataset(dicomTransferSyntax: transferSyntax)
+            .NotValidated();
 
-            Assert.False(ImplicitValueRepresentationValidator.IsImplicitVR(dicomDataset));
+        Assert.False(ImplicitValueRepresentationValidator.IsImplicitVR(dicomDataset));
+    }
+
+    [Theory]
+    [MemberData(nameof(GetNonExplicitVRTransferSyntax))]
+    public void GivenDicomDatasetWithImplicitVR_WhenValidating_ReturnsFalse(DicomTransferSyntax transferSyntax)
+    {
+        var dicomDataset = Samples
+            .CreateRandomInstanceDataset(dicomTransferSyntax: transferSyntax)
+            .NotValidated();
+
+        Assert.True(ImplicitValueRepresentationValidator.IsImplicitVR(dicomDataset));
+    }
+
+    public static IEnumerable<object[]> GetExplicitVRTransferSyntax()
+    {
+        foreach (var ts in Samples.GetAllDicomTransferSyntax())
+        {
+            if (!ts.IsExplicitVR)
+                continue;
+
+            yield return new object[] { ts };
         }
+    }
 
-        [Theory]
-        [MemberData(nameof(GetNonExplicitVRTransferSyntax))]
-        public void GivenDicomDatasetWithImplicitVR_WhenValidating_ReturnsFalse(DicomTransferSyntax transferSyntax)
+    public static IEnumerable<object[]> GetNonExplicitVRTransferSyntax()
+    {
+        foreach (var ts in Samples.GetAllDicomTransferSyntax())
         {
-            var dicomDataset = Samples
-                .CreateRandomInstanceDataset(dicomTransferSyntax: transferSyntax)
-                .NotValidated();
+            if (ts.IsExplicitVR)
+                continue;
 
-            Assert.True(ImplicitValueRepresentationValidator.IsImplicitVR(dicomDataset));
-        }
-
-        public static IEnumerable<object[]> GetExplicitVRTransferSyntax()
-        {
-            foreach (var ts in Samples.GetAllDicomTransferSyntax())
-            {
-                if (!ts.IsExplicitVR)
-                    continue;
-
-                yield return new object[] { ts };
-            }
-        }
-
-        public static IEnumerable<object[]> GetNonExplicitVRTransferSyntax()
-        {
-            foreach (var ts in Samples.GetAllDicomTransferSyntax())
-            {
-                if (ts.IsExplicitVR)
-                    continue;
-
-                yield return new object[] { ts };
-            }
+            yield return new object[] { ts };
         }
     }
 }

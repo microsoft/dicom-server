@@ -20,54 +20,53 @@ using Microsoft.Health.SqlServer;
 using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Query
+namespace Microsoft.Health.Dicom.SqlServer.Features.Query;
+
+internal class SqlQueryStoreV6 : SqlQueryStoreV4
 {
-    internal class SqlQueryStoreV6 : SqlQueryStoreV4
+    public override SchemaVersion Version => SchemaVersion.V6;
+
+    public SqlQueryStoreV6(
+        SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
+        ILogger<ISqlQueryStore> logger)
+        : base(sqlConnectionWrapperFactory, logger)
     {
-        public override SchemaVersion Version => SchemaVersion.V6;
+    }
 
-        public SqlQueryStoreV6(
-            SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
-            ILogger<ISqlQueryStore> logger)
-            : base(sqlConnectionWrapperFactory, logger)
+    public override async Task<QueryResult> QueryAsync(
+        int partitionKey,
+        QueryExpression query,
+        CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(query, nameof(query));
+
+        var results = new List<VersionedInstanceIdentifier>(query.EvaluatedLimit);
+
+        using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
+        using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
+
+        var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+        var sqlQueryGenerator = new SqlQueryGenerator(stringBuilder, query, new SqlQueryParameterManager(sqlCommandWrapper.Parameters), Version, partitionKey);
+
+        sqlCommandWrapper.CommandText = stringBuilder.ToString();
+        sqlCommandWrapper.LogSqlCommand(Logger);
+
+        using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
         {
+            (string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
+               VLatest.Instance.StudyInstanceUid,
+               VLatest.Instance.SeriesInstanceUid,
+               VLatest.Instance.SopInstanceUid,
+               VLatest.Instance.Watermark);
+
+            results.Add(new VersionedInstanceIdentifier(
+                    studyInstanceUid,
+                    seriesInstanceUid,
+                    sopInstanceUid,
+                    watermark));
         }
 
-        public override async Task<QueryResult> QueryAsync(
-            int partitionKey,
-            QueryExpression query,
-            CancellationToken cancellationToken)
-        {
-            EnsureArg.IsNotNull(query, nameof(query));
-
-            var results = new List<VersionedInstanceIdentifier>(query.EvaluatedLimit);
-
-            using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
-            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
-
-            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-            var sqlQueryGenerator = new SqlQueryGenerator(stringBuilder, query, new SqlQueryParameterManager(sqlCommandWrapper.Parameters), Version, partitionKey);
-
-            sqlCommandWrapper.CommandText = stringBuilder.ToString();
-            sqlCommandWrapper.LogSqlCommand(Logger);
-
-            using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
-            while (await reader.ReadAsync(cancellationToken))
-            {
-                (string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
-                   VLatest.Instance.StudyInstanceUid,
-                   VLatest.Instance.SeriesInstanceUid,
-                   VLatest.Instance.SopInstanceUid,
-                   VLatest.Instance.Watermark);
-
-                results.Add(new VersionedInstanceIdentifier(
-                        studyInstanceUid,
-                        seriesInstanceUid,
-                        sopInstanceUid,
-                        watermark));
-            }
-
-            return new QueryResult(results);
-        }
+        return new QueryResult(results);
     }
 }

@@ -5,21 +5,20 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Workitem
+namespace Microsoft.Health.Dicom.Core.Messages.Workitem;
+
+public sealed class AddWorkitemResponse
 {
-    public sealed class AddWorkitemResponse
+    public AddWorkitemResponse(WorkitemResponseStatus status, Uri uri, string message = null)
     {
-        public AddWorkitemResponse(WorkitemResponseStatus status, Uri uri, string message = null)
-        {
-            Status = status;
-            Uri = uri;
-            Message = message;
-        }
-
-        public WorkitemResponseStatus Status { get; }
-
-        public Uri Uri { get; }
-
-        public string Message { get; }
+        Status = status;
+        Uri = uri;
+        Message = message;
     }
+
+    public WorkitemResponseStatus Status { get; }
+
+    public Uri Uri { get; }
+
+    public string Message { get; }
 }

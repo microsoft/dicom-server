@@ -6,21 +6,20 @@
 using System;
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Client.Models
+namespace Microsoft.Health.Dicom.Client.Models;
+
+public class PartitionEntry
 {
-    public class PartitionEntry
+    public int PartitionKey { get; set; }
+
+    public string PartitionName { get; set; }
+
+    public DateTimeOffset CreatedDate { get; set; }
+
+    public PartitionEntry(int partitionKey, string partitionName, DateTimeOffset createdDate = default)
     {
-        public int PartitionKey { get; set; }
-
-        public string PartitionName { get; set; }
-
-        public DateTimeOffset CreatedDate { get; set; }
-
-        public PartitionEntry(int partitionKey, string partitionName, DateTimeOffset createdDate = default)
-        {
-            PartitionKey = partitionKey;
-            PartitionName = EnsureArg.IsNotNull(partitionName, nameof(partitionName));
-            CreatedDate = createdDate;
-        }
+        PartitionKey = partitionKey;
+        PartitionName = EnsureArg.IsNotNull(partitionName, nameof(partitionName));
+        CreatedDate = createdDate;
     }
 }

@@ -15,58 +15,57 @@ using NSubstitute;
 using Xunit;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction;
+
+public class PatientSynchronizerTests
 {
-    public class PatientSynchronizerTests
+    private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
+
+    private static readonly DicomDataset DefaultDicomDataset = new DicomDataset();
+
+    private readonly IPatientPropertySynchronizer _propertySynchronizer = Substitute.For<IPatientPropertySynchronizer>();
+
+    private readonly DicomCastConfiguration _dicomCastConfig = new DicomCastConfiguration();
+
+    private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
+
+    [Fact]
+    public async Task WhenEnforceAllFields_AndError_ThrowsError()
     {
-        private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
+        _dicomCastConfig.Features.EnforceValidationOfTagValues = true;
 
-        private static readonly DicomDataset DefaultDicomDataset = new DicomDataset();
+        _propertySynchronizer.When(synchronizer => synchronizer.Synchronize(Arg.Any<DicomDataset>(), Arg.Any<Patient>(), isNewPatient: false)).Do(synchronizer => { throw new InvalidDicomTagValueException("invalid tag", "invalid tag"); });
 
-        private readonly IPatientPropertySynchronizer _propertySynchronizer = Substitute.For<IPatientPropertySynchronizer>();
-
-        private readonly DicomCastConfiguration _dicomCastConfig = new DicomCastConfiguration();
-
-        private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
-
-        [Fact]
-        public async Task WhenEnforceAllFields_AndError_ThrowsError()
+        IEnumerable<IPatientPropertySynchronizer> patientPropertySynchronizers = new List<IPatientPropertySynchronizer>()
         {
-            _dicomCastConfig.Features.EnforceValidationOfTagValues = true;
+            _propertySynchronizer,
+        };
 
-            _propertySynchronizer.When(synchronizer => synchronizer.Synchronize(Arg.Any<DicomDataset>(), Arg.Any<Patient>(), isNewPatient: false)).Do(synchronizer => { throw new InvalidDicomTagValueException("invalid tag", "invalid tag"); });
+        PatientSynchronizer patientSynchronizer = new PatientSynchronizer(patientPropertySynchronizers, Options.Create(_dicomCastConfig), _exceptionStore);
 
-            IEnumerable<IPatientPropertySynchronizer> patientPropertySynchronizers = new List<IPatientPropertySynchronizer>()
-            {
-                _propertySynchronizer,
-            };
+        FhirTransactionContext context = new FhirTransactionContext(ChangeFeedGenerator.Generate(metadata: DefaultDicomDataset));
+        var patient = new Patient();
 
-            PatientSynchronizer patientSynchronizer = new PatientSynchronizer(patientPropertySynchronizers, Options.Create(_dicomCastConfig), _exceptionStore);
+        await Assert.ThrowsAsync<InvalidDicomTagValueException>(() => patientSynchronizer.SynchronizeAsync(context, patient, false, DefaultCancellationToken));
+    }
 
-            FhirTransactionContext context = new FhirTransactionContext(ChangeFeedGenerator.Generate(metadata: DefaultDicomDataset));
-            var patient = new Patient();
+    [Fact]
+    public async Task WhenDoesNotEnforceAllFields_AndPropertyNotRequired_DoesNotThrowError()
+    {
+        _dicomCastConfig.Features.EnforceValidationOfTagValues = false;
 
-            await Assert.ThrowsAsync<InvalidDicomTagValueException>(() => patientSynchronizer.SynchronizeAsync(context, patient, false, DefaultCancellationToken));
-        }
+        _propertySynchronizer.When(synchronizer => synchronizer.Synchronize(Arg.Any<DicomDataset>(), Arg.Any<Patient>(), isNewPatient: false)).Do(synchronizer => { throw new InvalidDicomTagValueException("invalid tag", "invalid tag"); });
 
-        [Fact]
-        public async Task WhenDoesNotEnforceAllFields_AndPropertyNotRequired_DoesNotThrowError()
+        IEnumerable<IPatientPropertySynchronizer> patientPropertySynchronizers = new List<IPatientPropertySynchronizer>()
         {
-            _dicomCastConfig.Features.EnforceValidationOfTagValues = false;
+            _propertySynchronizer,
+        };
 
-            _propertySynchronizer.When(synchronizer => synchronizer.Synchronize(Arg.Any<DicomDataset>(), Arg.Any<Patient>(), isNewPatient: false)).Do(synchronizer => { throw new InvalidDicomTagValueException("invalid tag", "invalid tag"); });
+        PatientSynchronizer patientSynchronizer = new PatientSynchronizer(patientPropertySynchronizers, Options.Create(_dicomCastConfig), _exceptionStore);
 
-            IEnumerable<IPatientPropertySynchronizer> patientPropertySynchronizers = new List<IPatientPropertySynchronizer>()
-            {
-                _propertySynchronizer,
-            };
+        FhirTransactionContext context = new FhirTransactionContext(ChangeFeedGenerator.Generate(metadata: DefaultDicomDataset));
+        var patient = new Patient();
 
-            PatientSynchronizer patientSynchronizer = new PatientSynchronizer(patientPropertySynchronizers, Options.Create(_dicomCastConfig), _exceptionStore);
-
-            FhirTransactionContext context = new FhirTransactionContext(ChangeFeedGenerator.Generate(metadata: DefaultDicomDataset));
-            var patient = new Patient();
-
-            await patientSynchronizer.SynchronizeAsync(context, patient, false, DefaultCancellationToken);
-        }
+        await patientSynchronizer.SynchronizeAsync(context, patient, false, DefaultCancellationToken);
     }
 }

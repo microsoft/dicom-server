@@ -7,19 +7,18 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Health.Dicom.Core.Web
+namespace Microsoft.Health.Dicom.Core.Web;
+
+/// <summary>
+/// Provides functionality to convert stream into a seekable stream.
+/// </summary>
+public interface ISeekableStreamConverter
 {
     /// <summary>
-    /// Provides functionality to convert stream into a seekable stream.
+    /// Converts the <paramref name="stream"/> into a seekable stream.
     /// </summary>
-    public interface ISeekableStreamConverter
-    {
-        /// <summary>
-        /// Converts the <paramref name="stream"/> into a seekable stream.
-        /// </summary>
-        /// <param name="stream">The stream to convert.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A instance of seekable <see cref="Stream"/>.</returns>
-        Task<Stream> ConvertAsync(Stream stream, CancellationToken cancellationToken = default);
-    }
+    /// <param name="stream">The stream to convert.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A instance of seekable <see cref="Stream"/>.</returns>
+    Task<Stream> ConvertAsync(Stream stream, CancellationToken cancellationToken = default);
 }

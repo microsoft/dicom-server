@@ -12,63 +12,62 @@ using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Features.Context;
 
-namespace Microsoft.Health.Dicom.Api.Features.Filters
+namespace Microsoft.Health.Dicom.Api.Features.Filters;
+
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class DicomRequestContextRouteDataPopulatingFilterAttribute : ActionFilterAttribute
 {
-    [AttributeUsage(AttributeTargets.Class)]
-    public sealed class DicomRequestContextRouteDataPopulatingFilterAttribute : ActionFilterAttribute
+    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
+    private readonly IAuditEventTypeMapping _auditEventTypeMapping;
+
+    public DicomRequestContextRouteDataPopulatingFilterAttribute(
+        IDicomRequestContextAccessor dicomRequestContextAccessor,
+        IAuditEventTypeMapping auditEventTypeMapping)
     {
-        private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
-        private readonly IAuditEventTypeMapping _auditEventTypeMapping;
+        EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
+        EnsureArg.IsNotNull(auditEventTypeMapping, nameof(auditEventTypeMapping));
 
-        public DicomRequestContextRouteDataPopulatingFilterAttribute(
-            IDicomRequestContextAccessor dicomRequestContextAccessor,
-            IAuditEventTypeMapping auditEventTypeMapping)
+        _dicomRequestContextAccessor = dicomRequestContextAccessor;
+        _auditEventTypeMapping = auditEventTypeMapping;
+    }
+
+    public override void OnActionExecuting(ActionExecutingContext context)
+    {
+        EnsureArg.IsNotNull(context, nameof(context));
+        IDicomRequestContext dicomRequestContext = _dicomRequestContextAccessor.RequestContext;
+        dicomRequestContext.RouteName = context.ActionDescriptor?.AttributeRouteInfo?.Name;
+
+        // Set StudyInstanceUid, SeriesInstanceUid, and SopInstanceUid based on the route data
+        RouteData routeData = context.RouteData;
+
+        if (routeData?.Values != null)
         {
-            EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
-            EnsureArg.IsNotNull(auditEventTypeMapping, nameof(auditEventTypeMapping));
-
-            _dicomRequestContextAccessor = dicomRequestContextAccessor;
-            _auditEventTypeMapping = auditEventTypeMapping;
-        }
-
-        public override void OnActionExecuting(ActionExecutingContext context)
-        {
-            EnsureArg.IsNotNull(context, nameof(context));
-            IDicomRequestContext dicomRequestContext = _dicomRequestContextAccessor.RequestContext;
-            dicomRequestContext.RouteName = context.ActionDescriptor?.AttributeRouteInfo?.Name;
-
-            // Set StudyInstanceUid, SeriesInstanceUid, and SopInstanceUid based on the route data
-            RouteData routeData = context.RouteData;
-
-            if (routeData?.Values != null)
+            // Try to get StudyInstanceUid
+            if (routeData.Values.TryGetValue(KnownActionParameterNames.StudyInstanceUid, out object studyInstanceUid))
             {
-                // Try to get StudyInstanceUid
-                if (routeData.Values.TryGetValue(KnownActionParameterNames.StudyInstanceUid, out object studyInstanceUid))
+                dicomRequestContext.StudyInstanceUid = studyInstanceUid.ToString();
+
+                // Try to get SeriesInstanceUid only if StudyInstanceUid was successfully fetched.
+                if (routeData.Values.TryGetValue(KnownActionParameterNames.SeriesInstanceUid, out object seriesInstanceUid))
                 {
-                    dicomRequestContext.StudyInstanceUid = studyInstanceUid.ToString();
+                    dicomRequestContext.SeriesInstanceUid = seriesInstanceUid.ToString();
 
-                    // Try to get SeriesInstanceUid only if StudyInstanceUid was successfully fetched.
-                    if (routeData.Values.TryGetValue(KnownActionParameterNames.SeriesInstanceUid, out object seriesInstanceUid))
+                    // Try to get SopInstanceUid only if StudyInstanceUid and SeriesInstanceUid were fetched successfully.
+                    if (routeData.Values.TryGetValue(KnownActionParameterNames.SopInstanceUid, out object sopInstanceUid))
                     {
-                        dicomRequestContext.SeriesInstanceUid = seriesInstanceUid.ToString();
-
-                        // Try to get SopInstanceUid only if StudyInstanceUid and SeriesInstanceUid were fetched successfully.
-                        if (routeData.Values.TryGetValue(KnownActionParameterNames.SopInstanceUid, out object sopInstanceUid))
-                        {
-                            dicomRequestContext.SopInstanceUid = sopInstanceUid.ToString();
-                        }
+                        dicomRequestContext.SopInstanceUid = sopInstanceUid.ToString();
                     }
                 }
             }
-
-            if (context.ActionDescriptor is ControllerActionDescriptor controllerActionDescriptor)
-            {
-                dicomRequestContext.AuditEventType = _auditEventTypeMapping.GetAuditEventType(
-                    controllerActionDescriptor.ControllerName,
-                    controllerActionDescriptor.ActionName);
-            }
-
-            base.OnActionExecuting(context);
         }
+
+        if (context.ActionDescriptor is ControllerActionDescriptor controllerActionDescriptor)
+        {
+            dicomRequestContext.AuditEventType = _auditEventTypeMapping.GetAuditEventType(
+                controllerActionDescriptor.ControllerName,
+                controllerActionDescriptor.ActionName);
+        }
+
+        base.OnActionExecuting(context);
     }
 }

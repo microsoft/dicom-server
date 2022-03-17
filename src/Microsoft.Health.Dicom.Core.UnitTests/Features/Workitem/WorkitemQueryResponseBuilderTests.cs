@@ -13,53 +13,52 @@ using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
+namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query;
+
+public class WorkitemQueryResponseBuilderTests
 {
-    public class WorkitemQueryResponseBuilderTests
+    [Fact]
+    public void GivenWorkitem_WithIncludeField_ValidReturned()
     {
-        [Fact]
-        public void GivenWorkitem_WithIncludeField_ValidReturned()
+        var includeField = new QueryIncludeField(new List<DicomTag> { DicomTag.WorklistLabel });
+        var filters = new List<QueryFilterCondition>()
         {
-            var includeField = new QueryIncludeField(new List<DicomTag> { DicomTag.WorklistLabel });
-            var filters = new List<QueryFilterCondition>()
-            {
-                new StringSingleValueMatchCondition(new QueryTag(DicomTag.PatientName), "Foo"),
-            };
-            var query = new BaseQueryExpression(includeField, false, 0, 0, filters);
-            var dataset = Samples
-                .CreateRandomWorkitemInstanceDataset()
-                .AddOrUpdate(new DicomLongString(DicomTag.MedicalAlerts))
-                .AddOrUpdate(new DicomShortString(DicomTag.SnoutID));
+            new StringSingleValueMatchCondition(new QueryTag(DicomTag.PatientName), "Foo"),
+        };
+        var query = new BaseQueryExpression(includeField, false, 0, 0, filters);
+        var dataset = Samples
+            .CreateRandomWorkitemInstanceDataset()
+            .AddOrUpdate(new DicomLongString(DicomTag.MedicalAlerts))
+            .AddOrUpdate(new DicomShortString(DicomTag.SnoutID));
 
-            DicomDataset responseDataset = WorkitemQueryResponseBuilder.GenerateResponseDataset(dataset, query);
-            var tags = responseDataset.Select(i => i.Tag).ToList();
+        DicomDataset responseDataset = WorkitemQueryResponseBuilder.GenerateResponseDataset(dataset, query);
+        var tags = responseDataset.Select(i => i.Tag).ToList();
 
-            Assert.Contains(DicomTag.WorklistLabel, tags); // Valid include
-            Assert.Contains(DicomTag.PatientName, tags); // Valid filter
-            Assert.Contains(DicomTag.MedicalAlerts, tags); // Required return attribute
+        Assert.Contains(DicomTag.WorklistLabel, tags); // Valid include
+        Assert.Contains(DicomTag.PatientName, tags); // Valid filter
+        Assert.Contains(DicomTag.MedicalAlerts, tags); // Required return attribute
 
-            Assert.DoesNotContain(DicomTag.TransactionUID, tags); // should never be included
-            Assert.DoesNotContain(DicomTag.SnoutID, tags); // Not a required return attribute
-        }
+        Assert.DoesNotContain(DicomTag.TransactionUID, tags); // should never be included
+        Assert.DoesNotContain(DicomTag.SnoutID, tags); // Not a required return attribute
+    }
 
-        [Fact]
-        public void GivenWorkitem_WithIncludeFieldAll_AllReturned()
-        {
-            var includeField = QueryIncludeField.AllFields;
-            var filters = new List<QueryFilterCondition>();
-            var query = new BaseQueryExpression(includeField, false, 0, 0, filters);
-            var dataset = Samples
-                .CreateRandomWorkitemInstanceDataset()
-                .AddOrUpdate(new DicomLongString(DicomTag.MedicalAlerts))
-                .AddOrUpdate(new DicomShortString(DicomTag.SnoutID));
+    [Fact]
+    public void GivenWorkitem_WithIncludeFieldAll_AllReturned()
+    {
+        var includeField = QueryIncludeField.AllFields;
+        var filters = new List<QueryFilterCondition>();
+        var query = new BaseQueryExpression(includeField, false, 0, 0, filters);
+        var dataset = Samples
+            .CreateRandomWorkitemInstanceDataset()
+            .AddOrUpdate(new DicomLongString(DicomTag.MedicalAlerts))
+            .AddOrUpdate(new DicomShortString(DicomTag.SnoutID));
 
-            DicomDataset responseDataset = WorkitemQueryResponseBuilder.GenerateResponseDataset(dataset, query);
-            var tags = responseDataset.Select(i => i.Tag).ToList();
+        DicomDataset responseDataset = WorkitemQueryResponseBuilder.GenerateResponseDataset(dataset, query);
+        var tags = responseDataset.Select(i => i.Tag).ToList();
 
-            Assert.Contains(DicomTag.MedicalAlerts, tags); // Required return attribute
-            Assert.Contains(DicomTag.SnoutID, tags); // Not a required return attribute - set by 'all'
+        Assert.Contains(DicomTag.MedicalAlerts, tags); // Required return attribute
+        Assert.Contains(DicomTag.SnoutID, tags); // Not a required return attribute - set by 'all'
 
-            Assert.DoesNotContain(DicomTag.TransactionUID, tags); // should never be included
-        }
+        Assert.DoesNotContain(DicomTag.TransactionUID, tags); // should never be included
     }
 }

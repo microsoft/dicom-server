@@ -8,48 +8,47 @@ using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve
+namespace Microsoft.Health.Dicom.Core.UnitTests.Messages.Retrieve;
+
+public class RetrieveResourceRequestTests
 {
-    public class RetrieveResourceRequestTests
+    [Fact]
+    public void GivenRetrieveResourcesRequestForStudy_WhenConstructed_ThenStudyResourceTypeIsSet()
     {
-        [Fact]
-        public void GivenRetrieveResourcesRequestForStudy_WhenConstructed_ThenStudyResourceTypeIsSet()
-        {
-            var request = new RetrieveResourceRequest(TestUidGenerator.Generate(), new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance(transferSyntax: string.Empty) });
-            Assert.Equal(ResourceType.Study, request.ResourceType);
-        }
+        var request = new RetrieveResourceRequest(TestUidGenerator.Generate(), new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance(transferSyntax: string.Empty) });
+        Assert.Equal(ResourceType.Study, request.ResourceType);
+    }
 
-        [Fact]
-        public void GivenRetrieveResourcesRequestForSeries_WhenConstructed_ThenSeriesResourceTypeIsSet()
-        {
-            var request = new RetrieveResourceRequest(
-                TestUidGenerator.Generate(),
-                TestUidGenerator.Generate(),
-                new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries(transferSyntax: string.Empty) });
-            Assert.Equal(ResourceType.Series, request.ResourceType);
-        }
+    [Fact]
+    public void GivenRetrieveResourcesRequestForSeries_WhenConstructed_ThenSeriesResourceTypeIsSet()
+    {
+        var request = new RetrieveResourceRequest(
+            TestUidGenerator.Generate(),
+            TestUidGenerator.Generate(),
+            new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries(transferSyntax: string.Empty) });
+        Assert.Equal(ResourceType.Series, request.ResourceType);
+    }
 
-        [Fact]
-        public void GivenRetrieveResourcesRequestForInstance_WhenConstructed_ThenInstanceResourceTypeIsSet()
-        {
-            var request = new RetrieveResourceRequest(
-                TestUidGenerator.Generate(),
-                TestUidGenerator.Generate(),
-                TestUidGenerator.Generate(),
-                new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance(transferSyntax: string.Empty) });
-            Assert.Equal(ResourceType.Instance, request.ResourceType);
-        }
+    [Fact]
+    public void GivenRetrieveResourcesRequestForInstance_WhenConstructed_ThenInstanceResourceTypeIsSet()
+    {
+        var request = new RetrieveResourceRequest(
+            TestUidGenerator.Generate(),
+            TestUidGenerator.Generate(),
+            TestUidGenerator.Generate(),
+            new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance(transferSyntax: string.Empty) });
+        Assert.Equal(ResourceType.Instance, request.ResourceType);
+    }
 
-        [Fact]
-        public void GivenRetrieveResourcesRequestForFrames_WhenConstructed_ThenFramesResourceTypeIsSet()
-        {
-            var request = new RetrieveResourceRequest(
-                TestUidGenerator.Generate(),
-                TestUidGenerator.Generate(),
-                TestUidGenerator.Generate(),
-                new[] { 5 },
-                new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(transferSyntax: string.Empty) });
-            Assert.Equal(ResourceType.Frames, request.ResourceType);
-        }
+    [Fact]
+    public void GivenRetrieveResourcesRequestForFrames_WhenConstructed_ThenFramesResourceTypeIsSet()
+    {
+        var request = new RetrieveResourceRequest(
+            TestUidGenerator.Generate(),
+            TestUidGenerator.Generate(),
+            TestUidGenerator.Generate(),
+            new[] { 5 },
+            new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(transferSyntax: string.Empty) });
+        Assert.Equal(ResourceType.Frames, request.ResourceType);
     }
 }

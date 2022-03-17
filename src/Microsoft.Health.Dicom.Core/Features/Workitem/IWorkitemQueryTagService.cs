@@ -8,18 +8,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
-namespace Microsoft.Health.Dicom.Core.Features.Workitem
+namespace Microsoft.Health.Dicom.Core.Features.Workitem;
+
+/// <summary>
+/// Service provides queryable dicom tags.
+/// </summary>
+public interface IWorkitemQueryTagService
 {
     /// <summary>
-    /// Service provides queryable dicom tags.
+    /// Get queryable dicom tags.
     /// </summary>
-    public interface IWorkitemQueryTagService
-    {
-        /// <summary>
-        /// Get queryable dicom tags.
-        /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>Queryable dicom tags.</returns>
-        Task<IReadOnlyCollection<QueryTag>> GetQueryTagsAsync(CancellationToken cancellationToken = default);
-    }
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>Queryable dicom tags.</returns>
+    Task<IReadOnlyCollection<QueryTag>> GetQueryTagsAsync(CancellationToken cancellationToken = default);
 }

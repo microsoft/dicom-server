@@ -12,53 +12,52 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 
-namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices
+namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices;
+
+public class DeletedInstanceCleanupWorker
 {
-    public class DeletedInstanceCleanupWorker
+    private readonly ILogger<DeletedInstanceCleanupWorker> _logger;
+    private readonly IDeleteService _deleteService;
+    private readonly TimeSpan _pollingInterval;
+    private readonly int _batchSize;
+
+    public DeletedInstanceCleanupWorker(IDeleteService deleteService, IOptions<DeletedInstanceCleanupConfiguration> backgroundCleanupConfiguration, ILogger<DeletedInstanceCleanupWorker> logger)
     {
-        private readonly ILogger<DeletedInstanceCleanupWorker> _logger;
-        private readonly IDeleteService _deleteService;
-        private readonly TimeSpan _pollingInterval;
-        private readonly int _batchSize;
+        EnsureArg.IsNotNull(deleteService, nameof(deleteService));
+        EnsureArg.IsNotNull(backgroundCleanupConfiguration?.Value, nameof(backgroundCleanupConfiguration));
+        EnsureArg.IsNotNull(logger, nameof(logger));
 
-        public DeletedInstanceCleanupWorker(IDeleteService deleteService, IOptions<DeletedInstanceCleanupConfiguration> backgroundCleanupConfiguration, ILogger<DeletedInstanceCleanupWorker> logger)
+        _deleteService = deleteService;
+        _pollingInterval = backgroundCleanupConfiguration.Value.PollingInterval;
+        _batchSize = backgroundCleanupConfiguration.Value.BatchSize;
+        _logger = logger;
+    }
+
+    public async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
         {
-            EnsureArg.IsNotNull(deleteService, nameof(deleteService));
-            EnsureArg.IsNotNull(backgroundCleanupConfiguration?.Value, nameof(backgroundCleanupConfiguration));
-            EnsureArg.IsNotNull(logger, nameof(logger));
-
-            _deleteService = deleteService;
-            _pollingInterval = backgroundCleanupConfiguration.Value.PollingInterval;
-            _batchSize = backgroundCleanupConfiguration.Value.BatchSize;
-            _logger = logger;
-        }
-
-        public async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                try
-                {
-                    await Task.Delay(_pollingInterval, stoppingToken);
+                await Task.Delay(_pollingInterval, stoppingToken);
 
-                    bool success;
-                    int retrievedInstanceCount;
-                    do
-                    {
-                        (success, retrievedInstanceCount) = await _deleteService.CleanupDeletedInstancesAsync(stoppingToken);
-                    }
-                    while (success && retrievedInstanceCount == _batchSize);
-                }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                bool success;
+                int retrievedInstanceCount;
+                do
                 {
-                    // Cancel requested.
-                    throw;
+                    (success, retrievedInstanceCount) = await _deleteService.CleanupDeletedInstancesAsync(stoppingToken);
                 }
-                catch (Exception ex)
-                {
-                    // The job failed.
-                    _logger.LogCritical(ex, "Unhandled exception in the deleted instance cleanup worker.");
-                }
+                while (success && retrievedInstanceCount == _batchSize);
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                // Cancel requested.
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // The job failed.
+                _logger.LogCritical(ex, "Unhandled exception in the deleted instance cleanup worker.");
             }
         }
     }

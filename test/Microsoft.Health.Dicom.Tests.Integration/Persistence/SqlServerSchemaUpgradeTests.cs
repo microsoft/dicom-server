@@ -11,121 +11,120 @@ using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.SqlServer.Dac.Compare;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
+namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
+
+public class SqlServerSchemaUpgradeTests1
 {
-    public class SqlServerSchemaUpgradeTests1
+    [Fact]
+    public async Task GivenTwoSchemaInitializationMethods_WhenCreatingTwoDatabases_BothSchemasShouldBeEquivalent()
     {
-        [Fact]
-        public async Task GivenTwoSchemaInitializationMethods_WhenCreatingTwoDatabases_BothSchemasShouldBeEquivalent()
+        // Create two databases, one where we apply the the maximum supported version's snapshot SQL schema file
+        SqlDataStoreTestsFixture snapshotFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("SNAPSHOT"));
+
+        // And one where we apply .diff.sql files to upgrade the schema version to the maximum supported version.
+        SqlDataStoreTestsFixture diffFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("DIFF"));
+
+        await snapshotFixture.InitializeAsync(forceIncrementalSchemaUpgrade: false);
+        await diffFixture.InitializeAsync(forceIncrementalSchemaUpgrade: true);
+
+        SchemaCompareDatabaseEndpoint snapshotEndpoint = new SchemaCompareDatabaseEndpoint(snapshotFixture.TestConnectionString);
+        SchemaCompareDatabaseEndpoint diffEndpoint = new SchemaCompareDatabaseEndpoint(diffFixture.TestConnectionString);
+        var comparison = new SchemaComparison(snapshotEndpoint, diffEndpoint);
+        SchemaComparisonResult result = comparison.Compare();
+
+        // filter our sproc bodyscript differences because of auto-generation 
+        var actualDiffs = new List<SchemaDifference>();
+        if (!result.IsEqual)
         {
-            // Create two databases, one where we apply the the maximum supported version's snapshot SQL schema file
-            SqlDataStoreTestsFixture snapshotFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("SNAPSHOT"));
-
-            // And one where we apply .diff.sql files to upgrade the schema version to the maximum supported version.
-            SqlDataStoreTestsFixture diffFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("DIFF"));
-
-            await snapshotFixture.InitializeAsync(forceIncrementalSchemaUpgrade: false);
-            await diffFixture.InitializeAsync(forceIncrementalSchemaUpgrade: true);
-
-            SchemaCompareDatabaseEndpoint snapshotEndpoint = new SchemaCompareDatabaseEndpoint(snapshotFixture.TestConnectionString);
-            SchemaCompareDatabaseEndpoint diffEndpoint = new SchemaCompareDatabaseEndpoint(diffFixture.TestConnectionString);
-            var comparison = new SchemaComparison(snapshotEndpoint, diffEndpoint);
-            SchemaComparisonResult result = comparison.Compare();
-
-            // filter our sproc bodyscript differences because of auto-generation 
-            var actualDiffs = new List<SchemaDifference>();
-            if (!result.IsEqual)
+            foreach (var diff in result.Differences)
             {
-                foreach (var diff in result.Differences)
+                if (diff.Name == "SqlProcedure")
                 {
-                    if (diff.Name == "SqlProcedure")
+                    foreach (var childDiff in diff.Children)
                     {
-                        foreach (var childDiff in diff.Children)
+                        if (childDiff.Name != "BodyScript")
                         {
-                            if (childDiff.Name != "BodyScript")
-                            {
-                                actualDiffs.Add(diff);
-                                break;
-                            }
+                            actualDiffs.Add(diff);
+                            break;
                         }
                     }
-                    else
-                    {
-                        actualDiffs.Add(diff);
-                    }
+                }
+                else
+                {
+                    actualDiffs.Add(diff);
                 }
             }
-
-            Assert.Empty(actualDiffs);
-
-            // cleanup if succeeds
-            await snapshotFixture.DisposeAsync();
-            await diffFixture.DisposeAsync();
         }
+
+        Assert.Empty(actualDiffs);
+
+        // cleanup if succeeds
+        await snapshotFixture.DisposeAsync();
+        await diffFixture.DisposeAsync();
     }
+}
 
-    public class SqlServerSchemaUpgradeTests2
+public class SqlServerSchemaUpgradeTests2
+{
+    /// <summary>
+    /// There is small window where Sql schema is updated but not populated to web server, so the server still tries to call old stored procedure.
+    /// This test validate it works by checking stored procedure compatiblity. 
+    /// </summary>
+    [Fact]
+    public async Task GivenANewSchemaVersion_WhenApplying_ShouldBackCompatible()
     {
-        /// <summary>
-        /// There is small window where Sql schema is updated but not populated to web server, so the server still tries to call old stored procedure.
-        /// This test validate it works by checking stored procedure compatiblity. 
-        /// </summary>
-        [Fact]
-        public async Task GivenANewSchemaVersion_WhenApplying_ShouldBackCompatible()
-        {
-            int schemaVersion = SchemaVersionConstants.Max;
-            int oldSchemaVersion = schemaVersion - 1;
-            // Create Sql store at old schema version
-            SqlDataStoreTestsFixture oldSqlStore = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName($"COMPATIBLE_{oldSchemaVersion}_"), new SchemaInformation(oldSchemaVersion, oldSchemaVersion));
-            await oldSqlStore.InitializeAsync(forceIncrementalSchemaUpgrade: false);
-            var oldProcedures = SqlTestUtils.GetStoredProcedures(oldSqlStore);
+        int schemaVersion = SchemaVersionConstants.Max;
+        int oldSchemaVersion = schemaVersion - 1;
+        // Create Sql store at old schema version
+        SqlDataStoreTestsFixture oldSqlStore = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName($"COMPATIBLE_{oldSchemaVersion}_"), new SchemaInformation(oldSchemaVersion, oldSchemaVersion));
+        await oldSqlStore.InitializeAsync(forceIncrementalSchemaUpgrade: false);
+        var oldProcedures = SqlTestUtils.GetStoredProcedures(oldSqlStore);
 
-            // Create Sql store at new schema version
-            SqlDataStoreTestsFixture newSqlStore = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName($"COMPATIBLE_{schemaVersion}_"), new SchemaInformation(schemaVersion, schemaVersion));
-            await newSqlStore.InitializeAsync(forceIncrementalSchemaUpgrade: false);
-            var newProcedures = SqlTestUtils.GetStoredProcedures(newSqlStore);
+        // Create Sql store at new schema version
+        SqlDataStoreTestsFixture newSqlStore = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName($"COMPATIBLE_{schemaVersion}_"), new SchemaInformation(schemaVersion, schemaVersion));
+        await newSqlStore.InitializeAsync(forceIncrementalSchemaUpgrade: false);
+        var newProcedures = SqlTestUtils.GetStoredProcedures(newSqlStore);
 
-            // Validate if stored procedures are compatible
-            StoredProcedureCompatibleValidator.Validate(schemaVersion, newProcedures, oldProcedures);
+        // Validate if stored procedures are compatible
+        StoredProcedureCompatibleValidator.Validate(schemaVersion, newProcedures, oldProcedures);
 
-            // Dispose if pass
-            await oldSqlStore.DisposeAsync();
-            await newSqlStore.DisposeAsync();
-        }
+        // Dispose if pass
+        await oldSqlStore.DisposeAsync();
+        await newSqlStore.DisposeAsync();
     }
+}
 
-    public class SqlServerSchemaUpgradeTests3
+public class SqlServerSchemaUpgradeTests3
+{
+    [Fact]
+    public async Task GivenASchemaVersion_WhenApplyingDiffTwice_ShouldSucceed()
     {
-        [Fact]
-        public async Task GivenASchemaVersion_WhenApplyingDiffTwice_ShouldSucceed()
-        {
-            int schemaVersion = SchemaVersionConstants.Max;
-            var schemaInformation = new SchemaInformation(SchemaVersionConstants.Min, schemaVersion - 1);
-            SqlDataStoreTestsFixture snapshotFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("SNAPSHOT"), schemaInformation);
+        int schemaVersion = SchemaVersionConstants.Max;
+        var schemaInformation = new SchemaInformation(SchemaVersionConstants.Min, schemaVersion - 1);
+        SqlDataStoreTestsFixture snapshotFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("SNAPSHOT"), schemaInformation);
 
-            await snapshotFixture.InitializeAsync(forceIncrementalSchemaUpgrade: false);
-            await snapshotFixture.SchemaUpgradeRunner.ApplySchemaAsync(schemaVersion, applyFullSchemaSnapshot: false, CancellationToken.None);
-            await snapshotFixture.SchemaUpgradeRunner.ApplySchemaAsync(schemaVersion, applyFullSchemaSnapshot: false, CancellationToken.None);
+        await snapshotFixture.InitializeAsync(forceIncrementalSchemaUpgrade: false);
+        await snapshotFixture.SchemaUpgradeRunner.ApplySchemaAsync(schemaVersion, applyFullSchemaSnapshot: false, CancellationToken.None);
+        await snapshotFixture.SchemaUpgradeRunner.ApplySchemaAsync(schemaVersion, applyFullSchemaSnapshot: false, CancellationToken.None);
 
-            // cleanup if succeeds
-            await snapshotFixture.DisposeAsync();
-        }
+        // cleanup if succeeds
+        await snapshotFixture.DisposeAsync();
     }
+}
 
-    public class SqlServerSchemaUpgradeTests4
+public class SqlServerSchemaUpgradeTests4
+{
+    [Fact]
+    public async Task GivenASchemaVersion_WhenApplyingSnapshotTwice_ShouldSucceed()
     {
-        [Fact]
-        public async Task GivenASchemaVersion_WhenApplyingSnapshotTwice_ShouldSucceed()
-        {
-            int schemaVersion = SchemaVersionConstants.Max;
-            var schemaInformation = new SchemaInformation(SchemaVersionConstants.Min, schemaVersion);
-            SqlDataStoreTestsFixture snapshotFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("SNAPSHOT"), schemaInformation);
+        int schemaVersion = SchemaVersionConstants.Max;
+        var schemaInformation = new SchemaInformation(SchemaVersionConstants.Min, schemaVersion);
+        SqlDataStoreTestsFixture snapshotFixture = new SqlDataStoreTestsFixture(SqlDataStoreTestsFixture.GenerateDatabaseName("SNAPSHOT"), schemaInformation);
 
-            await snapshotFixture.InitializeAsync(forceIncrementalSchemaUpgrade: false);
-            await snapshotFixture.SchemaUpgradeRunner.ApplySchemaAsync(schemaVersion, applyFullSchemaSnapshot: true, CancellationToken.None);
+        await snapshotFixture.InitializeAsync(forceIncrementalSchemaUpgrade: false);
+        await snapshotFixture.SchemaUpgradeRunner.ApplySchemaAsync(schemaVersion, applyFullSchemaSnapshot: true, CancellationToken.None);
 
-            // cleanup if succeeds
-            await snapshotFixture.DisposeAsync();
-        }
+        // cleanup if succeeds
+        await snapshotFixture.DisposeAsync();
     }
 }

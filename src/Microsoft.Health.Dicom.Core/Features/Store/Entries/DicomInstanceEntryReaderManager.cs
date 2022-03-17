@@ -7,28 +7,27 @@ using System.Collections.Generic;
 using System.Linq;
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Core.Features.Store.Entries
+namespace Microsoft.Health.Dicom.Core.Features.Store.Entries;
+
+/// <summary>
+/// Provides functionality to find the appropriate <see cref="IDicomInstanceEntryReader"/>.
+/// </summary>
+public class DicomInstanceEntryReaderManager : IDicomInstanceEntryReaderManager
 {
-    /// <summary>
-    /// Provides functionality to find the appropriate <see cref="IDicomInstanceEntryReader"/>.
-    /// </summary>
-    public class DicomInstanceEntryReaderManager : IDicomInstanceEntryReaderManager
+    private readonly IEnumerable<IDicomInstanceEntryReader> _dicomInstanceEntryReaders;
+
+    public DicomInstanceEntryReaderManager(IEnumerable<IDicomInstanceEntryReader> dicomInstanceEntryReaders)
     {
-        private readonly IEnumerable<IDicomInstanceEntryReader> _dicomInstanceEntryReaders;
+        EnsureArg.IsNotNull(dicomInstanceEntryReaders, nameof(dicomInstanceEntryReaders));
 
-        public DicomInstanceEntryReaderManager(IEnumerable<IDicomInstanceEntryReader> dicomInstanceEntryReaders)
-        {
-            EnsureArg.IsNotNull(dicomInstanceEntryReaders, nameof(dicomInstanceEntryReaders));
+        _dicomInstanceEntryReaders = dicomInstanceEntryReaders;
+    }
 
-            _dicomInstanceEntryReaders = dicomInstanceEntryReaders;
-        }
+    /// <inheritdoc />
+    public IDicomInstanceEntryReader FindReader(string contentType)
+    {
+        EnsureArg.IsNotNull(contentType, nameof(contentType));
 
-        /// <inheritdoc />
-        public IDicomInstanceEntryReader FindReader(string contentType)
-        {
-            EnsureArg.IsNotNull(contentType, nameof(contentType));
-
-            return _dicomInstanceEntryReaders.FirstOrDefault(reader => reader.CanRead(contentType));
-        }
+        return _dicomInstanceEntryReaders.FirstOrDefault(reader => reader.CanRead(contentType));
     }
 }

@@ -5,20 +5,19 @@
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
-namespace Microsoft.Health.Dicom.Core.Features.Query
+namespace Microsoft.Health.Dicom.Core.Features.Query;
+
+public abstract class QueryFilterCondition
 {
-    public abstract class QueryFilterCondition
+    protected QueryFilterCondition(QueryTag queryTag)
     {
-        protected QueryFilterCondition(QueryTag queryTag)
-        {
-            EnsureArg.IsNotNull(queryTag, nameof(queryTag));
-            QueryTag = queryTag;
-        }
-
-
-
-        public QueryTag QueryTag { get; set; }
-
-        public abstract void Accept(QueryFilterConditionVisitor visitor);
+        EnsureArg.IsNotNull(queryTag, nameof(queryTag));
+        QueryTag = queryTag;
     }
+
+
+
+    public QueryTag QueryTag { get; set; }
+
+    public abstract void Accept(QueryFilterConditionVisitor visitor);
 }

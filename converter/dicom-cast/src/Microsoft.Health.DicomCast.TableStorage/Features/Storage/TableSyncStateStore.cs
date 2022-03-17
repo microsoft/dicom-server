@@ -12,42 +12,41 @@ using EnsureThat;
 using Microsoft.Health.DicomCast.Core.Features.State;
 using Microsoft.Health.DicomCast.TableStorage.Features.Storage.Models.Entities;
 
-namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Models
+namespace Microsoft.Health.DicomCast.TableStorage.Features.Storage.Models;
+
+public class TableSyncStateStore : ISyncStateStore
 {
-    public class TableSyncStateStore : ISyncStateStore
+    private readonly TableServiceClient _tableServiceClient;
+    private readonly Dictionary<string, string> _tableList;
+
+    public TableSyncStateStore(TableServiceClientProvider tableServiceClientProvider)
     {
-        private readonly TableServiceClient _tableServiceClient;
-        private readonly Dictionary<string, string> _tableList;
+        EnsureArg.IsNotNull(tableServiceClientProvider, nameof(tableServiceClientProvider));
 
-        public TableSyncStateStore(TableServiceClientProvider tableServiceClientProvider)
+        _tableServiceClient = tableServiceClientProvider.GetTableServiceClient();
+        _tableList = tableServiceClientProvider.TableList;
+    }
+
+    public async Task<SyncState> ReadAsync(CancellationToken cancellationToken = default)
+    {
+        TableClient tableClient = _tableServiceClient.GetTableClient(_tableList[Constants.SyncStateTableName]);
+
+        try
         {
-            EnsureArg.IsNotNull(tableServiceClientProvider, nameof(tableServiceClientProvider));
-
-            _tableServiceClient = tableServiceClientProvider.GetTableServiceClient();
-            _tableList = tableServiceClientProvider.TableList;
+            var entity = await tableClient.GetEntityAsync<SyncStateEntity>(Constants.SyncStatePartitionKey, Constants.SyncStateRowKey, cancellationToken: cancellationToken);
+            return new SyncState(entity.Value.SyncedSequence, entity.Value.Timestamp.Value);
         }
-
-        public async Task<SyncState> ReadAsync(CancellationToken cancellationToken = default)
+        catch (RequestFailedException)
         {
-            TableClient tableClient = _tableServiceClient.GetTableClient(_tableList[Constants.SyncStateTableName]);
-
-            try
-            {
-                var entity = await tableClient.GetEntityAsync<SyncStateEntity>(Constants.SyncStatePartitionKey, Constants.SyncStateRowKey, cancellationToken: cancellationToken);
-                return new SyncState(entity.Value.SyncedSequence, entity.Value.Timestamp.Value);
-            }
-            catch (RequestFailedException)
-            {
-                return SyncState.CreateInitialSyncState();
-            }
+            return SyncState.CreateInitialSyncState();
         }
+    }
 
-        public async Task UpdateAsync(SyncState state, CancellationToken cancellationToken = default)
-        {
-            TableClient tableClient = _tableServiceClient.GetTableClient(_tableList[Constants.SyncStateTableName]);
-            var entity = new SyncStateEntity(state);
+    public async Task UpdateAsync(SyncState state, CancellationToken cancellationToken = default)
+    {
+        TableClient tableClient = _tableServiceClient.GetTableClient(_tableList[Constants.SyncStateTableName]);
+        var entity = new SyncStateEntity(state);
 
-            await tableClient.UpsertEntityAsync(entity, cancellationToken: cancellationToken);
-        }
+        await tableClient.UpsertEntityAsync(entity, cancellationToken: cancellationToken);
     }
 }

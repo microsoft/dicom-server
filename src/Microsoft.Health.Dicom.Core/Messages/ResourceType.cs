@@ -3,13 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Messages
+namespace Microsoft.Health.Dicom.Core.Messages;
+
+public enum ResourceType
 {
-    public enum ResourceType
-    {
-        Study,
-        Series,
-        Instance,
-        Frames,
-    }
+    Study,
+    Series,
+    Instance,
+    Frames,
 }

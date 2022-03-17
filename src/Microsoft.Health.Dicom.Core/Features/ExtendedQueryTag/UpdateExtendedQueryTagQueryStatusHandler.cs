@@ -13,29 +13,28 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
-namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
+namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+
+public class UpdateExtendedQueryTagQueryStatusHandler : BaseHandler, IRequestHandler<UpdateExtendedQueryTagRequest, UpdateExtendedQueryTagResponse>
 {
-    public class UpdateExtendedQueryTagQueryStatusHandler : BaseHandler, IRequestHandler<UpdateExtendedQueryTagRequest, UpdateExtendedQueryTagResponse>
+    private readonly IUpdateExtendedQueryTagService _updateTagService;
+
+    public UpdateExtendedQueryTagQueryStatusHandler(IAuthorizationService<DataActions> authorizationService, IUpdateExtendedQueryTagService updateTagService)
+        : base(authorizationService)
     {
-        private readonly IUpdateExtendedQueryTagService _updateTagService;
+        _updateTagService = EnsureArg.IsNotNull(updateTagService, nameof(updateTagService));
+    }
 
-        public UpdateExtendedQueryTagQueryStatusHandler(IAuthorizationService<DataActions> authorizationService, IUpdateExtendedQueryTagService updateTagService)
-            : base(authorizationService)
+    public async Task<UpdateExtendedQueryTagResponse> Handle(UpdateExtendedQueryTagRequest request, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(request, nameof(request));
+
+        if (await AuthorizationService.CheckAccess(DataActions.ManageExtendedQueryTags, cancellationToken) != DataActions.ManageExtendedQueryTags)
         {
-            _updateTagService = EnsureArg.IsNotNull(updateTagService, nameof(updateTagService));
+            throw new UnauthorizedDicomActionException(DataActions.ManageExtendedQueryTags);
         }
 
-        public async Task<UpdateExtendedQueryTagResponse> Handle(UpdateExtendedQueryTagRequest request, CancellationToken cancellationToken)
-        {
-            EnsureArg.IsNotNull(request, nameof(request));
-
-            if (await AuthorizationService.CheckAccess(DataActions.ManageExtendedQueryTags, cancellationToken) != DataActions.ManageExtendedQueryTags)
-            {
-                throw new UnauthorizedDicomActionException(DataActions.ManageExtendedQueryTags);
-            }
-
-            var tagEntry = await _updateTagService.UpdateExtendedQueryTagAsync(request.TagPath, request.NewValue, cancellationToken);
-            return new UpdateExtendedQueryTagResponse(tagEntry);
-        }
+        var tagEntry = await _updateTagService.UpdateExtendedQueryTagAsync(request.TagPath, request.NewValue, cancellationToken);
+        return new UpdateExtendedQueryTagResponse(tagEntry);
     }
 }

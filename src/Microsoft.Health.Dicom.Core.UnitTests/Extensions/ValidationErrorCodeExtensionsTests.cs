@@ -8,18 +8,17 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
+namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions;
+
+public class ValidationErrorCodeExtensionsTests
 {
-    public class ValidationErrorCodeExtensionsTests
+    [Fact]
+    public void GivenAnyErrorCode_WhenGetMessage_ThenShouldReturnValue()
     {
-        [Fact]
-        public void GivenAnyErrorCode_WhenGetMessage_ThenShouldReturnValue()
+        foreach (var value in Enum.GetValues(typeof(ValidationErrorCode)))
         {
-            foreach (var value in Enum.GetValues(typeof(ValidationErrorCode)))
-            {
-                // if not exist, would throw exception
-                ((ValidationErrorCode)value).GetMessage();
-            }
+            // if not exist, would throw exception
+            ((ValidationErrorCode)value).GetMessage();
         }
     }
 }

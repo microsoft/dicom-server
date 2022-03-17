@@ -14,65 +14,64 @@ using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
+
+/// <summary>
+/// Pipeline step for handling <see cref="ImagingStudy"/>.
+/// </summary>
+public class ImagingStudyPipelineStep : IFhirTransactionPipelineStep
 {
-    /// <summary>
-    /// Pipeline step for handling <see cref="ImagingStudy"/>.
-    /// </summary>
-    public class ImagingStudyPipelineStep : IFhirTransactionPipelineStep
+    private readonly IImagingStudyUpsertHandler _imagingStudyUpsertHandler;
+    private readonly IImagingStudyDeleteHandler _imagingStudyDeleteHandler;
+
+    public ImagingStudyPipelineStep(
+       IImagingStudyUpsertHandler imagingStudyUpsertHandler,
+       IImagingStudyDeleteHandler imagingStudyDeleteHandler)
     {
-        private readonly IImagingStudyUpsertHandler _imagingStudyUpsertHandler;
-        private readonly IImagingStudyDeleteHandler _imagingStudyDeleteHandler;
+        EnsureArg.IsNotNull(imagingStudyUpsertHandler, nameof(imagingStudyUpsertHandler));
+        EnsureArg.IsNotNull(imagingStudyDeleteHandler, nameof(imagingStudyDeleteHandler));
 
-        public ImagingStudyPipelineStep(
-           IImagingStudyUpsertHandler imagingStudyUpsertHandler,
-           IImagingStudyDeleteHandler imagingStudyDeleteHandler)
+        _imagingStudyUpsertHandler = imagingStudyUpsertHandler;
+        _imagingStudyDeleteHandler = imagingStudyDeleteHandler;
+    }
+
+    /// <inheritdoc/>
+    public async Task PrepareRequestAsync(FhirTransactionContext context, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(context, nameof(context));
+
+        ChangeFeedEntry changeFeedEntry = context.ChangeFeedEntry;
+
+        context.Request.ImagingStudy = changeFeedEntry.Action switch
         {
-            EnsureArg.IsNotNull(imagingStudyUpsertHandler, nameof(imagingStudyUpsertHandler));
-            EnsureArg.IsNotNull(imagingStudyDeleteHandler, nameof(imagingStudyDeleteHandler));
+            ChangeFeedAction.Create => await _imagingStudyUpsertHandler.BuildAsync(context, cancellationToken),
+            ChangeFeedAction.Delete => await _imagingStudyDeleteHandler.BuildAsync(context, cancellationToken),
+            _ => throw new NotSupportedException(
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    DicomCastCoreResource.NotSupportedChangeFeedAction,
+                    changeFeedEntry.Action)),
+        };
+    }
 
-            _imagingStudyUpsertHandler = imagingStudyUpsertHandler;
-            _imagingStudyDeleteHandler = imagingStudyDeleteHandler;
-        }
+    /// <inheritdoc/>
+    public void ProcessResponse(FhirTransactionContext context)
+    {
+        EnsureArg.IsNotNull(context, nameof(context));
 
-        /// <inheritdoc/>
-        public async Task PrepareRequestAsync(FhirTransactionContext context, CancellationToken cancellationToken)
+        // If the ImagingStudy does not exist, we will use conditional create to create the resource
+        // to avoid duplicated resource being created. However, if the resource with the identifier
+        // was created externally between the retrieve and create, conditional create will return 200
+        // and might not contain the changes so we will need to try again.
+        if (context.Request.ImagingStudy?.RequestMode == FhirTransactionRequestMode.Create)
         {
-            EnsureArg.IsNotNull(context, nameof(context));
+            FhirTransactionResponseEntry imagingStudy = context.Response.ImagingStudy;
 
-            ChangeFeedEntry changeFeedEntry = context.ChangeFeedEntry;
+            HttpStatusCode statusCode = imagingStudy.Response.Annotation<HttpStatusCode>();
 
-            context.Request.ImagingStudy = changeFeedEntry.Action switch
+            if (statusCode == HttpStatusCode.OK)
             {
-                ChangeFeedAction.Create => await _imagingStudyUpsertHandler.BuildAsync(context, cancellationToken),
-                ChangeFeedAction.Delete => await _imagingStudyDeleteHandler.BuildAsync(context, cancellationToken),
-                _ => throw new NotSupportedException(
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        DicomCastCoreResource.NotSupportedChangeFeedAction,
-                        changeFeedEntry.Action)),
-            };
-        }
-
-        /// <inheritdoc/>
-        public void ProcessResponse(FhirTransactionContext context)
-        {
-            EnsureArg.IsNotNull(context, nameof(context));
-
-            // If the ImagingStudy does not exist, we will use conditional create to create the resource
-            // to avoid duplicated resource being created. However, if the resource with the identifier
-            // was created externally between the retrieve and create, conditional create will return 200
-            // and might not contain the changes so we will need to try again.
-            if (context.Request.ImagingStudy?.RequestMode == FhirTransactionRequestMode.Create)
-            {
-                FhirTransactionResponseEntry imagingStudy = context.Response.ImagingStudy;
-
-                HttpStatusCode statusCode = imagingStudy.Response.Annotation<HttpStatusCode>();
-
-                if (statusCode == HttpStatusCode.OK)
-                {
-                    throw new ResourceConflictException();
-                }
+                throw new ResourceConflictException();
             }
         }
     }

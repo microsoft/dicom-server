@@ -11,32 +11,29 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
-namespace Microsoft.Health.Dicom.Core.Features.Validation
+namespace Microsoft.Health.Dicom.Core.Features.Validation;
+
+internal class ElementValidation : IElementValidation
 {
-    internal class ElementValidation : IElementValidation
+    public virtual void Validate(DicomElement dicomElement)
     {
-        public virtual void Validate(DicomElement dicomElement)
+        EnsureArg.IsNotNull(dicomElement, nameof(dicomElement));
+        DicomVR vr = dicomElement.ValueRepresentation;
+        if (ExtendedQueryTagEntryValidator.SupportedVRCodes.Contains(vr.Code))
         {
-            EnsureArg.IsNotNull(dicomElement, nameof(dicomElement));
-            DicomVR vr = dicomElement.ValueRepresentation;
-            if (ExtendedQueryTagEntryValidator.SupportedVRCodes.Contains(vr.Code))
+            // only works for single value dicom element ( Since we accept empty/null value, Count = 0 is accepted).
+            if (dicomElement.Count > 1)
             {
-                // only works for single value dicom element ( Since we accept empty/null value, Count = 0 is accepted).
-                if (dicomElement.Count > 1)
-                {
-                    throw ElementValidationExceptionFactory.CreateMultiValuesException(dicomElement.Tag.GetFriendlyName(), vr);
-                }
-            }
-            else
-            {
-                Debug.Fail($"Validating VR {vr.Code} is not supported.");
+                throw new ElementValidationException(dicomElement.Tag.GetFriendlyName(), vr, ValidationErrorCode.MultipleValues);
             }
         }
-
-        protected static bool ContainsControlExceptEsc(string text)
+        else
         {
-            return text == null ? false : text.Any(c => char.IsControl(c) && (c != '\u001b'));
+            Debug.Fail($"Validating VR {vr.Code} is not supported.");
         }
-
     }
+
+    protected static bool ContainsControlExceptEsc(string text)
+        => text != null && text.Any(c => char.IsControl(c) && (c != '\u001b'));
+
 }

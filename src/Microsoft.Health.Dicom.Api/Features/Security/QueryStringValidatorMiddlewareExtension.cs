@@ -6,14 +6,13 @@
 using EnsureThat;
 using Microsoft.Health.Dicom.Api.Features.Security;
 
-namespace Microsoft.AspNetCore.Builder
+namespace Microsoft.AspNetCore.Builder;
+
+internal static class QueryStringValidatorMiddlewareExtension
 {
-    internal static class QueryStringValidatorMiddlewareExtension
+    public static IApplicationBuilder UseQueryStringValidator(this IApplicationBuilder builder)
     {
-        public static IApplicationBuilder UseQueryStringValidator(this IApplicationBuilder builder)
-        {
-            EnsureArg.IsNotNull(builder);
-            return builder.UseMiddleware<QueryStringValidatorMiddleware>();
-        }
+        EnsureArg.IsNotNull(builder);
+        return builder.UseMiddleware<QueryStringValidatorMiddleware>();
     }
 }

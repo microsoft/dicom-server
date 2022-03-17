@@ -6,20 +6,19 @@
 using Microsoft.Health.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 
-namespace Microsoft.Health.Dicom.Core.Features.Context
+namespace Microsoft.Health.Dicom.Core.Features.Context;
+
+public interface IDicomRequestContext : IRequestContext
 {
-    public interface IDicomRequestContext : IRequestContext
-    {
-        string StudyInstanceUid { get; set; }
+    string StudyInstanceUid { get; set; }
 
-        string SeriesInstanceUid { get; set; }
+    string SeriesInstanceUid { get; set; }
 
-        string SopInstanceUid { get; set; }
+    string SopInstanceUid { get; set; }
 
-        bool IsTranscodeRequested { get; set; }
+    bool IsTranscodeRequested { get; set; }
 
-        long BytesTranscoded { get; set; }
+    long BytesTranscoded { get; set; }
 
-        PartitionEntry DataPartitionEntry { get; set; }
-    }
+    PartitionEntry DataPartitionEntry { get; set; }
 }

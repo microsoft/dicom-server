@@ -5,28 +5,27 @@
 
 using System;
 
-namespace Microsoft.Health.DicomCast.TableStorage.Configs
+namespace Microsoft.Health.DicomCast.TableStorage.Configs;
+
+public class TableDataStoreConfiguration
 {
-    public class TableDataStoreConfiguration
-    {
-        /// <summary>
-        /// The storage table connection string to use. Setting this assumes the use of an account key.
-        /// </summary>
-        public string ConnectionString { get; set; }
+    /// <summary>
+    /// The storage table connection string to use. Setting this assumes the use of an account key.
+    /// </summary>
+    public string ConnectionString { get; set; }
 
-        /// <summary>
-        /// The endpoint of the table storage account. Setting this assumes the use of a managed identity to communicate.
-        /// </summary>
-        public Uri EndpointUri { get; set; }
+    /// <summary>
+    /// The endpoint of the table storage account. Setting this assumes the use of a managed identity to communicate.
+    /// </summary>
+    public Uri EndpointUri { get; set; }
 
-        /// <summary>
-        /// Optional parameter to use to specify the clientId of the managed identity to use.
-        /// </summary>
-        public string ClientId { get; set; }
+    /// <summary>
+    /// Optional parameter to use to specify the clientId of the managed identity to use.
+    /// </summary>
+    public string ClientId { get; set; }
 
-        /// <summary>
-        ///The prefix to the table name. Default value is empty.
-        /// </summary>
-        public string TableNamePrefix { get; set; } = string.Empty;
-    }
+    /// <summary>
+    ///The prefix to the table name. Default value is empty.
+    /// </summary>
+    public string TableNamePrefix { get; set; } = string.Empty;
 }

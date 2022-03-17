@@ -12,127 +12,126 @@ using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
+
+/// <summary>
+/// Provides functionality to build and process response of a FHIR transaction.
+/// </summary>
+public class FhirTransactionPipeline : IFhirTransactionPipeline
 {
-    /// <summary>
-    /// Provides functionality to build and process response of a FHIR transaction.
-    /// </summary>
-    public class FhirTransactionPipeline : IFhirTransactionPipeline
+    private readonly IEnumerable<IFhirTransactionPipelineStep> _fhirTransactionPipelines;
+    private readonly IFhirTransactionExecutor _fhirTransactionExecutor;
+
+    private readonly IReadOnlyList<FhirTransactionRequestResponsePropertyAccessor> _requestResponsePropertyAccessors;
+
+    public FhirTransactionPipeline(
+        IEnumerable<IFhirTransactionPipelineStep> fhirTransactionPipelines,
+        IFhirTransactionRequestResponsePropertyAccessors fhirTransactionRequestResponsePropertyAccessors,
+        IFhirTransactionExecutor fhirTransactionExecutor)
     {
-        private readonly IEnumerable<IFhirTransactionPipelineStep> _fhirTransactionPipelines;
-        private readonly IFhirTransactionExecutor _fhirTransactionExecutor;
+        EnsureArg.IsNotNull(fhirTransactionPipelines, nameof(fhirTransactionPipelines));
+        EnsureArg.IsNotNull(fhirTransactionRequestResponsePropertyAccessors, nameof(fhirTransactionRequestResponsePropertyAccessors));
+        EnsureArg.IsNotNull(fhirTransactionExecutor, nameof(fhirTransactionExecutor));
 
-        private readonly IReadOnlyList<FhirTransactionRequestResponsePropertyAccessor> _requestResponsePropertyAccessors;
+        _fhirTransactionPipelines = fhirTransactionPipelines;
+        _fhirTransactionExecutor = fhirTransactionExecutor;
 
-        public FhirTransactionPipeline(
-            IEnumerable<IFhirTransactionPipelineStep> fhirTransactionPipelines,
-            IFhirTransactionRequestResponsePropertyAccessors fhirTransactionRequestResponsePropertyAccessors,
-            IFhirTransactionExecutor fhirTransactionExecutor)
+        _requestResponsePropertyAccessors = fhirTransactionRequestResponsePropertyAccessors.PropertyAccessors;
+    }
+
+    /// <inheritdoc/>
+    public async Task ProcessAsync(ChangeFeedEntry changeFeedEntry, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(changeFeedEntry, nameof(changeFeedEntry));
+
+        // Create a context used throughout this process.
+        var context = new FhirTransactionContext(changeFeedEntry);
+
+        // Prepare all required objects for the transaction.
+        foreach (IFhirTransactionPipelineStep pipeline in _fhirTransactionPipelines)
         {
-            EnsureArg.IsNotNull(fhirTransactionPipelines, nameof(fhirTransactionPipelines));
-            EnsureArg.IsNotNull(fhirTransactionRequestResponsePropertyAccessors, nameof(fhirTransactionRequestResponsePropertyAccessors));
-            EnsureArg.IsNotNull(fhirTransactionExecutor, nameof(fhirTransactionExecutor));
-
-            _fhirTransactionPipelines = fhirTransactionPipelines;
-            _fhirTransactionExecutor = fhirTransactionExecutor;
-
-            _requestResponsePropertyAccessors = fhirTransactionRequestResponsePropertyAccessors.PropertyAccessors;
+            await pipeline.PrepareRequestAsync(context, cancellationToken);
         }
 
-        /// <inheritdoc/>
-        public async Task ProcessAsync(ChangeFeedEntry changeFeedEntry, CancellationToken cancellationToken)
+        // Check to see if any resource needs to be created/updated.
+        var bundle = new Bundle()
         {
-            EnsureArg.IsNotNull(changeFeedEntry, nameof(changeFeedEntry));
+            Type = Bundle.BundleType.Transaction,
+        };
 
-            // Create a context used throughout this process.
-            var context = new FhirTransactionContext(changeFeedEntry);
+        var usedPropertyAccessors = new List<(FhirTransactionRequestResponsePropertyAccessor Accessor, int Count)>(_requestResponsePropertyAccessors.Count);
 
-            // Prepare all required objects for the transaction.
-            foreach (IFhirTransactionPipelineStep pipeline in _fhirTransactionPipelines)
+        foreach (FhirTransactionRequestResponsePropertyAccessor propertyAccessor in _requestResponsePropertyAccessors)
+        {
+            List<FhirTransactionRequestEntry> requestEntries = propertyAccessor.RequestEntryGetter(context.Request)?.ToList();
+
+            if (requestEntries == null || requestEntries.Count == 0)
             {
-                await pipeline.PrepareRequestAsync(context, cancellationToken);
+                continue;
             }
 
-            // Check to see if any resource needs to be created/updated.
-            var bundle = new Bundle()
+            int useCount = 0;
+            foreach (FhirTransactionRequestEntry requestEntry in requestEntries)
             {
-                Type = Bundle.BundleType.Transaction,
-            };
-
-            var usedPropertyAccessors = new List<(FhirTransactionRequestResponsePropertyAccessor Accessor, int Count)>(_requestResponsePropertyAccessors.Count);
-
-            foreach (FhirTransactionRequestResponsePropertyAccessor propertyAccessor in _requestResponsePropertyAccessors)
-            {
-                List<FhirTransactionRequestEntry> requestEntries = propertyAccessor.RequestEntryGetter(context.Request)?.ToList();
-
-                if (requestEntries == null || requestEntries.Count == 0)
+                if (requestEntry == null || requestEntry.RequestMode == FhirTransactionRequestMode.None)
                 {
+                    // No associated request, skip it.
                     continue;
                 }
 
-                int useCount = 0;
-                foreach (FhirTransactionRequestEntry requestEntry in requestEntries)
-                {
-                    if (requestEntry == null || requestEntry.RequestMode == FhirTransactionRequestMode.None)
-                    {
-                        // No associated request, skip it.
-                        continue;
-                    }
-
-                    // There is a associated request, add to the list so it gets processed.
-                    bundle.Entry.Add(CreateRequestBundleEntryComponent(requestEntry));
-                    useCount++;
-                }
-
-                usedPropertyAccessors.Add((propertyAccessor, useCount));
+                // There is a associated request, add to the list so it gets processed.
+                bundle.Entry.Add(CreateRequestBundleEntryComponent(requestEntry));
+                useCount++;
             }
 
-            if (bundle.Entry.Count == 0)
+            usedPropertyAccessors.Add((propertyAccessor, useCount));
+        }
+
+        if (bundle.Entry.Count == 0)
+        {
+            // Nothing to update.
+            return;
+        }
+
+        // Execute the transaction.
+        Bundle responseBundle = await _fhirTransactionExecutor.ExecuteTransactionAsync(bundle, cancellationToken);
+
+        // Process the response.
+        int processedResponseItems = 0;
+
+        foreach ((FhirTransactionRequestResponsePropertyAccessor accessor, int count) in
+            usedPropertyAccessors.Where(x => x.Count > 0))
+        {
+            var responseEntries = new List<FhirTransactionResponseEntry>();
+            for (int j = 0; j < count; j++)
             {
-                // Nothing to update.
-                return;
+                FhirTransactionResponseEntry responseEntry = CreateResponseEntry(responseBundle.Entry[processedResponseItems + j]);
+                responseEntries.Add(responseEntry);
             }
 
-            // Execute the transaction.
-            Bundle responseBundle = await _fhirTransactionExecutor.ExecuteTransactionAsync(bundle, cancellationToken);
+            processedResponseItems += count;
+            accessor.ResponseEntrySetter(context.Response, responseEntries);
+        }
 
-            // Process the response.
-            int processedResponseItems = 0;
+        // Execute any additional checks of the response.
+        foreach (IFhirTransactionPipelineStep pipeline in _fhirTransactionPipelines)
+        {
+            pipeline.ProcessResponse(context);
+        }
 
-            foreach ((FhirTransactionRequestResponsePropertyAccessor accessor, int count) in
-                usedPropertyAccessors.Where(x => x.Count > 0))
+        static Bundle.EntryComponent CreateRequestBundleEntryComponent(FhirTransactionRequestEntry requestEntry)
+        {
+            return new Bundle.EntryComponent()
             {
-                var responseEntries = new List<FhirTransactionResponseEntry>();
-                for (int j = 0; j < count; j++)
-                {
-                    FhirTransactionResponseEntry responseEntry = CreateResponseEntry(responseBundle.Entry[processedResponseItems + j]);
-                    responseEntries.Add(responseEntry);
-                }
+                FullUrl = requestEntry.ResourceId.ToString(),
+                Request = requestEntry.Request,
+                Resource = requestEntry.Resource,
+            };
+        }
 
-                processedResponseItems += count;
-                accessor.ResponseEntrySetter(context.Response, responseEntries);
-            }
-
-            // Execute any additional checks of the response.
-            foreach (IFhirTransactionPipelineStep pipeline in _fhirTransactionPipelines)
-            {
-                pipeline.ProcessResponse(context);
-            }
-
-            static Bundle.EntryComponent CreateRequestBundleEntryComponent(FhirTransactionRequestEntry requestEntry)
-            {
-                return new Bundle.EntryComponent()
-                {
-                    FullUrl = requestEntry.ResourceId.ToString(),
-                    Request = requestEntry.Request,
-                    Resource = requestEntry.Resource,
-                };
-            }
-
-            static FhirTransactionResponseEntry CreateResponseEntry(Bundle.EntryComponent response)
-            {
-                return new FhirTransactionResponseEntry(response.Response, response.Resource);
-            }
+        static FhirTransactionResponseEntry CreateResponseEntry(Bundle.EntryComponent response)
+        {
+            return new FhirTransactionResponseEntry(response.Response, response.Resource);
         }
     }
 }

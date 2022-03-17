@@ -14,133 +14,127 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
-using DicomValidationException = FellowOakDicom.DicomValidationException;
 
-namespace Microsoft.Health.Dicom.Core.Features.Workitem
+namespace Microsoft.Health.Dicom.Core.Features.Workitem;
+
+/// <summary>
+/// Provides functionality to process the list of <see cref="IDicomInstanceEntry"/>.
+/// </summary>
+public partial class WorkitemService
 {
-    /// <summary>
-    /// Provides functionality to process the list of <see cref="IDicomInstanceEntry"/>.
-    /// </summary>
-    public partial class WorkitemService
+    private const string WorklistLabel = "worklist";
+
+    public async Task<AddWorkitemResponse> ProcessAddAsync(DicomDataset dataset, string workitemInstanceUid, CancellationToken cancellationToken)
     {
-        private const string WorklistLabel = "worklist";
+        EnsureArg.IsNotNull(dataset, nameof(dataset));
 
-        public async Task<AddWorkitemResponse> ProcessAddAsync(DicomDataset dataset, string workitemInstanceUid, CancellationToken cancellationToken)
+        SetSpecifiedAttributesForCreate(dataset, workitemInstanceUid);
+
+        if (ValidateAddRequest(dataset))
         {
-            EnsureArg.IsNotNull(dataset, nameof(dataset));
-
-            SetSpecifiedAttributesForCreate(dataset, workitemInstanceUid);
-
-            if (ValidateAddRequest(dataset))
-            {
-                await AddWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
-            }
-
-            return _responseBuilder.BuildAddResponse();
+            await AddWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Sets attributes that are the Service Class Provider's responsibility according to:
-        /// <see href='https://dicom.nema.org/dicom/2013/output/chtml/part04/sect_CC.2.html#table_CC.2.5-3'/>
-        /// </summary>
-        internal static void SetSpecifiedAttributesForCreate(DicomDataset dataset, string workitemQueryParameter)
+        return _responseBuilder.BuildAddResponse();
+    }
+
+    /// <summary>
+    /// Sets attributes that are the Service Class Provider's responsibility according to:
+    /// <see href='https://dicom.nema.org/dicom/2013/output/chtml/part04/sect_CC.2.html#table_CC.2.5-3'/>
+    /// </summary>
+    internal static void SetSpecifiedAttributesForCreate(DicomDataset dataset, string workitemQueryParameter)
+    {
+        // SOP Common Module
+        dataset.AddOrUpdate(DicomTag.SOPClassUID, DicomUID.UnifiedProcedureStepPush);
+        ReconcileWorkitemInstanceUid(dataset, workitemQueryParameter);
+
+        // Unified Procedure Step Scheduled Procedure Information Module
+        dataset.AddOrUpdate(DicomTag.ScheduledProcedureStepModificationDateTime, DateTime.UtcNow);
+        dataset.AddOrUpdate(DicomTag.WorklistLabel, WorklistLabel);
+
+        // Unified Procedure Step Progress Information Module
+        dataset.AddOrUpdate(DicomTag.ProcedureStepState, ProcedureStepState.Scheduled);
+    }
+
+    /// <summary>
+    /// Sets the dataset value from the query parameter as long as there is no conflict.
+    /// </summary>
+    internal static void ReconcileWorkitemInstanceUid(DicomDataset dataset, string workitemQueryParameter)
+    {
+        if (!string.IsNullOrWhiteSpace(workitemQueryParameter))
         {
-            // SOP Common Module
-            dataset.AddOrUpdate(DicomTag.SOPClassUID, DicomUID.UnifiedProcedureStepPush);
-            ReconcileWorkitemInstanceUid(dataset, workitemQueryParameter);
+            var uidInDataset = dataset.TryGetString(DicomTag.SOPInstanceUID, out var sopInstanceUid);
 
-            // Unified Procedure Step Scheduled Procedure Information Module
-            dataset.AddOrUpdate(DicomTag.ScheduledProcedureStepModificationDateTime, DateTime.UtcNow);
-            dataset.AddOrUpdate(DicomTag.WorklistLabel, WorklistLabel);
+            if (uidInDataset && !string.Equals(workitemQueryParameter, sopInstanceUid, StringComparison.Ordinal))
+            {
+                throw new DatasetValidationException(
+                FailureReasonCodes.ValidationFailure,
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    DicomCoreResource.MismatchSopInstanceWorkitemInstanceUid,
+                    sopInstanceUid,
+                    workitemQueryParameter));
+            }
 
-            // Unified Procedure Step Progress Information Module
-            dataset.AddOrUpdate(DicomTag.ProcedureStepState, ProcedureStepState.Scheduled);
+            dataset.AddOrUpdate(DicomTag.SOPInstanceUID, workitemQueryParameter);
         }
+    }
 
-        /// <summary>
-        /// Sets the dataset value from the query parameter as long as there is no conflict.
-        /// </summary>
-        internal static void ReconcileWorkitemInstanceUid(DicomDataset dataset, string workitemQueryParameter)
+    private bool ValidateAddRequest(DicomDataset dataset)
+    {
+        try
         {
-            if (!string.IsNullOrWhiteSpace(workitemQueryParameter))
-            {
-                var uidInDataset = dataset.TryGetString(DicomTag.SOPInstanceUID, out var sopInstanceUid);
-
-                if (uidInDataset && !string.Equals(workitemQueryParameter, sopInstanceUid, StringComparison.Ordinal))
-                {
-                    throw new DatasetValidationException(
-                    FailureReasonCodes.ValidationFailure,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        DicomCoreResource.MismatchSopInstanceWorkitemInstanceUid,
-                        sopInstanceUid,
-                        workitemQueryParameter));
-                }
-
-                dataset.AddOrUpdate(DicomTag.SOPInstanceUID, workitemQueryParameter);
-            }
+            GetValidator<AddWorkitemDatasetValidator>().Validate(dataset);
+            return true;
         }
-
-        private bool ValidateAddRequest(DicomDataset dataset)
+        catch (Exception ex)
         {
-            try
+            ushort failureCode = FailureReasonCodes.ProcessingFailure;
+
+            switch (ex)
             {
-                GetValidator<AddWorkitemDatasetValidator>().Validate(dataset);
-                return true;
+                case DatasetValidationException dicomDatasetValidationException:
+                    failureCode = dicomDatasetValidationException.FailureCode;
+                    break;
+
+                case ValidationException _:
+                    failureCode = FailureReasonCodes.ValidationFailure;
+                    break;
             }
-            catch (Exception ex)
-            {
-                ushort failureCode = FailureReasonCodes.ProcessingFailure;
 
-                switch (ex)
-                {
-                    case DicomValidationException _:
-                        failureCode = FailureReasonCodes.ValidationFailure;
-                        break;
+            _logger.LogInformation(ex, "Validation failed for the DICOM instance work-item entry. Failure code: {FailureCode}.", failureCode);
 
-                    case DatasetValidationException dicomDatasetValidationException:
-                        failureCode = dicomDatasetValidationException.FailureCode;
-                        break;
+            _responseBuilder.AddFailure(failureCode, ex.Message, dataset);
 
-                    case ValidationException _:
-                        failureCode = FailureReasonCodes.ValidationFailure;
-                        break;
-                }
-
-                _logger.LogInformation(ex, "Validation failed for the DICOM instance work-item entry. Failure code: {FailureCode}.", failureCode);
-
-                _responseBuilder.AddFailure(failureCode, ex.Message, dataset);
-
-                return false;
-            }
+            return false;
         }
+    }
 
-        private async Task AddWorkitemAsync(DicomDataset dataset, CancellationToken cancellationToken)
+    private async Task AddWorkitemAsync(DicomDataset dataset, CancellationToken cancellationToken)
+    {
+        try
         {
-            try
+            await _workitemOrchestrator.AddWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
+
+            _logger.LogInformation("Successfully added the DICOM instance work-item entry.");
+
+            _responseBuilder.AddSuccess(dataset);
+        }
+        catch (Exception ex)
+        {
+            ushort failureCode = FailureReasonCodes.ProcessingFailure;
+
+            switch (ex)
             {
-                await _workitemOrchestrator.AddWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
-
-                _logger.LogInformation("Successfully added the DICOM instance work-item entry.");
-
-                _responseBuilder.AddSuccess(dataset);
+                case WorkitemAlreadyExistsException _:
+                    failureCode = FailureReasonCodes.SopInstanceAlreadyExists;
+                    break;
             }
-            catch (Exception ex)
-            {
-                ushort failureCode = FailureReasonCodes.ProcessingFailure;
 
-                switch (ex)
-                {
-                    case WorkitemAlreadyExistsException _:
-                        failureCode = FailureReasonCodes.SopInstanceAlreadyExists;
-                        break;
-                }
+            _logger.LogWarning(ex, "Failed to add the DICOM instance work-item entry. Failure code: {FailureCode}.", failureCode);
 
-                _logger.LogWarning(ex, "Failed to add the DICOM instance work-item entry. Failure code: {FailureCode}.", failureCode);
-
-                // TODO: This can return the Database Error as is. We need to abstract that detail.
-                _responseBuilder.AddFailure(failureCode, ex.Message, dataset);
-            }
+            // TODO: This can return the Database Error as is. We need to abstract that detail.
+            _responseBuilder.AddFailure(failureCode, ex.Message, dataset);
         }
     }
 }

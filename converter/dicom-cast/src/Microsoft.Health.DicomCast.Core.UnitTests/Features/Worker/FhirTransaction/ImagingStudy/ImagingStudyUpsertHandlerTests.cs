@@ -20,258 +20,257 @@ using NSubstitute;
 using Xunit;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction;
+
+public class ImagingStudyUpsertHandlerTests
 {
-    public class ImagingStudyUpsertHandlerTests
+    private const string DefaultDicomWebEndpoint = "https://dicom/";
+
+    private readonly IFhirService _fhirService;
+    private readonly IImagingStudySynchronizer _imagingStudySynchronizer;
+    private readonly ImagingStudyUpsertHandler _imagingStudyUpsertHandler;
+    private readonly DicomWebConfiguration _configuration;
+    private readonly DicomCastConfiguration _dicomCastConfig = new DicomCastConfiguration();
+    private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
+
+    private FhirTransactionContext _fhirTransactionContext;
+
+    public ImagingStudyUpsertHandlerTests()
     {
-        private const string DefaultDicomWebEndpoint = "https://dicom/";
+        _configuration = new DicomWebConfiguration() { Endpoint = new System.Uri(DefaultDicomWebEndpoint), };
+        IOptions<DicomWebConfiguration> optionsConfiguration = Options.Create(_configuration);
 
-        private readonly IFhirService _fhirService;
-        private readonly IImagingStudySynchronizer _imagingStudySynchronizer;
-        private readonly ImagingStudyUpsertHandler _imagingStudyUpsertHandler;
-        private readonly DicomWebConfiguration _configuration;
-        private readonly DicomCastConfiguration _dicomCastConfig = new DicomCastConfiguration();
-        private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
+        _fhirService = Substitute.For<IFhirService>();
+        _imagingStudySynchronizer = new ImagingStudySynchronizer(new ImagingStudyPropertySynchronizer(Options.Create(_dicomCastConfig), _exceptionStore), new ImagingStudySeriesPropertySynchronizer(Options.Create(_dicomCastConfig), _exceptionStore), new ImagingStudyInstancePropertySynchronizer(Options.Create(_dicomCastConfig), _exceptionStore));
+        _imagingStudyUpsertHandler = new ImagingStudyUpsertHandler(_fhirService, _imagingStudySynchronizer, optionsConfiguration);
+    }
 
-        private FhirTransactionContext _fhirTransactionContext;
+    [Fact]
+    public async Task GivenAValidCreateChangeFeed_WhenBuilt_ThenCorrectEntryComponentShouldBeCreated()
+    {
+        const string studyInstanceUid = "1";
+        const string seriesInstanceUid = "2";
+        const string sopInstanceUid = "3";
+        const string patientResourceId = "p1";
 
-        public ImagingStudyUpsertHandlerTests()
-        {
-            _configuration = new DicomWebConfiguration() { Endpoint = new System.Uri(DefaultDicomWebEndpoint), };
-            IOptions<DicomWebConfiguration> optionsConfiguration = Options.Create(_configuration);
+        ChangeFeedEntry changeFeedEntry = ChangeFeedGenerator.Generate(
+            action: ChangeFeedAction.Create,
+            studyInstanceUid: studyInstanceUid,
+            seriesInstanceUid: seriesInstanceUid,
+            sopInstanceUid: sopInstanceUid);
 
-            _fhirService = Substitute.For<IFhirService>();
-            _imagingStudySynchronizer = new ImagingStudySynchronizer(new ImagingStudyPropertySynchronizer(Options.Create(_dicomCastConfig), _exceptionStore), new ImagingStudySeriesPropertySynchronizer(Options.Create(_dicomCastConfig), _exceptionStore), new ImagingStudyInstancePropertySynchronizer(Options.Create(_dicomCastConfig), _exceptionStore));
-            _imagingStudyUpsertHandler = new ImagingStudyUpsertHandler(_fhirService, _imagingStudySynchronizer, optionsConfiguration);
-        }
+        FhirTransactionRequestEntry entry = await BuildImagingStudyEntryComponent(studyInstanceUid, seriesInstanceUid, sopInstanceUid, patientResourceId);
 
-        [Fact]
-        public async Task GivenAValidCreateChangeFeed_WhenBuilt_ThenCorrectEntryComponentShouldBeCreated()
-        {
-            const string studyInstanceUid = "1";
-            const string seriesInstanceUid = "2";
-            const string sopInstanceUid = "3";
-            const string patientResourceId = "p1";
+        ValidationUtility.ValidateRequestEntryMinimumRequirementForWithChange(FhirTransactionRequestMode.Create, "ImagingStudy", Bundle.HTTPVerb.POST, entry);
 
-            ChangeFeedEntry changeFeedEntry = ChangeFeedGenerator.Generate(
-                action: ChangeFeedAction.Create,
-                studyInstanceUid: studyInstanceUid,
-                seriesInstanceUid: seriesInstanceUid,
-                sopInstanceUid: sopInstanceUid);
+        ImagingStudy imagingStudy = Assert.IsType<ImagingStudy>(entry.Resource);
 
-            FhirTransactionRequestEntry entry = await BuildImagingStudyEntryComponent(studyInstanceUid, seriesInstanceUid, sopInstanceUid, patientResourceId);
+        string jsonString;
+        jsonString = JsonSerializer.Serialize(entry);
 
-            ValidationUtility.ValidateRequestEntryMinimumRequirementForWithChange(FhirTransactionRequestMode.Create, "ImagingStudy", Bundle.HTTPVerb.POST, entry);
+        Assert.IsType<ClientResourceId>(entry.ResourceId);
+        Assert.Equal(ImagingStudy.ImagingStudyStatus.Available, imagingStudy.Status);
+        Assert.Null(entry.Request.IfMatch);
 
-            ImagingStudy imagingStudy = Assert.IsType<ImagingStudy>(entry.Resource);
+        ValidationUtility.ValidateResourceReference("Patient/p1", imagingStudy.Subject);
 
-            string jsonString;
-            jsonString = JsonSerializer.Serialize(entry);
+        Assert.Collection(
+            imagingStudy.Identifier,
+            identifier => ValidationUtility.ValidateIdentifier("urn:dicom:uid", $"urn:oid:{studyInstanceUid}", identifier),
+            identifier => ValidationUtility.ValidateAccessionNumber(null, FhirTransactionContextBuilder.DefaultAccessionNumber, identifier));
 
-            Assert.IsType<ClientResourceId>(entry.ResourceId);
-            Assert.Equal(ImagingStudy.ImagingStudyStatus.Available, imagingStudy.Status);
-            Assert.Null(entry.Request.IfMatch);
+        Assert.Collection(
+            imagingStudy.Series,
+            series =>
+            {
+                Assert.Equal(seriesInstanceUid, series.Uid);
 
-            ValidationUtility.ValidateResourceReference("Patient/p1", imagingStudy.Subject);
+                Assert.Collection(
+                    series.Instance,
+                    instance => Assert.Equal(sopInstanceUid, instance.Uid));
+            });
 
-            Assert.Collection(
-                imagingStudy.Identifier,
-                identifier => ValidationUtility.ValidateIdentifier("urn:dicom:uid", $"urn:oid:{studyInstanceUid}", identifier),
-                identifier => ValidationUtility.ValidateAccessionNumber(null, FhirTransactionContextBuilder.DefaultAccessionNumber, identifier));
+        ValidateDicomFilePropertiesAreCorrectlyMapped(imagingStudy, series: imagingStudy.Series.First(), instance: imagingStudy.Series.First().Instance.First());
+    }
 
-            Assert.Collection(
-                imagingStudy.Series,
-                series =>
-                {
-                    Assert.Equal(seriesInstanceUid, series.Uid);
+    [Fact]
+    public async Task GivenAChangeFeedWithNewSeriesAndInstanceForAnExistingImagingStudy_WhenBuilt_ThenCorrectEntryComponentShouldBeCreated()
+    {
+        const string studyInstanceUid = "1";
+        const string seriesInstanceUid = "2";
+        const string sopInstanceUid = "3";
+        const string patientResourceId = "p1";
+        const string newSeriesInstanceUid = "3";
+        const string newSopInstanceUid = "4";
 
-                    Assert.Collection(
-                        series.Instance,
-                        instance => Assert.Equal(sopInstanceUid, instance.Uid));
-                });
+        ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(studyInstanceUid, new List<string>() { seriesInstanceUid }, new List<string>() { sopInstanceUid }, patientResourceId);
 
-            ValidateDicomFilePropertiesAreCorrectlyMapped(imagingStudy, series: imagingStudy.Series.First(), instance: imagingStudy.Series.First().Instance.First());
-        }
+        _fhirService.RetrieveImagingStudyAsync(Arg.Any<Identifier>(), Arg.Any<CancellationToken>()).Returns(imagingStudy);
 
-        [Fact]
-        public async Task GivenAChangeFeedWithNewSeriesAndInstanceForAnExistingImagingStudy_WhenBuilt_ThenCorrectEntryComponentShouldBeCreated()
-        {
-            const string studyInstanceUid = "1";
-            const string seriesInstanceUid = "2";
-            const string sopInstanceUid = "3";
-            const string patientResourceId = "p1";
-            const string newSeriesInstanceUid = "3";
-            const string newSopInstanceUid = "4";
+        // Update an existing ImagingStudy
+        FhirTransactionRequestEntry entry = await BuildImagingStudyEntryComponent(studyInstanceUid, newSeriesInstanceUid, newSopInstanceUid, patientResourceId);
 
-            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(studyInstanceUid, new List<string>() { seriesInstanceUid }, new List<string>() { sopInstanceUid }, patientResourceId);
+        ImagingStudy updatedImagingStudy = ValidationUtility.ValidateImagingStudyUpdate(studyInstanceUid, patientResourceId, entry);
 
-            _fhirService.RetrieveImagingStudyAsync(Arg.Any<Identifier>(), Arg.Any<CancellationToken>()).Returns(imagingStudy);
+        Assert.Collection(
+            updatedImagingStudy.Series,
+            series =>
+            {
+                ValidationUtility.ValidateSeries(series, seriesInstanceUid, sopInstanceUid);
+            },
+            series =>
+            {
+                ValidationUtility.ValidateSeries(series, newSeriesInstanceUid, newSopInstanceUid);
+            });
+    }
 
-            // Update an existing ImagingStudy
-            FhirTransactionRequestEntry entry = await BuildImagingStudyEntryComponent(studyInstanceUid, newSeriesInstanceUid, newSopInstanceUid, patientResourceId);
+    [Fact]
+    public async Task GivenAChangeFeedWithNewInstanceForAnExistingSeriesAndImagingStudy_WhenBuilt_ThenCorrectEntryComponentShouldBeCreated()
+    {
+        const string studyInstanceUid = "1";
+        const string seriesInstanceUid = "2";
+        const string sopInstanceUid = "3";
+        const string patientResourceId = "p1";
+        const string newSopInstanceUid = "4";
 
-            ImagingStudy updatedImagingStudy = ValidationUtility.ValidateImagingStudyUpdate(studyInstanceUid, patientResourceId, entry);
+        // create a new ImagingStudy
+        ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(studyInstanceUid, new List<string>() { seriesInstanceUid }, new List<string>() { sopInstanceUid }, patientResourceId);
 
-            Assert.Collection(
-                updatedImagingStudy.Series,
-                series =>
-                {
-                    ValidationUtility.ValidateSeries(series, seriesInstanceUid, sopInstanceUid);
-                },
-                series =>
-                {
-                    ValidationUtility.ValidateSeries(series, newSeriesInstanceUid, newSopInstanceUid);
-                });
-        }
+        _fhirService.RetrieveImagingStudyAsync(Arg.Any<Identifier>(), Arg.Any<CancellationToken>()).Returns(imagingStudy);
 
-        [Fact]
-        public async Task GivenAChangeFeedWithNewInstanceForAnExistingSeriesAndImagingStudy_WhenBuilt_ThenCorrectEntryComponentShouldBeCreated()
-        {
-            const string studyInstanceUid = "1";
-            const string seriesInstanceUid = "2";
-            const string sopInstanceUid = "3";
-            const string patientResourceId = "p1";
-            const string newSopInstanceUid = "4";
+        // update an existing ImagingStudy
+        FhirTransactionRequestEntry entry = await BuildImagingStudyEntryComponent(studyInstanceUid, seriesInstanceUid, newSopInstanceUid, patientResourceId);
 
-            // create a new ImagingStudy
-            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(studyInstanceUid, new List<string>() { seriesInstanceUid }, new List<string>() { sopInstanceUid }, patientResourceId);
+        ImagingStudy updatedImagingStudy = ValidationUtility.ValidateImagingStudyUpdate(studyInstanceUid, patientResourceId, entry);
 
-            _fhirService.RetrieveImagingStudyAsync(Arg.Any<Identifier>(), Arg.Any<CancellationToken>()).Returns(imagingStudy);
+        Assert.Collection(
+            updatedImagingStudy.Series,
+            series =>
+            {
+                ValidationUtility.ValidateSeries(series, seriesInstanceUid, sopInstanceUid, newSopInstanceUid);
+            });
+    }
 
-            // update an existing ImagingStudy
-            FhirTransactionRequestEntry entry = await BuildImagingStudyEntryComponent(studyInstanceUid, seriesInstanceUid, newSopInstanceUid, patientResourceId);
+    [Fact]
+    public async Task GivenAChangeFeedWithExistingInstanceForAnExistingSeriesAndImagingStudy_WhenBuilt_ThenNoEntryComponentShouldBeReturned()
+    {
+        const string studyInstanceUid = "1";
+        const string seriesInstanceUid = "2";
+        const string sopInstanceUid = "3";
+        const string patientResourceId = "p1";
 
-            ImagingStudy updatedImagingStudy = ValidationUtility.ValidateImagingStudyUpdate(studyInstanceUid, patientResourceId, entry);
+        // create a new ImagingStudy
+        ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(studyInstanceUid, new List<string>() { seriesInstanceUid }, new List<string>() { sopInstanceUid }, $"Patient/{patientResourceId}");
 
-            Assert.Collection(
-                updatedImagingStudy.Series,
-                series =>
-                {
-                    ValidationUtility.ValidateSeries(series, seriesInstanceUid, sopInstanceUid, newSopInstanceUid);
-                });
-        }
+        _fhirService.RetrieveImagingStudyAsync(Arg.Any<Identifier>(), Arg.Any<CancellationToken>()).Returns(imagingStudy);
 
-        [Fact]
-        public async Task GivenAChangeFeedWithExistingInstanceForAnExistingSeriesAndImagingStudy_WhenBuilt_ThenNoEntryComponentShouldBeReturned()
-        {
-            const string studyInstanceUid = "1";
-            const string seriesInstanceUid = "2";
-            const string sopInstanceUid = "3";
-            const string patientResourceId = "p1";
+        // try update an existing ImagingStudy
+        FhirTransactionRequestEntry entry = await BuildImagingStudyEntryComponent(studyInstanceUid, seriesInstanceUid, sopInstanceUid, patientResourceId, addMetadata: false);
 
-            // create a new ImagingStudy
-            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(studyInstanceUid, new List<string>() { seriesInstanceUid }, new List<string>() { sopInstanceUid }, $"Patient/{patientResourceId}");
+        // Validate no entry component is created as there is no update
+        Assert.NotNull(entry);
+        Assert.Equal(FhirTransactionRequestMode.None, entry.RequestMode);
+        Assert.Null(entry.Request);
+        Assert.IsType<ServerResourceId>(entry.ResourceId);
+        Assert.True(imagingStudy.IsExactly(entry.Resource));
+    }
 
-            _fhirService.RetrieveImagingStudyAsync(Arg.Any<Identifier>(), Arg.Any<CancellationToken>()).Returns(imagingStudy);
+    [Fact]
+    public async Task GivenAChangeFeedWithNewInstanceAndNewSeiresForAnExistingImagingStudy_WhenBuilt_ThenCorrectEtagIsGenerated()
+    {
+        const string studyInstanceUid = "1";
+        const string seriesInstanceUid = "2";
+        const string sopInstanceUid = "3";
+        const string newSeriesInstanceUid = "3";
+        const string newSopInstanceUid = "3";
+        const string patientResourceId = "p1";
 
-            // try update an existing ImagingStudy
-            FhirTransactionRequestEntry entry = await BuildImagingStudyEntryComponent(studyInstanceUid, seriesInstanceUid, sopInstanceUid, patientResourceId, addMetadata: false);
+        // create a new ImagingStudy
+        ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(studyInstanceUid, new List<string>() { seriesInstanceUid }, new List<string>() { sopInstanceUid }, patientResourceId);
 
-            // Validate no entry component is created as there is no update
-            Assert.NotNull(entry);
-            Assert.Equal(FhirTransactionRequestMode.None, entry.RequestMode);
-            Assert.Null(entry.Request);
-            Assert.IsType<ServerResourceId>(entry.ResourceId);
-            Assert.True(imagingStudy.IsExactly(entry.Resource));
-        }
+        _fhirService.RetrieveImagingStudyAsync(Arg.Any<Identifier>(), Arg.Any<CancellationToken>()).Returns(imagingStudy);
 
-        [Fact]
-        public async Task GivenAChangeFeedWithNewInstanceAndNewSeiresForAnExistingImagingStudy_WhenBuilt_ThenCorrectEtagIsGenerated()
-        {
-            const string studyInstanceUid = "1";
-            const string seriesInstanceUid = "2";
-            const string sopInstanceUid = "3";
-            const string newSeriesInstanceUid = "3";
-            const string newSopInstanceUid = "3";
-            const string patientResourceId = "p1";
+        // update an existing ImagingStudy
+        FhirTransactionRequestEntry entry = await BuildImagingStudyEntryComponent(studyInstanceUid, newSeriesInstanceUid, newSopInstanceUid, patientResourceId);
 
-            // create a new ImagingStudy
-            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(studyInstanceUid, new List<string>() { seriesInstanceUid }, new List<string>() { sopInstanceUid }, patientResourceId);
+        string expectedIfMatchCondition = $"W/\"1\"";
 
-            _fhirService.RetrieveImagingStudyAsync(Arg.Any<Identifier>(), Arg.Any<CancellationToken>()).Returns(imagingStudy);
+        Assert.Equal(expectedIfMatchCondition, entry.Request.IfMatch);
+    }
 
-            // update an existing ImagingStudy
-            FhirTransactionRequestEntry entry = await BuildImagingStudyEntryComponent(studyInstanceUid, newSeriesInstanceUid, newSopInstanceUid, patientResourceId);
+    [Fact]
+    public async Task GivenAChangeFeedWithNewInstanceAndNewSeiresForAnExistingImagingStudy_WhenBuilt_ThenCorrectEtagIsGeneratedd()
+    {
+        const string studyInstanceUid = "1";
+        const string seriesInstanceUid = "2";
+        const string sopInstanceUid = "3";
+        const string newSeriesInstanceUid = "3";
+        const string newSopInstanceUid = "3";
+        const string patientResourceId = "p1";
 
-            string expectedIfMatchCondition = $"W/\"1\"";
+        // create a new ImagingStudy
+        ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(studyInstanceUid, new List<string>() { seriesInstanceUid }, new List<string>() { sopInstanceUid }, patientResourceId);
 
-            Assert.Equal(expectedIfMatchCondition, entry.Request.IfMatch);
-        }
+        _fhirService.RetrieveImagingStudyAsync(Arg.Any<Identifier>(), Arg.Any<CancellationToken>()).Returns(imagingStudy);
 
-        [Fact]
-        public async Task GivenAChangeFeedWithNewInstanceAndNewSeiresForAnExistingImagingStudy_WhenBuilt_ThenCorrectEtagIsGeneratedd()
-        {
-            const string studyInstanceUid = "1";
-            const string seriesInstanceUid = "2";
-            const string sopInstanceUid = "3";
-            const string newSeriesInstanceUid = "3";
-            const string newSopInstanceUid = "3";
-            const string patientResourceId = "p1";
+        // update an existing ImagingStudy
+        FhirTransactionRequestEntry entry = await BuildImagingStudyEntryComponent(studyInstanceUid, newSeriesInstanceUid, newSopInstanceUid, patientResourceId);
 
-            // create a new ImagingStudy
-            ImagingStudy imagingStudy = FhirResourceBuilder.CreateNewImagingStudy(studyInstanceUid, new List<string>() { seriesInstanceUid }, new List<string>() { sopInstanceUid }, patientResourceId);
+        string expectedIfMatchCondition = $"W/\"1\"";
 
-            _fhirService.RetrieveImagingStudyAsync(Arg.Any<Identifier>(), Arg.Any<CancellationToken>()).Returns(imagingStudy);
+        Assert.Equal(expectedIfMatchCondition, entry.Request.IfMatch);
+    }
 
-            // update an existing ImagingStudy
-            FhirTransactionRequestEntry entry = await BuildImagingStudyEntryComponent(studyInstanceUid, newSeriesInstanceUid, newSopInstanceUid, patientResourceId);
+    private async Task<FhirTransactionRequestEntry> BuildImagingStudyEntryComponent(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string patientResourceId, bool addMetadata = true)
+    {
+        ChangeFeedEntry changeFeedEntry = ChangeFeedGenerator.Generate(
+            action: ChangeFeedAction.Create,
+            studyInstanceUid: studyInstanceUid,
+            seriesInstanceUid: seriesInstanceUid,
+            sopInstanceUid: sopInstanceUid,
+            metadata: addMetadata ? FhirTransactionContextBuilder.CreateDicomDataset() : null);
 
-            string expectedIfMatchCondition = $"W/\"1\"";
+        return await PrepareRequestAsync(changeFeedEntry, patientResourceId);
+    }
 
-            Assert.Equal(expectedIfMatchCondition, entry.Request.IfMatch);
-        }
+    private async Task<FhirTransactionRequestEntry> PrepareRequestAsync(ChangeFeedEntry changeFeedEntry, string patientResourceId)
+    {
+        _fhirTransactionContext = new FhirTransactionContext(changeFeedEntry);
 
-        private async Task<FhirTransactionRequestEntry> BuildImagingStudyEntryComponent(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string patientResourceId, bool addMetadata = true)
-        {
-            ChangeFeedEntry changeFeedEntry = ChangeFeedGenerator.Generate(
-                action: ChangeFeedAction.Create,
-                studyInstanceUid: studyInstanceUid,
-                seriesInstanceUid: seriesInstanceUid,
-                sopInstanceUid: sopInstanceUid,
-                metadata: addMetadata ? FhirTransactionContextBuilder.CreateDicomDataset() : null);
+        _fhirTransactionContext.Request.Patient = FhirTransactionRequestEntryGenerator.GenerateDefaultNoChangeRequestEntry<Patient>(
+            new ServerResourceId(ResourceType.Patient, patientResourceId));
 
-            return await PrepareRequestAsync(changeFeedEntry, patientResourceId);
-        }
+        _fhirTransactionContext.Request.Endpoint = FhirTransactionRequestEntryGenerator.GenerateDefaultNoChangeRequestEntry<Endpoint>(
+            new ServerResourceId(ResourceType.Endpoint, "endpoint"));
 
-        private async Task<FhirTransactionRequestEntry> PrepareRequestAsync(ChangeFeedEntry changeFeedEntry, string patientResourceId)
-        {
-            _fhirTransactionContext = new FhirTransactionContext(changeFeedEntry);
+        return await _imagingStudyUpsertHandler.BuildAsync(_fhirTransactionContext, CancellationToken.None);
+    }
 
-            _fhirTransactionContext.Request.Patient = FhirTransactionRequestEntryGenerator.GenerateDefaultNoChangeRequestEntry<Patient>(
-                new ServerResourceId(ResourceType.Patient, patientResourceId));
+    private void ValidateDicomFilePropertiesAreCorrectlyMapped(ImagingStudy imagingStudy, ImagingStudy.SeriesComponent series, ImagingStudy.InstanceComponent instance)
+    {
+        Assert.Collection(
+           imagingStudy.Endpoint,
+           reference => string.Equals(reference.Reference, _fhirTransactionContext.Request.Endpoint.ToString(), StringComparison.Ordinal));
 
-            _fhirTransactionContext.Request.Endpoint = FhirTransactionRequestEntryGenerator.GenerateDefaultNoChangeRequestEntry<Endpoint>(
-                new ServerResourceId(ResourceType.Endpoint, "endpoint"));
+        // Assert imaging study properties are mapped correctly
+        Assert.Collection(
+           imagingStudy.Modality,
+           modality => string.Equals(modality.Code, "MODALITY", StringComparison.Ordinal));
 
-            return await _imagingStudyUpsertHandler.BuildAsync(_fhirTransactionContext, CancellationToken.None);
-        }
+        Assert.Collection(
+           imagingStudy.Note,
+           note => string.Equals(note.Text.ToString(), "Study Description", StringComparison.Ordinal));
 
-        private void ValidateDicomFilePropertiesAreCorrectlyMapped(ImagingStudy imagingStudy, ImagingStudy.SeriesComponent series, ImagingStudy.InstanceComponent instance)
-        {
-            Assert.Collection(
-               imagingStudy.Endpoint,
-               reference => string.Equals(reference.Reference, _fhirTransactionContext.Request.Endpoint.ToString(), StringComparison.Ordinal));
+        Assert.Equal(new FhirDateTime(1974, 7, 10, 7, 10, 24, TimeSpan.Zero), imagingStudy.StartedElement);
 
-            // Assert imaging study properties are mapped correctly
-            Assert.Collection(
-               imagingStudy.Modality,
-               modality => string.Equals(modality.Code, "MODALITY", StringComparison.Ordinal));
+        // Assert series properties are mapped correctly
+        Assert.Equal("Series Description", series.Description);
+        Assert.Equal("MODALITY", series.Modality.Code);
+        Assert.Equal(1, series.Number);
+        Assert.Equal(new FhirDateTime(1974, 8, 10, 8, 10, 24, TimeSpan.Zero), series.StartedElement);
 
-            Assert.Collection(
-               imagingStudy.Note,
-               note => string.Equals(note.Text.ToString(), "Study Description", StringComparison.Ordinal));
-
-            Assert.Equal(new FhirDateTime(1974, 7, 10, 7, 10, 24, TimeSpan.Zero), imagingStudy.StartedElement);
-
-            // Assert series properties are mapped correctly
-            Assert.Equal("Series Description", series.Description);
-            Assert.Equal("MODALITY", series.Modality.Code);
-            Assert.Equal(1, series.Number);
-            Assert.Equal(new FhirDateTime(1974, 8, 10, 8, 10, 24, TimeSpan.Zero), series.StartedElement);
-
-            // Assert instance properties are mapped correctly
-            Assert.Equal("4444", instance.SopClass.Code);
-            Assert.Equal(1, instance.Number);
-        }
+        // Assert instance properties are mapped correctly
+        Assert.Equal("4444", instance.SopClass.Code);
+        Assert.Equal(1, instance.Number);
     }
 }

@@ -13,28 +13,27 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Messages.Partition;
 
-namespace Microsoft.Health.Dicom.Core.Features.Partition
+namespace Microsoft.Health.Dicom.Core.Features.Partition;
+
+public class AddPartitionHandler : BaseHandler, IRequestHandler<AddPartitionRequest, AddPartitionResponse>
 {
-    public class AddPartitionHandler : BaseHandler, IRequestHandler<AddPartitionRequest, AddPartitionResponse>
+    private readonly IPartitionService _partitionService;
+
+    public AddPartitionHandler(IAuthorizationService<DataActions> authorizationService, IPartitionService partitionService)
+        : base(authorizationService)
     {
-        private readonly IPartitionService _partitionService;
+        _partitionService = EnsureArg.IsNotNull(partitionService, nameof(partitionService));
+    }
 
-        public AddPartitionHandler(IAuthorizationService<DataActions> authorizationService, IPartitionService partitionService)
-            : base(authorizationService)
+    public async Task<AddPartitionResponse> Handle(AddPartitionRequest request, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(request, nameof(request));
+
+        if (await AuthorizationService.CheckAccess(DataActions.Write, cancellationToken) != DataActions.Write)
         {
-            _partitionService = EnsureArg.IsNotNull(partitionService, nameof(partitionService));
+            throw new UnauthorizedDicomActionException(DataActions.Write);
         }
 
-        public async Task<AddPartitionResponse> Handle(AddPartitionRequest request, CancellationToken cancellationToken)
-        {
-            EnsureArg.IsNotNull(request, nameof(request));
-
-            if (await AuthorizationService.CheckAccess(DataActions.Write, cancellationToken) != DataActions.Write)
-            {
-                throw new UnauthorizedDicomActionException(DataActions.Write);
-            }
-
-            return await _partitionService.AddPartitionAsync(request.PartitionName, cancellationToken);
-        }
+        return await _partitionService.AddPartitionAsync(request.PartitionName, cancellationToken);
     }
 }

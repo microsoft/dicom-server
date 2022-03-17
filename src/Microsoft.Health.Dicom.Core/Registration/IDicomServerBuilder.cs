@@ -5,13 +5,12 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Microsoft.Health.Dicom.Core.Registration
+namespace Microsoft.Health.Dicom.Core.Registration;
+
+/// <summary>
+/// A builder type for configuring DICOM server services.
+/// </summary>
+public interface IDicomServerBuilder
 {
-    /// <summary>
-    /// A builder type for configuring DICOM server services.
-    /// </summary>
-    public interface IDicomServerBuilder
-    {
-        IServiceCollection Services { get; }
-    }
+    IServiceCollection Services { get; }
 }

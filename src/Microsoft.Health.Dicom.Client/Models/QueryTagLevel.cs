@@ -5,27 +5,26 @@
 
 using System.Text.Json.Serialization;
 
-namespace Microsoft.Health.Dicom.Client.Models
+namespace Microsoft.Health.Dicom.Client.Models;
+
+/// <summary>
+/// Level of a queryable tag.
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum QueryTagLevel
 {
     /// <summary>
-    /// Level of a queryable tag.
+    /// The tag is queriable on instance level.
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum QueryTagLevel
-    {
-        /// <summary>
-        /// The tag is queriable on instance level.
-        /// </summary>
-        Instance = 0,
+    Instance = 0,
 
-        /// <summary>
-        /// The tag is queriable on series level.
-        /// </summary>
-        Series = 1,
+    /// <summary>
+    /// The tag is queriable on series level.
+    /// </summary>
+    Series = 1,
 
-        /// <summary>
-        /// The tag is queriable on study level.
-        /// </summary>
-        Study = 2,
-    }
+    /// <summary>
+    /// The tag is queriable on study level.
+    /// </summary>
+    Study = 2,
 }

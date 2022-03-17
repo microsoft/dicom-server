@@ -8,16 +8,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
-namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
+namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+
+public interface IAddExtendedQueryTagService
 {
-    public interface IAddExtendedQueryTagService
-    {
-        /// <summary>
-        /// Add Extended Query Tags.
-        /// </summary>
-        /// <param name="extendedQueryTags">The extended query tags.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The response.</returns>
-        public Task<AddExtendedQueryTagResponse> AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags, CancellationToken cancellationToken = default);
-    }
+    /// <summary>
+    /// Add Extended Query Tags.
+    /// </summary>
+    /// <param name="extendedQueryTags">The extended query tags.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The response.</returns>
+    public Task<AddExtendedQueryTagResponse> AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags, CancellationToken cancellationToken = default);
 }

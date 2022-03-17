@@ -7,37 +7,36 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
+namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+
+/// <summary>
+/// External representation of a extended query tag entry for add.
+/// </summary>
+public class AddExtendedQueryTagEntry : ExtendedQueryTagEntry, IValidatableObject
 {
     /// <summary>
-    /// External representation of a extended query tag entry for add.
+    /// Level of this tag. Could be Study, Series or Instance.
     /// </summary>
-    public class AddExtendedQueryTagEntry : ExtendedQueryTagEntry, IValidatableObject
+    public QueryTagLevel? Level { get; set; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        /// <summary>
-        /// Level of this tag. Could be Study, Series or Instance.
-        /// </summary>
-        public QueryTagLevel? Level { get; set; }
-
-        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        string property;
+        if (string.IsNullOrWhiteSpace(Path))
         {
-            string property;
-            if (string.IsNullOrWhiteSpace(Path))
-            {
-                property = nameof(Path);
-                yield return new ValidationResult(string.Format(DicomCoreResource.AddExtendedQueryTagEntryPropertyNotSpecified, property), new[] { property });
-            }
+            property = nameof(Path);
+            yield return new ValidationResult(string.Format(DicomCoreResource.AddExtendedQueryTagEntryPropertyNotSpecified, property), new[] { property });
+        }
 
-            if (!Level.HasValue)
-            {
-                property = nameof(Level);
-                yield return new ValidationResult(string.Format(DicomCoreResource.AddExtendedQueryTagEntryPropertyNotSpecified, property), new[] { property });
-            }
-            else if (!Enum.IsDefined(Level.GetValueOrDefault()))
-            {
-                property = nameof(Level);
-                yield return new ValidationResult(string.Format(DicomCoreResource.InvalidDicomTagLevel, Level), new[] { property });
-            }
+        if (!Level.HasValue)
+        {
+            property = nameof(Level);
+            yield return new ValidationResult(string.Format(DicomCoreResource.AddExtendedQueryTagEntryPropertyNotSpecified, property), new[] { property });
+        }
+        else if (!Enum.IsDefined(Level.GetValueOrDefault()))
+        {
+            property = nameof(Level);
+            yield return new ValidationResult(string.Format(DicomCoreResource.InvalidDicomTagLevel, Level), new[] { property });
         }
     }
 }

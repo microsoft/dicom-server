@@ -16,151 +16,150 @@ using Microsoft.Health.SqlServer;
 using Microsoft.Health.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Storage;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem
+namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem;
+
+internal class WorkitemSqlQueryGenerator : BaseSqlQueryGenerator
 {
-    internal class WorkitemSqlQueryGenerator : BaseSqlQueryGenerator
+    private readonly BaseQueryExpression _queryExpression;
+    private const string WorkitemTableAlias = "w";
+
+    public WorkitemSqlQueryGenerator(
+        IndentedStringBuilder stringBuilder,
+        BaseQueryExpression queryExpression,
+        SqlQueryParameterManager sqlQueryParameterManager,
+        SchemaVersion schemaVersion,
+        int partitionKey)
+        : base(stringBuilder, queryExpression, sqlQueryParameterManager, schemaVersion, partitionKey)
     {
-        private readonly BaseQueryExpression _queryExpression;
-        private const string WorkitemTableAlias = "w";
+        _queryExpression = queryExpression;
 
-        public WorkitemSqlQueryGenerator(
-            IndentedStringBuilder stringBuilder,
-            BaseQueryExpression queryExpression,
-            SqlQueryParameterManager sqlQueryParameterManager,
-            SchemaVersion schemaVersion,
-            int partitionKey)
-            : base(stringBuilder, queryExpression, sqlQueryParameterManager, schemaVersion, partitionKey)
+        if ((int)schemaVersion < SchemaVersionConstants.SupportUpsRsSchemaVersion)
         {
-            _queryExpression = queryExpression;
-
-            if ((int)schemaVersion < SchemaVersionConstants.SupportUpsRsSchemaVersion)
-            {
-                throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
-            }
-
-            Build();
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
         }
 
-        protected override int? GetKeyFromQueryTag(QueryTag queryTag)
-        {
-            return queryTag.IsWorkitemQueryTag ? queryTag.WorkitemQueryTagStoreEntry.Key : null;
-        }
+        Build();
+    }
 
-        protected override bool IsIndexedQueryTag(QueryTag queryTag)
-        {
-            return queryTag.IsWorkitemQueryTag;
-        }
+    protected override int? GetKeyFromQueryTag(QueryTag queryTag)
+    {
+        return queryTag.IsWorkitemQueryTag ? queryTag.WorkitemQueryTagStoreEntry.Key : null;
+    }
 
-        private void Build()
-        {
-            string projectionTableAlias = "f";
+    protected override bool IsIndexedQueryTag(QueryTag queryTag)
+    {
+        return queryTag.IsWorkitemQueryTag;
+    }
 
-            AppendSelect(projectionTableAlias);
+    private void Build()
+    {
+        string projectionTableAlias = "f";
 
-            AppendFilterTable(projectionTableAlias);
+        AppendSelect(projectionTableAlias);
 
-            AppendOptionRecompile();
-        }
+        AppendFilterTable(projectionTableAlias);
 
-        private void AppendFilterTable(string filterAlias)
+        AppendOptionRecompile();
+    }
+
+    private void AppendFilterTable(string filterAlias)
+    {
+        StringBuilder
+            .AppendLine("( SELECT ")
+            .Append(VLatest.Workitem.WorkitemUid, WorkitemTableAlias).AppendLine(",")
+            .Append(VLatest.Workitem.WorkitemKey, WorkitemTableAlias).AppendLine();
+
+        if ((int)SchemaVersion >= SchemaVersionConstants.SupportUpsRsWatermarkSchemaVersion)
         {
             StringBuilder
-                .AppendLine("( SELECT ")
-                .Append(VLatest.Workitem.WorkitemUid, WorkitemTableAlias).AppendLine(",")
-                .Append(VLatest.Workitem.WorkitemKey, WorkitemTableAlias).AppendLine();
-
-            if ((int)SchemaVersion >= SchemaVersionConstants.SupportUpsRsWatermarkSchemaVersion)
-            {
-                StringBuilder
-                    .Append(",")
-                    .Append(VLatest.Workitem.Watermark, WorkitemTableAlias)
-                    .AppendLine();
-            }
-
-            StringBuilder.AppendLine($"FROM {VLatest.Workitem.TableName} {WorkitemTableAlias}");
-
-            AppendLongSchemaQueryTables();
-
-            StringBuilder.AppendLine("WHERE 1 = 1");
-
-            AppendStatusClause(WorkitemTableAlias);
-
-            AppendPartitionWhereClause(WorkitemTableAlias);
-
-            using (IndentedStringBuilder.DelimitedScope delimited = StringBuilder.BeginDelimitedWhereClause())
-            {
-                AppendFilterClause();
-            }
-
-            AppendFilterPaging();
-
-            StringBuilder.AppendLine($") {filterAlias}");
+                .Append(",")
+                .Append(VLatest.Workitem.Watermark, WorkitemTableAlias)
+                .AppendLine();
         }
 
-        private void AppendLongSchemaQueryTables()
+        StringBuilder.AppendLine($"FROM {VLatest.Workitem.TableName} {WorkitemTableAlias}");
+
+        AppendLongSchemaQueryTables();
+
+        StringBuilder.AppendLine("WHERE 1 = 1");
+
+        AppendStatusClause(WorkitemTableAlias);
+
+        AppendPartitionWhereClause(WorkitemTableAlias);
+
+        using (IndentedStringBuilder.DelimitedScope delimited = StringBuilder.BeginDelimitedWhereClause())
         {
-            foreach (QueryFilterCondition condition in _queryExpression.FilterConditions.Where(x => x.QueryTag.IsWorkitemQueryTag))
-            {
-                AppendLongSchemaQueryTables(condition, out string extendedQueryTagTableAlias);
-
-                StringBuilder
-                    .Append("ON ")
-                    .Append($"{extendedQueryTagTableAlias}.PartitionKey")
-                    .Append(" = ")
-                    .AppendLine(VLatest.Workitem.PartitionKey, WorkitemTableAlias);
-
-                StringBuilder
-                    .Append("AND ")
-                    .Append($"{extendedQueryTagTableAlias}.ResourceType")
-                    .Append(" = ")
-                    .AppendLine($"{(int)QueryTagResourceType.Workitem}");
-
-                StringBuilder
-                    .Append("AND ")
-                    .Append($"{extendedQueryTagTableAlias}.SopInstanceKey1")
-                    .Append(" = ")
-                    .AppendLine(VLatest.Workitem.WorkitemKey, WorkitemTableAlias);
-            }
+            AppendFilterClause();
         }
 
-        private void AppendSelect(string tableAlias)
+        AppendFilterPaging();
+
+        StringBuilder.AppendLine($") {filterAlias}");
+    }
+
+    private void AppendLongSchemaQueryTables()
+    {
+        foreach (QueryFilterCondition condition in _queryExpression.FilterConditions.Where(x => x.QueryTag.IsWorkitemQueryTag))
         {
+            AppendLongSchemaQueryTables(condition, out string extendedQueryTagTableAlias);
+
             StringBuilder
-                .AppendLine("SELECT ")
-                .Append(VLatest.Workitem.WorkitemKey, tableAlias).AppendLine(",")
-                .Append(VLatest.Workitem.WorkitemUid, tableAlias).AppendLine();
+                .Append("ON ")
+                .Append($"{extendedQueryTagTableAlias}.PartitionKey")
+                .Append(" = ")
+                .AppendLine(VLatest.Workitem.PartitionKey, WorkitemTableAlias);
 
-            if ((int)SchemaVersion >= SchemaVersionConstants.SupportUpsRsWatermarkSchemaVersion)
-            {
-                StringBuilder
-                    .Append(",")
-                    .Append(VLatest.Workitem.Watermark, tableAlias)
-                    .AppendLine();
-            }
-
-            StringBuilder.AppendLine("FROM");
-        }
-
-        private void AppendStatusClause(string tableAlias)
-        {
-            byte validStatus = (byte)IndexStatus.Created;
             StringBuilder
                 .Append("AND ")
-                .Append(VLatest.Workitem.Status, tableAlias)
-                .AppendLine($" = {validStatus} ");
-        }
+                .Append($"{extendedQueryTagTableAlias}.ResourceType")
+                .Append(" = ")
+                .AppendLine($"{(int)QueryTagResourceType.Workitem}");
 
-        private void AppendFilterPaging()
+            StringBuilder
+                .Append("AND ")
+                .Append($"{extendedQueryTagTableAlias}.SopInstanceKey1")
+                .Append(" = ")
+                .AppendLine(VLatest.Workitem.WorkitemKey, WorkitemTableAlias);
+        }
+    }
+
+    private void AppendSelect(string tableAlias)
+    {
+        StringBuilder
+            .AppendLine("SELECT ")
+            .Append(VLatest.Workitem.WorkitemKey, tableAlias).AppendLine(",")
+            .Append(VLatest.Workitem.WorkitemUid, tableAlias).AppendLine();
+
+        if ((int)SchemaVersion >= SchemaVersionConstants.SupportUpsRsWatermarkSchemaVersion)
         {
-            BigIntColumn orderColumn = VLatest.Workitem.WorkitemKey;
-            string tableAlias = WorkitemTableAlias;
-
-            StringBuilder.Append($"ORDER BY ")
-                .Append(orderColumn, tableAlias)
-                .Append(" DESC")
+            StringBuilder
+                .Append(",")
+                .Append(VLatest.Workitem.Watermark, tableAlias)
                 .AppendLine();
-            StringBuilder.AppendLine($"OFFSET {_queryExpression.Offset} ROWS");
-            StringBuilder.AppendLine($"FETCH NEXT {_queryExpression.EvaluatedLimit} ROWS ONLY");
         }
+
+        StringBuilder.AppendLine("FROM");
+    }
+
+    private void AppendStatusClause(string tableAlias)
+    {
+        byte validStatus = (byte)IndexStatus.Created;
+        StringBuilder
+            .Append("AND ")
+            .Append(VLatest.Workitem.Status, tableAlias)
+            .AppendLine($" = {validStatus} ");
+    }
+
+    private void AppendFilterPaging()
+    {
+        BigIntColumn orderColumn = VLatest.Workitem.WorkitemKey;
+        string tableAlias = WorkitemTableAlias;
+
+        StringBuilder.Append($"ORDER BY ")
+            .Append(orderColumn, tableAlias)
+            .Append(" DESC")
+            .AppendLine();
+        StringBuilder.AppendLine($"OFFSET {_queryExpression.Offset} ROWS");
+        StringBuilder.AppendLine($"FETCH NEXT {_queryExpression.EvaluatedLimit} ROWS ONLY");
     }
 }

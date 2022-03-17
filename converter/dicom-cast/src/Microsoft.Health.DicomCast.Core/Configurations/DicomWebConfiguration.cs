@@ -5,21 +5,20 @@
 
 using System;
 
-namespace Microsoft.Health.DicomCast.Core.Configurations
+namespace Microsoft.Health.DicomCast.Core.Configurations;
+
+/// <summary>
+/// The configuration related to DICOMWeb service.
+/// </summary>
+public class DicomWebConfiguration
 {
     /// <summary>
-    /// The configuration related to DICOMWeb service.
+    /// The endpoint to DICOMWeb service.
     /// </summary>
-    public class DicomWebConfiguration
-    {
-        /// <summary>
-        /// The endpoint to DICOMWeb service.
-        /// </summary>
-        public Uri Endpoint { get; set; }
+    public Uri Endpoint { get; set; }
 
-        /// <summary>
-        /// Authentication settings for DICOMWeb.
-        /// </summary>
-        public AuthenticationConfiguration Authentication { get; set; }
-    }
+    /// <summary>
+    /// Authentication settings for DICOMWeb.
+    /// </summary>
+    public AuthenticationConfiguration Authentication { get; set; }
 }

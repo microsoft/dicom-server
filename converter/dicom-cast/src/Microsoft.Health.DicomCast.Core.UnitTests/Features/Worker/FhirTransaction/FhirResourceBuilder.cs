@@ -8,64 +8,63 @@ using Hl7.Fhir.Model;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 
-namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction;
+
+public class FhirResourceBuilder
 {
-    public class FhirResourceBuilder
+    public static ImagingStudy CreateNewImagingStudy(string studyInstanceUid, List<string> seriesInstanceUidList, List<string> sopInstanceUidList, string patientResourceId, string source = "defaultSouce")
     {
-        public static ImagingStudy CreateNewImagingStudy(string studyInstanceUid, List<string> seriesInstanceUidList, List<string> sopInstanceUidList, string patientResourceId, string source = "defaultSouce")
+        // Create a new ImagingStudy
+        ImagingStudy study = new ImagingStudy
         {
-            // Create a new ImagingStudy
-            ImagingStudy study = new ImagingStudy
+            Id = "123",
+            Status = ImagingStudy.ImagingStudyStatus.Available,
+            Subject = new ResourceReference(patientResourceId),
+            Meta = new Meta()
             {
-                Id = "123",
-                Status = ImagingStudy.ImagingStudyStatus.Available,
-                Subject = new ResourceReference(patientResourceId),
-                Meta = new Meta()
-                {
-                    VersionId = "1",
-                    Source = source,
-                },
+                VersionId = "1",
+                Source = source,
+            },
+        };
+
+        foreach (string seriesInstanceUid in seriesInstanceUidList)
+        {
+            ImagingStudy.SeriesComponent series = new ImagingStudy.SeriesComponent()
+            {
+                Uid = seriesInstanceUid,
             };
 
-            foreach (string seriesInstanceUid in seriesInstanceUidList)
+            foreach (string sopInstanceUid in sopInstanceUidList)
             {
-                ImagingStudy.SeriesComponent series = new ImagingStudy.SeriesComponent()
+                ImagingStudy.InstanceComponent instance = new ImagingStudy.InstanceComponent()
                 {
-                    Uid = seriesInstanceUid,
+                    Uid = sopInstanceUid,
                 };
 
-                foreach (string sopInstanceUid in sopInstanceUidList)
-                {
-                    ImagingStudy.InstanceComponent instance = new ImagingStudy.InstanceComponent()
-                    {
-                        Uid = sopInstanceUid,
-                    };
-
-                    series.Instance.Add(instance);
-                }
-
-                study.Series.Add(series);
+                series.Instance.Add(instance);
             }
 
-            study.Identifier.Add(IdentifierUtility.CreateIdentifier(studyInstanceUid));
-
-            return study;
+            study.Series.Add(series);
         }
 
-        public static Endpoint CreateEndpointResource(string id = null, string name = null, string connectionSystem = null, string connectionCode = null, string address = null)
+        study.Identifier.Add(IdentifierUtility.CreateIdentifier(studyInstanceUid));
+
+        return study;
+    }
+
+    public static Endpoint CreateEndpointResource(string id = null, string name = null, string connectionSystem = null, string connectionCode = null, string address = null)
+    {
+        return new Endpoint()
         {
-            return new Endpoint()
+            Id = id ?? "1234",
+            Name = name ?? FhirTransactionConstants.EndpointName,
+            Status = Endpoint.EndpointStatus.Active,
+            ConnectionType = new Coding()
             {
-                Id = id ?? "1234",
-                Name = name ?? FhirTransactionConstants.EndpointName,
-                Status = Endpoint.EndpointStatus.Active,
-                ConnectionType = new Coding()
-                {
-                    System = connectionSystem ?? FhirTransactionConstants.EndpointConnectionTypeSystem,
-                    Code = connectionCode ?? FhirTransactionConstants.EndpointConnectionTypeCode,
-                },
-                Address = address ?? "https://dicom/",
-            };
-        }
+                System = connectionSystem ?? FhirTransactionConstants.EndpointConnectionTypeSystem,
+                Code = connectionCode ?? FhirTransactionConstants.EndpointConnectionTypeCode,
+            },
+            Address = address ?? "https://dicom/",
+        };
     }
 }

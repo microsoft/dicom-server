@@ -5,26 +5,25 @@
 
 using EnsureThat;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Fhir
+namespace Microsoft.Health.DicomCast.Core.Features.Fhir;
+
+/// <summary>
+/// Exception thrown when multiple resources matching the criteria.
+/// </summary>
+public class MultipleMatchingResourcesException : FhirNonRetryableException
 {
-    /// <summary>
-    /// Exception thrown when multiple resources matching the criteria.
-    /// </summary>
-    public class MultipleMatchingResourcesException : FhirNonRetryableException
+    public MultipleMatchingResourcesException(string resourceType)
+        : base(FormatMessage(resourceType))
     {
-        public MultipleMatchingResourcesException(string resourceType)
-            : base(FormatMessage(resourceType))
-        {
-            ResourceType = resourceType;
-        }
+        ResourceType = resourceType;
+    }
 
-        public string ResourceType { get; }
+    public string ResourceType { get; }
 
-        private static string FormatMessage(string resourceType)
-        {
-            EnsureArg.IsNotNullOrWhiteSpace(resourceType, nameof(resourceType));
+    private static string FormatMessage(string resourceType)
+    {
+        EnsureArg.IsNotNullOrWhiteSpace(resourceType, nameof(resourceType));
 
-            return string.Format(DicomCastCoreResource.MultipleMatchingResourcesFound, resourceType);
-        }
+        return string.Format(DicomCastCoreResource.MultipleMatchingResourcesFound, resourceType);
     }
 }

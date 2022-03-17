@@ -5,22 +5,21 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
+
+/// <summary>
+/// Provides list of request that will be used to execute the FHIR transaction.
+/// </summary>
+public class FhirTransactionRequest : IFhirTransactionRequestResponse<FhirTransactionRequestEntry>
 {
-    /// <summary>
-    /// Provides list of request that will be used to execute the FHIR transaction.
-    /// </summary>
-    public class FhirTransactionRequest : IFhirTransactionRequestResponse<FhirTransactionRequestEntry>
-    {
-        /// <inheritdoc/>
-        public FhirTransactionRequestEntry Patient { get; set; }
+    /// <inheritdoc/>
+    public FhirTransactionRequestEntry Patient { get; set; }
 
-        /// <inheritdoc/>
-        public FhirTransactionRequestEntry Endpoint { get; set; }
+    /// <inheritdoc/>
+    public FhirTransactionRequestEntry Endpoint { get; set; }
 
-        /// <inheritdoc/>
-        public FhirTransactionRequestEntry ImagingStudy { get; set; }
+    /// <inheritdoc/>
+    public FhirTransactionRequestEntry ImagingStudy { get; set; }
 
-        public IEnumerable<FhirTransactionRequestEntry> Observation { get; set; }
-    }
+    public IEnumerable<FhirTransactionRequestEntry> Observation { get; set; }
 }

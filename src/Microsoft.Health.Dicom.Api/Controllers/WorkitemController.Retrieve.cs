@@ -10,23 +10,22 @@ using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 
-namespace Microsoft.Health.Dicom.Api.Controllers
+namespace Microsoft.Health.Dicom.Api.Controllers;
+
+public partial class WorkitemController
 {
-    public partial class WorkitemController
+    /// <summary>
+    /// This action requests a UPS Instance on the Origin-Server. It corresponds to the UPS DIMSE N-GET operation.
+    /// </summary>
+    [HttpGet]
+    [VersionedPartitionRoute(KnownRoutes.RetrieveWorkitemInstancesRoute, Name = KnownRouteNames.VersionedPartitionRetrieveWorkitemInstance)]
+    [PartitionRoute(KnownRoutes.RetrieveWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedRetrieveWorkitemInstance)]
+    [VersionedRoute(KnownRoutes.RetrieveWorkitemInstancesRoute, Name = KnownRouteNames.VersionedRetrieveWorkitemInstance)]
+    [Route(KnownRoutes.RetrieveWorkitemInstancesRoute, Name = KnownRouteNames.RetrieveWorkitemInstance)]
+    [AuditEventType(AuditEventSubType.RetrieveWorkitem)]
+    public IActionResult RetrieveAsync()
     {
-        /// <summary>
-        /// This action requests a UPS Instance on the Origin-Server. It corresponds to the UPS DIMSE N-GET operation.
-        /// </summary>
-        [HttpGet]
-        [VersionedPartitionRoute(KnownRoutes.RetrieveWorkitemInstancesRoute, Name = KnownRouteNames.VersionedPartitionRetrieveWorkitemInstance)]
-        [PartitionRoute(KnownRoutes.RetrieveWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedRetrieveWorkitemInstance)]
-        [VersionedRoute(KnownRoutes.RetrieveWorkitemInstancesRoute, Name = KnownRouteNames.VersionedRetrieveWorkitemInstance)]
-        [Route(KnownRoutes.RetrieveWorkitemInstancesRoute, Name = KnownRouteNames.RetrieveWorkitemInstance)]
-        [AuditEventType(AuditEventSubType.RetrieveWorkitem)]
-        public IActionResult RetrieveAsync()
-        {
-            _logger.LogInformation("Requesting non-implemented endpoint.");
-            return new StatusCodeResult((int)HttpStatusCode.NotFound);
-        }
+        _logger.LogInformation("Requesting non-implemented endpoint.");
+        return new StatusCodeResult((int)HttpStatusCode.NotFound);
     }
 }

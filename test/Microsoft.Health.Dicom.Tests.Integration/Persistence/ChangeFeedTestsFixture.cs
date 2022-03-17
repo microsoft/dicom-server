@@ -7,29 +7,28 @@ using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
+namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
+
+public class ChangeFeedTestsFixture : IAsyncLifetime
 {
-    public class ChangeFeedTestsFixture : IAsyncLifetime
+    private readonly SqlDataStoreTestsFixture _sqlDataStoreTestsFixture;
+
+    public ChangeFeedTestsFixture()
     {
-        private readonly SqlDataStoreTestsFixture _sqlDataStoreTestsFixture;
+        _sqlDataStoreTestsFixture = new SqlDataStoreTestsFixture();
+    }
 
-        public ChangeFeedTestsFixture()
-        {
-            _sqlDataStoreTestsFixture = new SqlDataStoreTestsFixture();
-        }
+    public IIndexDataStore DicomIndexDataStore => _sqlDataStoreTestsFixture.IndexDataStore;
 
-        public IIndexDataStore DicomIndexDataStore => _sqlDataStoreTestsFixture.IndexDataStore;
+    public IIndexDataStoreTestHelper DicomIndexDataStoreTestHelper => _sqlDataStoreTestsFixture.IndexDataStoreTestHelper;
 
-        public IIndexDataStoreTestHelper DicomIndexDataStoreTestHelper => _sqlDataStoreTestsFixture.IndexDataStoreTestHelper;
+    public async Task InitializeAsync()
+    {
+        await _sqlDataStoreTestsFixture.InitializeAsync();
+    }
 
-        public async Task InitializeAsync()
-        {
-            await _sqlDataStoreTestsFixture.InitializeAsync();
-        }
-
-        public async Task DisposeAsync()
-        {
-            await _sqlDataStoreTestsFixture.DisposeAsync();
-        }
+    public async Task DisposeAsync()
+    {
+        await _sqlDataStoreTestsFixture.DisposeAsync();
     }
 }

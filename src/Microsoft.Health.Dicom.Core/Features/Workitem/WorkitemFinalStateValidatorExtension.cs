@@ -8,112 +8,111 @@ using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
 
-namespace Microsoft.Health.Dicom.Core.Features.Workitem
+namespace Microsoft.Health.Dicom.Core.Features.Workitem;
+
+/// <summary>
+/// Workitem final-state validator extension
+/// </summary>
+internal static class WorkitemFinalStateValidatorExtension
 {
-    /// <summary>
-    /// Workitem final-state validator extension
-    /// </summary>
-    internal static class WorkitemFinalStateValidatorExtension
+    private static readonly HashSet<FinalStateRequirementDetail> Requirements = GetRequirements();
+
+    public static void ValidateFinalStateRequirement(this DicomDataset dataset)
     {
-        private static readonly HashSet<FinalStateRequirementDetail> Requirements = GetRequirements();
+        var procedureStepState = dataset.GetProcedureState();
 
-        public static void ValidateFinalStateRequirement(this DicomDataset dataset)
+        foreach (var requirement in Requirements)
         {
-            var procedureStepState = dataset.GetProcedureState();
+            dataset.ValidateRequirement(requirement.DicomTag, procedureStepState, requirement.RequirementCode);
 
-            foreach (var requirement in Requirements)
+            if (null != requirement.SequenceRequirements)
             {
-                dataset.ValidateRequirement(requirement.DicomTag, procedureStepState, requirement.RequirementCode);
+                dataset.ValidateSequence(requirement.DicomTag, procedureStepState, requirement.SequenceRequirements);
+            }
+        }
+    }
+
+    private static void ValidateSequence(this DicomDataset dataset, DicomTag sequenceTag, ProcedureStepState procedureStepState, IReadOnlyCollection<FinalStateRequirementDetail> requirements)
+    {
+        if (requirements.Count == 0 || !dataset.TryGetSequence(sequenceTag, out var sequence) || sequence.Items.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var sequenceDataset in sequence.Items)
+        {
+            foreach (var requirement in requirements)
+            {
+                sequenceDataset.ValidateRequirement(requirement.DicomTag, procedureStepState, requirement.RequirementCode);
 
                 if (null != requirement.SequenceRequirements)
                 {
-                    dataset.ValidateSequence(requirement.DicomTag, procedureStepState, requirement.SequenceRequirements);
+                    sequenceDataset.ValidateSequence(requirement.DicomTag, procedureStepState, requirement.SequenceRequirements);
                 }
             }
         }
+    }
 
-        private static void ValidateSequence(this DicomDataset dataset, DicomTag sequenceTag, ProcedureStepState procedureStepState, IReadOnlyCollection<FinalStateRequirementDetail> requirements)
+    /// <summary>
+    /// Refer <see href="https://dicom.nema.org/medical/dicom/current/output/html/part04.html#sect_CC.2.5.1.1"/>
+    /// </summary>
+    /// <returns></returns>
+    private static HashSet<FinalStateRequirementDetail> GetRequirements()
+    {
+        var map = new HashSet<FinalStateRequirementDetail>
         {
-            if (requirements.Count == 0 || !dataset.TryGetSequence(sequenceTag, out var sequence) || sequence.Items.Count == 0)
-            {
-                return;
-            }
+            new FinalStateRequirementDetail(DicomTag.TransactionUID, FinalStateRequirementCode.O),
 
-            foreach (var sequenceDataset in sequence.Items)
-            {
-                foreach (var requirement in requirements)
+            // SOP Common Module
+
+            // Refer: https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.12.html#sect_C.12.1.1.2
+            // Intentionally changed to Optional, until we support character sets.
+            new FinalStateRequirementDetail(DicomTag.SpecificCharacterSet, FinalStateRequirementCode.O),
+            new FinalStateRequirementDetail(DicomTag.SOPClassUID, FinalStateRequirementCode.R),
+            new FinalStateRequirementDetail(DicomTag.SOPInstanceUID, FinalStateRequirementCode.R),
+
+            // Unified Procedure Step Scheduled Procedure Information Module
+            new FinalStateRequirementDetail(DicomTag.ScheduledProcedureStepPriority, FinalStateRequirementCode.R),
+            new FinalStateRequirementDetail(DicomTag.ScheduledProcedureStepModificationDateTime, FinalStateRequirementCode.R),
+            new FinalStateRequirementDetail(DicomTag.ScheduledProcedureStepStartDateTime, FinalStateRequirementCode.R),
+            new FinalStateRequirementDetail(DicomTag.InputReadinessState, FinalStateRequirementCode.R),
+
+            // Unified Procedure Step Relationship Module
+
+            // Patient Demographic Module
+
+            // Patient Medical Module
+
+            // Visit Identification Module
+
+            // Visit Status Module
+
+            // Visit Admission Module
+
+            // Unified Procedure Step Progress Information Module
+            new FinalStateRequirementDetail(DicomTag.ProcedureStepState, FinalStateRequirementCode.R),
+            new FinalStateRequirementDetail(DicomTag.ProcedureStepProgressInformationSequence, FinalStateRequirementCode.X, new HashSet<FinalStateRequirementDetail>
                 {
-                    sequenceDataset.ValidateRequirement(requirement.DicomTag, procedureStepState, requirement.RequirementCode);
+                    new FinalStateRequirementDetail(DicomTag.ProcedureStepCancellationDateTime, FinalStateRequirementCode.X),
+                    new FinalStateRequirementDetail(DicomTag.ProcedureStepDiscontinuationReasonCodeSequence, FinalStateRequirementCode.X),
+                }),
 
-                    if (null != requirement.SequenceRequirements)
-                    {
-                        sequenceDataset.ValidateSequence(requirement.DicomTag, procedureStepState, requirement.SequenceRequirements);
-                    }
-                }
-            }
-        }
+            // Unified Procedure Step Performed Procedure Information Module
+            new FinalStateRequirementDetail(DicomTag.UnifiedProcedureStepPerformedProcedureSequence, FinalStateRequirementCode.P, new HashSet<FinalStateRequirementDetail>
+                {
+                    new FinalStateRequirementDetail(DicomTag.ActualHumanPerformersSequence, FinalStateRequirementCode.RC, new HashSet<FinalStateRequirementDetail>
+                        {
+                            new FinalStateRequirementDetail(DicomTag.HumanPerformerCodeSequence, FinalStateRequirementCode.RC),
+                            new FinalStateRequirementDetail(DicomTag.HumanPerformerName, FinalStateRequirementCode.RC),
+                        }),
+                    new FinalStateRequirementDetail(DicomTag.PerformedStationNameCodeSequence, FinalStateRequirementCode.P),
+                    new FinalStateRequirementDetail(DicomTag.PerformedProcedureStepStartDateTime, FinalStateRequirementCode.P),
+                    new FinalStateRequirementDetail(DicomTag.PerformedWorkitemCodeSequence, FinalStateRequirementCode.P),
+                    new FinalStateRequirementDetail(DicomTag.PerformedProcedureStepEndDateTime, FinalStateRequirementCode.P),
+                    new FinalStateRequirementDetail(DicomTag.OutputInformationSequence, FinalStateRequirementCode.P),
+                }),
+        };
 
-        /// <summary>
-        /// Refer <see href="https://dicom.nema.org/medical/dicom/current/output/html/part04.html#sect_CC.2.5.1.1"/>
-        /// </summary>
-        /// <returns></returns>
-        private static HashSet<FinalStateRequirementDetail> GetRequirements()
-        {
-            var map = new HashSet<FinalStateRequirementDetail>
-            {
-                new FinalStateRequirementDetail(DicomTag.TransactionUID, FinalStateRequirementCode.O),
-
-                // SOP Common Module
-
-                // Refer: https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.12.html#sect_C.12.1.1.2
-                // Intentionally changed to Optional, until we support character sets.
-                new FinalStateRequirementDetail(DicomTag.SpecificCharacterSet, FinalStateRequirementCode.O),
-                new FinalStateRequirementDetail(DicomTag.SOPClassUID, FinalStateRequirementCode.R),
-                new FinalStateRequirementDetail(DicomTag.SOPInstanceUID, FinalStateRequirementCode.R),
-
-                // Unified Procedure Step Scheduled Procedure Information Module
-                new FinalStateRequirementDetail(DicomTag.ScheduledProcedureStepPriority, FinalStateRequirementCode.R),
-                new FinalStateRequirementDetail(DicomTag.ScheduledProcedureStepModificationDateTime, FinalStateRequirementCode.R),
-                new FinalStateRequirementDetail(DicomTag.ScheduledProcedureStepStartDateTime, FinalStateRequirementCode.R),
-                new FinalStateRequirementDetail(DicomTag.InputReadinessState, FinalStateRequirementCode.R),
-
-                // Unified Procedure Step Relationship Module
-
-                // Patient Demographic Module
-
-                // Patient Medical Module
-
-                // Visit Identification Module
-
-                // Visit Status Module
-
-                // Visit Admission Module
-
-                // Unified Procedure Step Progress Information Module
-                new FinalStateRequirementDetail(DicomTag.ProcedureStepState, FinalStateRequirementCode.R),
-                new FinalStateRequirementDetail(DicomTag.ProcedureStepProgressInformationSequence, FinalStateRequirementCode.X, new HashSet<FinalStateRequirementDetail>
-                    {
-                        new FinalStateRequirementDetail(DicomTag.ProcedureStepCancellationDateTime, FinalStateRequirementCode.X),
-                        new FinalStateRequirementDetail(DicomTag.ProcedureStepDiscontinuationReasonCodeSequence, FinalStateRequirementCode.X),
-                    }),
-
-                // Unified Procedure Step Performed Procedure Information Module
-                new FinalStateRequirementDetail(DicomTag.UnifiedProcedureStepPerformedProcedureSequence, FinalStateRequirementCode.P, new HashSet<FinalStateRequirementDetail>
-                    {
-                        new FinalStateRequirementDetail(DicomTag.ActualHumanPerformersSequence, FinalStateRequirementCode.RC, new HashSet<FinalStateRequirementDetail>
-                            {
-                                new FinalStateRequirementDetail(DicomTag.HumanPerformerCodeSequence, FinalStateRequirementCode.RC),
-                                new FinalStateRequirementDetail(DicomTag.HumanPerformerName, FinalStateRequirementCode.RC),
-                            }),
-                        new FinalStateRequirementDetail(DicomTag.PerformedStationNameCodeSequence, FinalStateRequirementCode.P),
-                        new FinalStateRequirementDetail(DicomTag.PerformedProcedureStepStartDateTime, FinalStateRequirementCode.P),
-                        new FinalStateRequirementDetail(DicomTag.PerformedWorkitemCodeSequence, FinalStateRequirementCode.P),
-                        new FinalStateRequirementDetail(DicomTag.PerformedProcedureStepEndDateTime, FinalStateRequirementCode.P),
-                        new FinalStateRequirementDetail(DicomTag.OutputInformationSequence, FinalStateRequirementCode.P),
-                    }),
-            };
-
-            return map;
-        }
+        return map;
     }
 }

@@ -5,13 +5,12 @@
 
 using System;
 
-namespace Microsoft.Health.DicomCast.Core.Exceptions
+namespace Microsoft.Health.DicomCast.Core.Exceptions;
+
+public class DicomTagException : Exception
 {
-    public class DicomTagException : Exception
+    public DicomTagException(string message)
+        : base(message)
     {
-        public DicomTagException(string message)
-            : base(message)
-        {
-        }
     }
 }

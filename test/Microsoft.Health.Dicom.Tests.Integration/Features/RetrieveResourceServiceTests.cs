@@ -30,206 +30,205 @@ using Microsoft.IO;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Tests.Integration.Features
+namespace Microsoft.Health.Dicom.Tests.Integration.Features;
+
+public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>, IClassFixture<SqlDataStoreTestsFixture>
 {
-    public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>, IClassFixture<SqlDataStoreTestsFixture>
+    private readonly RetrieveResourceService _retrieveResourceService;
+    private readonly IIndexDataStore _indexDataStore;
+    private readonly IInstanceStore _instanceStore;
+    private readonly IFileStore _fileStore;
+    private readonly ITranscoder _retrieveTranscoder;
+    private readonly IFrameHandler _frameHandler;
+    private readonly IRetrieveTransferSyntaxHandler _retrieveTransferSyntaxHandler;
+    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
+    private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+
+    private readonly string _studyInstanceUid = TestUidGenerator.Generate();
+    private readonly string _firstSeriesInstanceUid = TestUidGenerator.Generate();
+    private readonly string _secondSeriesInstanceUid = TestUidGenerator.Generate();
+
+    public RetrieveResourceServiceTests(DataStoreTestsFixture blobStorageFixture, SqlDataStoreTestsFixture sqlIndexStorageFixture)
     {
-        private readonly RetrieveResourceService _retrieveResourceService;
-        private readonly IIndexDataStore _indexDataStore;
-        private readonly IInstanceStore _instanceStore;
-        private readonly IFileStore _fileStore;
-        private readonly ITranscoder _retrieveTranscoder;
-        private readonly IFrameHandler _frameHandler;
-        private readonly IRetrieveTransferSyntaxHandler _retrieveTransferSyntaxHandler;
-        private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
-        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+        EnsureArg.IsNotNull(sqlIndexStorageFixture, nameof(sqlIndexStorageFixture));
+        EnsureArg.IsNotNull(blobStorageFixture, nameof(blobStorageFixture));
+        _instanceStore = sqlIndexStorageFixture.InstanceStore;
+        _indexDataStore = sqlIndexStorageFixture.IndexDataStore;
+        _fileStore = blobStorageFixture.FileStore;
+        _retrieveTranscoder = Substitute.For<ITranscoder>();
+        _frameHandler = Substitute.For<IFrameHandler>();
 
-        private readonly string _studyInstanceUid = TestUidGenerator.Generate();
-        private readonly string _firstSeriesInstanceUid = TestUidGenerator.Generate();
-        private readonly string _secondSeriesInstanceUid = TestUidGenerator.Generate();
+        _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+        _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
 
-        public RetrieveResourceServiceTests(DataStoreTestsFixture blobStorageFixture, SqlDataStoreTestsFixture sqlIndexStorageFixture)
+        _retrieveTransferSyntaxHandler = new RetrieveTransferSyntaxHandler(NullLogger<RetrieveTransferSyntaxHandler>.Instance);
+        _recyclableMemoryStreamManager = blobStorageFixture.RecyclableMemoryStreamManager;
+        var retrieveConfigurationSnapshot = Substitute.For<IOptionsSnapshot<RetrieveConfiguration>>();
+        retrieveConfigurationSnapshot.Value.Returns(new RetrieveConfiguration());
+        _retrieveResourceService = new RetrieveResourceService(
+            _instanceStore, _fileStore, _retrieveTranscoder, _frameHandler, _retrieveTransferSyntaxHandler, _dicomRequestContextAccessor, retrieveConfigurationSnapshot, NullLogger<RetrieveResourceService>.Instance);
+    }
+
+    [Fact]
+    public async Task GivenNoStoredInstances_WhenRetrieveRequestForStudy_ThenNotFoundIsThrown()
+    {
+        await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
+            new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
+            CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task GivenStoredInstancesWithMissingFile_WhenRetrieveRequestForStudy_ThenNotFoundIsThrown()
+    {
+        await GenerateDicomDatasets(_firstSeriesInstanceUid, 1, true);
+        await GenerateDicomDatasets(_firstSeriesInstanceUid, 1, false);
+        await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true);
+
+        var response = await _retrieveResourceService.GetInstanceResourceAsync(
+                                new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
+                                CancellationToken.None);
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => response.GetStreamsAsync());
+    }
+
+    [Fact]
+    public async Task GivenStoredInstances_WhenRetrieveRequestForStudy_ThenInstancesInStudyAreRetrievedSuccesfully()
+    {
+        var datasets = new List<DicomDataset>();
+        datasets.AddRange(await GenerateDicomDatasets(_firstSeriesInstanceUid, 2, true));
+        datasets.AddRange(await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true));
+
+        RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
+            new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
+            CancellationToken.None);
+
+        ValidateResponseDicomFiles(await response.GetStreamsAsync(), datasets.Select(ds => ds));
+    }
+
+    [Fact]
+    public async Task GivenNoStoredInstances_WhenRetrieveRequestForSeries_ThenNotFoundIsThrown()
+    {
+        await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
+            new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
+            CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task GivenStoredInstancesWithMissingFile_WhenRetrieveRequestForSeries_ThenNotFoundIsThrown()
+    {
+        await GenerateDicomDatasets(_firstSeriesInstanceUid, 2, true);
+        await GenerateDicomDatasets(_firstSeriesInstanceUid, 1, false);
+        await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true);
+
+        RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
+                                                    new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
+                                                    CancellationToken.None);
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => response.GetStreamsAsync());
+    }
+
+    [Fact]
+    public async Task GivenStoredInstances_WhenRetrieveRequestForSeries_ThenInstancesInSeriesAreRetrievedSuccesfully()
+    {
+        var datasets = new List<DicomDataset>();
+        datasets.AddRange(await GenerateDicomDatasets(_firstSeriesInstanceUid, 2, true));
+        datasets.AddRange(await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true));
+
+        RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
+            new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
+            CancellationToken.None);
+
+        ValidateResponseDicomFiles(await response.GetStreamsAsync(), datasets.Select(ds => ds).Where(ds => ds.ToInstanceIdentifier().SeriesInstanceUid == _firstSeriesInstanceUid));
+        ValidateDicomRequestIsPopulated();
+    }
+
+    private async Task<List<DicomDataset>> GenerateDicomDatasets(string seriesInstanceUid, int instancesinSeries, bool storeInstanceFile)
+    {
+        var dicomDatasets = new List<DicomDataset>();
+        for (int i = 0; i < instancesinSeries; i++)
         {
-            EnsureArg.IsNotNull(sqlIndexStorageFixture, nameof(sqlIndexStorageFixture));
-            EnsureArg.IsNotNull(blobStorageFixture, nameof(blobStorageFixture));
-            _instanceStore = sqlIndexStorageFixture.InstanceStore;
-            _indexDataStore = sqlIndexStorageFixture.IndexDataStore;
-            _fileStore = blobStorageFixture.FileStore;
-            _retrieveTranscoder = Substitute.For<ITranscoder>();
-            _frameHandler = Substitute.For<IFrameHandler>();
-
-            _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-            _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
-
-            _retrieveTransferSyntaxHandler = new RetrieveTransferSyntaxHandler(NullLogger<RetrieveTransferSyntaxHandler>.Instance);
-            _recyclableMemoryStreamManager = blobStorageFixture.RecyclableMemoryStreamManager;
-            var retrieveConfigurationSnapshot = Substitute.For<IOptionsSnapshot<RetrieveConfiguration>>();
-            retrieveConfigurationSnapshot.Value.Returns(new RetrieveConfiguration());
-            _retrieveResourceService = new RetrieveResourceService(
-                _instanceStore, _fileStore, _retrieveTranscoder, _frameHandler, _retrieveTransferSyntaxHandler, _dicomRequestContextAccessor, retrieveConfigurationSnapshot, NullLogger<RetrieveResourceService>.Instance);
-        }
-
-        [Fact]
-        public async Task GivenNoStoredInstances_WhenRetrieveRequestForStudy_ThenNotFoundIsThrown()
-        {
-            await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
-                new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
-                CancellationToken.None));
-        }
-
-        [Fact]
-        public async Task GivenStoredInstancesWithMissingFile_WhenRetrieveRequestForStudy_ThenNotFoundIsThrown()
-        {
-            await GenerateDicomDatasets(_firstSeriesInstanceUid, 1, true);
-            await GenerateDicomDatasets(_firstSeriesInstanceUid, 1, false);
-            await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true);
-
-            var response = await _retrieveResourceService.GetInstanceResourceAsync(
-                                    new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
-                                    CancellationToken.None);
-            await Assert.ThrowsAsync<ItemNotFoundException>(() => response.GetStreamsAsync());
-        }
-
-        [Fact]
-        public async Task GivenStoredInstances_WhenRetrieveRequestForStudy_ThenInstancesInStudyAreRetrievedSuccesfully()
-        {
-            var datasets = new List<DicomDataset>();
-            datasets.AddRange(await GenerateDicomDatasets(_firstSeriesInstanceUid, 2, true));
-            datasets.AddRange(await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true));
-
-            RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
-                new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
-                CancellationToken.None);
-
-            ValidateResponseDicomFiles(await response.GetStreamsAsync(), datasets.Select(ds => ds));
-        }
-
-        [Fact]
-        public async Task GivenNoStoredInstances_WhenRetrieveRequestForSeries_ThenNotFoundIsThrown()
-        {
-            await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
-                new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
-                CancellationToken.None));
-        }
-
-        [Fact]
-        public async Task GivenStoredInstancesWithMissingFile_WhenRetrieveRequestForSeries_ThenNotFoundIsThrown()
-        {
-            await GenerateDicomDatasets(_firstSeriesInstanceUid, 2, true);
-            await GenerateDicomDatasets(_firstSeriesInstanceUid, 1, false);
-            await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true);
-
-            RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
-                                                        new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
-                                                        CancellationToken.None);
-            await Assert.ThrowsAsync<ItemNotFoundException>(() => response.GetStreamsAsync());
-        }
-
-        [Fact]
-        public async Task GivenStoredInstances_WhenRetrieveRequestForSeries_ThenInstancesInSeriesAreRetrievedSuccesfully()
-        {
-            var datasets = new List<DicomDataset>();
-            datasets.AddRange(await GenerateDicomDatasets(_firstSeriesInstanceUid, 2, true));
-            datasets.AddRange(await GenerateDicomDatasets(_secondSeriesInstanceUid, 1, true));
-
-            RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
-                new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
-                CancellationToken.None);
-
-            ValidateResponseDicomFiles(await response.GetStreamsAsync(), datasets.Select(ds => ds).Where(ds => ds.ToInstanceIdentifier().SeriesInstanceUid == _firstSeriesInstanceUid));
-            ValidateDicomRequestIsPopulated();
-        }
-
-        private async Task<List<DicomDataset>> GenerateDicomDatasets(string seriesInstanceUid, int instancesinSeries, bool storeInstanceFile)
-        {
-            var dicomDatasets = new List<DicomDataset>();
-            for (int i = 0; i < instancesinSeries; i++)
+            var ds = new DicomDataset(DicomTransferSyntax.ExplicitVRLittleEndian)
             {
-                var ds = new DicomDataset(DicomTransferSyntax.ExplicitVRLittleEndian)
-                {
-                    { DicomTag.StudyInstanceUID, _studyInstanceUid },
-                    { DicomTag.SeriesInstanceUID, seriesInstanceUid },
-                    { DicomTag.SOPInstanceUID, TestUidGenerator.Generate() },
-                    { DicomTag.SOPClassUID, TestUidGenerator.Generate() },
-                    { DicomTag.PatientID, TestUidGenerator.Generate() },
-                    { DicomTag.BitsAllocated, (ushort)8 },
-                    { DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value },
-                };
+                { DicomTag.StudyInstanceUID, _studyInstanceUid },
+                { DicomTag.SeriesInstanceUID, seriesInstanceUid },
+                { DicomTag.SOPInstanceUID, TestUidGenerator.Generate() },
+                { DicomTag.SOPClassUID, TestUidGenerator.Generate() },
+                { DicomTag.PatientID, TestUidGenerator.Generate() },
+                { DicomTag.BitsAllocated, (ushort)8 },
+                { DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value },
+            };
 
-                await StoreDatasetsAndInstances(ds, storeInstanceFile);
-                dicomDatasets.Add(ds);
-            }
-
-            return dicomDatasets;
+            await StoreDatasetsAndInstances(ds, storeInstanceFile);
+            dicomDatasets.Add(ds);
         }
 
-        private async Task StoreDatasetsAndInstances(DicomDataset dataset, bool flagToStoreInstance)
+        return dicomDatasets;
+    }
+
+    private async Task StoreDatasetsAndInstances(DicomDataset dataset, bool flagToStoreInstance)
+    {
+        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+
+        var versionedInstanceIdentifier = dataset.ToVersionedInstanceIdentifier(version);
+
+        if (flagToStoreInstance)
         {
-            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+            var dicomFile = new DicomFile(dataset);
 
-            var versionedInstanceIdentifier = dataset.ToVersionedInstanceIdentifier(version);
+            Samples.AppendRandomPixelData(5, 5, 0, dicomFile);
 
-            if (flagToStoreInstance)
-            {
-                var dicomFile = new DicomFile(dataset);
+            await using MemoryStream stream = _recyclableMemoryStreamManager.GetStream();
 
-                Samples.AppendRandomPixelData(5, 5, 0, dicomFile);
-
-                await using MemoryStream stream = _recyclableMemoryStreamManager.GetStream();
-
-                dicomFile.Save(stream);
-                stream.Position = 0;
-                await _fileStore.StoreFileAsync(
-                    versionedInstanceIdentifier,
-                    stream);
-            }
-
-            await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, version);
+            dicomFile.Save(stream);
+            stream.Position = 0;
+            await _fileStore.StoreFileAsync(
+                versionedInstanceIdentifier,
+                stream);
         }
 
-        private void ValidateResponseDicomFiles(
-            IEnumerable<Stream> responseStreams,
-            IEnumerable<DicomDataset> expectedDatasets)
+        await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, version);
+    }
+
+    private void ValidateResponseDicomFiles(
+        IEnumerable<Stream> responseStreams,
+        IEnumerable<DicomDataset> expectedDatasets)
+    {
+        var responseDicomFiles = responseStreams.Select(x => DicomFile.Open(x)).ToList();
+
+        Assert.Equal(expectedDatasets.Count(), responseDicomFiles.Count);
+
+        foreach (DicomDataset expectedDataset in expectedDatasets)
         {
-            var responseDicomFiles = responseStreams.Select(x => DicomFile.Open(x)).ToList();
+            DicomFile actualFile = responseDicomFiles.First(x => x.Dataset.ToInstanceIdentifier().Equals(expectedDataset.ToInstanceIdentifier()));
 
-            Assert.Equal(expectedDatasets.Count(), responseDicomFiles.Count);
-
-            foreach (DicomDataset expectedDataset in expectedDatasets)
+            // If the same transfer syntax as original, the files should be exactly the same
+            if (expectedDataset.InternalTransferSyntax == actualFile.Dataset.InternalTransferSyntax)
             {
-                DicomFile actualFile = responseDicomFiles.First(x => x.Dataset.ToInstanceIdentifier().Equals(expectedDataset.ToInstanceIdentifier()));
+                var expectedFileArray = DicomFileToByteArray(new DicomFile(expectedDataset));
+                var actualFileArray = DicomFileToByteArray(actualFile);
 
-                // If the same transfer syntax as original, the files should be exactly the same
-                if (expectedDataset.InternalTransferSyntax == actualFile.Dataset.InternalTransferSyntax)
+                Assert.Equal(expectedFileArray.Length, actualFileArray.Length);
+
+                for (var ii = 0; ii < expectedFileArray.Length; ii++)
                 {
-                    var expectedFileArray = DicomFileToByteArray(new DicomFile(expectedDataset));
-                    var actualFileArray = DicomFileToByteArray(actualFile);
-
-                    Assert.Equal(expectedFileArray.Length, actualFileArray.Length);
-
-                    for (var ii = 0; ii < expectedFileArray.Length; ii++)
-                    {
-                        Assert.Equal(expectedFileArray[ii], actualFileArray[ii]);
-                    }
-                }
-                else
-                {
-                    throw new NotImplementedException("Transcoded files do not have an implemented validation mechanism.");
+                    Assert.Equal(expectedFileArray[ii], actualFileArray[ii]);
                 }
             }
+            else
+            {
+                throw new NotImplementedException("Transcoded files do not have an implemented validation mechanism.");
+            }
         }
+    }
 
-        private void ValidateDicomRequestIsPopulated(bool isTranscodeRequested = false, long sizeOfTranscode = 0)
-        {
-            Assert.Equal(isTranscodeRequested, _dicomRequestContextAccessor.RequestContext.IsTranscodeRequested);
-            Assert.Equal(sizeOfTranscode, _dicomRequestContextAccessor.RequestContext.BytesTranscoded);
-        }
+    private void ValidateDicomRequestIsPopulated(bool isTranscodeRequested = false, long sizeOfTranscode = 0)
+    {
+        Assert.Equal(isTranscodeRequested, _dicomRequestContextAccessor.RequestContext.IsTranscodeRequested);
+        Assert.Equal(sizeOfTranscode, _dicomRequestContextAccessor.RequestContext.BytesTranscoded);
+    }
 
-        private byte[] DicomFileToByteArray(DicomFile dicomFile)
-        {
-            using MemoryStream memoryStream = _recyclableMemoryStreamManager.GetStream();
-            dicomFile.Save(memoryStream);
-            return memoryStream.ToArray();
-        }
+    private byte[] DicomFileToByteArray(DicomFile dicomFile)
+    {
+        using MemoryStream memoryStream = _recyclableMemoryStreamManager.GetStream();
+        dicomFile.Save(memoryStream);
+        return memoryStream.ToArray();
     }
 }

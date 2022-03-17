@@ -13,82 +13,81 @@ using NSubstitute;
 using Xunit;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction;
+
+public class ImagingStudyPipelineStepTests
 {
-    public class ImagingStudyPipelineStepTests
+    private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
+
+    private readonly IImagingStudyDeleteHandler _imagingStudyDeleteHandler;
+    private readonly IImagingStudyUpsertHandler _imagingStudyUpsertHandler;
+    private readonly ImagingStudyPipelineStep _imagingStudyPipeline;
+
+    public ImagingStudyPipelineStepTests()
     {
-        private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
+        _imagingStudyDeleteHandler = Substitute.For<IImagingStudyDeleteHandler>();
+        _imagingStudyUpsertHandler = Substitute.For<IImagingStudyUpsertHandler>();
 
-        private readonly IImagingStudyDeleteHandler _imagingStudyDeleteHandler;
-        private readonly IImagingStudyUpsertHandler _imagingStudyUpsertHandler;
-        private readonly ImagingStudyPipelineStep _imagingStudyPipeline;
+        _imagingStudyPipeline = new ImagingStudyPipelineStep(_imagingStudyUpsertHandler, _imagingStudyDeleteHandler);
+    }
 
-        public ImagingStudyPipelineStepTests()
-        {
-            _imagingStudyDeleteHandler = Substitute.For<IImagingStudyDeleteHandler>();
-            _imagingStudyUpsertHandler = Substitute.For<IImagingStudyUpsertHandler>();
+    [Fact]
+    public async Task GivenAChangeFeedEntryForCreate_WhenPreparingTheRequest_ThenCreateHandlerIsCalled()
+    {
+        const string studyInstanceUid = "1";
+        const string seriesInstanceUid = "2";
+        const string sopInstanceUid = "3";
 
-            _imagingStudyPipeline = new ImagingStudyPipelineStep(_imagingStudyUpsertHandler, _imagingStudyDeleteHandler);
-        }
+        ChangeFeedEntry changeFeed = ChangeFeedGenerator.Generate(
+                action: ChangeFeedAction.Create,
+                studyInstanceUid: studyInstanceUid,
+                seriesInstanceUid: seriesInstanceUid,
+                sopInstanceUid: sopInstanceUid);
 
-        [Fact]
-        public async Task GivenAChangeFeedEntryForCreate_WhenPreparingTheRequest_ThenCreateHandlerIsCalled()
-        {
-            const string studyInstanceUid = "1";
-            const string seriesInstanceUid = "2";
-            const string sopInstanceUid = "3";
+        var fhirTransactionContext = new FhirTransactionContext(changeFeed);
 
-            ChangeFeedEntry changeFeed = ChangeFeedGenerator.Generate(
-                    action: ChangeFeedAction.Create,
-                    studyInstanceUid: studyInstanceUid,
-                    seriesInstanceUid: seriesInstanceUid,
-                    sopInstanceUid: sopInstanceUid);
+        await _imagingStudyPipeline.PrepareRequestAsync(fhirTransactionContext, DefaultCancellationToken);
 
-            var fhirTransactionContext = new FhirTransactionContext(changeFeed);
+        await _imagingStudyUpsertHandler.Received(1).BuildAsync(fhirTransactionContext, DefaultCancellationToken);
+    }
 
-            await _imagingStudyPipeline.PrepareRequestAsync(fhirTransactionContext, DefaultCancellationToken);
+    [Fact]
+    public void GivenARequestToCreateAnImagingStudy_WhenResponseIsOK_ThenResourceConflictExceptionShouldBeThrown()
+    {
+        var response = new Bundle.ResponseComponent();
 
-            await _imagingStudyUpsertHandler.Received(1).BuildAsync(fhirTransactionContext, DefaultCancellationToken);
-        }
+        response.AddAnnotation(HttpStatusCode.OK);
 
-        [Fact]
-        public void GivenARequestToCreateAnImagingStudy_WhenResponseIsOK_ThenResourceConflictExceptionShouldBeThrown()
-        {
-            var response = new Bundle.ResponseComponent();
+        var context = new FhirTransactionContext(ChangeFeedGenerator.Generate());
 
-            response.AddAnnotation(HttpStatusCode.OK);
+        context.Request.ImagingStudy = FhirTransactionRequestEntryGenerator.GenerateDefaultCreateRequestEntry<ImagingStudy>();
 
-            var context = new FhirTransactionContext(ChangeFeedGenerator.Generate());
+        context.Response.ImagingStudy = new FhirTransactionResponseEntry(response, new ImagingStudy());
 
-            context.Request.ImagingStudy = FhirTransactionRequestEntryGenerator.GenerateDefaultCreateRequestEntry<ImagingStudy>();
+        Assert.Throws<ResourceConflictException>(() => _imagingStudyPipeline.ProcessResponse(context));
+    }
 
-            context.Response.ImagingStudy = new FhirTransactionResponseEntry(response, new ImagingStudy());
+    [Fact]
+    public async Task GivenAChangeFeedEntryForDelete_WhenBuilt_ThenDeleteHandlerIsCalled()
+    {
+        const string studyInstanceUid = "1";
+        const string seriesInstanceUid = "2";
+        const string sopInstanceUid = "3";
+        const string patientResourceId = "p1";
 
-            Assert.Throws<ResourceConflictException>(() => _imagingStudyPipeline.ProcessResponse(context));
-        }
+        ChangeFeedEntry changeFeed = ChangeFeedGenerator.Generate(
+                action: ChangeFeedAction.Delete,
+                studyInstanceUid: studyInstanceUid,
+                seriesInstanceUid: seriesInstanceUid,
+                sopInstanceUid: sopInstanceUid);
 
-        [Fact]
-        public async Task GivenAChangeFeedEntryForDelete_WhenBuilt_ThenDeleteHandlerIsCalled()
-        {
-            const string studyInstanceUid = "1";
-            const string seriesInstanceUid = "2";
-            const string sopInstanceUid = "3";
-            const string patientResourceId = "p1";
+        var fhirTransactionContext = new FhirTransactionContext(changeFeed);
 
-            ChangeFeedEntry changeFeed = ChangeFeedGenerator.Generate(
-                    action: ChangeFeedAction.Delete,
-                    studyInstanceUid: studyInstanceUid,
-                    seriesInstanceUid: seriesInstanceUid,
-                    sopInstanceUid: sopInstanceUid);
+        fhirTransactionContext.Request.Patient = FhirTransactionRequestEntryGenerator.GenerateDefaultNoChangeRequestEntry<Patient>(
+            new ServerResourceId(ResourceType.Patient, patientResourceId));
 
-            var fhirTransactionContext = new FhirTransactionContext(changeFeed);
+        await _imagingStudyPipeline.PrepareRequestAsync(fhirTransactionContext, DefaultCancellationToken);
 
-            fhirTransactionContext.Request.Patient = FhirTransactionRequestEntryGenerator.GenerateDefaultNoChangeRequestEntry<Patient>(
-                new ServerResourceId(ResourceType.Patient, patientResourceId));
-
-            await _imagingStudyPipeline.PrepareRequestAsync(fhirTransactionContext, DefaultCancellationToken);
-
-            await _imagingStudyDeleteHandler.Received(1).BuildAsync(fhirTransactionContext, DefaultCancellationToken);
-        }
+        await _imagingStudyDeleteHandler.Received(1).BuildAsync(fhirTransactionContext, DefaultCancellationToken);
     }
 }

@@ -14,40 +14,39 @@ using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
-namespace Microsoft.Health.Dicom.Core.Features.Retrieve
+namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
+
+public class RetrieveResourceHandler : BaseHandler, IRequestHandler<RetrieveResourceRequest, RetrieveResourceResponse>
 {
-    public class RetrieveResourceHandler : BaseHandler, IRequestHandler<RetrieveResourceRequest, RetrieveResourceResponse>
+    private readonly IRetrieveResourceService _retrieveResourceService;
+
+    public RetrieveResourceHandler(IAuthorizationService<DataActions> authorizationService, IRetrieveResourceService retrieveResourceService)
+        : base(authorizationService)
     {
-        private readonly IRetrieveResourceService _retrieveResourceService;
+        _retrieveResourceService = EnsureArg.IsNotNull(retrieveResourceService, nameof(retrieveResourceService));
+    }
 
-        public RetrieveResourceHandler(IAuthorizationService<DataActions> authorizationService, IRetrieveResourceService retrieveResourceService)
-            : base(authorizationService)
+    public async Task<RetrieveResourceResponse> Handle(
+        RetrieveResourceRequest request, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(request, nameof(request));
+
+        if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
         {
-            _retrieveResourceService = EnsureArg.IsNotNull(retrieveResourceService, nameof(retrieveResourceService));
+            throw new UnauthorizedDicomActionException(DataActions.Read);
         }
 
-        public async Task<RetrieveResourceResponse> Handle(
-            RetrieveResourceRequest request, CancellationToken cancellationToken)
+        ValidateRetrieveResourceRequest(request);
+
+        return await _retrieveResourceService.GetInstanceResourceAsync(request, cancellationToken);
+    }
+
+    private static void ValidateRetrieveResourceRequest(RetrieveResourceRequest request)
+    {
+        RetrieveRequestValidator.ValidateInstanceIdentifiers(request.ResourceType, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid);
+        if (request.ResourceType == ResourceType.Frames)
         {
-            EnsureArg.IsNotNull(request, nameof(request));
-
-            if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
-            {
-                throw new UnauthorizedDicomActionException(DataActions.Read);
-            }
-
-            ValidateRetrieveResourceRequest(request);
-
-            return await _retrieveResourceService.GetInstanceResourceAsync(request, cancellationToken);
-        }
-
-        private static void ValidateRetrieveResourceRequest(RetrieveResourceRequest request)
-        {
-            RetrieveRequestValidator.ValidateInstanceIdentifiers(request.ResourceType, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid);
-            if (request.ResourceType == ResourceType.Frames)
-            {
-                RetrieveRequestValidator.ValidateFrames(request.Frames);
-            }
+            RetrieveRequestValidator.ValidateFrames(request.Frames);
         }
     }
 }

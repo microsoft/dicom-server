@@ -14,73 +14,72 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common
+namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common;
+
+internal class DicomInstancesManager : IAsyncDisposable
 {
-    internal class DicomInstancesManager : IAsyncDisposable
+
+    private readonly IDicomWebClient _dicomWebClient;
+    private readonly ConcurrentBag<DicomInstanceId> _instanceIds;
+
+    public DicomInstancesManager(IDicomWebClient dicomWebClient)
     {
+        _dicomWebClient = EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
+        _instanceIds = new ConcurrentBag<DicomInstanceId>();
+    }
 
-        private readonly IDicomWebClient _dicomWebClient;
-        private readonly ConcurrentBag<DicomInstanceId> _instanceIds;
-
-        public DicomInstancesManager(IDicomWebClient dicomWebClient)
+    public async ValueTask DisposeAsync()
+    {
+        foreach (var id in _instanceIds)
         {
-            _dicomWebClient = EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
-            _instanceIds = new ConcurrentBag<DicomInstanceId>();
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            foreach (var id in _instanceIds)
+            try
             {
-                try
-                {
-                    await _dicomWebClient.DeleteInstanceAsync(id.StudyInstanceUid, id.SeriesInstanceUid, id.SopInstanceUid, id.PartitionName);
-                }
-                catch (DicomWebException)
-                {
+                await _dicomWebClient.DeleteInstanceAsync(id.StudyInstanceUid, id.SeriesInstanceUid, id.SopInstanceUid, id.PartitionName);
+            }
+            catch (DicomWebException)
+            {
 
-                }
             }
         }
+    }
 
-        public async Task<DicomWebResponse<DicomDataset>> StoreAsync(DicomFile dicomFile, string studyInstanceUid = default, string partitionName = default, CancellationToken cancellationToken = default)
+    public async Task<DicomWebResponse<DicomDataset>> StoreAsync(DicomFile dicomFile, string studyInstanceUid = default, string partitionName = default, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
+        _instanceIds.Add(DicomInstanceId.FromDicomFile(dicomFile, partitionName));
+        return await _dicomWebClient.StoreAsync(dicomFile, studyInstanceUid, partitionName, cancellationToken);
+    }
+
+    public async Task<DicomWebResponse<DicomDataset>> StoreAsync(HttpContent content, string partitionName = default, CancellationToken cancellationToken = default, DicomInstanceId instanceId = default)
+    {
+        EnsureArg.IsNotNull(content, nameof(content));
+        // Null instanceId indiates Store will fail
+        if (instanceId != null)
         {
-            EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
-            _instanceIds.Add(DicomInstanceId.FromDicomFile(dicomFile, partitionName));
-            return await _dicomWebClient.StoreAsync(dicomFile, studyInstanceUid, partitionName, cancellationToken);
+            _instanceIds.Add(instanceId);
+        }
+        return await _dicomWebClient.StoreAsync(content, partitionName, cancellationToken);
+    }
+
+    public async Task<DicomWebResponse<DicomDataset>> StoreAsync(IEnumerable<DicomFile> dicomFiles, string studyInstanceUid = default, string partitionName = default, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(dicomFiles, nameof(dicomFiles));
+        foreach (var file in dicomFiles)
+        {
+            _instanceIds.Add(DicomInstanceId.FromDicomFile(file, partitionName));
         }
 
-        public async Task<DicomWebResponse<DicomDataset>> StoreAsync(HttpContent content, string partitionName = default, CancellationToken cancellationToken = default, DicomInstanceId instanceId = default)
-        {
-            EnsureArg.IsNotNull(content, nameof(content));
-            // Null instanceId indiates Store will fail
-            if (instanceId != null)
-            {
-                _instanceIds.Add(instanceId);
-            }
-            return await _dicomWebClient.StoreAsync(content, partitionName, cancellationToken);
-        }
+        return await _dicomWebClient.StoreAsync(dicomFiles, studyInstanceUid, partitionName, cancellationToken);
+    }
 
-        public async Task<DicomWebResponse<DicomDataset>> StoreAsync(IEnumerable<DicomFile> dicomFiles, string studyInstanceUid = default, string partitionName = default, CancellationToken cancellationToken = default)
+    public async Task<DicomWebResponse<DicomDataset>> StoreAsync(Stream stream, string studyInstanceUid = default, string partitionName = default, CancellationToken cancellationToken = default, DicomInstanceId instanceId = default)
+    {
+        EnsureArg.IsNotNull(stream, nameof(stream));
+        // Null instanceId indiates Store will fail
+        if (instanceId != null)
         {
-            EnsureArg.IsNotNull(dicomFiles, nameof(dicomFiles));
-            foreach (var file in dicomFiles)
-            {
-                _instanceIds.Add(DicomInstanceId.FromDicomFile(file, partitionName));
-            }
-
-            return await _dicomWebClient.StoreAsync(dicomFiles, studyInstanceUid, partitionName, cancellationToken);
+            _instanceIds.Add(instanceId);
         }
-
-        public async Task<DicomWebResponse<DicomDataset>> StoreAsync(Stream stream, string studyInstanceUid = default, string partitionName = default, CancellationToken cancellationToken = default, DicomInstanceId instanceId = default)
-        {
-            EnsureArg.IsNotNull(stream, nameof(stream));
-            // Null instanceId indiates Store will fail
-            if (instanceId != null)
-            {
-                _instanceIds.Add(instanceId);
-            }
-            return await _dicomWebClient.StoreAsync(stream, studyInstanceUid, partitionName, cancellationToken);
-        }
+        return await _dicomWebClient.StoreAsync(stream, studyInstanceUid, partitionName, cancellationToken);
     }
 }

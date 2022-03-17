@@ -3,15 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Blob.Utilities
-{
-    /// <summary>
-    /// 
-    /// </summary>
-    public interface IStoreConfigurationSection
-    {
-        string ConfigurationSectionName { get; }
+namespace Microsoft.Health.Dicom.Blob.Utilities;
 
-        string ContainerConfigurationName { get; }
-    }
+/// <summary>
+/// 
+/// </summary>
+public interface IStoreConfigurationSection
+{
+    string ConfigurationSectionName { get; }
+
+    string ContainerConfigurationName { get; }
 }

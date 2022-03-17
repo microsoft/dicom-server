@@ -16,63 +16,62 @@ using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
 
-namespace Microsoft.Health.Dicom.Core.Features.Delete
+namespace Microsoft.Health.Dicom.Core.Features.Delete;
+
+public class DeleteHandler : BaseHandler, IRequestHandler<DeleteResourcesRequest, DeleteResourcesResponse>
 {
-    public class DeleteHandler : BaseHandler, IRequestHandler<DeleteResourcesRequest, DeleteResourcesResponse>
+    private readonly IDeleteService _deleteService;
+
+    public DeleteHandler(IAuthorizationService<DataActions> authorizationService, IDeleteService deleteService)
+        : base(authorizationService)
     {
-        private readonly IDeleteService _deleteService;
+        _deleteService = EnsureArg.IsNotNull(deleteService, nameof(deleteService));
+    }
 
-        public DeleteHandler(IAuthorizationService<DataActions> authorizationService, IDeleteService deleteService)
-            : base(authorizationService)
+    /// <inheritdoc />
+    public async Task<DeleteResourcesResponse> Handle(DeleteResourcesRequest request, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(request, nameof(request));
+
+        if (await AuthorizationService.CheckAccess(DataActions.Delete, cancellationToken) != DataActions.Delete)
         {
-            _deleteService = EnsureArg.IsNotNull(deleteService, nameof(deleteService));
+            throw new UnauthorizedDicomActionException(DataActions.Delete);
         }
 
-        /// <inheritdoc />
-        public async Task<DeleteResourcesResponse> Handle(DeleteResourcesRequest request, CancellationToken cancellationToken)
+        ValidateDeleteResourcesRequest(request);
+
+        switch (request.ResourceType)
         {
-            EnsureArg.IsNotNull(request, nameof(request));
-
-            if (await AuthorizationService.CheckAccess(DataActions.Delete, cancellationToken) != DataActions.Delete)
-            {
-                throw new UnauthorizedDicomActionException(DataActions.Delete);
-            }
-
-            ValidateDeleteResourcesRequest(request);
-
-            switch (request.ResourceType)
-            {
-                case ResourceType.Study:
-                    await _deleteService.DeleteStudyAsync(request.StudyInstanceUid, cancellationToken);
-                    break;
-                case ResourceType.Series:
-                    await _deleteService.DeleteSeriesAsync(request.StudyInstanceUid, request.SeriesInstanceUid, cancellationToken);
-                    break;
-                case ResourceType.Instance:
-                    await _deleteService.DeleteInstanceAsync(request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, cancellationToken);
-                    break;
-                default:
-                    Debug.Fail($"Unknown delete transaction type: {request.ResourceType}", nameof(request));
-                    break;
-            }
-
-            return new DeleteResourcesResponse();
+            case ResourceType.Study:
+                await _deleteService.DeleteStudyAsync(request.StudyInstanceUid, cancellationToken);
+                break;
+            case ResourceType.Series:
+                await _deleteService.DeleteSeriesAsync(request.StudyInstanceUid, request.SeriesInstanceUid, cancellationToken);
+                break;
+            case ResourceType.Instance:
+                await _deleteService.DeleteInstanceAsync(request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, cancellationToken);
+                break;
+            default:
+                Debug.Fail($"Unknown delete transaction type: {request.ResourceType}", nameof(request));
+                break;
         }
 
-        private static void ValidateDeleteResourcesRequest(DeleteResourcesRequest request)
-        {
-            UidValidation.Validate(request.StudyInstanceUid, nameof(request.StudyInstanceUid));
+        return new DeleteResourcesResponse();
+    }
 
-            switch (request.ResourceType)
-            {
-                case ResourceType.Series:
-                    UidValidation.Validate(request.SeriesInstanceUid, nameof(request.SeriesInstanceUid));
-                    break;
-                case ResourceType.Instance:
-                    UidValidation.Validate(request.SeriesInstanceUid, nameof(request.SeriesInstanceUid));
-                    UidValidation.Validate(request.SopInstanceUid, nameof(request.SopInstanceUid));
-                    break;
-            }
+    private static void ValidateDeleteResourcesRequest(DeleteResourcesRequest request)
+    {
+        UidValidation.Validate(request.StudyInstanceUid, nameof(request.StudyInstanceUid));
+
+        switch (request.ResourceType)
+        {
+            case ResourceType.Series:
+                UidValidation.Validate(request.SeriesInstanceUid, nameof(request.SeriesInstanceUid));
+                break;
+            case ResourceType.Instance:
+                UidValidation.Validate(request.SeriesInstanceUid, nameof(request.SeriesInstanceUid));
+                UidValidation.Validate(request.SopInstanceUid, nameof(request.SopInstanceUid));
+                break;
         }
     }
 }

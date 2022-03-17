@@ -5,10 +5,9 @@
 
 using FellowOakDicom;
 
-namespace Microsoft.Health.Dicom.Tests.Common
+namespace Microsoft.Health.Dicom.Tests.Common;
+
+public static class TestUidGenerator
 {
-    public static class TestUidGenerator
-    {
-        public static string Generate() => DicomUID.Generate().UID;
-    }
+    public static string Generate() => DicomUID.Generate().UID;
 }

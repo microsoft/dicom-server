@@ -5,14 +5,13 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.Health.Dicom.Core.Configs
+namespace Microsoft.Health.Dicom.Core.Configs;
+
+public class AuthenticationConfiguration
 {
-    public class AuthenticationConfiguration
-    {
-        public string Audience { get; set; }
+    public string Audience { get; set; }
 
-        public IEnumerable<string> Audiences { get; set; }
+    public IEnumerable<string> Audiences { get; set; }
 
-        public string Authority { get; set; }
-    }
+    public string Authority { get; set; }
 }

@@ -7,35 +7,34 @@ using System.Collections.Generic;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
-namespace Microsoft.Health.Dicom.Core.Features.Retrieve
+namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
+
+public class AcceptHeaderDescriptors
 {
-    public class AcceptHeaderDescriptors
+    private readonly AcceptHeaderDescriptor[] _descriptors;
+
+    public AcceptHeaderDescriptors(params AcceptHeaderDescriptor[] descriptors)
     {
-        private readonly AcceptHeaderDescriptor[] _descriptors;
+        EnsureArg.IsNotNull(descriptors, nameof(descriptors));
+        _descriptors = descriptors;
+    }
 
-        public AcceptHeaderDescriptors(params AcceptHeaderDescriptor[] descriptors)
+    public IEnumerable<AcceptHeaderDescriptor> Descriptors { get => _descriptors; }
+
+    public bool TryGetMatchedDescriptor(AcceptHeader header, out AcceptHeaderDescriptor acceptableHeaderDescriptor, out string transferSyntax)
+    {
+        acceptableHeaderDescriptor = null;
+        transferSyntax = string.Empty;
+
+        foreach (AcceptHeaderDescriptor descriptor in _descriptors)
         {
-            EnsureArg.IsNotNull(descriptors, nameof(descriptors));
-            _descriptors = descriptors;
-        }
-
-        public IEnumerable<AcceptHeaderDescriptor> Descriptors { get => _descriptors; }
-
-        public bool TryGetMatchedDescriptor(AcceptHeader header, out AcceptHeaderDescriptor acceptableHeaderDescriptor, out string transferSyntax)
-        {
-            acceptableHeaderDescriptor = null;
-            transferSyntax = string.Empty;
-
-            foreach (AcceptHeaderDescriptor descriptor in _descriptors)
+            if (descriptor.IsAcceptable(header, out transferSyntax))
             {
-                if (descriptor.IsAcceptable(header, out transferSyntax))
-                {
-                    acceptableHeaderDescriptor = descriptor;
-                    return true;
-                }
+                acceptableHeaderDescriptor = descriptor;
+                return true;
             }
-
-            return false;
         }
+
+        return false;
     }
 }

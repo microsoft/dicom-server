@@ -10,27 +10,26 @@ using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices
+namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices;
+
+public class DeletedInstanceCleanupBackgroundService : BackgroundService
 {
-    public class DeletedInstanceCleanupBackgroundService : BackgroundService
+    private readonly IServiceProvider _serviceProvider;
+
+    public DeletedInstanceCleanupBackgroundService(IServiceProvider serviceProvider)
     {
-        private readonly IServiceProvider _serviceProvider;
+        EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
 
-        public DeletedInstanceCleanupBackgroundService(IServiceProvider serviceProvider)
+        _serviceProvider = serviceProvider;
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        using (var scope = _serviceProvider.CreateScope())
         {
-            EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
+            var scopedDeletedInstanceCleanupWorker = scope.ServiceProvider.GetRequiredService<DeletedInstanceCleanupWorker>();
 
-            _serviceProvider = serviceProvider;
-        }
-
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                var scopedDeletedInstanceCleanupWorker = scope.ServiceProvider.GetRequiredService<DeletedInstanceCleanupWorker>();
-
-                await scopedDeletedInstanceCleanupWorker.ExecuteAsync(stoppingToken);
-            }
+            await scopedDeletedInstanceCleanupWorker.ExecuteAsync(stoppingToken);
         }
     }
 }

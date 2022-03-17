@@ -6,17 +6,16 @@
 using System.Threading;
 using Microsoft.Health.Core.Features.Context;
 
-namespace Microsoft.Health.Dicom.Core.Features.Context
+namespace Microsoft.Health.Dicom.Core.Features.Context;
+
+public class DicomRequestContextAccessor : RequestContextAccessor<IDicomRequestContext>, IDicomRequestContextAccessor
 {
-    public class DicomRequestContextAccessor : RequestContextAccessor<IDicomRequestContext>, IDicomRequestContextAccessor
+    private readonly AsyncLocal<IDicomRequestContext> _dicomRequestContextCurrent = new AsyncLocal<IDicomRequestContext>();
+
+    public override IDicomRequestContext RequestContext
     {
-        private readonly AsyncLocal<IDicomRequestContext> _dicomRequestContextCurrent = new AsyncLocal<IDicomRequestContext>();
+        get => _dicomRequestContextCurrent.Value;
 
-        public override IDicomRequestContext RequestContext
-        {
-            get => _dicomRequestContextCurrent.Value;
-
-            set => _dicomRequestContextCurrent.Value = value;
-        }
+        set => _dicomRequestContextCurrent.Value = value;
     }
 }

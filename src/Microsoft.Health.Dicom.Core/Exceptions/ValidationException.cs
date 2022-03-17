@@ -5,21 +5,20 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Core.Exceptions
-{
-    /// <summary>
-    /// Base class for all client input validation exceptions.
-    /// </summary>
-    public abstract class ValidationException : DicomServerException
-    {
-        protected ValidationException(string message)
-            : base(message)
-        {
-        }
+namespace Microsoft.Health.Dicom.Core.Exceptions;
 
-        protected ValidationException(string message, Exception innerException)
-            : base(message, innerException)
-        {
-        }
+/// <summary>
+/// Base class for all client input validation exceptions.
+/// </summary>
+public abstract class ValidationException : DicomServerException
+{
+    protected ValidationException(string message)
+        : base(message)
+    {
+    }
+
+    protected ValidationException(string message, Exception innerException)
+        : base(message, innerException)
+    {
     }
 }

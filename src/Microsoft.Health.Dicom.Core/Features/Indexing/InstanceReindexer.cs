@@ -16,57 +16,56 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
 
-namespace Microsoft.Health.Dicom.Core.Features.Indexing
+namespace Microsoft.Health.Dicom.Core.Features.Indexing;
+
+/// <summary>
+/// Represents an Reindexer which reindexes DICOM instance.
+/// </summary>
+public class InstanceReindexer : IInstanceReindexer
 {
-    /// <summary>
-    /// Represents an Reindexer which reindexes DICOM instance.
-    /// </summary>
-    public class InstanceReindexer : IInstanceReindexer
+    private readonly IMetadataStore _metadataStore;
+    private readonly IIndexDataStore _indexDataStore;
+    private readonly IReindexDatasetValidator _dicomDatasetReindexValidator;
+    private readonly ILogger _logger;
+
+    public InstanceReindexer(
+        IMetadataStore metadataStore,
+        IIndexDataStore indexDataStore,
+        IReindexDatasetValidator dicomDatasetReindexValidator,
+        ILogger<InstanceReindexer> logger)
     {
-        private readonly IMetadataStore _metadataStore;
-        private readonly IIndexDataStore _indexDataStore;
-        private readonly IReindexDatasetValidator _dicomDatasetReindexValidator;
-        private readonly ILogger _logger;
+        _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
+        _indexDataStore = EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
+        _dicomDatasetReindexValidator = EnsureArg.IsNotNull(dicomDatasetReindexValidator, nameof(dicomDatasetReindexValidator));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+    }
 
-        public InstanceReindexer(
-            IMetadataStore metadataStore,
-            IIndexDataStore indexDataStore,
-            IReindexDatasetValidator dicomDatasetReindexValidator,
-            ILogger<InstanceReindexer> logger)
+    public async Task<bool> ReindexInstanceAsync(
+        IReadOnlyCollection<ExtendedQueryTagStoreEntry> entries,
+        VersionedInstanceIdentifier versionedInstanceId,
+        CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(entries, nameof(entries));
+        EnsureArg.IsNotNull(versionedInstanceId, nameof(versionedInstanceId));
+
+        DicomDataset dataset;
+        try
         {
-            _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
-            _indexDataStore = EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
-            _dicomDatasetReindexValidator = EnsureArg.IsNotNull(dicomDatasetReindexValidator, nameof(dicomDatasetReindexValidator));
-            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+            dataset = await _metadataStore.GetInstanceMetadataAsync(versionedInstanceId, cancellationToken);
+        }
+        catch (ItemNotFoundException)
+        {
+            _logger.LogWarning("Could not find metadata for instance with {Identifier}", versionedInstanceId);
+            return false;
         }
 
-        public async Task<bool> ReindexInstanceAsync(
-            IReadOnlyCollection<ExtendedQueryTagStoreEntry> entries,
-            VersionedInstanceIdentifier versionedInstanceId,
-            CancellationToken cancellationToken)
-        {
-            EnsureArg.IsNotNull(entries, nameof(entries));
-            EnsureArg.IsNotNull(versionedInstanceId, nameof(versionedInstanceId));
-
-            DicomDataset dataset;
-            try
-            {
-                dataset = await _metadataStore.GetInstanceMetadataAsync(versionedInstanceId, cancellationToken);
-            }
-            catch (ItemNotFoundException)
-            {
-                _logger.LogWarning("Could not find metadata for instance with {Identifier}", versionedInstanceId);
-                return false;
-            }
-
-            // Only reindex on valid query tags
-            IReadOnlyCollection<QueryTag> validQueryTags = await _dicomDatasetReindexValidator.ValidateAsync(
-                dataset,
-                versionedInstanceId.Version,
-                entries.Select(x => new QueryTag(x)).ToList(),
-                cancellationToken);
-            await _indexDataStore.ReindexInstanceAsync(dataset, versionedInstanceId.Version, validQueryTags, cancellationToken);
-            return true;
-        }
+        // Only reindex on valid query tags
+        IReadOnlyCollection<QueryTag> validQueryTags = await _dicomDatasetReindexValidator.ValidateAsync(
+            dataset,
+            versionedInstanceId.Version,
+            entries.Select(x => new QueryTag(x)).ToList(),
+            cancellationToken);
+        await _indexDataStore.ReindexInstanceAsync(dataset, versionedInstanceId.Version, validQueryTags, cancellationToken);
+        return true;
     }
 }

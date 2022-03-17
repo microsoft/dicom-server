@@ -13,29 +13,28 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
 
-namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
+namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed;
+
+public class ChangeFeedLatestHandler : BaseHandler, IRequestHandler<ChangeFeedLatestRequest, ChangeFeedLatestResponse>
 {
-    public class ChangeFeedLatestHandler : BaseHandler, IRequestHandler<ChangeFeedLatestRequest, ChangeFeedLatestResponse>
+    private readonly IChangeFeedService _changeFeedService;
+
+    public ChangeFeedLatestHandler(IAuthorizationService<DataActions> authorizationService, IChangeFeedService changeFeedService)
+        : base(authorizationService)
     {
-        private readonly IChangeFeedService _changeFeedService;
+        _changeFeedService = EnsureArg.IsNotNull(changeFeedService, nameof(changeFeedService));
+    }
 
-        public ChangeFeedLatestHandler(IAuthorizationService<DataActions> authorizationService, IChangeFeedService changeFeedService)
-            : base(authorizationService)
+    public async Task<ChangeFeedLatestResponse> Handle(ChangeFeedLatestRequest request, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(request, nameof(request));
+
+        if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
         {
-            _changeFeedService = EnsureArg.IsNotNull(changeFeedService, nameof(changeFeedService));
+            throw new UnauthorizedDicomActionException(DataActions.Read);
         }
 
-        public async Task<ChangeFeedLatestResponse> Handle(ChangeFeedLatestRequest request, CancellationToken cancellationToken)
-        {
-            EnsureArg.IsNotNull(request, nameof(request));
-
-            if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
-            {
-                throw new UnauthorizedDicomActionException(DataActions.Read);
-            }
-
-            ChangeFeedEntry latestEntry = await _changeFeedService.GetChangeFeedLatestAsync(request.IncludeMetadata, cancellationToken);
-            return new ChangeFeedLatestResponse(latestEntry);
-        }
+        ChangeFeedEntry latestEntry = await _changeFeedService.GetChangeFeedLatestAsync(request.IncludeMetadata, cancellationToken);
+        return new ChangeFeedLatestResponse(latestEntry);
     }
 }

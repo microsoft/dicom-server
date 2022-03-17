@@ -13,51 +13,50 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-namespace Microsoft.Health.Dicom.Api.Features.Filters
+namespace Microsoft.Health.Dicom.Api.Features.Filters;
+
+public sealed class AcceptTransferSyntaxFilterAttribute : ActionFilterAttribute
 {
-    public sealed class AcceptTransferSyntaxFilterAttribute : ActionFilterAttribute
+    private const int NotAcceptableResponseCode = (int)HttpStatusCode.NotAcceptable;
+    private const string TransferSyntaxHeaderPrefix = "transfer-syntax";
+    private readonly bool _allowMissing;
+    private readonly HashSet<string> _transferSyntaxes;
+
+    public AcceptTransferSyntaxFilterAttribute(string[] transferSyntaxes, bool allowMissing = false)
     {
-        private const int NotAcceptableResponseCode = (int)HttpStatusCode.NotAcceptable;
-        private const string TransferSyntaxHeaderPrefix = "transfer-syntax";
-        private readonly bool _allowMissing;
-        private readonly HashSet<string> _transferSyntaxes;
+        EnsureArg.IsNotNull(transferSyntaxes, nameof(transferSyntaxes));
+        Debug.Assert(transferSyntaxes.Length > 0, "The accept transfer syntax filter must have at least one transfer syntax specified.");
+        _transferSyntaxes = new HashSet<string>(transferSyntaxes, StringComparer.InvariantCultureIgnoreCase);
+        _allowMissing = allowMissing;
+    }
 
-        public AcceptTransferSyntaxFilterAttribute(string[] transferSyntaxes, bool allowMissing = false)
+    public override void OnActionExecuting(ActionExecutingContext context)
+    {
+        EnsureArg.IsNotNull(context, nameof(context));
+        bool acceptable;
+
+        // As model binding happens prior to filteration, use the transfer syntax that was found in TransferSyntaxModelBinder and validate if it is acceptable.
+        if (context.ModelState.TryGetValue(TransferSyntaxHeaderPrefix, out ModelStateEntry transferSyntaxValue))
         {
-            EnsureArg.IsNotNull(transferSyntaxes, nameof(transferSyntaxes));
-            Debug.Assert(transferSyntaxes.Length > 0, "The accept transfer syntax filter must have at least one transfer syntax specified.");
-            _transferSyntaxes = new HashSet<string>(transferSyntaxes, StringComparer.InvariantCultureIgnoreCase);
-            _allowMissing = allowMissing;
-        }
-
-        public override void OnActionExecuting(ActionExecutingContext context)
-        {
-            EnsureArg.IsNotNull(context, nameof(context));
-            bool acceptable;
-
-            // As model binding happens prior to filteration, use the transfer syntax that was found in TransferSyntaxModelBinder and validate if it is acceptable.
-            if (context.ModelState.TryGetValue(TransferSyntaxHeaderPrefix, out ModelStateEntry transferSyntaxValue))
+            if (_transferSyntaxes.Contains(transferSyntaxValue.RawValue))
             {
-                if (_transferSyntaxes.Contains(transferSyntaxValue.RawValue))
-                {
-                    acceptable = true;
-                }
-                else
-                {
-                    acceptable = _allowMissing && string.IsNullOrWhiteSpace($"{transferSyntaxValue.RawValue}");
-                }
+                acceptable = true;
             }
             else
             {
-                acceptable = _allowMissing;
+                acceptable = _allowMissing && string.IsNullOrWhiteSpace($"{transferSyntaxValue.RawValue}");
             }
-
-            if (!acceptable)
-            {
-                context.Result = new StatusCodeResult(NotAcceptableResponseCode);
-            }
-
-            base.OnActionExecuting(context);
         }
+        else
+        {
+            acceptable = _allowMissing;
+        }
+
+        if (!acceptable)
+        {
+            context.Result = new StatusCodeResult(NotAcceptableResponseCode);
+        }
+
+        base.OnActionExecuting(context);
     }
 }

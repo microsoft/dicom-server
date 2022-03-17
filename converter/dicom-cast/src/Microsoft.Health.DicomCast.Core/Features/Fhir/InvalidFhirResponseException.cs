@@ -3,16 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.DicomCast.Core.Features.Fhir
+namespace Microsoft.Health.DicomCast.Core.Features.Fhir;
+
+/// <summary>
+/// Exception thrown when the FHIR response is invalid.
+/// </summary>
+public class InvalidFhirResponseException : FhirNonRetryableException
 {
-    /// <summary>
-    /// Exception thrown when the FHIR response is invalid.
-    /// </summary>
-    public class InvalidFhirResponseException : FhirNonRetryableException
+    public InvalidFhirResponseException(string message)
+        : base(message)
     {
-        public InvalidFhirResponseException(string message)
-            : base(message)
-        {
-        }
     }
 }

@@ -8,28 +8,28 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 
-namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
+namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
+
+public class SqlChangeFeedStoreTestHelper : ISqlChangeFeedStoreTestHelper
 {
-    public class SqlChangeFeedStoreTestHelper : ISqlChangeFeedStoreTestHelper
+    private readonly string _connectionString;
+
+    public SqlChangeFeedStoreTestHelper(string connectionString)
     {
-        private readonly string _connectionString;
+        _connectionString = connectionString;
+    }
 
-        public SqlChangeFeedStoreTestHelper(string connectionString)
+    public async Task<IReadOnlyList<ChangeFeedRow>> GetChangeFeedRowsAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+    {
+        using (var sqlConnection = new SqlConnection(_connectionString))
         {
-            _connectionString = connectionString;
-        }
+            await sqlConnection.OpenAsync();
 
-        public async Task<IReadOnlyList<ChangeFeedRow>> GetChangeFeedRowsAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
-        {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            var result = new List<ChangeFeedRow>();
+
+            using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
             {
-                await sqlConnection.OpenAsync();
-
-                var result = new List<ChangeFeedRow>();
-
-                using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
-                {
-                    sqlCommand.CommandText = @$"
+                sqlCommand.CommandText = @$"
                         SELECT *
                         FROM {VLatest.ChangeFeed.TableName}
                         WHERE {VLatest.ChangeFeed.StudyInstanceUid} = @studyInstanceUid
@@ -37,21 +37,20 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
                         AND {VLatest.ChangeFeed.SopInstanceUid} = @sopInstanceUid
                         ORDER BY {VLatest.ChangeFeed.Sequence}";
 
-                    sqlCommand.Parameters.AddWithValue("@studyInstanceUid", studyInstanceUid);
-                    sqlCommand.Parameters.AddWithValue("@seriesInstanceUid", seriesInstanceUid);
-                    sqlCommand.Parameters.AddWithValue("@sopInstanceUid", sopInstanceUid);
+                sqlCommand.Parameters.AddWithValue("@studyInstanceUid", studyInstanceUid);
+                sqlCommand.Parameters.AddWithValue("@seriesInstanceUid", seriesInstanceUid);
+                sqlCommand.Parameters.AddWithValue("@sopInstanceUid", sopInstanceUid);
 
-                    using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync())
+                using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync())
+                {
+                    while (await sqlDataReader.ReadAsync())
                     {
-                        while (await sqlDataReader.ReadAsync())
-                        {
-                            result.Add(new ChangeFeedRow(sqlDataReader));
-                        }
+                        result.Add(new ChangeFeedRow(sqlDataReader));
                     }
                 }
-
-                return result;
             }
+
+            return result;
         }
     }
 }

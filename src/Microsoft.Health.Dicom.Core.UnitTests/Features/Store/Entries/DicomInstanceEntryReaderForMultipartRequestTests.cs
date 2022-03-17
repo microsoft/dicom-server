@@ -16,131 +16,130 @@ using NSubstitute;
 using NSubstitute.Core;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries
+namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store.Entries;
+
+public class DicomInstanceEntryReaderForMultipartRequestTests
 {
-    public class DicomInstanceEntryReaderForMultipartRequestTests
+    private const string DefaultContentType = "multipart/related; boundary=123";
+    private const string DefaultBodyPartContentType = "application/dicom";
+    private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
+
+    private readonly IMultipartReaderFactory _multipartReaderFactory = Substitute.For<IMultipartReaderFactory>();
+    private readonly DicomInstanceEntryReaderForMultipartRequest _dicomInstanceEntryReader;
+
+    private readonly Stream _stream = new MemoryStream();
+
+    public DicomInstanceEntryReaderForMultipartRequestTests()
     {
-        private const string DefaultContentType = "multipart/related; boundary=123";
-        private const string DefaultBodyPartContentType = "application/dicom";
-        private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
+        _dicomInstanceEntryReader = new DicomInstanceEntryReaderForMultipartRequest(
+            _multipartReaderFactory,
+            NullLogger<DicomInstanceEntryReaderForMultipartRequest>.Instance);
+    }
 
-        private readonly IMultipartReaderFactory _multipartReaderFactory = Substitute.For<IMultipartReaderFactory>();
-        private readonly DicomInstanceEntryReaderForMultipartRequest _dicomInstanceEntryReader;
+    [Fact]
+    public void GivenAnInvalidContentType_WhenCanReadIsCalledForMultipartRequest_ThenFalseShouldBeReturned()
+    {
+        bool result = _dicomInstanceEntryReader.CanRead("dummy");
 
-        private readonly Stream _stream = new MemoryStream();
+        Assert.False(result);
+    }
 
-        public DicomInstanceEntryReaderForMultipartRequestTests()
-        {
-            _dicomInstanceEntryReader = new DicomInstanceEntryReaderForMultipartRequest(
-                _multipartReaderFactory,
-                NullLogger<DicomInstanceEntryReaderForMultipartRequest>.Instance);
-        }
+    [Fact]
+    public void GivenAnNonMultipartRelatedContentType_WhenCanReadIsCalled_ThenFalseShouldBeReturned()
+    {
+        bool result = _dicomInstanceEntryReader.CanRead("multipart/data-form; boundary=123");
 
-        [Fact]
-        public void GivenAnInvalidContentType_WhenCanReadIsCalledForMultipartRequest_ThenFalseShouldBeReturned()
-        {
-            bool result = _dicomInstanceEntryReader.CanRead("dummy");
+        Assert.False(result);
+    }
 
-            Assert.False(result);
-        }
+    [Fact]
+    public void GivenAMultipartRelatedContentType_WhenCanReadIsCalled_ThenTrueShouldBeReturned()
+    {
+        bool result = _dicomInstanceEntryReader.CanRead(DefaultContentType);
 
-        [Fact]
-        public void GivenAnNonMultipartRelatedContentType_WhenCanReadIsCalled_ThenFalseShouldBeReturned()
-        {
-            bool result = _dicomInstanceEntryReader.CanRead("multipart/data-form; boundary=123");
+        Assert.True(result);
+    }
 
-            Assert.False(result);
-        }
+    [Fact]
+    public void GivenBodyPartWithInvalidContentType_WhenReading_ThenUnsupportedMediaTypeExceptionShouldBeThrown()
+    {
+        IMultipartReader multipartReader = SetupMultipartReader(
+            _ => new MultipartBodyPart("application/dicom+json", _stream),
+            _ => null);
 
-        [Fact]
-        public void GivenAMultipartRelatedContentType_WhenCanReadIsCalled_ThenTrueShouldBeReturned()
-        {
-            bool result = _dicomInstanceEntryReader.CanRead(DefaultContentType);
+        Assert.ThrowsAsync<UnsupportedMediaTypeException>(() => _dicomInstanceEntryReader.ReadAsync(DefaultContentType, _stream, DefaultCancellationToken));
+    }
 
-            Assert.True(result);
-        }
+    [Fact]
+    public async Task GivenBodyPartWithValidContentType_WhenReading_ThenCorrectResultsShouldBeReturned()
+    {
+        IMultipartReader multipartReader = SetupMultipartReader(
+            _ => new MultipartBodyPart(DefaultBodyPartContentType, _stream),
+            _ => null);
 
-        [Fact]
-        public void GivenBodyPartWithInvalidContentType_WhenReading_ThenUnsupportedMediaTypeExceptionShouldBeThrown()
-        {
-            IMultipartReader multipartReader = SetupMultipartReader(
-                _ => new MultipartBodyPart("application/dicom+json", _stream),
-                _ => null);
+        IReadOnlyCollection<IDicomInstanceEntry> results = await _dicomInstanceEntryReader.ReadAsync(
+            DefaultContentType,
+            _stream,
+            DefaultCancellationToken);
 
-            Assert.ThrowsAsync<UnsupportedMediaTypeException>(() => _dicomInstanceEntryReader.ReadAsync(DefaultContentType, _stream, DefaultCancellationToken));
-        }
+        Assert.NotNull(results);
+        Assert.Collection(
+            results,
+            async item =>
+            {
+                Assert.IsType<StreamOriginatedDicomInstanceEntry>(item);
+                Assert.Same(_stream, await item.GetStreamAsync(DefaultCancellationToken));
+            });
+    }
 
-        [Fact]
-        public async Task GivenBodyPartWithValidContentType_WhenReading_ThenCorrectResultsShouldBeReturned()
-        {
-            IMultipartReader multipartReader = SetupMultipartReader(
-                _ => new MultipartBodyPart(DefaultBodyPartContentType, _stream),
-                _ => null);
+    [Fact]
+    public async Task GivenAnException_WhenReading_ThenAlreadyProcessedStreamsShouldBeDisposed()
+    {
+        IMultipartReader multipartReader = SetupMultipartReader(
+            _ => new MultipartBodyPart(DefaultBodyPartContentType, _stream),
+            _ => throw new Exception());
 
-            IReadOnlyCollection<IDicomInstanceEntry> results = await _dicomInstanceEntryReader.ReadAsync(
-                DefaultContentType,
-                _stream,
-                DefaultCancellationToken);
+        await Assert.ThrowsAsync<Exception>(() => _dicomInstanceEntryReader.ReadAsync(
+            DefaultContentType,
+            _stream,
+            DefaultCancellationToken));
 
-            Assert.NotNull(results);
-            Assert.Collection(
-                results,
-                async item =>
-                {
-                    Assert.IsType<StreamOriginatedDicomInstanceEntry>(item);
-                    Assert.Same(_stream, await item.GetStreamAsync(DefaultCancellationToken));
-                });
-        }
+        Assert.Throws<ObjectDisposedException>(() => _stream.ReadByte());
+    }
 
-        [Fact]
-        public async Task GivenAnException_WhenReading_ThenAlreadyProcessedStreamsShouldBeDisposed()
-        {
-            IMultipartReader multipartReader = SetupMultipartReader(
-                _ => new MultipartBodyPart(DefaultBodyPartContentType, _stream),
-                _ => throw new Exception());
+    [Fact]
+    public async Task GivenAnExceptionWhileDisposing_WhenReading_ThenItShouldNotInterfereWithDisposingOtherInstances()
+    {
+        var streamToBeDisposed = new MemoryStream();
 
-            await Assert.ThrowsAsync<Exception>(() => _dicomInstanceEntryReader.ReadAsync(
-                DefaultContentType,
-                _stream,
-                DefaultCancellationToken));
+        IMultipartReader multipartReader = SetupMultipartReader(
+            _ => new MultipartBodyPart(DefaultBodyPartContentType, streamToBeDisposed),
+            _ =>
+            {
+                // Dispose the previous stream so that when the code cleans up the resource, it throws exception.
+                streamToBeDisposed.Dispose();
 
-            Assert.Throws<ObjectDisposedException>(() => _stream.ReadByte());
-        }
+                return new MultipartBodyPart(DefaultBodyPartContentType, _stream);
+            },
+            _ => throw new Exception());
 
-        [Fact]
-        public async Task GivenAnExceptionWhileDisposing_WhenReading_ThenItShouldNotInterfereWithDisposingOtherInstances()
-        {
-            var streamToBeDisposed = new MemoryStream();
+        await Assert.ThrowsAsync<Exception>(() => _dicomInstanceEntryReader.ReadAsync(
+            DefaultContentType,
+            _stream,
+            DefaultCancellationToken));
 
-            IMultipartReader multipartReader = SetupMultipartReader(
-                _ => new MultipartBodyPart(DefaultBodyPartContentType, streamToBeDisposed),
-                _ =>
-                {
-                    // Dispose the previous stream so that when the code cleans up the resource, it throws exception.
-                    streamToBeDisposed.Dispose();
+        Assert.Throws<ObjectDisposedException>(() => _stream.ReadByte());
+    }
 
-                    return new MultipartBodyPart(DefaultBodyPartContentType, _stream);
-                },
-                _ => throw new Exception());
+    private IMultipartReader SetupMultipartReader(Func<CallInfo, MultipartBodyPart> returnThis, params Func<CallInfo, MultipartBodyPart>[] returnThese)
+    {
+        IMultipartReader multipartReader = Substitute.For<IMultipartReader>();
 
-            await Assert.ThrowsAsync<Exception>(() => _dicomInstanceEntryReader.ReadAsync(
-                DefaultContentType,
-                _stream,
-                DefaultCancellationToken));
+        multipartReader.ReadNextBodyPartAsync(DefaultCancellationToken).Returns(returnThis, returnThese);
 
-            Assert.Throws<ObjectDisposedException>(() => _stream.ReadByte());
-        }
+        _multipartReaderFactory.Create(DefaultContentType, _stream)
+            .Returns(multipartReader);
 
-        private IMultipartReader SetupMultipartReader(Func<CallInfo, MultipartBodyPart> returnThis, params Func<CallInfo, MultipartBodyPart>[] returnThese)
-        {
-            IMultipartReader multipartReader = Substitute.For<IMultipartReader>();
-
-            multipartReader.ReadNextBodyPartAsync(DefaultCancellationToken).Returns(returnThis, returnThese);
-
-            _multipartReaderFactory.Create(DefaultContentType, _stream)
-                .Returns(multipartReader);
-
-            return multipartReader;
-        }
+        return multipartReader;
     }
 }

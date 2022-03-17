@@ -5,18 +5,17 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.Health.Dicom.Core.Features.Query
+namespace Microsoft.Health.Dicom.Core.Features.Query;
+
+public class BaseQueryParameters
 {
-    public class BaseQueryParameters
-    {
-        public IReadOnlyDictionary<string, string> Filters { get; set; }
+    public IReadOnlyDictionary<string, string> Filters { get; set; }
 
-        public int Offset { get; set; }
+    public int Offset { get; set; }
 
-        public int Limit { get; set; } = 100;
+    public int Limit { get; set; } = 100;
 
-        public bool FuzzyMatching { get; set; }
+    public bool FuzzyMatching { get; set; }
 
-        public IReadOnlyList<string> IncludeField { get; set; }
-    }
+    public IReadOnlyList<string> IncludeField { get; set; }
 }

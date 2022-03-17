@@ -5,78 +5,87 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using FellowOakDicom;
 using FellowOakDicom.IO.Buffer;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 
-namespace Microsoft.Health.Dicom.Core.Features.Validation
+namespace Microsoft.Health.Dicom.Core.Features.Validation;
+
+internal class ElementRequiredLengthValidation : ElementValidation
 {
-    internal class ElementRequiredLengthValidation : ElementValidation
+    private static readonly HashSet<DicomVR> StringVrs = new HashSet<DicomVR>()
     {
-        private static readonly HashSet<DicomVR> StringVrs = new HashSet<DicomVR>()
-        {
-           DicomVR.AE,
-           DicomVR.AS,
-           DicomVR.CS,
-           DicomVR.DA,
-           DicomVR.DS,
-           DicomVR.IS,
-           DicomVR.LO,
-           DicomVR.PN,
-           DicomVR.SH,
-           DicomVR.UI,
-        };
+       DicomVR.AE,
+       DicomVR.AS,
+       DicomVR.CS,
+       DicomVR.DA,
+       DicomVR.DS,
+       DicomVR.IS,
+       DicomVR.LO,
+       DicomVR.PN,
+       DicomVR.SH,
+       DicomVR.UI,
+    };
 
-        public int ExpectedLength { get; }
+    public int ExpectedLength { get; }
 
-        public ElementRequiredLengthValidation(int expectedLength)
+    public ElementRequiredLengthValidation(int expectedLength)
+    {
+        Debug.Assert(expectedLength >= 0, "Expected Length should be none-negative");
+        ExpectedLength = expectedLength;
+    }
+
+    public override void Validate(DicomElement dicomElement)
+    {
+        base.Validate(dicomElement);
+        DicomVR vr = dicomElement.ValueRepresentation;
+        if (TryGetAsString(dicomElement, out string value))
         {
-            Debug.Assert(expectedLength >= 0, "Expected Length should be none-negative");
-            ExpectedLength = expectedLength;
+            ValidateStringLength(vr, dicomElement.Tag.GetFriendlyName(), value);
+        }
+        else
+        {
+            ValidateByteBufferLength(vr, dicomElement.Tag.GetFriendlyName(), dicomElement.Buffer);
+        }
+    }
+
+    private void ValidateByteBufferLength(DicomVR dicomVR, string name, IByteBuffer value)
+    {
+        if (value?.Size != ExpectedLength)
+        {
+            throw new ElementValidationException(
+                name,
+                dicomVR,
+                ValidationErrorCode.UnexpectedLength,
+                string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageUnexpectedLength, ExpectedLength));
+        }
+    }
+
+    private static bool TryGetAsString(DicomElement dicomElement, out string value)
+    {
+        value = string.Empty;
+        if (StringVrs.Contains(dicomElement.ValueRepresentation))
+        {
+            value = dicomElement.Get<string>();
+            return true;
         }
 
-        public override void Validate(DicomElement dicomElement)
-        {
-            base.Validate(dicomElement);
-            DicomVR vr = dicomElement.ValueRepresentation;
-            if (TryGetAsString(dicomElement, out string value))
-            {
-                ValidateStringLength(vr, dicomElement.Tag.GetFriendlyName(), value);
-            }
-            else
-            {
-                ValidateByteBufferLength(vr, dicomElement.Tag.GetFriendlyName(), dicomElement.Buffer);
-            }
-        }
+        return false;
+    }
 
-        private void ValidateByteBufferLength(DicomVR dicomVR, string name, IByteBuffer value)
+    private void ValidateStringLength(DicomVR dicomVR, string name, string value)
+    {
+        value ??= "";
+        if (value.Length != ExpectedLength)
         {
-            if (value?.Size != ExpectedLength)
-            {
-                throw ElementValidationExceptionFactory.CreateUnexpectedLengthException(name, dicomVR, ExpectedLength);
-            }
-        }
-
-        private static bool TryGetAsString(DicomElement dicomElement, out string value)
-        {
-            value = string.Empty;
-            if (StringVrs.Contains(dicomElement.ValueRepresentation))
-            {
-                value = dicomElement.Get<string>();
-                return true;
-            }
-
-            return false;
-        }
-
-        private void ValidateStringLength(DicomVR dicomVR, string name, string value)
-        {
-            value = value ?? "";
-            if (value.Length != ExpectedLength)
-            {
-                throw ElementValidationExceptionFactory.CreateUnexpectedLengthException(name, dicomVR, value, ExpectedLength);
-            }
+            throw new ElementValidationException(
+                name,
+                dicomVR,
+                value,
+                ValidationErrorCode.UnexpectedLength,
+                string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageUnexpectedLength, ExpectedLength));
         }
     }
 }

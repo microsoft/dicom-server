@@ -6,16 +6,15 @@
 using System.Collections.Generic;
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Core.Features.Workitem
-{
-    public class WorkitemQueryResult
-    {
-        public WorkitemQueryResult(IEnumerable<WorkitemInstanceIdentifier> entries)
-        {
-            EnsureArg.IsNotNull(entries, nameof(entries));
-            WorkitemInstances = entries;
-        }
+namespace Microsoft.Health.Dicom.Core.Features.Workitem;
 
-        public IEnumerable<WorkitemInstanceIdentifier> WorkitemInstances { get; }
+public class WorkitemQueryResult
+{
+    public WorkitemQueryResult(IEnumerable<WorkitemInstanceIdentifier> entries)
+    {
+        EnsureArg.IsNotNull(entries, nameof(entries));
+        WorkitemInstances = entries;
     }
+
+    public IEnumerable<WorkitemInstanceIdentifier> WorkitemInstances { get; }
 }

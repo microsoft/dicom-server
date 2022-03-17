@@ -5,15 +5,14 @@
 
 using MediatR;
 
-namespace Microsoft.Health.Dicom.Core.Messages.ChangeFeed
-{
-    public class ChangeFeedLatestRequest : IRequest<ChangeFeedLatestResponse>
-    {
-        public ChangeFeedLatestRequest(bool includeMetadata)
-        {
-            IncludeMetadata = includeMetadata;
-        }
+namespace Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
 
-        public bool IncludeMetadata { get; }
+public class ChangeFeedLatestRequest : IRequest<ChangeFeedLatestResponse>
+{
+    public ChangeFeedLatestRequest(bool includeMetadata)
+    {
+        IncludeMetadata = includeMetadata;
     }
+
+    public bool IncludeMetadata { get; }
 }

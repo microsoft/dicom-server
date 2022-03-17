@@ -10,50 +10,49 @@ using EnsureThat;
 using FellowOakDicom;
 using FellowOakDicom.Imaging;
 
-namespace Microsoft.Health.Dicom.Tests.Common.Comparers
+namespace Microsoft.Health.Dicom.Tests.Common.Comparers;
+
+public class DicomDatasetEqualityComparer : IEqualityComparer<DicomDataset>
 {
-    public class DicomDatasetEqualityComparer : IEqualityComparer<DicomDataset>
+    public static DicomDatasetEqualityComparer Default { get; } = new DicomDatasetEqualityComparer();
+
+    private readonly IEnumerable<DicomTag> _ignoredTags;
+
+    public DicomDatasetEqualityComparer()
+        : this(Array.Empty<DicomTag>())
     {
-        public static DicomDatasetEqualityComparer Default { get; } = new DicomDatasetEqualityComparer();
+    }
 
-        private readonly IEnumerable<DicomTag> _ignoredTags;
+    public DicomDatasetEqualityComparer(IEnumerable<DicomTag> ignoredTags)
+    {
+        EnsureArg.IsNotNull(ignoredTags, nameof(ignoredTags));
+        _ignoredTags = ignoredTags;
+    }
 
-        public DicomDatasetEqualityComparer()
-            : this(Array.Empty<DicomTag>())
+
+    public bool Equals(DicomDataset x, DicomDataset y)
+    {
+        if (x == null || y == null)
         {
+            return object.ReferenceEquals(x, y);
         }
 
-        public DicomDatasetEqualityComparer(IEnumerable<DicomTag> ignoredTags)
+        // Compare DicomItems except PixelData, since DicomItemCollectionEqualityComparer cannot handle it
+        IEqualityComparer<IEnumerable<DicomItem>> dicomItemsComparaer = new DicomItemCollectionEqualityComparer(_ignoredTags.Concat(new[] { DicomTag.PixelData }));
+
+        if (!dicomItemsComparaer.Equals(x, y))
         {
-            EnsureArg.IsNotNull(ignoredTags, nameof(ignoredTags));
-            _ignoredTags = ignoredTags;
+            return false;
         }
 
+        IEqualityComparer<DicomPixelData> dicomPixelDataComparer = new DicomPixelDataEqualityComparer();
 
-        public bool Equals(DicomDataset x, DicomDataset y)
-        {
-            if (x == null || y == null)
-            {
-                return object.ReferenceEquals(x, y);
-            }
+        // Compare PixelData
+        return dicomPixelDataComparer.Equals(DicomPixelData.Create(x), DicomPixelData.Create(y));
+    }
 
-            // Compare DicomItems except PixelData, since DicomItemCollectionEqualityComparer cannot handle it
-            IEqualityComparer<IEnumerable<DicomItem>> dicomItemsComparaer = new DicomItemCollectionEqualityComparer(_ignoredTags.Concat(new[] { DicomTag.PixelData }));
-
-            if (!dicomItemsComparaer.Equals(x, y))
-            {
-                return false;
-            }
-
-            IEqualityComparer<DicomPixelData> dicomPixelDataComparer = new DicomPixelDataEqualityComparer();
-
-            // Compare PixelData
-            return dicomPixelDataComparer.Equals(DicomPixelData.Create(x), DicomPixelData.Create(y));
-        }
-
-        public int GetHashCode(DicomDataset obj)
-        {
-            return obj.GetHashCode();
-        }
+    public int GetHashCode(DicomDataset obj)
+    {
+        return obj.GetHashCode();
     }
 }

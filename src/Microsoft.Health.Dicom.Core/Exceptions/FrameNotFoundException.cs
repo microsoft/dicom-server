@@ -5,18 +5,17 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Core.Exceptions
-{
-    public class FrameNotFoundException : ResourceNotFoundException
-    {
-        public FrameNotFoundException()
-            : base(DicomCoreResource.FrameNotFound)
-        {
-        }
+namespace Microsoft.Health.Dicom.Core.Exceptions;
 
-        public FrameNotFoundException(Exception innerException)
-            : base(DicomCoreResource.FrameNotFound, innerException)
-        {
-        }
+public class FrameNotFoundException : ResourceNotFoundException
+{
+    public FrameNotFoundException()
+        : base(DicomCoreResource.FrameNotFound)
+    {
+    }
+
+    public FrameNotFoundException(Exception innerException)
+        : base(DicomCoreResource.FrameNotFound, innerException)
+    {
     }
 }

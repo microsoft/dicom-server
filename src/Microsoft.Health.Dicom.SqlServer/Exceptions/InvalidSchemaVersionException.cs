@@ -5,13 +5,12 @@
 
 using Microsoft.Health.Dicom.Core.Exceptions;
 
-namespace Microsoft.Health.Dicom.SqlServer.Exceptions
+namespace Microsoft.Health.Dicom.SqlServer.Exceptions;
+
+internal class InvalidSchemaVersionException : DicomServerException
 {
-    internal class InvalidSchemaVersionException : DicomServerException
+    public InvalidSchemaVersionException(string message)
+        : base(message)
     {
-        public InvalidSchemaVersionException(string message)
-            : base(message)
-        {
-        }
     }
 }

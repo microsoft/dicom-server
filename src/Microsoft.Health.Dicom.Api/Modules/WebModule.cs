@@ -9,25 +9,24 @@ using Microsoft.Health.Dicom.Api.Web;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Extensions.DependencyInjection;
 
-namespace Microsoft.Health.Dicom.Api.Modules
+namespace Microsoft.Health.Dicom.Api.Modules;
+
+public class WebModule : IStartupModule
 {
-    public class WebModule : IStartupModule
+    public void Load(IServiceCollection services)
     {
-        public void Load(IServiceCollection services)
-        {
-            EnsureArg.IsNotNull(services, nameof(services));
+        EnsureArg.IsNotNull(services, nameof(services));
 
-            services.Add<SeekableStreamConverter>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
+        services.Add<SeekableStreamConverter>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
 
-            services.Decorate<ISeekableStreamConverter, LoggingSeekableStreamConverter>();
+        services.Decorate<ISeekableStreamConverter, LoggingSeekableStreamConverter>();
 
-            services.Add<AspNetCoreMultipartReaderFactory>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
-        }
+        services.Add<AspNetCoreMultipartReaderFactory>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
     }
 }

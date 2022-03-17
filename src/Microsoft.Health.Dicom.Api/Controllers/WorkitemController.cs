@@ -10,26 +10,25 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
-namespace Microsoft.Health.Dicom.Api.Controllers
+namespace Microsoft.Health.Dicom.Api.Controllers;
+
+[ApiVersion("1.0-prerelease")]
+[ApiVersion("1")]
+[QueryModelStateValidator]
+[ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
+[ServiceFilter(typeof(UpsRsFeatureFilterAttribute))]
+[ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
+public partial class WorkitemController : ControllerBase
 {
-    [ApiVersion("1.0-prerelease")]
-    [ApiVersion("1")]
-    [QueryModelStateValidator]
-    [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
-    [ServiceFilter(typeof(UpsRsFeatureFilterAttribute))]
-    [ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
-    public partial class WorkitemController : ControllerBase
+    private readonly IMediator _mediator;
+    private readonly ILogger<WorkitemController> _logger;
+
+    public WorkitemController(IMediator mediator, ILogger<WorkitemController> logger)
     {
-        private readonly IMediator _mediator;
-        private readonly ILogger<WorkitemController> _logger;
+        EnsureArg.IsNotNull(mediator, nameof(mediator));
+        EnsureArg.IsNotNull(logger, nameof(logger));
 
-        public WorkitemController(IMediator mediator, ILogger<WorkitemController> logger)
-        {
-            EnsureArg.IsNotNull(mediator, nameof(mediator));
-            EnsureArg.IsNotNull(logger, nameof(logger));
-
-            _mediator = mediator;
-            _logger = logger;
-        }
+        _mediator = mediator;
+        _logger = logger;
     }
 }

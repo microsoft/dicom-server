@@ -3,9 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
+namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
+
+public class DeleteExtendedQueryTagResponse
 {
-    public class DeleteExtendedQueryTagResponse
-    {
-    }
 }

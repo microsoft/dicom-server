@@ -5,19 +5,18 @@
 
 using System.IO;
 
-namespace Microsoft.Health.Dicom.Core.Web
+namespace Microsoft.Health.Dicom.Core.Web;
+
+/// <summary>
+/// Provides functionality to create a new instance of <see cref="IMultipartReader"/>.
+/// </summary>
+public interface IMultipartReaderFactory
 {
     /// <summary>
-    /// Provides functionality to create a new instance of <see cref="IMultipartReader"/>.
+    /// Creates a new instance of <see cref="IMultipartReader"/>.
     /// </summary>
-    public interface IMultipartReaderFactory
-    {
-        /// <summary>
-        /// Creates a new instance of <see cref="IMultipartReader"/>.
-        /// </summary>
-        /// <param name="contentType">The request content type.</param>
-        /// <param name="body">The request body.</param>
-        /// <returns>An instance of <see cref="IMultipartReader"/>.</returns>
-        IMultipartReader Create(string contentType, Stream body);
-    }
+    /// <param name="contentType">The request content type.</param>
+    /// <param name="body">The request body.</param>
+    /// <returns>An instance of <see cref="IMultipartReader"/>.</returns>
+    IMultipartReader Create(string contentType, Stream body);
 }

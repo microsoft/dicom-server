@@ -7,15 +7,14 @@ using System.Collections.Generic;
 using EnsureThat;
 using FellowOakDicom;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Workitem
-{
-    public sealed class QueryWorkitemResourceResponse
-    {
-        public QueryWorkitemResourceResponse(IReadOnlyList<DicomDataset> responseDataset)
-        {
-            ResponseDatasets = EnsureArg.IsNotNull(responseDataset, nameof(responseDataset));
-        }
+namespace Microsoft.Health.Dicom.Core.Messages.Workitem;
 
-        public IReadOnlyList<DicomDataset> ResponseDatasets { get; }
+public sealed class QueryWorkitemResourceResponse
+{
+    public QueryWorkitemResourceResponse(IReadOnlyList<DicomDataset> responseDataset)
+    {
+        ResponseDatasets = EnsureArg.IsNotNull(responseDataset, nameof(responseDataset));
     }
+
+    public IReadOnlyList<DicomDataset> ResponseDatasets { get; }
 }

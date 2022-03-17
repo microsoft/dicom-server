@@ -6,13 +6,12 @@
 using System;
 using Microsoft.Health.Dicom.Core.Exceptions;
 
-namespace Microsoft.Health.Dicom.Api.Web
+namespace Microsoft.Health.Dicom.Api.Web;
+
+internal class InvalidMultipartBodyPartException : DicomServerException
 {
-    internal class InvalidMultipartBodyPartException : DicomServerException
+    public InvalidMultipartBodyPartException(Exception innerException)
+        : base(DicomApiResource.InvalidMultipartBodyPart, innerException)
     {
-        public InvalidMultipartBodyPartException(Exception innerException)
-            : base(DicomApiResource.InvalidMultipartBodyPart, innerException)
-        {
-        }
     }
 }

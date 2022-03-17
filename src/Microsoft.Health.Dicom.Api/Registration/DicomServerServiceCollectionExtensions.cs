@@ -34,177 +34,176 @@ using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.IO;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace Microsoft.AspNetCore.Builder
+namespace Microsoft.AspNetCore.Builder;
+
+public static class DicomServerServiceCollectionExtensions
 {
-    public static class DicomServerServiceCollectionExtensions
+    private const string DicomServerConfigurationSectionName = "DicomServer";
+
+    /// <summary>
+    /// Add services for DICOM background workers.
+    /// </summary>
+    /// <param name="serverBuilder">The DICOM server builder instance.</param>
+    /// <returns>The DICOM server builder instance.</returns>
+    public static IDicomServerBuilder AddBackgroundWorkers(this IDicomServerBuilder serverBuilder)
     {
-        private const string DicomServerConfigurationSectionName = "DicomServer";
+        EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
+        serverBuilder.Services.AddScoped<DeletedInstanceCleanupWorker>();
+        serverBuilder.Services.AddHostedService<DeletedInstanceCleanupBackgroundService>();
+        return serverBuilder;
+    }
 
-        /// <summary>
-        /// Add services for DICOM background workers.
-        /// </summary>
-        /// <param name="serverBuilder">The DICOM server builder instance.</param>
-        /// <returns>The DICOM server builder instance.</returns>
-        public static IDicomServerBuilder AddBackgroundWorkers(this IDicomServerBuilder serverBuilder)
+    /// <summary>
+    /// Add services for DICOM hosted services.
+    /// </summary>
+    /// <param name="serverBuilder">The DICOM server builder instance.</param>
+    /// <returns>The DICOM server builder instance.</returns>
+    public static IDicomServerBuilder AddHostedServices(this IDicomServerBuilder serverBuilder)
+    {
+        EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
+        serverBuilder.Services.AddHostedService<DataPartitionFeatureValidatorService>();
+        return serverBuilder;
+    }
+
+    /// <summary>
+    /// Adds services for enabling a DICOM server.
+    /// </summary>
+    /// <param name="services">The services collection.</param>
+    /// <param name="configurationRoot">An optional configuration root object. This method uses the "DicomServer" section.</param>
+    /// <param name="configureAction">An optional delegate to set <see cref="DicomServerConfiguration"/> properties after values have been loaded from configuration.</param>
+    /// <returns>A <see cref="IDicomServerBuilder"/> object.</returns>
+    public static IDicomServerBuilder AddDicomServer(
+        this IServiceCollection services,
+        IConfiguration configurationRoot,
+        Action<DicomServerConfiguration> configureAction = null)
+    {
+        EnsureArg.IsNotNull(services, nameof(services));
+
+        var dicomServerConfiguration = new DicomServerConfiguration();
+
+        configurationRoot?.GetSection(DicomServerConfigurationSectionName).Bind(dicomServerConfiguration);
+        configureAction?.Invoke(dicomServerConfiguration);
+
+        services.AddSingleton(Options.Create(dicomServerConfiguration));
+        services.AddSingleton(Options.Create(dicomServerConfiguration.Security));
+        services.AddSingleton(Options.Create(dicomServerConfiguration.Features));
+        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.DeletedInstanceCleanup));
+        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.StoreServiceSettings));
+        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.ExtendedQueryTag));
+        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.DataPartition));
+        services.AddSingleton(Options.Create(dicomServerConfiguration.Audit));
+        services.AddSingleton(Options.Create(dicomServerConfiguration.Swagger));
+        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.RetrieveConfiguration));
+
+        services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
+        services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerConfiguration);
+        services.AddApplicationInsightsTelemetry();
+
+        services.AddOptions();
+
+        services
+            .AddMvc(options =>
+            {
+                options.EnableEndpointRouting = false;
+                options.RespectBrowserAcceptHeader = true;
+            })
+            .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings());
+
+        services.AddApiVersioning(c =>
         {
-            EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
-            serverBuilder.Services.AddScoped<DeletedInstanceCleanupWorker>();
-            serverBuilder.Services.AddHostedService<DeletedInstanceCleanupBackgroundService>();
-            return serverBuilder;
-        }
+            c.ApiVersionReader = new UrlSegmentApiVersionReader();
+            c.AssumeDefaultVersionWhenUnspecified = true;
+            c.DefaultApiVersion = new ApiVersion(1, 0);
+            c.ReportApiVersions = true;
+            c.UseApiBehavior = false;
+        });
 
-        /// <summary>
-        /// Add services for DICOM hosted services.
-        /// </summary>
-        /// <param name="serverBuilder">The DICOM server builder instance.</param>
-        /// <returns>The DICOM server builder instance.</returns>
-        public static IDicomServerBuilder AddHostedServices(this IDicomServerBuilder serverBuilder)
+        services.AddVersionedApiExplorer(options =>
         {
-            EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
-            serverBuilder.Services.AddHostedService<DataPartitionFeatureValidatorService>();
-            return serverBuilder;
-        }
+            // The format for this is 'v'major[.minor][-status] ex. v1.0-prerelease
+            options.GroupNameFormat = "'v'VVV";
+            options.SubstituteApiVersionInUrl = true;
+        });
 
-        /// <summary>
-        /// Adds services for enabling a DICOM server.
-        /// </summary>
-        /// <param name="services">The services collection.</param>
-        /// <param name="configurationRoot">An optional configuration root object. This method uses the "DicomServer" section.</param>
-        /// <param name="configureAction">An optional delegate to set <see cref="DicomServerConfiguration"/> properties after values have been loaded from configuration.</param>
-        /// <returns>A <see cref="IDicomServerBuilder"/> object.</returns>
-        public static IDicomServerBuilder AddDicomServer(
-            this IServiceCollection services,
-            IConfiguration configurationRoot,
-            Action<DicomServerConfiguration> configureAction = null)
+        services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+        services.AddSwaggerGen(options =>
+        {
+            options.OperationFilter<SwaggerDefaultValues>();
+            options.OperationFilter<ErrorCodeOperationFilter>();
+            options.OperationFilter<RetrieveOperationFilter>();
+            options.DocumentFilter<ReflectionTypeFilter>();
+        });
+
+        services.AddSingleton<IUrlResolver, UrlResolver>();
+
+        services.RegisterAssemblyModules(typeof(DicomMediatorExtensions).Assembly, dicomServerConfiguration.Features, dicomServerConfiguration.Services);
+        services.AddTransient<IStartupFilter, DicomServerStartupFilter>();
+
+        services.TryAddSingleton<RecyclableMemoryStreamManager>();
+
+        return new DicomServerBuilder(services);
+    }
+
+    private class DicomServerBuilder : IDicomServerBuilder
+    {
+        public DicomServerBuilder(IServiceCollection services)
         {
             EnsureArg.IsNotNull(services, nameof(services));
-
-            var dicomServerConfiguration = new DicomServerConfiguration();
-
-            configurationRoot?.GetSection(DicomServerConfigurationSectionName).Bind(dicomServerConfiguration);
-            configureAction?.Invoke(dicomServerConfiguration);
-
-            services.AddSingleton(Options.Create(dicomServerConfiguration));
-            services.AddSingleton(Options.Create(dicomServerConfiguration.Security));
-            services.AddSingleton(Options.Create(dicomServerConfiguration.Features));
-            services.AddSingleton(Options.Create(dicomServerConfiguration.Services.DeletedInstanceCleanup));
-            services.AddSingleton(Options.Create(dicomServerConfiguration.Services.StoreServiceSettings));
-            services.AddSingleton(Options.Create(dicomServerConfiguration.Services.ExtendedQueryTag));
-            services.AddSingleton(Options.Create(dicomServerConfiguration.Services.DataPartition));
-            services.AddSingleton(Options.Create(dicomServerConfiguration.Audit));
-            services.AddSingleton(Options.Create(dicomServerConfiguration.Swagger));
-            services.AddSingleton(Options.Create(dicomServerConfiguration.Services.RetrieveConfiguration));
-
-            services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
-            services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerConfiguration);
-            services.AddApplicationInsightsTelemetry();
-
-            services.AddOptions();
-
-            services
-                .AddMvc(options =>
-                {
-                    options.EnableEndpointRouting = false;
-                    options.RespectBrowserAcceptHeader = true;
-                })
-                .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings());
-
-            services.AddApiVersioning(c =>
-            {
-                c.ApiVersionReader = new UrlSegmentApiVersionReader();
-                c.AssumeDefaultVersionWhenUnspecified = true;
-                c.DefaultApiVersion = new ApiVersion(1, 0);
-                c.ReportApiVersions = true;
-                c.UseApiBehavior = false;
-            });
-
-            services.AddVersionedApiExplorer(options =>
-            {
-                // The format for this is 'v'major[.minor][-status] ex. v1.0-prerelease
-                options.GroupNameFormat = "'v'VVV";
-                options.SubstituteApiVersionInUrl = true;
-            });
-
-            services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
-            services.AddSwaggerGen(options =>
-            {
-                options.OperationFilter<SwaggerDefaultValues>();
-                options.OperationFilter<ErrorCodeOperationFilter>();
-                options.OperationFilter<RetrieveOperationFilter>();
-                options.DocumentFilter<ReflectionTypeFilter>();
-            });
-
-            services.AddSingleton<IUrlResolver, UrlResolver>();
-
-            services.RegisterAssemblyModules(typeof(DicomMediatorExtensions).Assembly, dicomServerConfiguration.Features, dicomServerConfiguration.Services);
-            services.AddTransient<IStartupFilter, DicomServerStartupFilter>();
-
-            services.TryAddSingleton<RecyclableMemoryStreamManager>();
-
-            return new DicomServerBuilder(services);
+            Services = services;
         }
 
-        private class DicomServerBuilder : IDicomServerBuilder
-        {
-            public DicomServerBuilder(IServiceCollection services)
-            {
-                EnsureArg.IsNotNull(services, nameof(services));
-                Services = services;
-            }
+        public IServiceCollection Services { get; }
+    }
 
-            public IServiceCollection Services { get; }
-        }
-
-        /// <summary>
-        /// An <see cref="IStartupFilter"/> that configures middleware components before any components are added in Startup.Configure
-        /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812:Avoid uninstantiated internal classes.", Justification = "This class is instantiated.")]
-        private class DicomServerStartupFilter : IStartupFilter
+    /// <summary>
+    /// An <see cref="IStartupFilter"/> that configures middleware components before any components are added in Startup.Configure
+    /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812:Avoid uninstantiated internal classes.", Justification = "This class is instantiated.")]
+    private class DicomServerStartupFilter : IStartupFilter
+    {
+        public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next)
         {
-            public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next)
+            return app =>
             {
-                return app =>
+                IWebHostEnvironment env = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
+
+                IApiVersionDescriptionProvider provider = app.ApplicationServices.GetRequiredService<IApiVersionDescriptionProvider>();
+
+                // This middleware will add delegates to the OnStarting method of httpContext.Response for setting headers.
+                app.UseBaseHeaders();
+
+                app.UseCors(CorsConstants.DefaultCorsPolicy);
+
+                app.UseDicomRequestContext();
+
+                if (env.IsDevelopment())
                 {
-                    IWebHostEnvironment env = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
-
-                    IApiVersionDescriptionProvider provider = app.ApplicationServices.GetRequiredService<IApiVersionDescriptionProvider>();
-
-                    // This middleware will add delegates to the OnStarting method of httpContext.Response for setting headers.
-                    app.UseBaseHeaders();
-
-                    app.UseCors(CorsConstants.DefaultCorsPolicy);
-
-                    app.UseDicomRequestContext();
-
-                    if (env.IsDevelopment())
+                    app.UseDeveloperExceptionPage();
+                    app.UseSwagger(c =>
                     {
-                        app.UseDeveloperExceptionPage();
-                        app.UseSwagger(c =>
-                        {
-                            c.RouteTemplate = "{documentName}/api.{json|yaml}";
-                        });
+                        c.RouteTemplate = "{documentName}/api.{json|yaml}";
+                    });
 
-                        //Disabling swagger ui until accesability team gets back to us
-                        //app.UseSwaggerUI(options =>
-                        //{
-                        //    foreach (ApiVersionDescription description in provider.ApiVersionDescriptions)
-                        //    {
-                        //        options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.yaml", description.GroupName.ToUpperInvariant());
-                        //    }
-                        //});
-                    }
+                    //Disabling swagger ui until accesability team gets back to us
+                    //app.UseSwaggerUI(options =>
+                    //{
+                    //    foreach (ApiVersionDescription description in provider.ApiVersionDescriptions)
+                    //    {
+                    //        options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.yaml", description.GroupName.ToUpperInvariant());
+                    //    }
+                    //});
+                }
 
-                    app.UseAudit();
+                app.UseAudit();
 
-                    app.UseExceptionHandling();
+                app.UseExceptionHandling();
 
-                    app.UseAuthentication();
+                app.UseAuthentication();
 
-                    app.UseRequestContextAfterAuthentication<IDicomRequestContext>();
+                app.UseRequestContextAfterAuthentication<IDicomRequestContext>();
 
-                    next(app);
-                };
-            }
+                next(app);
+            };
         }
     }
 }

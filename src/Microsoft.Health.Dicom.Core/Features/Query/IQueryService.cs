@@ -7,10 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 
-namespace Microsoft.Health.Dicom.Core.Features.Query
+namespace Microsoft.Health.Dicom.Core.Features.Query;
+
+public interface IQueryService
 {
-    public interface IQueryService
-    {
-        Task<QueryResourceResponse> QueryAsync(QueryParameters parameters, CancellationToken cancellationToken = default);
-    }
+    Task<QueryResourceResponse> QueryAsync(QueryParameters parameters, CancellationToken cancellationToken = default);
 }

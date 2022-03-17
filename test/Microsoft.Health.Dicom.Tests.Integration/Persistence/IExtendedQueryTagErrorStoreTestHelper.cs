@@ -5,12 +5,11 @@
 
 using System.Threading.Tasks;
 
-namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
-{
-    public interface IExtendedQueryTagErrorStoreTestHelper
-    {
-        Task ClearExtendedQueryTagErrorTableAsync();
+namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
 
-        Task<bool> DoesExtendedQueryTagErrorExistAsync(int tagKey);
-    }
+public interface IExtendedQueryTagErrorStoreTestHelper
+{
+    Task ClearExtendedQueryTagErrorTableAsync();
+
+    Task<bool> DoesExtendedQueryTagErrorExistAsync(int tagKey);
 }

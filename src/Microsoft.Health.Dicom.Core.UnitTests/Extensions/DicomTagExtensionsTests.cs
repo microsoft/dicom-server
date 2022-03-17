@@ -8,29 +8,28 @@ using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions
+namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions;
+
+public class DicomTagExtensionsTests
 {
-    public class DicomTagExtensionsTests
+    [Fact]
+    public void GivenValidDicomTag_WhenGetPath_ThenShouldReturnCorrectValue()
     {
-        [Fact]
-        public void GivenValidDicomTag_WhenGetPath_ThenShouldReturnCorrectValue()
-        {
-            Assert.Equal("0014408B", DicomTag.UserSelectedGainY.GetPath());
-        }
+        Assert.Equal("0014408B", DicomTag.UserSelectedGainY.GetPath());
+    }
 
-        [Theory]
-        [MemberData(nameof(MemberDataForTestingGetDefaultVR))]
-        public void GivenDicomTag_WhenGetDefaultVR_ThenShouldReturnExpectedValue(DicomTag dicomTag, DicomVR expectedVR)
-        {
-            Assert.Equal(expectedVR, dicomTag.GetDefaultVR());
-        }
+    [Theory]
+    [MemberData(nameof(MemberDataForTestingGetDefaultVR))]
+    public void GivenDicomTag_WhenGetDefaultVR_ThenShouldReturnExpectedValue(DicomTag dicomTag, DicomVR expectedVR)
+    {
+        Assert.Equal(expectedVR, dicomTag.GetDefaultVR());
+    }
 
-        public static IEnumerable<object[]> MemberDataForTestingGetDefaultVR()
-        {
-            yield return new object[] { DicomTag.StudyInstanceUID, DicomVR.UI }; // standard DicomTag
-            yield return new object[] { DicomTag.Parse("12051003"), null }; // private DicomTag
-            yield return new object[] { DicomTag.Parse("22010010"), DicomVR.LO }; // private identification code
-            yield return new object[] { DicomTag.Parse("0018B001"), null }; // invalid DicomTag
-        }
+    public static IEnumerable<object[]> MemberDataForTestingGetDefaultVR()
+    {
+        yield return new object[] { DicomTag.StudyInstanceUID, DicomVR.UI }; // standard DicomTag
+        yield return new object[] { DicomTag.Parse("12051003"), null }; // private DicomTag
+        yield return new object[] { DicomTag.Parse("22010010"), DicomVR.LO }; // private identification code
+        yield return new object[] { DicomTag.Parse("0018B001"), null }; // invalid DicomTag
     }
 }

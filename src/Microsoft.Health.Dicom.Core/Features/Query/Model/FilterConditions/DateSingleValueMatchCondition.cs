@@ -6,19 +6,18 @@ using System;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
-namespace Microsoft.Health.Dicom.Core.Features.Query
-{
-    public class DateSingleValueMatchCondition : SingleValueMatchCondition<DateTime>
-    {
-        internal DateSingleValueMatchCondition(QueryTag tag, DateTime value)
-            : base(tag, value)
-        {
-        }
+namespace Microsoft.Health.Dicom.Core.Features.Query;
 
-        public override void Accept(QueryFilterConditionVisitor visitor)
-        {
-            EnsureArg.IsNotNull(visitor, nameof(visitor));
-            visitor.Visit(this);
-        }
+public class DateSingleValueMatchCondition : SingleValueMatchCondition<DateTime>
+{
+    internal DateSingleValueMatchCondition(QueryTag tag, DateTime value)
+        : base(tag, value)
+    {
+    }
+
+    public override void Accept(QueryFilterConditionVisitor visitor)
+    {
+        EnsureArg.IsNotNull(visitor, nameof(visitor));
+        visitor.Visit(this);
     }
 }

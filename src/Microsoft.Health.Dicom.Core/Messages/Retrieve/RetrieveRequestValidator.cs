@@ -10,97 +10,96 @@ using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
+namespace Microsoft.Health.Dicom.Core.Messages.Retrieve;
+
+public static class RetrieveRequestValidator
 {
-    public static class RetrieveRequestValidator
+    private const string UnknownDicomTransferSyntaxName = "Unknown";
+    private const string StudyInstanceUid = "StudyInstanceUid";
+    private const string SeriesInstanceUid = "SeriesInstanceUid";
+    private const string SopInstanceUid = "SopInstanceUid";
+
+    public static void ValidateInstanceIdentifiers(ResourceType resourceType, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null)
     {
-        private const string UnknownDicomTransferSyntaxName = "Unknown";
-        private const string StudyInstanceUid = "StudyInstanceUid";
-        private const string SeriesInstanceUid = "SeriesInstanceUid";
-        private const string SopInstanceUid = "SopInstanceUid";
+        EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
 
-        public static void ValidateInstanceIdentifiers(ResourceType resourceType, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null)
+        ValidateInstanceIdentifiersAreValid(resourceType, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        ValidateInstanceIdentifiersAreNotDuplicate(resourceType, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+    }
+
+    private static void ValidateInstanceIdentifiersAreValid(ResourceType resourceType, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+    {
+        UidValidation.Validate(studyInstanceUid, nameof(StudyInstanceUid));
+
+        switch (resourceType)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+            case ResourceType.Series:
+                UidValidation.Validate(seriesInstanceUid, nameof(SeriesInstanceUid));
+                break;
+            case ResourceType.Instance:
+            case ResourceType.Frames:
+                UidValidation.Validate(seriesInstanceUid, nameof(SeriesInstanceUid));
+                UidValidation.Validate(sopInstanceUid, nameof(SopInstanceUid));
+                break;
+        }
+    }
 
-            ValidateInstanceIdentifiersAreValid(resourceType, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-            ValidateInstanceIdentifiersAreNotDuplicate(resourceType, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+    private static void ValidateInstanceIdentifiersAreNotDuplicate(ResourceType resourceType, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null)
+    {
+        switch (resourceType)
+        {
+            case ResourceType.Series:
+                if (studyInstanceUid == seriesInstanceUid)
+                {
+                    throw new BadRequestException(DicomCoreResource.DuplicatedUidsNotAllowed);
+                }
+
+                break;
+            case ResourceType.Frames:
+            case ResourceType.Instance:
+                if ((studyInstanceUid == seriesInstanceUid) ||
+                    (studyInstanceUid == sopInstanceUid) ||
+                    (seriesInstanceUid == sopInstanceUid))
+                {
+                    throw new BadRequestException(DicomCoreResource.DuplicatedUidsNotAllowed);
+                }
+
+                break;
+        }
+    }
+
+    public static void ValidateFrames(IEnumerable<int> frames)
+    {
+        if (frames == null || !frames.Any())
+        {
+            throw new BadRequestException(DicomCoreResource.InvalidFramesValue);
         }
 
-        private static void ValidateInstanceIdentifiersAreValid(ResourceType resourceType, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+        foreach (int x in frames)
         {
-            UidValidation.Validate(studyInstanceUid, nameof(StudyInstanceUid));
-
-            switch (resourceType)
-            {
-                case ResourceType.Series:
-                    UidValidation.Validate(seriesInstanceUid, nameof(SeriesInstanceUid));
-                    break;
-                case ResourceType.Instance:
-                case ResourceType.Frames:
-                    UidValidation.Validate(seriesInstanceUid, nameof(SeriesInstanceUid));
-                    UidValidation.Validate(sopInstanceUid, nameof(SopInstanceUid));
-                    break;
-            }
-        }
-
-        private static void ValidateInstanceIdentifiersAreNotDuplicate(ResourceType resourceType, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null)
-        {
-            switch (resourceType)
-            {
-                case ResourceType.Series:
-                    if (studyInstanceUid == seriesInstanceUid)
-                    {
-                        throw new BadRequestException(DicomCoreResource.DuplicatedUidsNotAllowed);
-                    }
-
-                    break;
-                case ResourceType.Frames:
-                case ResourceType.Instance:
-                    if ((studyInstanceUid == seriesInstanceUid) ||
-                        (studyInstanceUid == sopInstanceUid) ||
-                        (seriesInstanceUid == sopInstanceUid))
-                    {
-                        throw new BadRequestException(DicomCoreResource.DuplicatedUidsNotAllowed);
-                    }
-
-                    break;
-            }
-        }
-
-        public static void ValidateFrames(IEnumerable<int> frames)
-        {
-            if (frames == null || !frames.Any())
+            if (x < 0)
             {
                 throw new BadRequestException(DicomCoreResource.InvalidFramesValue);
             }
-
-            foreach (int x in frames)
-            {
-                if (x < 0)
-                {
-                    throw new BadRequestException(DicomCoreResource.InvalidFramesValue);
-                }
-            }
         }
+    }
 
-        public static void ValidateTransferSyntax(string requestedTransferSyntax, bool originalTransferSyntaxRequested = false)
+    public static void ValidateTransferSyntax(string requestedTransferSyntax, bool originalTransferSyntaxRequested = false)
+    {
+        if (!originalTransferSyntaxRequested && !string.IsNullOrEmpty(requestedTransferSyntax))
         {
-            if (!originalTransferSyntaxRequested && !string.IsNullOrEmpty(requestedTransferSyntax))
+            try
             {
-                try
-                {
-                    DicomTransferSyntax transferSyntax = DicomTransferSyntax.Parse(requestedTransferSyntax);
+                DicomTransferSyntax transferSyntax = DicomTransferSyntax.Parse(requestedTransferSyntax);
 
-                    if (transferSyntax?.UID == null || transferSyntax.UID.Name == UnknownDicomTransferSyntaxName)
-                    {
-                        throw new BadRequestException(DicomCoreResource.InvalidTransferSyntaxValue);
-                    }
-                }
-                catch (DicomDataException)
+                if (transferSyntax?.UID == null || transferSyntax.UID.Name == UnknownDicomTransferSyntaxName)
                 {
                     throw new BadRequestException(DicomCoreResource.InvalidTransferSyntaxValue);
                 }
+            }
+            catch (DicomDataException)
+            {
+                throw new BadRequestException(DicomCoreResource.InvalidTransferSyntaxValue);
             }
         }
     }

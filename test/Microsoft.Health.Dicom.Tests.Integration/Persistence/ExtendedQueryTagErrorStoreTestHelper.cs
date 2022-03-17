@@ -7,40 +7,39 @@ using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 
-namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
+namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
+
+public class ExtendedQueryTagErrorStoreTestHelper : IExtendedQueryTagErrorStoreTestHelper
 {
-    public class ExtendedQueryTagErrorStoreTestHelper : IExtendedQueryTagErrorStoreTestHelper
+    private readonly string _connectionString;
+
+    public ExtendedQueryTagErrorStoreTestHelper(string connectionString)
     {
-        private readonly string _connectionString;
+        _connectionString = connectionString;
+    }
 
-        public ExtendedQueryTagErrorStoreTestHelper(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
+    public Task ClearExtendedQueryTagErrorTableAsync()
+    {
+        return SqlTestUtils.ClearTableAsync(_connectionString, VLatest.ExtendedQueryTagError.TableName);
+    }
 
-        public Task ClearExtendedQueryTagErrorTableAsync()
+    public async Task<bool> DoesExtendedQueryTagErrorExistAsync(int tagKey)
+    {
+        using (var sqlConnection = new SqlConnection(_connectionString))
         {
-            return SqlTestUtils.ClearTableAsync(_connectionString, VLatest.ExtendedQueryTagError.TableName);
-        }
+            await sqlConnection.OpenAsync();
 
-        public async Task<bool> DoesExtendedQueryTagErrorExistAsync(int tagKey)
-        {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
             {
-                await sqlConnection.OpenAsync();
-
-                using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
-                {
-                    sqlCommand.CommandText = @$"
+                sqlCommand.CommandText = @$"
                         SELECT *
                         FROM {VLatest.ExtendedQueryTagError.TableName}
                         WHERE {VLatest.ExtendedQueryTagError.TagKey} = @tagKey";
 
-                    sqlCommand.Parameters.AddWithValue("@tagKey", tagKey);
+                sqlCommand.Parameters.AddWithValue("@tagKey", tagKey);
 
-                    SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync();
-                    return sqlDataReader.HasRows;
-                }
+                SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync();
+                return sqlDataReader.HasRows;
             }
         }
     }

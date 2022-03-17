@@ -13,30 +13,29 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
-namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
+namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+
+public class DeleteExtendedQueryTagHandler : BaseHandler, IRequestHandler<DeleteExtendedQueryTagRequest, DeleteExtendedQueryTagResponse>
 {
-    public class DeleteExtendedQueryTagHandler : BaseHandler, IRequestHandler<DeleteExtendedQueryTagRequest, DeleteExtendedQueryTagResponse>
+    private readonly IDeleteExtendedQueryTagService _deleteExtendedQueryTagService;
+
+    public DeleteExtendedQueryTagHandler(IAuthorizationService<DataActions> authorizationService, IDeleteExtendedQueryTagService deleteExtendedQueryTagService)
+        : base(authorizationService)
     {
-        private readonly IDeleteExtendedQueryTagService _deleteExtendedQueryTagService;
+        EnsureArg.IsNotNull(deleteExtendedQueryTagService, nameof(deleteExtendedQueryTagService));
+        _deleteExtendedQueryTagService = deleteExtendedQueryTagService;
+    }
 
-        public DeleteExtendedQueryTagHandler(IAuthorizationService<DataActions> authorizationService, IDeleteExtendedQueryTagService deleteExtendedQueryTagService)
-            : base(authorizationService)
+    public async Task<DeleteExtendedQueryTagResponse> Handle(DeleteExtendedQueryTagRequest request, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(request, nameof(request));
+
+        if (await AuthorizationService.CheckAccess(DataActions.ManageExtendedQueryTags, cancellationToken) != DataActions.ManageExtendedQueryTags)
         {
-            EnsureArg.IsNotNull(deleteExtendedQueryTagService, nameof(deleteExtendedQueryTagService));
-            _deleteExtendedQueryTagService = deleteExtendedQueryTagService;
+            throw new UnauthorizedDicomActionException(DataActions.ManageExtendedQueryTags);
         }
 
-        public async Task<DeleteExtendedQueryTagResponse> Handle(DeleteExtendedQueryTagRequest request, CancellationToken cancellationToken)
-        {
-            EnsureArg.IsNotNull(request, nameof(request));
-
-            if (await AuthorizationService.CheckAccess(DataActions.ManageExtendedQueryTags, cancellationToken) != DataActions.ManageExtendedQueryTags)
-            {
-                throw new UnauthorizedDicomActionException(DataActions.ManageExtendedQueryTags);
-            }
-
-            await _deleteExtendedQueryTagService.DeleteExtendedQueryTagAsync(request.TagPath, cancellationToken);
-            return new DeleteExtendedQueryTagResponse();
-        }
+        await _deleteExtendedQueryTagService.DeleteExtendedQueryTagAsync(request.TagPath, cancellationToken);
+        return new DeleteExtendedQueryTagResponse();
     }
 }

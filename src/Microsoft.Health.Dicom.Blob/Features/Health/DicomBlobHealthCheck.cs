@@ -11,35 +11,34 @@ using Microsoft.Health.Blob.Features.Health;
 using Microsoft.Health.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob.Utilities;
 
-namespace Microsoft.Health.Dicom.Blob.Features.Health
+namespace Microsoft.Health.Dicom.Blob.Features.Health;
+
+/// <summary>
+/// Checks for the DICOM blob service health.
+/// </summary>
+public class DicomBlobHealthCheck<TStoreConfigurationSection> : BlobHealthCheck
+    where TStoreConfigurationSection : IStoreConfigurationSection
 {
     /// <summary>
-    /// Checks for the DICOM blob service health.
+    /// Initializes a new instance of the <see cref="DicomBlobHealthCheck{TStoreConfigurationSection}"/> class.
     /// </summary>
-    public class DicomBlobHealthCheck<TStoreConfigurationSection> : BlobHealthCheck
-        where TStoreConfigurationSection : IStoreConfigurationSection
+    /// <param name="client">The blob client factory.</param>
+    /// <param name="namedBlobContainerConfigurationAccessor">The IOptions accessor to get a named blob container version.</param>
+    /// <param name="storeConfigurationSection"></param>
+    /// <param name="testProvider">The test provider.</param>
+    /// <param name="logger">The logger.</param>
+    public DicomBlobHealthCheck(
+        BlobServiceClient client,
+        IOptionsSnapshot<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
+        TStoreConfigurationSection storeConfigurationSection,
+        IBlobClientTestProvider testProvider,
+        ILogger<DicomBlobHealthCheck<TStoreConfigurationSection>> logger)
+        : base(
+              client,
+              namedBlobContainerConfigurationAccessor,
+              storeConfigurationSection.ContainerConfigurationName,
+              testProvider,
+              logger)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DicomBlobHealthCheck{TStoreConfigurationSection}"/> class.
-        /// </summary>
-        /// <param name="client">The blob client factory.</param>
-        /// <param name="namedBlobContainerConfigurationAccessor">The IOptions accessor to get a named blob container version.</param>
-        /// <param name="storeConfigurationSection"></param>
-        /// <param name="testProvider">The test provider.</param>
-        /// <param name="logger">The logger.</param>
-        public DicomBlobHealthCheck(
-            BlobServiceClient client,
-            IOptionsSnapshot<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
-            TStoreConfigurationSection storeConfigurationSection,
-            IBlobClientTestProvider testProvider,
-            ILogger<DicomBlobHealthCheck<TStoreConfigurationSection>> logger)
-            : base(
-                  client,
-                  namedBlobContainerConfigurationAccessor,
-                  storeConfigurationSection.ContainerConfigurationName,
-                  testProvider,
-                  logger)
-        {
-        }
     }
 }

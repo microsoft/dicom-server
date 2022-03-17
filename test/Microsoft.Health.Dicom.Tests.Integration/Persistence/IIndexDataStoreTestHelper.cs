@@ -8,24 +8,23 @@ using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 
-namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
+namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
+
+public interface IIndexDataStoreTestHelper
 {
-    public interface IIndexDataStoreTestHelper
-    {
-        Task<IReadOnlyList<StudyMetadata>> GetStudyMetadataAsync(string studyInstanceUid, int partitionKey = DefaultPartition.Key);
+    Task<IReadOnlyList<StudyMetadata>> GetStudyMetadataAsync(string studyInstanceUid, int partitionKey = DefaultPartition.Key);
 
-        Task<IReadOnlyList<SeriesMetadata>> GetSeriesMetadataAsync(string seriesInstanceUid, int partitionKey = DefaultPartition.Key);
+    Task<IReadOnlyList<SeriesMetadata>> GetSeriesMetadataAsync(string seriesInstanceUid, int partitionKey = DefaultPartition.Key);
 
-        Task<IReadOnlyList<Instance>> GetInstancesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int partitionKey = DefaultPartition.Key);
+    Task<IReadOnlyList<Instance>> GetInstancesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int partitionKey = DefaultPartition.Key);
 
-        Task<Instance> GetInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long version);
+    Task<Instance> GetInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long version);
 
-        Task<IReadOnlyList<DeletedInstance>> GetDeletedInstanceEntriesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int partitionKey = DefaultPartition.Key);
+    Task<IReadOnlyList<DeletedInstance>> GetDeletedInstanceEntriesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int partitionKey = DefaultPartition.Key);
 
-        Task<IReadOnlyList<ChangeFeedRow>> GetChangeFeedRowsAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid);
+    Task<IReadOnlyList<ChangeFeedRow>> GetChangeFeedRowsAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid);
 
-        Task ClearDeletedInstanceTableAsync();
+    Task ClearDeletedInstanceTableAsync();
 
-        Task ClearIndexTablesAsync();
-    }
+    Task ClearIndexTablesAsync();
 }

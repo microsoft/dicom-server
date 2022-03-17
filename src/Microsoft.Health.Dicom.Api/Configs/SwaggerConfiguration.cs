@@ -6,14 +6,13 @@
 using System;
 using Microsoft.OpenApi.Models;
 
-namespace Microsoft.Health.Dicom.Api.Configs
+namespace Microsoft.Health.Dicom.Api.Configs;
+
+public class SwaggerConfiguration
 {
-    public class SwaggerConfiguration
-    {
-        public Uri ServerUri { get; set; }
+    public Uri ServerUri { get; set; }
 
-        public string Title { get; set; } = "Medical Imaging Server for DICOM";
+    public string Title { get; set; } = "Medical Imaging Server for DICOM";
 
-        public OpenApiLicense License { get; } = new OpenApiLicense();
-    }
+    public OpenApiLicense License { get; } = new OpenApiLicense();
 }

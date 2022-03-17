@@ -7,13 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 
-namespace Microsoft.Health.Dicom.Core.Features.Query
+namespace Microsoft.Health.Dicom.Core.Features.Query;
+
+public interface IQueryStore
 {
-    public interface IQueryStore
-    {
-        Task<QueryResult> QueryAsync(
-            int partitionKey,
-            QueryExpression query,
-            CancellationToken cancellationToken = default);
-    }
+    Task<QueryResult> QueryAsync(
+        int partitionKey,
+        QueryExpression query,
+        CancellationToken cancellationToken = default);
 }

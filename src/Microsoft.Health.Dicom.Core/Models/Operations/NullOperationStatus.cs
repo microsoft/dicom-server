@@ -5,18 +5,17 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Core.Models.Operations
+namespace Microsoft.Health.Dicom.Core.Models.Operations;
+
+internal sealed class NullOperationStatus : ICustomOperationStatus
 {
-    internal sealed class NullOperationStatus : ICustomOperationStatus
-    {
-        public static ICustomOperationStatus Value { get; } = new NullOperationStatus();
+    public static ICustomOperationStatus Value { get; } = new NullOperationStatus();
 
-        private NullOperationStatus()
-        { }
+    private NullOperationStatus()
+    { }
 
-        public DateTime? CreatedTime => null;
+    public DateTime? CreatedTime => null;
 
-        public OperationProgress GetProgress()
-            => new OperationProgress();
-    }
+    public OperationProgress GetProgress()
+        => new OperationProgress();
 }

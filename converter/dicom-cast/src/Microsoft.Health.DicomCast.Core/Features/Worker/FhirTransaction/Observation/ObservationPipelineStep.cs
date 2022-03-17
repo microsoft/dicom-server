@@ -15,63 +15,62 @@ using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
+
+public class ObservationPipelineStep : IFhirTransactionPipelineStep
 {
-    public class ObservationPipelineStep : IFhirTransactionPipelineStep
+    private readonly IObservationDeleteHandler _observationDeleteHandler;
+    private readonly IObservationUpsertHandler _observationUpsertHandler;
+    private readonly DicomCastConfiguration _dicomCastConfiguration;
+
+    public ObservationPipelineStep(IObservationDeleteHandler observationDeleteHandler,
+        IObservationUpsertHandler observationUpsertHandler,
+        IOptions<DicomCastConfiguration> dicomCastConfiguration)
     {
-        private readonly IObservationDeleteHandler _observationDeleteHandler;
-        private readonly IObservationUpsertHandler _observationUpsertHandler;
-        private readonly DicomCastConfiguration _dicomCastConfiguration;
+        _observationDeleteHandler = EnsureArg.IsNotNull(observationDeleteHandler, nameof(observationDeleteHandler));
+        _observationUpsertHandler = EnsureArg.IsNotNull(observationUpsertHandler, nameof(observationUpsertHandler));
+        _dicomCastConfiguration = EnsureArg.IsNotNull(dicomCastConfiguration?.Value, nameof(dicomCastConfiguration));
+    }
 
-        public ObservationPipelineStep(IObservationDeleteHandler observationDeleteHandler,
-            IObservationUpsertHandler observationUpsertHandler,
-            IOptions<DicomCastConfiguration> dicomCastConfiguration)
+    public async Task PrepareRequestAsync(FhirTransactionContext context, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(context, nameof(context));
+
+        if (_dicomCastConfiguration.Features.GenerateObservations)
         {
-            _observationDeleteHandler = EnsureArg.IsNotNull(observationDeleteHandler, nameof(observationDeleteHandler));
-            _observationUpsertHandler = EnsureArg.IsNotNull(observationUpsertHandler, nameof(observationUpsertHandler));
-            _dicomCastConfiguration = EnsureArg.IsNotNull(dicomCastConfiguration?.Value, nameof(dicomCastConfiguration));
-        }
-
-        public async Task PrepareRequestAsync(FhirTransactionContext context, CancellationToken cancellationToken = default)
-        {
-            EnsureArg.IsNotNull(context, nameof(context));
-
-            if (_dicomCastConfiguration.Features.GenerateObservations)
+            ChangeFeedEntry changeFeedEntry = context.ChangeFeedEntry;
+            context.Request.Observation = changeFeedEntry.Action switch
             {
-                ChangeFeedEntry changeFeedEntry = context.ChangeFeedEntry;
-                context.Request.Observation = changeFeedEntry.Action switch
-                {
-                    ChangeFeedAction.Create => await _observationUpsertHandler.BuildAsync(context, cancellationToken),
-                    ChangeFeedAction.Delete => await _observationDeleteHandler.BuildAsync(context, cancellationToken),
-                    _ => throw new NotSupportedException(
-                        string.Format(
-                            CultureInfo.InvariantCulture,
-                            DicomCastCoreResource.NotSupportedChangeFeedAction,
-                            changeFeedEntry.Action))
-                };
+                ChangeFeedAction.Create => await _observationUpsertHandler.BuildAsync(context, cancellationToken),
+                ChangeFeedAction.Delete => await _observationDeleteHandler.BuildAsync(context, cancellationToken),
+                _ => throw new NotSupportedException(
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCastCoreResource.NotSupportedChangeFeedAction,
+                        changeFeedEntry.Action))
+            };
+        }
+    }
+
+    public void ProcessResponse(FhirTransactionContext context)
+    {
+        EnsureArg.IsNotNull(context, nameof(context));
+
+        if (_dicomCastConfiguration.Features.GenerateObservations)
+        {
+            if (context.Response?.Observation == null)
+            {
+                return;
             }
-        }
 
-        public void ProcessResponse(FhirTransactionContext context)
-        {
-            EnsureArg.IsNotNull(context, nameof(context));
-
-            if (_dicomCastConfiguration.Features.GenerateObservations)
+            foreach (FhirTransactionResponseEntry observation in context.Response.Observation)
             {
-                if (context.Response?.Observation == null)
-                {
-                    return;
-                }
+                HttpStatusCode statusCode = observation.Response.Annotation<HttpStatusCode>();
 
-                foreach (FhirTransactionResponseEntry observation in context.Response.Observation)
+                // We are only currently doing POSTs/DELETEs which should result in a 201 or 204
+                if (statusCode != HttpStatusCode.Created && statusCode != HttpStatusCode.NoContent)
                 {
-                    HttpStatusCode statusCode = observation.Response.Annotation<HttpStatusCode>();
-
-                    // We are only currently doing POSTs/DELETEs which should result in a 201 or 204
-                    if (statusCode != HttpStatusCode.Created && statusCode != HttpStatusCode.NoContent)
-                    {
-                        throw new ResourceConflictException();
-                    }
+                    throw new ResourceConflictException();
                 }
             }
         }

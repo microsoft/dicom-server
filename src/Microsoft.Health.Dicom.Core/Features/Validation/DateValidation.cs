@@ -9,26 +9,26 @@ using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 
-namespace Microsoft.Health.Dicom.Core.Features.Validation
+namespace Microsoft.Health.Dicom.Core.Features.Validation;
+
+internal class DateValidation : ElementValidation
 {
-    internal class DateValidation : ElementValidation
+    private const string DateFormatDA = "yyyyMMdd";
+
+    public override void Validate(DicomElement dicomElement)
     {
-        private const string DateFormatDA = "yyyyMMdd";
-        public override void Validate(DicomElement dicomElement)
+        base.Validate(dicomElement);
+
+        string value = dicomElement.Get<string>();
+        string name = dicomElement.Tag.GetFriendlyName();
+        if (string.IsNullOrEmpty(value))
         {
-            base.Validate(dicomElement);
+            return;
+        }
 
-            string value = dicomElement.Get<string>();
-            string name = dicomElement.Tag.GetFriendlyName();
-            if (string.IsNullOrEmpty(value))
-            {
-                return;
-            }
-
-            if (!DateTime.TryParseExact(value, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out _))
-            {
-                throw ElementValidationExceptionFactory.CreateDateIsInvalidException(name, value);
-            }
+        if (!DateTime.TryParseExact(value, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out _))
+        {
+            throw new ElementValidationException(name, DicomVR.DA, value, ValidationErrorCode.DateIsInvalid);
         }
     }
 }

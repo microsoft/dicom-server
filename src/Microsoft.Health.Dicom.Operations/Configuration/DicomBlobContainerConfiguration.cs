@@ -5,13 +5,12 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace Microsoft.Health.Dicom.Operations.Configuration
-{
-    internal class DicomBlobContainerConfiguration
-    {
-        public const string SectionName = "Containers";
+namespace Microsoft.Health.Dicom.Operations.Configuration;
 
-        [Required]
-        public string Metadata { get; set; }
-    }
+internal class DicomBlobContainerConfiguration
+{
+    public const string SectionName = "Containers";
+
+    [Required]
+    public string Metadata { get; set; }
 }

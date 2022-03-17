@@ -16,104 +16,103 @@ using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed
+namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed;
+
+internal class SqlChangeFeedStoreV4 : ISqlChangeFeedStore
 {
-    internal class SqlChangeFeedStoreV4 : ISqlChangeFeedStore
+    public virtual SchemaVersion Version => SchemaVersion.V4;
+
+    protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory { get; }
+
+    public SqlChangeFeedStoreV4(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
     {
-        public virtual SchemaVersion Version => SchemaVersion.V4;
+        SqlConnectionWrapperFactory = EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
+    }
 
-        protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory { get; }
+    public virtual async Task<ChangeFeedEntry> GetChangeFeedLatestAsync(CancellationToken cancellationToken)
+    {
+        using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
+        using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
 
-        public SqlChangeFeedStoreV4(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+        VLatest.GetChangeFeedLatest.PopulateCommand(sqlCommandWrapper);
+
+        using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
+        if (await reader.ReadAsync(cancellationToken))
         {
-            SqlConnectionWrapperFactory = EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
+            (long rSeq, DateTimeOffset rTimestamp, int rAction, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long oWatermark, long? cWatermark) = reader.ReadRow(
+                VLatest.ChangeFeed.Sequence,
+                VLatest.ChangeFeed.Timestamp,
+                VLatest.ChangeFeed.Action,
+                VLatest.ChangeFeed.StudyInstanceUid,
+                VLatest.ChangeFeed.SeriesInstanceUid,
+                VLatest.ChangeFeed.SopInstanceUid,
+                VLatest.ChangeFeed.OriginalWatermark,
+                VLatest.ChangeFeed.CurrentWatermark);
+
+            return new ChangeFeedEntry(
+                    rSeq,
+                    rTimestamp,
+                    (ChangeFeedAction)rAction,
+                    rStudyInstanceUid,
+                    rSeriesInstanceUid,
+                    rSopInstanceUid,
+                    oWatermark,
+                    cWatermark,
+                    ConvertWatermarkToCurrentState(oWatermark, cWatermark));
         }
 
-        public virtual async Task<ChangeFeedEntry> GetChangeFeedLatestAsync(CancellationToken cancellationToken)
+        return null;
+    }
+
+    public virtual async Task<IReadOnlyCollection<ChangeFeedEntry>> GetChangeFeedAsync(long offset, int limit, CancellationToken cancellationToken)
+    {
+        var results = new List<ChangeFeedEntry>();
+
+        using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
+        using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
+
+        VLatest.GetChangeFeed.PopulateCommand(sqlCommandWrapper, limit, offset);
+
+        using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
         {
-            using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
-            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
+            (long rSeq, DateTimeOffset rTimestamp, int rAction, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long oWatermark, long? cWatermark) = reader.ReadRow(
+                VLatest.ChangeFeed.Sequence,
+                VLatest.ChangeFeed.Timestamp,
+                VLatest.ChangeFeed.Action,
+                VLatest.ChangeFeed.StudyInstanceUid,
+                VLatest.ChangeFeed.SeriesInstanceUid,
+                VLatest.ChangeFeed.SopInstanceUid,
+                VLatest.ChangeFeed.OriginalWatermark,
+                VLatest.ChangeFeed.CurrentWatermark);
 
-            VLatest.GetChangeFeedLatest.PopulateCommand(sqlCommandWrapper);
-
-            using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
-            if (await reader.ReadAsync(cancellationToken))
-            {
-                (long rSeq, DateTimeOffset rTimestamp, int rAction, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long oWatermark, long? cWatermark) = reader.ReadRow(
-                    VLatest.ChangeFeed.Sequence,
-                    VLatest.ChangeFeed.Timestamp,
-                    VLatest.ChangeFeed.Action,
-                    VLatest.ChangeFeed.StudyInstanceUid,
-                    VLatest.ChangeFeed.SeriesInstanceUid,
-                    VLatest.ChangeFeed.SopInstanceUid,
-                    VLatest.ChangeFeed.OriginalWatermark,
-                    VLatest.ChangeFeed.CurrentWatermark);
-
-                return new ChangeFeedEntry(
-                        rSeq,
-                        rTimestamp,
-                        (ChangeFeedAction)rAction,
-                        rStudyInstanceUid,
-                        rSeriesInstanceUid,
-                        rSopInstanceUid,
-                        oWatermark,
-                        cWatermark,
-                        ConvertWatermarkToCurrentState(oWatermark, cWatermark));
-            }
-
-            return null;
+            results.Add(new ChangeFeedEntry(
+                    rSeq,
+                    rTimestamp,
+                    (ChangeFeedAction)rAction,
+                    rStudyInstanceUid,
+                    rSeriesInstanceUid,
+                    rSopInstanceUid,
+                    oWatermark,
+                    cWatermark,
+                    ConvertWatermarkToCurrentState(oWatermark, cWatermark)));
         }
 
-        public virtual async Task<IReadOnlyCollection<ChangeFeedEntry>> GetChangeFeedAsync(long offset, int limit, CancellationToken cancellationToken)
+        return results;
+    }
+
+    protected static ChangeFeedState ConvertWatermarkToCurrentState(long originalWatermark, long? currentWatermak)
+    {
+        if (currentWatermak == null)
         {
-            var results = new List<ChangeFeedEntry>();
-
-            using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
-            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
-
-            VLatest.GetChangeFeed.PopulateCommand(sqlCommandWrapper, limit, offset);
-
-            using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
-            while (await reader.ReadAsync(cancellationToken))
-            {
-                (long rSeq, DateTimeOffset rTimestamp, int rAction, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long oWatermark, long? cWatermark) = reader.ReadRow(
-                    VLatest.ChangeFeed.Sequence,
-                    VLatest.ChangeFeed.Timestamp,
-                    VLatest.ChangeFeed.Action,
-                    VLatest.ChangeFeed.StudyInstanceUid,
-                    VLatest.ChangeFeed.SeriesInstanceUid,
-                    VLatest.ChangeFeed.SopInstanceUid,
-                    VLatest.ChangeFeed.OriginalWatermark,
-                    VLatest.ChangeFeed.CurrentWatermark);
-
-                results.Add(new ChangeFeedEntry(
-                        rSeq,
-                        rTimestamp,
-                        (ChangeFeedAction)rAction,
-                        rStudyInstanceUid,
-                        rSeriesInstanceUid,
-                        rSopInstanceUid,
-                        oWatermark,
-                        cWatermark,
-                        ConvertWatermarkToCurrentState(oWatermark, cWatermark)));
-            }
-
-            return results;
+            return ChangeFeedState.Deleted;
         }
 
-        protected static ChangeFeedState ConvertWatermarkToCurrentState(long originalWatermark, long? currentWatermak)
+        if (currentWatermak != originalWatermark)
         {
-            if (currentWatermak == null)
-            {
-                return ChangeFeedState.Deleted;
-            }
-
-            if (currentWatermak != originalWatermark)
-            {
-                return ChangeFeedState.Replaced;
-            }
-
-            return ChangeFeedState.Current;
+            return ChangeFeedState.Replaced;
         }
+
+        return ChangeFeedState.Current;
     }
 }

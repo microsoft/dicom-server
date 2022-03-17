@@ -13,48 +13,47 @@ using Hl7.Fhir.Utility;
 using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
+
+public class ObservationDeleteHandler : IObservationDeleteHandler
 {
-    public class ObservationDeleteHandler : IObservationDeleteHandler
+    private readonly IFhirService _fhirService;
+
+    public ObservationDeleteHandler(IFhirService fhirService)
     {
-        private readonly IFhirService _fhirService;
+        _fhirService = EnsureArg.IsNotNull(fhirService, nameof(fhirService));
+    }
 
-        public ObservationDeleteHandler(IFhirService fhirService)
+    public async Task<IEnumerable<FhirTransactionRequestEntry>> BuildAsync(FhirTransactionContext context, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(context, nameof(context));
+        EnsureArg.IsNotNull(context.ChangeFeedEntry, nameof(context.ChangeFeedEntry));
+
+        Identifier identifier = IdentifierUtility.CreateIdentifier(context.ChangeFeedEntry.StudyInstanceUid);
+        List<Observation> matchingObservations = (await _fhirService.RetrieveObservationsAsync(identifier, cancellationToken)).ToList();
+
+        // terminate early if no observation found
+        if (matchingObservations.Count == 0)
         {
-            _fhirService = EnsureArg.IsNotNull(fhirService, nameof(fhirService));
+            return null;
         }
 
-        public async Task<IEnumerable<FhirTransactionRequestEntry>> BuildAsync(FhirTransactionContext context, CancellationToken cancellationToken)
+        var requests = new List<FhirTransactionRequestEntry>();
+        foreach (Observation observation in matchingObservations)
         {
-            EnsureArg.IsNotNull(context, nameof(context));
-            EnsureArg.IsNotNull(context.ChangeFeedEntry, nameof(context.ChangeFeedEntry));
-
-            Identifier identifier = IdentifierUtility.CreateIdentifier(context.ChangeFeedEntry.StudyInstanceUid);
-            List<Observation> matchingObservations = (await _fhirService.RetrieveObservationsAsync(identifier, cancellationToken)).ToList();
-
-            // terminate early if no observation found
-            if (matchingObservations.Count == 0)
+            Bundle.RequestComponent request = new Bundle.RequestComponent()
             {
-                return null;
-            }
+                Method = Bundle.HTTPVerb.DELETE,
+                Url = $"{ResourceType.Observation.GetLiteral()}/{observation.Id}"
+            };
 
-            var requests = new List<FhirTransactionRequestEntry>();
-            foreach (Observation observation in matchingObservations)
-            {
-                Bundle.RequestComponent request = new Bundle.RequestComponent()
-                {
-                    Method = Bundle.HTTPVerb.DELETE,
-                    Url = $"{ResourceType.Observation.GetLiteral()}/{observation.Id}"
-                };
-
-                requests.Add(new FhirTransactionRequestEntry(
-                    FhirTransactionRequestMode.Delete,
-                    request,
-                    observation.ToServerResourceId(),
-                    observation));
-            }
-
-            return requests;
+            requests.Add(new FhirTransactionRequestEntry(
+                FhirTransactionRequestMode.Delete,
+                request,
+                observation.ToServerResourceId(),
+                observation));
         }
+
+        return requests;
     }
 }

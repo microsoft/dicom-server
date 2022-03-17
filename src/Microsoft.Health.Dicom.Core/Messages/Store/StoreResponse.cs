@@ -5,18 +5,17 @@
 
 using FellowOakDicom;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Store
+namespace Microsoft.Health.Dicom.Core.Messages.Store;
+
+public sealed class StoreResponse
 {
-    public sealed class StoreResponse
+    public StoreResponse(StoreResponseStatus status, DicomDataset responseDataset)
     {
-        public StoreResponse(StoreResponseStatus status, DicomDataset responseDataset)
-        {
-            Status = status;
-            Dataset = responseDataset;
-        }
-
-        public StoreResponseStatus Status { get; }
-
-        public DicomDataset Dataset { get; }
+        Status = status;
+        Dataset = responseDataset;
     }
+
+    public StoreResponseStatus Status { get; }
+
+    public DicomDataset Dataset { get; }
 }

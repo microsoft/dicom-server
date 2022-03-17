@@ -7,17 +7,16 @@ using System;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.Health.Dicom.SqlServer.Extensions
-{
-    internal static class ILoggerExtensions
-    {
-        private static readonly Action<ILogger, string, long, Exception> LogSuccess =
-            LoggerMessage.Define<string, long>(
-                LogLevel.Information,
-                default,
-                "SQL stored procedure '{Name}' successfully executed after {ElapsedMs} ms");
+namespace Microsoft.Health.Dicom.SqlServer.Extensions;
 
-        public static void StoredProcedureSucceeded(this ILogger logger, string name, Stopwatch sw)
-            => LogSuccess(logger, name, sw.ElapsedMilliseconds, null);
-    }
+internal static class ILoggerExtensions
+{
+    private static readonly Action<ILogger, string, long, Exception> LogSuccess =
+        LoggerMessage.Define<string, long>(
+            LogLevel.Information,
+            default,
+            "SQL stored procedure '{Name}' successfully executed after {ElapsedMs} ms");
+
+    public static void StoredProcedureSucceeded(this ILogger logger, string name, Stopwatch sw)
+        => LogSuccess(logger, name, sw.ElapsedMilliseconds, null);
 }

@@ -8,19 +8,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Client.Models;
 
-namespace Microsoft.Health.DicomCast.Core.Features.DicomWeb.Service
+namespace Microsoft.Health.DicomCast.Core.Features.DicomWeb.Service;
+
+/// <summary>
+/// Provides functionality to retrieve the change feed from DICOMWeb.
+/// </summary>
+public interface IChangeFeedRetrieveService
 {
     /// <summary>
-    /// Provides functionality to retrieve the change feed from DICOMWeb.
+    /// Asynchronously retrieves the change feed.
     /// </summary>
-    public interface IChangeFeedRetrieveService
-    {
-        /// <summary>
-        /// Asynchronously retrieves the change feed.
-        /// </summary>
-        /// <param name="offset">Skip events till sequence number.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A task representing the retrieving operation.</returns>
-        Task<IReadOnlyList<ChangeFeedEntry>> RetrieveChangeFeedAsync(long offset, CancellationToken cancellationToken);
-    }
+    /// <param name="offset">Skip events till sequence number.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task representing the retrieving operation.</returns>
+    Task<IReadOnlyList<ChangeFeedEntry>> RetrieveChangeFeedAsync(long offset, CancellationToken cancellationToken);
 }

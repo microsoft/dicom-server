@@ -5,13 +5,12 @@
 
 using System;
 
-namespace Microsoft.Health.DicomCast.Core.Exceptions
+namespace Microsoft.Health.DicomCast.Core.Exceptions;
+
+public class DataStoreException : Exception
 {
-    public class DataStoreException : Exception
+    public DataStoreException(Exception innerException)
+        : base(DicomCastCoreResource.DataStoreOperationFailed, innerException)
     {
-        public DataStoreException(Exception innerException)
-            : base(DicomCastCoreResource.DataStoreOperationFailed, innerException)
-        {
-        }
     }
 }

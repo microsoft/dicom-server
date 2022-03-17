@@ -5,16 +5,15 @@
 
 using System.Globalization;
 
-namespace Microsoft.Health.Dicom.Core.Exceptions
+namespace Microsoft.Health.Dicom.Core.Exceptions;
+
+/// <summary>
+/// Exception that is thrown when partition name is missing in the route values.
+/// </summary>
+public class DataPartitionsMissingPartitionException : BadRequestException
 {
-    /// <summary>
-    /// Exception that is thrown when partition name is missing in the route values.
-    /// </summary>
-    public class DataPartitionsMissingPartitionException : BadRequestException
+    public DataPartitionsMissingPartitionException()
+        : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.DataPartitionsMissingPartition))
     {
-        public DataPartitionsMissingPartitionException()
-            : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.DataPartitionsMissingPartition))
-        {
-        }
     }
 }

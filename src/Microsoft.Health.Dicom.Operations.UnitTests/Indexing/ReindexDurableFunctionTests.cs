@@ -13,33 +13,32 @@ using Microsoft.Health.Dicom.Operations.Indexing;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using NSubstitute;
 
-namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing
-{
-    public partial class ReindexDurableFunctionTests
-    {
-        private readonly ReindexDurableFunction _reindexDurableFunction;
-        private readonly IExtendedQueryTagStore _extendedQueryTagStore;
-        private readonly IInstanceStore _instanceStore;
-        private readonly IInstanceReindexer _instanceReindexer;
-        private readonly ISchemaVersionResolver _schemaVersionResolver;
-        private readonly QueryTagIndexingOptions _options;
+namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing;
 
-        public ReindexDurableFunctionTests()
+public partial class ReindexDurableFunctionTests
+{
+    private readonly ReindexDurableFunction _reindexDurableFunction;
+    private readonly IExtendedQueryTagStore _extendedQueryTagStore;
+    private readonly IInstanceStore _instanceStore;
+    private readonly IInstanceReindexer _instanceReindexer;
+    private readonly ISchemaVersionResolver _schemaVersionResolver;
+    private readonly QueryTagIndexingOptions _options;
+
+    public ReindexDurableFunctionTests()
+    {
+        _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
+        _instanceStore = Substitute.For<IInstanceStore>();
+        _instanceReindexer = Substitute.For<IInstanceReindexer>();
+        _schemaVersionResolver = Substitute.For<ISchemaVersionResolver>();
+        _options = new QueryTagIndexingOptions
         {
-            _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
-            _instanceStore = Substitute.For<IInstanceStore>();
-            _instanceReindexer = Substitute.For<IInstanceReindexer>();
-            _schemaVersionResolver = Substitute.For<ISchemaVersionResolver>();
-            _options = new QueryTagIndexingOptions
-            {
-                ActivityRetryOptions = new RetryOptions(TimeSpan.FromSeconds(5), 10),
-            };
-            _reindexDurableFunction = new ReindexDurableFunction(
-                _extendedQueryTagStore,
-                _instanceStore,
-                _instanceReindexer,
-                _schemaVersionResolver,
-                Options.Create(_options));
-        }
+            ActivityRetryOptions = new RetryOptions(TimeSpan.FromSeconds(5), 10),
+        };
+        _reindexDurableFunction = new ReindexDurableFunction(
+            _extendedQueryTagStore,
+            _instanceStore,
+            _instanceReindexer,
+            _schemaVersionResolver,
+            Options.Create(_options));
     }
 }

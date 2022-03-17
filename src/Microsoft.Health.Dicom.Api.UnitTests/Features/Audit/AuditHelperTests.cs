@@ -14,110 +14,109 @@ using Microsoft.Health.Dicom.Core.Features.Context;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit
+namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit;
+
+public class AuditHelperTests
 {
-    public class AuditHelperTests
+    private const string AuditEventType = "audit";
+    private const string CorrelationId = "correlation";
+    private static readonly Uri Uri = new Uri("http://localhost/123");
+    private static readonly IReadOnlyCollection<KeyValuePair<string, string>> Claims = new List<KeyValuePair<string, string>>();
+    private static readonly IPAddress CallerIpAddress = new IPAddress(new byte[] { 0xA, 0x0, 0x0, 0x0 }); // 10.0.0.0
+    private const string CallerIpAddressInString = "10.0.0.0";
+
+    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+    private readonly IAuditLogger _auditLogger = Substitute.For<IAuditLogger>();
+    private readonly IAuditHeaderReader _auditHeaderReader = Substitute.For<IAuditHeaderReader>();
+
+    private readonly IDicomRequestContext _dicomRequestContext = Substitute.For<IDicomRequestContext>();
+
+    private readonly IAuditHelper _auditHelper;
+
+    private readonly HttpContext _httpContext = new DefaultHttpContext();
+    private readonly IClaimsExtractor _claimsExtractor = Substitute.For<IClaimsExtractor>();
+
+    public AuditHelperTests()
     {
-        private const string AuditEventType = "audit";
-        private const string CorrelationId = "correlation";
-        private static readonly Uri Uri = new Uri("http://localhost/123");
-        private static readonly IReadOnlyCollection<KeyValuePair<string, string>> Claims = new List<KeyValuePair<string, string>>();
-        private static readonly IPAddress CallerIpAddress = new IPAddress(new byte[] { 0xA, 0x0, 0x0, 0x0 }); // 10.0.0.0
-        private const string CallerIpAddressInString = "10.0.0.0";
+        _dicomRequestContext.Uri.Returns(Uri);
+        _dicomRequestContext.CorrelationId.Returns(CorrelationId);
 
-        private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-        private readonly IAuditLogger _auditLogger = Substitute.For<IAuditLogger>();
-        private readonly IAuditHeaderReader _auditHeaderReader = Substitute.For<IAuditHeaderReader>();
+        _dicomRequestContextAccessor.RequestContext = _dicomRequestContext;
 
-        private readonly IDicomRequestContext _dicomRequestContext = Substitute.For<IDicomRequestContext>();
+        _httpContext.Connection.RemoteIpAddress = CallerIpAddress;
 
-        private readonly IAuditHelper _auditHelper;
+        _claimsExtractor.Extract().Returns(Claims);
 
-        private readonly HttpContext _httpContext = new DefaultHttpContext();
-        private readonly IClaimsExtractor _claimsExtractor = Substitute.For<IClaimsExtractor>();
+        _auditHelper = new AuditHelper(_dicomRequestContextAccessor, _auditLogger, _auditHeaderReader);
+    }
 
-        public AuditHelperTests()
-        {
-            _dicomRequestContext.Uri.Returns(Uri);
-            _dicomRequestContext.CorrelationId.Returns(CorrelationId);
+    [Fact]
+    public void GivenNoAuditEventType_WhenLogExecutingIsCalled_ThenAuditLogShouldNotBeLogged()
+    {
+        _auditHelper.LogExecuting(_httpContext, _claimsExtractor);
 
-            _dicomRequestContextAccessor.RequestContext = _dicomRequestContext;
+        _auditLogger.DidNotReceiveWithAnyArgs().LogAudit(
+            auditAction: default,
+            operation: default,
+            requestUri: default,
+            statusCode: default,
+            correlationId: default,
+            callerIpAddress: default,
+            callerClaims: default);
+    }
 
-            _httpContext.Connection.RemoteIpAddress = CallerIpAddress;
+    [Fact]
+    public void GivenAuditEventType_WhenLogExecutingIsCalled_ThenAuditLogShouldBeLogged()
+    {
+        _dicomRequestContext.AuditEventType.Returns(AuditEventType);
 
-            _claimsExtractor.Extract().Returns(Claims);
+        _auditHelper.LogExecuting(_httpContext, _claimsExtractor);
 
-            _auditHelper = new AuditHelper(_dicomRequestContextAccessor, _auditLogger, _auditHeaderReader);
-        }
+        _auditLogger.Received(1).LogAudit(
+            AuditAction.Executing,
+            AuditEventType,
+            requestUri: Uri,
+            statusCode: null,
+            correlationId: CorrelationId,
+            callerIpAddress: CallerIpAddressInString,
+            callerClaims: Claims,
+            customHeaders: _auditHeaderReader.Read(_httpContext));
+    }
 
-        [Fact]
-        public void GivenNoAuditEventType_WhenLogExecutingIsCalled_ThenAuditLogShouldNotBeLogged()
-        {
-            _auditHelper.LogExecuting(_httpContext, _claimsExtractor);
+    [Fact]
+    public void GivenNoAuditEventType_WhenLogExecutedIsCalled_ThenAuditLogShouldNotBeLogged()
+    {
+        _auditHelper.LogExecuted(_httpContext, _claimsExtractor);
 
-            _auditLogger.DidNotReceiveWithAnyArgs().LogAudit(
-                auditAction: default,
-                operation: default,
-                requestUri: default,
-                statusCode: default,
-                correlationId: default,
-                callerIpAddress: default,
-                callerClaims: default);
-        }
+        _auditLogger.DidNotReceiveWithAnyArgs().LogAudit(
+            auditAction: default,
+            operation: default,
+            requestUri: default,
+            statusCode: default,
+            correlationId: default,
+            callerIpAddress: default,
+            callerClaims: default);
+    }
 
-        [Fact]
-        public void GivenAuditEventType_WhenLogExecutingIsCalled_ThenAuditLogShouldBeLogged()
-        {
-            _dicomRequestContext.AuditEventType.Returns(AuditEventType);
+    [Fact]
+    public void GivenAuditEventType_WhenLogExecutedIsCalled_ThenAuditLogShouldBeLogged()
+    {
+        const HttpStatusCode expectedStatusCode = HttpStatusCode.Created;
 
-            _auditHelper.LogExecuting(_httpContext, _claimsExtractor);
+        _dicomRequestContext.AuditEventType.Returns(AuditEventType);
 
-            _auditLogger.Received(1).LogAudit(
-                AuditAction.Executing,
-                AuditEventType,
-                requestUri: Uri,
-                statusCode: null,
-                correlationId: CorrelationId,
-                callerIpAddress: CallerIpAddressInString,
-                callerClaims: Claims,
-                customHeaders: _auditHeaderReader.Read(_httpContext));
-        }
+        _httpContext.Response.StatusCode = (int)expectedStatusCode;
 
-        [Fact]
-        public void GivenNoAuditEventType_WhenLogExecutedIsCalled_ThenAuditLogShouldNotBeLogged()
-        {
-            _auditHelper.LogExecuted(_httpContext, _claimsExtractor);
+        _auditHelper.LogExecuted(_httpContext, _claimsExtractor);
 
-            _auditLogger.DidNotReceiveWithAnyArgs().LogAudit(
-                auditAction: default,
-                operation: default,
-                requestUri: default,
-                statusCode: default,
-                correlationId: default,
-                callerIpAddress: default,
-                callerClaims: default);
-        }
-
-        [Fact]
-        public void GivenAuditEventType_WhenLogExecutedIsCalled_ThenAuditLogShouldBeLogged()
-        {
-            const HttpStatusCode expectedStatusCode = HttpStatusCode.Created;
-
-            _dicomRequestContext.AuditEventType.Returns(AuditEventType);
-
-            _httpContext.Response.StatusCode = (int)expectedStatusCode;
-
-            _auditHelper.LogExecuted(_httpContext, _claimsExtractor);
-
-            _auditLogger.Received(1).LogAudit(
-                AuditAction.Executed,
-                AuditEventType,
-                Uri,
-                expectedStatusCode,
-                CorrelationId,
-                CallerIpAddressInString,
-                Claims,
-                customHeaders: _auditHeaderReader.Read(_httpContext));
-        }
+        _auditLogger.Received(1).LogAudit(
+            AuditAction.Executed,
+            AuditEventType,
+            Uri,
+            expectedStatusCode,
+            CorrelationId,
+            CallerIpAddressInString,
+            Claims,
+            customHeaders: _auditHeaderReader.Read(_httpContext));
     }
 }

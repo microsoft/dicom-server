@@ -7,15 +7,14 @@ using EnsureThat;
 using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Features.Security;
 
-namespace Microsoft.Health.Dicom.Core.Features.Common
-{
-    public abstract class BaseHandler
-    {
-        protected BaseHandler(IAuthorizationService<DataActions> authorizationService)
-        {
-            AuthorizationService = EnsureArg.IsNotNull(authorizationService, nameof(authorizationService));
-        }
+namespace Microsoft.Health.Dicom.Core.Features.Common;
 
-        public IAuthorizationService<DataActions> AuthorizationService { get; }
+public abstract class BaseHandler
+{
+    protected BaseHandler(IAuthorizationService<DataActions> authorizationService)
+    {
+        AuthorizationService = EnsureArg.IsNotNull(authorizationService, nameof(authorizationService));
     }
+
+    public IAuthorizationService<DataActions> AuthorizationService { get; }
 }

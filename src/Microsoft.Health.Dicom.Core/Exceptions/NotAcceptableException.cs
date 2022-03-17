@@ -3,13 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Exceptions
+namespace Microsoft.Health.Dicom.Core.Exceptions;
+
+public class NotAcceptableException : DicomServerException
 {
-    public class NotAcceptableException : DicomServerException
+    public NotAcceptableException(string message)
+        : base(message)
     {
-        public NotAcceptableException(string message)
-            : base(message)
-        {
-        }
     }
 }

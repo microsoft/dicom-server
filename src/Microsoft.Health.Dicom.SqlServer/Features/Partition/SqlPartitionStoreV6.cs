@@ -15,103 +15,102 @@ using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Partition
+namespace Microsoft.Health.Dicom.SqlServer.Features.Partition;
+
+internal class SqlPartitionStoreV6 : SqlPartitionStoreV4
 {
-    internal class SqlPartitionStoreV6 : SqlPartitionStoreV4
+
+    protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory;
+
+    public SqlPartitionStoreV6(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
     {
+        SqlConnectionWrapperFactory = EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
+    }
 
-        protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory;
+    public override SchemaVersion Version => SchemaVersion.V6;
 
-        public SqlPartitionStoreV6(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+    public override async Task<PartitionEntry> AddPartitionAsync(string partitionName, CancellationToken cancellationToken)
+    {
+        using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            SqlConnectionWrapperFactory = EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
-        }
+            VLatest.AddPartition.PopulateCommand(sqlCommandWrapper, partitionName);
 
-        public override SchemaVersion Version => SchemaVersion.V6;
-
-        public override async Task<PartitionEntry> AddPartitionAsync(string partitionName, CancellationToken cancellationToken)
-        {
-            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+            using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
             {
-                VLatest.AddPartition.PopulateCommand(sqlCommandWrapper, partitionName);
-
-                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                if (await reader.ReadAsync(cancellationToken))
                 {
-                    if (await reader.ReadAsync(cancellationToken))
-                    {
-                        (int rPartitionKey, string rPartitionName, DateTimeOffset rCreatedDate) = reader.ReadRow(
-                           VLatest.Partition.PartitionKey,
-                           VLatest.Partition.PartitionName,
-                           VLatest.Partition.CreatedDate);
+                    (int rPartitionKey, string rPartitionName, DateTimeOffset rCreatedDate) = reader.ReadRow(
+                       VLatest.Partition.PartitionKey,
+                       VLatest.Partition.PartitionName,
+                       VLatest.Partition.CreatedDate);
 
-                        return new PartitionEntry(
-                            rPartitionKey,
-                            rPartitionName,
-                            rCreatedDate);
-                    }
+                    return new PartitionEntry(
+                        rPartitionKey,
+                        rPartitionName,
+                        rCreatedDate);
                 }
-
             }
 
-            return null;
         }
 
-        public override async Task<IEnumerable<PartitionEntry>> GetPartitionsAsync(CancellationToken cancellationToken)
+        return null;
+    }
+
+    public override async Task<IEnumerable<PartitionEntry>> GetPartitionsAsync(CancellationToken cancellationToken)
+    {
+        var results = new List<PartitionEntry>();
+
+        using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            var results = new List<PartitionEntry>();
+            VLatest.GetPartitions.PopulateCommand(sqlCommandWrapper);
 
-            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+            using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
             {
-                VLatest.GetPartitions.PopulateCommand(sqlCommandWrapper);
-
-                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                while (await reader.ReadAsync(cancellationToken))
                 {
-                    while (await reader.ReadAsync(cancellationToken))
-                    {
-                        (int rPartitionKey, string rPartitionName, DateTimeOffset rCreatedDate) = reader.ReadRow(
-                           VLatest.Partition.PartitionKey,
-                           VLatest.Partition.PartitionName,
-                           VLatest.Partition.CreatedDate);
+                    (int rPartitionKey, string rPartitionName, DateTimeOffset rCreatedDate) = reader.ReadRow(
+                       VLatest.Partition.PartitionKey,
+                       VLatest.Partition.PartitionName,
+                       VLatest.Partition.CreatedDate);
 
-                        results.Add(new PartitionEntry(
-                            rPartitionKey,
-                            rPartitionName,
-                            rCreatedDate));
-                    }
+                    results.Add(new PartitionEntry(
+                        rPartitionKey,
+                        rPartitionName,
+                        rCreatedDate));
                 }
-
-                return results;
-            }
-        }
-
-        public override async Task<PartitionEntry> GetPartitionAsync(string partitionName, CancellationToken cancellationToken)
-        {
-            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
-            {
-                VLatest.GetPartition.PopulateCommand(sqlCommandWrapper, partitionName);
-
-                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
-                {
-                    if (await reader.ReadAsync(cancellationToken))
-                    {
-                        (int rPartitionKey, string rPartitionName, DateTimeOffset rCreatedDate) = reader.ReadRow(
-                           VLatest.Partition.PartitionKey,
-                           VLatest.Partition.PartitionName,
-                           VLatest.Partition.CreatedDate);
-
-                        return new PartitionEntry(
-                            rPartitionKey,
-                            rPartitionName,
-                            rCreatedDate);
-                    }
-                }
-
             }
 
-            return null;
+            return results;
         }
+    }
+
+    public override async Task<PartitionEntry> GetPartitionAsync(string partitionName, CancellationToken cancellationToken)
+    {
+        using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+        {
+            VLatest.GetPartition.PopulateCommand(sqlCommandWrapper, partitionName);
+
+            using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+            {
+                if (await reader.ReadAsync(cancellationToken))
+                {
+                    (int rPartitionKey, string rPartitionName, DateTimeOffset rCreatedDate) = reader.ReadRow(
+                       VLatest.Partition.PartitionKey,
+                       VLatest.Partition.PartitionName,
+                       VLatest.Partition.CreatedDate);
+
+                    return new PartitionEntry(
+                        rPartitionKey,
+                        rPartitionName,
+                        rCreatedDate);
+                }
+            }
+
+        }
+
+        return null;
     }
 }

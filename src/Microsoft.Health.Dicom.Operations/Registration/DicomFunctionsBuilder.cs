@@ -7,13 +7,12 @@ using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Core.Registration;
 
-namespace Microsoft.Health.Dicom.Operations.Registration
-{
-    internal class DicomFunctionsBuilder : IDicomFunctionsBuilder
-    {
-        public DicomFunctionsBuilder(IServiceCollection services)
-            => Services = EnsureArg.IsNotNull(services, nameof(services));
+namespace Microsoft.Health.Dicom.Operations.Registration;
 
-        public IServiceCollection Services { get; }
-    }
+internal class DicomFunctionsBuilder : IDicomFunctionsBuilder
+{
+    public DicomFunctionsBuilder(IServiceCollection services)
+        => Services = EnsureArg.IsNotNull(services, nameof(services));
+
+    public IServiceCollection Services { get; }
 }

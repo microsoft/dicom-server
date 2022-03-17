@@ -11,58 +11,57 @@ using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Web;
 
-namespace Microsoft.Health.Dicom.Api.Web
+namespace Microsoft.Health.Dicom.Api.Web;
+
+/// <summary>
+/// Provides logging for <see cref="ISeekableStreamConverter"/>.
+/// </summary>
+internal class LoggingSeekableStreamConverter : ISeekableStreamConverter
 {
-    /// <summary>
-    /// Provides logging for <see cref="ISeekableStreamConverter"/>.
-    /// </summary>
-    internal class LoggingSeekableStreamConverter : ISeekableStreamConverter
+    private static readonly Action<ILogger, Exception> LogMissingMultipartBodyPartDelegate =
+        LoggerMessage.Define(
+            LogLevel.Warning,
+            default,
+            "Unexpected end of the stream. This is likely due to the request being multipart but has no section.");
+
+    private static readonly Action<ILogger, Exception> LogUnhandledExceptionDelegate =
+        LoggerMessage.Define(
+            LogLevel.Warning,
+            default,
+            "Unhandled exception while reading stream.");
+
+    private readonly ISeekableStreamConverter _seekableStreamConverter;
+    private readonly ILogger _logger;
+
+    public LoggingSeekableStreamConverter(
+        ISeekableStreamConverter seekableStreamConverter,
+        ILogger<LoggingSeekableStreamConverter> logger)
     {
-        private static readonly Action<ILogger, Exception> LogMissingMultipartBodyPartDelegate =
-            LoggerMessage.Define(
-                LogLevel.Warning,
-                default,
-                "Unexpected end of the stream. This is likely due to the request being multipart but has no section.");
+        EnsureArg.IsNotNull(seekableStreamConverter, nameof(seekableStreamConverter));
+        EnsureArg.IsNotNull(logger, nameof(logger));
 
-        private static readonly Action<ILogger, Exception> LogUnhandledExceptionDelegate =
-            LoggerMessage.Define(
-                LogLevel.Warning,
-                default,
-                "Unhandled exception while reading stream.");
+        _seekableStreamConverter = seekableStreamConverter;
+        _logger = logger;
+    }
 
-        private readonly ISeekableStreamConverter _seekableStreamConverter;
-        private readonly ILogger _logger;
-
-        public LoggingSeekableStreamConverter(
-            ISeekableStreamConverter seekableStreamConverter,
-            ILogger<LoggingSeekableStreamConverter> logger)
+    /// <inheritdoc />
+    public async Task<Stream> ConvertAsync(Stream stream, CancellationToken cancellationToken)
+    {
+        try
         {
-            EnsureArg.IsNotNull(seekableStreamConverter, nameof(seekableStreamConverter));
-            EnsureArg.IsNotNull(logger, nameof(logger));
-
-            _seekableStreamConverter = seekableStreamConverter;
-            _logger = logger;
+            return await _seekableStreamConverter.ConvertAsync(stream, cancellationToken);
         }
-
-        /// <inheritdoc />
-        public async Task<Stream> ConvertAsync(Stream stream, CancellationToken cancellationToken)
+        catch (InvalidMultipartBodyPartException ex)
         {
-            try
-            {
-                return await _seekableStreamConverter.ConvertAsync(stream, cancellationToken);
-            }
-            catch (InvalidMultipartBodyPartException ex)
-            {
-                LogMissingMultipartBodyPartDelegate(_logger, ex);
+            LogMissingMultipartBodyPartDelegate(_logger, ex);
 
-                throw;
-            }
-            catch (Exception ex)
-            {
-                LogUnhandledExceptionDelegate(_logger, ex);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            LogUnhandledExceptionDelegate(_logger, ex);
 
-                throw;
-            }
+            throw;
         }
     }
 }

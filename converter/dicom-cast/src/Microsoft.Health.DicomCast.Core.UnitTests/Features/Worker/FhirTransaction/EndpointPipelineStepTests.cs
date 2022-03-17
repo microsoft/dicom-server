@@ -15,86 +15,85 @@ using NSubstitute;
 using Xunit;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransaction;
+
+public class EndpointPipelineStepTests
 {
-    public class EndpointPipelineStepTests
+    private const string EndpointConnectionTypeSystem = "http://terminology.hl7.org/CodeSystem/endpoint-connection-type";
+    private const string EndpointConnectionTypeCode = "dicom-wado-rs";
+    private const string EndpointName = "DICOM WADO-RS endpoint";
+    private const string EndpointPayloadTypeText = "DICOM WADO-RS";
+    private const string DicomMimeType = "application/dicom";
+
+    private const string DefaultDicomWebEndpoint = "https://dicom/";
+
+    private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
+
+    private readonly DicomWebConfiguration _configuration;
+    private readonly EndpointPipelineStep _endpointPipeline;
+    private readonly IFhirService _fhirService;
+
+    public EndpointPipelineStepTests()
     {
-        private const string EndpointConnectionTypeSystem = "http://terminology.hl7.org/CodeSystem/endpoint-connection-type";
-        private const string EndpointConnectionTypeCode = "dicom-wado-rs";
-        private const string EndpointName = "DICOM WADO-RS endpoint";
-        private const string EndpointPayloadTypeText = "DICOM WADO-RS";
-        private const string DicomMimeType = "application/dicom";
+        _configuration = new DicomWebConfiguration() { Endpoint = new System.Uri(DefaultDicomWebEndpoint), };
 
-        private const string DefaultDicomWebEndpoint = "https://dicom/";
+        IOptions<DicomWebConfiguration> optionsConfiguration = Options.Create(_configuration);
 
-        private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
+        _fhirService = Substitute.For<IFhirService>();
 
-        private readonly DicomWebConfiguration _configuration;
-        private readonly EndpointPipelineStep _endpointPipeline;
-        private readonly IFhirService _fhirService;
+        _endpointPipeline = new EndpointPipelineStep(optionsConfiguration, _fhirService);
+    }
 
-        public EndpointPipelineStepTests()
-        {
-            _configuration = new DicomWebConfiguration() { Endpoint = new System.Uri(DefaultDicomWebEndpoint), };
+    [Fact]
+    public async Task GivenEndpointDoesNotAlreadyExist_WhenRequestIsPrepared_ThenCorrentRequestEntryShouldBeCreated()
+    {
+        var context = new FhirTransactionContext(ChangeFeedGenerator.Generate());
 
-            IOptions<DicomWebConfiguration> optionsConfiguration = Options.Create(_configuration);
+        await _endpointPipeline.PrepareRequestAsync(context, DefaultCancellationToken);
 
-            _fhirService = Substitute.For<IFhirService>();
+        FhirTransactionRequestEntry actualEndpointEntry = context.Request.Endpoint;
 
-            _endpointPipeline = new EndpointPipelineStep(optionsConfiguration, _fhirService);
-        }
+        ValidationUtility.ValidateRequestEntryMinimumRequirementForWithChange(FhirTransactionRequestMode.Create, "Endpoint", Bundle.HTTPVerb.POST, actualEndpointEntry);
 
-        [Fact]
-        public async Task GivenEndpointDoesNotAlreadyExist_WhenRequestIsPrepared_ThenCorrentRequestEntryShouldBeCreated()
-        {
-            var context = new FhirTransactionContext(ChangeFeedGenerator.Generate());
+        Assert.Equal($"name={EndpointName}&connection-type={EndpointConnectionTypeSystem}|{EndpointConnectionTypeCode}", actualEndpointEntry.Request.IfNoneExist);
 
-            await _endpointPipeline.PrepareRequestAsync(context, DefaultCancellationToken);
+        Endpoint endpoint = Assert.IsType<Endpoint>(actualEndpointEntry.Resource);
 
-            FhirTransactionRequestEntry actualEndpointEntry = context.Request.Endpoint;
+        Assert.Equal(EndpointName, endpoint.Name);
+        Assert.Equal(Endpoint.EndpointStatus.Active, endpoint.Status);
+        Assert.NotNull(endpoint.ConnectionType);
+        Assert.Equal(EndpointConnectionTypeSystem, endpoint.ConnectionType.System);
+        Assert.Equal(EndpointConnectionTypeCode, endpoint.ConnectionType.Code);
+        Assert.Equal(_configuration.Endpoint.ToString(), endpoint.Address);
+        Assert.Equal(EndpointPayloadTypeText, endpoint.PayloadType.First().Text);
+        Assert.Equal(new[] { DicomMimeType }, endpoint.PayloadMimeType);
+    }
 
-            ValidationUtility.ValidateRequestEntryMinimumRequirementForWithChange(FhirTransactionRequestMode.Create, "Endpoint", Bundle.HTTPVerb.POST, actualEndpointEntry);
+    [Fact]
+    public async Task GivenAnExistingEndpointWithMatchingAddress_WhenRequestIsPrepared_ThenCorrectRequestEntryShouldBeCreated()
+    {
+        var context = new FhirTransactionContext(ChangeFeedGenerator.Generate());
 
-            Assert.Equal($"name={EndpointName}&connection-type={EndpointConnectionTypeSystem}|{EndpointConnectionTypeCode}", actualEndpointEntry.Request.IfNoneExist);
+        Endpoint endpoint = FhirResourceBuilder.CreateEndpointResource(address: DefaultDicomWebEndpoint);
 
-            Endpoint endpoint = Assert.IsType<Endpoint>(actualEndpointEntry.Resource);
+        _fhirService.RetrieveEndpointAsync(Arg.Any<string>(), DefaultCancellationToken).Returns(endpoint);
 
-            Assert.Equal(EndpointName, endpoint.Name);
-            Assert.Equal(Endpoint.EndpointStatus.Active, endpoint.Status);
-            Assert.NotNull(endpoint.ConnectionType);
-            Assert.Equal(EndpointConnectionTypeSystem, endpoint.ConnectionType.System);
-            Assert.Equal(EndpointConnectionTypeCode, endpoint.ConnectionType.Code);
-            Assert.Equal(_configuration.Endpoint.ToString(), endpoint.Address);
-            Assert.Equal(EndpointPayloadTypeText, endpoint.PayloadType.First().Text);
-            Assert.Equal(new[] { DicomMimeType }, endpoint.PayloadMimeType);
-        }
+        await _endpointPipeline.PrepareRequestAsync(context, DefaultCancellationToken);
 
-        [Fact]
-        public async Task GivenAnExistingEndpointWithMatchingAddress_WhenRequestIsPrepared_ThenCorrectRequestEntryShouldBeCreated()
-        {
-            var context = new FhirTransactionContext(ChangeFeedGenerator.Generate());
+        FhirTransactionRequestEntry actualEndPointEntry = context.Request.Endpoint;
 
-            Endpoint endpoint = FhirResourceBuilder.CreateEndpointResource(address: DefaultDicomWebEndpoint);
+        ValidationUtility.ValidateRequestEntryMinimumRequirementForNoChange(endpoint.ToServerResourceId(), actualEndPointEntry);
+    }
 
-            _fhirService.RetrieveEndpointAsync(Arg.Any<string>(), DefaultCancellationToken).Returns(endpoint);
+    [Fact]
+    public async Task GivenAnExistingEndpointWithDifferentAddress_WhenRequestIsPrepared_ThenFhirResourceValidationExceptionShouldBeThrown()
+    {
+        var context = new FhirTransactionContext(ChangeFeedGenerator.Generate());
 
-            await _endpointPipeline.PrepareRequestAsync(context, DefaultCancellationToken);
+        Endpoint endpoint = FhirResourceBuilder.CreateEndpointResource(address: "https://dicom2");
 
-            FhirTransactionRequestEntry actualEndPointEntry = context.Request.Endpoint;
+        _fhirService.RetrieveEndpointAsync(Arg.Any<string>(), DefaultCancellationToken).Returns(endpoint);
 
-            ValidationUtility.ValidateRequestEntryMinimumRequirementForNoChange(endpoint.ToServerResourceId(), actualEndPointEntry);
-        }
-
-        [Fact]
-        public async Task GivenAnExistingEndpointWithDifferentAddress_WhenRequestIsPrepared_ThenFhirResourceValidationExceptionShouldBeThrown()
-        {
-            var context = new FhirTransactionContext(ChangeFeedGenerator.Generate());
-
-            Endpoint endpoint = FhirResourceBuilder.CreateEndpointResource(address: "https://dicom2");
-
-            _fhirService.RetrieveEndpointAsync(Arg.Any<string>(), DefaultCancellationToken).Returns(endpoint);
-
-            await Assert.ThrowsAsync<FhirResourceValidationException>(() => _endpointPipeline.PrepareRequestAsync(context, DefaultCancellationToken));
-        }
+        await Assert.ThrowsAsync<FhirResourceValidationException>(() => _endpointPipeline.PrepareRequestAsync(context, DefaultCancellationToken));
     }
 }

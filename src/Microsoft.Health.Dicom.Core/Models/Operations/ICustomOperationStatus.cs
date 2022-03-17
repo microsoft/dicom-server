@@ -5,12 +5,11 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Core.Models.Operations
-{
-    internal interface ICustomOperationStatus
-    {
-        DateTime? CreatedTime { get; }
+namespace Microsoft.Health.Dicom.Core.Models.Operations;
 
-        OperationProgress GetProgress();
-    }
+internal interface ICustomOperationStatus
+{
+    DateTime? CreatedTime { get; }
+
+    OperationProgress GetProgress();
 }

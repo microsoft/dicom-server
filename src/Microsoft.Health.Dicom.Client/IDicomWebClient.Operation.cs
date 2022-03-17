@@ -7,10 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Client.Models;
 
-namespace Microsoft.Health.Dicom.Client
+namespace Microsoft.Health.Dicom.Client;
+
+public partial interface IDicomWebClient
 {
-    public partial interface IDicomWebClient
-    {
-        Task<DicomWebResponse<OperationStatus>> GetOperationStatusAsync(string operationId, CancellationToken cancellationToken = default);
-    }
+    Task<DicomWebResponse<OperationStatus>> GetOperationStatusAsync(string operationId, CancellationToken cancellationToken = default);
 }

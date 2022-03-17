@@ -13,111 +13,110 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Tests.Integration.Persistence
+namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
+
+public class MetadataStoreTests : IClassFixture<DataStoreTestsFixture>
 {
-    public class MetadataStoreTests : IClassFixture<DataStoreTestsFixture>
+    private readonly IMetadataStore _metadataStore;
+
+    public MetadataStoreTests(DataStoreTestsFixture fixture)
     {
-        private readonly IMetadataStore _metadataStore;
+        EnsureArg.IsNotNull(fixture, nameof(fixture));
+        _metadataStore = fixture.MetadataStore;
+    }
 
-        public MetadataStoreTests(DataStoreTestsFixture fixture)
+    [Fact]
+    public async Task GivenAValidInstanceMetadata_WhenStored_ThenItCanBeRetrievedAndDeleted()
+    {
+        DicomDataset dicomDataset = CreateValidMetadataDataset();
+        var instanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version: 0);
+
+        // Store the metadata.
+        await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, 0);
+
+        // Should be able to retrieve.
+        DicomDataset retrievedDicomDataset = await _metadataStore.GetInstanceMetadataAsync(instanceIdentifier);
+
+        ValidateDicomDataset(dicomDataset, retrievedDicomDataset);
+
+        // Should be able to delete.
+        await _metadataStore.DeleteInstanceMetadataIfExistsAsync(instanceIdentifier);
+
+        // The file should no longer exists.
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => _metadataStore.GetInstanceMetadataAsync(instanceIdentifier));
+    }
+
+    [Fact]
+    public async Task GivenMetadataAlreadyExists_WhenStored_ThenExistingMetadataWillBeOverwritten()
+    {
+        DicomDataset dicomDataset = CreateValidMetadataDataset();
+        dicomDataset.Add(DicomTag.SOPClassUID, "1");
+
+        await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, 0);
+
+        // Update SOPClassUID but keep the identifiers the same.
+        dicomDataset.AddOrUpdate(DicomTag.SOPClassUID, "2");
+
+        await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, 0);
+
+        // Should be able to retrieve.
+        DicomDataset retrievedDicomDataset = await _metadataStore.GetInstanceMetadataAsync(
+            dicomDataset.ToVersionedInstanceIdentifier(0));
+
+        ValidateDicomDataset(dicomDataset, retrievedDicomDataset);
+
+        Assert.Equal("2", retrievedDicomDataset.GetSingleValue<string>(DicomTag.SOPClassUID));
+    }
+
+    [Fact]
+    public async Task GivenANonExistingMetadata_WhenRetrievingInstanceMetadata_ThenItemNotFoundExceptionShouldBeThrown()
+    {
+        var instanceIdentifier = new VersionedInstanceIdentifier(
+            studyInstanceUid: TestUidGenerator.Generate(),
+            seriesInstanceUid: TestUidGenerator.Generate(),
+            sopInstanceUid: TestUidGenerator.Generate(),
+            version: 0);
+
+        await Assert.ThrowsAsync<ItemNotFoundException>(
+            () => _metadataStore.GetInstanceMetadataAsync(instanceIdentifier));
+    }
+
+    [Fact]
+    public async Task GivenANonExistenMetadata_WhenDeleting_ThenItShouldNotThrowException()
+    {
+        DicomDataset dicomDataset = CreateValidMetadataDataset();
+        var instanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version: 0);
+
+        await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version: 0);
+
+        await _metadataStore.DeleteInstanceMetadataIfExistsAsync(instanceIdentifier);
+
+        await _metadataStore.DeleteInstanceMetadataIfExistsAsync(instanceIdentifier);
+    }
+
+    private static DicomDataset CreateValidMetadataDataset()
+    {
+        return new DicomDataset()
         {
-            EnsureArg.IsNotNull(fixture, nameof(fixture));
-            _metadataStore = fixture.MetadataStore;
-        }
+            { DicomTag.StudyInstanceUID, TestUidGenerator.Generate() },
+            { DicomTag.SeriesInstanceUID, TestUidGenerator.Generate() },
+            { DicomTag.SOPInstanceUID, TestUidGenerator.Generate() },
+        };
+    }
 
-        [Fact]
-        public async Task GivenAValidInstanceMetadata_WhenStored_ThenItCanBeRetrievedAndDeleted()
+    private static void ValidateDicomDataset(DicomDataset expectedDicomDataset, DicomDataset actualDicomDataset)
+    {
+        Assert.NotNull(actualDicomDataset);
+
+        ValidateAttribute(DicomTag.StudyInstanceUID);
+        ValidateAttribute(DicomTag.SeriesInstanceUID);
+        ValidateAttribute(DicomTag.SOPInstanceUID);
+
+        void ValidateAttribute(DicomTag dicomTag)
         {
-            DicomDataset dicomDataset = CreateValidMetadataDataset();
-            var instanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version: 0);
-
-            // Store the metadata.
-            await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, 0);
-
-            // Should be able to retrieve.
-            DicomDataset retrievedDicomDataset = await _metadataStore.GetInstanceMetadataAsync(instanceIdentifier);
-
-            ValidateDicomDataset(dicomDataset, retrievedDicomDataset);
-
-            // Should be able to delete.
-            await _metadataStore.DeleteInstanceMetadataIfExistsAsync(instanceIdentifier);
-
-            // The file should no longer exists.
-            await Assert.ThrowsAsync<ItemNotFoundException>(() => _metadataStore.GetInstanceMetadataAsync(instanceIdentifier));
-        }
-
-        [Fact]
-        public async Task GivenMetadataAlreadyExists_WhenStored_ThenExistingMetadataWillBeOverwritten()
-        {
-            DicomDataset dicomDataset = CreateValidMetadataDataset();
-            dicomDataset.Add(DicomTag.SOPClassUID, "1");
-
-            await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, 0);
-
-            // Update SOPClassUID but keep the identifiers the same.
-            dicomDataset.AddOrUpdate(DicomTag.SOPClassUID, "2");
-
-            await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, 0);
-
-            // Should be able to retrieve.
-            DicomDataset retrievedDicomDataset = await _metadataStore.GetInstanceMetadataAsync(
-                dicomDataset.ToVersionedInstanceIdentifier(0));
-
-            ValidateDicomDataset(dicomDataset, retrievedDicomDataset);
-
-            Assert.Equal("2", retrievedDicomDataset.GetSingleValue<string>(DicomTag.SOPClassUID));
-        }
-
-        [Fact]
-        public async Task GivenANonExistingMetadata_WhenRetrievingInstanceMetadata_ThenItemNotFoundExceptionShouldBeThrown()
-        {
-            var instanceIdentifier = new VersionedInstanceIdentifier(
-                studyInstanceUid: TestUidGenerator.Generate(),
-                seriesInstanceUid: TestUidGenerator.Generate(),
-                sopInstanceUid: TestUidGenerator.Generate(),
-                version: 0);
-
-            await Assert.ThrowsAsync<ItemNotFoundException>(
-                () => _metadataStore.GetInstanceMetadataAsync(instanceIdentifier));
-        }
-
-        [Fact]
-        public async Task GivenANonExistenMetadata_WhenDeleting_ThenItShouldNotThrowException()
-        {
-            DicomDataset dicomDataset = CreateValidMetadataDataset();
-            var instanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version: 0);
-
-            await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version: 0);
-
-            await _metadataStore.DeleteInstanceMetadataIfExistsAsync(instanceIdentifier);
-
-            await _metadataStore.DeleteInstanceMetadataIfExistsAsync(instanceIdentifier);
-        }
-
-        private static DicomDataset CreateValidMetadataDataset()
-        {
-            return new DicomDataset()
-            {
-                { DicomTag.StudyInstanceUID, TestUidGenerator.Generate() },
-                { DicomTag.SeriesInstanceUID, TestUidGenerator.Generate() },
-                { DicomTag.SOPInstanceUID, TestUidGenerator.Generate() },
-            };
-        }
-
-        private static void ValidateDicomDataset(DicomDataset expectedDicomDataset, DicomDataset actualDicomDataset)
-        {
-            Assert.NotNull(actualDicomDataset);
-
-            ValidateAttribute(DicomTag.StudyInstanceUID);
-            ValidateAttribute(DicomTag.SeriesInstanceUID);
-            ValidateAttribute(DicomTag.SOPInstanceUID);
-
-            void ValidateAttribute(DicomTag dicomTag)
-            {
-                Assert.Equal(
-                    expectedDicomDataset.GetSingleValue<string>(dicomTag),
-                    actualDicomDataset.GetSingleValue<string>(dicomTag));
-            }
+            Assert.Equal(
+                expectedDicomDataset.GetSingleValue<string>(dicomTag),
+                actualDicomDataset.GetSingleValue<string>(dicomTag));
         }
     }
 }

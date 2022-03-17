@@ -9,72 +9,71 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction
+namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
+
+public class LoggingFhirTransactionPipelineStep : IFhirTransactionPipelineStep
 {
-    public class LoggingFhirTransactionPipelineStep : IFhirTransactionPipelineStep
+    private static readonly Func<ILogger, string, IDisposable> LogPreparingRequestDelegate =
+        LoggerMessage.DefineScope<string>($"Executing {nameof(PrepareRequestAsync)} of {{PipelineStep}}.");
+
+    private static readonly Func<ILogger, string, IDisposable> LogProcessingResponseDelegate =
+        LoggerMessage.DefineScope<string>($"Executing {nameof(ProcessResponse)} of {{PipelineStep}}.");
+
+    private static readonly Action<ILogger, Exception> LogExceptionDelegate =
+        LoggerMessage.Define(
+            LogLevel.Error,
+            default,
+            "Encountered an exception while processing.");
+
+    private readonly IFhirTransactionPipelineStep _fhirTransactionPipelineStep;
+    private readonly ILogger _logger;
+    private readonly string _pipelineStepName;
+
+    public LoggingFhirTransactionPipelineStep(
+        IFhirTransactionPipelineStep fhirTransactionPipelineStep,
+        ILogger<LoggingFhirTransactionPipelineStep> logger)
     {
-        private static readonly Func<ILogger, string, IDisposable> LogPreparingRequestDelegate =
-            LoggerMessage.DefineScope<string>($"Executing {nameof(PrepareRequestAsync)} of {{PipelineStep}}.");
+        EnsureArg.IsNotNull(fhirTransactionPipelineStep, nameof(fhirTransactionPipelineStep));
+        EnsureArg.IsNotNull(logger, nameof(logger));
 
-        private static readonly Func<ILogger, string, IDisposable> LogProcessingResponseDelegate =
-            LoggerMessage.DefineScope<string>($"Executing {nameof(ProcessResponse)} of {{PipelineStep}}.");
+        _fhirTransactionPipelineStep = fhirTransactionPipelineStep;
+        _logger = logger;
+        _pipelineStepName = fhirTransactionPipelineStep.GetType().Name;
+    }
 
-        private static readonly Action<ILogger, Exception> LogExceptionDelegate =
-            LoggerMessage.Define(
-                LogLevel.Error,
-                default,
-                "Encountered an exception while processing.");
-
-        private readonly IFhirTransactionPipelineStep _fhirTransactionPipelineStep;
-        private readonly ILogger _logger;
-        private readonly string _pipelineStepName;
-
-        public LoggingFhirTransactionPipelineStep(
-            IFhirTransactionPipelineStep fhirTransactionPipelineStep,
-            ILogger<LoggingFhirTransactionPipelineStep> logger)
+    public async Task PrepareRequestAsync(FhirTransactionContext context, CancellationToken cancellationToken)
+    {
+        using (LogPreparingRequestDelegate(_logger, _pipelineStepName))
         {
-            EnsureArg.IsNotNull(fhirTransactionPipelineStep, nameof(fhirTransactionPipelineStep));
-            EnsureArg.IsNotNull(logger, nameof(logger));
-
-            _fhirTransactionPipelineStep = fhirTransactionPipelineStep;
-            _logger = logger;
-            _pipelineStepName = fhirTransactionPipelineStep.GetType().Name;
-        }
-
-        public async Task PrepareRequestAsync(FhirTransactionContext context, CancellationToken cancellationToken)
-        {
-            using (LogPreparingRequestDelegate(_logger, _pipelineStepName))
+            try
             {
-                try
-                {
-                    await _fhirTransactionPipelineStep.PrepareRequestAsync(context, cancellationToken);
-                }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                {
-                    // Cancel requested.
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    LogExceptionDelegate(_logger, ex);
-                    throw;
-                }
+                await _fhirTransactionPipelineStep.PrepareRequestAsync(context, cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // Cancel requested.
+                throw;
+            }
+            catch (Exception ex)
+            {
+                LogExceptionDelegate(_logger, ex);
+                throw;
             }
         }
+    }
 
-        public void ProcessResponse(FhirTransactionContext context)
+    public void ProcessResponse(FhirTransactionContext context)
+    {
+        using (LogProcessingResponseDelegate(_logger, _pipelineStepName))
         {
-            using (LogProcessingResponseDelegate(_logger, _pipelineStepName))
+            try
             {
-                try
-                {
-                    _fhirTransactionPipelineStep.ProcessResponse(context);
-                }
-                catch (Exception ex)
-                {
-                    LogExceptionDelegate(_logger, ex);
-                    throw;
-                }
+                _fhirTransactionPipelineStep.ProcessResponse(context);
+            }
+            catch (Exception ex)
+            {
+                LogExceptionDelegate(_logger, ex);
+                throw;
             }
         }
     }

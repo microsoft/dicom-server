@@ -6,18 +6,17 @@
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Xunit;
 
-namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Fhir
-{
-    public class ImagingStudyIdentifierUtilityTests
-    {
-        [Fact]
-        public void GivenStudyInstanceUid_WhenCreated_ThenCorrectIdentifierShouldBeCreated()
-        {
-            var identifier = IdentifierUtility.CreateIdentifier("123");
+namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Fhir;
 
-            Assert.NotNull(identifier);
-            Assert.Equal("urn:dicom:uid", identifier.System);
-            Assert.Equal("urn:oid:123", identifier.Value);
-        }
+public class ImagingStudyIdentifierUtilityTests
+{
+    [Fact]
+    public void GivenStudyInstanceUid_WhenCreated_ThenCorrectIdentifierShouldBeCreated()
+    {
+        var identifier = IdentifierUtility.CreateIdentifier("123");
+
+        Assert.NotNull(identifier);
+        Assert.Equal("urn:dicom:uid", identifier.System);
+        Assert.Equal("urn:oid:123", identifier.Value);
     }
 }

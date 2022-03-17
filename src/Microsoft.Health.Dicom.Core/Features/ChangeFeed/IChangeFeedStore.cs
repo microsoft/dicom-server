@@ -7,12 +7,11 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed
-{
-    public interface IChangeFeedStore
-    {
-        Task<ChangeFeedEntry> GetChangeFeedLatestAsync(CancellationToken cancellationToken = default);
+namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 
-        Task<IReadOnlyCollection<ChangeFeedEntry>> GetChangeFeedAsync(long offset, int limit, CancellationToken cancellationToken = default);
-    }
+public interface IChangeFeedStore
+{
+    Task<ChangeFeedEntry> GetChangeFeedLatestAsync(CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyCollection<ChangeFeedEntry>> GetChangeFeedAsync(long offset, int limit, CancellationToken cancellationToken = default);
 }

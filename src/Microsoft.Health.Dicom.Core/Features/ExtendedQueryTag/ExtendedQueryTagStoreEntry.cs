@@ -5,48 +5,47 @@
 
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag
+namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+
+/// <summary>
+/// Represent each extended query tag entry has retrieved from the store.
+/// </summary>
+public class ExtendedQueryTagStoreEntry : ExtendedQueryTagEntry
 {
-    /// <summary>
-    /// Represent each extended query tag entry has retrieved from the store.
-    /// </summary>
-    public class ExtendedQueryTagStoreEntry : ExtendedQueryTagEntry
+    public ExtendedQueryTagStoreEntry(int key, string path, string vr, string privateCreator, QueryTagLevel level, ExtendedQueryTagStatus status, QueryStatus queryStatus, int errorCount)
     {
-        public ExtendedQueryTagStoreEntry(int key, string path, string vr, string privateCreator, QueryTagLevel level, ExtendedQueryTagStatus status, QueryStatus queryStatus, int errorCount)
-        {
-            Key = key;
-            Path = EnsureArg.IsNotNullOrWhiteSpace(path);
-            VR = EnsureArg.IsNotNullOrWhiteSpace(vr);
-            PrivateCreator = privateCreator;
-            Level = EnsureArg.EnumIsDefined(level);
-            Status = EnsureArg.EnumIsDefined(status);
-            QueryStatus = EnsureArg.EnumIsDefined(queryStatus);
-            ErrorCount = EnsureArg.IsGte(errorCount, 0, nameof(errorCount));
-        }
-
-        /// <summary>
-        /// Key of this extended query tag entry.
-        /// </summary>
-        public int Key { get; }
-
-        /// <summary>
-        /// Status of this tag.
-        /// </summary>
-        public ExtendedQueryTagStatus Status { get; }
-
-        /// <summary>
-        /// Level of this tag. Could be Study, Series or Instance.
-        /// </summary>
-        public QueryTagLevel Level { get; }
-
-        /// <summary>
-        /// Query status of this tag.
-        /// </summary>
-        public QueryStatus QueryStatus { get; }
-
-        /// <summary>
-        /// Error count on this tag.
-        /// </summary>
-        public int ErrorCount { get; }
+        Key = key;
+        Path = EnsureArg.IsNotNullOrWhiteSpace(path);
+        VR = EnsureArg.IsNotNullOrWhiteSpace(vr);
+        PrivateCreator = privateCreator;
+        Level = EnsureArg.EnumIsDefined(level);
+        Status = EnsureArg.EnumIsDefined(status);
+        QueryStatus = EnsureArg.EnumIsDefined(queryStatus);
+        ErrorCount = EnsureArg.IsGte(errorCount, 0, nameof(errorCount));
     }
+
+    /// <summary>
+    /// Key of this extended query tag entry.
+    /// </summary>
+    public int Key { get; }
+
+    /// <summary>
+    /// Status of this tag.
+    /// </summary>
+    public ExtendedQueryTagStatus Status { get; }
+
+    /// <summary>
+    /// Level of this tag. Could be Study, Series or Instance.
+    /// </summary>
+    public QueryTagLevel Level { get; }
+
+    /// <summary>
+    /// Query status of this tag.
+    /// </summary>
+    public QueryStatus QueryStatus { get; }
+
+    /// <summary>
+    /// Error count on this tag.
+    /// </summary>
+    public int ErrorCount { get; }
 }

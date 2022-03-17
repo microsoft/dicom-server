@@ -7,10 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Client.Models;
 
-namespace Microsoft.Health.Dicom.Client
+namespace Microsoft.Health.Dicom.Client;
+
+public partial interface IDicomWebClient
 {
-    public partial interface IDicomWebClient
-    {
-        Task<DicomWebResponse<T>> ResolveReferenceAsync<T>(IResourceReference<T> resourceReference, CancellationToken cancellationToken = default);
-    }
+    Task<DicomWebResponse<T>> ResolveReferenceAsync<T>(IResourceReference<T> resourceReference, CancellationToken cancellationToken = default);
 }

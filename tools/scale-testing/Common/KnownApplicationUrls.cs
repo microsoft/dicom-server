@@ -3,11 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Common
+namespace Common;
+
+public static class KnownApplicationUrls
 {
-    public static class KnownApplicationUrls
-    {
-        public const string KeyVaultUrl = "";
-        public const string DicomServerUrl = "";
-    }
+    public const string KeyVaultUrl = "";
+    public const string DicomServerUrl = "";
 }

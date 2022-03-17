@@ -3,12 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Common.KeyVault
+namespace Common.KeyVault;
+
+public static class KnownSecretNames
 {
-    public static class KnownSecretNames
-    {
-        public const string AppConfigurationConnectionString = "AppConfiguration--ConnectionString";
-        public const string BlobStoreConnectionString = "BlobStore--ConnectionString";
-        public const string ServiceBusConnectionString = "ServiceBus--ConnectionString";
-    }
+    public const string AppConfigurationConnectionString = "AppConfiguration--ConnectionString";
+    public const string BlobStoreConnectionString = "BlobStore--ConnectionString";
+    public const string ServiceBusConnectionString = "ServiceBus--ConnectionString";
 }

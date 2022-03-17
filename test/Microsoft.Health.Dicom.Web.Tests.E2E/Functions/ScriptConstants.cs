@@ -3,16 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions
+namespace Microsoft.Health.Dicom.Web.Tests.E2E.Functions;
+
+public static class ScriptConstants
 {
-    public static class ScriptConstants
-    {
-        public const string HostMetadataFileName = "host.json";
-        public const string LocalSettingsFileName = "local.settings.json";
+    public const string HostMetadataFileName = "host.json";
+    public const string LocalSettingsFileName = "local.settings.json";
 
-        public const string DefaultExtensionBundleId = "Microsoft.Azure.Functions.ExtensionBundle";
-        public const string DefaultExtensionBundleVersion = "[2.*, 3.0.0)";
+    public const string DefaultExtensionBundleId = "Microsoft.Azure.Functions.ExtensionBundle";
+    public const string DefaultExtensionBundleVersion = "[2.*, 3.0.0)";
 
-        public const string LatestHostConfigVersion = "2.0";
-    }
+    public const string LatestHostConfigVersion = "2.0";
 }

@@ -20,144 +20,143 @@ using Microsoft.Health.Dicom.Tests.Common.Comparers;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query
+namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Query;
+
+public class QueryServiceTests
 {
-    public class QueryServiceTests
+    private readonly QueryService _queryService;
+    private readonly IQueryParser<QueryExpression, QueryParameters> _queryParser;
+    private readonly IQueryStore _queryStore;
+    private readonly IMetadataStore _metadataStore;
+    private readonly IQueryTagService _queryTagService;
+    private readonly IDicomRequestContextAccessor _contextAccessor;
+
+    public QueryServiceTests()
     {
-        private readonly QueryService _queryService;
-        private readonly IQueryParser<QueryExpression, QueryParameters> _queryParser;
-        private readonly IQueryStore _queryStore;
-        private readonly IMetadataStore _metadataStore;
-        private readonly IQueryTagService _queryTagService;
-        private readonly IDicomRequestContextAccessor _contextAccessor;
+        _queryParser = Substitute.For<IQueryParser<QueryExpression, QueryParameters>>();
+        _queryStore = Substitute.For<IQueryStore>();
+        _metadataStore = Substitute.For<IMetadataStore>();
+        _queryTagService = Substitute.For<IQueryTagService>();
+        _contextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+        _contextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
 
-        public QueryServiceTests()
+        _queryService = new QueryService(
+            _queryParser,
+            _queryStore,
+            _metadataStore,
+            _queryTagService,
+            _contextAccessor);
+    }
+
+    [Theory]
+    [InlineData(QueryResource.StudySeries, "123.001")]
+    [InlineData(QueryResource.StudyInstances, "abc.1234")]
+    public void GivenQidoQuery_WithInvalidStudyInstanceUid_ThrowsValidationException(QueryResource resourceType, string studyInstanceUid)
+    {
+        var parameters = new QueryParameters
         {
-            _queryParser = Substitute.For<IQueryParser<QueryExpression, QueryParameters>>();
-            _queryStore = Substitute.For<IQueryStore>();
-            _metadataStore = Substitute.For<IMetadataStore>();
-            _queryTagService = Substitute.For<IQueryTagService>();
-            _contextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-            _contextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
+            Filters = new Dictionary<string, string>(),
+            QueryResourceType = resourceType,
+            StudyInstanceUid = studyInstanceUid
+        };
+        Assert.ThrowsAsync<InvalidIdentifierException>(() => _queryService.QueryAsync(parameters, CancellationToken.None));
+    }
 
-            _queryService = new QueryService(
-                _queryParser,
-                _queryStore,
-                _metadataStore,
-                _queryTagService,
-                _contextAccessor);
-        }
-
-        [Theory]
-        [InlineData(QueryResource.StudySeries, "123.001")]
-        [InlineData(QueryResource.StudyInstances, "abc.1234")]
-        public void GivenQidoQuery_WithInvalidStudyInstanceUid_ThrowsValidationException(QueryResource resourceType, string studyInstanceUid)
+    [Theory]
+    [InlineData(QueryResource.StudySeriesInstances, "123.111", "1234.001")]
+    [InlineData(QueryResource.StudySeriesInstances, "123.abc", "1234.001")]
+    public void GivenQidoQuery_WithInvalidStudySeriesUid_ThrowsValidationException(QueryResource resourceType, string studyInstanceUid, string seriesInstanceUid)
+    {
+        var parameters = new QueryParameters
         {
-            var parameters = new QueryParameters
-            {
-                Filters = new Dictionary<string, string>(),
-                QueryResourceType = resourceType,
-                StudyInstanceUid = studyInstanceUid
-            };
-            Assert.ThrowsAsync<InvalidIdentifierException>(() => _queryService.QueryAsync(parameters, CancellationToken.None));
-        }
+            Filters = new Dictionary<string, string>(),
+            QueryResourceType = resourceType,
+            SeriesInstanceUid = seriesInstanceUid,
+            StudyInstanceUid = studyInstanceUid,
+        };
+        Assert.ThrowsAsync<InvalidIdentifierException>(() => _queryService.QueryAsync(parameters, CancellationToken.None));
+    }
 
-        [Theory]
-        [InlineData(QueryResource.StudySeriesInstances, "123.111", "1234.001")]
-        [InlineData(QueryResource.StudySeriesInstances, "123.abc", "1234.001")]
-        public void GivenQidoQuery_WithInvalidStudySeriesUid_ThrowsValidationException(QueryResource resourceType, string studyInstanceUid, string seriesInstanceUid)
+    [Theory]
+    [InlineData(QueryResource.AllInstances)]
+    [InlineData(QueryResource.StudyInstances)]
+    [InlineData(QueryResource.StudySeriesInstances)]
+    public async void GivenRequestForInstances_WhenRetrievingQueriableExtendedQueryTags_ReturnsAllTags(QueryResource resourceType)
+    {
+        _queryParser.Parse(default, default).ReturnsForAnyArgs(new QueryExpression(default, default, default, default, default, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
+        var parameters = new QueryParameters
         {
-            var parameters = new QueryParameters
-            {
-                Filters = new Dictionary<string, string>(),
-                QueryResourceType = resourceType,
-                SeriesInstanceUid = seriesInstanceUid,
-                StudyInstanceUid = studyInstanceUid,
-            };
-            Assert.ThrowsAsync<InvalidIdentifierException>(() => _queryService.QueryAsync(parameters, CancellationToken.None));
-        }
-
-        [Theory]
-        [InlineData(QueryResource.AllInstances)]
-        [InlineData(QueryResource.StudyInstances)]
-        [InlineData(QueryResource.StudySeriesInstances)]
-        public async void GivenRequestForInstances_WhenRetrievingQueriableExtendedQueryTags_ReturnsAllTags(QueryResource resourceType)
+            Filters = new Dictionary<string, string>(),
+            QueryResourceType = resourceType,
+            SeriesInstanceUid = TestUidGenerator.Generate(),
+            StudyInstanceUid = TestUidGenerator.Generate(),
+        };
+        List<ExtendedQueryTagStoreEntry> storeEntries = new List<ExtendedQueryTagStoreEntry>()
         {
-            _queryParser.Parse(default, default).ReturnsForAnyArgs(new QueryExpression(default, default, default, default, default, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
-            var parameters = new QueryParameters
-            {
-                Filters = new Dictionary<string, string>(),
-                QueryResourceType = resourceType,
-                SeriesInstanceUid = TestUidGenerator.Generate(),
-                StudyInstanceUid = TestUidGenerator.Generate(),
-            };
-            List<ExtendedQueryTagStoreEntry> storeEntries = new List<ExtendedQueryTagStoreEntry>()
-            {
-                new ExtendedQueryTagStoreEntry(1, "00741000", "CS", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled, 0),
-                new ExtendedQueryTagStoreEntry(2, "0040A121", "DA", null, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled, 0),
-                new ExtendedQueryTagStoreEntry(3, "00101005", "PN", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled, 0),
-            };
+            new ExtendedQueryTagStoreEntry(1, "00741000", "CS", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled, 0),
+            new ExtendedQueryTagStoreEntry(2, "0040A121", "DA", null, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled, 0),
+            new ExtendedQueryTagStoreEntry(3, "00101005", "PN", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled, 0),
+        };
 
-            var list = QueryTagService.CoreQueryTags.Concat(storeEntries.Select(item => new QueryTag(item))).ToList();
-            _queryTagService.GetQueryTagsAsync().ReturnsForAnyArgs(list);
-            _queryStore.QueryAsync(Arg.Any<int>(), Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>()));
-            await _queryService.QueryAsync(parameters, CancellationToken.None);
+        var list = QueryTagService.CoreQueryTags.Concat(storeEntries.Select(item => new QueryTag(item))).ToList();
+        _queryTagService.GetQueryTagsAsync().ReturnsForAnyArgs(list);
+        _queryStore.QueryAsync(Arg.Any<int>(), Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>()));
+        await _queryService.QueryAsync(parameters, CancellationToken.None);
 
-            _queryParser.Received().Parse(parameters, Arg.Do<IReadOnlyCollection<QueryTag>>(x => Assert.Equal(x, list, QueryTagComparer.Default)));
-        }
+        _queryParser.Received().Parse(parameters, Arg.Do<IReadOnlyCollection<QueryTag>>(x => Assert.Equal(x, list, QueryTagComparer.Default)));
+    }
 
-        [Theory]
-        [InlineData(QueryResource.AllSeries)]
-        [InlineData(QueryResource.StudySeries)]
-        public async void GivenRequestForSeries_WhenRetrievingQueriableExtendedQueryTags_ReturnsSeriesAndStudyTags(QueryResource resourceType)
+    [Theory]
+    [InlineData(QueryResource.AllSeries)]
+    [InlineData(QueryResource.StudySeries)]
+    public async void GivenRequestForSeries_WhenRetrievingQueriableExtendedQueryTags_ReturnsSeriesAndStudyTags(QueryResource resourceType)
+    {
+        _queryParser.Parse(default, default).ReturnsForAnyArgs(new QueryExpression(default, default, default, default, default, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
+        var parameters = new QueryParameters
         {
-            _queryParser.Parse(default, default).ReturnsForAnyArgs(new QueryExpression(default, default, default, default, default, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
-            var parameters = new QueryParameters
-            {
-                Filters = new Dictionary<string, string>(),
-                QueryResourceType = resourceType,
-                SeriesInstanceUid = TestUidGenerator.Generate(),
-                StudyInstanceUid = TestUidGenerator.Generate(),
-            };
-            List<ExtendedQueryTagStoreEntry> storeEntries = new List<ExtendedQueryTagStoreEntry>()
-            {
-                new ExtendedQueryTagStoreEntry(1, "00741000", "CS", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled, 0),
-                new ExtendedQueryTagStoreEntry(2, "0040A121", "DA", null, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled, 0),
-                new ExtendedQueryTagStoreEntry(3, "00101005", "PN", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled, 0),
-            };
-
-            var list = QueryTagService.CoreQueryTags.Concat(storeEntries.Select(item => new QueryTag(item))).ToList();
-            _queryStore.QueryAsync(Arg.Any<int>(), Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>()));
-            await _queryService.QueryAsync(parameters, CancellationToken.None);
-
-            _queryParser.Received().Parse(parameters, Arg.Do<IReadOnlyCollection<QueryTag>>(x => Assert.Equal(x, list, QueryTagComparer.Default)));
-        }
-
-        [Theory]
-        [InlineData(QueryResource.AllStudies)]
-        public async void GivenRequestForStudies_WhenRetrievingQueriableExtendedQueryTags_ReturnsStudyTags(QueryResource resourceType)
+            Filters = new Dictionary<string, string>(),
+            QueryResourceType = resourceType,
+            SeriesInstanceUid = TestUidGenerator.Generate(),
+            StudyInstanceUid = TestUidGenerator.Generate(),
+        };
+        List<ExtendedQueryTagStoreEntry> storeEntries = new List<ExtendedQueryTagStoreEntry>()
         {
-            _queryParser.Parse(default, default).ReturnsForAnyArgs(new QueryExpression(default, default, default, default, default, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
-            var parameters = new QueryParameters
-            {
-                Filters = new Dictionary<string, string>(),
-                QueryResourceType = resourceType,
-                SeriesInstanceUid = TestUidGenerator.Generate(),
-                StudyInstanceUid = TestUidGenerator.Generate(),
-            };
+            new ExtendedQueryTagStoreEntry(1, "00741000", "CS", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled, 0),
+            new ExtendedQueryTagStoreEntry(2, "0040A121", "DA", null, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled, 0),
+            new ExtendedQueryTagStoreEntry(3, "00101005", "PN", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled, 0),
+        };
 
-            List<ExtendedQueryTagStoreEntry> storeEntries = new List<ExtendedQueryTagStoreEntry>()
-            {
-                new ExtendedQueryTagStoreEntry(1, "00741000", "CS", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled, 0),
-                new ExtendedQueryTagStoreEntry(2, "0040A121", "DA", null, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled, 0),
-                new ExtendedQueryTagStoreEntry(3, "00101005", "PN", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled, 0),
-            };
+        var list = QueryTagService.CoreQueryTags.Concat(storeEntries.Select(item => new QueryTag(item))).ToList();
+        _queryStore.QueryAsync(Arg.Any<int>(), Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>()));
+        await _queryService.QueryAsync(parameters, CancellationToken.None);
 
-            var list = QueryTagService.CoreQueryTags.Concat(storeEntries.Select(item => new QueryTag(item))).ToList();
-            _queryStore.QueryAsync(Arg.Any<int>(), Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>()));
-            await _queryService.QueryAsync(parameters, CancellationToken.None);
+        _queryParser.Received().Parse(parameters, Arg.Do<IReadOnlyCollection<QueryTag>>(x => Assert.Equal(x, list, QueryTagComparer.Default)));
+    }
 
-            _queryParser.Received().Parse(parameters, Arg.Do<IReadOnlyCollection<QueryTag>>(x => Assert.Equal(x, list, QueryTagComparer.Default)));
-        }
+    [Theory]
+    [InlineData(QueryResource.AllStudies)]
+    public async void GivenRequestForStudies_WhenRetrievingQueriableExtendedQueryTags_ReturnsStudyTags(QueryResource resourceType)
+    {
+        _queryParser.Parse(default, default).ReturnsForAnyArgs(new QueryExpression(default, default, default, default, default, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
+        var parameters = new QueryParameters
+        {
+            Filters = new Dictionary<string, string>(),
+            QueryResourceType = resourceType,
+            SeriesInstanceUid = TestUidGenerator.Generate(),
+            StudyInstanceUid = TestUidGenerator.Generate(),
+        };
+
+        List<ExtendedQueryTagStoreEntry> storeEntries = new List<ExtendedQueryTagStoreEntry>()
+        {
+            new ExtendedQueryTagStoreEntry(1, "00741000", "CS", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled, 0),
+            new ExtendedQueryTagStoreEntry(2, "0040A121", "DA", null, QueryTagLevel.Series, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled, 0),
+            new ExtendedQueryTagStoreEntry(3, "00101005", "PN", null, QueryTagLevel.Study, ExtendedQueryTagStatus.Ready, QueryStatus.Enabled, 0),
+        };
+
+        var list = QueryTagService.CoreQueryTags.Concat(storeEntries.Select(item => new QueryTag(item))).ToList();
+        _queryStore.QueryAsync(Arg.Any<int>(), Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>()));
+        await _queryService.QueryAsync(parameters, CancellationToken.None);
+
+        _queryParser.Received().Parse(parameters, Arg.Do<IReadOnlyCollection<QueryTag>>(x => Assert.Equal(x, list, QueryTagComparer.Default)));
     }
 }

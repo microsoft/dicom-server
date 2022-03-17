@@ -6,15 +6,14 @@
 using EnsureThat;
 using Hl7.Fhir.Model;
 
-namespace Microsoft.Health.DicomCast.Core.Extensions
-{
-    public static class IdentifierExtensions
-    {
-        public static string ToSearchQueryParameter(this Identifier identifier)
-        {
-            EnsureArg.IsNotNull(identifier, nameof(identifier));
+namespace Microsoft.Health.DicomCast.Core.Extensions;
 
-            return $"identifier={identifier.System}|{identifier.Value}";
-        }
+public static class IdentifierExtensions
+{
+    public static string ToSearchQueryParameter(this Identifier identifier)
+    {
+        EnsureArg.IsNotNull(identifier, nameof(identifier));
+
+        return $"identifier={identifier.System}|{identifier.Value}";
     }
 }

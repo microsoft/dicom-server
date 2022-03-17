@@ -6,15 +6,14 @@
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
-namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag
-{
-    public class UpdateExtendedQueryTagResponse
-    {
-        public UpdateExtendedQueryTagResponse(GetExtendedQueryTagEntry tagEntry)
-        {
-            TagEntry = EnsureArg.IsNotNull(tagEntry, nameof(tagEntry));
-        }
+namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 
-        public GetExtendedQueryTagEntry TagEntry { get; }
+public class UpdateExtendedQueryTagResponse
+{
+    public UpdateExtendedQueryTagResponse(GetExtendedQueryTagEntry tagEntry)
+    {
+        TagEntry = EnsureArg.IsNotNull(tagEntry, nameof(tagEntry));
     }
+
+    public GetExtendedQueryTagEntry TagEntry { get; }
 }

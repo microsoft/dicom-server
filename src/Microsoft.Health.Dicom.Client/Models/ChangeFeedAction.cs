@@ -3,11 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Client.Models
+namespace Microsoft.Health.Dicom.Client.Models;
+
+public enum ChangeFeedAction
 {
-    public enum ChangeFeedAction
-    {
-        Create = 0,
-        Delete = 1,
-    }
+    Create = 0,
+    Delete = 1,
 }

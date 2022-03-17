@@ -6,19 +6,18 @@
 using System;
 using Hl7.Fhir.Model;
 
-namespace Microsoft.Health.DicomCast.Core.Features.Fhir
-{
-    /// <summary>
-    /// Exception thrown when the transaction fails.
-    /// </summary>
-    public class TransactionFailedException : FhirNonRetryableException
-    {
-        public TransactionFailedException(OperationOutcome operationOutcome, Exception innerException)
-            : base(DicomCastCoreResource.TransactionFailed, innerException)
-        {
-            OperationOutcome = operationOutcome;
-        }
+namespace Microsoft.Health.DicomCast.Core.Features.Fhir;
 
-        public OperationOutcome OperationOutcome { get; }
+/// <summary>
+/// Exception thrown when the transaction fails.
+/// </summary>
+public class TransactionFailedException : FhirNonRetryableException
+{
+    public TransactionFailedException(OperationOutcome operationOutcome, Exception innerException)
+        : base(DicomCastCoreResource.TransactionFailed, innerException)
+    {
+        OperationOutcome = operationOutcome;
     }
+
+    public OperationOutcome OperationOutcome { get; }
 }

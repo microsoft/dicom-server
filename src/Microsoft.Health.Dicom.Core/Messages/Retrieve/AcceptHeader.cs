@@ -6,34 +6,33 @@
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Retrieve
+namespace Microsoft.Health.Dicom.Core.Messages.Retrieve;
+
+public class AcceptHeader
 {
-    public class AcceptHeader
+    public AcceptHeader(StringSegment mediaType, PayloadTypes payloadType, StringSegment transferSyntax = default, double? quality = null)
     {
-        public AcceptHeader(StringSegment mediaType, PayloadTypes payloadType, StringSegment transferSyntax = default, double? quality = null)
-        {
-            MediaType = mediaType;
-            PayloadType = payloadType;
-            TransferSyntax = transferSyntax;
-            Quality = quality;
-        }
+        MediaType = mediaType;
+        PayloadType = payloadType;
+        TransferSyntax = transferSyntax;
+        Quality = quality;
+    }
 
-        public StringSegment MediaType { get; }
+    public StringSegment MediaType { get; }
 
-        public PayloadTypes PayloadType { get; }
+    public PayloadTypes PayloadType { get; }
 
-        public StringSegment TransferSyntax { get; }
+    public StringSegment TransferSyntax { get; }
 
-        public double? Quality { get; }
+    public double? Quality { get; }
 
-        public bool IsSinglePart
-        {
-            get { return PayloadType == PayloadTypes.SinglePart; }
-        }
+    public bool IsSinglePart
+    {
+        get { return PayloadType == PayloadTypes.SinglePart; }
+    }
 
-        public override string ToString()
-        {
-            return $"MediaType:'{MediaType}', PayloadType:'{PayloadType}', TransferSyntax:'{TransferSyntax}', Quality:'{Quality}'";
-        }
+    public override string ToString()
+    {
+        return $"MediaType:'{MediaType}', PayloadType:'{PayloadType}', TransferSyntax:'{TransferSyntax}', Quality:'{Quality}'";
     }
 }

@@ -5,12 +5,11 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.Health.Dicom.Core.Models.Operations
-{
-    internal class OperationProgress
-    {
-        public int PercentComplete { get; set; }
+namespace Microsoft.Health.Dicom.Core.Models.Operations;
 
-        public IReadOnlyCollection<string> ResourceIds { get; set; }
-    }
+internal class OperationProgress
+{
+    public int PercentComplete { get; set; }
+
+    public IReadOnlyCollection<string> ResourceIds { get; set; }
 }

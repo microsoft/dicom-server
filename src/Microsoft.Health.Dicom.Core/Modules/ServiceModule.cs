@@ -23,232 +23,231 @@ using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Extensions.DependencyInjection;
 
-namespace Microsoft.Health.Dicom.Core.Modules
+namespace Microsoft.Health.Dicom.Core.Modules;
+
+public class ServiceModule : IStartupModule
 {
-    public class ServiceModule : IStartupModule
+    private readonly FeatureConfiguration _featureConfiguration;
+
+    public ServiceModule(FeatureConfiguration featureConfiguration)
     {
-        private readonly FeatureConfiguration _featureConfiguration;
+        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
+        _featureConfiguration = featureConfiguration;
+    }
 
-        public ServiceModule(FeatureConfiguration featureConfiguration)
+    public void Load(IServiceCollection services)
+    {
+        EnsureArg.IsNotNull(services, nameof(services));
+
+        services.AddFellowOakDicomServices(skipValidation: true);
+
+        services.Add<DicomInstanceEntryReaderManager>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<StoreDatasetValidator>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<StoreService>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces()
+            .AsFactory();
+
+        services.Add<StoreOrchestrator>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Decorate<IStoreOrchestrator, LoggingStoreOrchestrator>();
+
+        services.Add<DicomInstanceEntryReaderForMultipartRequest>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<DicomInstanceEntryReaderForSinglePartRequest>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Decorate<IDicomInstanceEntryReader, LoggingDicomInstanceEntryReader>();
+
+        services.Add<DicomInstanceEntryReaderManager>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Decorate<IDicomInstanceEntryReaderManager, LoggingDicomInstanceEntryReaderManager>();
+
+        services.Add<StoreResponseBuilder>()
+            .Transient()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<RetrieveMetadataService>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<RetrieveResourceService>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<FrameHandler>()
+            .Transient()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<RetrieveTransferSyntaxHandler>()
+            .Transient()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<Transcoder>()
+            .Transient()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<QueryService>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<DicomTagParser>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.AddTransient<IQueryParser<QueryExpression, QueryParameters>, QueryParser>();
+        services.AddTransient<IQueryParser<BaseQueryExpression, BaseQueryParameters>, WorkitemQueryParser>();
+
+        services.Add<DeleteService>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<ChangeFeedService>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<ElementMinimumValidator>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<ETagGenerator>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<QueryTagService>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<OperationStatusHandler>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.AddSingleton<BackgroundServiceHealthCheckCache>();
+
+        services.AddHealthChecks().AddCheck<BackgroundServiceHealthCheck>(name: "BackgroundServiceHealthCheck");
+
+        services.AddSingleton<PartitionCache>();
+
+        services.Add<PartitionService>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<WorkitemQueryTagService>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        if (_featureConfiguration.EnableExtendedQueryTags)
         {
-            EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
-            _featureConfiguration = featureConfiguration;
-        }
-
-        public void Load(IServiceCollection services)
-        {
-            EnsureArg.IsNotNull(services, nameof(services));
-
-            services.AddFellowOakDicomServices(skipValidation: true);
-
-            services.Add<DicomInstanceEntryReaderManager>()
+            services.Add<ExtendedQueryTagEntryValidator>()
                 .Singleton()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<StoreDatasetValidator>()
+            services.Add<GetExtendedQueryTagsService>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<StoreService>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces()
-                .AsFactory();
-
-            services.Add<StoreOrchestrator>()
+            services.Add<AddExtendedQueryTagService>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Decorate<IStoreOrchestrator, LoggingStoreOrchestrator>();
-
-            services.Add<DicomInstanceEntryReaderForMultipartRequest>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<DicomInstanceEntryReaderForSinglePartRequest>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Decorate<IDicomInstanceEntryReader, LoggingDicomInstanceEntryReader>();
-
-            services.Add<DicomInstanceEntryReaderManager>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Decorate<IDicomInstanceEntryReaderManager, LoggingDicomInstanceEntryReaderManager>();
-
-            services.Add<StoreResponseBuilder>()
-                .Transient()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<RetrieveMetadataService>()
+            services.Add<DeleteExtendedQueryTagService>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<RetrieveResourceService>()
+            services.Add<UpdateExtendedQueryTagService>()
+             .Scoped()
+             .AsSelf()
+             .AsImplementedInterfaces();
+
+            services.Add<ExtendedQueryTagErrorsService>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<FrameHandler>()
-                .Transient()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<RetrieveTransferSyntaxHandler>()
-                .Transient()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<Transcoder>()
-                .Transient()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<QueryService>()
+            services.Add<ReindexDatasetValidator>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
 
-            services.Add<DicomTagParser>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.AddTransient<IQueryParser<QueryExpression, QueryParameters>, QueryParser>();
-            services.AddTransient<IQueryParser<BaseQueryExpression, BaseQueryParameters>, WorkitemQueryParser>();
-
-            services.Add<DeleteService>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<ChangeFeedService>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<ElementMinimumValidator>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<ETagGenerator>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<QueryTagService>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<OperationStatusHandler>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.AddSingleton<BackgroundServiceHealthCheckCache>();
-
-            services.AddHealthChecks().AddCheck<BackgroundServiceHealthCheck>(name: "BackgroundServiceHealthCheck");
-
-            services.AddSingleton<PartitionCache>();
-
-            services.Add<PartitionService>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<WorkitemQueryTagService>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            if (_featureConfiguration.EnableExtendedQueryTags)
-            {
-                services.Add<ExtendedQueryTagEntryValidator>()
-                    .Singleton()
-                    .AsSelf()
-                    .AsImplementedInterfaces();
-
-                services.Add<GetExtendedQueryTagsService>()
-                    .Scoped()
-                    .AsSelf()
-                    .AsImplementedInterfaces();
-
-                services.Add<AddExtendedQueryTagService>()
-                    .Scoped()
-                    .AsSelf()
-                    .AsImplementedInterfaces();
-
-                services.Add<DeleteExtendedQueryTagService>()
-                    .Scoped()
-                    .AsSelf()
-                    .AsImplementedInterfaces();
-
-                services.Add<UpdateExtendedQueryTagService>()
-                 .Scoped()
-                 .AsSelf()
-                 .AsImplementedInterfaces();
-
-                services.Add<ExtendedQueryTagErrorsService>()
-                    .Scoped()
-                    .AsSelf()
-                    .AsImplementedInterfaces();
-
-                services.Add<ReindexDatasetValidator>()
-                    .Scoped()
-                    .AsSelf()
-                    .AsImplementedInterfaces();
-
-                services.Add<InstanceReindexer>()
-                    .Scoped()
-                    .AsSelf()
-                    .AsImplementedInterfaces();
-            }
-
-            SetupWorkitemTypes(services);
-        }
-
-        private static void SetupWorkitemTypes(IServiceCollection services)
-        {
-            services.Add<WorkitemService>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<WorkitemSerializer>()
-               .Scoped()
-               .AsSelf()
-               .AsImplementedInterfaces();
-
-            services.Add<WorkitemOrchestrator>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<WorkitemResponseBuilder>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<AddWorkitemDatasetValidator>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<CancelWorkitemDatasetValidator>()
+            services.Add<InstanceReindexer>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
         }
+
+        SetupWorkitemTypes(services);
+    }
+
+    private static void SetupWorkitemTypes(IServiceCollection services)
+    {
+        services.Add<WorkitemService>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<WorkitemSerializer>()
+           .Scoped()
+           .AsSelf()
+           .AsImplementedInterfaces();
+
+        services.Add<WorkitemOrchestrator>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<WorkitemResponseBuilder>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<AddWorkitemDatasetValidator>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<CancelWorkitemDatasetValidator>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
     }
 }

@@ -14,44 +14,43 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Net.Http.Headers;
 
-namespace Microsoft.Health.Dicom.Api.Features.ModelBinders
+namespace Microsoft.Health.Dicom.Api.Features.ModelBinders;
+
+public class TransferSyntaxModelBinder : IModelBinder
 {
-    public class TransferSyntaxModelBinder : IModelBinder
+    private const string TransferSyntaxHeaderPrefix = "transfer-syntax";
+
+    public Task BindModelAsync(ModelBindingContext bindingContext)
     {
-        private const string TransferSyntaxHeaderPrefix = "transfer-syntax";
+        EnsureArg.IsNotNull(bindingContext, nameof(bindingContext));
+        IList<MediaTypeHeaderValue> acceptHeaders = bindingContext.HttpContext.Request.GetTypedHeaders().Accept;
 
-        public Task BindModelAsync(ModelBindingContext bindingContext)
+        // Validate the accept headers has one of the specified accepted media types.
+        if (acceptHeaders != null && acceptHeaders.Count > 0)
         {
-            EnsureArg.IsNotNull(bindingContext, nameof(bindingContext));
-            IList<MediaTypeHeaderValue> acceptHeaders = bindingContext.HttpContext.Request.GetTypedHeaders().Accept;
-
-            // Validate the accept headers has one of the specified accepted media types.
-            if (acceptHeaders != null && acceptHeaders.Count > 0)
+            foreach (MediaTypeHeaderValue acceptHeader in acceptHeaders)
             {
-                foreach (MediaTypeHeaderValue acceptHeader in acceptHeaders)
+                List<NameValueHeaderValue> typeParameterValue = acceptHeader.Parameters.Where(
+                    parameter => StringSegment.Equals(parameter.Name, TransferSyntaxHeaderPrefix, StringComparison.InvariantCultureIgnoreCase)).ToList();
+
+                if (typeParameterValue.Count > 1)
                 {
-                    List<NameValueHeaderValue> typeParameterValue = acceptHeader.Parameters.Where(
-                        parameter => StringSegment.Equals(parameter.Name, TransferSyntaxHeaderPrefix, StringComparison.InvariantCultureIgnoreCase)).ToList();
+                    throw new BadRequestException("Transfer Syntax parameter is specified more than once");
+                }
 
-                    if (typeParameterValue.Count > 1)
-                    {
-                        throw new BadRequestException("Transfer Syntax parameter is specified more than once");
-                    }
+                if (typeParameterValue != null && typeParameterValue.Count == 1)
+                {
+                    StringSegment parsedValue = HeaderUtilities.RemoveQuotes(typeParameterValue.First().Value);
 
-                    if (typeParameterValue != null && typeParameterValue.Count == 1)
-                    {
-                        StringSegment parsedValue = HeaderUtilities.RemoveQuotes(typeParameterValue.First().Value);
-
-                        ValueProviderResult valueProviderResult = new ValueProviderResult(parsedValue.ToString());
-                        bindingContext.ModelState.SetModelValue(TransferSyntaxHeaderPrefix, valueProviderResult);
-                        bindingContext.Result = ModelBindingResult.Success(parsedValue.ToString());
-                        return Task.CompletedTask;
-                    }
+                    ValueProviderResult valueProviderResult = new ValueProviderResult(parsedValue.ToString());
+                    bindingContext.ModelState.SetModelValue(TransferSyntaxHeaderPrefix, valueProviderResult);
+                    bindingContext.Result = ModelBindingResult.Success(parsedValue.ToString());
+                    return Task.CompletedTask;
                 }
             }
-
-            bindingContext.Result = ModelBindingResult.Failed();
-            return Task.CompletedTask;
         }
+
+        bindingContext.Result = ModelBindingResult.Failed();
+        return Task.CompletedTask;
     }
 }

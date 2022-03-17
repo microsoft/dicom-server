@@ -10,71 +10,70 @@ using Microsoft.Health.Dicom.Core.Messages.Workitem;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem
+namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem;
+
+public sealed class AddWorkitemResponseBuilderTests
 {
-    public sealed class AddWorkitemResponseBuilderTests
+    private readonly MockUrlResolver _urlResolver = new MockUrlResolver();
+    private readonly DicomDataset _dataset = new DicomDataset();
+    private readonly WorkitemResponseBuilder _target;
+
+    public AddWorkitemResponseBuilderTests()
     {
-        private readonly MockUrlResolver _urlResolver = new MockUrlResolver();
-        private readonly DicomDataset _dataset = new DicomDataset();
-        private readonly WorkitemResponseBuilder _target;
+        _target = new WorkitemResponseBuilder(_urlResolver);
+    }
 
-        public AddWorkitemResponseBuilderTests()
-        {
-            _target = new WorkitemResponseBuilder(_urlResolver);
-        }
+    [Fact]
+    public void GivenBuildResponse_WhenNoFailure_ThenResponseStatusIsSuccess()
+    {
+        _dataset.Add(DicomTag.SOPInstanceUID, DicomUID.Generate().UID);
 
-        [Fact]
-        public void GivenBuildResponse_WhenNoFailure_ThenResponseStatusIsSuccess()
-        {
-            _dataset.Add(DicomTag.SOPInstanceUID, DicomUID.Generate().UID);
+        _target.AddSuccess(_dataset);
 
-            _target.AddSuccess(_dataset);
+        var response = _target.BuildAddResponse();
 
-            var response = _target.BuildAddResponse();
+        Assert.NotNull(response);
+        Assert.Equal(WorkitemResponseStatus.Success, response.Status);
+    }
 
-            Assert.NotNull(response);
-            Assert.Equal(WorkitemResponseStatus.Success, response.Status);
-        }
+    [Fact]
+    public void GivenBuildResponse_WhenNoFailure_ThenResponseUrlIncludesWorkitemInstanceUid()
+    {
+        var workitemInstanceUid = DicomUID.Generate().UID;
+        _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
 
-        [Fact]
-        public void GivenBuildResponse_WhenNoFailure_ThenResponseUrlIncludesWorkitemInstanceUid()
-        {
-            var workitemInstanceUid = DicomUID.Generate().UID;
-            _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
+        _target.AddSuccess(_dataset);
 
-            _target.AddSuccess(_dataset);
+        var response = _target.BuildAddResponse();
 
-            var response = _target.BuildAddResponse();
+        Assert.NotNull(response);
+        Assert.NotNull(response.Uri);
+        Assert.Contains(workitemInstanceUid, response.Uri.ToString());
+    }
 
-            Assert.NotNull(response);
-            Assert.NotNull(response.Uri);
-            Assert.Contains(workitemInstanceUid, response.Uri.ToString());
-        }
+    [Fact]
+    public void GivenBuildResponse_WhenFailure_ThenFailureReasonTagIsAddedToDicomDataset()
+    {
+        _target.AddFailure((ushort)WorkitemResponseStatus.Failure, dicomDataset: _dataset);
 
-        [Fact]
-        public void GivenBuildResponse_WhenFailure_ThenFailureReasonTagIsAddedToDicomDataset()
-        {
-            _target.AddFailure((ushort)WorkitemResponseStatus.Failure, dicomDataset: _dataset);
+        var response = _target.BuildAddResponse();
 
-            var response = _target.BuildAddResponse();
+        Assert.NotNull(response);
+        Assert.NotEmpty(_dataset.GetString(DicomTag.FailureReason));
+        Assert.Null(response.Uri);
+        Assert.Equal(WorkitemResponseStatus.Failure, response.Status);
+    }
 
-            Assert.NotNull(response);
-            Assert.NotEmpty(_dataset.GetString(DicomTag.FailureReason));
-            Assert.Null(response.Uri);
-            Assert.Equal(WorkitemResponseStatus.Failure, response.Status);
-        }
+    [Fact]
+    public void GivenBuildResponse_WhenConflict_ThenFailureReasonTagIsAddedToDicomDataset()
+    {
+        _target.AddFailure(FailureReasonCodes.SopInstanceAlreadyExists, dicomDataset: _dataset);
 
-        [Fact]
-        public void GivenBuildResponse_WhenConflict_ThenFailureReasonTagIsAddedToDicomDataset()
-        {
-            _target.AddFailure(FailureReasonCodes.SopInstanceAlreadyExists, dicomDataset: _dataset);
+        var response = _target.BuildAddResponse();
 
-            var response = _target.BuildAddResponse();
-
-            Assert.NotNull(response);
-            Assert.NotEmpty(_dataset.GetString(DicomTag.FailureReason));
-            Assert.Null(response.Uri);
-            Assert.Equal(WorkitemResponseStatus.Conflict, response.Status);
-        }
+        Assert.NotNull(response);
+        Assert.NotEmpty(_dataset.GetString(DicomTag.FailureReason));
+        Assert.Null(response.Uri);
+        Assert.Equal(WorkitemResponseStatus.Conflict, response.Status);
     }
 }
