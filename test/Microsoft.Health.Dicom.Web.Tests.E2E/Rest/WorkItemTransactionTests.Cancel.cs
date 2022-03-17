@@ -18,6 +18,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
     public partial class WorkItemTransactionTests
     {
         [Fact]
+        [Trait("Category", "bvt")]
+        [Trait("Category", "bvt-fe")]
         public async Task GivenCancelWorkitem_WhenWorkitemWasNeverCanceledOrCompleted_TheServerShouldCancelWorkitemSuccessfully()
         {
             var workitemUid = TestUidGenerator.Generate();
@@ -47,6 +49,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
+        [Trait("Category", "bvt")]
+        [Trait("Category", "bvt-fe")]
         public async Task GivenCancelWorkitem_WhenWorkitemWasAlreadyCanceled_ServerShouldReturn409()
         {
             var workitemUid = TestUidGenerator.Generate();
@@ -73,6 +77,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
+        [Trait("Category", "bvt")]
+        [Trait("Category", "bvt-fe")]
         public async Task GivenCancelWorkitem_WhenWorkitemIsNotFound_ServerShouldReturn404()
         {
             var workitemUid = TestUidGenerator.Generate();

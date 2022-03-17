@@ -15,6 +15,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
     public partial class WorkItemTransactionTests
     {
         [Fact]
+        [Trait("Category", "bvt")]
+        [Trait("Category", "bvt-fe")]
         public async Task WhenAddingWorkitem_TheServerShouldCreateWorkitemSuccessfully()
         {
             DicomDataset dicomDataset = Samples.CreateRandomWorkitemInstanceDataset();

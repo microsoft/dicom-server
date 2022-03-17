@@ -29,6 +29,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
+        [Trait("Category", "bvt")]
+        [Trait("Category", "bvt-fe")]
         public async Task GivenSearchRequest_WithValidParamsAndNoMatchingResult_ReturnNoContent()
         {
             using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryWorkitemAsync("PatientID=20200101");
@@ -36,6 +38,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
+        [Trait("Category", "bvt")]
+        [Trait("Category", "bvt-fe")]
         public async Task WhenQueryingWorkitem_TheServerShouldReturnWorkitemSuccessfully()
         {
             var workitemUid = TestUidGenerator.Generate();
@@ -57,6 +61,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
+        [Trait("Category", "bvt")]
+        [Trait("Category", "bvt-fe")]
         public async Task WhenQueryingWorkitemWithFilter_TheServerShouldReturnWorkitemSuccessfully()
         {
             var workitemUid = TestUidGenerator.Generate();
@@ -77,6 +83,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
+        [Trait("Category", "bvt")]
+        [Trait("Category", "bvt-fe")]
         public async Task WhenQueryingWorkitemWithSequenceMatching_TheServerShouldReturnWorkitemSuccessfully()
         {
             var workitemUid = TestUidGenerator.Generate();
@@ -105,6 +113,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
+        [Trait("Category", "bvt")]
+        [Trait("Category", "bvt-fe")]
         public async Task GivenSearchRequest_PatientNameFuzzyMatch_MatchResult()
         {
             var workitemUid = TestUidGenerator.Generate();
@@ -137,6 +147,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest
         }
 
         [Fact]
+        [Trait("Category", "bvt")]
+        [Trait("Category", "bvt-fe")]
         public async Task GivenSearchRequest_WithHigherLimit_ReturnBadRequest()
         {
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
