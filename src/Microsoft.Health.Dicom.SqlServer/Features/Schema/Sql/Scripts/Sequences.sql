@@ -53,7 +53,7 @@ CREATE SEQUENCE dbo.PartitionKeySequence
     CACHE 10000
 
 CREATE SEQUENCE dbo.WorkitemKeySequence
-    AS INT
+    AS BIGINT
     START WITH 1
     INCREMENT BY 1
     MINVALUE 1
