@@ -48,7 +48,6 @@ public partial class WorkItemTransactionTests
     }
 
     [Fact]
-    [Trait("Category", "bvt-fe")]
     public async Task GivenCancelWorkitem_WhenWorkitemWasAlreadyCanceled_ServerShouldReturn409()
     {
         var workitemUid = TestUidGenerator.Generate();
@@ -75,7 +74,6 @@ public partial class WorkItemTransactionTests
     }
 
     [Fact]
-    [Trait("Category", "bvt-fe")]
     public async Task GivenCancelWorkitem_WhenWorkitemIsNotFound_ServerShouldReturn404()
     {
         var workitemUid = TestUidGenerator.Generate();
