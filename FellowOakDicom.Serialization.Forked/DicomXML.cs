@@ -72,10 +72,14 @@ namespace FellowOakDicom.Serialization.Forked
                 {
                     var sq = item as DicomSequence;
 
+#pragma warning disable CS8604 // Possible null reference argument.
                     WriteDicomAttribute(xmlOutput, sq);
+#pragma warning restore CS8604 // Possible null reference argument.
                     for (var i = 0; i < sq.Items.Count; i++)
                     {
+#pragma warning disable format
                         xmlOutput.AppendLine($@"<Item number=""{i+1}"">");
+#pragma warning restore format
 
                         DicomDatasetToXml(xmlOutput, sq.Items[i]);
 
@@ -102,7 +106,9 @@ namespace FellowOakDicom.Serialization.Forked
             {
                 for (int i = 0; i < item.Count; i++)
                 {
+#pragma warning disable format
                     xmlOutput.AppendLine($@"<PersonName number=""{i+1}"">");
+#pragma warning restore format
                     xmlOutput.AppendLine(@"<Alphabetic>");
 
                     var person = new DicomPersonName(item.Tag, item.Get<string>(i));
@@ -127,7 +133,9 @@ namespace FellowOakDicom.Serialization.Forked
                 for (int i = 0; i < item.Count; i++)
                 {
                     var valueString = EscapeXml(item.Get<string>(i));
+#pragma warning disable format
                     xmlOutput.AppendLine($@"<Value number=""{i+1}"">{valueString}</Value>");
+#pragma warning restore format
                 }
             }
 
