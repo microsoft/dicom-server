@@ -7,7 +7,7 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using EnsureThat;
-using FellowOakDicom.Serialization;
+using FellowOakDicom.Serialization.Forked;
 using Microsoft.Health.Dicom.Core.Serialization;
 
 namespace Microsoft.Health.Dicom.Core.Extensions;

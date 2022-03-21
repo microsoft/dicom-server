@@ -23,4 +23,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\FellowOakDicom.Serialization.Forked\FellowOakDicom.Serialization.Forked.csproj" />
+  </ItemGroup>
+
 </Project>

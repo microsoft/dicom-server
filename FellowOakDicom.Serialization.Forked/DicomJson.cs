@@ -61,7 +61,9 @@ namespace FellowOakDicom.Serialization.Forked
             options.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false, autoValidate: true));
             options.ReadCommentHandling = JsonCommentHandling.Skip;
             var ds = JsonSerializer.Deserialize<DicomDataset[]>(json, options);
+#pragma warning disable CS8603 // Possible null reference return.
             return ds;
+#pragma warning restore CS8603 // Possible null reference return.
         }
 
     }

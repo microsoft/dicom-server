@@ -7,7 +7,7 @@ using System;
 using System.Linq;
 using System.Text.Json;
 using FellowOakDicom;
-using FellowOakDicom.Serialization;
+using FellowOakDicom.Serialization.Forked;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization;
