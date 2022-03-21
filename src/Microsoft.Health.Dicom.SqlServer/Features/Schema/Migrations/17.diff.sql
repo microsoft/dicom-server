@@ -9,23 +9,30 @@ This diff is broken up into several sections:
 SET XACT_ABORT ON
 
 BEGIN TRANSACTION
-GO
 
 -- Data Type INT = 56
 IF EXISTS (SELECT * FROM sys.sequences WHERE Name = 'WorkitemKeySequence' AND system_type_id = 56)
-    BEGIN
+BEGIN
 
-        DECLARE @sql NVARCHAR(MAX);
-        DECLARE @newWorkitemKeyStartVal INT;
+    DECLARE @sql NVARCHAR(MAX);
+    DECLARE @newWorkitemKeyStartVal INT;
 
-        -- Daily average is at ~50. Hence we buffer 100 on top of the last workitem key sequence
-        SET @newWorkitemKeyStartVal = (NEXT VALUE FOR dbo.WorkitemKeySequence) + 100;
+    -- Daily average is at ~50. Hence we buffer 100 on top of the last workitem key sequence
+    SET @newWorkitemKeyStartVal = (NEXT VALUE FOR dbo.WorkitemKeySequence) + 100;
 
-        SET @sql = CONCAT(N'DROP SEQUENCE dbo.WorkitemKeySequence; CREATE SEQUENCE dbo.WorkitemKeySequence AS BIGINT START WITH ', STR(@newWorkitemKeyStartVal), 'INCREMENT BY 1 MINVALUE ' + STR(@newWorkitemKeyStartVal) + ' NO CYCLE CACHE 10000');
-        EXEC sys.sp_executesql @sql;
+    SET @sql = CONCAT(N'
+        BEGIN TRANSACTION
+        DROP SEQUENCE dbo.WorkitemKeySequence
+        CREATE SEQUENCE dbo.WorkitemKeySequence AS BIGINT ' +
+            'START WITH ', STR(@newWorkitemKeyStartVal),
+            'INCREMENT BY 1' +
+			'MINVALUE ' + STR(@newWorkitemKeyStartVal) +
+            'NO CYCLE CACHE 10000' +
+        'COMMIT TRANSACTION');
 
-    END
+    EXEC sys.sp_executesql @sql;
+
+END
 GO
 
 COMMIT TRANSACTION
-GO
