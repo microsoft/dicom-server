@@ -29,7 +29,7 @@ public static class JsonSerializerOptionsExtensions
 
         options.Converters.Clear();
         options.Converters.Add(new StrictStringEnumConverterFactory());
-        options.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false));
+        options.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false, autoValidate: false));
 
         options.AllowTrailingCommas = true;
         options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
