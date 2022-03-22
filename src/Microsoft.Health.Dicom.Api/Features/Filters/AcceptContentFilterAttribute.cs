@@ -54,26 +54,48 @@ public sealed class AcceptContentFilterAttribute : ActionFilterAttribute
     public override void OnActionExecuting(ActionExecutingContext context)
     {
         EnsureArg.IsNotNull(context, nameof(context));
-        IList<MediaTypeHeaderValue> acceptHeaders = context.HttpContext.Request.GetTypedHeaders().Accept;
 
-        bool acceptable = false;
+        bool acceptable = AcceptHeadersContainKnownTypes(context.HttpContext.Request);
 
-        // Validate the accept headers has one of the specified accepted media types.
-        if (acceptHeaders != null && acceptHeaders.Count > 0)
+        if (!acceptable)
         {
-            foreach (MediaTypeHeaderValue acceptHeader in acceptHeaders)
-            {
-                if (_allowMultiple && StringSegment.Equals(acceptHeader.MediaType, KnownContentTypes.MultipartRelated, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    NameValueHeaderValue typeParameterValue = acceptHeader.Parameters.FirstOrDefault(
-                        parameter => StringSegment.Equals(parameter.Name, TypeParameter, StringComparison.InvariantCultureIgnoreCase));
+            context.Result = new StatusCodeResult(NotAcceptableResponseCode);
+        }
 
-                    if (typeParameterValue != null &&
-                        MediaTypeHeaderValue.TryParse(HeaderUtilities.RemoveQuotes(typeParameterValue.Value), out MediaTypeHeaderValue parsedValue) &&
-                        _mediaTypes.Contains(parsedValue))
+        base.OnActionExecuting(context);
+    }
+
+    private bool AcceptHeadersContainKnownTypes(HttpRequest request)
+    {
+        StringValues acceptHeaderStrings = request.Headers.Accept;
+
+        if (acceptHeaderStrings.Count > 0)
+        {
+            IList<MediaTypeHeaderValue> acceptHeaders = request.GetTypedHeaders().Accept;
+
+            for (int headerIndex = 0; headerIndex < acceptHeaders.Count; headerIndex++)
+            {
+                MediaTypeHeaderValue acceptHeader = acceptHeaders[headerIndex];
+
+                bool isMultiPart = acceptHeaderStrings[headerIndex].Contains(KnownContentTypes.MultipartRelated, StringComparison.InvariantCultureIgnoreCase);
+
+                if (_allowMultiple && isMultiPart)
+                {
+                    if (acceptHeader.Parameters.Count > 0)
                     {
-                        acceptable = true;
-                        break;
+                        NameValueHeaderValue typeParameterValue = acceptHeader.Parameters.FirstOrDefault(
+                            parameter => StringSegment.Equals(parameter.Name, TypeParameter, StringComparison.InvariantCultureIgnoreCase));
+
+                        if (typeParameterValue != null &&
+                            MediaTypeHeaderValue.TryParse(HeaderUtilities.RemoveQuotes(typeParameterValue.Value), out MediaTypeHeaderValue parsedValue) &&
+                            _mediaTypes.Contains(parsedValue))
+                        {
+                            return true;
+                        }
+                    }
+                    else if (_mediaTypes.Contains(acceptHeader))
+                    {
+                        return true;
                     }
                 }
 
@@ -83,18 +105,12 @@ public sealed class AcceptContentFilterAttribute : ActionFilterAttribute
                     var stringHeaders = _mediaTypes.Select(x => x.ToString()).ToList();
                     if (split.Any(x => stringHeaders.Contains(x, StringComparer.InvariantCultureIgnoreCase)))
                     {
-                        acceptable = true;
-                        break;
+                        return true;
                     }
                 }
             }
         }
 
-        if (!acceptable)
-        {
-            context.Result = new StatusCodeResult(NotAcceptableResponseCode);
-        }
-
-        base.OnActionExecuting(context);
+        return false;
     }
 }
