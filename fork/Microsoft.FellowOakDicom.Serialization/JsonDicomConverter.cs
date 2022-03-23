@@ -24,6 +24,7 @@ namespace Microsoft.FellowOakDicom.Serialization
         /// <summary>
         /// Initialize the JsonDicomConverter.
         /// </summary>
+        /// <param name="writeTagsAsKeywords">Whether to write the json keys as DICOM keywords instead of tags. This makes the json non-compliant to DICOM JSON.</param>
         public DicomArrayJsonConverter()
             : this(false)
         {
@@ -57,18 +58,14 @@ namespace Microsoft.FellowOakDicom.Serialization
                         reader.AssumeAndSkip(JsonTokenType.EndObject);
                         break;
                     case JsonTokenType.Null:
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
                         ds = null;
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
                         reader.Read();
                         break;
                     default:
                         throw new JsonException($"Expected either the start of an object or null but found '{reader.TokenType}'.");
                 }
 
-#pragma warning disable CS8604 // Possible null reference argument.
                 datasetList.Add(ds);
-#pragma warning restore CS8604 // Possible null reference argument.
             }
             reader.Read();
             return datasetList.ToArray();
@@ -123,9 +120,7 @@ namespace Microsoft.FellowOakDicom.Serialization
         /// </summary>
         /// <param name="writer">The <see cref="T:System.Text.Json.Utf8JsonWriter"/> to write to.</param>
         /// <param name="value">The value.</param>
-#pragma warning disable CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
         public override void Write(Utf8JsonWriter writer, DicomDataset value, JsonSerializerOptions options)
-#pragma warning restore CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
         {
             if (value == null)
             {
@@ -150,9 +145,7 @@ namespace Microsoft.FellowOakDicom.Serialization
                                item.Tag.DictionaryEntry.MaskTag.Mask != 0xffffffff);
                 if (_writeTagsAsKeywords && !unknown)
                 {
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
                     writer.WritePropertyName(item.Tag.DictionaryEntry.Keyword);
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
                 }
                 else
                 {
@@ -196,9 +189,7 @@ namespace Microsoft.FellowOakDicom.Serialization
             {
                 reader.Assume(JsonTokenType.PropertyName);
                 var tagstr = reader.GetString();
-#pragma warning disable CS8604 // Possible null reference argument.
                 DicomTag tag = ParseTag(tagstr);
-#pragma warning restore CS8604 // Possible null reference argument.
                 reader.Read(); // move to value
                 var item = ReadJsonDicomItem(tag, ref reader);
                 dataset.Add(item);
@@ -223,12 +214,11 @@ namespace Microsoft.FellowOakDicom.Serialization
         /// <summary>
         /// Determines whether this instance can convert the specified object type.
         /// </summary>
+        /// <param name="objectType">Type of the object.</param>
         /// <returns>
         /// <c>true</c> if this instance can convert the specified object type; otherwise, <c>false</c>.
         /// </returns>
-#pragma warning disable CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
         public override bool CanConvert(Type typeToConvert)
-#pragma warning restore CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
         {
             return typeof(DicomDataset).GetTypeInfo().IsAssignableFrom(typeToConvert.GetTypeInfo());
         }
@@ -337,72 +327,86 @@ namespace Microsoft.FellowOakDicom.Serialization
             writer.WriteStartObject();
             writer.WriteString("vr", item.ValueRepresentation.Code);
 
-            if (!_autoValidate && (item.ValueRepresentation.Code == DicomVRCode.IS || item.ValueRepresentation.Code == DicomVRCode.DS))
+            switch (item.ValueRepresentation.Code)
             {
-                // Always serialize DS, IS as string for best compatibility while autoValidate is False.
-                WriteJsonElement<string>(writer, (DicomElement)item, (w, v) => writer.WriteStringValue(v));
+                case "PN":
+                    WriteJsonPersonName(writer, (DicomPersonName)item);
+                    break;
+                case "SQ":
+                    WriteJsonSequence(writer, (DicomSequence)item, options);
+                    break;
+                case "OB":
+                case "OD":
+                case "OF":
+                case "OL":
+                case "OV":
+                case "OW":
+                case "UN":
+                    WriteJsonOther(writer, (DicomElement)item);
+                    break;
+                case "FL":
+                    WriteJsonElement<float>(writer, (DicomElement)item, (w, v) => writer.WriteNumberValue(v));
+                    break;
+                case "FD":
+                    WriteJsonElement<double>(writer, (DicomElement)item, (w, v) => writer.WriteNumberValue(v));
+                    break;
+                case "IS":
+                    WriteJsonIntegerString(writer, (DicomElement)item);
+                    break;
+                case "SL":
+                    WriteJsonElement<int>(writer, (DicomElement)item, (w, v) => writer.WriteNumberValue(v));
+                    break;
+                case "SS":
+                    WriteJsonElement<short>(writer, (DicomElement)item, (w, v) => writer.WriteNumberValue(v));
+                    break;
+                case "SV":
+                    WriteJsonElement<long>(writer, (DicomElement)item, (w, v) => writer.WriteNumberValue(v));
+                    break;
+                case "UL":
+                    WriteJsonElement<uint>(writer, (DicomElement)item, (w, v) => writer.WriteNumberValue(v));
+                    break;
+                case "US":
+                    WriteJsonElement<ushort>(writer, (DicomElement)item, (w, v) => writer.WriteNumberValue(v));
+                    break;
+                case "UV":
+                    WriteJsonElement<ulong>(writer, (DicomElement)item, (w, v) => writer.WriteNumberValue(v));
+                    break;
+                case "DS":
+                    WriteJsonDecimalString(writer, (DicomElement)item);
+                    break;
+                case "AT":
+                    WriteJsonAttributeTag(writer, (DicomElement)item);
+                    break;
+                default:
+                    WriteJsonElement<string>(writer, (DicomElement)item, (w, v) => writer.WriteStringValue(v));
+                    break;
             }
-            else
-            {
 
-                switch (item.ValueRepresentation.Code)
-                {
-                    case "PN":
-                        WriteJsonPersonName(writer, (DicomPersonName)item);
-                        break;
-                    case "SQ":
-                        WriteJsonSequence(writer, (DicomSequence)item, options);
-                        break;
-                    case "OB":
-                    case "OD":
-                    case "OF":
-                    case "OL":
-                    case "OV":
-                    case "OW":
-                    case "UN":
-                        WriteJsonOther(writer, (DicomElement)item);
-                        break;
-                    case "FL":
-                        WriteJsonElement<float>(writer, (DicomElement)item, (w, v) => writer.WriteNumberValue(v));
-                        break;
-                    case "FD":
-                        WriteJsonElement<double>(writer, (DicomElement)item, (w, v) => writer.WriteNumberValue(v));
-                        break;
-                    case "IS":
-                    case "SL":
-                        WriteJsonElement<int>(writer, (DicomElement)item, (w, v) => writer.WriteNumberValue(v));
-                        break;
-                    case "SS":
-                        WriteJsonElement<short>(writer, (DicomElement)item, (w, v) => writer.WriteNumberValue(v));
-                        break;
-                    case "SV":
-                        WriteJsonElement<long>(writer, (DicomElement)item, (w, v) => writer.WriteNumberValue(v));
-                        break;
-                    case "UL":
-                        WriteJsonElement<uint>(writer, (DicomElement)item, (w, v) => writer.WriteNumberValue(v));
-                        break;
-                    case "US":
-                        WriteJsonElement<ushort>(writer, (DicomElement)item, (w, v) => writer.WriteNumberValue(v));
-                        break;
-                    case "UV":
-                        WriteJsonElement<ulong>(writer, (DicomElement)item, (w, v) => writer.WriteNumberValue(v));
-                        break;
-                    case "DS":
-                        WriteJsonDecimalString(writer, (DicomElement)item);
-                        break;
-                    case "AT":
-                        WriteJsonAttributeTag(writer, (DicomElement)item);
-                        break;
-                    default:
-                        WriteJsonElement<string>(writer, (DicomElement)item, (w, v) => writer.WriteStringValue(v));
-                        break;
-                }
-            }
             writer.WriteEndObject();
         }
 
-        private static void WriteJsonDecimalString(Utf8JsonWriter writer, DicomElement elem)
+        private void WriteJsonIntegerString(Utf8JsonWriter writer, DicomElement elem)
         {
+            if (!_autoValidate)
+            {
+                // Always serialize IS as string for best compatibility while autoValidate is False.
+                WriteJsonElement<string>(writer, elem, (w, v) => writer.WriteStringValue(v));
+            }
+            else
+            {
+                WriteJsonElement<int>(writer, elem, (w, v) => writer.WriteNumberValue(v));
+            }
+        }
+
+        private void WriteJsonDecimalString(Utf8JsonWriter writer, DicomElement elem)
+        {
+            if (!_autoValidate)
+            {
+                // Always serialize DS as string for best compatibility while autoValidate is False.
+                WriteJsonElement<string>(writer, elem, (w, v) => writer.WriteStringValue(v));
+                return;
+            }
+
             if (elem.Count != 0)
             {
                 writer.WritePropertyName("Value");
@@ -472,9 +476,7 @@ namespace Microsoft.FellowOakDicom.Serialization
                 return val;
             }
 
-#pragma warning disable CS8603 // Possible null reference return.
             if (string.IsNullOrWhiteSpace(val)) { return null; }
-#pragma warning restore CS8603 // Possible null reference return.
 
             val = val.Trim();
 
@@ -644,9 +646,7 @@ namespace Microsoft.FellowOakDicom.Serialization
             if (property == "vr")
             {
                 reader.Read();
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
                 vr = reader.GetString();
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
                 reader.Read();
             }
             else
@@ -717,9 +717,7 @@ namespace Microsoft.FellowOakDicom.Serialization
             }
             reader.AssumeAndSkip(JsonTokenType.EndObject);
 
-#pragma warning disable CS8604 // Possible null reference argument.
             DicomItem item = CreateDicomItem(tag, vr, data);
-#pragma warning restore CS8604 // Possible null reference argument.
             return item;
         }
 
@@ -753,9 +751,7 @@ namespace Microsoft.FellowOakDicom.Serialization
             reader.Assume(JsonTokenType.PropertyName);
             var propertyname = reader.GetString();
             reader.Read();
-#pragma warning disable CS8603 // Possible null reference return.
             return propertyname;
-#pragma warning restore CS8603 // Possible null reference return.
         }
 
 
@@ -773,15 +769,11 @@ namespace Microsoft.FellowOakDicom.Serialization
             {
                 if (reader.TokenType == JsonTokenType.Null)
                 {
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                     childStrings.Add(null);
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
                 }
                 else if (reader.TokenType == JsonTokenType.String)
                 {
-#pragma warning disable CS8604 // Possible null reference argument.
                     childStrings.Add(reader.GetString());
-#pragma warning restore CS8604 // Possible null reference argument.
                 }
                 else
                 {
@@ -833,7 +825,6 @@ namespace Microsoft.FellowOakDicom.Serialization
                 {
                     childValues.Add(getValue(reader));
                 }
-#pragma warning disable CS8604 // Possible null reference argument.
                 else if (reader.TokenType == JsonTokenType.String && reader.GetString() == "NaN")
                 {
                     childValues.Add((T)(float.NaN as object));
@@ -846,7 +837,6 @@ namespace Microsoft.FellowOakDicom.Serialization
                 {
                     throw new JsonException("Malformed DICOM json, number expected");
                 }
-#pragma warning restore CS8604 // Possible null reference argument.
                 reader.Read();
             }
             reader.AssumeAndSkip(JsonTokenType.EndArray);
@@ -936,9 +926,7 @@ namespace Microsoft.FellowOakDicom.Serialization
                         if (reader.TokenType == JsonTokenType.Null)
                         {
                             reader.Read();
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                             childStrings.Add(null);
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
                         }
                         else if (reader.TokenType == JsonTokenType.StartObject)
                         {
@@ -952,25 +940,19 @@ namespace Microsoft.FellowOakDicom.Serialization
                                     && reader.GetString() == "Alphabetic")
                                 {
                                     reader.Read(); // skip propertyname
-#pragma warning disable CS8601 // Possible null reference assignment.
                                     componentGroupValues[0] = reader.GetString(); // read value
-#pragma warning restore CS8601 // Possible null reference assignment.
                                 }
                                 else if (reader.TokenType == JsonTokenType.PropertyName
                                     && reader.GetString() == "Ideographic")
                                 {
                                     reader.Read(); // skip propertyname
-#pragma warning disable CS8601 // Possible null reference assignment.
                                     componentGroupValues[1] = reader.GetString(); // read value
-#pragma warning restore CS8601 // Possible null reference assignment.
                                 }
                                 else if (reader.TokenType == JsonTokenType.PropertyName
                                     && reader.GetString() == "Phonetic")
                                 {
                                     reader.Read(); // skip propertyname
-#pragma warning disable CS8601 // Possible null reference assignment.
                                     componentGroupValues[2] = reader.GetString(); // read value
-#pragma warning restore CS8601 // Possible null reference assignment.
                                 }
                                 reader.Read();
                             }
@@ -1029,9 +1011,7 @@ namespace Microsoft.FellowOakDicom.Serialization
                     if (reader.TokenType == JsonTokenType.Null)
                     {
                         reader.Read();
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                         childItems.Add(null);
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
                     }
                     else if (reader.TokenType == JsonTokenType.StartObject)
                     {
@@ -1088,9 +1068,7 @@ namespace Microsoft.FellowOakDicom.Serialization
         private IBulkDataUriByteBuffer ReadJsonBulkDataUri(ref Utf8JsonReader reader)
         {
             if (reader.TokenType != JsonTokenType.String) { throw new JsonException("Malformed DICOM json. string expected"); }
-#pragma warning disable CS8604 // Possible null reference argument.
             var data = CreateBulkDataUriByteBuffer(reader.GetString());
-#pragma warning restore CS8604 // Possible null reference argument.
             reader.Read();
             return data;
         }
@@ -1109,9 +1087,7 @@ namespace Microsoft.FellowOakDicom.Serialization
                     && reader.GetString() == property)
                 {
                     reader.Read(); // move to value
-#pragma warning disable CS8603 // Possible null reference return.
                     return reader.GetString();
-#pragma warning restore CS8603 // Possible null reference return.
                 }
                 reader.Read();
             }

@@ -5,6 +5,6 @@
 
 using System;
 using System.Resources;
-using System.Runtime.CompilerServices;
+
 [assembly: NeutralResourcesLanguage("en-us")]
 [assembly: CLSCompliant(false)]
