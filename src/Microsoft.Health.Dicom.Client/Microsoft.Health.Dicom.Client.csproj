@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\fork\Microsoft.FellowOakDicom.Serialization\Microsoft.FellowOakDicom.Serialization.csproj" />
+    <ProjectReference Include="..\..\fork\Microsoft.Health.FellowOakDicom.Serialization\Microsoft.Health.FellowOakDicom.Serialization.csproj" />
   </ItemGroup>
 
 </Project>

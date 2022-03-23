@@ -3,7 +3,7 @@
 
 using System.Text.Json;
 
-namespace Microsoft.FellowOakDicom.Serialization
+namespace Microsoft.Health.FellowOakDicom.Serialization
 {
     internal static class Utf8JsonReaderExtensions
     {

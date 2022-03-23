@@ -13,7 +13,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
-namespace Microsoft.FellowOakDicom.Serialization
+namespace Microsoft.Health.FellowOakDicom.Serialization
 {
 
     [Obsolete("Please use DicomJsonConverter instead.")]

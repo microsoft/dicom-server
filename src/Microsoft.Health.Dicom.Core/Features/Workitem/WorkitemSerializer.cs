@@ -8,7 +8,7 @@ using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.FellowOakDicom.Serialization;
+using Microsoft.Health.FellowOakDicom.Serialization;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Core.Web;
 
