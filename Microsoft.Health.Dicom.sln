@@ -51,7 +51,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{176641B3-297
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{8C9A0050-5D22-4398-9F93-DDCD80B3BA51}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.FellowOakDicom.Serialization", "src\FellowOakDicom.Serialization.Forked\Microsoft.FellowOakDicom.Serialization.csproj", "{CB44A43B-1CF0-41B7-92A3-1D84FBF42A89}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.FellowOakDicom.Serialization", "src\Microsoft.FellowOakDicom.Serialization\Microsoft.FellowOakDicom.Serialization.csproj", "{CB44A43B-1CF0-41B7-92A3-1D84FBF42A89}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
