@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Defines a RESTful client for interacting with DICOMweb APIs.</Description>
@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FellowOakDicom.Serialization.Forked\FellowOakDicom.Serialization.Forked.csproj" />
+    <ProjectReference Include="..\FellowOakDicom.Serialization.Forked\Microsoft.FellowOakDicom.Serialization.csproj" />
   </ItemGroup>
 
 </Project>

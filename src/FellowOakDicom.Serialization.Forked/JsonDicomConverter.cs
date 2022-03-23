@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2012-2021 fo-dicom contributors.
 // Licensed under the Microsoft Public License (MS-PL).
 
+using FellowOakDicom;
 using FellowOakDicom.IO.Buffer;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
-namespace FellowOakDicom.Serialization.Forked
+namespace Microsoft.FellowOakDicom.Serialization
 {
 
     [Obsolete("Please use DicomJsonConverter instead.")]

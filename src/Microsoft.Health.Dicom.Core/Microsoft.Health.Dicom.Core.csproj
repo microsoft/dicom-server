@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Common primitives and utilities used by Microsoft's DICOMweb APIs.</Description>
@@ -46,7 +46,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FellowOakDicom.Serialization.Forked\FellowOakDicom.Serialization.Forked.csproj" />
+    <ProjectReference Include="..\FellowOakDicom.Serialization.Forked\Microsoft.FellowOakDicom.Serialization.csproj" />
   </ItemGroup>
 
   <ItemGroup>

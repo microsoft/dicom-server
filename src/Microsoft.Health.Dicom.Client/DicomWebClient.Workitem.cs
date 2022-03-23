@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using FellowOakDicom.Serialization.Forked;
+using Microsoft.FellowOakDicom.Serialization;
 
 namespace Microsoft.Health.Dicom.Client;
 

@@ -51,7 +51,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{176641B3-297
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{8C9A0050-5D22-4398-9F93-DDCD80B3BA51}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FellowOakDicom.Serialization.Forked", "src\FellowOakDicom.Serialization.Forked\FellowOakDicom.Serialization.Forked.csproj", "{CB44A43B-1CF0-41B7-92A3-1D84FBF42A89}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.FellowOakDicom.Serialization", "src\FellowOakDicom.Serialization.Forked\Microsoft.FellowOakDicom.Serialization.csproj", "{CB44A43B-1CF0-41B7-92A3-1D84FBF42A89}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -160,7 +160,7 @@ Global
 		{CB44A43B-1CF0-41B7-92A3-1D84FBF42A89} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_SortFileContentOnSave = True
 		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
+		RESX_SortFileContentOnSave = True
 	EndGlobalSection
 EndGlobal
