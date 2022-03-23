@@ -15,16 +15,20 @@ IF EXISTS (SELECT * FROM sys.sequences WHERE Name = 'WorkitemKeySequence' AND sy
 BEGIN
 
     DECLARE @sql NVARCHAR(MAX);
-    DECLARE @newWorkitemKeyStartVal INT;
+    DECLARE @newWorkitemKeyStartVal INT = 1;
 
     -- Daily average is at ~50. Hence we buffer 100 on top of the last workitem key sequence
-    SET @newWorkitemKeyStartVal = (NEXT VALUE FOR dbo.WorkitemKeySequence) + 100;
+    IF EXISTS(SELECT * FROM Workitem)
+        SELECT
+            @newWorkitemKeyStartVal = MAX(WorkitemKey) + 100
+        FROM
+            dbo.Workitem
 
     SET @sql = CONCAT(N'
         BEGIN TRANSACTION
         DROP SEQUENCE dbo.WorkitemKeySequence
         CREATE SEQUENCE dbo.WorkitemKeySequence AS BIGINT ' +
-            'START WITH ', STR(@newWorkitemKeyStartVal),
+            'START WITH ' + STR(@newWorkitemKeyStartVal),
             'INCREMENT BY 1' +
 			'MINVALUE ' + STR(@newWorkitemKeyStartVal) +
             'NO CYCLE CACHE 10000' +
