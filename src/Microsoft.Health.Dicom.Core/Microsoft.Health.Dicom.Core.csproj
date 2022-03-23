@@ -46,7 +46,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.FellowOakDicom.Serialization\Microsoft.FellowOakDicom.Serialization.csproj" />
+    <ProjectReference Include="..\..\fork\Microsoft.FellowOakDicom.Serialization\Microsoft.FellowOakDicom.Serialization.csproj" />
   </ItemGroup>
 
   <ItemGroup>
