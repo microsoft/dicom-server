@@ -64,13 +64,11 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         Assert.True((await _instanceManager.StoreAsync(new DicomFile(instance2))).IsSuccessStatusCode);
 
         // Add extended query tag
-        OperationState<DicomOperation> operation = await _tagManager.AddTagsAsync(
-            new AddExtendedQueryTagEntry[]
-            {
+        Assert.Equal(
+            OperationStatus.Completed,
+            await _tagManager.AddTagsAsync(
                 new AddExtendedQueryTagEntry { Path = genderTag.GetPath(), VR = genderTag.GetDefaultVR().Code, Level = QueryTagLevel.Study },
-                new AddExtendedQueryTagEntry { Path = filmTag.GetPath(), VR = filmTag.GetDefaultVR().Code, Level = QueryTagLevel.Study },
-            });
-        Assert.Equal(OperationStatus.Completed, operation.Status);
+                new AddExtendedQueryTagEntry { Path = filmTag.GetPath(), VR = filmTag.GetDefaultVR().Code, Level = QueryTagLevel.Study }));
 
         // Check specific tag
         DicomWebResponse<GetExtendedQueryTagEntry> getResponse;
@@ -131,12 +129,10 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         await _instanceManager.StoreAsync(new DicomFile(instance3));
 
         // Add extended query tags
-        var operation = await _tagManager.AddTagsAsync(
-            new AddExtendedQueryTagEntry[]
-            {
-                new AddExtendedQueryTagEntry { Path = tag.GetPath(), VR = tag.GetDefaultVR().Code, Level = QueryTagLevel.Instance },
-            });
-        Assert.Equal(OperationStatus.Completed, operation.Status);
+        Assert.Equal(
+            OperationStatus.Completed,
+            await _tagManager.AddTagsAsync(
+                new AddExtendedQueryTagEntry { Path = tag.GetPath(), VR = tag.GetDefaultVR().Code, Level = QueryTagLevel.Instance }));
 
         // Check specific tag
         GetExtendedQueryTagEntry actual = await _tagManager.GetTagAsync(tag.GetPath());
@@ -228,10 +224,12 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         DicomTag tag = DicomTag.StageNumber;
 
         await CleanupExtendedQueryTag(tag);
+
         // add extended query tag
-        var addTagEntries = new[] { new AddExtendedQueryTagEntry() { Level = QueryTagLevel.Instance, Path = tag.GetPath() } };
-        OperationStatus operationStatus = await _tagManager.AddTagsAsync(addTagEntries);
-        Assert.Equal(OperationRuntimeStatus.Completed, operationStatus.Status);
+        Assert.Equal(
+            OperationStatus.Completed,
+            await _tagManager.AddTagsAsync(
+                new AddExtendedQueryTagEntry { Level = QueryTagLevel.Instance, Path = tag.GetPath() }));
 
         // validate 
         DicomFile dicomFile = Samples.CreateRandomDicomFile();

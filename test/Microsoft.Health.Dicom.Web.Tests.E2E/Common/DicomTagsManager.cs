@@ -47,7 +47,10 @@ internal class DicomTagsManager : IAsyncDisposable
         }
     }
 
-    public async Task<OperationState<DicomOperation>> AddTagsAsync(IEnumerable<AddExtendedQueryTagEntry> entries, CancellationToken cancellationToken = default)
+    public Task<OperationStatus> AddTagsAsync(params AddExtendedQueryTagEntry[] entries)
+        => AddTagsAsync(entries, CancellationToken.None);
+
+    public async Task<OperationStatus> AddTagsAsync(IEnumerable<AddExtendedQueryTagEntry> entries, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(entries, nameof(entries));
         foreach (AddExtendedQueryTagEntry entry in entries)
@@ -70,7 +73,7 @@ internal class DicomTagsManager : IAsyncDisposable
         Assert.Equal(result.OperationId, actual.OperationId);
         Assert.Equal(result.Status, actual.Status);
 
-        return result;
+        return result.Status;
     }
 
     public async Task<GetExtendedQueryTagEntry> GetTagAsync(string tagPath, CancellationToken cancellationToken = default)
