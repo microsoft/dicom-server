@@ -1,19 +1,19 @@
 # Developing
 ## Requirements
-- [Azure storage emulator](https://go.microsoft.com/fwlink/?linkid=717179)
-- SQL Server 2019 with Full text index feature
+- [Azurite storage emulator](https://go.microsoft.com/fwlink/?linkid=717179)
+- SQL Server 2019 with full text index feature
 - .NET core SDK version specified [here](/global.json)
-   - https://dotnet.microsoft.com/download/dotnet-core/3.1 
+   - https://dotnet.microsoft.com/download/dotnet-core/6.0 
 
 ## Getting Started in Visual Studio
 ### Developing
-- Install Visual Studio 2019
+- Install Visual Studio 2022
 - [Clone the Medical Imaging Server for DICOM repo](https://github.com/microsoft/dicom-server.git)
 - Navigate to the cloned repository
-- Open Microsoft.Health.Dicom.sln in VS
+- Open `Microsoft.Health.Dicom.sln` in VS
 - Build
 - Make sure the storage emulator is running
-- Run all tests from the Test explorer
+- Run all tests from the Test Explorer
 
 # Testing
 - Set Microsoft.Health.Dicom.Web as your startup project
