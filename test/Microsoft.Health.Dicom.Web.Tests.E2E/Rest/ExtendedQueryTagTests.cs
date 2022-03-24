@@ -207,6 +207,40 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         Assert.Equal("The field '$[0].Level' in request body is invalid: Expected value 'Studys' to be one of the following values: ['Instance', 'Series', 'Study']", response.Content.ReadAsStringAsync().Result);
     }
 
+    [Fact]
+    public async Task GivenInvalidDSIS_WhenStoring_ThenServerShouldReturnOK()
+    {
+        DicomTag dsTag = DicomTag.PatientSize;
+        DicomTag isTag = DicomTag.ReferencedFrameNumber;
+        await CleanupExtendedQueryTag(dsTag);
+        await CleanupExtendedQueryTag(isTag);
+        DicomFile dicomFile = Samples.CreateRandomDicomFile();
+        var dataSet = dicomFile.Dataset.NotValidated();
+        dataSet.Add(dsTag, "InvalidDSValue");
+        dataSet.Add(isTag, "InvalidISValue");
+        using DicomWebResponse<DicomDataset> response = await _instanceManager.StoreAsync(dicomFile);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GivenInvalidISAndIndexed_WhenStoring_ThenServerShouldReturnConflict()
+    {
+        DicomTag tag = DicomTag.StageNumber;
+
+        await CleanupExtendedQueryTag(tag);
+        // add extended query tag
+        var addTagEntries = new[] { new AddExtendedQueryTagEntry() { Level = QueryTagLevel.Instance, Path = tag.GetPath() } };
+        OperationStatus operationStatus = await _tagManager.AddTagsAsync(addTagEntries);
+        Assert.Equal(OperationRuntimeStatus.Completed, operationStatus.Status);
+
+        // validate 
+        DicomFile dicomFile = Samples.CreateRandomDicomFile();
+        var dataSet = dicomFile.Dataset.NotValidated();
+        dataSet.Add(tag, "InvalidISValue");
+        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(dicomFile));
+        Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
+    }
+
     private async Task CleanupExtendedQueryTag(DicomTag tag)
     {
         // Try to delete this extended query tag.
