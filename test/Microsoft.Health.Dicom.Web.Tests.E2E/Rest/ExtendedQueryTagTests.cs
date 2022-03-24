@@ -208,7 +208,7 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
     public async Task GivenInvalidDSIS_WhenStoring_ThenServerShouldReturnOK()
     {
         DicomTag dsTag = DicomTag.PatientSize;
-        DicomTag isTag = DicomTag.StageNumber;
+        DicomTag isTag = DicomTag.ReferencedFrameNumber;
         await CleanupExtendedQueryTag(dsTag);
         await CleanupExtendedQueryTag(isTag);
         DicomFile dicomFile = Samples.CreateRandomDicomFile();
@@ -237,6 +237,7 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(dicomFile));
         Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
     }
+
     private async Task CleanupExtendedQueryTag(DicomTag tag)
     {
         // Try to delete this extended query tag.
