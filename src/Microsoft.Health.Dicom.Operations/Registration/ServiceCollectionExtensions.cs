@@ -19,10 +19,10 @@ using Microsoft.Health.Dicom.Core.Modules;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Operations.Configuration;
 using Microsoft.Health.Dicom.Operations.Indexing;
-using Microsoft.Health.Dicom.Operations.Management;
 using Microsoft.Health.Dicom.Operations.Registration;
-using Microsoft.Health.Dicom.Operations.Serialization;
 using Microsoft.Health.Extensions.DependencyInjection;
+using Microsoft.Health.Operations.Functions.DurableTask;
+using Microsoft.Health.Operations.Functions.Management;
 using Microsoft.Health.SqlServer.Configs;
 using Microsoft.IO;
 
@@ -55,7 +55,7 @@ public static class ServiceCollectionExtensions
             .AddRecyclableMemoryStreamManager()
             .AddFellowOakDicomExtension()
             .AddFunctionsOptions<QueryTagIndexingOptions>(configuration, QueryTagIndexingOptions.SectionName, bindNonPublicProperties: true)
-            .AddFunctionsOptions<PurgeHistoryOptions>(configuration, PurgeHistoryOptions.SectionName)
+            .AddFunctionsOptions<PurgeHistoryOptions>(configuration, PurgeHistoryOptions.SectionName, isDicomFunction: false)
             .ConfigureDurableFunctionSerialization()
             .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings()));
     }
@@ -126,6 +126,7 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration,
         string sectionName,
+        bool isDicomFunction = true,
         bool bindNonPublicProperties = false)
         where T : class
     {
@@ -133,12 +134,11 @@ public static class ServiceCollectionExtensions
         EnsureArg.IsNotNull(configuration, nameof(configuration));
         EnsureArg.IsNotEmptyOrWhiteSpace(sectionName, nameof(sectionName));
 
+        string path = isDicomFunction ? DicomFunctionsConfiguration.SectionName + ":" + sectionName : sectionName;
         services
             .AddOptions<T>()
             .Bind(
-                configuration
-                    .GetSection(DicomFunctionsConfiguration.SectionName)
-                    .GetSection(sectionName),
+                configuration.GetSection(path),
                 x => x.BindNonPublicProperties = bindNonPublicProperties)
             .ValidateDataAnnotations();
 
@@ -160,7 +160,7 @@ public static class ServiceCollectionExtensions
     {
         EnsureArg.IsNotNull(services, nameof(services));
 
-        return services.Replace(ServiceDescriptor.Singleton<IMessageSerializerSettingsFactory, MessageSerializerSettingsFactory>());
+        return services.Replace(ServiceDescriptor.Singleton<IMessageSerializerSettingsFactory, DurableTaskSerializerSettingsFactory>());
     }
 
     private sealed class FellowOakExtensionConfiguration : IExtensionConfigProvider

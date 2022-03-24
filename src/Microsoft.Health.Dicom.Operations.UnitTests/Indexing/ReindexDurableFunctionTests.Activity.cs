@@ -12,9 +12,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
-using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Operations.Indexing.Models;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Operations;
 using NSubstitute;
 using Xunit;
 
@@ -34,7 +34,7 @@ public partial class ReindexDurableFunctionTests
 
         // Arrange input
         IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
-        context.InstanceId.Returns(OperationId.ToString(operationId));
+        context.InstanceId.Returns(operationId.ToString(OperationId.FormatSpecifier));
         context.GetInput<IReadOnlyList<int>>().Returns(expectedInput);
 
         _extendedQueryTagStore
@@ -65,7 +65,7 @@ public partial class ReindexDurableFunctionTests
 
         // Arrange input
         IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
-        context.InstanceId.Returns(OperationId.ToString(operationId));
+        context.InstanceId.Returns(operationId.ToString(OperationId.FormatSpecifier));
 
         _extendedQueryTagStore
             .GetExtendedQueryTagsAsync(operationId, CancellationToken.None)

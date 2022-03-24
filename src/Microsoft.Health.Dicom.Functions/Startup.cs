@@ -7,7 +7,7 @@ using EnsureThat;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Health.Dicom.Operations.Configuration;
+using Microsoft.Health.Operations.Functions;
 
 [assembly: FunctionsStartup(typeof(Microsoft.Health.Dicom.Functions.Startup))]
 namespace Microsoft.Health.Dicom.Functions;

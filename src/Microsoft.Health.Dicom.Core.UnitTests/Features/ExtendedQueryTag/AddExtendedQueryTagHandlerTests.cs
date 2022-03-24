@@ -12,7 +12,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Operations;
 using NSubstitute;
 using Xunit;
 

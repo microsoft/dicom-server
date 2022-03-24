@@ -9,15 +9,15 @@ using MediatR;
 namespace Microsoft.Health.Dicom.Core.Messages.Operations;
 
 /// <summary>
-/// Represents a request for the status of long-running DICOM operations.
+/// Represents a request for the state of long-running DICOM operations.
 /// </summary>
-public class OperationStatusRequest : IRequest<OperationStatusResponse>
+public class OperationStateRequest : IRequest<OperationStateResponse>
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="OperationStatusRequest"/> class.
+    /// Initializes a new instance of the <see cref="OperationStateRequest"/> class.
     /// </summary>
     /// <param name="operationId">The unique ID for a particular DICOM operation.</param>
-    public OperationStatusRequest(Guid operationId)
+    public OperationStateRequest(Guid operationId)
         => OperationId = operationId;
 
     /// <summary>

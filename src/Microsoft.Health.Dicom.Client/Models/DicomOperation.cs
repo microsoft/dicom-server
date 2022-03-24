@@ -3,12 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Models.Operations;
+namespace Microsoft.Health.Dicom.Client.Models;
 
 /// <summary>
 /// Specifies the category of a DICOM operation.
 /// </summary>
-public enum OperationType
+public enum DicomOperation
 {
     /// <summary>
     /// Specifies an operation whose type is missing or unrecognized.

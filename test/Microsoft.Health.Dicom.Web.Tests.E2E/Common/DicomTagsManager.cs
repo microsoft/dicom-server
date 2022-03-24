@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Client.Models;
-using Microsoft.Health.Dicom.Web.Tests.E2E.Extensions;
+using Microsoft.Health.Operations;
 using Polly;
 using Polly.Retry;
 using Xunit;
@@ -22,8 +22,8 @@ internal class DicomTagsManager : IAsyncDisposable
     private readonly IDicomWebClient _dicomWebClient;
     private readonly HashSet<string> _tags;
 
-    private static readonly AsyncRetryPolicy<OperationStatus> GetOperationStatusRetryPolicy = Policy
-       .HandleResult<OperationStatus>(status => status.IsInProgress())
+    private static readonly AsyncRetryPolicy<OperationState<DicomOperation>> GetOperationStateRetryPolicy = Policy
+       .HandleResult<OperationState<DicomOperation>>(x => x.Status.IsInProgress())
        .WaitAndRetryAsync(100, x => TimeSpan.FromSeconds(3)); // Retry 100 times and wait for 3 seconds after each retry
 
     public DicomTagsManager(IDicomWebClient dicomWebClient)
@@ -47,7 +47,7 @@ internal class DicomTagsManager : IAsyncDisposable
         }
     }
 
-    public async Task<OperationStatus> AddTagsAsync(IEnumerable<AddExtendedQueryTagEntry> entries, CancellationToken cancellationToken = default)
+    public async Task<OperationState<DicomOperation>> AddTagsAsync(IEnumerable<AddExtendedQueryTagEntry> entries, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(entries, nameof(entries));
         foreach (AddExtendedQueryTagEntry entry in entries)
@@ -55,18 +55,18 @@ internal class DicomTagsManager : IAsyncDisposable
             _tags.Add(entry.Path);
         }
 
-        DicomWebResponse<OperationReference> response = await _dicomWebClient.AddExtendedQueryTagAsync(entries, cancellationToken);
-        OperationReference operation = await response.GetValueAsync();
+        DicomWebResponse<DicomOperationReference> response = await _dicomWebClient.AddExtendedQueryTagAsync(entries, cancellationToken);
+        DicomOperationReference operation = await response.GetValueAsync();
 
-        OperationStatus result = await GetOperationStatusRetryPolicy.ExecuteAsync(async () =>
+        OperationState<DicomOperation> result = await GetOperationStateRetryPolicy.ExecuteAsync(async () =>
         {
-            var operationStatus = await _dicomWebClient.GetOperationStatusAsync(operation.Id);
+            var operationStatus = await _dicomWebClient.GetOperationStateAsync(operation.Id);
             return await operationStatus.GetValueAsync();
         });
 
         // Check reference
-        DicomWebResponse<OperationStatus> actualResponse = await _dicomWebClient.ResolveReferenceAsync(operation, cancellationToken);
-        OperationStatus actual = await actualResponse.GetValueAsync();
+        DicomWebResponse<OperationState<DicomOperation>> actualResponse = await _dicomWebClient.ResolveReferenceAsync(operation, cancellationToken);
+        OperationState<DicomOperation> actual = await actualResponse.GetValueAsync();
         Assert.Equal(result.OperationId, actual.OperationId);
         Assert.Equal(result.Status, actual.Status);
 

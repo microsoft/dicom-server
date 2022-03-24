@@ -13,19 +13,12 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Azure.Functions.Extensions.DependencyInjection;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Development.IdentityProvider.Registration;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
-using Microsoft.Health.Dicom.Web.Tests.E2E.Functions;
-using DicomFunctionsStartup = Microsoft.Health.Dicom.Functions.Startup;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E;
 
@@ -36,7 +29,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E;
 public class InProcTestDicomWebServer : TestDicomWebServer
 {
     public InProcTestDicomWebServer(Type startupType, bool enableDataPartitions)
-        : base(new Uri("http://localhost/"), CreateWebJobsHost<DicomFunctionsStartup>("src"))
+        : base(new Uri("http://localhost/"))
     {
         string contentRoot = GetProjectPath("src", startupType);
 
@@ -149,22 +142,5 @@ public class InProcTestDicomWebServer : TestDicomWebServer
         }
 
         throw new Exception($"Project root could not be located for startup type {startupType.FullName}");
-    }
-
-    private static IHost CreateWebJobsHost<T>(string path)
-        where T : FunctionsStartup, new()
-    {
-        string contentRoot = GetProjectPath(path, typeof(T));
-        return new HostBuilder()
-            .UseContentRoot(contentRoot)
-            .ConfigureLogging(b => b.AddConsole())
-            .ConfigureAppConfiguration(b => b
-                .Add(AzureFunctionsConfiguration.CreateRoot())
-                .Add(new HostJsonFileConfigurationSource(contentRoot))
-                .Add(EnvironmentConfig.FromLocalSettings(contentRoot)))
-            .ConfigureWebJobs((c, b) => b
-                .UseWebJobsStartup(typeof(T), new WebJobsBuilderContext { Configuration = c.Configuration }, NullLoggerFactory.Instance)
-                .AddDurableTask())
-            .Build();
     }
 }

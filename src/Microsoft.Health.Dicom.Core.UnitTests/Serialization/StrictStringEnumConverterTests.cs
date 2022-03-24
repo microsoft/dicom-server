@@ -25,33 +25,6 @@ public class StrictStringEnumConverterTests
     }
 
     [Theory]
-    [InlineData("null")]
-    [InlineData("42")]
-    [InlineData("{ \"foo\": \"bar\" }")]
-    [InlineData("[ 1, 2, 3 ]")]
-    [InlineData("\"\"")]
-    [InlineData("\"bar\"")]
-    [InlineData("\"0123456789abcdef0123456789abcde\"")]
-    public void GivenInvalidToken_WhenReadingJson_ThenThrowJsonReaderException(string json)
-    {
-        var jsonReader = new Utf8JsonReader(Encoding.UTF8.GetBytes(json));
-
-        Assert.True(jsonReader.Read());
-        try
-        {
-            new JsonGuidConverter("N").Read(ref jsonReader, typeof(Guid), DefaultOptions);
-            throw new ThrowsException(typeof(JsonException));
-        }
-        catch (Exception e)
-        {
-            if (e.GetType() != typeof(JsonException))
-            {
-                throw new ThrowsException(typeof(JsonException), e);
-            }
-        }
-    }
-
-    [Theory]
     [InlineData("1")]
     [InlineData("\"studys\"")]
     [InlineData("\"innstance\"")]

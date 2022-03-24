@@ -21,6 +21,7 @@
     <PackageReference Include="Microsoft.Health.Api" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Core" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="$(HealthcareSharedPackageVersion)" />
+    <PackageReference Include="Microsoft.Health.Operations" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.16.0" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />
     <PackageReference Include="Microsoft.OpenApi" Version="1.2.3" />

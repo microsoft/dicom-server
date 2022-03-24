@@ -12,30 +12,13 @@ namespace Microsoft.Health.Dicom.Operations.Client.Extensions;
 
 internal static class DurableOrchestrationStatusExtensions
 {
-    public static OperationType GetOperationType(this DurableOrchestrationStatus durableOrchestrationStatus)
+    public static DicomOperation GetDicomOperation(this DurableOrchestrationStatus status)
     {
-        EnsureArg.IsNotNull(durableOrchestrationStatus, nameof(durableOrchestrationStatus));
+        EnsureArg.IsNotNull(status, nameof(status));
 
-        return durableOrchestrationStatus.Name != null &&
-            durableOrchestrationStatus.Name.StartsWith(FunctionNames.ReindexInstances, StringComparison.OrdinalIgnoreCase)
-            ? OperationType.Reindex
-            : OperationType.Unknown;
-    }
-
-    public static OperationRuntimeStatus GetOperationRuntimeStatus(this DurableOrchestrationStatus durableOrchestrationStatus)
-    {
-        EnsureArg.IsNotNull(durableOrchestrationStatus, nameof(durableOrchestrationStatus));
-
-        return durableOrchestrationStatus.RuntimeStatus switch
-        {
-            OrchestrationRuntimeStatus.Pending => OperationRuntimeStatus.NotStarted,
-            OrchestrationRuntimeStatus.Running => OperationRuntimeStatus.Running,
-            OrchestrationRuntimeStatus.ContinuedAsNew => OperationRuntimeStatus.Running,
-            OrchestrationRuntimeStatus.Completed => OperationRuntimeStatus.Completed,
-            OrchestrationRuntimeStatus.Failed => OperationRuntimeStatus.Failed,
-            OrchestrationRuntimeStatus.Canceled => OperationRuntimeStatus.Canceled,
-            OrchestrationRuntimeStatus.Terminated => OperationRuntimeStatus.Canceled,
-            _ => OperationRuntimeStatus.Unknown
-        };
+        return status.Name != null &&
+            status.Name.StartsWith(FunctionNames.ReindexInstances, StringComparison.OrdinalIgnoreCase)
+            ? DicomOperation.Reindex
+            : DicomOperation.Unknown;
     }
 }

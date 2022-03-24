@@ -18,6 +18,7 @@ using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
 using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Operations;
 using DicomApiAuditLoggingFilterAttribute = Microsoft.Health.Dicom.Api.Features.Audit.AuditLoggingFilterAttribute;
 
 namespace Microsoft.Health.Dicom.Api.Controllers;
@@ -58,7 +59,7 @@ public class OperationsController : ControllerBase
     }
 
     /// <summary>
-    /// Gets the status of a DICOM operation based on its ID.
+    /// Gets the state of a DICOM operation based on its ID.
     /// </summary>
     /// <remarks>
     /// If the operation has not yet completed, then its response will include a "Location" header directing
@@ -66,8 +67,8 @@ public class OperationsController : ControllerBase
     /// </remarks>
     /// <param name="operationId">The unique ID for a particular DICOM operation.</param>
     /// <returns>
-    /// A task representing the <see cref="GetStatusAsync"/> operation. The value of its
-    /// <see cref="Task{TResult}.Result"/> property contains the status of the operation, if found;
+    /// A task representing the <see cref="GetStateAsync"/> operation. The value of its
+    /// <see cref="Task{TResult}.Result"/> property contains the state of the operation, if found;
     /// otherwise <see cref="NotFoundResult"/>
     /// </returns>
     /// <exception cref="ArgumentException"><paramref name="operationId"/> consists of white space characters.</exception>
@@ -78,14 +79,14 @@ public class OperationsController : ControllerBase
     [VersionedRoute(KnownRoutes.OperationInstanceRoute, Name = KnownRouteNames.VersionedOperationStatus)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    [ProducesResponseType(typeof(OperationStatus), (int)HttpStatusCode.Accepted)]
-    [ProducesResponseType(typeof(OperationStatus), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(OperationState<DicomOperation>), (int)HttpStatusCode.Accepted)]
+    [ProducesResponseType(typeof(OperationState<DicomOperation>), (int)HttpStatusCode.OK)]
     [AuditEventType(AuditEventSubType.Operation)]
-    public async Task<IActionResult> GetStatusAsync(Guid operationId)
+    public async Task<IActionResult> GetStateAsync(Guid operationId)
     {
         _logger.LogInformation("DICOM Web Get Operation Status request received for ID '{OperationId}'", operationId);
 
-        OperationStatusResponse response = await _mediator.GetOperationStatusAsync(operationId, HttpContext.RequestAborted);
+        OperationStateResponse response = await _mediator.GetOperationStateAsync(operationId, HttpContext.RequestAborted);
 
         if (response == null)
         {
@@ -93,8 +94,8 @@ public class OperationsController : ControllerBase
         }
 
         HttpStatusCode statusCode;
-        OperationStatus operationStatus = response.OperationStatus;
-        if (operationStatus.Status == OperationRuntimeStatus.NotStarted || operationStatus.Status == OperationRuntimeStatus.Running)
+        OperationState<DicomOperation> state = response.OperationState;
+        if (state.Status == OperationStatus.NotStarted || state.Status == OperationStatus.Running)
         {
             Response.AddLocationHeader(_urlResolver.ResolveOperationStatusUri(operationId));
             statusCode = HttpStatusCode.Accepted;
@@ -104,6 +105,6 @@ public class OperationsController : ControllerBase
             statusCode = HttpStatusCode.OK;
         }
 
-        return StatusCode((int)statusCode, operationStatus);
+        return StatusCode((int)statusCode, state);
     }
 }

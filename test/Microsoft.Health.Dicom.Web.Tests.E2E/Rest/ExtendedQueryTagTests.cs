@@ -16,11 +16,14 @@ using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
+using Microsoft.Health.Operations;
 using Xunit;
+using FunctionsStartup = Microsoft.Health.Dicom.Functions.Startup;
+using WebStartup = Microsoft.Health.Dicom.Web.Startup;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
-public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture<Startup>>, IAsyncLifetime
+public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartup, FunctionsStartup>>, IAsyncLifetime
 {
     private const string ErroneousDicomAttributesHeader = "erroneous-dicom-attributes";
     private readonly IDicomWebClient _client;
@@ -29,7 +32,7 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
 
     // Note: Different tags should be used for BVTs so they can be run concurrently without issues
 
-    public ExtendedQueryTagTests(WebJobsIntegrationTestFixture<Startup> fixture)
+    public ExtendedQueryTagTests(WebJobsIntegrationTestFixture<WebStartup, FunctionsStartup> fixture)
     {
         _client = EnsureArg.IsNotNull(fixture, nameof(fixture)).GetDicomWebClient();
         _tagManager = new DicomTagsManager(_client);
@@ -61,13 +64,13 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         Assert.True((await _instanceManager.StoreAsync(new DicomFile(instance2))).IsSuccessStatusCode);
 
         // Add extended query tag
-        OperationStatus operation = await _tagManager.AddTagsAsync(
+        OperationState<DicomOperation> operation = await _tagManager.AddTagsAsync(
             new AddExtendedQueryTagEntry[]
             {
                 new AddExtendedQueryTagEntry { Path = genderTag.GetPath(), VR = genderTag.GetDefaultVR().Code, Level = QueryTagLevel.Study },
                 new AddExtendedQueryTagEntry { Path = filmTag.GetPath(), VR = filmTag.GetDefaultVR().Code, Level = QueryTagLevel.Study },
             });
-        Assert.Equal(OperationRuntimeStatus.Completed, operation.Status);
+        Assert.Equal(OperationStatus.Completed, operation.Status);
 
         // Check specific tag
         DicomWebResponse<GetExtendedQueryTagEntry> getResponse;
@@ -128,12 +131,12 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         await _instanceManager.StoreAsync(new DicomFile(instance3));
 
         // Add extended query tags
-        var operationStatus = await _tagManager.AddTagsAsync(
+        var operation = await _tagManager.AddTagsAsync(
             new AddExtendedQueryTagEntry[]
             {
                 new AddExtendedQueryTagEntry { Path = tag.GetPath(), VR = tag.GetDefaultVR().Code, Level = QueryTagLevel.Instance },
             });
-        Assert.Equal(OperationRuntimeStatus.Completed, operationStatus.Status);
+        Assert.Equal(OperationStatus.Completed, operation.Status);
 
         // Check specific tag
         GetExtendedQueryTagEntry actual = await _tagManager.GetTagAsync(tag.GetPath());

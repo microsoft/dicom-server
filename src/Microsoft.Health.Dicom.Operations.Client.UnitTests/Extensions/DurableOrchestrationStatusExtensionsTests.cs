@@ -13,29 +13,13 @@ namespace Microsoft.Health.Dicom.Operations.Client.UnitTests.Extensions;
 public class DurableOrchestrationStatusExtensionsTests
 {
     [Theory]
-    [InlineData(null, OperationType.Unknown)]
-    [InlineData("foo", OperationType.Unknown)]
-    [InlineData("Unknown", OperationType.Unknown)]
-    [InlineData(FunctionNames.ReindexInstances, OperationType.Reindex)]
-    [InlineData("reindexINSTANCESasync", OperationType.Reindex)]
-    public void GivenOrchestrationStatus_WhenGettingOperationType_ThenConvertNameToType(string name, OperationType expected)
+    [InlineData(null, DicomOperation.Unknown)]
+    [InlineData("foo", DicomOperation.Unknown)]
+    [InlineData("Unknown", DicomOperation.Unknown)]
+    [InlineData(FunctionNames.ReindexInstances, DicomOperation.Reindex)]
+    [InlineData("reindexINSTANCESasync", DicomOperation.Reindex)]
+    public void GivenOrchestrationStatus_WhenGettingDicomOperation_ThenConvertNameToType(string name, DicomOperation expected)
     {
-        Assert.Equal(expected, new DurableOrchestrationStatus { Name = name }.GetOperationType());
-    }
-
-    [Theory]
-    [InlineData((OrchestrationRuntimeStatus)47, OperationRuntimeStatus.Unknown)]
-    [InlineData(OrchestrationRuntimeStatus.Unknown, OperationRuntimeStatus.Unknown)]
-    [InlineData(OrchestrationRuntimeStatus.Pending, OperationRuntimeStatus.NotStarted)]
-    [InlineData(OrchestrationRuntimeStatus.Running, OperationRuntimeStatus.Running)]
-    [InlineData(OrchestrationRuntimeStatus.ContinuedAsNew, OperationRuntimeStatus.Running)]
-    [InlineData(OrchestrationRuntimeStatus.Completed, OperationRuntimeStatus.Completed)]
-    [InlineData(OrchestrationRuntimeStatus.Failed, OperationRuntimeStatus.Failed)]
-    [InlineData(OrchestrationRuntimeStatus.Canceled, OperationRuntimeStatus.Canceled)]
-    [InlineData(OrchestrationRuntimeStatus.Terminated, OperationRuntimeStatus.Canceled)]
-    public void GivenOrchestrationStatus_WhenGettingOperationRuntimeStatus_ThenConvertStatus(
-        OrchestrationRuntimeStatus actual, OperationRuntimeStatus expected)
-    {
-        Assert.Equal(expected, new DurableOrchestrationStatus { RuntimeStatus = actual }.GetOperationRuntimeStatus());
+        Assert.Equal(expected, new DurableOrchestrationStatus { Name = name }.GetDicomOperation());
     }
 }

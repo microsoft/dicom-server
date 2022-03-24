@@ -12,18 +12,19 @@ using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
 using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Operations;
 using NSubstitute;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Operations;
 
-public class OperationStatusHandlerTests
+public class OperationStateHandlerTests
 {
     [Fact]
     public void GivenNullArgument_WhenConstructing_ThenThrowArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => new OperationStatusHandler(null, Substitute.For<IDicomOperationsClient>()));
-        Assert.Throws<ArgumentNullException>(() => new OperationStatusHandler(Substitute.For<IAuthorizationService<DataActions>>(), null));
+        Assert.Throws<ArgumentNullException>(() => new OperationStateHandler(null, Substitute.For<IDicomOperationsClient>()));
+        Assert.Throws<ArgumentNullException>(() => new OperationStateHandler(Substitute.For<IAuthorizationService<DataActions>>(), null));
     }
 
     [Fact]
@@ -32,14 +33,14 @@ public class OperationStatusHandlerTests
         using var source = new CancellationTokenSource();
         IAuthorizationService<DataActions> auth = Substitute.For<IAuthorizationService<DataActions>>();
         IDicomOperationsClient client = Substitute.For<IDicomOperationsClient>();
-        var handler = new OperationStatusHandler(auth, client);
+        var handler = new OperationStateHandler(auth, client);
 
         auth.CheckAccess(DataActions.Read, source.Token).Returns(DataActions.None);
 
-        await Assert.ThrowsAsync<UnauthorizedDicomActionException>(() => handler.Handle(new OperationStatusRequest(Guid.NewGuid()), source.Token));
+        await Assert.ThrowsAsync<UnauthorizedDicomActionException>(() => handler.Handle(new OperationStateRequest(Guid.NewGuid()), source.Token));
 
         await auth.Received(1).CheckAccess(DataActions.Read, source.Token);
-        await client.DidNotReceiveWithAnyArgs().GetStatusAsync(default, default);
+        await client.DidNotReceiveWithAnyArgs().GetStateAsync(default, default);
     }
 
     [Fact]
@@ -48,26 +49,26 @@ public class OperationStatusHandlerTests
         using var source = new CancellationTokenSource();
         IAuthorizationService<DataActions> auth = Substitute.For<IAuthorizationService<DataActions>>();
         IDicomOperationsClient client = Substitute.For<IDicomOperationsClient>();
-        var handler = new OperationStatusHandler(auth, client);
+        var handler = new OperationStateHandler(auth, client);
 
         Guid id = Guid.NewGuid();
-        var expected = new OperationStatus
+        var expected = new OperationState<DicomOperation>
         {
             CreatedTime = DateTime.UtcNow.AddMinutes(-5),
             LastUpdatedTime = DateTime.UtcNow,
             OperationId = id,
             PercentComplete = 100,
             Resources = new Uri[] { new Uri("https://dicom.contoso.io/unit/test/extendedquerytags/00101010", UriKind.Absolute) },
-            Status = OperationRuntimeStatus.Completed,
-            Type = OperationType.Reindex,
+            Status = OperationStatus.Completed,
+            Type = DicomOperation.Reindex,
         };
 
         auth.CheckAccess(DataActions.Read, source.Token).Returns(DataActions.Read);
-        client.GetStatusAsync(id, source.Token).Returns(expected);
+        client.GetStateAsync(id, source.Token).Returns(expected);
 
-        Assert.Same(expected, (await handler.Handle(new OperationStatusRequest(id), source.Token)).OperationStatus);
+        Assert.Same(expected, (await handler.Handle(new OperationStateRequest(id), source.Token)).OperationState);
 
         await auth.Received(1).CheckAccess(DataActions.Read, source.Token);
-        await client.Received(1).GetStatusAsync(id, source.Token);
+        await client.Received(1).GetStateAsync(id, source.Token);
     }
 }

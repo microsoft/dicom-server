@@ -17,7 +17,7 @@ namespace Microsoft.Health.Dicom.Client;
 
 public partial class DicomWebClient : IDicomWebClient
 {
-    public async Task<DicomWebResponse<OperationReference>> AddExtendedQueryTagAsync(IEnumerable<AddExtendedQueryTagEntry> tagEntries, CancellationToken cancellationToken)
+    public async Task<DicomWebResponse<DicomOperationReference>> AddExtendedQueryTagAsync(IEnumerable<AddExtendedQueryTagEntry> tagEntries, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(tagEntries, nameof(tagEntries));
         string jsonString = JsonSerializer.Serialize(tagEntries);
@@ -28,10 +28,9 @@ public partial class DicomWebClient : IDicomWebClient
             request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType);
         }
 
-        HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
-            .ConfigureAwait(false);
+        HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
         await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
-        return new DicomWebResponse<OperationReference>(response, ValueFactory<OperationReference>);
+        return new DicomWebResponse<DicomOperationReference>(response, ValueFactory<DicomOperationReference>);
     }
 
     public async Task<DicomWebResponse> DeleteExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken)

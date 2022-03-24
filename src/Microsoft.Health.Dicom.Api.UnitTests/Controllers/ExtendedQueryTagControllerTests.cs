@@ -21,7 +21,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Operations;
 using Microsoft.Net.Http.Headers;
 using NSubstitute;
 using Xunit;

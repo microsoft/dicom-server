@@ -15,8 +15,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
-using Microsoft.Health.Dicom.Operations.Extensions;
 using Microsoft.Health.Dicom.Operations.Indexing.Models;
+using Microsoft.Health.Operations.Functions.DurableTask;
 
 namespace Microsoft.Health.Dicom.Operations.Indexing;
 
@@ -51,7 +51,7 @@ public partial class ReindexDurableFunction
 
         return _extendedQueryTagStore.AssignReindexingOperationAsync(
             tagKeys,
-            context.GetInstanceGuid(),
+            context.GetOperationId(),
             returnIfCompleted: false,
             cancellationToken: CancellationToken.None);
     }
@@ -79,7 +79,7 @@ public partial class ReindexDurableFunction
             context.InstanceId);
 
         return _extendedQueryTagStore.GetExtendedQueryTagsAsync(
-            context.GetInstanceGuid(),
+            context.GetOperationId(),
             cancellationToken: CancellationToken.None);
     }
 

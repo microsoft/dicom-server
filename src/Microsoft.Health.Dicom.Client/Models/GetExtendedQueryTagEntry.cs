@@ -49,5 +49,5 @@ public class GetExtendedQueryTagEntry
     /// <summary>
     /// Optional reference to the operation acted upon the act.
     /// </summary>
-    public OperationReference Operation { get; set; }
+    public DicomOperationReference Operation { get; set; }
 }

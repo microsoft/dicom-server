@@ -1,4 +1,6 @@
 ﻿{
-    "parallelizeAssembly": false,
-    "parallelizeTestCollections": false
+  "$schema": "https://xunit.net/schema/current/xunit.runner.schema.json",
+  "diagnosticMessages": true,
+  "parallelizeAssembly": false,
+  "parallelizeTestCollections": false
 }

@@ -21,6 +21,8 @@ using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Operations.Client.DurableTask;
 using Microsoft.Health.Dicom.Operations.Client.Extensions;
+using Microsoft.Health.Operations;
+using Microsoft.Health.Operations.Functions.DurableTask;
 
 namespace Microsoft.Health.Dicom.Operations.Client;
 
@@ -62,40 +64,39 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     }
 
     /// <inheritdoc/>
-    public async Task<OperationStatus> GetStatusAsync(Guid operationId, CancellationToken cancellationToken = default)
+    public async Task<OperationState<DicomOperation>> GetStateAsync(Guid operationId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         // TODO: Pass token when supported
-        DurableOrchestrationStatus status = await _durableClient.GetStatusAsync(OperationId.ToString(operationId), showInput: true);
-        if (status == null)
+        DurableOrchestrationStatus state = await _durableClient.GetStatusAsync(operationId.ToString(OperationId.FormatSpecifier), showInput: true);
+        if (state == null)
         {
             return null;
         }
 
         _logger.LogInformation(
-            "Successfully found the status of orchestration instance '{InstanceId}' with name '{Name}'.",
-            status.InstanceId,
-            status.Name);
+            "Successfully found the state of orchestration instance '{InstanceId}' with name '{Name}'.",
+            state.InstanceId,
+            state.Name);
 
-        OperationType type = status.GetOperationType();
-        if (type == OperationType.Unknown)
+        DicomOperation type = state.GetDicomOperation();
+        if (type == DicomOperation.Unknown)
         {
-            _logger.LogWarning("Orchestration instance with '{Name}' did not resolve to a public operation type.", status.Name);
+            _logger.LogWarning("Orchestration instance with '{Name}' did not resolve to a public operation type.", state.Name);
             return null;
         }
 
-        OperationRuntimeStatus runtimeStatus = status.GetOperationRuntimeStatus();
-        ICustomOperationStatus customStatus = ParseOperationStatus(type, status);
-        OperationProgress progress = customStatus.GetProgress();
-        return new OperationStatus
+        OperationStatus status = state.RuntimeStatus.ToOperationStatus();
+        IOperationCheckpoint checkpoint = ParseCheckpoint(type, state);
+        return new OperationState<DicomOperation>
         {
-            CreatedTime = customStatus.CreatedTime ?? status.CreatedTime,
-            LastUpdatedTime = status.LastUpdatedTime,
+            CreatedTime = checkpoint.CreatedTime ?? state.CreatedTime,
+            LastUpdatedTime = state.LastUpdatedTime,
             OperationId = operationId,
-            PercentComplete = runtimeStatus == OperationRuntimeStatus.Completed ? 100 : progress.PercentComplete,
-            Resources = await GetResourceUrlsAsync(type, progress.ResourceIds, cancellationToken),
-            Status = runtimeStatus,
+            PercentComplete = status == OperationStatus.Completed ? 100 : checkpoint.PercentComplete,
+            Resources = await GetResourceUrlsAsync(type, checkpoint.ResourceIds, cancellationToken),
+            Status = status,
             Type = type,
         };
     }
@@ -107,12 +108,12 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         EnsureArg.HasItems(tagKeys, nameof(tagKeys));
 
         // Start the re-indexing orchestration
-        Guid instanceGuid = _guidFactory.Create();
+        Guid operationId = _guidFactory.Create();
 
         // TODO: Pass token when supported
         string instanceId = await _durableClient.StartNewAsync(
             FunctionNames.ReindexInstances,
-            OperationId.ToString(instanceGuid),
+            operationId.ToString(OperationId.FormatSpecifier),
             new ReindexInput { QueryTagKeys = tagKeys });
 
         _logger.LogInformation("Successfully started new orchestration instance with ID '{InstanceId}'.", instanceId);
@@ -120,31 +121,31 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         // Associate the tags to the operation and confirm their processing
         IReadOnlyList<ExtendedQueryTagStoreEntry> confirmedTags = await _extendedQueryTagStore.AssignReindexingOperationAsync(
             tagKeys,
-            instanceGuid,
+            operationId,
             returnIfCompleted: true,
             cancellationToken: cancellationToken);
 
-        return confirmedTags.Count > 0 ? instanceGuid : throw new ExtendedQueryTagsAlreadyExistsException();
+        return confirmedTags.Count > 0 ? operationId : throw new ExtendedQueryTagsAlreadyExistsException();
     }
 
     // Note that the Durable Task Framework does not preserve the original CreatedTime
     // when an orchestration is restarted via ContinueAsNew, so we may store the original
-    // in the CustomStatus
-    private static ICustomOperationStatus ParseOperationStatus(OperationType type, DurableOrchestrationStatus status)
+    // in the checkpoint
+    private static IOperationCheckpoint ParseCheckpoint(DicomOperation type, DurableOrchestrationStatus status)
         => type switch
         {
-            OperationType.Reindex => status.Input?.ToObject<ReindexInput>() ?? new ReindexInput(),
-            _ => NullOperationStatus.Value,
+            DicomOperation.Reindex => status.Input?.ToObject<ReindexInput>() ?? new ReindexInput(),
+            _ => NullOperationCheckpoint.Value,
         };
 
     private async Task<IReadOnlyCollection<Uri>> GetResourceUrlsAsync(
-        OperationType type,
+        DicomOperation type,
         IReadOnlyCollection<string> resourceIds,
         CancellationToken cancellationToken)
     {
         switch (type)
         {
-            case OperationType.Reindex:
+            case DicomOperation.Reindex:
                 List<int> tagKeys = resourceIds?.Select(x => int.Parse(x, CultureInfo.InvariantCulture)).ToList();
 
                 IReadOnlyCollection<ExtendedQueryTagStoreEntry> tagPaths = Array.Empty<ExtendedQueryTagStoreEntry>();

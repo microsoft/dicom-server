@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 

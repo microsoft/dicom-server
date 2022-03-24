@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Client;
 
 public partial interface IDicomWebClient
 {
-    Task<DicomWebResponse<OperationReference>> AddExtendedQueryTagAsync(IEnumerable<AddExtendedQueryTagEntry> tagEntries, CancellationToken cancellationToken = default);
+    Task<DicomWebResponse<DicomOperationReference>> AddExtendedQueryTagAsync(IEnumerable<AddExtendedQueryTagEntry> tagEntries, CancellationToken cancellationToken = default);
 
     Task<DicomWebResponse> DeleteExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default);
 

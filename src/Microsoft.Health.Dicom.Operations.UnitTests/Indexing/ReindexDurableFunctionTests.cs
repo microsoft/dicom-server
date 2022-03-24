@@ -3,14 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Operations.Indexing;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
+using Microsoft.Health.Operations.Functions.DurableTask;
 using NSubstitute;
 
 namespace Microsoft.Health.Dicom.Operations.UnitTests.Indexing;
@@ -30,10 +29,7 @@ public partial class ReindexDurableFunctionTests
         _instanceStore = Substitute.For<IInstanceStore>();
         _instanceReindexer = Substitute.For<IInstanceReindexer>();
         _schemaVersionResolver = Substitute.For<ISchemaVersionResolver>();
-        _options = new QueryTagIndexingOptions
-        {
-            ActivityRetryOptions = new RetryOptions(TimeSpan.FromSeconds(5), 10),
-        };
+        _options = new QueryTagIndexingOptions { RetryOptions = new ActivityRetryOptions() };
         _reindexDurableFunction = new ReindexDurableFunction(
             _extendedQueryTagStore,
             _instanceStore,

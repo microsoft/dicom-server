@@ -15,7 +15,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 

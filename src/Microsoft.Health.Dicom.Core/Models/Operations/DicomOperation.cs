@@ -3,19 +3,20 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-
 namespace Microsoft.Health.Dicom.Core.Models.Operations;
 
-internal sealed class NullOperationStatus : ICustomOperationStatus
+/// <summary>
+/// Specifies the category of a DICOM operation.
+/// </summary>
+public enum DicomOperation
 {
-    public static ICustomOperationStatus Value { get; } = new NullOperationStatus();
+    /// <summary>
+    /// Specifies an operation whose type is missing or unrecognized.
+    /// </summary>
+    Unknown,
 
-    private NullOperationStatus()
-    { }
-
-    public DateTime? CreatedTime => null;
-
-    public OperationProgress GetProgress()
-        => new OperationProgress();
+    /// <summary>
+    /// Specifies a reindexing operation that updates the indicies for previously added data based on new tags.
+    /// </summary>
+    Reindex,
 }

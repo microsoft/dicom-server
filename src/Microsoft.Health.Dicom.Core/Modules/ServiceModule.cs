@@ -151,7 +151,7 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
-        services.Add<OperationStatusHandler>()
+        services.Add<OperationStateHandler>()
             .Scoped()
             .AsSelf()
             .AsImplementedInterfaces();
