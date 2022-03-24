@@ -34,16 +34,11 @@
         "FirstRetryInterval": "00:01:00",
         "MaxNumberOfAttempts": 4
       }
-    },
-    "PurgeHistory": {
-      "Frequency": "0 0 * * *",
-      "MinimumAgeDays": 14,
-      "RuntimeStatuses": [ "Completed" ]
     }
   },
-  "extensions": {
-    "durableTask": {
-      "hubName": "DicomTaskHub"
+  "Extensions": {
+    "DurableTask": {
+      "HubName": "DicomTaskHub"
     }
   },
   "Logging": {
@@ -52,16 +47,15 @@
       "Azure.Core": "Warning",
       "Default": "Information",
       "DurableTask": "Warning",
-      "Host": "Warning",
-      "Worker": "Warning"
-    },
-    "ApplicationInsights": {
-      "LogLevel": {
-        "Microsoft.Health": "Information",
-        "Microsoft": "Warning",
-        "System": "Warning"
-      }
+      "Function": "Warning",
+      "Function.*.User": "Information",
+      "Host": "Warning"
     }
+  },
+  "PurgeHistory": {
+    "Frequency": "0 0 * * *",
+    "MinimumAgeDays": 7,
+    "Statuses": [ "Completed" ]
   },
   "SqlServer": {
     "TransientFaultRetryPolicy": {

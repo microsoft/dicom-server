@@ -41,7 +41,7 @@ public class QueryTagIndexingOptions
     public int MaxParallelCount => BatchSize * MaxParallelBatches;
 
     /// <summary>
-    /// Gets or sets the <see cref="Health.Operations.Functions.DurableTask.ActivityRetryOptions"/> for re-indexing activities.
+    /// Gets or sets the <see cref="ActivityRetryOptions"/> for re-indexing activities.
     /// </summary>
     public ActivityRetryOptions RetryOptions { get; set; }
 }
