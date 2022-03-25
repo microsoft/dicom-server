@@ -8,7 +8,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
-using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing;
 
@@ -21,20 +20,17 @@ public partial class ReindexDurableFunction
     private readonly IExtendedQueryTagStore _extendedQueryTagStore;
     private readonly IInstanceStore _instanceStore;
     private readonly IInstanceReindexer _instanceReindexer;
-    private readonly ISchemaVersionResolver _schemaVersionResolver;
     private readonly QueryTagIndexingOptions _options;
 
     public ReindexDurableFunction(
         IExtendedQueryTagStore extendedQueryTagStore,
         IInstanceStore instanceStore,
         IInstanceReindexer instanceReindexer,
-        ISchemaVersionResolver schemaVersionResolver,
         IOptions<QueryTagIndexingOptions> configOptions)
     {
         _extendedQueryTagStore = EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
         _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
         _instanceReindexer = EnsureArg.IsNotNull(instanceReindexer, nameof(instanceReindexer));
-        _schemaVersionResolver = EnsureArg.IsNotNull(schemaVersionResolver, nameof(schemaVersionResolver));
         _options = EnsureArg.IsNotNull(configOptions?.Value, nameof(configOptions));
     }
 }
