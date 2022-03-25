@@ -46,10 +46,7 @@
     "LogLevel": {
       "Azure.Core": "Warning",
       "Default": "Information",
-      "DurableTask": "Warning",
-      "Function": "Warning",
-      "Function.*.User": "Information",
-      "Host": "Warning"
+      "DurableTask": "Warning"
     }
   },
   "PurgeHistory": {
