@@ -18,7 +18,7 @@ using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.Health.Operations;
 using Xunit;
-using FunctionsStartup = Microsoft.Health.Dicom.Functions.Startup;
+using FunctionsStartup = Microsoft.Health.Dicom.Functions.App.Startup;
 using WebStartup = Microsoft.Health.Dicom.Web.Startup;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
@@ -231,7 +231,7 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
             await _tagManager.AddTagsAsync(
                 new AddExtendedQueryTagEntry { Level = QueryTagLevel.Instance, Path = tag.GetPath() }));
 
-        // validate 
+        // validate
         DicomFile dicomFile = Samples.CreateRandomDicomFile();
         var dataSet = dicomFile.Dataset.NotValidated();
         dataSet.Add(tag, "InvalidISValue");

@@ -14,7 +14,7 @@ steps:
     displayName: 'dotnet publish functions'
     inputs:
       command: publish
-      projects: '**/Microsoft.Health.Dicom.Functions.csproj'
+      projects: '**/Microsoft.Health.Dicom.Functions.App.csproj'
       arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)/functions --no-build'
       publishWebProjects: false
 
@@ -26,7 +26,7 @@ steps:
       arguments: '--configuration $(buildConfiguration) --output "$(build.binariesdirectory)/IntegrationTests" --no-build'
       publishWebProjects: false
       zipAfterPublish: false
- 
+
   # Publish artifacts
 
   - task: PublishBuildArtifacts@1

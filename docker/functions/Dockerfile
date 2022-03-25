@@ -17,13 +17,13 @@ FROM mcr.microsoft.com/dotnet/sdk:6.0.201-alpine3.14@sha256:c1a73b72c02e7b837e9a
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /dicom-server
 COPY . .
-WORKDIR /dicom-server/src/Microsoft.Health.Dicom.Functions
-RUN dotnet build "Microsoft.Health.Dicom.Functions.csproj" -c $BUILD_CONFIGURATION
+WORKDIR /dicom-server/src/Microsoft.Health.Dicom.Functions.App
+RUN dotnet build "Microsoft.Health.Dicom.Functions.App.csproj" -c $BUILD_CONFIGURATION
 
 # Publish the Azure Functions from the build
 FROM build as publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "Microsoft.Health.Dicom.Functions.csproj" -c $BUILD_CONFIGURATION --no-build -o /home/site/wwwroot
+RUN dotnet publish "Microsoft.Health.Dicom.Functions.App.csproj" -c $BUILD_CONFIGURATION --no-build -o /home/site/wwwroot
 
 # Copy the published application
 FROM az-func-runtime AS dicom-az-func

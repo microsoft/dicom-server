@@ -4,9 +4,17 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Resources;
-using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("Microsoft.Health.Dicom.Functions.UnitTests")]
-[assembly: NeutralResourcesLanguage("en-us")]
-[assembly: CLSCompliant(false)]
+namespace Microsoft.Health.Dicom.Functions.Client.DurableTask;
+
+/// <summary>
+/// Represents a factory for generating unique <see cref="Guid"/> values.
+/// </summary>
+public interface IGuidFactory
+{
+    /// <summary>
+    /// Creates a unique <see cref="Guid"/> value.
+    /// </summary>
+    /// <returns>A unique <see cref="Guid"/> value.</returns>
+    Guid Create();
+}

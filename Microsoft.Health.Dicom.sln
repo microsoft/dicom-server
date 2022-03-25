@@ -25,15 +25,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Core
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Core.UnitTests", "src\Microsoft.Health.Dicom.Core.UnitTests\Microsoft.Health.Dicom.Core.UnitTests.csproj", "{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions", "src\Microsoft.Health.Dicom.Functions\Microsoft.Health.Dicom.Functions.csproj", "{BB88616C-6208-43D0-B9EF-79FC0652A151}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions", "src\Microsoft.Health.Dicom.Functions\Microsoft.Health.Dicom.Functions.csproj", "{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Operations", "src\Microsoft.Health.Dicom.Operations\Microsoft.Health.Dicom.Operations.csproj", "{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.App", "src\Microsoft.Health.Dicom.Functions.App\Microsoft.Health.Dicom.Functions.App.csproj", "{BB88616C-6208-43D0-B9EF-79FC0652A151}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Operations.Client", "src\Microsoft.Health.Dicom.Operations.Client\Microsoft.Health.Dicom.Operations.Client.csproj", "{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.Client", "src\Microsoft.Health.Dicom.Functions.Client\Microsoft.Health.Dicom.Functions.Client.csproj", "{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Operations.Client.UnitTests", "src\Microsoft.Health.Dicom.Operations.Client.UnitTests\Microsoft.Health.Dicom.Operations.Client.UnitTests.csproj", "{3D5D7F69-C766-450A-AA3D-00A50E115E9C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.Client.UnitTests", "src\Microsoft.Health.Dicom.Functions.Client.UnitTests\Microsoft.Health.Dicom.Functions.Client.UnitTests.csproj", "{3D5D7F69-C766-450A-AA3D-00A50E115E9C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Operations.UnitTests", "src\Microsoft.Health.Dicom.Operations.UnitTests\Microsoft.Health.Dicom.Operations.UnitTests.csproj", "{3D679950-A578-45AD-AF89-FAF89580375F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.UnitTests", "src\Microsoft.Health.Dicom.Functions.UnitTests\Microsoft.Health.Dicom.Functions.UnitTests.csproj", "{3D679950-A578-45AD-AF89-FAF89580375F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Tests.Common", "src\Microsoft.Health.Dicom.Tests.Common\Microsoft.Health.Dicom.Tests.Common.csproj", "{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}"
 EndProject
@@ -89,14 +89,14 @@ Global
 		{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D}.Debug|x64.Build.0 = Debug|x64
 		{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D}.Release|x64.ActiveCfg = Release|x64
 		{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D}.Release|x64.Build.0 = Release|x64
-		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Debug|x64.ActiveCfg = Debug|x64
-		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Debug|x64.Build.0 = Debug|x64
-		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Release|x64.ActiveCfg = Release|x64
-		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Release|x64.Build.0 = Release|x64
 		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}.Debug|x64.ActiveCfg = Debug|x64
 		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}.Debug|x64.Build.0 = Debug|x64
 		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}.Release|x64.ActiveCfg = Release|x64
 		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}.Release|x64.Build.0 = Release|x64
+		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Debug|x64.ActiveCfg = Debug|x64
+		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Debug|x64.Build.0 = Debug|x64
+		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Release|x64.ActiveCfg = Release|x64
+		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Release|x64.Build.0 = Release|x64
 		{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}.Debug|x64.ActiveCfg = Debug|x64
 		{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}.Debug|x64.Build.0 = Debug|x64
 		{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}.Release|x64.ActiveCfg = Release|x64

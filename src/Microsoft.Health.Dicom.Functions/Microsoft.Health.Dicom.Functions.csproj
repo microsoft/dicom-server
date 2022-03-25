@@ -1,9 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AzureFunctionsVersion>v4</AzureFunctionsVersion>
-    <Description>An example Azure Function app that supports Microsoft's Medical Imaging Server for DICOM.</Description>
-    <FunctionsInDependencies>true</FunctionsInDependencies>
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 
@@ -15,24 +12,27 @@
     <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.31" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions" Version="4.0.1" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.6.1" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Http" Version="3.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="$(SdkPackageVersion)" />
+    <PackageReference Include="Microsoft.Health.Blob" Version="$(HealthcareSharedPackageVersion)" />
+    <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="$(HealthcareSharedPackageVersion)" />
+    <PackageReference Include="Microsoft.Health.Functions.Extensions" Version="$(HealthcareSharedPackageVersion)" />
+    <PackageReference Include="Microsoft.Health.Operations" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Operations.Functions" Version="$(HealthcareSharedPackageVersion)" />
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.0.1" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Health.SqlServer" Version="$(HealthcareSharedPackageVersion)" />
+    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Microsoft.Health.Dicom.Blob\Microsoft.Health.Dicom.Blob.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
-    <ProjectReference Include="..\Microsoft.Health.Dicom.Operations\Microsoft.Health.Dicom.Operations.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Dicom.SqlServer\Microsoft.Health.Dicom.SqlServer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="host.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="local.settings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    <None Include="Indexing\ReindexDurableFunction.*.cs">
+      <DependentUpon>ReindexDurableFunction.cs</DependentUpon>
     </None>
   </ItemGroup>
 
