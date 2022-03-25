@@ -484,6 +484,12 @@
                     "family": "A",
                     "name": "Standard"
                 },
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "defaultAction": "Deny",
+                    "ipRules": [],
+                    "virtualNetworkRules": []
+                },
                 "tenantId": "[subscription().tenantId]",
                 "accessPolicies": [
                     {
