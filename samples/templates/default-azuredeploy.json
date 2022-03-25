@@ -456,7 +456,19 @@
                 "accessTier": "Hot",
                 "supportsHttpsTrafficOnly": "true",
                 "minimumTlsVersion": "TLS1_2",
-                "allowBlobPublicAccess": false
+                "allowBlobPublicAccess": false,
+                "networkAcls": {
+                    "resourceAccessRules": [],
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "Deny"
+                },
+                "routingPreference": {
+                    "routingChoice": "MicrosoftRouting",
+                    "publishMicrosoftEndpoints": true,
+                    "publishInternetEndpoints": false
+                }
             }
         },
         {
