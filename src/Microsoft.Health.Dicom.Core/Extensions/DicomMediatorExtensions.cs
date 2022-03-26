@@ -183,13 +183,13 @@ public static class DicomMediatorExtensions
         return mediator.Send(new UpdateExtendedQueryTagRequest(tagPath, newValue), cancellationToken);
     }
 
-    public static Task<OperationStatusResponse> GetOperationStatusAsync(
+    public static Task<OperationStateResponse> GetOperationStateAsync(
        this IMediator mediator,
        Guid operationId,
        CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
-        return mediator.Send(new OperationStatusRequest(operationId), cancellationToken);
+        return mediator.Send(new OperationStateRequest(operationId), cancellationToken);
     }
 
     public static Task<GetPartitionResponse> GetPartitionAsync(

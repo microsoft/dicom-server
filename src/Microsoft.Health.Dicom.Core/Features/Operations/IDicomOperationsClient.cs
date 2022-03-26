@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Features.Operations;
 
@@ -18,19 +19,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations;
 public interface IDicomOperationsClient
 {
     /// <summary>
-    /// Fetches the status of a long-running operation for the given <paramref name="operationId"/>.
+    /// Fetches the state of a long-running operation for the given <paramref name="operationId"/>.
     /// </summary>
     /// <param name="operationId">The unique ID for a particular DICOM operation.</param>
     /// <param name="cancellationToken">
     /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
     /// </param>
     /// <returns>
-    /// A task representing the <see cref="GetStatusAsync"/> operation. The value of its
-    /// <see cref="Task{TResult}.Result"/> property contains the status of the operation
+    /// A task representing the <see cref="GetStateAsync"/> operation. The value of its
+    /// <see cref="Task{TResult}.Result"/> property contains the state of the operation
     /// with the specified <paramref name="operationId"/>, if found; otherwise <see langword="null"/>.
     /// </returns>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<OperationStatus> GetStatusAsync(Guid operationId, CancellationToken cancellationToken = default);
+    Task<OperationState<DicomOperation>> GetStateAsync(Guid operationId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Begins the re-indexing of existing DICOM instances on the tags with the specified <paramref name="tagKeys"/>.

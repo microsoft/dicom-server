@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Routing;
-using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Api.Features.Routing;
 
@@ -48,7 +48,7 @@ public sealed class UrlResolver : IUrlResolver
             hasVersion ? KnownRouteNames.VersionedOperationStatus : KnownRouteNames.OperationStatus,
             new RouteValueDictionary
             {
-                { KnownActionParameterNames.OperationId, OperationId.ToString(operationId) },
+                { KnownActionParameterNames.OperationId, operationId.ToString(OperationId.FormatSpecifier) },
             });
     }
 

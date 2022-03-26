@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Client.Models;
 /// Represents a reference to a RESTful resource.
 /// </summary>
 /// <typeparam name="T">The type of resource.</typeparam>
-public interface IResourceReference<T>
+public interface IResourceReference<out T>
 {
     /// <summary>
     /// Gets the endpoint that returns resources of type <typeparamref name="T"/>.

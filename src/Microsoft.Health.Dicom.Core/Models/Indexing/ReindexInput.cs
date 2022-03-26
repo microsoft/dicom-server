@@ -8,11 +8,11 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Models.Indexing;
 
-internal class ReindexInput : ICustomOperationStatus
+internal class ReindexInput : IOperationCheckpoint
 {
     public IReadOnlyCollection<int> QueryTagKeys { get; set; }
 
@@ -20,19 +20,19 @@ internal class ReindexInput : ICustomOperationStatus
 
     public WatermarkRange? Completed { get; set; }
 
-    public OperationProgress GetProgress()
+    public int PercentComplete
     {
-        int percentComplete = 0;
-        if (Completed.HasValue)
+        get
         {
-            WatermarkRange range = Completed.GetValueOrDefault();
-            percentComplete = range.End == 1 ? 100 : (int)((double)(range.End - range.Start + 1) / range.End * 100);
-        }
+            if (Completed.HasValue)
+            {
+                WatermarkRange range = Completed.GetValueOrDefault();
+                return range.End == 1 ? 100 : (int)((double)(range.End - range.Start + 1) / range.End * 100);
+            }
 
-        return new OperationProgress
-        {
-            PercentComplete = percentComplete,
-            ResourceIds = QueryTagKeys?.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToList(),
-        };
+            return 0;
+        }
     }
+
+    public IReadOnlyCollection<string> ResourceIds => QueryTagKeys?.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToList();
 }

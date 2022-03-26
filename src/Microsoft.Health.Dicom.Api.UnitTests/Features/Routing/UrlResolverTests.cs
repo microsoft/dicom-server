@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Operations;
 using NSubstitute;
 using Xunit;
 
@@ -65,10 +65,7 @@ public class UrlResolverTests
 
         ValidateUrlRouteContext(
             KnownRouteNames.OperationStatus,
-            routeValues =>
-            {
-                Assert.Equal(OperationId.ToString(operationId), routeValues[KnownActionParameterNames.OperationId]);
-            });
+            routeValues => Assert.Equal(operationId.ToString(OperationId.FormatSpecifier), routeValues[KnownActionParameterNames.OperationId]));
     }
 
     [Fact]
