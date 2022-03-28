@@ -130,10 +130,8 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     }
 
 
-    public async Task<Guid> StartExportAsync(ExportInput input, CancellationToken cancellationToken = default)
+    public async Task<Guid> StartExportAsync(ExportOperationInput input, CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsNotNull(tagKeys, nameof(tagKeys));
-        EnsureArg.HasItems(tagKeys, nameof(tagKeys));
 
         // Start the re-indexing orchestration
         Guid operationId = _guidFactory.Create();
@@ -142,18 +140,10 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         string instanceId = await _durableClient.StartNewAsync(
             FunctionNames.Export,
             operationId.ToString(OperationId.FormatSpecifier),
-            new ReindexInput { QueryTagKeys = tagKeys });
+             input);
 
         _logger.LogInformation("Successfully started new orchestration instance with ID '{InstanceId}'.", instanceId);
-
-        // Associate the tags to the operation and confirm their processing
-        IReadOnlyList<ExtendedQueryTagStoreEntry> confirmedTags = await _extendedQueryTagStore.AssignReindexingOperationAsync(
-            tagKeys,
-            operationId,
-            returnIfCompleted: true,
-            cancellationToken: cancellationToken);
-
-        return confirmedTags.Count > 0 ? operationId : throw new ExtendedQueryTagsAlreadyExistsException();
+        return operationId;
     }
 
     // Note that the Durable Task Framework does not preserve the original CreatedTime
