@@ -157,10 +157,10 @@ public partial class DicomWebClient : IDicomWebClient
 
         return new DicomWebResponse<DicomFile>(
             response,
-            async content =>
+            async (c, t) =>
             {
                 MemoryStream memoryStream = GetMemoryStream();
-                await content.CopyToAsync(memoryStream).ConfigureAwait(false);
+                await c.CopyToAsync(memoryStream, t).ConfigureAwait(false);
                 memoryStream.Seek(0, SeekOrigin.Begin);
 
                 return await DicomFile.OpenAsync(memoryStream).ConfigureAwait(false);

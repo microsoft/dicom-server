@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Client;
 
 public partial class DicomWebClient : IDicomWebClient
 {
-    public async Task<DicomWebResponse<IEnumerable<PartitionEntry>>> GetPartitionsAsync(CancellationToken cancellationToken)
+    public async Task<DicomWebResponse<IReadOnlyList<PartitionEntry>>> GetPartitionsAsync(CancellationToken cancellationToken)
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Get,
@@ -24,6 +24,6 @@ public partial class DicomWebClient : IDicomWebClient
 
         await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
 
-        return new DicomWebResponse<IEnumerable<PartitionEntry>>(response, ValueFactory<IEnumerable<PartitionEntry>>);
+        return new DicomWebResponse<IReadOnlyList<PartitionEntry>>(response, JsonSerializerOptions);
     }
 }

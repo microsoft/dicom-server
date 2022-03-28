@@ -20,6 +20,6 @@ public partial class DicomWebClient : IDicomWebClient
         using var request = new HttpRequestMessage(HttpMethod.Get, resourceReference.Href);
         HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
         await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
-        return new DicomWebResponse<T>(response, ValueFactory<T>);
+        return new DicomWebResponse<T>(response, JsonSerializerOptions);
     }
 }

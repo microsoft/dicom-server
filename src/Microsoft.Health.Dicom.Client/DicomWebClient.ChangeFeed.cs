@@ -40,6 +40,6 @@ public partial class DicomWebClient : IDicomWebClient
 
         await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
 
-        return new DicomWebResponse<ChangeFeedEntry>(response, ValueFactory<ChangeFeedEntry>);
+        return new DicomWebResponse<ChangeFeedEntry>(response, JsonSerializerOptions);
     }
 }

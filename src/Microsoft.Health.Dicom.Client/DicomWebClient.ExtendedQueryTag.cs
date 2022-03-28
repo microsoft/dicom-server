@@ -30,7 +30,7 @@ public partial class DicomWebClient : IDicomWebClient
 
         HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
         await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
-        return new DicomWebResponse<DicomOperationReference>(response, ValueFactory<DicomOperationReference>);
+        return new DicomWebResponse<DicomOperationReference>(response, JsonSerializerOptions);
     }
 
     public async Task<DicomWebResponse> DeleteExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken)
@@ -57,7 +57,7 @@ public partial class DicomWebClient : IDicomWebClient
         using var request = new HttpRequestMessage(HttpMethod.Get, uri);
         HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
         await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
-        return new DicomWebResponse<IReadOnlyList<GetExtendedQueryTagEntry>>(response, ValueFactory<IReadOnlyList<GetExtendedQueryTagEntry>>);
+        return new DicomWebResponse<IReadOnlyList<GetExtendedQueryTagEntry>>(response, JsonSerializerOptions);
     }
 
     public async Task<DicomWebResponse<GetExtendedQueryTagEntry>> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken)
@@ -69,7 +69,7 @@ public partial class DicomWebClient : IDicomWebClient
         HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
             .ConfigureAwait(false);
         await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
-        return new DicomWebResponse<GetExtendedQueryTagEntry>(response, ValueFactory<GetExtendedQueryTagEntry>);
+        return new DicomWebResponse<GetExtendedQueryTagEntry>(response, JsonSerializerOptions);
     }
 
     public async Task<DicomWebResponse<IReadOnlyList<ExtendedQueryTagError>>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, int offset, CancellationToken cancellationToken)
@@ -88,7 +88,7 @@ public partial class DicomWebClient : IDicomWebClient
         using var request = new HttpRequestMessage(HttpMethod.Get, uri);
         HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
         await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
-        return new DicomWebResponse<IReadOnlyList<ExtendedQueryTagError>>(response, ValueFactory<IReadOnlyList<ExtendedQueryTagError>>);
+        return new DicomWebResponse<IReadOnlyList<ExtendedQueryTagError>>(response, JsonSerializerOptions);
     }
 
     public async Task<DicomWebResponse<GetExtendedQueryTagEntry>> UpdateExtendedQueryTagAsync(string tagPath, UpdateExtendedQueryTagEntry newValue, CancellationToken cancellationToken)
@@ -107,6 +107,6 @@ public partial class DicomWebClient : IDicomWebClient
 
         HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
         await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
-        return new DicomWebResponse<GetExtendedQueryTagEntry>(response, ValueFactory<GetExtendedQueryTagEntry>);
+        return new DicomWebResponse<GetExtendedQueryTagEntry>(response, JsonSerializerOptions);
     }
 }

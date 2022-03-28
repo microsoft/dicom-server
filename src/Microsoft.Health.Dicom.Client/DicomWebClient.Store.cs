@@ -150,6 +150,6 @@ public partial class DicomWebClient : IDicomWebClient
             })
             .ConfigureAwait(false);
 
-        return new DicomWebResponse<DicomDataset>(response, ValueFactory<DicomDataset>);
+        return new DicomWebResponse<DicomDataset>(response, JsonSerializerOptions);
     }
 }
