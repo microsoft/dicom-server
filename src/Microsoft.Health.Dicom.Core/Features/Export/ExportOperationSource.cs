@@ -6,11 +6,20 @@
 using System.Collections.Generic;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export;
+
+
+// TODO: better design
 public class ExportOperationSource
 {
-    public IReadOnlySet<string> ExportStudies { get; set; }
+    public ExportOperationSource(ISet<string> studies, IDictionary<string, ISet<string>> series, IDictionary<string, IDictionary<string, ISet<string>>> instances)
+    {
+        Studies = studies;
+        Series = series;
+        Instances = instances;
+    }
+    public ISet<string> Studies { get; }
 
-    public IReadOnlyDictionary<string, IReadOnlySet<string>> ExportSeries { get; set; }
+    public IDictionary<string, ISet<string>> Series { get; }
 
-    public IReadOnlyDictionary<string, IReadOnlyDictionary<string, IReadOnlySet<string>>> ExportInstances { get; set; }
+    public IDictionary<string, IDictionary<string, ISet<string>>> Instances { get; }
 }
