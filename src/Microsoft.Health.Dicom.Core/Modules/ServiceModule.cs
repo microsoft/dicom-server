@@ -9,6 +9,7 @@ using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Delete;
+using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.HealthCheck;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
@@ -210,6 +211,14 @@ public class ServiceModule : IStartupModule
                 .AsImplementedInterfaces();
 
             services.Add<InstanceReindexer>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+        }
+
+        if (_featureConfiguration.EnableExport)
+        {
+            services.Add<ExportService>()
                 .Scoped()
                 .AsSelf()
                 .AsImplementedInterfaces();
