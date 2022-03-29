@@ -75,7 +75,4 @@ public class BlobCopyStore : IFileCopyStore
     {
         return $"{destinationPath}/{versionedInstanceIdentifier.StudyInstanceUid}/{versionedInstanceIdentifier.SeriesInstanceUid}/{versionedInstanceIdentifier.SopInstanceUid}.dcm";
     }
-
-
-
 }
