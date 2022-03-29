@@ -5,8 +5,8 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.Health.Dicom.Core.Features.Export;
-public class ExportIds
+namespace Microsoft.Health.Dicom.Core.Models.Export;
+public class UidsSource
 {
-    public IReadOnlyList<string> Ids { get; set; }
+    public IReadOnlyList<string> Uids { get; set; }
 }

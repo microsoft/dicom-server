@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using MediatR;
-using Microsoft.Health.Dicom.Core.Features.Export;
+using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Export;
 
