@@ -7,7 +7,7 @@ using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export;
 
-public interface IExportSinkFactory
+public interface IExportSourceFactory
 {
-    IExportSink CreateSink(ExportLocation location);
+    IExportSource CreateSource(DataSource source);
 }

@@ -8,4 +8,6 @@ namespace Microsoft.Health.Dicom.Core.Models.Export;
 public class ExportCheckpoint : ExportInput
 {
     public long Exported { get; set; }
+
+    public object SourceContinuationToken { get; set; }
 }

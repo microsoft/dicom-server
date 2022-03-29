@@ -3,11 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Dicom.Core.Models.Export;
+namespace Microsoft.Health.Dicom.Core.Models.Export;
 
-namespace Microsoft.Health.Dicom.Core.Features.Export;
-
-public interface IExportSinkFactory
+public class DataSource
 {
-    IExportSink CreateSink(ExportLocation location);
+    public ExportSourceType Type { get; set; }
+
+    public object Metadata { get; set; }
 }
