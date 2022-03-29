@@ -3,11 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Models;
+namespace Microsoft.Health.Dicom.Core.Features.Export;
 
-public sealed class PaginatedResult<T>
+public interface IExportManifest
 {
-    public T Result { get; init; }
-
-    public object ContinuationToken { get; init; }
+    IExportBatch GetBatch(long offset, int size);
 }
