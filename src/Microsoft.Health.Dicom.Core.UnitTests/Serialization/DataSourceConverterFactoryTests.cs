@@ -35,7 +35,7 @@ public class DataSourceConverterFactoryTests
     }
 
     [Fact]
-    public void GivenUndefinedEnumValue_WhenWritingJson_ThenThrowJsonException()
+    public void GivenValidValue_WhenSerializeAndDeserialize_ThenShouldSucceed()
     {
         UidsSource uidSource = new UidsSource()
         {
@@ -47,13 +47,12 @@ public class DataSourceConverterFactoryTests
             Metadata = uidSource
         };
 
-        string result = JsonSerializer.Serialize(source, _defaultOptions);
-        Assert.Equal("{\"Type\":\"UID\",\"Metadata\":{\"Uids\":[\"1.2\",\"2/3\"]}}", result);
+        string serialized = JsonSerializer.Serialize(source, _defaultOptions);
+        Assert.Equal("{\"Type\":\"UID\",\"Metadata\":{\"Uids\":[\"1.2\",\"2/3\"]}}", serialized);
 
-        DataSource x = JsonSerializer.Deserialize<DataSource>(result, _defaultOptions);
-        Assert.Equal(ExportSourceType.UID, x.Type);
-        UidsSource y = (UidsSource)x.Metadata;
-        Assert.Equal(y.Uids, uidSource.Uids);
+        DataSource deserialized = JsonSerializer.Deserialize<DataSource>(serialized, _defaultOptions);
+        Assert.Equal(ExportSourceType.UID, deserialized.Type);
+        Assert.Equal(uidSource.Uids, ((UidsSource)deserialized.Metadata).Uids);
 
     }
 }
