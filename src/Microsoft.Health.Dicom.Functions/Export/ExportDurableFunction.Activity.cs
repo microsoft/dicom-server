@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -11,7 +10,6 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Export;
-using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Functions.Export.Models;
 
 namespace Microsoft.Health.Dicom.Functions.Export;
@@ -19,40 +17,23 @@ namespace Microsoft.Health.Dicom.Functions.Export;
 public partial class ExportDurableFunction
 {
     [FunctionName(nameof(ExportBatchAsync))]
-    public async Task<int> ExportBatchAsync([ActivityTrigger] ExportBatchArguments arguments, ILogger logger)
+    public async Task<int> ExportBatchAsync([ActivityTrigger] ExportBatchArguments args, ILogger logger)
     {
-        EnsureArg.IsNotNull(arguments, nameof(arguments));
+        EnsureArg.IsNotNull(args, nameof(args));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        logger.LogInformation("Exporting DCM files starting from {Offset} to '{Sink}'.", arguments.Batch.Offset, arguments.SinkDescription.Name);
+        logger.LogInformation("Exporting DCM files starting from {Offset} to '{Sink}'.", args.Offset, args.Destination.Type);
 
-        IExportSink sink = _sinkFactory.CreateSink(arguments.SinkDescription);
+        IExportSource source = _sourceFactory.CreateSource(args.Source);
+        IExportSink sink = _sinkFactory.CreateSink(args.Destination);
 
-        int count = 0;
-        IAsyncEnumerator<VersionedInstanceIdentifier> source = arguments.Batch.GetAsyncEnumerator();
-        do
-        {
-            Task[] exportTasks = await GetNextAsync(source, _options.BatchThreadCount)
-                .Select(x => sink.CopyAsync(x))
-                .ToArrayAsync();
+        // Get the batch
+        IExportBatch batch = await source.GetBatchAsync(args.Batching.Size, args.Offset);
 
-            await Task.WhenAll(exportTasks);
-            count += exportTasks.Length;
+        // Export
+        Task[] exportTasks = await batch.Select(x => sink.CopyAsync(x)).ToArrayAsync();
+        await Task.WhenAll(exportTasks);
 
-        } while (await source.MoveNextAsync());
-
-        logger.LogInformation("Successfully exported {Count} DCM files.", count);
-        return count;
-    }
-
-    private static async IAsyncEnumerable<T> GetNextAsync<T>(IAsyncEnumerator<T> source, int n)
-    {
-        for (int i = 0; i < n || n == -1; i++)
-        {
-            if (!await source.MoveNextAsync())
-                yield break;
-
-            yield return source.Current;
-        }
+        return exportTasks.Length;
     }
 }

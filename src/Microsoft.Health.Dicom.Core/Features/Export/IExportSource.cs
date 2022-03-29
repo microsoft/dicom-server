@@ -4,11 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export;
 
 public interface IExportSource
 {
-    Task<PaginatedResult<IExportBatch>> GetBatchAsync(int size, object continuationToken = default);
+    Task<IExportBatch> GetBatchAsync(int size, long offset = 0);
 }

@@ -11,6 +11,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Models.Export;
+using Microsoft.Health.Dicom.Functions.Export.Models;
 using Microsoft.Health.Dicom.Functions.Linq;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
@@ -21,21 +22,25 @@ public partial class ExportDurableFunction
     [FunctionName(nameof(ExportDicomFilesAsync))]
     public async Task ExportDicomFilesAsync([OrchestrationTrigger] IDurableOrchestrationContext context, ILogger logger)
     {
-        EnsureArg.IsNotNull(context, nameof(context));
+        EnsureArg.IsNotNull(context, nameof(context)).ThrowIfInvalidOperationId();
 
-        logger = context.CreateReplaySafeLogger(logger);
         ExportCheckpoint input = context.GetInput<ExportCheckpoint>();
 
-        context.ThrowIfInvalidOperationId();
-
-        logger.LogInformation("Starting to export to '{Sink}' starting from DCM file offset {Offset}.", input.Sink.Name, input.Exported);
+        logger = context.CreateReplaySafeLogger(logger);
+        logger.LogInformation("Starting to export to '{Sink}' starting from DCM file offset {Offset}.", input.Destination.Type, input.Exported);
 
         IEnumerable<Task<int>> exportTasks = Enumerate
             .Range(input.Exported, input.Batching.MaxParallel, input.Batching.Size)
             .Select(offset => context.CallActivityWithRetryAsync<int>(
                 nameof(ExportBatchAsync),
                 _options.RetryOptions,
-                input.Manifest.GetBatch(offset, input.Batching.Size)));
+                new ExportBatchArguments
+                {
+                    Batching = input.Batching,
+                    Destination = input.Destination,
+                    Offset = offset,
+                    Source = input.Source,
+                }));
 
         int[] exportResults = await Task.WhenAll(exportTasks);
         long exported = exportResults.Aggregate(0L, (current, next) => current + next);
@@ -46,9 +51,9 @@ public partial class ExportDurableFunction
                 new ExportCheckpoint
                 {
                     Batching = input.Batching,
+                    Destination = input.Destination,
                     Exported = input.Exported + exported,
-                    Manifest = input.Manifest,
-                    Sink = input.Sink,
+                    Source = input.Source,
                 });
         }
     }

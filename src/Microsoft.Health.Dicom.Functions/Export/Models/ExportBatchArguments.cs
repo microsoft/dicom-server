@@ -3,13 +3,18 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Dicom.Core.Features.Export;
+using Microsoft.Health.Dicom.Core.Models.Export;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 
 namespace Microsoft.Health.Dicom.Functions.Export.Models;
 
 public class ExportBatchArguments
 {
-    public IExportBatch Batch { get; set; }
+    public long Offset { get; set; }
 
-    public ExportSinkDescription SinkDescription { get; set; }
+    public BatchOptions Batching { get; set; }
+
+    public DataSource Source { get; set; }
+
+    public ExportLocation Destination { get; set; }
 }
