@@ -13,7 +13,7 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Messages.Export;
 
-namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+namespace Microsoft.Health.Dicom.Core.Features.Export;
 
 public class ExportHandler : BaseHandler, IRequestHandler<ExportRequest, ExportResponse>
 {

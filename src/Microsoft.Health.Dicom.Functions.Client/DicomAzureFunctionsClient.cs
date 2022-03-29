@@ -130,10 +130,9 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     }
 
 
-    public async Task<Guid> StartExportAsync(ExportOperationInput input, CancellationToken cancellationToken = default)
+    public async Task<Guid> StartExportAsync(ExportInput input, CancellationToken cancellationToken = default)
     {
-
-        // Start the re-indexing orchestration
+        // Start the export orchestration
         Guid operationId = _guidFactory.Create();
 
         // TODO: Pass token when supported

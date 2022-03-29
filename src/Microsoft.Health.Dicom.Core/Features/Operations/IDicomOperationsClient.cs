@@ -55,5 +55,5 @@ public interface IDicomOperationsClient
     Task<Guid> StartReindexingInstancesAsync(IReadOnlyCollection<int> tagKeys, CancellationToken cancellationToken = default);
 
 
-    Task<Guid> StartExportAsync(ExportOperationInput input, CancellationToken cancellationToken = default);
+    Task<Guid> StartExportAsync(ExportInput input, CancellationToken cancellationToken = default);
 }
