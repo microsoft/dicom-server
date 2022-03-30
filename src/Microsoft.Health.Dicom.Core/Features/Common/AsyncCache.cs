@@ -10,7 +10,7 @@ using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Features.Common;
 
-internal class AsyncCache<T> : IDisposable
+public class AsyncCache<T> : IDisposable
 {
     private readonly Func<CancellationToken, Task<T>> _factory;
     private readonly SemaphoreSlim _semaphore;
