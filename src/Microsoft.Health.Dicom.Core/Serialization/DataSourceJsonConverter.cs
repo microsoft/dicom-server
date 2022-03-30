@@ -55,8 +55,6 @@ public class DataSourceJsonConverter : JsonConverter<DataSource>
         // end object
         reader.Read();
 
-        // move to next
-        reader.Read();
         return result;
     }
 
