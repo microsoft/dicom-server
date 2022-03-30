@@ -35,6 +35,7 @@ public sealed class PopulateDataPartitionFilterAttribute : ActionFilterAttribute
         KnownRouteNames.VersionedPartitionStoreInstancesInStudy,
         KnownRouteNames.PartitionedAddWorkitemInstance,
         KnownRouteNames.VersionedAddWorkitemInstance,
+        KnownRouteNames.AddWorkitemInstance,
         KnownRouteNames.VersionedPartitionAddWorkitemInstance,
     };
 
@@ -75,7 +76,7 @@ public sealed class PopulateDataPartitionFilterAttribute : ActionFilterAttribute
             {
                 dicomRequestContext.DataPartitionEntry = partitionResponse.PartitionEntry;
             }
-            // Only for STOW, we create partition based on the request.
+            // Only for STOW and Add workitem, we create partition based on the request.
             // For all other requests, we validate whether it exists and process based on the result
             else if (_partitionCreationSupportedRouteNames.Contains(routeName))
             {
