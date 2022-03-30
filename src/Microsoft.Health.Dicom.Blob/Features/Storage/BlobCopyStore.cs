@@ -14,7 +14,6 @@ using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Features.Common;
 
@@ -23,13 +22,14 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 /// <summary>
 /// Initialize this class once for each export operation
 /// </summary>
-public sealed class BlobCopyStore : IFileCopyStore, IDisposable
+public sealed class BlobCopyStore : IBlobCopyStore
 {
     private readonly BlobContainerClient _sourceContainer;
     private readonly BlobOperationOptions _options;
     private readonly BlobContainerClient _destBlobContainerClient;
     private readonly AsyncCache<AppendBlobClient> _errorAppendBlobcache;
     private readonly string _destinationPath;
+    private readonly string _errorLogBlobName;
 
     public BlobCopyStore(
         BlobServiceClient client,
@@ -50,14 +50,20 @@ public sealed class BlobCopyStore : IFileCopyStore, IDisposable
         _options = options.Value;
         _destBlobContainerClient = destBlobContainerClient;
         _destinationPath = destinationPath;
-        string errorLogBlobName = $"error-{Guid.NewGuid().ToString()}.log";
+        _errorLogBlobName = $"error-{Guid.NewGuid().ToString()}.log";
         _errorAppendBlobcache = new AsyncCache<AppendBlobClient>(async (CancellationToken cancellationToken) =>
             {
-                AppendBlobClient appendBlobClient = _sourceContainer.GetAppendBlobClient(errorLogBlobName);
+                AppendBlobClient appendBlobClient = _sourceContainer.GetAppendBlobClient(_errorLogBlobName);
                 await appendBlobClient.CreateIfNotExistsAsync(options: null, cancellationToken);
                 return appendBlobClient;
             });
 
+    }
+
+    public async Task<Uri> GetErrorHrefAsync(CancellationToken cancellationToken)
+    {
+        AppendBlobClient appendBlobClient = await _errorAppendBlobcache.GetAsync(forceRefresh: false, cancellationToken);
+        return appendBlobClient.Uri;
     }
 
     public async Task CopyFileAsync(VersionedInstanceIdentifier instanceIdentifier, CancellationToken cancellationToken)
@@ -73,12 +79,8 @@ public sealed class BlobCopyStore : IFileCopyStore, IDisposable
 
         // Could not use StartCopyFromUriAsync from the SDK. There is a sourceUri auth issue and Azure team does not recommend using StartCopyFromUriAsync.
         // Open the source blob stream
-        Stream stream = null;
         var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
-        await ExecuteAsync(async () =>
-        {
-            stream = await srcBlobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken);
-        });
+        using Stream stream = await srcBlobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken);
 
         // Upload it to the destination
         var blobUploadOptions = new BlobUploadOptions { TransferOptions = _options.Upload };
