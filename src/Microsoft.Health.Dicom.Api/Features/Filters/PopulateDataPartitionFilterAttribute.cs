@@ -34,8 +34,6 @@ public sealed class PopulateDataPartitionFilterAttribute : ActionFilterAttribute
         KnownRouteNames.PartitionStoreInstancesInStudy,
         KnownRouteNames.VersionedPartitionStoreInstancesInStudy,
         KnownRouteNames.PartitionedAddWorkitemInstance,
-        KnownRouteNames.VersionedAddWorkitemInstance,
-        KnownRouteNames.AddWorkitemInstance,
         KnownRouteNames.VersionedPartitionAddWorkitemInstance,
     };
 
