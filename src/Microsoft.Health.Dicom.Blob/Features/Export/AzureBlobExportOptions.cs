@@ -9,7 +9,18 @@ namespace Microsoft.Health.Dicom.Blob.Features.Export;
 
 internal sealed class AzureBlobExportOptions
 {
-    public Uri Uri { get; set; }
+    /// <summary>
+    /// like https://mystorageacct.blob.core.windows.net/mycontainer?sp
+    /// </summary>
+    public Uri ContainerSasUri { get; set; }
 
-    public string ConnectionString { get; set; }
+    /// <summary>
+    /// Like https://mystorageacct.blob.core.windows.net/mycontainer
+    /// </summary>
+    public Uri ContainerUri { get; set; }
+
+    /// <summary>
+    /// Destination folder path
+    /// </summary>
+    public string FolderPath { get; set; }
 }

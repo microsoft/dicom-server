@@ -9,13 +9,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
-namespace Microsoft.Health.Dicom.Core.Features.Export;
+namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 
-public interface IExportSink
+public interface IBlobCopyStore : IDisposable
 {
-    Task<Uri> GetErrorHrefAsync(CancellationToken cancellationToken = default);
-
-    Task CopyAsync(VersionedInstanceIdentifier source, CancellationToken cancellationToken = default);
-
-    Task AppendErrorAsync(Stream errorContent, CancellationToken cancellationToken = default);
+    Task AppendErrorLogAsync(Stream content, CancellationToken cancellationToken);
+    Task CopyFileAsync(VersionedInstanceIdentifier instanceIdentifier, CancellationToken cancellationToken);
+    Task<Uri> GetErrorHrefAsync(CancellationToken cancellationToken);
 }

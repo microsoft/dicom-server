@@ -58,7 +58,8 @@ public partial class ExportDurableFunction
         catch (DataStoreException dse) // TODO: Change exception
         {
             logger.LogError(dse, "Unable to copy watermark {Watermark}", identifier.Version);
-            await sink.AppendErrorAsync(identifier, dse);
+            // union and send the formatted error
+            //await sink.AppendErrorAsync(identifier, dse);
             return false;
         }
     }
