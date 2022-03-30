@@ -17,6 +17,7 @@ public static class KnownRoutes
     private const string OperationsSegment = "operations";
     private const string WorkitemsRouteSegment = "workitems";
     private const string WorkitemCancelRequest = "cancelrequest";
+    private const string ExportRouteSegment = "export";
 
     private const string PartitionNameRouteSegment = "{" + KnownActionParameterNames.PartitionName + "}";
     private const string StudiesInstanceUidRouteSegment = "{" + KnownActionParameterNames.StudyInstanceUid + "}";
@@ -64,4 +65,6 @@ public static class KnownRoutes
     public const string HealthCheck = "/health/check";
 
     public const string OperationInstanceRoute = OperationsSegment + "/{" + KnownActionParameterNames.OperationId + "}";
+
+    public const string ExportRoute = ExportRouteSegment;
 }

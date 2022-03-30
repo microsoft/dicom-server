@@ -24,7 +24,7 @@ public class ControllerMetadataTests
 
     [Fact]
     public void GivenApi_WhenCountingControllers_ThenFindExpectedNumber()
-        => Assert.Equal(9, _controllerTypes.Count);
+        => Assert.Equal(10, _controllerTypes.Count);
 
     [Theory]
     [InlineData("1.0-prerelease")]

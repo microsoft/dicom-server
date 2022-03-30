@@ -3,11 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Functions.Client;
+using MediatR;
+using Microsoft.Health.Dicom.Core.Models.Export;
 
-internal static class FunctionNames
+namespace Microsoft.Health.Dicom.Core.Messages.Export;
+
+public class ExportRequest : IRequest<ExportResponse>
 {
-    public const string ReindexInstances = "ReindexInstancesAsync";
+    public ExportRequest(ExportInput exportInput)
+    {
+        ExportInput = exportInput;
+    }
 
-    public const string Export = "ExportAsync";
+    public ExportInput ExportInput { get; }
 }

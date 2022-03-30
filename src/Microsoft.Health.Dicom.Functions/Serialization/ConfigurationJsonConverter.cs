@@ -19,9 +19,6 @@ internal class ConfigurationJsonConverter : JsonConverter<IConfiguration>
     {
         var builder = new ConfigurationBuilder();
 
-        if (reader.TokenType == JsonToken.Null)
-            return hasExistingValue ? existingValue : null;
-
         if (hasExistingValue)
             builder.AddConfiguration(existingValue);
 
@@ -31,26 +28,28 @@ internal class ConfigurationJsonConverter : JsonConverter<IConfiguration>
     }
 
     public override void WriteJson(JsonWriter writer, IConfiguration value, JsonSerializer serializer)
-    {
-        if (value == null)
-            writer.WriteNull();
-
-        WriteConfiguration(writer, value);
-    }
+        => WriteConfiguration(writer, value);
 
     private static IEnumerable<KeyValuePair<string, string>> EnumeratePairs(JObject config)
-        => EnumeratePairs("", config);
+        => EnumeratePairs(string.Empty, config);
 
     private static IEnumerable<KeyValuePair<string, string>> EnumeratePairs(string path, JToken token)
     {
-        if (token is JObject section)
+        if (token is JProperty prop)
         {
-            foreach (KeyValuePair<string, string> pair in section.SelectMany((KeyValuePair<string, JToken> x) => EnumeratePairs(path + ":" + x.Key, x.Value)))
+            foreach (KeyValuePair<string, string> p in EnumeratePairs(GetPath(path, prop.Name), prop.Value))
             {
-                yield return pair;
+                yield return p;
             }
         }
-        else if (token.Type == JTokenType.String)
+        else if (token is JObject section)
+        {
+            foreach (KeyValuePair<string, string> p in section.SelectMany((KeyValuePair<string, JToken> x) => EnumeratePairs(GetPath(path, x.Key), x.Value)))
+            {
+                yield return p;
+            }
+        }
+        else if (TryGetPair(path, token, out KeyValuePair<string, string> pair))
         {
             yield return KeyValuePair.Create(path, token.Value<string>());
         }
@@ -58,11 +57,10 @@ internal class ConfigurationJsonConverter : JsonConverter<IConfiguration>
         {
             for (int i = 0; i < a.Count; i++)
             {
-                JToken e = a[i];
-                if (e.Type != JTokenType.String)
-                    throw new JsonException();
-
-                yield return KeyValuePair.Create(path + ":" + i.ToString(CultureInfo.InvariantCulture), e.Value<string>());
+                foreach (KeyValuePair<string, string> p in EnumeratePairs(GetPath(path, i.ToString(CultureInfo.InvariantCulture)), a[i]))
+                {
+                    yield return pair;
+                }
             }
         }
         else if (token.Type == JTokenType.Null)
@@ -72,6 +70,26 @@ internal class ConfigurationJsonConverter : JsonConverter<IConfiguration>
         else
         {
             throw new JsonException();
+        }
+    }
+
+    private static bool TryGetPair(string path, JToken token, out KeyValuePair<string, string> pair)
+    {
+        switch (token.Type)
+        {
+            case JTokenType.Boolean:
+            case JTokenType.Date:
+            case JTokenType.Float:
+            case JTokenType.Guid:
+            case JTokenType.Integer:
+            case JTokenType.String:
+            case JTokenType.TimeSpan:
+            case JTokenType.Uri:
+                pair = KeyValuePair.Create(path, token.ToString());
+                return true;
+            default:
+                pair = default;
+                return false;
         }
     }
 
@@ -91,4 +109,7 @@ internal class ConfigurationJsonConverter : JsonConverter<IConfiguration>
 
         writer.WriteEndObject();
     }
+
+    private static string GetPath(string current, string key)
+        => string.IsNullOrEmpty(current) ? key : current + ':' + key;
 }
