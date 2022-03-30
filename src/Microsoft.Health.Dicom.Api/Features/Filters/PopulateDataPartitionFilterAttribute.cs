@@ -27,12 +27,15 @@ public sealed class PopulateDataPartitionFilterAttribute : ActionFilterAttribute
     private readonly IMediator _mediator;
     private readonly bool _isPartitionEnabled;
 
-    private readonly HashSet<string> _storeRouteNames = new HashSet<string>
+    private readonly HashSet<string> _partitionCreationSupportedRouteNames = new HashSet<string>
     {
         KnownRouteNames.PartitionStoreInstance,
         KnownRouteNames.VersionedPartitionStoreInstance,
         KnownRouteNames.PartitionStoreInstancesInStudy,
-        KnownRouteNames.VersionedPartitionStoreInstancesInStudy
+        KnownRouteNames.VersionedPartitionStoreInstancesInStudy,
+        KnownRouteNames.PartitionedAddWorkitemInstance,
+        KnownRouteNames.VersionedAddWorkitemInstance,
+        KnownRouteNames.VersionedPartitionAddWorkitemInstance,
     };
 
     public PopulateDataPartitionFilterAttribute(
@@ -74,7 +77,7 @@ public sealed class PopulateDataPartitionFilterAttribute : ActionFilterAttribute
             }
             // Only for STOW, we create partition based on the request.
             // For all other requests, we validate whether it exists and process based on the result
-            else if (_storeRouteNames.Contains(routeName))
+            else if (_partitionCreationSupportedRouteNames.Contains(routeName))
             {
                 var response = await _mediator.AddPartitionAsync(partitionName);
                 dicomRequestContext.DataPartitionEntry = response.PartitionEntry;
