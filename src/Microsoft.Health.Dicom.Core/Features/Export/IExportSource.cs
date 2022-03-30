@@ -4,14 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export;
 
-public interface IExportSource
+public interface IExportSource : IAsyncEnumerable<VersionedInstanceIdentifier>
 {
-    PaginatedResults<IReadOnlyCollection<long>> GetBatchOffsets(int size, ContinuationToken continuationToken = default);
+    SourceManifest Manifest { get; }
 
-    Task<IExportBatch> GetBatchAsync(long offset);
+    SourceManifest TakeNextBatch(int size);
 }

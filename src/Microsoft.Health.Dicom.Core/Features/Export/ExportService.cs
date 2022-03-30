@@ -17,7 +17,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Export;
 
 public class ExportService : IExportService
 {
-
     private readonly IDicomOperationsClient _client;
     private readonly IUrlResolver _uriResolver;
 

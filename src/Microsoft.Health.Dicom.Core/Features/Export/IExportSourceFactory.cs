@@ -9,5 +9,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Export;
 
 public interface IExportSourceFactory
 {
-    IExportSource CreateSource(DataSource source);
+    IExportSource CreateSource(SourceManifest source);
+
+    void Validate(SourceManifest source);
 }

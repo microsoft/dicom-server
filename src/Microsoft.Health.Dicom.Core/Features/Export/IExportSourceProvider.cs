@@ -3,13 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Functions.Export.Models;
+using System;
+using Microsoft.Health.Dicom.Core.Models.Export;
 
-public class ExportResult
+namespace Microsoft.Health.Dicom.Core.Features.Export;
+
+public interface IExportSourceProvider
 {
-    public bool IsEmpty => Exported == 0 && Failed == 0;
+    ExportSourceType Type { get; }
 
-    public int Exported { get; set; }
+    IExportSource Create(IServiceProvider provider, object input);
 
-    public int Failed { get; set; }
+    void Validate(object input);
 }

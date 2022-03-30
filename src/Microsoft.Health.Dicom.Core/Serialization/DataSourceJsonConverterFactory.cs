@@ -21,7 +21,7 @@ public sealed class DataSourceJsonConverterFactory : JsonConverterFactory
     /// </returns>
     /// <exception cref="ArgumentNullException"><paramref name="typeToConvert"/> is <see langword="null"/>.</exception>
     public override bool CanConvert(Type typeToConvert)
-        => EnsureArg.IsNotNull(typeToConvert) == typeof(DataSource);
+        => EnsureArg.IsNotNull(typeToConvert) == typeof(SourceManifest);
 
     /// <inheritdoc />
     public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)

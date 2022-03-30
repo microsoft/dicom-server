@@ -5,6 +5,7 @@
 
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -264,9 +265,10 @@ public class ServiceModule : IStartupModule
     private static void RegisterExportServices(IServiceCollection services)
     {
         // Sources
-        //services.AddSingleton<IExportSourceFactory, ExportSourceFactory>();
+        services.AddScoped<IExportSourceFactory, ExportSourceFactory>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IExportSourceProvider, IdentifierExportSourceProvider>());
 
         // Sinks
-        services.AddSingleton<IExportSinkFactory, ExportSinkFactory>();
+        services.AddScoped<IExportSinkFactory, ExportSinkFactory>();
     }
 }

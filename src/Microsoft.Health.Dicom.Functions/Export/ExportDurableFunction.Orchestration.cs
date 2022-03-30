@@ -27,46 +27,48 @@ public partial class ExportDurableFunction
         ExportCheckpoint input = context.GetInput<ExportCheckpoint>();
 
         logger = context.CreateReplaySafeLogger(logger);
-        logger.LogInformation("Starting to export to '{Sink}' starting from DCM file offset {Offset}.", input.Destination.Type, input.ContinuationToken.Offset);
+        logger.LogInformation("Starting to export to '{Sink}' starting from DCM file #{Offset}.", input.Destination.Type, input.Result.Exported + input.Result.Failed + 1);
+
+        // Are we done?
+        if (input.Source == null)
+        {
+            logger.LogInformation("Completed export to '{Sink}'.", input.Destination.Type);
+            return;
+        }
 
         // Get batches
         IExportSource source = _sourceFactory.CreateSource(input.Source);
-        PaginatedResults<IReadOnlyCollection<long>> offsets = source.GetBatchOffsets(input.Batching.Size, input.ContinuationToken);
 
         // Start export in parallel
-        IEnumerable<Task<ExportResult>> exportTasks = offsets
-            .Result
-            .Select(offset => context.CallActivityWithRetryAsync<ExportResult>(
+        var exportTasks = new List<Task<ExportResult>>();
+        for (int i = 0; i < input.Batching.MaxParallel; i++)
+        {
+            SourceManifest batch = source.TakeNextBatch(input.Batching.Size);
+            if (batch == null)
+                break; // All done
+
+            exportTasks.Add(context.CallActivityWithRetryAsync<ExportResult>(
                 nameof(ExportBatchAsync),
                 _options.RetryOptions,
                 new ExportBatchArguments
                 {
-                    Batching = input.Batching,
                     Destination = input.Destination,
-                    Offset = offset,
-                    Source = input.Source,
+                    Source = batch,
                 }));
+        }
 
         // Await the export and count how many instances were exported
         ExportResult[] exportResults = await Task.WhenAll(exportTasks);
-        ExportResult result = exportResults.Aggregate(
-            (Exported: 0, Failed: 0),
-            (state, partial) => (state.Exported + partial.Exported, state.Failed + partial.Failed),
-            state => new ExportResult { Exported = state.Exported, Failed = state.Failed, });
+        ExportResult result = exportResults.Aggregate<ExportResult, ExportResult>(default, (x, y) => x.Add(y));
 
-        // Continue exporting if we detect there is still data to export
-        if (offsets.ContinuationToken.HasValue && !exportResults[^1].IsEmpty)
-        {
-            context.ContinueAsNew(
-                new ExportCheckpoint
-                {
-                    Batching = input.Batching,
-                    ContinuationToken = offsets.ContinuationToken.GetValueOrDefault(),
-                    Destination = input.Destination,
-                    Exported = input.Exported + result.Exported,
-                    Failed = input.Failed + result.Failed,
-                    Source = input.Source,
-                });
-        }
+        // Export the next set of batches
+        context.ContinueAsNew(
+            new ExportCheckpoint
+            {
+                Batching = input.Batching,
+                Destination = input.Destination,
+                Result = result,
+                Source = source.Manifest,
+            });
     }
 }

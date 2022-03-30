@@ -5,30 +5,31 @@
 
 using System;
 using System.Linq;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Dicom.Functions.Serialization;
 
-internal sealed class DataSourceJsonConverter : JsonConverter<DataSource>
+internal sealed class DataSourceJsonConverter : JsonConverter<SourceManifest>
 {
-    public override DataSource ReadJson(JsonReader reader, Type objectType, DataSource existingValue, bool hasExistingValue, JsonSerializer serializer)
+    public override SourceManifest ReadJson(JsonReader reader, Type objectType, SourceManifest existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
         JObject obj = serializer.Deserialize<JObject>(reader);
 
-        if (!TryGetProperty(obj, nameof(DataSource.Type), JTokenType.String, out JValue typeToken))
+        if (!TryGetProperty(obj, nameof(SourceManifest.Type), JTokenType.String, out JValue typeToken))
             throw new JsonException();
 
-        if (typeToken.Value<string>().Equals(nameof(ExportSourceType.UID), StringComparison.OrdinalIgnoreCase))
+        if (typeToken.Value<string>().Equals(nameof(ExportSourceType.Identifiers), StringComparison.OrdinalIgnoreCase))
         {
-            if (!TryGetProperty(obj, nameof(DataSource.Metadata), JTokenType.Array, out JArray idsToken))
+            if (!TryGetProperty(obj, nameof(SourceManifest.Input), JTokenType.Array, out JArray idsToken))
                 throw new JsonException();
 
-            return new DataSource
+            return new SourceManifest
             {
-                Metadata = idsToken.Values().Select(x => x.Value<string>()).ToArray(),
-                Type = ExportSourceType.UID,
+                Input = idsToken.Values().Select(x => serializer.Deserialize<DicomIdentifier>(reader)).ToArray(),
+                Type = ExportSourceType.Identifiers,
             };
         }
         else
@@ -37,18 +38,18 @@ internal sealed class DataSourceJsonConverter : JsonConverter<DataSource>
         }
     }
 
-    public override void WriteJson(JsonWriter writer, DataSource value, JsonSerializer serializer)
+    public override void WriteJson(JsonWriter writer, SourceManifest value, JsonSerializer serializer)
     {
-        if (value.Type != ExportSourceType.UID)
+        if (value.Type != ExportSourceType.Identifiers)
             throw new JsonException();
 
         writer.WriteStartObject();
 
-        writer.WritePropertyName(nameof(DataSource.Type));
+        writer.WritePropertyName(nameof(SourceManifest.Type));
         serializer.Serialize(writer, value.Type);
 
-        writer.WritePropertyName(nameof(DataSource.Metadata));
-        serializer.Serialize(writer, value.Metadata);
+        writer.WritePropertyName(nameof(SourceManifest.Input));
+        serializer.Serialize(writer, value.Input);
 
         writer.WriteEndObject();
     }

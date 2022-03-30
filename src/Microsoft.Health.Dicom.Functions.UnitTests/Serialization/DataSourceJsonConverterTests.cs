@@ -40,10 +40,10 @@ public class DataSourceJsonConverterTests
   ]
 }";
 
-        DataSource actual = JsonConvert.DeserializeObject<DataSource>(json, _serializerSettings);
-        Assert.Equal(ExportSourceType.UID, actual.Type);
+        SourceManifest actual = JsonConvert.DeserializeObject<SourceManifest>(json, _serializerSettings);
+        Assert.Equal(ExportSourceType.Identifiers, actual.Type);
 
-        string[] identifiers = actual.Metadata as string[];
+        string[] identifiers = actual.Input as string[];
         Assert.NotNull(identifiers);
         Assert.True(identifiers.SequenceEqual(new string[] { "foo", "bar", "baz" }));
     }
@@ -59,10 +59,10 @@ public class DataSourceJsonConverterTests
   ]
 }";
 
-        var value = new DataSource
+        var value = new SourceManifest
         {
-            Metadata = new string[] { "hello", "world" },
-            Type = ExportSourceType.UID,
+            Input = new string[] { "hello", "world" },
+            Type = ExportSourceType.Identifiers,
         };
 
         string actual = JsonConvert.SerializeObject(value, _serializerSettings);

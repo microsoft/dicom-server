@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Functions.Export.Models;
 
 namespace Microsoft.Health.Dicom.Functions.Export;
@@ -24,23 +25,27 @@ public partial class ExportDurableFunction
         EnsureArg.IsNotNull(args, nameof(args));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        logger.LogInformation("Exporting DCM files starting from {Offset} to '{Sink}'.", args.Offset, args.Destination.Type);
-
         IExportSource source = _sourceFactory.CreateSource(args.Source);
         IExportSink sink = _sinkFactory.CreateSink(args.Destination);
 
-        // Get the batch
-        IExportBatch batch = await source.GetBatchAsync(args.Offset);
-
         // Export
-        Task<bool>[] exportTasks = await batch.Select(x => TryCopyAsync(x, sink, logger)).ToArrayAsync();
+        Task<bool>[] exportTasks = await source.Select(x => TryCopyAsync(x, sink, logger)).ToArrayAsync();
 
         // Compute success metrics
         bool[] results = await Task.WhenAll(exportTasks);
-        return results.Aggregate(
-            (Exported: 0, Failed: 0),
-            (state, success) => success ? (state.Exported + 1, state.Failed) : (state.Exported, state.Failed + 1),
-            state => new ExportResult { Exported = state.Exported, Failed = state.Failed, });
+        ExportResult result = results.Aggregate<bool, ExportResult>(
+            default,
+            (state, success) => success
+                ? new ExportResult(state.Exported + 1, state.Failed)
+                : new ExportResult(state.Exported, state.Failed + 1));
+
+        logger.LogInformation("Successfully exported {Files} DCM files.", result.Exported);
+        if (result.Failed > 0)
+        {
+            logger.LogWarning("Failed to export {Files} DCM files.", result.Failed);
+        }
+
+        return result;
     }
 
     private static async Task<bool> TryCopyAsync(VersionedInstanceIdentifier identifier, IExportSink sink, ILogger logger)

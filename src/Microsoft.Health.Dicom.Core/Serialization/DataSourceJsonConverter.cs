@@ -10,19 +10,19 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Core.Serialization;
-public class DataSourceJsonConverter : JsonConverter<DataSource>
+public class DataSourceJsonConverter : JsonConverter<SourceManifest>
 {
-    public override DataSource Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override SourceManifest Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         // TODO: Validation on each step
         // TODO: validate first token is StartObject
-        DataSource result = new DataSource();
+        SourceManifest result = new SourceManifest();
 
         // Property Name
         reader.Read();
         // Type
         string propertyName = reader.GetString();
-        if (propertyName != nameof(DataSource.Type))
+        if (propertyName != nameof(SourceManifest.Type))
         {
             throw new JsonException("Invalid JsonFormat");
         }
@@ -39,17 +39,17 @@ public class DataSourceJsonConverter : JsonConverter<DataSource>
         // Metadata
         reader.Read();
         propertyName = reader.GetString();
-        if (propertyName != nameof(DataSource.Metadata))
+        if (propertyName != nameof(SourceManifest.Input))
         {
             throw new JsonException("Invalid JsonFormat");
         }
 
         reader.Read();
         // Metadata
-        if (sourceType == ExportSourceType.UID)
+        if (sourceType == ExportSourceType.Identifiers)
         {
             // metadata
-            result.Metadata = (UidsSource)JsonSerializer.Deserialize(ref reader, typeof(UidsSource), options);
+            result.Input = (UidsSource)JsonSerializer.Deserialize(ref reader, typeof(UidsSource), options);
         }
 
         // end object
@@ -58,7 +58,7 @@ public class DataSourceJsonConverter : JsonConverter<DataSource>
         return result;
     }
 
-    public override void Write(Utf8JsonWriter writer, DataSource value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, SourceManifest value, JsonSerializerOptions options)
     {
         EnsureArg.IsNotNull(writer, nameof(writer));
         if (value == null)
@@ -69,13 +69,13 @@ public class DataSourceJsonConverter : JsonConverter<DataSource>
 
         writer.WriteStartObject();
         // write type
-        writer.WriteString(nameof(DataSource.Type), value.Type.ToString());
+        writer.WriteString(nameof(SourceManifest.Type), value.Type.ToString());
         // write metadata
 
-        if (value.Type == ExportSourceType.UID)
+        if (value.Type == ExportSourceType.Identifiers)
         {
-            writer.WritePropertyName(nameof(DataSource.Metadata));
-            JsonSerializer.Serialize(writer, (UidsSource)value.Metadata, options);
+            writer.WritePropertyName(nameof(SourceManifest.Input));
+            JsonSerializer.Serialize(writer, (UidsSource)value.Input, options);
         }
         else
         {

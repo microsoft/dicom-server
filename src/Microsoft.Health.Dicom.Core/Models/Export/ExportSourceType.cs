@@ -8,5 +8,5 @@ namespace Microsoft.Health.Dicom.Core.Models.Export;
 public enum ExportSourceType
 {
     Unknown,
-    UID,
+    Identifiers,
 }

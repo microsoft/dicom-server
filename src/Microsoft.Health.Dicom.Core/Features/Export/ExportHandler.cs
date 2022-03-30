@@ -18,12 +18,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Export;
 public class ExportHandler : BaseHandler, IRequestHandler<ExportRequest, ExportResponse>
 {
     private readonly IExportService _exportService;
+
     public ExportHandler(IAuthorizationService<DataActions> authorizationService, IExportService exportService)
         : base(authorizationService)
-    {
-        EnsureArg.IsNotNull(exportService, nameof(exportService));
-        _exportService = exportService;
-    }
+        => _exportService = EnsureArg.IsNotNull(exportService, nameof(exportService));
 
     public async Task<ExportResponse> Handle(ExportRequest request, CancellationToken cancellationToken)
     {

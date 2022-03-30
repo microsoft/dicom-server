@@ -18,6 +18,7 @@ internal class DicomDurableTaskSerializerSettingsFactory : IMessageSerializerSet
         JsonSerializerSettings settings = BaseFactory.CreateJsonSerializerSettings();
         settings.Converters.Add(new ConfigurationJsonConverter());
         settings.Converters.Add(new DataSourceJsonConverter());
+        settings.Converters.Add(new DicomIdentifierJsonConverter());
 
         return settings;
     }

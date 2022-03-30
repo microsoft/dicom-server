@@ -31,7 +31,7 @@ public class DataSourceConverterFactoryTests
     public void GivenValidTypes_WhenCheckingCanConvert_ThenReturnTrue()
     {
         var factory = new DataSourceJsonConverterFactory();
-        Assert.True(factory.CanConvert(typeof(DataSource)));
+        Assert.True(factory.CanConvert(typeof(SourceManifest)));
     }
 
     [Fact]
@@ -41,18 +41,18 @@ public class DataSourceConverterFactoryTests
         {
             Uids = new string[] { "1.2", "2/3" }
         };
-        DataSource source = new DataSource()
+        SourceManifest source = new SourceManifest()
         {
-            Type = ExportSourceType.UID,
-            Metadata = uidSource
+            Type = ExportSourceType.Identifiers,
+            Input = uidSource
         };
 
         string serialized = JsonSerializer.Serialize(source, _defaultOptions);
         Assert.Equal("{\"Type\":\"UID\",\"Metadata\":{\"Uids\":[\"1.2\",\"2/3\"]}}", serialized);
 
-        DataSource deserialized = JsonSerializer.Deserialize<DataSource>(serialized, _defaultOptions);
-        Assert.Equal(ExportSourceType.UID, deserialized.Type);
-        Assert.Equal(uidSource.Uids, ((UidsSource)deserialized.Metadata).Uids);
+        SourceManifest deserialized = JsonSerializer.Deserialize<SourceManifest>(serialized, _defaultOptions);
+        Assert.Equal(ExportSourceType.Identifiers, deserialized.Type);
+        Assert.Equal(uidSource.Uids, ((UidsSource)deserialized.Input).Uids);
 
     }
 }

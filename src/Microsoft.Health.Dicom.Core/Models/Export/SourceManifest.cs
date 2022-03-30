@@ -5,9 +5,9 @@
 
 namespace Microsoft.Health.Dicom.Core.Models.Export;
 
-public class DataSource
+public class SourceManifest
 {
     public ExportSourceType Type { get; set; }
 
-    public object Metadata { get; set; }
+    public object Input { get; set; }
 }
