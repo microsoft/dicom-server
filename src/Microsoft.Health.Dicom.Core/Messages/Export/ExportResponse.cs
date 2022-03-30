@@ -3,11 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Functions.Client;
+using EnsureThat;
+using Microsoft.Health.Operations;
 
-internal static class FunctionNames
+namespace Microsoft.Health.Dicom.Core.Messages.Export;
+
+public class ExportResponse
 {
-    public const string ReindexInstances = "ReindexInstancesAsync";
+    public ExportResponse(OperationReference operationReference)
+    {
+        Operation = EnsureArg.IsNotNull(operationReference);
+    }
 
-    public const string Export = "ExportAsync";
+    public OperationReference Operation { get; }
 }

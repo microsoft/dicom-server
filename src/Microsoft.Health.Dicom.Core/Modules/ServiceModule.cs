@@ -216,6 +216,14 @@ public class ServiceModule : IStartupModule
                 .AsImplementedInterfaces();
         }
 
+        if (_featureConfiguration.EnableExport)
+        {
+            services.Add<ExportService>()
+                .Scoped()
+                .AsSelf()
+                .AsImplementedInterfaces();
+        }
+
         SetupWorkitemTypes(services);
         RegisterExportServices(services);
     }
