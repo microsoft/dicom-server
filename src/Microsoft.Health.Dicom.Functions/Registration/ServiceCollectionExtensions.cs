@@ -20,8 +20,8 @@ using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Functions.Configuration;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Registration;
+using Microsoft.Health.Dicom.Functions.Serialization;
 using Microsoft.Health.Extensions.DependencyInjection;
-using Microsoft.Health.Operations.Functions.DurableTask;
 using Microsoft.Health.Operations.Functions.Management;
 using Microsoft.Health.SqlServer.Configs;
 using Microsoft.IO;
@@ -160,7 +160,7 @@ public static class ServiceCollectionExtensions
     {
         EnsureArg.IsNotNull(services, nameof(services));
 
-        return services.Replace(ServiceDescriptor.Singleton<IMessageSerializerSettingsFactory, DurableTaskSerializerSettingsFactory>());
+        return services.Replace(ServiceDescriptor.Singleton<IMessageSerializerSettingsFactory, DicomDurableTaskSerializerSettingsFactory>());
     }
 
     private sealed class FellowOakExtensionConfiguration : IExtensionConfigProvider

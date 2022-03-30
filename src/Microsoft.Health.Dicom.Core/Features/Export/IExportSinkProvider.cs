@@ -3,13 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export;
 
-public interface IExportSinkFactory
+public interface IExportSinkProvider
 {
-    IExportSink CreateSink(ExportLocation location);
+    ExportDestinationType Type { get; }
 
-    void Validate(ExportLocation location);
+    IExportSink Create(IServiceProvider provider, IConfiguration config);
+
+    void Validate(IConfiguration config);
 }

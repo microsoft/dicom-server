@@ -3,13 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Dicom.Core.Models.Export;
+using System;
 
-namespace Microsoft.Health.Dicom.Core.Features.Export;
+namespace Microsoft.Health.Dicom.Blob.Features.Export;
 
-public interface IExportSinkFactory
+internal sealed class AzureBlobExportOptions
 {
-    IExportSink CreateSink(ExportLocation location);
+    public Uri Uri { get; set; }
 
-    void Validate(ExportLocation location);
+    public string ConnectionString { get; set; }
 }

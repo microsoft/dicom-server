@@ -5,11 +5,14 @@
 
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Blob;
+using Microsoft.Health.Dicom.Blob.Features.Export;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Registration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -38,6 +41,8 @@ public static class DicomFunctionsBuilderRegistrationExtensions
             .AddPersistence<IMetadataStore, BlobMetadataStore, LoggingMetadataStore>()
             .AddBlobServiceClient(blobConfig)
             .Configure<BlobContainerConfiguration>(Constants.MetadataContainerConfigurationName, c => c.ContainerName = containerName);
+
+        functionsBuilder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IExportSinkProvider, AzureBlobExportSinkProvider>());
 
         return functionsBuilder;
     }
