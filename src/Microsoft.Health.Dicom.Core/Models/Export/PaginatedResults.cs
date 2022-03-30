@@ -5,11 +5,9 @@
 
 namespace Microsoft.Health.Dicom.Core.Models.Export;
 
-public class ExportCheckpoint : ExportInput
+public class PaginatedResults<T>
 {
-    public long Exported { get; set; }
+    public T Result { get; init; }
 
-    public long Failed { get; set; }
-
-    public ContinuationToken ContinuationToken { get; set; }
+    public ContinuationToken? ContinuationToken { get; init; }
 }

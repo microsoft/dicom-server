@@ -10,9 +10,9 @@ using EnsureThat;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Functions.Export.Models;
-using Microsoft.Health.Dicom.Functions.Linq;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
 namespace Microsoft.Health.Dicom.Functions.Export;
@@ -27,11 +27,16 @@ public partial class ExportDurableFunction
         ExportCheckpoint input = context.GetInput<ExportCheckpoint>();
 
         logger = context.CreateReplaySafeLogger(logger);
-        logger.LogInformation("Starting to export to '{Sink}' starting from DCM file offset {Offset}.", input.Destination.Type, input.Exported);
+        logger.LogInformation("Starting to export to '{Sink}' starting from DCM file offset {Offset}.", input.Destination.Type, input.ContinuationToken.Offset);
 
-        IEnumerable<Task<int>> exportTasks = Enumerate
-            .Range(input.Exported, input.Batching.MaxParallel, input.Batching.Size)
-            .Select(offset => context.CallActivityWithRetryAsync<int>(
+        // Get batches
+        IExportSource source = _sourceFactory.CreateSource(input.Source);
+        PaginatedResults<IReadOnlyCollection<long>> offsets = source.GetBatchOffsets(input.Batching.Size, input.ContinuationToken);
+
+        // Start export in parallel
+        IEnumerable<Task<ExportResult>> exportTasks = offsets
+            .Result
+            .Select(offset => context.CallActivityWithRetryAsync<ExportResult>(
                 nameof(ExportBatchAsync),
                 _options.RetryOptions,
                 new ExportBatchArguments
@@ -42,17 +47,24 @@ public partial class ExportDurableFunction
                     Source = input.Source,
                 }));
 
-        int[] exportResults = await Task.WhenAll(exportTasks);
-        long exported = exportResults.Aggregate(0L, (current, next) => current + next);
+        // Await the export and count how many instances were exported
+        ExportResult[] exportResults = await Task.WhenAll(exportTasks);
+        ExportResult result = exportResults.Aggregate(
+            (Exported: 0, Failed: 0),
+            (state, partial) => (state.Exported + partial.Exported, state.Failed + partial.Failed),
+            state => new ExportResult { Exported = state.Exported, Failed = state.Failed, });
 
-        if (exportResults[^1] > 0)
+        // Continue exporting if we detect there is still data to export
+        if (offsets.ContinuationToken.HasValue && !exportResults[^1].IsEmpty)
         {
             context.ContinueAsNew(
                 new ExportCheckpoint
                 {
                     Batching = input.Batching,
+                    ContinuationToken = offsets.ContinuationToken.GetValueOrDefault(),
                     Destination = input.Destination,
-                    Exported = input.Exported + exported,
+                    Exported = input.Exported + result.Exported,
+                    Failed = input.Failed + result.Failed,
                     Source = input.Source,
                 });
         }

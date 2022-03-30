@@ -11,6 +11,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Export;
 
 public interface IExportSink
 {
+    Uri ErrorHref { get; }
+
     Task CopyAsync(VersionedInstanceIdentifier source);
 
     Task AppendErrorAsync(VersionedInstanceIdentifier source, Exception exception);

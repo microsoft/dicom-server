@@ -12,6 +12,8 @@ namespace Microsoft.Health.Dicom.Blob.Features.Export;
 
 internal class AzureBlobExportSink : IExportSink
 {
+    public Uri ErrorHref => throw new NotImplementedException();
+
     public Task AppendErrorAsync(VersionedInstanceIdentifier source, Exception exception)
     {
         throw new NotImplementedException();

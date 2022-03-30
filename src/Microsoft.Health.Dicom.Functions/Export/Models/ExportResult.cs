@@ -3,13 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Models.Export;
+namespace Microsoft.Health.Dicom.Functions.Export.Models;
 
-public class ExportCheckpoint : ExportInput
+public class ExportResult
 {
-    public long Exported { get; set; }
+    public bool IsEmpty => Exported == 0 && Failed == 0;
 
-    public long Failed { get; set; }
+    public int Exported { get; set; }
 
-    public ContinuationToken ContinuationToken { get; set; }
+    public int Failed { get; set; }
 }
