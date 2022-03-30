@@ -9,6 +9,7 @@ using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Delete;
+using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.HealthCheck;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
@@ -216,6 +217,7 @@ public class ServiceModule : IStartupModule
         }
 
         SetupWorkitemTypes(services);
+        RegisterExportServices(services);
     }
 
     private static void SetupWorkitemTypes(IServiceCollection services)
@@ -249,5 +251,14 @@ public class ServiceModule : IStartupModule
             .Scoped()
             .AsSelf()
             .AsImplementedInterfaces();
+    }
+
+    private static void RegisterExportServices(IServiceCollection services)
+    {
+        // Sources
+        //services.AddSingleton<IExportSourceFactory, ExportSourceFactory>();
+
+        // Sinks
+        services.AddSingleton<IExportSinkFactory, ExportSinkFactory>();
     }
 }
