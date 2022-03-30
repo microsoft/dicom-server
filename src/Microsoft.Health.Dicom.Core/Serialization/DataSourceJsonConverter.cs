@@ -77,7 +77,7 @@ public class DataSourceJsonConverter : JsonConverter<DataSource>
         if (value.Type == ExportSourceType.UID)
         {
             writer.WritePropertyName(nameof(DataSource.Metadata));
-            writer.WriteRawValue(JsonSerializer.Serialize((UidsSource)value.Metadata, options));
+            JsonSerializer.Serialize(writer, (UidsSource)value.Metadata, options);
         }
         else
         {
