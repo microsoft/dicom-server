@@ -31,4 +31,9 @@ public class FeatureConfiguration
     /// Enable UPS-RS feature
     /// </summary>
     public bool EnableUpsRs { get; set; }
+
+    /// <summary>
+    /// Enables Export feature.
+    /// </summary>
+    public bool EnableExport { get; set; }
 }

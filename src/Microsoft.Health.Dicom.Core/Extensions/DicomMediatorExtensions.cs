@@ -14,6 +14,7 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
+using Microsoft.Health.Dicom.Core.Messages.Export;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
 using Microsoft.Health.Dicom.Core.Messages.Partition;
@@ -21,6 +22,7 @@ using Microsoft.Health.Dicom.Core.Messages.Query;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
+using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Core.Extensions;
 
@@ -146,6 +148,13 @@ public static class DicomMediatorExtensions
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
         return mediator.Send(new AddExtendedQueryTagRequest(extendedQueryTags), cancellationToken);
+    }
+
+    public static Task<ExportResponse> ExportAsync(
+      this IMediator mediator, ExportInput exportInput, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(mediator, nameof(mediator));
+        return mediator.Send(new ExportRequest(exportInput), cancellationToken);
     }
 
     public static Task<DeleteExtendedQueryTagResponse> DeleteExtendedQueryTagAsync(
