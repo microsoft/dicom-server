@@ -7,7 +7,7 @@ using System;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Newtonsoft.Json;
 
-namespace Microsoft.Health.Dicom.Functions.Serialization;
+namespace Microsoft.Health.Dicom.Core.Serialization.Newtonsoft;
 
 internal class DicomIdentifierJsonConverter : JsonConverter<DicomIdentifier>
 {

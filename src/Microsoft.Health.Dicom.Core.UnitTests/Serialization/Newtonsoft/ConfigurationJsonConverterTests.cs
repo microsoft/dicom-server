@@ -5,12 +5,12 @@
 
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Health.Dicom.Functions.Serialization;
+using Microsoft.Health.Dicom.Core.Serialization.Newtonsoft;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Functions.UnitTests.Serialization;
+namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization.Newtonsoft;
 
 public class ConfigurationJsonConverterTests
 {

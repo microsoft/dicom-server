@@ -5,11 +5,11 @@
 
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Messages;
-using Microsoft.Health.Dicom.Functions.Serialization;
+using Microsoft.Health.Dicom.Core.Serialization.Newtonsoft;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Functions.UnitTests.Serialization;
+namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization.Newtonsoft;
 
 public class DicomIdentifierJsonConverterTests
 {

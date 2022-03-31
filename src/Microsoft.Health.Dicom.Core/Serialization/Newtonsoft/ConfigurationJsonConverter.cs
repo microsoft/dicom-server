@@ -11,7 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.Health.Dicom.Functions.Serialization;
+namespace Microsoft.Health.Dicom.Core.Serialization.Newtonsoft;
 
 internal class ConfigurationJsonConverter : JsonConverter<IConfiguration>
 {

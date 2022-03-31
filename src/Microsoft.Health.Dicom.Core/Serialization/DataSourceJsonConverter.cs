@@ -10,6 +10,7 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Core.Serialization;
+
 public class DataSourceJsonConverter : JsonConverter<SourceManifest>
 {
     public override SourceManifest Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

@@ -7,6 +7,7 @@ using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Delete;
@@ -24,6 +25,7 @@ using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Core.Modules;
 
@@ -264,6 +266,9 @@ public class ServiceModule : IStartupModule
 
     private static void RegisterExportServices(IServiceCollection services)
     {
+        // Newtonsoft Serialization
+        services.Configure<JsonSerializerSettings>(x => x.ConfigureDefaultDicomSettings());
+
         // Sources
         services.AddScoped<ExportSourceFactory>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IExportSourceProvider, IdentifierExportSourceProvider>());

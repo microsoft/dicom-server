@@ -10,7 +10,7 @@ using Microsoft.Health.Dicom.Core.Models.Export;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.Health.Dicom.Functions.Serialization;
+namespace Microsoft.Health.Dicom.Core.Serialization.Newtonsoft;
 
 internal sealed class SourceManifestJsonConverter : JsonConverter<SourceManifest>
 {

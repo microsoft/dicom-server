@@ -8,7 +8,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Operations.Functions.DurableTask;
 using Newtonsoft.Json;
 
-namespace Microsoft.Health.Dicom.Functions.Serialization;
+namespace Microsoft.Health.Dicom.Functions.Client.Serialization;
 
 internal class DicomDurableTaskSerializerSettingsFactory : IMessageSerializerSettingsFactory
 {
