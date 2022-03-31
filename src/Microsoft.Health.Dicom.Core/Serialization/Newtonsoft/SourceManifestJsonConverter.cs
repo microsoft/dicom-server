@@ -16,6 +16,9 @@ internal sealed class SourceManifestJsonConverter : JsonConverter<SourceManifest
 {
     public override SourceManifest ReadJson(JsonReader reader, Type objectType, SourceManifest existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
+        if (reader.TokenType == JsonToken.Null)
+            return null;
+
         JObject obj = serializer.Deserialize<JObject>(reader);
 
         if (!TryGetProperty(obj, nameof(SourceManifest.Type), JTokenType.String, out JValue typeToken))

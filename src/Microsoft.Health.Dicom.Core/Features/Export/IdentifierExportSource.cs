@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -19,7 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Export;
 internal class IdentifierExportSource : IExportSource
 {
     public SourceManifest Manifest => _index < _identifiers.Count
-        ? new SourceManifest { Type = ExportSourceType.Identifiers, Input = _identifiers }
+        ? new SourceManifest { Type = ExportSourceType.Identifiers, Input = GetRemaining() }
         : null;
 
     private int _index;
@@ -65,6 +66,9 @@ internal class IdentifierExportSource : IExportSource
         _index += count;
         return new SourceManifest { Type = ExportSourceType.Identifiers, Input = batch };
     }
+
+    private IReadOnlyList<DicomIdentifier> GetRemaining()
+        => _identifiers.Skip(_index).ToList();
 
     public ValueTask DisposeAsync()
         => ValueTask.CompletedTask;

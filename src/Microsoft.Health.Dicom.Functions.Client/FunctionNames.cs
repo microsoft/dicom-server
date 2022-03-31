@@ -9,5 +9,5 @@ internal static class FunctionNames
 {
     public const string ReindexInstances = "ReindexInstancesAsync";
 
-    public const string Export = "ExportAsync";
+    public const string Export = "ExportDicomFilesAsync";
 }

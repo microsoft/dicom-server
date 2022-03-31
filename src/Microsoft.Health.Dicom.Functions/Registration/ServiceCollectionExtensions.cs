@@ -18,6 +18,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Modules;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Functions.Configuration;
+using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Registration;
 using Microsoft.Health.Dicom.Functions.Serialization;
@@ -54,7 +55,8 @@ public static class ServiceCollectionExtensions
         return new DicomFunctionsBuilder(services
             .AddRecyclableMemoryStreamManager()
             .AddFellowOakDicomExtension()
-            .AddFunctionsOptions<QueryTagIndexingOptions>(configuration, QueryTagIndexingOptions.SectionName, bindNonPublicProperties: true)
+            .AddFunctionsOptions<ExportOptions>(configuration, ExportOptions.SectionName)
+            .AddFunctionsOptions<QueryTagIndexingOptions>(configuration, QueryTagIndexingOptions.SectionName)
             .AddFunctionsOptions<PurgeHistoryOptions>(configuration, PurgeHistoryOptions.SectionName, isDicomFunction: false)
             .ConfigureDurableFunctionSerialization()
             .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings()));
@@ -91,13 +93,12 @@ public static class ServiceCollectionExtensions
         EnsureArg.IsNotNull(builder, nameof(builder));
         EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-        string containerName = configuration
+        DicomBlobContainerConfiguration containers = configuration
             .GetSection(BlobDataStoreConfiguration.SectionName)
             .GetSection(DicomBlobContainerConfiguration.SectionName)
-            .Get<DicomBlobContainerConfiguration>()
-            .Metadata;
+            .Get<DicomBlobContainerConfiguration>();
 
-        return builder.AddMetadataStorageDataStore(configuration, containerName);
+        return builder.AddMetadataStorageDataStore(configuration, containers.Metadata, containers.Blob);
     }
 
     private static IServiceCollection AddRecyclableMemoryStreamManager(this IServiceCollection services, Func<RecyclableMemoryStreamManager> factory = null)

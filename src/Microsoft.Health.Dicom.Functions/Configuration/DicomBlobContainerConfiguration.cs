@@ -12,5 +12,8 @@ internal class DicomBlobContainerConfiguration
     public const string SectionName = "Containers";
 
     [Required]
+    public string Blob { get; set; }
+
+    [Required]
     public string Metadata { get; set; }
 }

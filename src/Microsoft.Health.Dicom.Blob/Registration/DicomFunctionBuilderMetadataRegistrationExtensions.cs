@@ -23,13 +23,15 @@ public static class DicomFunctionsBuilderRegistrationExtensions
     /// Adds the metadata store for the DICOM functions.
     /// </summary>
     /// <param name="functionsBuilder">The DICOM functions builder instance.</param>
-    /// <param name="containerName">The name of the metadata container.</param>
     /// <param name="configuration">The configuration for the function.</param>
+    /// <param name="metadataContainer">The name of the metadata container.</param>
+    /// <param name="blobContainer">The name of the blob container.</param>
     /// <returns>The functions builder.</returns>
     public static IDicomFunctionsBuilder AddMetadataStorageDataStore(
         this IDicomFunctionsBuilder functionsBuilder,
         IConfiguration configuration,
-        string containerName)
+        string metadataContainer,
+        string blobContainer)
     {
         EnsureArg.IsNotNull(functionsBuilder, nameof(functionsBuilder));
         EnsureArg.IsNotNull(configuration, nameof(configuration));
@@ -40,7 +42,8 @@ public static class DicomFunctionsBuilderRegistrationExtensions
             .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<MetadataStoreConfigurationSection>())
             .AddPersistence<IMetadataStore, BlobMetadataStore, LoggingMetadataStore>()
             .AddBlobServiceClient(blobConfig)
-            .Configure<BlobContainerConfiguration>(Constants.MetadataContainerConfigurationName, c => c.ContainerName = containerName);
+            .Configure<BlobContainerConfiguration>(Constants.MetadataContainerConfigurationName, c => c.ContainerName = metadataContainer)
+            .Configure<BlobContainerConfiguration>(Constants.BlobContainerConfigurationName, c => c.ContainerName = blobContainer);
 
         functionsBuilder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IExportSinkProvider, AzureBlobExportSinkProvider>());
 

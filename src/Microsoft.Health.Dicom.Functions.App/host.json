@@ -3,6 +3,7 @@
   "BlobStore": {
     "ConnectionString": null,
     "Containers": {
+      "Blob": "dicomwebcontainer",
       "Metadata": "metadatacontainer"
     },
     "Initialization": {
@@ -33,6 +34,13 @@
         "BackoffCoefficient": 3,
         "FirstRetryInterval": "00:01:00",
         "MaxNumberOfAttempts": 4
+      },
+    },
+    "Export": {
+      "RetryOptions": {
+        "BackoffCoefficient": 1,
+        "FirstRetryInterval": "00:00:01",
+        "MaxNumberOfAttempts": 3
       }
     }
   },

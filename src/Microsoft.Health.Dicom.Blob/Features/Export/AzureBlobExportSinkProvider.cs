@@ -38,7 +38,7 @@ public class AzureBlobExportSinkProvider : IExportSinkProvider
     {
         AzureBlobExportOptions options = config.Get<AzureBlobExportOptions>();
 
-        if (options.ContainerUri == null || options.SasToken == null)
+        if (options.ContainerUri == null)
             throw new FormatException();
     }
 
@@ -49,7 +49,7 @@ public class AzureBlobExportSinkProvider : IExportSinkProvider
 
         path = exportOptions.FolderPath;
 
-        if (exportOptions.ContainerUri != null)
+        if (exportOptions.SasToken == null)
         {
             throw new NotImplementedException();
             //need a way to pass the MI config from KeyVault to here
