@@ -4,16 +4,15 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using Microsoft.Health.Operations;
+using MediatR;
+using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Export;
 
-public class ExportResponse
+public class ExportIdentifiersRequest : IRequest<ExportIdentifiersResponse>
 {
-    public ExportResponse(OperationReference operationReference)
-    {
-        Operation = EnsureArg.IsNotNull(operationReference);
-    }
+    public ExportIdentifiersRequest(ExportIdentifiersInput input)
+        => Input = EnsureArg.IsNotNull(input, nameof(input));
 
-    public OperationReference Operation { get; }
+    public ExportIdentifiersInput Input { get; }
 }

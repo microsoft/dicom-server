@@ -15,15 +15,15 @@ using Microsoft.Health.Dicom.Core.Messages.Export;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export;
 
-public class ExportHandler : BaseHandler, IRequestHandler<ExportRequest, ExportResponse>
+public class ExportIdentifiersHandler : BaseHandler, IRequestHandler<ExportIdentifiersRequest, ExportIdentifiersResponse>
 {
     private readonly IExportService _exportService;
 
-    public ExportHandler(IAuthorizationService<DataActions> authorizationService, IExportService exportService)
+    public ExportIdentifiersHandler(IAuthorizationService<DataActions> authorizationService, IExportService exportService)
         : base(authorizationService)
         => _exportService = EnsureArg.IsNotNull(exportService, nameof(exportService));
 
-    public async Task<ExportResponse> Handle(ExportRequest request, CancellationToken cancellationToken)
+    public async Task<ExportIdentifiersResponse> Handle(ExportIdentifiersRequest request, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(request, nameof(request));
 
@@ -32,6 +32,6 @@ public class ExportHandler : BaseHandler, IRequestHandler<ExportRequest, ExportR
             throw new UnauthorizedDicomActionException(DataActions.Export);
         }
 
-        return await _exportService.ExportAsync(request.ExportInput, cancellationToken);
+        return await _exportService.StartExportingIdentifiersAsync(request.Input, cancellationToken);
     }
 }

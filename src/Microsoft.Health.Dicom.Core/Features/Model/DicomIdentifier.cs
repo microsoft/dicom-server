@@ -11,7 +11,7 @@ using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Model;
 
-public class DicomIdentifier
+public class DicomIdentifier : IEquatable<DicomIdentifier>
 {
     public ResourceType Type
     {
@@ -39,6 +39,18 @@ public class DicomIdentifier
         SeriesInstanceUid = seriesInstanceUid;
         SopInstanceUid = sopInstanceUid;
     }
+
+    public override bool Equals(object obj)
+        => obj is DicomIdentifier other && Equals(other);
+
+    public bool Equals(DicomIdentifier other)
+        => other != null
+        && string.Equals(StudyInstanceUid, other.StudyInstanceUid, StringComparison.Ordinal)
+        && string.Equals(SeriesInstanceUid, other.SeriesInstanceUid, StringComparison.Ordinal)
+        && string.Equals(SopInstanceUid, other.SopInstanceUid, StringComparison.Ordinal);
+
+    public override int GetHashCode()
+        => HashCode.Combine(StudyInstanceUid, SeriesInstanceUid, SopInstanceUid);
 
     public static DicomIdentifier ForStudy(string uid)
         => new DicomIdentifier(uid, null, null);

@@ -19,4 +19,9 @@ public enum DicomOperation
     /// Specifies a reindexing operation that updates the indicies for previously added data based on new tags.
     /// </summary>
     Reindex,
+
+    /// <summary>
+    /// Specifies an export operation that copies data from the DICOM server to some other storage.
+    /// </summary>
+    Export,
 }

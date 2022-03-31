@@ -5,6 +5,7 @@
 
 using System;
 using System.Linq;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Functions.Serialization;
 using Newtonsoft.Json;
@@ -19,13 +20,10 @@ public class SourceManifestJsonConverterTests
 
     public SourceManifestJsonConverterTests()
     {
-        _serializerSettings = new JsonSerializerSettings
-        {
-            Formatting = Formatting.Indented,
-        };
-
-        _serializerSettings.Converters.Add(new StringEnumConverter());
+        _serializerSettings = new JsonSerializerSettings { Formatting = Formatting.Indented };
+        _serializerSettings.Converters.Add(new DicomIdentifierJsonConverter());
         _serializerSettings.Converters.Add(new SourceManifestJsonConverter());
+        _serializerSettings.Converters.Add(new StringEnumConverter());
     }
 
     [Fact]
@@ -34,23 +32,21 @@ public class SourceManifestJsonConverterTests
         const string json = @"{
   ""Type"": ""Identifiers"",
   ""Input"": [
-    ""1.2.840.10008.1.​1"",
-    ""1.2.840.10008.1.​2/1.2.840.10008.1.​2.​1"",
-    ""1.2.840.10008.1.2.​1.​99/1.2.840.10008.1.​2.​2/1.2.840.10008.1.2.​4.​50"",
+    ""1234.5678"",
+    ""98.765.4/32.1""
   ]
 }";
 
         SourceManifest actual = JsonConvert.DeserializeObject<SourceManifest>(json, _serializerSettings);
         Assert.Equal(ExportSourceType.Identifiers, actual.Type);
 
-        string[] identifiers = actual.Input as string[];
+        DicomIdentifier[] identifiers = actual.Input as DicomIdentifier[];
         Assert.NotNull(identifiers);
         Assert.True(identifiers.SequenceEqual(
-            new string[]
+            new DicomIdentifier[]
             {
-                "1.2.840.10008.1.​1",
-                "1.2.840.10008.1.​2/1.2.840.10008.1.​2.​1",
-                "1.2.840.10008.1.2.​1.​99/1.2.840.10008.1.​2.​2/1.2.840.10008.1.2.​4.​50",
+                DicomIdentifier.ForStudy("1234.5678"),
+                DicomIdentifier.ForSeries("98.765.4", "32.1"),
             }));
     }
 
@@ -60,14 +56,18 @@ public class SourceManifestJsonConverterTests
         const string expected = @"{
   ""Type"": ""Identifiers"",
   ""Input"": [
-    ""hello"",
-    ""world""
+    ""1234.5678"",
+    ""98.765.4/32.1""
   ]
 }";
 
         var value = new SourceManifest
         {
-            Input = new string[] { "hello", "world" },
+            Input = new DicomIdentifier[]
+            {
+                DicomIdentifier.ForStudy("1234.5678"),
+                DicomIdentifier.ForSeries("98.765.4", "32.1"),
+            },
             Type = ExportSourceType.Identifiers,
         };
 

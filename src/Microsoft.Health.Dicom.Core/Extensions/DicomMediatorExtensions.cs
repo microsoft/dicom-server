@@ -150,11 +150,11 @@ public static class DicomMediatorExtensions
         return mediator.Send(new AddExtendedQueryTagRequest(extendedQueryTags), cancellationToken);
     }
 
-    public static Task<ExportResponse> ExportAsync(
-      this IMediator mediator, ExportInput exportInput, CancellationToken cancellationToken)
+    public static Task<ExportIdentifiersResponse> ExportIdentifiersAsync(
+      this IMediator mediator, ExportIdentifiersInput input, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
-        return mediator.Send(new ExportRequest(exportInput), cancellationToken);
+        return mediator.Send(new ExportIdentifiersRequest(input), cancellationToken);
     }
 
     public static Task<DeleteExtendedQueryTagResponse> DeleteExtendedQueryTagAsync(

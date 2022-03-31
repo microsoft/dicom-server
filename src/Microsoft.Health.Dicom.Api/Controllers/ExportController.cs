@@ -54,17 +54,18 @@ public class ExportController : ControllerBase
     [BodyModelStateValidator]
     [Produces(KnownContentTypes.ApplicationJson)]
     [Consumes(KnownContentTypes.ApplicationJson)]
-    [ProducesResponseType(typeof(ExportResponse), (int)HttpStatusCode.Accepted)]
+    [ProducesResponseType(typeof(ExportIdentifiersResponse), (int)HttpStatusCode.Accepted)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [VersionedRoute(KnownRoutes.ExportRoute)]
     [Route(KnownRoutes.ExportRoute)]
     [AuditEventType(AuditEventSubType.Export)]
-    public async Task<IActionResult> PostAsync([Required][FromBody] ExportInput exportInput)
+    public async Task<IActionResult> ExportIdentifiersAsync([Required][FromBody] ExportIdentifiersInput input)
     {
-        _logger.LogInformation("DICOM Web Export request received, with input {ExportInput}.", exportInput);
+        EnsureArg.IsNotNull(input, nameof(input));
+        _logger.LogInformation("DICOM Web Export request received to export '{Files}' to '{Sink}'.", input.Identifiers.Count, input.Destination.Type);
 
         EnsureFeatureIsEnabled();
-        ExportResponse response = await _mediator.ExportAsync(exportInput, HttpContext.RequestAborted);
+        ExportIdentifiersResponse response = await _mediator.ExportIdentifiersAsync(input, HttpContext.RequestAborted);
 
         Response.AddLocationHeader(response.Operation.Href);
         return StatusCode((int)HttpStatusCode.Accepted, response.Operation);

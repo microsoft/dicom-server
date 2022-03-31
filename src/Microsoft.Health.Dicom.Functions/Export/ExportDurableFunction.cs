@@ -14,11 +14,11 @@ namespace Microsoft.Health.Dicom.Functions.Export;
 /// </summary>
 public partial class ExportDurableFunction
 {
-    private readonly IExportSourceFactory _sourceFactory;
-    private readonly IExportSinkFactory _sinkFactory;
+    private readonly ExportSourceFactory _sourceFactory;
+    private readonly ExportSinkFactory _sinkFactory;
     private readonly ExportOptions _options;
 
-    public ExportDurableFunction(IExportSourceFactory sourceFactory, IExportSinkFactory sinkFactory, IOptions<ExportOptions> options)
+    public ExportDurableFunction(ExportSourceFactory sourceFactory, ExportSinkFactory sinkFactory, IOptions<ExportOptions> options)
     {
         _sourceFactory = EnsureArg.IsNotNull(sourceFactory, nameof(sinkFactory));
         _sinkFactory = EnsureArg.IsNotNull(sinkFactory, nameof(sinkFactory));

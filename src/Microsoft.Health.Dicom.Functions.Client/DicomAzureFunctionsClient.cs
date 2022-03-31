@@ -139,7 +139,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         string instanceId = await _durableClient.StartNewAsync(
             FunctionNames.Export,
             operationId.ToString(OperationId.FormatSpecifier),
-             input);
+            input);
 
         _logger.LogInformation("Successfully started new orchestration instance with ID '{InstanceId}'.", instanceId);
         return operationId;
@@ -151,6 +151,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     private static IOperationCheckpoint ParseCheckpoint(DicomOperation type, DurableOrchestrationStatus status)
         => type switch
         {
+            DicomOperation.Export => status.Input?.ToObject<ExportCheckpoint>() ?? new ExportCheckpoint(),
             DicomOperation.Reindex => status.Input?.ToObject<ReindexInput>() ?? new ReindexInput(),
             _ => NullOperationCheckpoint.Value,
         };
@@ -162,6 +163,8 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     {
         switch (type)
         {
+            case DicomOperation.Export:
+                return null;
             case DicomOperation.Reindex:
                 List<int> tagKeys = resourceIds?.Select(x => int.Parse(x, CultureInfo.InvariantCulture)).ToList();
 

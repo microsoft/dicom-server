@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Functions.Serialization;
 using Newtonsoft.Json;
 using Xunit;
@@ -16,18 +17,14 @@ public class DicomIdentifierJsonConverterTests
 
     public DicomIdentifierJsonConverterTests()
     {
-        _serializerSettings = new JsonSerializerSettings
-        {
-            Formatting = Formatting.Indented,
-        };
-
+        _serializerSettings = new JsonSerializerSettings { Formatting = Formatting.Indented };
         _serializerSettings.Converters.Add(new DicomIdentifierJsonConverter());
     }
 
     [Theory]
-    [InlineData("1.2.840.10008.1.1", null, null, "1.2.840.10008.1.1")]
-    [InlineData("1.2.840.10008.1.2", "1.2.840.10008.1.2.1", null, "1.2.840.10008.1.2/1.2.840.10008.1.2.1")]
-    [InlineData("1.2.840.10008.1.2.1.99", "1.2.840.10008.1.2.2", "1.2.840.10008.1.2.4.50", "1.2.840.10008.1.2.1.99/1.2.840.10008.1.2.2/1.2.840.10008.1.2.4.50")]
+    [InlineData("1.2.345", null, null, "1.2.345")]
+    [InlineData("1.2.345", "67.89", null, "1.2.345/67.89")]
+    [InlineData("1.2.345", "67.89", "10.11121314.1516.17.18.1920", "1.2.345/67.89/10.11121314.1516.17.18.1920")]
     public void GivenJson_WhenReading_ThenDeserialize(string study, string series, string instance, string value)
     {
         DicomIdentifier actual = JsonConvert.DeserializeObject<DicomIdentifier>("\"" + value + "\"", _serializerSettings);
@@ -37,8 +34,19 @@ public class DicomIdentifierJsonConverterTests
         Assert.Equal(instance, actual.SopInstanceUid);
     }
 
-    [Fact]
-    public void GivenObject_WhenWrite_ThenSerialize()
+    [Theory]
+    [InlineData(ResourceType.Study, "1.2.345", null, null, "1.2.345")]
+    [InlineData(ResourceType.Series, "1.2.345", "67.89", null, "1.2.345/67.89")]
+    [InlineData(ResourceType.Instance, "1.2.345", "67.89", "10.11121314.1516.17.18.1920", "1.2.345/67.89/10.11121314.1516.17.18.1920")]
+    public void GivenObject_WhenWrite_ThenSerialize(ResourceType type, string study, string series, string instance, string value)
     {
+        string actual = JsonConvert.SerializeObject(type switch
+        {
+            ResourceType.Study => DicomIdentifier.ForStudy(study),
+            ResourceType.Series => DicomIdentifier.ForSeries(study, series),
+            _ => DicomIdentifier.ForInstance(study, series, instance),
+        }, _serializerSettings);
+
+        Assert.Equal("\"" + value + "\"", actual);
     }
 }

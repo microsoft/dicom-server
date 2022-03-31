@@ -17,11 +17,19 @@ namespace Microsoft.Health.Dicom.Core.Features.Export;
 
 public class ExportService : IExportService
 {
+    private readonly ExportSourceFactory _sourceFactory;
+    private readonly ExportSinkFactory _sinkFactory;
     private readonly IDicomOperationsClient _client;
     private readonly IUrlResolver _uriResolver;
 
-    public ExportService(IDicomOperationsClient client, IUrlResolver uriResolver)
+    public ExportService(
+        ExportSourceFactory sourceFactory,
+        ExportSinkFactory sinkFactory,
+        IDicomOperationsClient client,
+        IUrlResolver uriResolver)
     {
+        _sourceFactory = EnsureArg.IsNotNull(sourceFactory, nameof(sourceFactory));
+        _sinkFactory = EnsureArg.IsNotNull(sinkFactory, nameof(sinkFactory));
         _client = EnsureArg.IsNotNull(client, nameof(client));
         _uriResolver = EnsureArg.IsNotNull(uriResolver, nameof(uriResolver));
     }
@@ -29,14 +37,35 @@ public class ExportService : IExportService
     /// <summary>
     /// Export.
     /// </summary>
-    /// <param name="exportInput">The export input.</param>
+    /// <param name="input">The export input.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The response.</returns>
-    public async Task<ExportResponse> ExportAsync(ExportInput exportInput, CancellationToken cancellationToken)
+    public async Task<ExportIdentifiersResponse> StartExportingIdentifiersAsync(ExportIdentifiersInput input, CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(exportInput, nameof(exportInput));
-        // TODO: validate input
-        Guid operationId = await _client.StartExportAsync(exportInput, cancellationToken);
-        return new ExportResponse(new OperationReference(operationId, _uriResolver.ResolveOperationStatusUri(operationId)));
+        EnsureArg.IsNotNull(input, nameof(input));
+
+        OperationReference operation = await StartExportAsync(
+            new ExportInput
+            {
+                // TODO: Add batching options
+                Manifest = new SourceManifest
+                {
+                    Input = input.Identifiers,
+                    Type = ExportSourceType.Identifiers,
+                },
+                Destination = input.Destination,
+            },
+            cancellationToken);
+
+        return new ExportIdentifiersResponse(operation);
+    }
+
+    private async Task<OperationReference> StartExportAsync(ExportInput input, CancellationToken cancellationToken)
+    {
+        _sourceFactory.Validate(input.Manifest);
+        _sinkFactory.Validate(input.Destination);
+
+        Guid operationId = await _client.StartExportAsync(input, cancellationToken);
+        return new OperationReference(operationId, _uriResolver.ResolveOperationStatusUri(operationId));
     }
 }

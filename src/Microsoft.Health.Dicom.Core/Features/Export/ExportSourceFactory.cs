@@ -11,7 +11,7 @@ using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export;
 
-internal sealed class ExportSourceFactory : IExportSourceFactory
+public sealed class ExportSourceFactory
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly Dictionary<ExportSourceType, IExportSourceProvider> _providers;

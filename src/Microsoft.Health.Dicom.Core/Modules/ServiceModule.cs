@@ -265,10 +265,10 @@ public class ServiceModule : IStartupModule
     private static void RegisterExportServices(IServiceCollection services)
     {
         // Sources
-        services.AddScoped<IExportSourceFactory, ExportSourceFactory>();
+        services.AddScoped<ExportSourceFactory>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IExportSourceProvider, IdentifierExportSourceProvider>());
 
         // Sinks
-        services.AddScoped<IExportSinkFactory, ExportSinkFactory>();
+        services.AddScoped<ExportSinkFactory>();
     }
 }

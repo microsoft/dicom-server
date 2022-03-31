@@ -26,9 +26,10 @@ internal sealed class SourceManifestJsonConverter : JsonConverter<SourceManifest
             if (!TryGetProperty(obj, nameof(SourceManifest.Input), JTokenType.Array, out JArray idsToken))
                 throw new JsonException();
 
+
             return new SourceManifest
             {
-                Input = idsToken.Values().Select(x => serializer.Deserialize<DicomIdentifier>(reader)).ToArray(),
+                Input = idsToken.Values().Select(x => DicomIdentifier.Parse(x.Value<string>())).ToArray(),
                 Type = ExportSourceType.Identifiers,
             };
         }

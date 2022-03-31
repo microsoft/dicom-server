@@ -15,8 +15,8 @@ public interface IExportService
     /// <summary>
     /// Add Extended Query Tags.
     /// </summary>
-    /// <param name="exportInput">The export input.</param>
+    /// <param name="input">The export input.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The response.</returns>
-    public Task<ExportResponse> ExportAsync(ExportInput exportInput, CancellationToken cancellationToken = default);
+    public Task<ExportIdentifiersResponse> StartExportingIdentifiersAsync(ExportIdentifiersInput input, CancellationToken cancellationToken = default);
 }

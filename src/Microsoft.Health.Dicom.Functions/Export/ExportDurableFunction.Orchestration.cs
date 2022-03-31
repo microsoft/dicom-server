@@ -27,7 +27,6 @@ public partial class ExportDurableFunction
         ExportCheckpoint input = context.GetInput<ExportCheckpoint>();
 
         logger = context.CreateReplaySafeLogger(logger);
-        logger.LogInformation("Starting to export to '{Sink}' starting from DCM file #{Offset}.", input.Destination.Type, input.Result.Exported + input.Result.Failed + 1);
 
         // Are we done?
         if (input.Manifest == null)
@@ -37,6 +36,7 @@ public partial class ExportDurableFunction
         }
 
         // Get batches
+        logger.LogInformation("Starting to export to '{Sink}' starting from DCM file #{Offset}.", input.Destination.Type, input.Result.Exported + input.Result.Failed + 1);
         await using IExportSource source = _sourceFactory.CreateSource(input.Manifest);
 
         // Start export in parallel
@@ -66,6 +66,7 @@ public partial class ExportDurableFunction
             new ExportCheckpoint
             {
                 Batching = input.Batching,
+                CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
                 Destination = input.Destination,
                 Result = result,
                 Manifest = source.Manifest,

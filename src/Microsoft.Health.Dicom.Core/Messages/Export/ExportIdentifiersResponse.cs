@@ -3,13 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Dicom.Core.Models.Export;
+using EnsureThat;
+using Microsoft.Health.Operations;
 
-namespace Microsoft.Health.Dicom.Core.Features.Export;
+namespace Microsoft.Health.Dicom.Core.Messages.Export;
 
-public interface IExportSourceFactory
+public class ExportIdentifiersResponse
 {
-    IExportSource CreateSource(SourceManifest source);
+    public ExportIdentifiersResponse(OperationReference operationReference)
+        => Operation = EnsureArg.IsNotNull(operationReference);
 
-    void Validate(SourceManifest source);
+    public OperationReference Operation { get; }
 }
