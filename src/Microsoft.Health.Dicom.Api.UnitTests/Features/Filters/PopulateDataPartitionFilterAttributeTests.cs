@@ -150,4 +150,22 @@ public class PopulateDataPartitionFilterAttributeTests
 
         _dicomRequestContextAccessor.Received().RequestContext.DataPartitionEntry.PartitionKey = newPartitionKey;
     }
+
+    [Fact]
+    public async Task GivenNonExistingPartitionNamePassed_AndAddWorkitemRequest_ThenPartitionIsCreated()
+    {
+        var newPartitionKey = 3;
+        var newPartitionName = "partition";
+
+        _controllerActionDescriptor.AttributeRouteInfo.Name = KnownRouteNames.PartitionedAddWorkitemInstance;
+
+        _mediator.Send(Arg.Any<GetPartitionRequest>())
+            .Returns(new GetPartitionResponse(null));
+        _mediator.Send(Arg.Any<AddPartitionRequest>())
+            .Returns(new AddPartitionResponse(new PartitionEntry(newPartitionKey, newPartitionName)));
+
+        await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate);
+
+        _dicomRequestContextAccessor.Received().RequestContext.DataPartitionEntry.PartitionKey = newPartitionKey;
+    }
 }
