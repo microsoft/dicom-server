@@ -1,7 +1,6 @@
 # Managing deployment of Medical Imaging Server for DICOM in production
 
-If you want to mantain your own deployment, we recommend you to be moderately familiar with our code, . 
-Below is a list of things to consider.
+Below is a list of things to consider if you want to mantain your own deployment. We recommend you to be moderately familiar with our code. 
 
 | Area | Description |
 | --- | --- |
