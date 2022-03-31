@@ -12,5 +12,5 @@ Below is a list of things to consider if you want to mantain your own deployment
 | Capacity and Scale | Consider production workloads and performance to plan for vertical or horizontal scale. |
 | Network Security | Consider network security like Private endpoints and Virtual network access to the dependent services.|
 | Pricing | App service plan and SQL server is deployed with the sample deployment. There are basic charges for these resources even if they are not used. |
-| Data redudancy | Consider and SQL Database and Storage Account SKU for the right data redudancy.  |
+| Data redundancy | Consider and SQL Database and Storage Account SKU for the right data redudancy.  |
 | Disaster recovery | Consider region unavailability for mission critical deployments. |
