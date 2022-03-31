@@ -8,6 +8,13 @@ The Medical Imaging Server for DICOM is an open source DICOM server that is easi
 
 The Medical Imaging Server for DICOM is a .NET Core implementation of DICOMweb&trade;. [DICOMweb&trade;](https://www.dicomstandard.org/using/dicomweb) is the DICOM Standard for web-based medical imaging. Details of our conformance to the standard can be found in our [Conformance Statement](docs/resources/conformance-statement.md).
 
+## Managed service
+
+Azure Health Data Service [DICOM service](https://docs.microsoft.com/en-us/azure/healthcare-apis/dicom/deploy-dicom-services-in-azure) is a managed service and recommended for production deployment.
+
+Review [maintainance guide]( ./docs/resources/dicom-server-maintain-guide.md) if you want to manage you own deployment. 
+
+
 ## Deploy the Medical Imaging Server for DICOM
 
 The Medical Imaging Server for DICOM is designed to run on Azure. However, for development and test environments it can be deployed locally as a set of Docker containers to speed up development.
