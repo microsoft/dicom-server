@@ -3,7 +3,7 @@
 If you want to mantain your own deployment, we recommend you to be moderately familiar with our code, . 
 Below is a list of things to consider.
 
-| Name | Description |
+| Area | Description |
 | --- | --- |
 | ARM Deployment template | The [sample deployment](../quickstarts/deploy-via-azure.md) deploys all the dependencies and configurations, but is not production ready. Consider it has a template and evolve it to your organization needs. |
 | Web Application | This is our hosting layer. Consider creating your own with the right composition of Authentication and Authorization services. The [Web application](../../src/Microsoft.Health.Dicom.Web/) we have uses development Identity server.  |
