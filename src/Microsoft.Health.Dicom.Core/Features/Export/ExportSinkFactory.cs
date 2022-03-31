@@ -22,7 +22,7 @@ internal sealed class ExportSinkFactory : IExportSinkFactory
         _providers = EnsureArg.IsNotNull(providers, nameof(providers)).ToDictionary(x => x.Type);
     }
 
-    public IExportSink CreateSink(ExportLocation location)
+    public IExportSink CreateSink(ExportDestination location)
     {
         if (!_providers.TryGetValue(location.Type, out IExportSinkProvider provider))
             throw new InvalidOperationException();
@@ -30,7 +30,7 @@ internal sealed class ExportSinkFactory : IExportSinkFactory
         return provider.Create(_serviceProvider, location.Configuration);
     }
 
-    public void Validate(ExportLocation location)
+    public void Validate(ExportDestination location)
     {
         if (!_providers.TryGetValue(location.Type, out IExportSinkProvider provider))
             throw new InvalidOperationException();

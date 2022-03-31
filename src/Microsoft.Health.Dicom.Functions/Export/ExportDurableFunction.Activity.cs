@@ -25,8 +25,8 @@ public partial class ExportDurableFunction
         EnsureArg.IsNotNull(args, nameof(args));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        IExportSource source = _sourceFactory.CreateSource(args.Source);
-        IExportSink sink = _sinkFactory.CreateSink(args.Destination);
+        await using IExportSource source = _sourceFactory.CreateSource(args.Source);
+        await using IExportSink sink = _sinkFactory.CreateSink(args.Destination);
 
         // Export
         Task<bool>[] exportTasks = await source.Select(x => TryCopyAsync(x, sink, logger)).ToArrayAsync();

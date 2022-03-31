@@ -30,14 +30,14 @@ public partial class ExportDurableFunction
         logger.LogInformation("Starting to export to '{Sink}' starting from DCM file #{Offset}.", input.Destination.Type, input.Result.Exported + input.Result.Failed + 1);
 
         // Are we done?
-        if (input.Source == null)
+        if (input.Manifest == null)
         {
             logger.LogInformation("Completed export to '{Sink}'.", input.Destination.Type);
             return;
         }
 
         // Get batches
-        IExportSource source = _sourceFactory.CreateSource(input.Source);
+        await using IExportSource source = _sourceFactory.CreateSource(input.Manifest);
 
         // Start export in parallel
         var exportTasks = new List<Task<ExportResult>>();
@@ -68,7 +68,7 @@ public partial class ExportDurableFunction
                 Batching = input.Batching,
                 Destination = input.Destination,
                 Result = result,
-                Source = source.Manifest,
+                Manifest = source.Manifest,
             });
     }
 }

@@ -11,7 +11,7 @@ using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Model;
 
-internal class DicomIdentifier
+public class DicomIdentifier
 {
     public ResourceType Type
     {
@@ -54,7 +54,7 @@ internal class DicomIdentifier
 
     public static DicomIdentifier Parse(string value)
     {
-        string[] parts = value.Split('/', StringSplitOptions.TrimEntries);
+        string[] parts = EnsureArg.IsNotNull(value, nameof(value)).Split('/', StringSplitOptions.TrimEntries);
         if (parts.Length == 0 || parts.Length > 3)
             throw new FormatException();
 

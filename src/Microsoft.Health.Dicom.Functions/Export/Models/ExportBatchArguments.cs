@@ -11,5 +11,5 @@ public class ExportBatchArguments
 {
     public SourceManifest Source { get; set; }
 
-    public ExportLocation Destination { get; set; }
+    public ExportDestination Destination { get; set; }
 }

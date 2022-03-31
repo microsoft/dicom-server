@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
@@ -64,4 +65,7 @@ internal class IdentifierExportSource : IExportSource
         _index += count;
         return new SourceManifest { Type = ExportSourceType.Identifiers, Input = batch };
     }
+
+    public ValueTask DisposeAsync()
+        => ValueTask.CompletedTask;
 }

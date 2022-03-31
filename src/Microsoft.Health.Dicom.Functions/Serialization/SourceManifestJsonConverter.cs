@@ -12,7 +12,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Dicom.Functions.Serialization;
 
-internal sealed class DataSourceJsonConverter : JsonConverter<SourceManifest>
+internal sealed class SourceManifestJsonConverter : JsonConverter<SourceManifest>
 {
     public override SourceManifest ReadJson(JsonReader reader, Type objectType, SourceManifest existingValue, bool hasExistingValue, JsonSerializer serializer)
     {

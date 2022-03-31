@@ -10,11 +10,11 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization;
 
-public class DataSourceConverterFactoryTests
+public class SourceManifestConverterFactoryTests
 {
     private readonly JsonSerializerOptions _defaultOptions;
 
-    public DataSourceConverterFactoryTests()
+    public SourceManifestConverterFactoryTests()
     {
         _defaultOptions = new JsonSerializerOptions();
         _defaultOptions.Converters.Add(new DataSourceJsonConverter());

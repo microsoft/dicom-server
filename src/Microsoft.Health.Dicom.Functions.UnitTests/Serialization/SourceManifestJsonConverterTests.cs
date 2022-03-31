@@ -13,11 +13,11 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Functions.UnitTests.Serialization;
 
-public class DataSourceJsonConverterTests
+public class SourceManifestJsonConverterTests
 {
     private readonly JsonSerializerSettings _serializerSettings;
 
-    public DataSourceJsonConverterTests()
+    public SourceManifestJsonConverterTests()
     {
         _serializerSettings = new JsonSerializerSettings
         {
@@ -25,18 +25,18 @@ public class DataSourceJsonConverterTests
         };
 
         _serializerSettings.Converters.Add(new StringEnumConverter());
-        _serializerSettings.Converters.Add(new DataSourceJsonConverter());
+        _serializerSettings.Converters.Add(new SourceManifestJsonConverter());
     }
 
     [Fact]
     public void GivenJson_WhenReading_ThenDeserialize()
     {
         const string json = @"{
-  ""Type"": ""UID"",
-  ""Metadata"": [
-    ""foo"",
-    ""bar"",
-    ""baz"",
+  ""Type"": ""Identifiers"",
+  ""Input"": [
+    ""1.2.840.10008.1.​1"",
+    ""1.2.840.10008.1.​2/1.2.840.10008.1.​2.​1"",
+    ""1.2.840.10008.1.2.​1.​99/1.2.840.10008.1.​2.​2/1.2.840.10008.1.2.​4.​50"",
   ]
 }";
 
@@ -45,15 +45,21 @@ public class DataSourceJsonConverterTests
 
         string[] identifiers = actual.Input as string[];
         Assert.NotNull(identifiers);
-        Assert.True(identifiers.SequenceEqual(new string[] { "foo", "bar", "baz" }));
+        Assert.True(identifiers.SequenceEqual(
+            new string[]
+            {
+                "1.2.840.10008.1.​1",
+                "1.2.840.10008.1.​2/1.2.840.10008.1.​2.​1",
+                "1.2.840.10008.1.2.​1.​99/1.2.840.10008.1.​2.​2/1.2.840.10008.1.2.​4.​50",
+            }));
     }
 
     [Fact]
     public void GivenObject_WhenWrite_ThenSerialize()
     {
         const string expected = @"{
-  ""Type"": ""UID"",
-  ""Metadata"": [
+  ""Type"": ""Identifiers"",
+  ""Input"": [
     ""hello"",
     ""world""
   ]

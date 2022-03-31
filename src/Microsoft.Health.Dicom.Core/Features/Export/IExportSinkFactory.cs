@@ -9,7 +9,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Export;
 
 public interface IExportSinkFactory
 {
-    IExportSink CreateSink(ExportLocation location);
+    IExportSink CreateSink(ExportDestination location);
 
-    void Validate(ExportLocation location);
+    void Validate(ExportDestination location);
 }

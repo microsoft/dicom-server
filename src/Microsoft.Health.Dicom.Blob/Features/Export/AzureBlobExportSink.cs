@@ -39,4 +39,7 @@ internal class AzureBlobExportSink : IExportSink
     {
         return _copyStore.AppendErrorLogAsync(errorContent, cancellationToken);
     }
+
+    public ValueTask DisposeAsync()
+        => ValueTask.CompletedTask;
 }

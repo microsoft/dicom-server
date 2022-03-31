@@ -3,15 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Dicom.Core.Models.Operations;
+using System.Collections.Generic;
+using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Models.Export;
 
-public class ExportInput
+public class ExportIdentifiersInput
 {
-    public SourceManifest Manifest { get; set; }
+    public IReadOnlyList<DicomIdentifier> Identifiers { get; set; }
 
     public ExportDestination Destination { get; set; }
-
-    public BatchOptions Batching { get; set; }
 }

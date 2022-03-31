@@ -11,7 +11,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export;
 
-public interface IExportSink
+public interface IExportSink : IAsyncDisposable
 {
     Task<Uri> GetErrorHrefAsync(CancellationToken cancellationToken = default);
 

@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Microsoft.Health.Dicom.Core.Models.Export;
 
-public class ExportLocation
+public class ExportDestination
 {
     public ExportDestinationType Type { get; set; }
 
