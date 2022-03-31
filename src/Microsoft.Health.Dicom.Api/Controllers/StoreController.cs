@@ -93,6 +93,10 @@ public class StoreController : ControllerBase
             Request.ContentType,
             studyInstanceUid,
             HttpContext.RequestAborted);
+        if (!string.IsNullOrEmpty(storeResponse.Warning))
+        {
+            Response.Headers.Warning = string.Format(DicomApiResource.WarningHeader, storeResponse.Warning);
+        }
 
         return StatusCode(
             (int)storeResponse.Status.ToHttpStatusCode(),

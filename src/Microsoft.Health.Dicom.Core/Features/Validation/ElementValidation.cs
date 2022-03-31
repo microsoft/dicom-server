@@ -7,8 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
-using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
@@ -19,15 +17,7 @@ internal class ElementValidation : IElementValidation
     {
         EnsureArg.IsNotNull(dicomElement, nameof(dicomElement));
         DicomVR vr = dicomElement.ValueRepresentation;
-        if (ExtendedQueryTagEntryValidator.SupportedVRCodes.Contains(vr.Code))
-        {
-            // only works for single value dicom element ( Since we accept empty/null value, Count = 0 is accepted).
-            if (dicomElement.Count > 1)
-            {
-                throw new ElementValidationException(dicomElement.Tag.GetFriendlyName(), vr, ValidationErrorCode.MultipleValues);
-            }
-        }
-        else
+        if (!ExtendedQueryTagEntryValidator.SupportedVRCodes.Contains(vr.Code))
         {
             Debug.Fail($"Validating VR {vr.Code} is not supported.");
         }

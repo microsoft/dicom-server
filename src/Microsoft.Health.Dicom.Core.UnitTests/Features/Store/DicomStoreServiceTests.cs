@@ -82,7 +82,7 @@ public class DicomStoreServiceTests
 
         await ExecuteAndValidateAsync(dicomInstanceEntry);
 
-        _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1, Arg.Is<ushort?>(v => v.Value == FailureReasonCodes.DatasetDoesNotMatchSOPClass));
+        _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1, Arg.Is<ushort?>(v => v.Value == WarningReasonCodes.DatasetDoesNotMatchSOPClass));
         _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(default);
     }
 

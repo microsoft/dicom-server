@@ -317,13 +317,14 @@ public static class DicomDatasetExtensions
     /// <param name="dataset">The dicom dataset.</param>
     /// <param name="queryTag">The query tag.</param>
     /// <param name="minimumValidator">The minimum validator.</param>
-    public static void ValidateQueryTag(this DicomDataset dataset, QueryTag queryTag, IElementMinimumValidator minimumValidator)
+    public static ValidationWarning? ValidateQueryTag(this DicomDataset dataset, QueryTag queryTag, IElementMinimumValidator minimumValidator)
     {
         EnsureArg.IsNotNull(dataset, nameof(dataset));
         EnsureArg.IsNotNull(queryTag, nameof(queryTag));
         EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
         DicomElement dicomElement = dataset.GetDicomItem<DicomElement>(queryTag.Tag);
 
+        ValidationWarning? warning = null;
         if (dicomElement != null)
         {
             if (dicomElement.ValueRepresentation != queryTag.VR)
@@ -336,9 +337,14 @@ public static class DicomDatasetExtensions
                     ValidationErrorCode.UnexpectedVR,
                     string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageUnexpectedVR, name, queryTag.VR, actualVR));
             }
+            if (dicomElement.Count > 1)
+            {
+                warning = ValidationWarning.IndexedDicomTagHasMultipleValues;
+            }
 
             minimumValidator.Validate(dicomElement);
         }
+        return warning;
     }
 
     /// <summary>

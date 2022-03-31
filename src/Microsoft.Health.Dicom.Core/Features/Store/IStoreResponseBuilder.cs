@@ -27,6 +27,8 @@ public interface IStoreResponseBuilder
     /// <param name="warningReasonCode">The warning reason code.</param>
     void AddSuccess(DicomDataset dicomDataset, ushort? warningReasonCode = null);
 
+    void AddWarning(string message);
+
     /// <summary>
     /// Adds a failed entry to the response.
     /// </summary>

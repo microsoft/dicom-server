@@ -18,4 +18,6 @@ public sealed class StoreResponse
     public StoreResponseStatus Status { get; }
 
     public DicomDataset Dataset { get; }
+
+    public string Warning { get; set; }
 }

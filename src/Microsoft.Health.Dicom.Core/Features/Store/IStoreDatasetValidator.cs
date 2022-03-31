@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
@@ -27,5 +28,5 @@ public interface IStoreDatasetValidator
     /// True if there is no warning.
     /// False if there are any warnings.
     /// </returns>
-    Task<bool> ValidateAsync(DicomDataset dicomDataset, string requiredStudyInstanceUid, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ValidationWarning>> ValidateAsync(DicomDataset dicomDataset, string requiredStudyInstanceUid, CancellationToken cancellationToken = default);
 }

@@ -39,11 +39,13 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     }
 
     /// <inheritdoc/>
-    public async Task<bool> ValidateAsync(DicomDataset dicomDataset, string requiredStudyInstanceUid, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<ValidationWarning>> ValidateAsync(DicomDataset dicomDataset, string requiredStudyInstanceUid, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
         ValidateCoreTags(dicomDataset, requiredStudyInstanceUid);
+
+        List<ValidationWarning> warnings = new List<ValidationWarning>();
 
         // validate input data elements
         if (_enableFullDicomItemValidation)
@@ -52,16 +54,20 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
         else
         {
-            await ValidateIndexedItems(dicomDataset, cancellationToken);
+            var indexedItemWarnings = await ValidateIndexedItemsAsync(dicomDataset, cancellationToken);
+            if (indexedItemWarnings.HasValue)
+            {
+                warnings.Add(indexedItemWarnings.Value);
+            }
         }
 
         // Validate for Implicit VR at the end
         if (ImplicitValueRepresentationValidator.IsImplicitVR(dicomDataset))
         {
-            return false;
+            warnings.Add(ValidationWarning.DatasetDoesNotMatchSOPClass);
         }
 
-        return true;
+        return warnings;
     }
 
     private static void ValidateCoreTags(DicomDataset dicomDataset, string requiredStudyInstanceUid)
@@ -114,13 +120,21 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
     }
 
-    private async Task ValidateIndexedItems(DicomDataset dicomDataset, CancellationToken cancellationToken)
+    private async Task<ValidationWarning?> ValidateIndexedItemsAsync(DicomDataset dicomDataset, CancellationToken cancellationToken)
     {
         IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
+
+        ValidationWarning? warning = null;
         foreach (QueryTag queryTag in queryTags)
         {
-            dicomDataset.ValidateQueryTag(queryTag, _minimumValidator);
+            // nowadays, the only warning is IndexedDicomTagHasMultipleValues when validating query tag
+            var tagWarning = dicomDataset.ValidateQueryTag(queryTag, _minimumValidator);
+            if (tagWarning != null)
+            {
+                warning = tagWarning;
+            }
         }
+        return warning;
     }
 
     private static void ValidateAllItems(DicomDataset dicomDataset)

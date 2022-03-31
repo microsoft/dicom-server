@@ -20,6 +20,8 @@ public class StoreResponseBuilder : IStoreResponseBuilder
 
     private DicomDataset _dataset;
 
+    private string _message;
+
     public StoreResponseBuilder(IUrlResolver urlResolver)
     {
         EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
@@ -130,5 +132,10 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         {
             _dataset = new DicomDataset();
         }
+    }
+
+    public void AddWarning(string message)
+    {
+        _message = message;
     }
 }

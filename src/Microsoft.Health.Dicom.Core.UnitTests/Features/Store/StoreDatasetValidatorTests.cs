@@ -69,7 +69,7 @@ public class StoreDatasetValidatorTests
 
     [Theory]
     [MemberData(nameof(GetNonExplicitVRTransferSyntax))]
-    public async Task GivenAValidDicomDatasetWithImplicitVR_WhenValidated_ReturnsFalse(DicomTransferSyntax transferSyntax)
+    public async Task GivenAValidDicomDatasetWithImplicitVR_WhenValidated_ReturnsEmptyList(DicomTransferSyntax transferSyntax)
     {
         var dicomDataset = Samples
             .CreateRandomInstanceDataset(dicomTransferSyntax: transferSyntax)
@@ -77,7 +77,7 @@ public class StoreDatasetValidatorTests
 
         var actual = await _dicomDatasetValidator.ValidateAsync(dicomDataset, requiredStudyInstanceUid: null);
 
-        Assert.False(actual);
+        Assert.Empty(actual);
     }
 
     [Fact]
