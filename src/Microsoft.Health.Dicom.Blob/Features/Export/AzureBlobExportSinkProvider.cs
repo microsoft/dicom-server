@@ -38,20 +38,18 @@ public class AzureBlobExportSinkProvider : IExportSinkProvider
     {
         AzureBlobExportOptions options = config.Get<AzureBlobExportOptions>();
 
-        if (options.ContainerUri != null && options.ContainerSasUri != null)
-            throw new FormatException();
-        else if (options.ContainerUri == null && options.ContainerSasUri == null)
+        if (options.ContainerUri == null || options.SasToken == null)
             throw new FormatException();
     }
 
     private static void InitializeDestinationStore(IConfiguration config, out BlobContainerClient blobContainerClient, out string path)
     {
         var blobClientOptions = config.Get<BlobServiceClientOptions>();
-        var exportConfig = config.Get<AzureBlobExportOptions>();
+        var exportOptions = config.Get<AzureBlobExportOptions>();
 
-        path = exportConfig.FolderPath;
+        path = exportOptions.FolderPath;
 
-        if (exportConfig.ContainerUri != null)
+        if (exportOptions.ContainerUri != null)
         {
             throw new NotImplementedException();
             //need a way to pass the MI config from KeyVault to here
@@ -60,7 +58,10 @@ public class AzureBlobExportSinkProvider : IExportSinkProvider
         }
         else
         {
-            blobContainerClient = new BlobContainerClient(exportConfig.ContainerSasUri, blobClientOptions);
+            var builder = new UriBuilder(exportOptions.ContainerUri);
+            builder.Query += exportOptions.SasToken;
+
+            blobContainerClient = new BlobContainerClient(builder.Uri, blobClientOptions);
         }
     }
 }
