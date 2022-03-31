@@ -11,14 +11,12 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
-internal class DateValidation : ElementValidation
+internal class DateValidation : IElementValidation
 {
     private const string DateFormatDA = "yyyyMMdd";
 
-    public override void Validate(DicomElement dicomElement)
+    public void Validate(DicomElement dicomElement)
     {
-        base.Validate(dicomElement);
-
         string value = dicomElement.Get<string>();
         string name = dicomElement.Tag.GetFriendlyName();
         if (string.IsNullOrEmpty(value))

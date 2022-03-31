@@ -10,12 +10,10 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
-internal class EncodedStringElementValidation : ElementValidation
+internal class EncodedStringElementValidation : IElementValidation
 {
-    public override void Validate(DicomElement element)
+    public void Validate(DicomElement element)
     {
-        base.Validate(element);
-
         DicomVR vr = element.ValueRepresentation;
         switch (vr.Code)
         {

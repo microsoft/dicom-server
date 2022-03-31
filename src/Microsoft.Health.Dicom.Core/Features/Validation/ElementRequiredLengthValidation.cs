@@ -13,7 +13,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
-internal class ElementRequiredLengthValidation : ElementValidation
+internal class ElementRequiredLengthValidation : IElementValidation
 {
     private static readonly HashSet<DicomVR> StringVrs = new HashSet<DicomVR>()
     {
@@ -37,9 +37,8 @@ internal class ElementRequiredLengthValidation : ElementValidation
         ExpectedLength = expectedLength;
     }
 
-    public override void Validate(DicomElement dicomElement)
+    public void Validate(DicomElement dicomElement)
     {
-        base.Validate(dicomElement);
         DicomVR vr = dicomElement.ValueRepresentation;
         if (TryGetAsString(dicomElement, out string value))
         {
