@@ -29,7 +29,7 @@ internal sealed class SourceManifestJsonConverter : JsonConverter<SourceManifest
 
             return new SourceManifest
             {
-                Input = idsToken.Values().Select(x => DicomIdentifier.Parse(x.Value<string>())).ToArray(),
+                Input = idsToken.Values().Select(x => x.ToObject<DicomIdentifier>(serializer)).ToArray(),
                 Type = ExportSourceType.Identifiers,
             };
         }
