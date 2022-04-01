@@ -206,6 +206,17 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
         }
     }
 
+    [Fact]
+    public async Task WhenAddingWorkitem_TheServerShouldCreateWorkitemSuccessfully()
+    {
+        DicomDataset dicomDataset = Samples.CreateRandomWorkitemInstanceDataset();
+        var workitemUid = dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+
+        using DicomWebResponse response = await _client.AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid, TestUidGenerator.Generate());
+
+        Assert.True(response.IsSuccessStatusCode);
+    }
+
     public Task InitializeAsync() => Task.CompletedTask;
 
     public async Task DisposeAsync()
