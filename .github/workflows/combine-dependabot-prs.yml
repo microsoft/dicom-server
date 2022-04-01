@@ -52,16 +52,38 @@ jobs:
                 statusOK = true;
                 if(${{ github.event.inputs.mustBeGreen }}) {
                   console.log('Checking green status: ' + branch);
-                  const statuses = await github.request('GET /repos/{owner}/{repo}/commits/{ref}/status', {
+                  const statuses = await github.paginate('GET /repos/{owner}/{repo}/commits/{ref}/status', {
                     owner: context.repo.owner,
                     repo: context.repo.repo,
                     ref: branch
                   });
-                  if(statuses.state !== 'success') {
-                    console.log('Discarding ' + branch + ' with status ' + statuses.state);
-                    statusOK = false;
+
+                  if(statuses.length > 0) {
+                    const latest_status = statuses[0]['state'];
+                    console.log('Validating status: ' + latest_status);
+                    if(latest_status != 'success') {
+                      console.log('Discarding ' + branch + ' with status ' + latest_status);
+                      statusOK = false;
+                    }
+                  }
+
+                  console.log('Checking check suites: ' + branch);
+                  const checks = await github.paginate('GET /repos/{owner}/{repo}/commits/{ref}/check-suites', {
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    ref: branch
+                  });
+
+                  for (const check of checks) {
+                    const isSuccess = (check.status == 'completed' && check.conclusion == 'success')
+                    const isDependabot = check.app.slug == 'dependabot'
+                    if (!isSuccess && !isDependabot) {
+                      console.log('Discarding ' + branch + ' with check suite ' + check.url);
+                      statusOK = false;
+                    }
                   }
                 }
+
                 console.log('Checking labels: ' + branch);
                 const labels = pull['labels'];
                 for(const label of labels) {
