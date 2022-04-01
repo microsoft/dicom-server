@@ -64,6 +64,12 @@ public class DicomIdentifier : IEquatable<DicomIdentifier>
             EnsureArg.IsNotNull(seriesInstanceUid, nameof(seriesInstanceUid)),
             EnsureArg.IsNotNull(sopInstanceUid, nameof(sopInstanceUid)));
 
+    public static DicomIdentifier ForInstance(VersionedInstanceIdentifier identifier)
+        => new DicomIdentifier(
+            EnsureArg.IsNotNull(identifier, nameof(identifier)).StudyInstanceUid,
+            identifier.SeriesInstanceUid,
+            identifier.SopInstanceUid);
+
     public static DicomIdentifier Parse(string value)
     {
         string[] parts = EnsureArg.IsNotNull(value, nameof(value)).Split('/', StringSplitOptions.TrimEntries);

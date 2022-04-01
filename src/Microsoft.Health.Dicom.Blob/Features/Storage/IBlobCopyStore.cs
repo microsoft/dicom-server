@@ -14,6 +14,8 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 public interface IBlobCopyStore : IDisposable
 {
     Task AppendErrorLogAsync(Stream content, CancellationToken cancellationToken);
+
     Task CopyFileAsync(VersionedInstanceIdentifier instanceIdentifier, CancellationToken cancellationToken);
+
     Task<Uri> GetErrorHrefAsync(CancellationToken cancellationToken);
 }
