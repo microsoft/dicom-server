@@ -17,6 +17,7 @@ using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Features.Common;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Export;
 
@@ -24,12 +25,10 @@ internal sealed class AzureBlobExportSink : IExportSink
 {
     public event EventHandler<CopyFailureEventArgs> CopyFailure;
 
-    public Uri ErrorHref => _errorClient.Uri;
-
     private readonly BlobContainerClient _sourceClient;
     private readonly BlobOperationOptions _options;
     private readonly BlobContainerClient _destClient;
-    private readonly AppendBlobClient _errorClient;
+    private readonly AsyncCache<AppendBlobClient> _errorClientCache;
     private readonly StreamWriter _errorWriter;
     private readonly string _destinationPath;
 
@@ -53,10 +52,21 @@ internal sealed class AzureBlobExportSink : IExportSink
         BlobContainerConfiguration containerConfiguration = sourceContainerOptions.Get(Constants.BlobContainerConfigurationName);
         _sourceClient = sourceClient.GetBlobContainerClient(containerConfiguration.ContainerName);
         _destClient = destClient;
-        _errorClient = _sourceClient.GetAppendBlobClient(errorBlobName);
+        _errorClientCache = new AsyncCache<AppendBlobClient>(async (CancellationToken cancellationToken) =>
+        {
+            AppendBlobClient client = _sourceClient.GetAppendBlobClient(errorBlobName);
+            await client.CreateAsync(options: null, cancellationToken);
+            return client;
+        });
         _errorWriter = new StreamWriter(new MemoryStream(BlockSize), errorEncoding);
         _destinationPath = destinationPath;
         _options = operationOptions.Value;
+    }
+
+    public async Task<Uri> GetErrorHrefAsync(CancellationToken cancellationToken)
+    {
+        AppendBlobClient blobClient = await _errorClientCache.GetAsync(forceRefresh: false, cancellationToken);
+        return blobClient.Uri;
     }
 
     public async Task<bool> CopyAsync(SourceElement element, CancellationToken cancellationToken)
@@ -102,8 +112,11 @@ internal sealed class AzureBlobExportSink : IExportSink
         _errorWriter.BaseStream.Seek(0, SeekOrigin.Begin);
 
         // Append the errors
-        await _errorClient.AppendBlockAsync(_errorWriter.BaseStream, transactionalContentHash: null, conditions: null, progressHandler: null, cancellationToken);
-        _errorWriter.BaseStream.Seek(0, SeekOrigin.Begin);
+        AppendBlobClient errorblobClient = await _errorClientCache.GetAsync(forceRefresh: false, cancellationToken);
+        await errorblobClient.AppendBlockAsync(_errorWriter.BaseStream, transactionalContentHash: null, conditions: null, progressHandler: null, cancellationToken);
+
+        // reset the stream
+        _errorWriter.BaseStream.SetLength(0);
     }
 
     private BlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
@@ -132,6 +145,7 @@ internal sealed class AzureBlobExportSink : IExportSink
     {
         await FlushAsync();
         _errorWriter.Dispose();
+        _errorClientCache.Dispose();
         GC.SuppressFinalize(this);
     }
 }
