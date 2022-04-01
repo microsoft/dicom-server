@@ -54,6 +54,7 @@ internal sealed class AzureBlobExportSink : IExportSink
         _destClient = destClient;
         _errorClientCache = new AsyncCache<AppendBlobClient>(async (CancellationToken cancellationToken) =>
         {
+            var errorBlobPath = string.IsNullOrWhiteSpace(destinationPath) ? errorBlobName : $"{destinationPath}/{errorBlobName}";
             AppendBlobClient client = _destClient.GetAppendBlobClient(errorBlobName);
             await client.CreateAsync(options: null, cancellationToken);
             return client;
