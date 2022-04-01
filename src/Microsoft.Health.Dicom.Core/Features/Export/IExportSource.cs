@@ -5,13 +5,14 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export;
 
-public interface IExportSource : IAsyncEnumerable<VersionedInstanceIdentifier>, IAsyncDisposable
+public interface IExportSource : IAsyncEnumerable<SourceElement>, IAsyncDisposable
 {
+    event EventHandler<ReadFailureEventArgs> ReadFailure;
+
     SourceManifest Remaining { get; }
 
     SourceManifest TakeNextBatch(int size);

@@ -6,7 +6,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export;
 
@@ -16,5 +15,5 @@ public interface IExportSink : IAsyncDisposable
 
     Uri ErrorHref { get; }
 
-    Task<bool> CopyAsync(VersionedInstanceIdentifier identifier, CancellationToken cancellationToken = default);
+    Task<bool> CopyAsync(SourceElement element, CancellationToken cancellationToken = default);
 }

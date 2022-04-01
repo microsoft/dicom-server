@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +20,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Export;
 
 internal class IdentifierExportSource : IExportSource
 {
+    public event EventHandler<ReadFailureEventArgs> ReadFailure;
+
     public SourceManifest Remaining => _index < _identifiers.Count
         ? new SourceManifest { Type = ExportSourceType.Identifiers, Input = GetRemaining() }
         : null;
@@ -33,20 +36,36 @@ internal class IdentifierExportSource : IExportSource
         _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
     }
 
-    public async IAsyncEnumerator<VersionedInstanceIdentifier> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+    public async IAsyncEnumerator<SourceElement> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
         // TODO: Partition
         for (int i = _index; i < _identifiers.Count; i++)
         {
+            IEnumerable<SourceElement> results = null;
             DicomIdentifier identifier = _identifiers[i];
-            IEnumerable<VersionedInstanceIdentifier> results = identifier.Type switch
-            {
-                ResourceType.Study => await _instanceStore.GetInstanceIdentifiersInStudyAsync(DefaultPartition.Key, identifier.StudyInstanceUid, cancellationToken),
-                ResourceType.Series => await _instanceStore.GetInstanceIdentifiersInSeriesAsync(DefaultPartition.Key, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, cancellationToken),
-                _ => await _instanceStore.GetInstanceIdentifierAsync(DefaultPartition.Key, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, cancellationToken),
-            };
 
-            foreach (VersionedInstanceIdentifier result in results)
+            try
+            {
+                IReadOnlyList<VersionedInstanceIdentifier> instances = identifier.Type switch
+                {
+                    ResourceType.Study => await _instanceStore.GetInstanceIdentifiersInStudyAsync(DefaultPartition.Key, identifier.StudyInstanceUid, cancellationToken),
+                    ResourceType.Series => await _instanceStore.GetInstanceIdentifiersInSeriesAsync(DefaultPartition.Key, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, cancellationToken),
+                    _ => await _instanceStore.GetInstanceIdentifierAsync(DefaultPartition.Key, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, cancellationToken),
+                };
+
+                if (instances.Count == 0)
+                    throw new FileNotFoundException("Cannot find any matching instances");
+
+                results = instances.Select(x => SourceElement.ForIdentifier(x));
+            }
+            catch (Exception ex)
+            {
+                var args = new ReadFailureEventArgs(identifier, ex);
+                ReadFailure?.Invoke(this, args);
+                results = new SourceElement[] { SourceElement.ForFailure(args) };
+            }
+
+            foreach (SourceElement result in results)
                 yield return result;
         }
     }

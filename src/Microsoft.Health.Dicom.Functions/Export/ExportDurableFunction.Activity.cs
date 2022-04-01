@@ -29,6 +29,7 @@ public partial class ExportDurableFunction
         await using IExportSink sink = _sinkFactory.CreateSink(args.Destination, context.GetOperationId());
 
         // Export
+        source.ReadFailure += (source, e) => logger.LogError(e.Exception, "Cannot read desired DICOM file(s)");
         sink.CopyFailure += (source, e) => logger.LogError(e.Exception, "Unable to copy watermark {Watermark}", e.Identifier.Version);
         Task<bool>[] exportTasks = await source.Select(x => sink.CopyAsync(x)).ToArrayAsync();
 
