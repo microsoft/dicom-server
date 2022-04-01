@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Primitives;
-using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.Health.Dicom.Api.Features.Filters;
@@ -21,14 +20,10 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters;
 public sealed class AcceptContentFilterAttribute : ActionFilterAttribute
 {
     private const int NotAcceptableResponseCode = (int)HttpStatusCode.NotAcceptable;
-    private const string TypeParameter = "type";
-
-    private readonly bool _allowSingle;
-    private readonly bool _allowMultiple;
 
     private readonly HashSet<MediaTypeHeaderValue> _mediaTypes;
 
-    public AcceptContentFilterAttribute(string[] mediaTypes, bool allowSingle, bool allowMultiple)
+    public AcceptContentFilterAttribute(string[] mediaTypes)
     {
         EnsureArg.IsNotNull(mediaTypes, nameof(mediaTypes));
         Debug.Assert(mediaTypes.Length > 0, "The accept content type filter must have at least one media type specified.");
@@ -46,9 +41,6 @@ public sealed class AcceptContentFilterAttribute : ActionFilterAttribute
                 Debug.Assert(false, "The values in the mediaTypes parameter must be parseable by MediaTypeHeaderValue.");
             }
         }
-
-        _allowSingle = allowSingle;
-        _allowMultiple = allowMultiple;
     }
 
     public override void OnActionExecuting(ActionExecutingContext context)
@@ -67,50 +59,28 @@ public sealed class AcceptContentFilterAttribute : ActionFilterAttribute
 
     private bool AcceptHeadersContainKnownTypes(HttpRequest request)
     {
-        StringValues acceptHeaderStrings = request.Headers.Accept;
+        IList<MediaTypeHeaderValue> acceptHeaders = ParseAcceptHeaders(request.Headers.Accept);
 
-        if (acceptHeaderStrings.Count > 0)
+        foreach (MediaTypeHeaderValue acceptHeader in acceptHeaders)
         {
-            IList<MediaTypeHeaderValue> acceptHeaders = request.GetTypedHeaders().Accept;
-
-            for (int headerIndex = 0; headerIndex < acceptHeaders.Count; headerIndex++)
+            if (_mediaTypes.Any(x => x.MatchesMediaType(acceptHeader.MediaType)))
             {
-                MediaTypeHeaderValue acceptHeader = acceptHeaders[headerIndex];
-
-                bool isMultiPart = acceptHeaderStrings[headerIndex].Contains(KnownContentTypes.MultipartRelated, StringComparison.InvariantCultureIgnoreCase);
-
-                if (_allowMultiple && isMultiPart)
-                {
-                    if (acceptHeader.Parameters.Count > 0)
-                    {
-                        NameValueHeaderValue typeParameterValue = acceptHeader.Parameters.FirstOrDefault(
-                            parameter => StringSegment.Equals(parameter.Name, TypeParameter, StringComparison.InvariantCultureIgnoreCase));
-
-                        if (typeParameterValue != null &&
-                            MediaTypeHeaderValue.TryParse(HeaderUtilities.RemoveQuotes(typeParameterValue.Value), out MediaTypeHeaderValue parsedValue) &&
-                            _mediaTypes.Contains(parsedValue))
-                        {
-                            return true;
-                        }
-                    }
-                    else if (_mediaTypes.Contains(acceptHeader))
-                    {
-                        return true;
-                    }
-                }
-
-                if (_allowSingle)
-                {
-                    string[] split = acceptHeader.ToString().Split(';');
-                    var stringHeaders = _mediaTypes.Select(x => x.ToString()).ToList();
-                    if (split.Any(x => stringHeaders.Contains(x, StringComparer.InvariantCultureIgnoreCase)))
-                    {
-                        return true;
-                    }
-                }
+                return true;
             }
         }
 
         return false;
+    }
+
+    private static IList<MediaTypeHeaderValue> ParseAcceptHeaders(StringValues acceptHeaders)
+    {
+        try
+        {
+            return MediaTypeHeaderValue.ParseStrictList(acceptHeaders);
+        }
+        catch (FormatException)
+        {
+            return new List<MediaTypeHeaderValue>();
+        }
     }
 }

@@ -41,7 +41,7 @@ public class StoreController : ControllerBase
         _logger = logger;
     }
 
-    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson })]
     [Produces(KnownContentTypes.ApplicationDicomJson)]
     [Consumes(KnownContentTypes.ApplicationDicom, KnownContentTypes.MultipartRelated)]
     [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.OK)]
@@ -62,7 +62,7 @@ public class StoreController : ControllerBase
         return await PostAsync(null);
     }
 
-    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson })]
     [Produces(KnownContentTypes.ApplicationDicomJson)]
     [Consumes(KnownContentTypes.ApplicationDicom, KnownContentTypes.MultipartRelated)]
     [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.OK)]
