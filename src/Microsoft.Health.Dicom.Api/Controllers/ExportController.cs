@@ -30,6 +30,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers;
 [ApiVersion("1.0-prerelease")]
 [ApiVersion("1")]
 [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
+[ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
 public class ExportController : ControllerBase
 {
     private readonly IMediator _mediator;

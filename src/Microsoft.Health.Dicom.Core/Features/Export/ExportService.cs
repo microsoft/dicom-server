@@ -7,6 +7,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.Export;
@@ -21,17 +23,20 @@ public class ExportService : IExportService
     private readonly ExportSinkFactory _sinkFactory;
     private readonly IDicomOperationsClient _client;
     private readonly IUrlResolver _uriResolver;
+    private readonly IDicomRequestContextAccessor _contextAccessor;
 
     public ExportService(
         ExportSourceFactory sourceFactory,
         ExportSinkFactory sinkFactory,
         IDicomOperationsClient client,
-        IUrlResolver uriResolver)
+        IUrlResolver uriResolver,
+        IDicomRequestContextAccessor contextAccessor)
     {
         _sourceFactory = EnsureArg.IsNotNull(sourceFactory, nameof(sourceFactory));
         _sinkFactory = EnsureArg.IsNotNull(sinkFactory, nameof(sinkFactory));
         _client = EnsureArg.IsNotNull(client, nameof(client));
         _uriResolver = EnsureArg.IsNotNull(uriResolver, nameof(uriResolver));
+        _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
     }
 
     /// <summary>
@@ -43,6 +48,7 @@ public class ExportService : IExportService
     public async Task<ExportIdentifiersResponse> StartExportingIdentifiersAsync(ExportIdentifiersInput input, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(input, nameof(input));
+        int partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
         OperationReference operation = await StartExportAsync(
             new ExportInput
@@ -50,6 +56,7 @@ public class ExportService : IExportService
                 // TODO: Add batching options
                 Manifest = new SourceManifest
                 {
+                    PartitionKey = partitionKey,
                     Input = input.Identifiers,
                     Type = ExportSourceType.Identifiers,
                 },
