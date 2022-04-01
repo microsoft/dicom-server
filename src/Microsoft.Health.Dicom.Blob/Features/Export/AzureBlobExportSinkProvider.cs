@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.IO;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,6 +41,13 @@ public class AzureBlobExportSinkProvider : IExportSinkProvider
 
         if (options.ContainerUri == null)
             throw new FormatException();
+
+        // todo config length
+        // Valid names https://docs.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-containers--blobs--and-metadata
+        if (!string.IsNullOrWhiteSpace(options.FolderPath) && options.FolderPath.Length > 200)
+        {
+            throw new ArgumentException("Folder path too long");
+        }
     }
 
     private static void InitializeDestinationStore(IConfiguration config, out BlobContainerClient blobContainerClient, out string path)

@@ -24,5 +24,120 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 /// </summary>
 public sealed class BlobCopyStore : IBlobCopyStore
 {
+    private readonly BlobContainerClient _sourceContainer;
+    private readonly BlobOperationOptions _options;
+    private readonly BlobContainerClient _destBlobContainerClient;
+    private readonly AsyncCache<AppendBlobClient> _errorAppendBlobcache;
+    private readonly string _destinationPath;
+    private readonly string _errorLogBlobName;
 
+    public BlobCopyStore(
+        BlobServiceClient client,
+        IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
+        IOptions<BlobOperationOptions> options,
+        BlobContainerClient destBlobContainerClient,
+        string destinationPath)
+    {
+        EnsureArg.IsNotNull(client, nameof(client));
+        EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
+        EnsureArg.IsNotNull(options?.Value, nameof(options));
+        EnsureArg.IsNotNull(destBlobContainerClient, nameof(destBlobContainerClient));
+
+        BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
+            .Get(Constants.BlobContainerConfigurationName);
+
+        _sourceContainer = client.GetBlobContainerClient(containerConfiguration.ContainerName);
+        _options = options.Value;
+        _destBlobContainerClient = destBlobContainerClient;
+        _destinationPath = destinationPath;
+        _errorLogBlobName = $"error-{Guid.NewGuid().ToString()}.log";
+        _errorAppendBlobcache = new AsyncCache<AppendBlobClient>(async (CancellationToken cancellationToken) =>
+            {
+                AppendBlobClient appendBlobClient = _sourceContainer.GetAppendBlobClient(_errorLogBlobName);
+                await appendBlobClient.CreateIfNotExistsAsync(options: null, cancellationToken);
+                return appendBlobClient;
+            });
+
+    }
+
+    public async Task<Uri> GetErrorHrefAsync(CancellationToken cancellationToken)
+    {
+        AppendBlobClient appendBlobClient = await _errorAppendBlobcache.GetAsync(forceRefresh: false, cancellationToken);
+        return appendBlobClient.Uri;
+    }
+
+    public async Task CopyFileAsync(VersionedInstanceIdentifier instanceIdentifier, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
+
+        // Init source blob
+        var srcBlobClient = GetInstanceBlockBlob(instanceIdentifier);
+
+        // Init destination blob
+        string destBlobName = GenerateDestinationBlobName(_destinationPath, instanceIdentifier);
+        var destBlobClient = _destBlobContainerClient.GetBlobClient(destBlobName);
+
+        // Could not use StartCopyFromUriAsync from the SDK. There is a sourceUri auth issue and Azure team does not recommend using StartCopyFromUriAsync.
+        // Open the source blob stream
+        var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
+        using Stream stream = await srcBlobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken);
+
+        // Upload it to the destination
+        var blobUploadOptions = new BlobUploadOptions { TransferOptions = _options.Upload };
+        await ExecuteAsync(async () =>
+        {
+            await destBlobClient.UploadAsync(
+                stream,
+                blobUploadOptions,
+                cancellationToken);
+        });
+    }
+
+    /// <summary>
+    /// Appends operation logs to a destination file.
+    /// Keep the content length below 4MB and max blocks to less than 50000
+    /// </summary>
+    /// <param name="content">Union logs to be blocks of upto 4MB</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task AppendErrorLogAsync(Stream content, CancellationToken cancellationToken)
+    {
+        AppendBlobClient appendBlobClient = await _errorAppendBlobcache.GetAsync(forceRefresh: false, cancellationToken);
+
+        await ExecuteAsync(async () =>
+        {
+            await appendBlobClient.AppendBlockAsync(content, transactionalContentHash: null, conditions: null, progressHandler: null, cancellationToken);
+        });
+    }
+
+    public void Dispose()
+    {
+        _errorAppendBlobcache.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
+    private BlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
+    {
+        string blobName = $"{versionedInstanceIdentifier.StudyInstanceUid}/{versionedInstanceIdentifier.SeriesInstanceUid}/{versionedInstanceIdentifier.SopInstanceUid}_{versionedInstanceIdentifier.Version}.dcm";
+        return _sourceContainer.GetBlobClient(blobName);
+    }
+
+    private static string GenerateDestinationBlobName(string destinationPath, VersionedInstanceIdentifier versionedInstanceIdentifier)
+    {
+        string destFileName = $"{versionedInstanceIdentifier.StudyInstanceUid}-{versionedInstanceIdentifier.SeriesInstanceUid}-{versionedInstanceIdentifier.SopInstanceUid}.dcm";
+
+        return string.IsNullOrWhiteSpace(destinationPath) ? destFileName : $"{destinationPath}/{destFileName}";
+    }
+
+    private static async Task ExecuteAsync(Func<Task> action)
+    {
+        try
+        {
+            await action();
+        }
+        catch (Exception ex)
+        {
+            throw new DataStoreException(ex);
+        }
+    }
 }
