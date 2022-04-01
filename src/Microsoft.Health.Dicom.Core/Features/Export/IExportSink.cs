@@ -14,7 +14,7 @@ public interface IExportSink : IAsyncDisposable
 {
     event EventHandler<CopyFailureEventArgs> CopyFailure;
 
-    Task<Uri> GetErrorHrefAsync(CancellationToken cancellationToken = default);
+    Uri ErrorHref { get; }
 
-    Task CopyAsync(VersionedInstanceIdentifier source, CancellationToken cancellationToken = default);
+    Task<bool> CopyAsync(VersionedInstanceIdentifier identifier, CancellationToken cancellationToken = default);
 }

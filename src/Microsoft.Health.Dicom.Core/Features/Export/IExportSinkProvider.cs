@@ -13,7 +13,7 @@ public interface IExportSinkProvider
 {
     ExportDestinationType Type { get; }
 
-    IExportSink Create(IServiceProvider provider, IConfiguration config);
+    IExportSink Create(IServiceProvider provider, IConfiguration config, Guid operationId);
 
     void Validate(IConfiguration config);
 }

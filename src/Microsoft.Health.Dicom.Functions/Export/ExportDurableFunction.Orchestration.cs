@@ -68,8 +68,8 @@ public partial class ExportDurableFunction
                 Batching = input.Batching,
                 CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
                 Destination = input.Destination,
-                Result = result,
-                Manifest = source.Manifest,
+                Result = input.Result.Add(result),
+                Manifest = source.Remaining,
             });
     }
 }

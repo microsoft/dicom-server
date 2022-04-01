@@ -23,14 +23,14 @@ public sealed class ExportSinkFactory
         _providers = EnsureArg.IsNotNull(providers, nameof(providers)).ToDictionary(x => x.Type);
     }
 
-    public IExportSink CreateSink(ExportDestination location)
+    public IExportSink CreateSink(ExportDestination location, Guid operationId)
     {
         EnsureArg.IsNotNull(location, nameof(location));
 
         if (!_providers.TryGetValue(location.Type, out IExportSinkProvider provider))
             throw new InvalidOperationException();
 
-        return provider.Create(_serviceProvider, GetConfiguration(location.Configuration));
+        return provider.Create(_serviceProvider, GetConfiguration(location.Configuration), operationId);
     }
 
     public void Validate(ExportDestination location)

@@ -4,13 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.IO;
+using System.Text;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
-using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
@@ -20,19 +19,25 @@ public class AzureBlobExportSinkProvider : IExportSinkProvider
 {
     public ExportDestinationType Type => ExportDestinationType.AzureBlob;
 
-    public IExportSink Create(IServiceProvider provider, IConfiguration config)
+    public IExportSink Create(IServiceProvider provider, IConfiguration config, Guid operationId)
     {
         // source objects
-        var sourceBlobServiceClient = provider.GetService<BlobServiceClient>();
-        var blobOptions = provider.GetService<IOptions<BlobOperationOptions>>();
-        var blobContainerConfig = provider.GetService<IOptionsMonitor<BlobContainerConfiguration>>();
+        var sourceClient = provider.GetRequiredService<BlobServiceClient>();
+        var blobOptions = provider.GetRequiredService<IOptions<BlobOperationOptions>>();
+        var blobContainerConfig = provider.GetRequiredService<IOptionsMonitor<BlobContainerConfiguration>>();
 
         // destination objects
-        InitializeDestinationStore(config, out BlobContainerClient destBlobContainerClient, out string destPath);
+        InitializeDestinationStore(config, out BlobContainerClient destClient, out string destPath);
 
         // init and return
-        BlobCopyStore store = new BlobCopyStore(sourceBlobServiceClient, blobContainerConfig, blobOptions, destBlobContainerClient, destPath);
-        return new AzureBlobExportSink(store);
+        return new AzureBlobExportSink(
+            sourceClient,
+            destClient,
+            Encoding.UTF8,
+            destPath,
+            $"error-{operationId:N}.log",
+            blobContainerConfig,
+            blobOptions);
     }
 
     public void Validate(IConfiguration config)

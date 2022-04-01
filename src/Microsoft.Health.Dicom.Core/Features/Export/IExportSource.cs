@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Export;
 
 public interface IExportSource : IAsyncEnumerable<VersionedInstanceIdentifier>, IAsyncDisposable
 {
-    SourceManifest Manifest { get; }
+    SourceManifest Remaining { get; }
 
     SourceManifest TakeNextBatch(int size);
 }

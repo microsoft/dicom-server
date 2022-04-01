@@ -9,27 +9,28 @@ using EnsureThat;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Export;
-using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Functions.Export.Models;
+using Microsoft.Health.Operations.Functions.DurableTask;
 
 namespace Microsoft.Health.Dicom.Functions.Export;
 
 public partial class ExportDurableFunction
 {
     [FunctionName(nameof(ExportBatchAsync))]
-    public async Task<ExportResult> ExportBatchAsync([ActivityTrigger] ExportBatchArguments args, ILogger logger)
+    public async Task<ExportResult> ExportBatchAsync([ActivityTrigger] IDurableActivityContext context, ILogger logger)
     {
-        EnsureArg.IsNotNull(args, nameof(args));
+        EnsureArg.IsNotNull(context, nameof(context));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
+        ExportBatchArguments args = context.GetInput<ExportBatchArguments>();
         await using IExportSource source = _sourceFactory.CreateSource(args.Source);
-        await using IExportSink sink = _sinkFactory.CreateSink(args.Destination);
+        await using IExportSink sink = _sinkFactory.CreateSink(args.Destination, context.GetOperationId());
 
         // Export
-        Task<bool>[] exportTasks = await source.Select(x => TryCopyAsync(x, sink, logger)).ToArrayAsync();
+        sink.CopyFailure += (source, e) => logger.LogError(e.Exception, "Unable to copy watermark {Watermark}", e.Identifier.Version);
+        Task<bool>[] exportTasks = await source.Select(x => sink.CopyAsync(x)).ToArrayAsync();
 
         // Compute success metrics
         bool[] results = await Task.WhenAll(exportTasks);
@@ -46,21 +47,5 @@ public partial class ExportDurableFunction
         }
 
         return result;
-    }
-
-    private static async Task<bool> TryCopyAsync(VersionedInstanceIdentifier identifier, IExportSink sink, ILogger logger)
-    {
-        try
-        {
-            await sink.CopyAsync(identifier);
-            return true;
-        }
-        catch (DataStoreException dse) // TODO: Change exception
-        {
-            logger.LogError(dse, "Unable to copy watermark {Watermark}", identifier.Version);
-            // union and send the formatted error
-            //await sink.AppendErrorAsync(identifier, dse);
-            return false;
-        }
     }
 }

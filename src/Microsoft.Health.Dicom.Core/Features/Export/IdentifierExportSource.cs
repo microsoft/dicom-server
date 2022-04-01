@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Export;
 
 internal class IdentifierExportSource : IExportSource
 {
-    public SourceManifest Manifest => _index < _identifiers.Count
+    public SourceManifest Remaining => _index < _identifiers.Count
         ? new SourceManifest { Type = ExportSourceType.Identifiers, Input = GetRemaining() }
         : null;
 
