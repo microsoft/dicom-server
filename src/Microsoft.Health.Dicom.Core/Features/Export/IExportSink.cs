@@ -13,7 +13,7 @@ public interface IExportSink : IAsyncDisposable
 {
     event EventHandler<CopyFailureEventArgs> CopyFailure;
 
-    Uri ErrorHref { get; }
+    Task<Uri> GetErrorHrefAsync(CancellationToken cancellationToken = default);
 
     Task<bool> CopyAsync(SourceElement element, CancellationToken cancellationToken = default);
 }
