@@ -54,7 +54,7 @@ internal sealed class AzureBlobExportSink : IExportSink
         _destClient = destClient;
         _errorClientCache = new AsyncCache<AppendBlobClient>(async (CancellationToken cancellationToken) =>
         {
-            AppendBlobClient client = _sourceClient.GetAppendBlobClient(errorBlobName);
+            AppendBlobClient client = _destClient.GetAppendBlobClient(errorBlobName);
             await client.CreateAsync(options: null, cancellationToken);
             return client;
         });
@@ -108,15 +108,19 @@ internal sealed class AzureBlobExportSink : IExportSink
 
     public async Task FlushAsync(CancellationToken cancellationToken = default)
     {
-        // Move the stream back to the beginning
-        _errorWriter.BaseStream.Seek(0, SeekOrigin.Begin);
+        // Only flush if we have errors
+        if (_errorWriter.BaseStream.Length > 0)
+        {
+            // Move the stream back to the beginning
+            _errorWriter.BaseStream.Seek(0, SeekOrigin.Begin);
 
-        // Append the errors
-        AppendBlobClient errorblobClient = await _errorClientCache.GetAsync(forceRefresh: false, cancellationToken);
-        await errorblobClient.AppendBlockAsync(_errorWriter.BaseStream, transactionalContentHash: null, conditions: null, progressHandler: null, cancellationToken);
+            // Append the errors
+            AppendBlobClient errorblobClient = await _errorClientCache.GetAsync(forceRefresh: false, cancellationToken);
+            await errorblobClient.AppendBlockAsync(_errorWriter.BaseStream, transactionalContentHash: null, conditions: null, progressHandler: null, cancellationToken);
 
-        // reset the stream
-        _errorWriter.BaseStream.SetLength(0);
+            // reset the stream
+            _errorWriter.BaseStream.SetLength(0);
+        }
     }
 
     private BlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
@@ -134,7 +138,7 @@ internal sealed class AzureBlobExportSink : IExportSink
 
     private async ValueTask WriteErrorAsync(DicomIdentifier identifier, Exception exception, CancellationToken cancellationToken = default)
     {
-        await _errorWriter.WriteAsync($"{Clock.UtcNow},{identifier},{exception}");
+        await _errorWriter.WriteLineAsync($"{Clock.UtcNow},{identifier},{exception.Message}");
         await _errorWriter.FlushAsync();
 
         if (_errorWriter.BaseStream.Position >= BlockSize)

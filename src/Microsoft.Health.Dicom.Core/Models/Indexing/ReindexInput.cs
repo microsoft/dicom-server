@@ -20,7 +20,7 @@ internal class ReindexInput : IOperationCheckpoint
 
     public WatermarkRange? Completed { get; set; }
 
-    public int PercentComplete
+    public int? PercentComplete
     {
         get
         {
@@ -35,4 +35,6 @@ internal class ReindexInput : IOperationCheckpoint
     }
 
     public IReadOnlyCollection<string> ResourceIds => QueryTagKeys?.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToList();
+
+    public IReadOnlyDictionary<string, string> AdditionalProperties => null;
 }

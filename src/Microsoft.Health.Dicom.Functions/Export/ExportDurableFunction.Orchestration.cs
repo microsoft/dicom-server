@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -68,6 +69,7 @@ public partial class ExportDurableFunction
                 Batching = input.Batching,
                 CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
                 Destination = input.Destination,
+                ErrorHref = input.ErrorHref ?? await context.CallActivityWithRetryAsync<Uri>(nameof(GetErrorHrefAsync), _options.RetryOptions, input.Destination),
                 Result = input.Result.Add(result),
                 Manifest = source.Remaining,
             });

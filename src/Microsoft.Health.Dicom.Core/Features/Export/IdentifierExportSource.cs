@@ -79,7 +79,7 @@ internal class IdentifierExportSource : IExportSource
         var batch = new List<DicomIdentifier>();
         for (int i = 0; i < count; i++)
         {
-            batch.Add(_identifiers[i]);
+            batch.Add(_identifiers[_index + i]);
         }
 
         _index += count;

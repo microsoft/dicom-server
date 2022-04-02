@@ -95,10 +95,11 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             CreatedTime = checkpoint.CreatedTime ?? state.CreatedTime,
             LastUpdatedTime = state.LastUpdatedTime,
             OperationId = operationId,
-            PercentComplete = status == OperationStatus.Completed ? 100 : checkpoint.PercentComplete,
+            PercentComplete = checkpoint.PercentComplete.HasValue && status == OperationStatus.Completed ? 100 : checkpoint.PercentComplete,
             Resources = await GetResourceUrlsAsync(type, checkpoint.ResourceIds, cancellationToken),
             Status = status,
             Type = type,
+            AdditionalProperties = checkpoint.AdditionalProperties?.Count > 0 ? checkpoint.AdditionalProperties : null,
         };
     }
 
