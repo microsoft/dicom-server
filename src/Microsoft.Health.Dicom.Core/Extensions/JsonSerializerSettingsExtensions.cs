@@ -29,7 +29,7 @@ public static class JsonSerializerSettingsExtensions
         settings.Converters.Clear();
         settings.Converters.Add(new StringEnumConverter());
         settings.Converters.Add(new ConfigurationJsonConverter());
-        settings.Converters.Add(new DicomIdentifierJsonConverter());
+        settings.Converters.Add(new PartitionedDicomIdentifierJsonConverter());
         settings.Converters.Add(new SourceManifestJsonConverter());
 
         settings.DateParseHandling = DateParseHandling.None;

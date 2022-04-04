@@ -9,11 +9,11 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Core.Serialization.Newtonsoft;
 
-internal class DicomIdentifierJsonConverter : JsonConverter<DicomIdentifier>
+internal class PartitionedDicomIdentifierJsonConverter : JsonConverter<PartitionedDicomIdentifier>
 {
-    public override DicomIdentifier ReadJson(JsonReader reader, Type objectType, DicomIdentifier existingValue, bool hasExistingValue, JsonSerializer serializer)
-        => reader.TokenType == JsonToken.Null ? null : DicomIdentifier.Parse(serializer.Deserialize<string>(reader));
+    public override PartitionedDicomIdentifier ReadJson(JsonReader reader, Type objectType, PartitionedDicomIdentifier existingValue, bool hasExistingValue, JsonSerializer serializer)
+        => reader.TokenType == JsonToken.Null ? null : PartitionedDicomIdentifier.Parse(serializer.Deserialize<string>(reader));
 
-    public override void WriteJson(JsonWriter writer, DicomIdentifier value, JsonSerializer serializer)
+    public override void WriteJson(JsonWriter writer, PartitionedDicomIdentifier value, JsonSerializer serializer)
         => serializer.Serialize(writer, value.ToString());
 }
