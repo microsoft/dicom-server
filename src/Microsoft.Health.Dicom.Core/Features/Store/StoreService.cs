@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -129,7 +128,7 @@ public class StoreService : IStoreService
             // IndexedDicomTagHasMultipleValues is our warning, put into http Warning header.
             if ((warnings & ValidationWarnings.IndexedDicomTagHasMultipleValues) == ValidationWarnings.IndexedDicomTagHasMultipleValues)
             {
-                _storeResponseBuilder.AddWarning(DicomCoreResource.IndexedDicomTagHasMultipleValues);
+                _storeResponseBuilder.SetWarningMessage(DicomCoreResource.IndexedDicomTagHasMultipleValues);
             }
         }
         catch (Exception ex)

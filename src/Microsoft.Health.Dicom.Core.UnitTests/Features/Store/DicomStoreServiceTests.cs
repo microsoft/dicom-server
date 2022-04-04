@@ -82,7 +82,7 @@ public class DicomStoreServiceTests
 
         await ExecuteAndValidateAsync(dicomInstanceEntry);
 
-        _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1, Arg.Is<ushort?>(v => v.Value == WarningReasonCodes.DatasetDoesNotMatchSOPClass));
+        _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1, null);
         _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(default);
     }
 
@@ -175,8 +175,11 @@ public class DicomStoreServiceTests
         dicomInstanceEntryToFail.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
         _dicomDatasetValidator
-            .When(dicomDatasetMinimumRequirementValidator => dicomDatasetMinimumRequirementValidator.ValidateAsync(_dicomDataset2, null, Arg.Any<CancellationToken>()))
-            .Do(_ => throw new Exception());
+            .When(datasetVaidator => datasetVaidator.ValidateAsync(_dicomDataset2, null, Arg.Any<CancellationToken>()))
+            .Do(_ =>
+            {
+                throw new Exception();
+            });
 
         await ExecuteAndValidateAsync(dicomInstanceEntryToSucceed, dicomInstanceEntryToFail);
 

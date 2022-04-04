@@ -134,7 +134,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         }
     }
 
-    public void AddWarning(string message)
+    public void SetWarningMessage(string message)
     {
         _message = message;
     }
