@@ -45,22 +45,22 @@ public partial class ExportDurableFunction
         do
         {
             Task<bool>[] exportTasks = await source.Select(x => sink.CopyAsync(x)).ToArrayAsync();
-        } while (true);
-
-        // Compute success metrics
-        bool[] results = await Task.WhenAll(exportTasks);
-         = results.Aggregate<bool, ExportResult>(
+            // Compute success metrics
+            bool[] results = await Task.WhenAll(exportTasks);
+            result = results.Aggregate<bool, ExportResult>(
             default,
             (state, success) => success
                 ? new ExportResult(state.Exported + 1, state.Failed)
                 : new ExportResult(state.Exported, state.Failed + 1));
 
-        logger.LogInformation("Successfully exported {Files} DCM files.", result.Exported);
-        if (result.Failed > 0)
-        {
-            logger.LogWarning("Failed to export {Files} DCM files.", result.Failed);
-        }
+            logger.LogInformation("Successfully exported {Files} DCM files.", result.Exported);
+            if (result.Failed > 0)
+            {
+                logger.LogWarning("Failed to export {Files} DCM files.", result.Failed);
+            }
 
-        return result;
+            return result;
+        } while (true);
+
     }
 }

@@ -37,19 +37,18 @@ internal class IdentifierExportSource : IExportSource
 
     public async IAsyncEnumerator<SourceElement> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
-        // TODO: Partition
         for (int i = _index; i < _identifiers.Count; i++)
         {
             IEnumerable<SourceElement> results = null;
-            DicomIdentifier identifier = _identifiers[i];
+            PartitionedDicomIdentifier identifier = _identifiers[i];
 
             try
             {
                 IReadOnlyList<VersionedInstanceIdentifier> instances = identifier.Type switch
                 {
-                    ResourceType.Study => await _instanceStore.GetInstanceIdentifiersInStudyAsync(DefaultPartition.Key, identifier.StudyInstanceUid, cancellationToken),
-                    ResourceType.Series => await _instanceStore.GetInstanceIdentifiersInSeriesAsync(DefaultPartition.Key, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, cancellationToken),
-                    _ => await _instanceStore.GetInstanceIdentifierAsync(DefaultPartition.Key, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, cancellationToken),
+                    ResourceType.Study => await _instanceStore.GetInstanceIdentifiersInStudyAsync(identifier.PartitionKey, identifier.StudyInstanceUid, cancellationToken),
+                    ResourceType.Series => await _instanceStore.GetInstanceIdentifiersInSeriesAsync(identifier.PartitionKey, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, cancellationToken),
+                    _ => await _instanceStore.GetInstanceIdentifierAsync(identifier.PartitionKey, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, cancellationToken),
                 };
 
                 if (instances.Count == 0)

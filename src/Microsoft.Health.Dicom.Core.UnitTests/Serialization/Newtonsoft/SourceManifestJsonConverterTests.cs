@@ -21,7 +21,7 @@ public class SourceManifestJsonConverterTests
     public SourceManifestJsonConverterTests()
     {
         _serializerSettings = new JsonSerializerSettings { Formatting = Formatting.Indented };
-        _serializerSettings.Converters.Add(new DicomIdentifierJsonConverter());
+        _serializerSettings.Converters.Add(new PartitionedDicomIdentifierJsonConverter());
         _serializerSettings.Converters.Add(new SourceManifestJsonConverter());
         _serializerSettings.Converters.Add(new StringEnumConverter());
     }

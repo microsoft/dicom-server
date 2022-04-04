@@ -18,7 +18,7 @@ public class DicomIdentifierJsonConverterTests
     public DicomIdentifierJsonConverterTests()
     {
         _serializerSettings = new JsonSerializerSettings { Formatting = Formatting.Indented };
-        _serializerSettings.Converters.Add(new DicomIdentifierJsonConverter());
+        _serializerSettings.Converters.Add(new PartitionedDicomIdentifierJsonConverter());
     }
 
     [Theory]
