@@ -11,7 +11,6 @@ namespace Microsoft.Health.Dicom.Core.Models.Export;
 
 public class ExportIdentifiersInput
 {
-    public int PartitionKey { get; set; }
 
     [Required]
     [MinLength(1)]

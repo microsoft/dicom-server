@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Models.Export;
@@ -24,10 +23,10 @@ internal class IdentifierExportSource : IExportSource
         : null;
 
     private int _index;
-    private readonly IReadOnlyList<DicomIdentifier> _identifiers;
+    private readonly IReadOnlyList<PartitionedDicomIdentifier> _identifiers;
     private readonly IInstanceStore _instanceStore;
 
-    public IdentifierExportSource(IReadOnlyList<DicomIdentifier> identifiers, IInstanceStore instanceStore)
+    public IdentifierExportSource(IReadOnlyList<PartitionedDicomIdentifier> identifiers, IInstanceStore instanceStore)
     {
         _identifiers = EnsureArg.IsNotNull(identifiers, nameof(identifiers));
         _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
@@ -38,12 +37,12 @@ internal class IdentifierExportSource : IExportSource
         // TODO: Partition
         for (int i = _index; i < _identifiers.Count; i++)
         {
-            DicomIdentifier identifier = _identifiers[i];
+            PartitionedDicomIdentifier identifier = _identifiers[i];
             IEnumerable<VersionedInstanceIdentifier> results = identifier.Type switch
             {
-                ResourceType.Study => await _instanceStore.GetInstanceIdentifiersInStudyAsync(DefaultPartition.Key, identifier.StudyInstanceUid, cancellationToken),
-                ResourceType.Series => await _instanceStore.GetInstanceIdentifiersInSeriesAsync(DefaultPartition.Key, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, cancellationToken),
-                _ => await _instanceStore.GetInstanceIdentifierAsync(DefaultPartition.Key, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, cancellationToken),
+                ResourceType.Study => await _instanceStore.GetInstanceIdentifiersInStudyAsync(identifier.PartitionKey, identifier.StudyInstanceUid, cancellationToken),
+                ResourceType.Series => await _instanceStore.GetInstanceIdentifiersInSeriesAsync(identifier.PartitionKey, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, cancellationToken),
+                _ => await _instanceStore.GetInstanceIdentifierAsync(identifier.PartitionKey, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, cancellationToken),
             };
 
             foreach (VersionedInstanceIdentifier result in results)
@@ -57,7 +56,7 @@ internal class IdentifierExportSource : IExportSource
         if (count == 0)
             return null;
 
-        var batch = new List<DicomIdentifier>();
+        var batch = new List<PartitionedDicomIdentifier>();
         for (int i = 0; i < count; i++)
         {
             batch.Add(_identifiers[i]);
@@ -67,7 +66,7 @@ internal class IdentifierExportSource : IExportSource
         return new SourceManifest { Type = ExportSourceType.Identifiers, Input = batch };
     }
 
-    private IReadOnlyList<DicomIdentifier> GetRemaining()
+    private IReadOnlyList<PartitionedDicomIdentifier> GetRemaining()
         => _identifiers.Skip(_index).ToList();
 
     public ValueTask DisposeAsync()

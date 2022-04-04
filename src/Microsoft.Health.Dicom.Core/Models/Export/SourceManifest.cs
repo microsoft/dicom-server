@@ -9,7 +9,5 @@ public class SourceManifest
 {
     public ExportSourceType Type { get; set; }
 
-    public int PartitionKey { get; set; }
-
     public object Input { get; set; }
 }

@@ -4,11 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.Export;
@@ -56,8 +58,7 @@ public class ExportService : IExportService
                 // TODO: Add batching options
                 Manifest = new SourceManifest
                 {
-                    PartitionKey = partitionKey,
-                    Input = input.Identifiers,
+                    Input = input.Identifiers.Select(id => new PartitionedDicomIdentifier(id, partitionKey)).ToList(),
                     Type = ExportSourceType.Identifiers,
                 },
                 Destination = input.Destination,

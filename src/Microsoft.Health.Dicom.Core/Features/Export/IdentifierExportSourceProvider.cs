@@ -17,7 +17,7 @@ internal class IdentifierExportSourceProvider : IExportSourceProvider
     public ExportSourceType Type => ExportSourceType.Identifiers;
 
     public IExportSource Create(IServiceProvider provider, object input)
-        => new IdentifierExportSource(input as IReadOnlyList<DicomIdentifier>, provider.GetRequiredService<IInstanceStore>());
+        => new IdentifierExportSource(input as IReadOnlyList<PartitionedDicomIdentifier>, provider.GetRequiredService<IInstanceStore>());
 
     public void Validate(object input)
     {

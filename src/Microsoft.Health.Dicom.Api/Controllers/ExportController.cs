@@ -57,6 +57,8 @@ public class ExportController : ControllerBase
     [Consumes(KnownContentTypes.ApplicationJson)]
     [ProducesResponseType(typeof(ExportIdentifiersResponse), (int)HttpStatusCode.Accepted)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+    [VersionedPartitionRoute(KnownRoutes.ExportRoute)]
+    [PartitionRoute(KnownRoutes.ExportRoute)]
     [VersionedRoute(KnownRoutes.ExportRoute)]
     [Route(KnownRoutes.ExportRoute)]
     [AuditEventType(AuditEventSubType.Export)]
