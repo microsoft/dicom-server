@@ -3,11 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+
 namespace Microsoft.Health.Dicom.Core.Features.Store;
 
-public enum ValidationWarning
+[Flags]
+public enum ValidationWarnings
 {
-    IndexedDicomTagHasMultipleValues,
+    None = 0,
 
-    DatasetDoesNotMatchSOPClass,
+    IndexedDicomTagHasMultipleValues = 1,
+
+    DatasetDoesNotMatchSOPClass = 2,
 }

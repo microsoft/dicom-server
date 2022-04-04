@@ -569,4 +569,7 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="ErrorMessageIntegerStringIsInvalid" xml:space="preserve">
     <value>Value cannot be parsed as a valid integer string.</value>
   </data>
+  <data name="IndexedDicomTagHasMultipleValues" xml:space="preserve">
+    <value>One or more indexed Dicom tag(s) have multiple values, only first value is indexed.</value>
+  </data>
 </root>

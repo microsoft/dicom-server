@@ -28,5 +28,5 @@ public interface IStoreDatasetValidator
     /// True if there is no warning.
     /// False if there are any warnings.
     /// </returns>
-    Task<IReadOnlyList<ValidationWarning>> ValidateAsync(DicomDataset dicomDataset, string requiredStudyInstanceUid, CancellationToken cancellationToken = default);
+    Task<ValidationWarnings> ValidateAsync(DicomDataset dicomDataset, string requiredStudyInstanceUid, CancellationToken cancellationToken = default);
 }
