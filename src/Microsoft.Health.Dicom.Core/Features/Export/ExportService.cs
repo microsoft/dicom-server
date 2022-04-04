@@ -51,6 +51,7 @@ public class ExportService : IExportService
     {
         EnsureArg.IsNotNull(input, nameof(input));
         int partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
+        var sourceManifestInput = input.Identifiers.Select(id => new PartitionedDicomIdentifier(id, partitionKey)).ToList();
 
         OperationReference operation = await StartExportAsync(
             new ExportInput
@@ -58,7 +59,7 @@ public class ExportService : IExportService
                 // TODO: Add batching options
                 Manifest = new SourceManifest
                 {
-                    Input = input.Identifiers.Select(id => new PartitionedDicomIdentifier(id, partitionKey)).ToList(),
+                    Input = sourceManifestInput,
                     Type = ExportSourceType.Identifiers,
                 },
                 Destination = input.Destination,
