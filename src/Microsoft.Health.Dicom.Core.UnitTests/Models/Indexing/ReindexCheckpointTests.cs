@@ -12,15 +12,15 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Models.Indexing;
 
-public class ReindexInputTests
+public class ReindexCheckpointTests
 {
     [Fact]
     public void GivenEmptyInput_WhenGettingPercentComplete_ThenReturnZero()
-        => Assert.Equal(0, new ReindexInput().PercentComplete);
+        => Assert.Equal(0, new ReindexCheckpoint().PercentComplete);
 
     [Fact]
     public void GivenEmptyInput_WhenGettingResourceIds_ThenReturnZero()
-        => Assert.Null(new ReindexInput().ResourceIds);
+        => Assert.Null(new ReindexCheckpoint().ResourceIds);
 
     [Theory]
     [InlineData(4, 4, 25)]
@@ -29,13 +29,13 @@ public class ReindexInputTests
     [InlineData(1, 4, 100)]
     [InlineData(1, 1, 100)]
     public void GivenReindexInput_WhenGettingPercentComplete_ThenReturnComputedProgress(int start, int end, int expected)
-        => Assert.Equal(expected, new ReindexInput { Completed = new WatermarkRange(start, end) }.PercentComplete);
+        => Assert.Equal(expected, new ReindexCheckpoint { Completed = new WatermarkRange(start, end) }.PercentComplete);
 
     [Fact]
     public void GivenReindexInput_WhenGettingResourceIds_ThenReturnConvertedIds()
     {
         int[] expectedTagKeys = new int[] { 1, 3, 10 };
-        var input = new ReindexInput { QueryTagKeys = expectedTagKeys };
+        var input = new ReindexCheckpoint { QueryTagKeys = expectedTagKeys };
         Assert.True(input.ResourceIds.SequenceEqual(expectedTagKeys.Select(x => x.ToString(CultureInfo.InvariantCulture))));
     }
 }
