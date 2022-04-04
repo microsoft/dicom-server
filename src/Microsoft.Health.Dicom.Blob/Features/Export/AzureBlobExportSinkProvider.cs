@@ -4,12 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using System.Text;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
@@ -18,6 +20,10 @@ namespace Microsoft.Health.Dicom.Blob.Features.Export;
 public class AzureBlobExportSinkProvider : IExportSinkProvider
 {
     public ExportDestinationType Type => ExportDestinationType.AzureBlob;
+
+    private readonly char[] _invalidBlobStartChars = new[] { '.', '/' };
+    private readonly string _invalidBlobSubString = "./";
+    private readonly int _folderPathMaxLength = 200;
 
     public IExportSink Create(IServiceProvider provider, IConfiguration config, Guid operationId)
     {
@@ -47,11 +53,13 @@ public class AzureBlobExportSinkProvider : IExportSinkProvider
         if (options.ContainerUri == null)
             throw new FormatException();
 
-        // todo config length
         // Valid names https://docs.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-containers--blobs--and-metadata
-        if (!string.IsNullOrWhiteSpace(options.FolderPath) && options.FolderPath.Length > 200)
+        if (!string.IsNullOrWhiteSpace(options.FolderPath)
+            && (_invalidBlobStartChars.Any(c => options.FolderPath.StartsWith(c))
+                || options.FolderPath.Contains(_invalidBlobSubString, StringComparison.OrdinalIgnoreCase)
+                || options.FolderPath.Length > _folderPathMaxLength))
         {
-            throw new ArgumentException("Folder path too long");
+            throw new ExportFolderPathInvalidException(String.Format(DicomBlobResource.ExportFolderPathInvalid, options.FolderPath, string.Join(",", _invalidBlobStartChars), _folderPathMaxLength));
         }
     }
 

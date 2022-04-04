@@ -35,7 +35,7 @@ public class DicomIdentifier : IEquatable<DicomIdentifier>
 
     protected DicomIdentifier(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
     {
-        StudyInstanceUid = EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
+        StudyInstanceUid = EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
         SeriesInstanceUid = seriesInstanceUid;
         SopInstanceUid = sopInstanceUid;
     }
@@ -56,13 +56,13 @@ public class DicomIdentifier : IEquatable<DicomIdentifier>
         => new DicomIdentifier(uid, null, null);
 
     public static DicomIdentifier ForSeries(string studyInstanceUid, string seriesInstanceUid)
-        => new DicomIdentifier(studyInstanceUid, EnsureArg.IsNotNull(seriesInstanceUid, nameof(seriesInstanceUid)), null);
+        => new DicomIdentifier(studyInstanceUid, EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid)), null);
 
     public static DicomIdentifier ForInstance(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
         => new DicomIdentifier(
             studyInstanceUid,
-            EnsureArg.IsNotNull(seriesInstanceUid, nameof(seriesInstanceUid)),
-            EnsureArg.IsNotNull(sopInstanceUid, nameof(sopInstanceUid)));
+            EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid)),
+            EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid)));
 
     public static DicomIdentifier ForInstance(VersionedInstanceIdentifier identifier)
         => new DicomIdentifier(

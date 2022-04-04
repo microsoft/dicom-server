@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,6 +19,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Export;
 
 internal class IdentifierExportSource : IExportSource
 {
+    public event EventHandler<ReadFailureEventArgs> ReadFailure;
+
     public SourceManifest Remaining => _index < _identifiers.Count
         ? new SourceManifest { Type = ExportSourceType.Identifiers, Input = GetRemaining() }
         : null;
@@ -32,20 +35,36 @@ internal class IdentifierExportSource : IExportSource
         _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
     }
 
-    public async IAsyncEnumerator<VersionedInstanceIdentifier> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+    public async IAsyncEnumerator<SourceElement> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
         // TODO: Partition
         for (int i = _index; i < _identifiers.Count; i++)
         {
-            PartitionedDicomIdentifier identifier = _identifiers[i];
-            IEnumerable<VersionedInstanceIdentifier> results = identifier.Type switch
-            {
-                ResourceType.Study => await _instanceStore.GetInstanceIdentifiersInStudyAsync(identifier.PartitionKey, identifier.StudyInstanceUid, cancellationToken),
-                ResourceType.Series => await _instanceStore.GetInstanceIdentifiersInSeriesAsync(identifier.PartitionKey, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, cancellationToken),
-                _ => await _instanceStore.GetInstanceIdentifierAsync(identifier.PartitionKey, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, cancellationToken),
-            };
+            IEnumerable<SourceElement> results = null;
+            DicomIdentifier identifier = _identifiers[i];
 
-            foreach (VersionedInstanceIdentifier result in results)
+            try
+            {
+                IReadOnlyList<VersionedInstanceIdentifier> instances = identifier.Type switch
+                {
+                    ResourceType.Study => await _instanceStore.GetInstanceIdentifiersInStudyAsync(DefaultPartition.Key, identifier.StudyInstanceUid, cancellationToken),
+                    ResourceType.Series => await _instanceStore.GetInstanceIdentifiersInSeriesAsync(DefaultPartition.Key, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, cancellationToken),
+                    _ => await _instanceStore.GetInstanceIdentifierAsync(DefaultPartition.Key, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, cancellationToken),
+                };
+
+                if (instances.Count == 0)
+                    throw new FileNotFoundException("Cannot find any matching instances");
+
+                results = instances.Select(x => SourceElement.ForIdentifier(x));
+            }
+            catch (Exception ex)
+            {
+                var args = new ReadFailureEventArgs(identifier, ex);
+                ReadFailure?.Invoke(this, args);
+                results = new SourceElement[] { SourceElement.ForFailure(args) };
+            }
+
+            foreach (SourceElement result in results)
                 yield return result;
         }
     }
@@ -59,7 +78,7 @@ internal class IdentifierExportSource : IExportSource
         var batch = new List<PartitionedDicomIdentifier>();
         for (int i = 0; i < count; i++)
         {
-            batch.Add(_identifiers[i]);
+            batch.Add(_identifiers[_index + i]);
         }
 
         _index += count;

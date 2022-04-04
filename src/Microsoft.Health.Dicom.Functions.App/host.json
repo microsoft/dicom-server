@@ -53,8 +53,10 @@
     "IncludeScopes": false,
     "LogLevel": {
       "Azure.Core": "Warning",
-      "Default": "Information",
-      "DurableTask": "Warning"
+      "default": "Information",
+      "DurableTask": "Warning",
+      "Function": "Information",
+      "Host": "Information"
     }
   },
   "PurgeHistory": {

@@ -18,6 +18,15 @@ namespace Microsoft.Health.Dicom.Functions.Export;
 
 public partial class ExportDurableFunction
 {
+    [FunctionName(nameof(GetErrorHrefAsync))]
+    public async Task<System.Uri> GetErrorHrefAsync([ActivityTrigger] IDurableActivityContext context, ILogger logger)
+    {
+        EnsureArg.IsNotNull(context, nameof(context));
+        ExportDestination destination = context.GetInput<ExportDestination>();
+        await using IExportSink sink = _sinkFactory.CreateSink(destination, context.GetOperationId());
+        return await sink.GetErrorHrefAsync();
+    }
+
     [FunctionName(nameof(ExportBatchAsync))]
     public async Task<ExportResult> ExportBatchAsync([ActivityTrigger] IDurableActivityContext context, ILogger logger)
     {
@@ -29,12 +38,18 @@ public partial class ExportDurableFunction
         await using IExportSink sink = _sinkFactory.CreateSink(args.Destination, context.GetOperationId());
 
         // Export
+        source.ReadFailure += (source, e) => logger.LogError(e.Exception, "Cannot read desired DICOM file(s)");
         sink.CopyFailure += (source, e) => logger.LogError(e.Exception, "Unable to copy watermark {Watermark}", e.Identifier.Version);
-        Task<bool>[] exportTasks = await source.Select(x => sink.CopyAsync(x)).ToArrayAsync();
+
+        ExportResult result = default;
+        do
+        {
+            Task<bool>[] exportTasks = await source.Select(x => sink.CopyAsync(x)).ToArrayAsync();
+        } while (true);
 
         // Compute success metrics
         bool[] results = await Task.WhenAll(exportTasks);
-        ExportResult result = results.Aggregate<bool, ExportResult>(
+         = results.Aggregate<bool, ExportResult>(
             default,
             (state, success) => success
                 ? new ExportResult(state.Exported + 1, state.Failed)

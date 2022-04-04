@@ -9,13 +9,13 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export;
 
-public sealed class CopyFailureEventArgs : EventArgs
+public sealed class ReadFailureEventArgs : EventArgs
 {
-    public VersionedInstanceIdentifier Identifier { get; }
+    public DicomIdentifier Identifier { get; }
 
     public Exception Exception { get; }
 
-    public CopyFailureEventArgs(VersionedInstanceIdentifier identifier, Exception exception)
+    public ReadFailureEventArgs(DicomIdentifier identifier, Exception exception)
     {
         Identifier = EnsureArg.IsNotNull(identifier, nameof(identifier));
         Exception = EnsureArg.IsNotNull(exception, nameof(exception));

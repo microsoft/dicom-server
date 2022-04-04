@@ -17,6 +17,7 @@ using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Features.Common;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Export;
 
@@ -24,12 +25,10 @@ internal sealed class AzureBlobExportSink : IExportSink
 {
     public event EventHandler<CopyFailureEventArgs> CopyFailure;
 
-    public Uri ErrorHref => _errorClient.Uri;
-
     private readonly BlobContainerClient _sourceClient;
     private readonly BlobOperationOptions _options;
     private readonly BlobContainerClient _destClient;
-    private readonly AppendBlobClient _errorClient;
+    private readonly AsyncCache<AppendBlobClient> _errorClientCache;
     private readonly StreamWriter _errorWriter;
     private readonly string _destinationPath;
 
@@ -53,50 +52,76 @@ internal sealed class AzureBlobExportSink : IExportSink
         BlobContainerConfiguration containerConfiguration = sourceContainerOptions.Get(Constants.BlobContainerConfigurationName);
         _sourceClient = sourceClient.GetBlobContainerClient(containerConfiguration.ContainerName);
         _destClient = destClient;
-        _errorClient = _sourceClient.GetAppendBlobClient(errorBlobName);
+        _errorClientCache = new AsyncCache<AppendBlobClient>(async (CancellationToken cancellationToken) =>
+        {
+            var errorBlobPath = string.IsNullOrWhiteSpace(destinationPath) ? errorBlobName : $"{destinationPath}/{errorBlobName}";
+            AppendBlobClient client = _destClient.GetAppendBlobClient(errorBlobName);
+            await client.CreateAsync(options: null, cancellationToken);
+            return client;
+        });
         _errorWriter = new StreamWriter(new MemoryStream(BlockSize), errorEncoding);
         _destinationPath = destinationPath;
         _options = operationOptions.Value;
     }
 
-    public async Task<bool> CopyAsync(VersionedInstanceIdentifier identifier, CancellationToken cancellationToken)
+    public async Task<Uri> GetErrorHrefAsync(CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(identifier, nameof(identifier));
+        AppendBlobClient blobClient = await _errorClientCache.GetAsync(forceRefresh: false, cancellationToken);
+        return blobClient.Uri;
+    }
 
-        // Init source blob
-        var srcBlobClient = GetInstanceBlockBlob(identifier);
-
-        // Init destination blob
-        string destBlobName = GenerateDestinationBlobName(_destinationPath, identifier);
-        var destBlobClient = _destClient.GetBlobClient(destBlobName);
-
-        // Could not use StartCopyFromUriAsync from the SDK. There is a sourceUri auth issue and Azure team does not recommend using StartCopyFromUriAsync.
-        // Open the source blob stream
-        var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
-        using Stream stream = await srcBlobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken);
-
-        // Upload it to the destination
-        var blobUploadOptions = new BlobUploadOptions { TransferOptions = _options.Upload };
-        try
+    public async Task<bool> CopyAsync(SourceElement element, CancellationToken cancellationToken)
+    {
+        if (element.Failure != null)
         {
-            await destBlobClient.UploadAsync(stream, blobUploadOptions, cancellationToken);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            CopyFailure?.Invoke(this, new CopyFailureEventArgs { Exception = ex, Identifier = identifier });
-            await WriteErrorAsync(identifier, ex, cancellationToken);
+            await WriteErrorAsync(element.Failure.Identifier, element.Failure.Exception, cancellationToken);
             return false;
+        }
+        else
+        {
+            // Init source blob
+            var srcBlobClient = GetInstanceBlockBlob(element.Identifier);
+
+            // Init destination blob
+            string destBlobName = GenerateDestinationBlobName(_destinationPath, element.Identifier);
+            var destBlobClient = _destClient.GetBlobClient(destBlobName);
+
+            // Could not use StartCopyFromUriAsync from the SDK. There is a sourceUri auth issue and Azure team does not recommend using StartCopyFromUriAsync.
+            // Open the source blob stream
+            var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
+            using Stream stream = await srcBlobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken);
+
+            // Upload it to the destination
+            var blobUploadOptions = new BlobUploadOptions { TransferOptions = _options.Upload };
+            try
+            {
+                await destBlobClient.UploadAsync(stream, blobUploadOptions, cancellationToken);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                CopyFailure?.Invoke(this, new CopyFailureEventArgs(element.Identifier, ex));
+                await WriteErrorAsync(DicomIdentifier.ForInstance(element.Identifier), ex, cancellationToken);
+                return false;
+            }
         }
     }
 
-    public Task FlushAsync(CancellationToken cancellationToken = default)
+    public async Task FlushAsync(CancellationToken cancellationToken = default)
     {
-        // Move the stream back to the beginning
-        _errorWriter.BaseStream.Seek(0, SeekOrigin.Begin);
+        // Only flush if we have errors
+        if (_errorWriter.BaseStream.Length > 0)
+        {
+            // Move the stream back to the beginning
+            _errorWriter.BaseStream.Seek(0, SeekOrigin.Begin);
 
-        // Append the errors
-        return _errorClient.AppendBlockAsync(_errorWriter.BaseStream, transactionalContentHash: null, conditions: null, progressHandler: null, cancellationToken);
+            // Append the errors
+            AppendBlobClient errorblobClient = await _errorClientCache.GetAsync(forceRefresh: false, cancellationToken);
+            await errorblobClient.AppendBlockAsync(_errorWriter.BaseStream, transactionalContentHash: null, conditions: null, progressHandler: null, cancellationToken);
+
+            // reset the stream
+            _errorWriter.BaseStream.SetLength(0);
+        }
     }
 
     private BlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
@@ -112,9 +137,9 @@ internal sealed class AzureBlobExportSink : IExportSink
         return string.IsNullOrWhiteSpace(destinationPath) ? destFileName : $"{destinationPath}/{destFileName}";
     }
 
-    private async ValueTask WriteErrorAsync(VersionedInstanceIdentifier identifier, Exception exception, CancellationToken cancellationToken = default)
+    private async ValueTask WriteErrorAsync(DicomIdentifier identifier, Exception exception, CancellationToken cancellationToken = default)
     {
-        await _errorWriter.WriteAsync($"{Clock.UtcNow},{DicomIdentifier.ForInstance(identifier)},{exception.Message}");
+        await _errorWriter.WriteLineAsync($"{Clock.UtcNow},{identifier},{exception.Message}");
         await _errorWriter.FlushAsync();
 
         if (_errorWriter.BaseStream.Position >= BlockSize)
@@ -125,6 +150,7 @@ internal sealed class AzureBlobExportSink : IExportSink
     {
         await FlushAsync();
         _errorWriter.Dispose();
+        _errorClientCache.Dispose();
         GC.SuppressFinalize(this);
     }
 }

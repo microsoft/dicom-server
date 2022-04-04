@@ -66,7 +66,7 @@ public class ExportService : IExportService
                 Batching = new Models.Operations.BatchOptions
                 {
                     MaxParallel = 1,
-                    Size = 1,
+                    Size = 25,
                 }
             },
             cancellationToken);
