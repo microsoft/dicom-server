@@ -32,21 +32,21 @@ public class SourceManifestJsonConverterTests
         const string json = @"{
   ""Type"": ""Identifiers"",
   ""Input"": [
-    ""1234.5678"",
-    ""98.765.4/32.1""
+    ""1/1234.5678"",
+    ""2/98.765.4/32.1""
   ]
 }";
 
         SourceManifest actual = JsonConvert.DeserializeObject<SourceManifest>(json, _serializerSettings);
         Assert.Equal(ExportSourceType.Identifiers, actual.Type);
 
-        DicomIdentifier[] identifiers = actual.Input as DicomIdentifier[];
+        PartitionedDicomIdentifier[] identifiers = actual.Input as PartitionedDicomIdentifier[];
         Assert.NotNull(identifiers);
         Assert.True(identifiers.SequenceEqual(
-            new DicomIdentifier[]
+            new PartitionedDicomIdentifier[]
             {
-                DicomIdentifier.ForStudy("1234.5678"),
-                DicomIdentifier.ForSeries("98.765.4", "32.1"),
+                new PartitionedDicomIdentifier(DicomIdentifier.ForStudy("1234.5678"),1),
+                new PartitionedDicomIdentifier(DicomIdentifier.ForSeries("98.765.4", "32.1"),2),
             }));
     }
 
@@ -56,17 +56,17 @@ public class SourceManifestJsonConverterTests
         const string expected = @"{
   ""Type"": ""Identifiers"",
   ""Input"": [
-    ""1234.5678"",
-    ""98.765.4/32.1""
+    ""1/1234.5678"",
+    ""2/98.765.4/32.1""
   ]
 }";
 
         var value = new SourceManifest
         {
-            Input = new DicomIdentifier[]
+            Input = new PartitionedDicomIdentifier[]
             {
-                DicomIdentifier.ForStudy("1234.5678"),
-                DicomIdentifier.ForSeries("98.765.4", "32.1"),
+               new PartitionedDicomIdentifier(DicomIdentifier.ForStudy("1234.5678"),1),
+               new PartitionedDicomIdentifier( DicomIdentifier.ForSeries("98.765.4", "32.1"),2),
             },
             Type = ExportSourceType.Identifiers,
         };

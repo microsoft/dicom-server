@@ -29,7 +29,7 @@ public class JsonSerializerOptionsExtensionsTests
     {
         Assert.Equal(3, _options.Converters.Count);
         Assert.Equal(typeof(StrictStringEnumConverterFactory), _options.Converters[0].GetType());
-        Assert.Equal(typeof(DataSourceJsonConverterFactory), _options.Converters[1].GetType());
+        Assert.Equal(typeof(DicomIdentifierJsonConverter), _options.Converters[1].GetType());
         Assert.Equal(typeof(DicomJsonConverter), _options.Converters[2].GetType());
 
         Assert.True(_options.AllowTrailingCommas);
