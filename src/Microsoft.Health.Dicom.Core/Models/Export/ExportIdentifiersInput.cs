@@ -11,7 +11,6 @@ namespace Microsoft.Health.Dicom.Core.Models.Export;
 
 public class ExportIdentifiersInput
 {
-
     [Required]
     [MinLength(1)]
     public IReadOnlyList<DicomIdentifier> Identifiers { get; set; }
