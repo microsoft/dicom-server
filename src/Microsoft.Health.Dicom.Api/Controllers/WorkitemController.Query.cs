@@ -50,6 +50,6 @@ public partial class WorkitemController
             options.ToBaseQueryParameters(Request.Query),
             cancellationToken: HttpContext.RequestAborted);
 
-        return response.ResponseDatasets.Any() ? StatusCode((int)HttpStatusCode.OK, response.ResponseDatasets) : NoContent();
+        return response.ResponseDatasets.Any() ? StatusCode((int)response.Status.QueryResponseToHttpStatusCode(), response.ResponseDatasets) : NoContent();
     }
 }

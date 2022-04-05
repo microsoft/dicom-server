@@ -169,13 +169,39 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
         WorkitemQueryResult queryResult = await _indexWorkitemStore
             .QueryAsync(partitionKey, queryExpression, cancellationToken);
 
-        IEnumerable<DicomDataset> workitems = await Task.WhenAll(
-            queryResult.WorkitemInstances
-                .Select(x => _workitemStore.GetWorkitemAsync(x, cancellationToken)));
+        var workitemTasks = queryResult.WorkitemInstances
+                .Select(x => TryGetWorkitemBlobAsync(x, cancellationToken));
 
-        var workitemResponses = workitems.Select(m => WorkitemQueryResponseBuilder.GenerateResponseDataset(m, queryExpression)).ToList();
+        IEnumerable<DicomDataset> workitems = await Task.WhenAll(workitemTasks);
 
-        return new QueryWorkitemResourceResponse(workitemResponses);
+        return WorkitemQueryResponseBuilder.BuildWorkitemQueryResponse(workitems.ToList(), queryExpression);
+    }
+
+    /// <inheritdoc />
+    public async Task<DicomDataset> GetWorkitemBlobAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default)
+    {
+        if (null == identifier)
+        {
+            return null;
+        }
+
+        return await _workitemStore
+            .GetWorkitemAsync(identifier, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    private async Task<DicomDataset> TryGetWorkitemBlobAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await GetWorkitemBlobAsync(identifier, cancellationToken)
+            .ConfigureAwait(false);
+        }
+        catch (ItemNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Workitem blob doesn't exist due to simultaneous GET and UPDATE request.");
+            return null;
+        }
     }
 
     /// <inheritdoc />
@@ -201,18 +227,6 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
         {
             _logger.LogWarning(ex, @"Failed to cleanup workitem [{Identifier}].", identifier);
         }
-    }
-
-    public async Task<DicomDataset> GetWorkitemBlobAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default)
-    {
-        if (null == identifier)
-        {
-            return null;
-        }
-
-        return await _workitemStore
-            .GetWorkitemAsync(identifier, cancellationToken)
-            .ConfigureAwait(false);
     }
 
     private async Task StoreWorkitemBlobAsync(
