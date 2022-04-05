@@ -20,5 +20,7 @@ public interface IDicomRequestContext : IRequestContext
 
     long BytesTranscoded { get; set; }
 
+    int RequestParts { get; set; }
+
     PartitionEntry DataPartitionEntry { get; set; }
 }

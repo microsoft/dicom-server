@@ -75,6 +75,8 @@ public class DicomRequestContext : IDicomRequestContext
 
     public long ResponseSize { get; set; }
 
+    public int RequestParts { get; set; }
+
     public ClaimsPrincipal Principal { get; set; }
 
     public IDictionary<string, StringValues> RequestHeaders { get; }

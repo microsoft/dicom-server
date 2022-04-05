@@ -10,9 +10,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Abstractions.Exceptions;
+using Microsoft.Health.Dicom.Api.UnitTests.Features.Context;
 using Microsoft.Health.Dicom.Api.Web;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Web;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -28,10 +30,14 @@ public class AspNetCoreMultipartReaderTests
     private const string DefaultBodyPartFinalSeparator = "--+b+--";
 
     private readonly ISeekableStreamConverter _seekableStreamConverter;
+    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
+    private readonly DefaultDicomRequestContext _dicomRequestContext = new DefaultDicomRequestContext();
 
     public AspNetCoreMultipartReaderTests()
     {
         _seekableStreamConverter = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>());
+        _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+        _dicomRequestContextAccessor.RequestContext.Returns(_dicomRequestContext);
     }
 
     [Fact]
@@ -174,6 +180,7 @@ public class AspNetCoreMultipartReaderTests
             MultipartBodyPart result = await aspNetCoreMultipartReader.ReadNextBodyPartAsync(cancellationToken: default);
 
             Assert.Null(result);
+            Assert.True(_dicomRequestContextAccessor.RequestContext.RequestParts == 0);
         }
     }
 
@@ -230,7 +237,7 @@ public class AspNetCoreMultipartReaderTests
     }
 
 
-    private AspNetCoreMultipartReader Create(string contentType, Stream body = null, ISeekableStreamConverter seekableStreamConverter = null)
+    private AspNetCoreMultipartReader Create(string contentType, Stream body = null, ISeekableStreamConverter seekableStreamConverter = null, IDicomRequestContextAccessor dicomRequestContextAccessor = null)
     {
         if (body == null)
         {
@@ -242,10 +249,16 @@ public class AspNetCoreMultipartReaderTests
             seekableStreamConverter = _seekableStreamConverter;
         }
 
+        if (dicomRequestContextAccessor == null)
+        {
+            dicomRequestContextAccessor = _dicomRequestContextAccessor;
+        }
+
         return new AspNetCoreMultipartReader(
             contentType,
             body,
             seekableStreamConverter,
+            dicomRequestContextAccessor,
             CreateStoreConfiguration());
     }
 
@@ -280,17 +293,24 @@ public class AspNetCoreMultipartReaderTests
             AspNetCoreMultipartReader aspNetCoreMultipartReader = Create(requestContentType, stream, seekableStreamConverter);
 
             MultipartBodyPart result = null;
+            int numberOfParts = 0;
 
             foreach (Func<MultipartBodyPart, Task> validator in validators)
             {
                 result = await aspNetCoreMultipartReader.ReadNextBodyPartAsync(cancellationToken: default);
 
                 await validator(result);
+
+                if (result != null)
+                {
+                    numberOfParts++;
+                }
             }
 
             result = await aspNetCoreMultipartReader.ReadNextBodyPartAsync(cancellationToken: default);
 
             Assert.Null(result);
+            Assert.True(_dicomRequestContextAccessor.RequestContext.RequestParts == numberOfParts);
         }
     }
 
