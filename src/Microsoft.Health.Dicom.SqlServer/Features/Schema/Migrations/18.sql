@@ -1892,7 +1892,7 @@ BEGIN
     IF EXISTS (SELECT 1
                FROM   @personNameExtendedQueryTags)
         BEGIN
-            MERGE INTO dbo.ExtendedQueryTagPersonNam
+            MERGE INTO dbo.ExtendedQueryTagPersonName
              AS T
             USING (SELECT input.TagKey,
                           input.TagValue,
