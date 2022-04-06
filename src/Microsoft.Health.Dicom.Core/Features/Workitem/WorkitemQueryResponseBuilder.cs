@@ -79,7 +79,7 @@ public static class WorkitemQueryResponseBuilder
         {
             status = WorkitemResponseStatus.PartialContent;
         }
-        else if (!datasets.Any())
+        else if (datasets.Any())
         {
             status = WorkitemResponseStatus.Success;
         }
