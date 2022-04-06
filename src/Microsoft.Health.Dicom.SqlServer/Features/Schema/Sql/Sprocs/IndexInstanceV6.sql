@@ -47,7 +47,7 @@ BEGIN
             @seriesKey = SeriesKey,
             @instanceKey = InstanceKey,
             @status = Status
-        FROM dbo.Instance WITH (HOLDLOCK)
+        FROM dbo.Instance WITH (UPDLOCK)
         WHERE Watermark = @watermark
 
         IF @@ROWCOUNT = 0
@@ -56,8 +56,6 @@ BEGIN
             THROW 50409, 'Instance has not yet been stored succssfully', 1
 
         -- Insert Extended Query Tags
-
-        -- String Key tags
         BEGIN TRY
 
             EXEC dbo.IIndexInstanceCoreV9

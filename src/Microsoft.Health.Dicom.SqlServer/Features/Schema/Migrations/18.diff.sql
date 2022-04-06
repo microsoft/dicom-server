@@ -1,4 +1,103 @@
-﻿/***************************************************************************************/
+﻿/****************************************************************************************
+Guidelines to create migration scripts - https://github.com/microsoft/healthcare-shared-components/tree/master/src/Microsoft.Health.SqlServer/SqlSchemaScriptsGuidelines.md
+This diff is broken up into several sections:
+ - The first transaction contains changes to tables and stored procedures.
+ - The second transaction contains updates to indexes.
+ - IMPORTANT: Avoid rebuiling indexes inside the transaction, it locks the table during the transaction.
+******************************************************************************************/
+
+SET XACT_ABORT ON
+
+/****************************************************************************************
+Stored Procedures
+******************************************************************************************/
+BEGIN TRANSACTION
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--    Index instance V6
+--
+-- DESCRIPTION
+--    Adds or updates the various extended query tag indices for a given DICOM instance.
+--
+-- PARAMETERS
+--     @watermark
+--         * The Dicom instance watermark.
+--     @stringExtendedQueryTags
+--         * String extended query tag data
+--     @longExtendedQueryTags
+--         * Long extended query tag data
+--     @doubleExtendedQueryTags
+--         * Double extended query tag data
+--     @dateTimeExtendedQueryTags
+--         * DateTime extended query tag data
+--     @personNameExtendedQueryTags
+--         * PersonName extended query tag data
+-- RETURN VALUE
+--     None
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.IndexInstanceV6
+    @watermark                                                                   BIGINT,
+    @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1         READONLY,
+    @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1             READONLY,
+    @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1         READONLY,
+    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2     READONLY,
+    @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
+AS
+BEGIN
+    SET NOCOUNT    ON
+    SET XACT_ABORT ON
+    BEGIN TRANSACTION
+
+        DECLARE @partitionKey BIGINT
+        DECLARE @studyKey BIGINT
+        DECLARE @seriesKey BIGINT
+        DECLARE @instanceKey BIGINT
+
+        -- Add lock so that the instance cannot be removed
+        DECLARE @status TINYINT
+        SELECT
+            @partitionKey = PartitionKey,
+            @studyKey = StudyKey,
+            @seriesKey = SeriesKey,
+            @instanceKey = InstanceKey,
+            @status = Status
+        FROM dbo.Instance WITH (UPDLOCK)
+        WHERE Watermark = @watermark
+
+        IF @@ROWCOUNT = 0
+            THROW 50404, 'Instance does not exists', 1
+        IF @status <> 1 -- Created
+            THROW 50409, 'Instance has not yet been stored succssfully', 1
+
+        -- Insert Extended Query Tags
+        BEGIN TRY
+
+            EXEC dbo.IIndexInstanceCoreV9
+                @partitionKey,
+                @studyKey,
+                @seriesKey,
+                @instanceKey,
+                @watermark,
+                @stringExtendedQueryTags,
+                @longExtendedQueryTags,
+                @doubleExtendedQueryTags,
+                @dateTimeExtendedQueryTags,
+                @personNameExtendedQueryTags
+
+        END TRY
+        BEGIN CATCH
+
+            THROW
+
+        END CATCH
+
+    COMMIT TRANSACTION
+END
+GO
+
+/***************************************************************************************/
 -- STORED PROCEDURE
 --    IIndexInstanceCoreV9
 --
@@ -270,3 +369,6 @@ BEGIN
             );
     END
 END
+GO
+
+COMMIT TRANSACTION
