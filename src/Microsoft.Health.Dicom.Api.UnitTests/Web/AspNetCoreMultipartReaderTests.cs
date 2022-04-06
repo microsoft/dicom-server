@@ -180,7 +180,7 @@ public class AspNetCoreMultipartReaderTests
             MultipartBodyPart result = await aspNetCoreMultipartReader.ReadNextBodyPartAsync(cancellationToken: default);
 
             Assert.Null(result);
-            Assert.True(_dicomRequestContextAccessor.RequestContext.RequestParts == 0);
+            Assert.Equal(0, _dicomRequestContextAccessor.RequestContext.RequestParts);
         }
     }
 
@@ -310,7 +310,7 @@ public class AspNetCoreMultipartReaderTests
             result = await aspNetCoreMultipartReader.ReadNextBodyPartAsync(cancellationToken: default);
 
             Assert.Null(result);
-            Assert.True(_dicomRequestContextAccessor.RequestContext.RequestParts == numberOfParts);
+            Assert.Equal(numberOfParts, _dicomRequestContextAccessor.RequestContext.RequestParts);
         }
     }
 
