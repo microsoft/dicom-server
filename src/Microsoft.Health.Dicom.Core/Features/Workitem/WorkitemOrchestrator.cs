@@ -199,7 +199,7 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
         }
         catch (ItemNotFoundException ex)
         {
-            _logger.LogWarning(ex, "Workitem blob doesn't exist due to simultaneous GET and UPDATE request.");
+            _logger.LogWarning(ex, "Workitem [{Identifier}] blob doesn't exist due to simultaneous GET and UPDATE request.", identifier);
             return null;
         }
     }
