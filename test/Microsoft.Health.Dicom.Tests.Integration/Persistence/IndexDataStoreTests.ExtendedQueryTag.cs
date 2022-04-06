@@ -44,13 +44,13 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
     }
 
     [Fact]
-    public async Task GivenDicomInstanceWithStudyLevelExtendedQueryTag_WhenStoreWithNewValue_ThenIndexIsUnchanged()
+    public async Task GivenDicomInstanceWithStudyLevelExtendedQueryTag_WhenStoreWithNewValue_ThenExtendedQueryTagsNeedToBeUpdated()
     {
         await ValidateUpdateExistingExtendedQueryTagIndexData(QueryTagLevel.Study);
     }
 
     [Fact]
-    public async Task GivenDicomInstanceWithSeriesLevelExtendedQueryTag_WhenStoreWithNewValue_ThenIndexIsUnchanged()
+    public async Task GivenDicomInstanceWithSeriesLevelExtendedQueryTag_WhenStoreWithNewValue_ThenExtendedQueryTagsNeedToBeUpdated()
     {
         await ValidateUpdateExistingExtendedQueryTagIndexData(QueryTagLevel.Series);
     }
@@ -358,8 +358,8 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
             var stringRows = await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, queryTag.ExtendedQueryTagStoreEntry.Key, instance.StudyKey, seriesKey);
 
             Assert.Single(stringRows);
-            Assert.NotEqual(value, stringRows[0].TagValue);
-            Assert.NotEqual(watermark, stringRows[0].Watermark);
+            Assert.Equal(stringRows[0].TagValue, value);
+            Assert.Equal(stringRows[0].Watermark, watermark);
         }
         finally
         {
