@@ -183,7 +183,7 @@ public class DicomStoreServiceTests
 
         await ExecuteAndValidateAsync(dicomInstanceEntryToSucceed, dicomInstanceEntryToFail);
 
-        _storeResponseBuilder.Received(0).AddSuccess(_dicomDataset1);
+        _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1, null);
         _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, TestConstants.ProcessingFailureReasonCode);
     }
 
