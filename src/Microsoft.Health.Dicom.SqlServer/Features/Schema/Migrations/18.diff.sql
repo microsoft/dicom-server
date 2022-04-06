@@ -106,6 +106,10 @@ GO
 --    Unlike IndexInstance, IndexInstanceCore is not wrapped in a transaction and may be re-used by other
 --    stored procedures whose logic may vary.
 --
+--    Note that for study and series-level tags, we assume all of the associated instances
+--    have the same value for the indexed tags, and as such will not update the index
+--    if the study or series is already present.
+--
 -- PARAMETERS
 --     @partitionKey
 --         * The Partition key
@@ -200,9 +204,6 @@ BEGIN
             AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
             -- Null InstanceKey indicates a Study/Series level tag, no to compare InstanceKey
             AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
-        WHEN MATCHED AND @watermark > T.Watermark THEN
-            -- When index already exist, update only when watermark is newer
-            UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
         WHEN NOT MATCHED THEN
             INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType)
             VALUES
@@ -239,9 +240,6 @@ BEGIN
             AND T.SopInstanceKey1 = @studyKey
             AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
             AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
-        WHEN MATCHED AND @watermark > T.Watermark THEN
-            -- When index already exist, update only when watermark is newer
-            UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
         WHEN NOT MATCHED THEN
             INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType)
             VALUES
@@ -276,9 +274,6 @@ BEGIN
             AND T.SopInstanceKey1 = @studyKey
             AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
             AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
-        WHEN MATCHED AND @watermark > T.Watermark THEN
-            -- When index already exist, update only when watermark is newer
-            UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
         WHEN NOT MATCHED THEN
             INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType)
             VALUES
@@ -313,9 +308,6 @@ BEGIN
             AND T.SopInstanceKey1 = @studyKey
             AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
             AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
-        WHEN MATCHED AND @watermark > T.Watermark THEN
-            -- When index already exist, update only when watermark is newer
-            UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
         WHEN NOT MATCHED THEN
             INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, TagValueUtc, ResourceType)
             VALUES
@@ -335,7 +327,7 @@ BEGIN
     -- PersonName Key tags
     IF EXISTS (SELECT 1 FROM @personNameExtendedQueryTags)
     BEGIN
-        MERGE INTO dbo.ExtendedQueryTagPersonNam AS T
+        MERGE INTO dbo.ExtendedQueryTagPersonName AS T
         USING
         (
             SELECT input.TagKey, input.TagValue, input.TagLevel
@@ -351,9 +343,6 @@ BEGIN
             AND T.SopInstanceKey1 = @studyKey
             AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
             AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
-        WHEN MATCHED AND @watermark > T.Watermark THEN
-            -- When index already exist, update only when watermark is newer
-            UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
         WHEN NOT MATCHED THEN
             INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType)
             VALUES
