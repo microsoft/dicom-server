@@ -39,7 +39,7 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         _instanceManager = new DicomInstancesManager(_client);
     }
 
-    [Fact]
+    [Fact(Skip = "Bug#90068")]
     [Trait("Category", "bvt")]
     public async Task GivenExtendedQueryTag_WhenReindexing_ThenShouldSucceed()
     {
@@ -218,7 +218,7 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(Skip = "Bug#90068")]
     public async Task GivenInvalidISAndIndexed_WhenStoring_ThenServerShouldReturnConflict()
     {
         DicomTag tag = DicomTag.StageNumber;
