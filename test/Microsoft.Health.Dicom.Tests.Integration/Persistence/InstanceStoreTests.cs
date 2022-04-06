@@ -63,7 +63,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
     }
 
     [Fact]
-    public async Task GivenStudyTag_WhenReindexWithNewInstance_ThenTagValueShouldBeUpdated()
+    public async Task GivenStudyTag_WhenReindexWithNewInstance_ThenTagValueShouldNotBeUpdated()
     {
         DicomTag tag = DicomTag.DeviceSerialNumber;
         string tagValue1 = "test1";
@@ -94,11 +94,11 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
 
         await _indexDataStore.ReindexInstanceAsync(dataset3, instance3.Watermark, new[] { queryTag });
         row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, null, null)).Single();
-        Assert.Equal(tagValue3, row.TagValue); // Overwrite
+        Assert.Equal(tagValue2, row.TagValue); // Do not Overwrite
 
         await _indexDataStore.ReindexInstanceAsync(dataset1, instance1.Watermark, new[] { queryTag });
         row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, null, null)).Single();
-        Assert.Equal(tagValue3, row.TagValue); // Do not overwrite
+        Assert.Equal(tagValue2, row.TagValue); // Do not overwrite
     }
 
     [Fact]
