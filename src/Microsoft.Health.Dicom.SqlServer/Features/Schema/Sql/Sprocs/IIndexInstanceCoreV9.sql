@@ -7,10 +7,6 @@
 --    Unlike IndexInstance, IndexInstanceCore is not wrapped in a transaction and may be re-used by other
 --    stored procedures whose logic may vary.
 --
---    Note that for study and series-level tags, we assume all of the associated instances
---    have the same value for the indexed tags, and as such will not update the index
---    if the study or series is already present.
---
 -- PARAMETERS
 --     @partitionKey
 --         * The Partition key
@@ -34,6 +30,7 @@
 --         * PersonName extended query tag data
 --     @resourceType
 --         * The resource type that owns these tags: 0 = Image, 1 = Workitem. Default is Image
+
 -- RETURN VALUE
 --     None
 /***************************************************************************************/
