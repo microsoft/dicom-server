@@ -10,7 +10,6 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Common;
@@ -66,13 +65,14 @@ public class LoggingMetadataStore : IMetadataStore
     }
 
     /// <inheritdoc />
-    public async Task StoreInstanceMetadataAsync(DicomDataset dicomDataset, long version, CancellationToken cancellationToken)
+    public async Task StoreInstanceMetadataAsync(DicomDataset dicomDataset, DetailedInstanceIdentifier detailedInstanceIdentifier, CancellationToken cancellationToken)
     {
-        LogStoreInstanceMetadataDelegate(_logger, dicomDataset.ToVersionedInstanceIdentifier(version).ToString(), null);
+        EnsureArg.IsNotNull(detailedInstanceIdentifier, nameof(detailedInstanceIdentifier));
+        LogStoreInstanceMetadataDelegate(_logger, detailedInstanceIdentifier.ToString(), null);
 
         try
         {
-            await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version, cancellationToken);
+            await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, detailedInstanceIdentifier, cancellationToken);
 
             LogOperationSucceededDelegate(_logger, null);
         }
@@ -85,7 +85,7 @@ public class LoggingMetadataStore : IMetadataStore
     }
 
     /// <inheritdoc />
-    public async Task DeleteInstanceMetadataIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    public async Task DeleteInstanceMetadataIfExistsAsync(DetailedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
         LogDeleteInstanceMetadataDelegate(_logger, versionedInstanceIdentifier.ToString(), null);
@@ -105,7 +105,7 @@ public class LoggingMetadataStore : IMetadataStore
     }
 
     /// <inheritdoc />
-    public async Task<DicomDataset> GetInstanceMetadataAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    public async Task<DicomDataset> GetInstanceMetadataAsync(DetailedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 

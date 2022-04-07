@@ -23,7 +23,7 @@ public interface IFileStore
     /// <param name="stream">The DICOM instance stream.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous add operation.</returns>
-    Task<Uri> StoreFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, Stream stream, CancellationToken cancellationToken = default);
+    Task<Uri> StoreFileAsync(DetailedInstanceIdentifier versionedInstanceIdentifier, Stream stream, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously gets a file from the file store.
@@ -31,7 +31,7 @@ public interface IFileStore
     /// <param name="versionedInstanceIdentifier">The DICOM identifier.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous get operation.</returns>
-    Task<Stream> GetFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default);
+    Task<Stream> GetFileAsync(DetailedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously deletes a file from the file store if the file exists.
@@ -39,7 +39,7 @@ public interface IFileStore
     /// <param name="versionedInstanceIdentifier">The DICOM identifier.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous delete operation.</returns>
-    Task DeleteFileIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default);
+    Task DeleteFileIfExistsAsync(DetailedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously get file properties
@@ -48,6 +48,6 @@ public interface IFileStore
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous get properties operation.</returns>
     Task<FileProperties> GetFilePropertiesAsync(
-        VersionedInstanceIdentifier versionedInstanceIdentifier,
+        DetailedInstanceIdentifier versionedInstanceIdentifier,
         CancellationToken cancellationToken = default);
 }

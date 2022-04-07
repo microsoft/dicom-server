@@ -17,6 +17,7 @@ using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 
@@ -27,26 +28,30 @@ public class BlobFileStore : IFileStore
 {
     private readonly BlobContainerClient _container;
     private readonly BlobOperationOptions _options;
+    private readonly IInstanceFileNameFactory _instanceFileNameFactory;
 
     public BlobFileStore(
         BlobServiceClient client,
+        IInstanceFileNameFactory instanceFileNameFactory,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         IOptions<BlobOperationOptions> options)
     {
         EnsureArg.IsNotNull(client, nameof(client));
         EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
         EnsureArg.IsNotNull(options?.Value, nameof(options));
+        EnsureArg.IsNotNull(instanceFileNameFactory, nameof(instanceFileNameFactory));
 
         BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
             .Get(Constants.BlobContainerConfigurationName);
 
         _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
         _options = options.Value;
+        _instanceFileNameFactory = instanceFileNameFactory;
     }
 
     /// <inheritdoc />
     public async Task<Uri> StoreFileAsync(
-        VersionedInstanceIdentifier versionedInstanceIdentifier,
+        DetailedInstanceIdentifier versionedInstanceIdentifier,
         Stream stream,
         CancellationToken cancellationToken)
     {
@@ -75,7 +80,7 @@ public class BlobFileStore : IFileStore
 
     /// <inheritdoc />
     public async Task DeleteFileIfExistsAsync(
-        VersionedInstanceIdentifier versionedInstanceIdentifier,
+        DetailedInstanceIdentifier versionedInstanceIdentifier,
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
@@ -87,7 +92,7 @@ public class BlobFileStore : IFileStore
 
     /// <inheritdoc />
     public async Task<Stream> GetFileAsync(
-        VersionedInstanceIdentifier versionedInstanceIdentifier,
+        DetailedInstanceIdentifier versionedInstanceIdentifier,
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
@@ -106,7 +111,7 @@ public class BlobFileStore : IFileStore
     }
 
     public async Task<FileProperties> GetFilePropertiesAsync(
-        VersionedInstanceIdentifier versionedInstanceIdentifier,
+        DetailedInstanceIdentifier versionedInstanceIdentifier,
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
@@ -123,9 +128,9 @@ public class BlobFileStore : IFileStore
         return fileProperties;
     }
 
-    private BlockBlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
+    private BlockBlobClient GetInstanceBlockBlob(DetailedInstanceIdentifier instanceIdentifer)
     {
-        string blobName = $"{versionedInstanceIdentifier.StudyInstanceUid}/{versionedInstanceIdentifier.SeriesInstanceUid}/{versionedInstanceIdentifier.SopInstanceUid}_{versionedInstanceIdentifier.Version}.dcm";
+        string blobName = _instanceFileNameFactory.GetInstanceFileName(instanceIdentifer);
 
         return _container.GetBlockBlobClient(blobName);
     }

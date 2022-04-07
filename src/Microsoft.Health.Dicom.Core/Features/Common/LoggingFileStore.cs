@@ -65,7 +65,7 @@ public class LoggingFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<Uri> StoreFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, Stream stream, CancellationToken cancellationToken)
+    public async Task<Uri> StoreFileAsync(DetailedInstanceIdentifier versionedInstanceIdentifier, Stream stream, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
@@ -88,7 +88,7 @@ public class LoggingFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task DeleteFileIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    public async Task DeleteFileIfExistsAsync(DetailedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
@@ -109,7 +109,7 @@ public class LoggingFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<Stream> GetFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    public async Task<Stream> GetFileAsync(DetailedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 

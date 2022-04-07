@@ -20,6 +20,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.IO;
 
@@ -36,10 +37,12 @@ public class BlobMetadataStore : IMetadataStore
     private readonly BlobContainerClient _container;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+    private readonly IInstanceFileNameFactory _instanceFileNameFactory;
 
     public BlobMetadataStore(
         BlobServiceClient client,
         RecyclableMemoryStreamManager recyclableMemoryStreamManager,
+        IInstanceFileNameFactory instanceFileNameFactory,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         IOptions<JsonSerializerOptions> jsonSerializerOptions)
     {
@@ -47,6 +50,7 @@ public class BlobMetadataStore : IMetadataStore
         EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
         EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
         EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
+        EnsureArg.IsNotNull(instanceFileNameFactory, nameof(instanceFileNameFactory));
 
         BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
             .Get(Constants.MetadataContainerConfigurationName);
@@ -54,12 +58,13 @@ public class BlobMetadataStore : IMetadataStore
         _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
         _jsonSerializerOptions = jsonSerializerOptions.Value;
         _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
+        _instanceFileNameFactory = instanceFileNameFactory;
     }
 
     /// <inheritdoc />
     public async Task StoreInstanceMetadataAsync(
         DicomDataset dicomDataset,
-        long version,
+        DetailedInstanceIdentifier detailedInstanceIdentifier,
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
@@ -67,7 +72,7 @@ public class BlobMetadataStore : IMetadataStore
         // Creates a copy of the dataset with bulk data removed.
         DicomDataset dicomDatasetWithoutBulkData = dicomDataset.CopyWithoutBulkDataItems();
 
-        BlockBlobClient blob = GetInstanceBlockBlob(dicomDatasetWithoutBulkData.ToVersionedInstanceIdentifier(version));
+        BlockBlobClient blob = GetInstanceBlockBlob(detailedInstanceIdentifier);
 
         try
         {
@@ -95,7 +100,7 @@ public class BlobMetadataStore : IMetadataStore
     }
 
     /// <inheritdoc />
-    public async Task DeleteInstanceMetadataIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    public async Task DeleteInstanceMetadataIfExistsAsync(DetailedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
         BlockBlobClient blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
@@ -104,7 +109,7 @@ public class BlobMetadataStore : IMetadataStore
     }
 
     /// <inheritdoc />
-    public Task<DicomDataset> GetInstanceMetadataAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    public Task<DicomDataset> GetInstanceMetadataAsync(DetailedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
         BlockBlobClient cloudBlockBlob = GetInstanceBlockBlob(versionedInstanceIdentifier);
@@ -122,9 +127,9 @@ public class BlobMetadataStore : IMetadataStore
         }, cancellationToken);
     }
 
-    private BlockBlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
+    private BlockBlobClient GetInstanceBlockBlob(DetailedInstanceIdentifier instanceIdentifier)
     {
-        var blobName = $"{versionedInstanceIdentifier.StudyInstanceUid}/{versionedInstanceIdentifier.SeriesInstanceUid}/{versionedInstanceIdentifier.SopInstanceUid}_{versionedInstanceIdentifier.Version}_metadata.json";
+        var blobName = _instanceFileNameFactory.GetInstanceMetadataFileName(instanceIdentifier);
 
         return _container.GetBlockBlobClient(blobName);
     }

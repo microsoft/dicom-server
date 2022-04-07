@@ -19,12 +19,12 @@ public interface IMetadataStore
     /// Asynchronously stores a DICOM instance metadata.
     /// </summary>
     /// <param name="dicomDataset">The DICOM instance.</param>
-    /// <param name="version">The version.</param>
+    /// <param name="detailedInstanceIdentifier">The version.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous add operation.</returns>
     Task StoreInstanceMetadataAsync(
         DicomDataset dicomDataset,
-        long version,
+        DetailedInstanceIdentifier detailedInstanceIdentifier,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -34,7 +34,7 @@ public interface IMetadataStore
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous get operation.</returns>
     Task<DicomDataset> GetInstanceMetadataAsync(
-        VersionedInstanceIdentifier versionedInstanceIdentifier,
+        DetailedInstanceIdentifier versionedInstanceIdentifier,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -44,6 +44,6 @@ public interface IMetadataStore
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous delete operation.</returns>
     Task DeleteInstanceMetadataIfExistsAsync(
-        VersionedInstanceIdentifier versionedInstanceIdentifier,
+        DetailedInstanceIdentifier versionedInstanceIdentifier,
         CancellationToken cancellationToken = default);
 }
