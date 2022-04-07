@@ -32,7 +32,7 @@ public partial class WorkitemController
     /// DICOM PS 3.19 XML metadata is not supported.
     /// </remarks>
     /// <returns></returns>
-    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson })]
     [Produces(KnownContentTypes.ApplicationDicomJson)]
     [Consumes(KnownContentTypes.ApplicationDicomJson)]
     [ProducesResponseType((int)HttpStatusCode.OK)]
