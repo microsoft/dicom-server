@@ -63,7 +63,7 @@ public sealed class AcceptContentFilterAttribute : ActionFilterAttribute
 
         foreach (MediaTypeHeaderValue acceptHeader in acceptHeaders)
         {
-            if (_mediaTypes.Any(x => x.MatchesMediaType(acceptHeader.MediaType)))
+            if (_mediaTypes.Any(x => acceptHeader.MatchesMediaType(x.MediaType)))
             {
                 return true;
             }
