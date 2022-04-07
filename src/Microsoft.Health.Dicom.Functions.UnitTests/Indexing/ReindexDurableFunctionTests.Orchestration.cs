@@ -58,7 +58,7 @@ public partial class ReindexDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                 nameof(ReindexDurableFunction.GetInstanceBatchesV2Async),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate((long?)null)))
+                Arg.Is(GetPredicate(null)))
             .Returns(expectedBatches);
         context
             .CallActivityWithRetryAsync(
@@ -70,7 +70,7 @@ public partial class ReindexDurableFunctionTests
             .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
                 nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(operationId)))
+                Arg.Is(GetPredicate()))
             .Returns(new DurableOrchestrationStatus { CreatedTime = createdTime });
 
         // Invoke the orchestration
@@ -97,7 +97,7 @@ public partial class ReindexDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                 nameof(ReindexDurableFunction.GetInstanceBatchesV2Async),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate((long?)null)));
+                Arg.Is(GetPredicate(null)));
 
         foreach (WatermarkRange batch in expectedBatches)
         {
@@ -120,7 +120,7 @@ public partial class ReindexDurableFunctionTests
              .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
                 nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(operationId)));
+                Arg.Is(GetPredicate()));
         context
             .Received(1)
             .ContinueAsNew(
@@ -255,7 +255,7 @@ public partial class ReindexDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                 nameof(ReindexDurableFunction.GetInstanceBatchesV2Async),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate((long?)null)))
+                Arg.Is(GetPredicate(null)))
             .Returns(expectedBatches);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<int>>(
@@ -288,7 +288,7 @@ public partial class ReindexDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                 nameof(ReindexDurableFunction.GetInstanceBatchesV2Async),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate((long?)null)));
+                Arg.Is(GetPredicate(null)));
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
@@ -509,12 +509,9 @@ public partial class ReindexDurableFunctionTests
             && x.ThreadCount == _options.BatchThreadCount;
     }
 
-    private static Expression<Predicate<GetInstanceStatusInput>> GetPredicate(string instanceId)
+    private static Expression<Predicate<GetInstanceStatusOptions>> GetPredicate()
     {
-        return x => x.InstanceId == instanceId
-            && !x.ShowHistory
-            && !x.ShowHistoryOutput
-            && !x.ShowInput;
+        return x => !x.ShowHistory && !x.ShowHistoryOutput && !x.ShowInput;
     }
 
     private static Predicate<object> GetPredicate(
