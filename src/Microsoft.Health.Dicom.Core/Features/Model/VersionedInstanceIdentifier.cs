@@ -34,5 +34,5 @@ public class VersionedInstanceIdentifier : InstanceIdentifier
         => base.GetHashCode() ^ Version.GetHashCode();
 
     public override string ToString()
-        => base.ToString() + $"Version: {Version}";
+        => base.ToString() + $", Version: {Version}";
 }
