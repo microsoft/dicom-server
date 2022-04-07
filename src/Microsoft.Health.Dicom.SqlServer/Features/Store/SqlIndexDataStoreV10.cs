@@ -76,18 +76,16 @@ internal class SqlIndexDataStoreV10 : SqlIndexDataStoreV6
             {
                 return (long)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken));
             }
+            catch (SqlException ex) when (ex.Number == SqlErrorCodes.Conflict && ex.State == (byte)IndexStatus.Creating)
+            {
+                throw new PendingInstanceException();
+            }
+            catch (SqlException ex) when (ex.Number == SqlErrorCodes.Conflict)
+            {
+                throw new InstanceAlreadyExistsException();
+            }
             catch (SqlException ex)
             {
-                if (ex.Number == SqlErrorCodes.Conflict)
-                {
-                    if (ex.State == (byte)IndexStatus.Creating)
-                    {
-                        throw new PendingInstanceException();
-                    }
-
-                    throw new InstanceAlreadyExistsException();
-                }
-
                 throw new DataStoreException(ex);
             }
         }

@@ -112,14 +112,24 @@ BEGIN
         AND StudyInstanceUid = @studyInstanceUid
 
     IF @@ROWCOUNT = 0
-    BEGIN
+    BEGIN TRY
         SET @studyKey = NEXT VALUE FOR dbo.StudyKeySequence
 
         INSERT INTO dbo.Study
             (PartitionKey, StudyKey, StudyInstanceUid, PatientId, PatientName, PatientBirthDate, ReferringPhysicianName, StudyDate, StudyDescription, AccessionNumber)
         VALUES
             (@partitionKey, @studyKey, @studyInstanceUid, @patientId, @patientName, @patientBirthDate, @referringPhysicianName, @studyDate, @studyDescription, @accessionNumber)
-    END
+    END TRY
+    BEGIN CATCH
+        --Dupe on StudyInstanceUid, handle it in the code and retry once, instead of holding Serialization/HOLDLOCK on the range of study
+        IF ERROR_NUMBER() = 2601
+            -- Latest wins
+            UPDATE dbo.Study
+            SET PatientId = @patientId, PatientName = @patientName, PatientBirthDate = @patientBirthDate, ReferringPhysicianName = @referringPhysicianName, StudyDate = @studyDate, StudyDescription = @studyDescription, AccessionNumber = @accessionNumber
+            WHERE StudyKey = @studyKey
+        ELSE
+            THROW
+    END CATCH
     ELSE
     BEGIN
         -- Latest wins
