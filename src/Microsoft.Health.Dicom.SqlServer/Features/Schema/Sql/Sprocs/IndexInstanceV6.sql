@@ -18,6 +18,7 @@
 --         * DateTime extended query tag data
 --     @personNameExtendedQueryTags
 --         * PersonName extended query tag data
+--
 -- RETURN VALUE
 --     None
 /***************************************************************************************/
@@ -34,13 +35,15 @@ BEGIN
     SET XACT_ABORT ON
     BEGIN TRANSACTION
 
+        -- Fetch the instance with the given watermark and lock the row to prevent deletion
+        -- Note that re-indexing only affect instances that have been completed added and as
+        -- such cannot have their status changed during re-indexing.
         DECLARE @partitionKey BIGINT
         DECLARE @studyKey BIGINT
         DECLARE @seriesKey BIGINT
         DECLARE @instanceKey BIGINT
-
-        -- Add lock so that the instance cannot be removed
         DECLARE @status TINYINT
+
         SELECT
             @partitionKey = PartitionKey,
             @studyKey = StudyKey,
@@ -54,6 +57,36 @@ BEGIN
             THROW 50404, 'Instance does not exists', 1
         IF @status <> 1 -- Created
             THROW 50409, 'Instance has not yet been stored succssfully', 1
+
+        -- Optionally lock the study and/or series tables if the one or more tag levels
+        -- are more coarse grain than instance, as we need to ensure we can safely update.
+        DECLARE @maxTagLevel TINYINT
+
+        SELECT @maxTagLevel = MAX(TagLevel)
+        FROM
+        (
+            SELECT TagLevel FROM @stringExtendedQueryTags
+            UNION ALL
+            SELECT TagLevel FROM @longExtendedQueryTags
+            UNION ALL
+            SELECT TagLevel FROM @doubleExtendedQueryTags
+            UNION ALL
+            SELECT TagLevel FROM @dateTimeExtendedQueryTags
+            UNION ALL
+            SELECT TagLevel FROM @personNameExtendedQueryTags
+        ) AS AllEntries
+
+        IF @maxTagLevel > 1
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM dbo.Study WITH (UPDLOCK) WHERE PartitionKey = @partitionKey AND StudyKey = @studyKey)
+                THROW 50404, 'Study does not exists', 1
+        END
+
+        IF @maxTagLevel > 0
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM dbo.Series WITH (UPDLOCK) WHERE PartitionKey = @partitionKey AND StudyKey = @studyKey AND SeriesKey = @seriesKey)
+                THROW 50404, 'Series does not exists', 1
+        END
 
         -- Insert Extended Query Tags
         BEGIN TRY

@@ -1759,43 +1759,7 @@ CREATE OR ALTER PROCEDURE dbo.IIndexInstanceCoreV9
 @partitionKey INT=1, @studyKey BIGINT, @seriesKey BIGINT, @instanceKey BIGINT, @watermark BIGINT, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
 BEGIN
-    DECLARE @maxTagLevel AS TINYINT;
     DECLARE @resourceType AS TINYINT = 0;
-    SELECT @maxTagLevel = MAX(TagLevel)
-    FROM   (SELECT TagLevel
-            FROM   @stringExtendedQueryTags
-            UNION ALL
-            SELECT TagLevel
-            FROM   @longExtendedQueryTags
-            UNION ALL
-            SELECT TagLevel
-            FROM   @doubleExtendedQueryTags
-            UNION ALL
-            SELECT TagLevel
-            FROM   @dateTimeExtendedQueryTags
-            UNION ALL
-            SELECT TagLevel
-            FROM   @personNameExtendedQueryTags) AS AllEntries;
-    IF @maxTagLevel > 1
-        BEGIN
-            IF NOT EXISTS (SELECT 1
-                           FROM   dbo.Study WITH (UPDLOCK)
-                           WHERE  StudyKey = @studyKey)
-                THROW 50404, 'Study does not exists', 1;
-        END
-    IF @maxTagLevel > 0
-        BEGIN
-            IF @maxTagLevel > 0
-               AND NOT EXISTS (SELECT 1
-                               FROM   dbo.Series WITH (UPDLOCK)
-                               WHERE  SeriesKey = @seriesKey)
-                THROW 50404, 'Series does not exists', 1;
-        END
-    IF NOT EXISTS (SELECT 1
-                   FROM   dbo.Instance WITH (UPDLOCK)
-                   WHERE  SeriesKey = @seriesKey
-                          AND InstanceKey = @instanceKey)
-        THROW 50404, 'Instance does not exists', 1;
     IF EXISTS (SELECT 1
                FROM   @stringExtendedQueryTags)
         BEGIN
@@ -2030,6 +1994,39 @@ BEGIN
         THROW 50404, 'Instance does not exists', 1;
     IF @status <> 1
         THROW 50409, 'Instance has not yet been stored succssfully', 1;
+    DECLARE @maxTagLevel AS TINYINT;
+    SELECT @maxTagLevel = MAX(TagLevel)
+    FROM   (SELECT TagLevel
+            FROM   @stringExtendedQueryTags
+            UNION ALL
+            SELECT TagLevel
+            FROM   @longExtendedQueryTags
+            UNION ALL
+            SELECT TagLevel
+            FROM   @doubleExtendedQueryTags
+            UNION ALL
+            SELECT TagLevel
+            FROM   @dateTimeExtendedQueryTags
+            UNION ALL
+            SELECT TagLevel
+            FROM   @personNameExtendedQueryTags) AS AllEntries;
+    IF @maxTagLevel > 1
+        BEGIN
+            IF NOT EXISTS (SELECT 1
+                           FROM   dbo.Study WITH (UPDLOCK)
+                           WHERE  PartitionKey = @partitionKey
+                                  AND StudyKey = @studyKey)
+                THROW 50404, 'Study does not exists', 1;
+        END
+    IF @maxTagLevel > 0
+        BEGIN
+            IF NOT EXISTS (SELECT 1
+                           FROM   dbo.Series WITH (UPDLOCK)
+                           WHERE  PartitionKey = @partitionKey
+                                  AND StudyKey = @studyKey
+                                  AND SeriesKey = @seriesKey)
+                THROW 50404, 'Series does not exists', 1;
+        END
     BEGIN TRY
         EXECUTE dbo.IIndexInstanceCoreV9 @partitionKey, @studyKey, @seriesKey, @instanceKey, @watermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
     END TRY
