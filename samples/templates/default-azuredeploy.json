@@ -1,5 +1,5 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
         "serviceName": {
@@ -71,6 +71,13 @@
                 "description": "Choose a SKU for your storage account. By default, Standard Locally Redundant Storage is selected."
             }
         },
+        "storageAccountLocation": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Set an override location for the Azure storage account."
+            }
+        },
         "deployApplicationInsights": {
             "type": "bool",
             "defaultValue": true,
@@ -120,6 +127,13 @@
                 "description": "Set an override location for the default sql server database location."
             }
         },
+        "keyVaultLocation": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Set an override location for the Azure key vault."
+            }
+        },
         "deployOhifViewer": {
             "type": "bool",
             "defaultValue": true,
@@ -157,21 +171,20 @@
         },
         "deployWebPackageUrl": {
             "type": "string",
-            "defaultValue": "",
+            "defaultValue": "https://dcmcistorage.blob.core.windows.net/cibuild/Microsoft.Health.Dicom.Web.zip",
             "metadata": {
-                "description": "DICOM Server Webdeploy package to use as deployment code. If blank, the latest CI code package will be deployed."
+                "description": "DICOM Server Webdeploy package to use as deployment code."
             }
         },
         "deployFunctionAppPackageUrl": {
             "type": "string",
-            "defaultValue": "",
+            "defaultValue": "https://dcmcistorage.blob.core.windows.net/cibuild/Microsoft.Health.Dicom.Functions.App.zip",
             "metadata": {
-                "description": "Azure Function App package to use as deployment code. If blank, the latest CI code package will be deployed."
+                "description": "Azure Function App package to use as deployment code."
             }
         }
     },
     "variables": {
-        "isMAG": "[or(contains(resourceGroup().location,'usgov'),contains(resourceGroup().location,'usdod'))]",
         "serviceName": "[toLower(parameters('serviceName'))]",
         "functionAppName": "[if(empty(parameters('functionAppName')), concat(variables('serviceName'),'-functions'), toLower(parameters('functionAppName')))]",
         "appServicePlanResourceGroup": "[if(empty(parameters('appServicePlanResourceGroup')), resourceGroup().name, parameters('appServicePlanResourceGroup'))]",
@@ -179,7 +192,6 @@
         "appServicePlanResourceId": "[resourceId(variables('appServicePlanResourceGroup'), 'Microsoft.Web/serverfarms/', variables('appServicePlanName'))]",
         "appServiceResourceId": "[resourceId('Microsoft.Web/sites', variables('serviceName'))]",
         "functionAppServiceResourceId": "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
-        "deployAppInsights": "[and(parameters('deployApplicationInsights'),not(variables('isMAG')))]",
         "appInsightsName": "[concat('AppInsights-', variables('serviceName'))]",
         "securityAuthenticationEnabled": "[and(not(empty(parameters('securityAuthenticationAuthority'))),not(empty(parameters('securityAuthenticationAudience'))))]",
         "staticDicomServerConfigProperties": {
@@ -210,10 +222,6 @@
         "storageAccountName": "[concat(substring(replace(variables('serviceName'), '-', ''), 0, min(11, length(replace(variables('serviceName'), '-', '')))), uniquestring(resourceGroup().id))]",
         "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
         "keyVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', variables('serviceName'))]",
-        "defaultWebDeployPackageUrl": "https://dcmcistorage.blob.core.windows.net/cibuild/Microsoft.Health.Dicom.Web.zip",
-        "defaultFunctionAppDeployPackageUrl": "https://dcmcistorage.blob.core.windows.net/cibuild/Microsoft.Health.Dicom.Functions.App.zip",
-        "deployWebPackageUrl": "[if(empty(parameters('deployWebPackageUrl')),variables('defaultWebDeployPackageUrl'),parameters('deployWebPackageUrl'))]",
-        "deployFunctionAppPackageUrl": "[if(empty(parameters('deployFunctionAppPackageUrl')),variables('defaultFunctionAppDeployPackageUrl'),parameters('deployFunctionAppPackageUrl'))]",
         "sqlServerConnectionStringName": "SqlServerConnectionString",
         "azureStorageConnectionStringName": "AzureStorageConnectionString",
         "appInsightsInstrumentationKeyName": "AppInsightsInstrumentationKey",
@@ -226,13 +234,13 @@
     "resources": [
         {
             "condition": "[empty(parameters('appServicePlanResourceGroup'))]",
-            "apiVersion": "2015-08-01",
+            "apiVersion": "2020-12-01",
             "name": "[variables('appServicePlanName')]",
             "type": "Microsoft.Web/serverfarms",
             "tags": {
                 "DicomServerSolution": "[parameters('solutionType')]"
             },
-            "location": "[resourceGroup().location]",
+            "location": "[reference(resourceId('Microsoft.Resources/resourceGroups', variables('appServicePlanResourceGroup')), '2021-01-01').location]",
             "sku": {
                 "name": "[parameters('appServicePlanSku')]"
             },
@@ -241,13 +249,13 @@
             }
         },
         {
-            "apiVersion": "2015-08-01",
+            "apiVersion": "2020-12-01",
             "type": "Microsoft.Web/sites",
             "name": "[variables('serviceName')]",
             "tags": {
                 "DicomServerSolution": "[parameters('solutionType')]"
             },
-            "location": "[resourceGroup().location]",
+            "location": "[reference(resourceId('Microsoft.Resources/resourceGroups', variables('appServicePlanResourceGroup')), '2021-01-01').location]",
             "identity": {
                 "type": "SystemAssigned"
             },
@@ -255,7 +263,7 @@
                 "clientAffinityEnabled": false,
                 "serverFarmId": "[variables('appServicePlanResourceId')]",
                  "siteConfig":{
-                    "location": "[resourceGroup().location]",
+                    "location": "[reference(resourceId('Microsoft.Resources/resourceGroups', variables('appServicePlanResourceGroup')), '2021-01-01').location]",
                     "use32BitWorkerProcess": false
                 }
             },
@@ -264,7 +272,7 @@
             ],
             "resources": [
                 {
-                    "apiVersion": "2015-08-01",
+                    "apiVersion": "2020-12-01",
                     "type": "config",
                     "name": "appsettings",
                     "dependsOn": [
@@ -273,10 +281,10 @@
                         "[variables('azureStorageConnectionStringResourceId')]",
                         "[variables('appInsightsInstrumentationKeyResourceId')]"
                     ],
-                    "properties": "[union(if(variables('deployAppInsights'), json(concat('{\"ApplicationInsights__InstrumentationKey\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsInstrumentationKeyResourceId')).secretUriWithVersion, ')'), '\"}')), json('{}')), json(concat('{\"AzureWebJobsStorage\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"BlobStore__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"SqlServer__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('sqlServerConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), variables('combinedDicomServerConfigProperties'))]"
+                    "properties": "[union(if(parameters('deployApplicationInsights'), json(concat('{\"ApplicationInsights__InstrumentationKey\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsInstrumentationKeyResourceId')).secretUriWithVersion, ')'), '\"}')), json('{}')), json(concat('{\"AzureWebJobsStorage\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"BlobStore__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"SqlServer__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('sqlServerConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), variables('combinedDicomServerConfigProperties'))]"
                 },
                 {
-                    "apiVersion": "2016-08-01",
+                    "apiVersion": "2020-12-01",
                     "type": "siteextensions",
                     "name": "AspNetCoreRuntime.6.0.x64",
                     "dependsOn": [
@@ -288,30 +296,30 @@
                     }
                 },
                 {
-                    "apiVersion": "2016-08-01",
+                    "apiVersion": "2020-12-01",
                     "type": "extensions",
                     "name": "MSDeploy",
                     "condition": "[parameters('deployPackage')]",
                     "dependsOn": [
                         "[variables('appServiceResourceId')]",
                         "[resourceId('Microsoft.Web/sites/config', variables('serviceName'), 'appsettings')]",
-                        "[concat(variables('appServiceResourceId'), '/siteextensions/AspNetCoreRuntime.6.0.x64')]"
+                        "[resourceId('Microsoft.Web/sites', variables('serviceName'), '/siteextensions/AspNetCoreRuntime.6.0.x64')]"
                     ],
                   "properties": {
-                    "packageUri": "[variables('deployWebPackageUrl')]"
+                    "packageUri": "[parameters('deployWebPackageUrl')]"
                   }
                 }
             ]
         },
         {
-            "apiVersion": "2015-08-01",
+            "apiVersion": "2020-12-01",
             "type": "Microsoft.Web/sites",
             "name": "[variables('functionAppName')]",
             "kind": "functionapp",
             "tags": {
                 "DicomServerSolution": "[parameters('solutionType')]"
             },
-            "location": "[resourceGroup().location]",
+            "location": "[reference(resourceId('Microsoft.Resources/resourceGroups', variables('appServicePlanResourceGroup')), '2021-01-01').location]",
             "identity": {
                 "type": "SystemAssigned"
             },
@@ -323,7 +331,7 @@
                     "appSettings": [
                         {
                             "name": "AzureWebJobsStorage",
-                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ';')]"
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageResourceId'), '2021-09-01').keys[0].value, ';')]"
                         },
                         {
                             "name": "CONTAINER_NAME",
@@ -339,7 +347,7 @@
                         }
                     ],
                     "alwaysOn": true,
-                    "location": "[resourceGroup().location]",
+                    "location": "[reference(resourceId('Microsoft.Resources/resourceGroups', variables('appServicePlanResourceGroup')), '2021-01-01').location]",
                     "use32BitWorkerProcess": false
                 }
             },
@@ -349,7 +357,7 @@
             ],
             "resources": [
                 {
-                    "apiVersion": "2015-08-01",
+                    "apiVersion": "2020-12-01",
                     "type": "config",
                     "name": "appsettings",
                     "dependsOn": [
@@ -359,10 +367,10 @@
                         "[variables('appInsightsInstrumentationKeyResourceId')]",
                         "[variables('appInsightsConnectionStringResourceId')]"
                     ],
-                    "properties": "[union(if(variables('deployAppInsights'), json(concat('{\"APPINSIGHTS_INSTRUMENTATIONKEY\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsInstrumentationKeyResourceId')).secretUriWithVersion, ')'), '\" ,\"APPLICATIONINSIGHTS_CONNECTION_STRING\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json('{}')), json(concat('{\"AzureFunctionsJobHost__BlobStore__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"AzureFunctionsJobHost__SqlServer__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('sqlServerConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"AzureWebJobsStorage\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), variables('combinedDicomFunctionAppConfigProperties'))]"
+                    "properties": "[union(if(parameters('deployApplicationInsights'), json(concat('{\"APPINSIGHTS_INSTRUMENTATIONKEY\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsInstrumentationKeyResourceId')).secretUriWithVersion, ')'), '\" ,\"APPLICATIONINSIGHTS_CONNECTION_STRING\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json('{}')), json(concat('{\"AzureFunctionsJobHost__BlobStore__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"AzureFunctionsJobHost__SqlServer__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('sqlServerConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"AzureWebJobsStorage\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), variables('combinedDicomFunctionAppConfigProperties'))]"
                 },
                 {
-                    "apiVersion": "2016-08-01",
+                    "apiVersion": "2020-12-01",
                     "type": "extensions",
                     "name": "MSDeploy",
                     "condition": "[parameters('deployPackage')]",
@@ -371,17 +379,17 @@
                         "[resourceId('Microsoft.Web/sites/config', variables('functionAppName'), 'appsettings')]"
                     ],
                   "properties": {
-                    "packageUri": "[variables('deployFunctionAppPackageUrl')]"
+                    "packageUri": "[parameters('deployFunctionAppPackageUrl')]"
                   }
                 }
             ]
         },
         {
-            "apiVersion": "2015-05-01",
+            "apiVersion": "2020-02-02",
             "name": "[variables('appInsightsName')]",
             "type": "Microsoft.Insights/components",
             "location": "[parameters('applicationInsightsLocation')]",
-            "condition": "[variables('deployAppInsights')]",
+            "condition": "[parameters('deployApplicationInsights')]",
             "kind": "web",
             "tags": {
                 "[concat('hidden-link:', variables('appServiceResourceId'))]": "Resource",
@@ -390,13 +398,13 @@
             },
             "properties": {
                 "Application_Type": "web",
-                "ApplicationId": "[variables('serviceName')]"
+                "AppId": "[variables('serviceName')]"
             }
         },
         {
             "name": "[variables('serviceName')]",
             "type": "Microsoft.Sql/servers",
-            "apiVersion": "2015-05-01-preview",
+            "apiVersion": "2021-08-01-preview",
             "location": "[parameters('sqlLocation')]",
             "tags": {
                 "DicomServerSolution": "[parameters('solutionType')]"
@@ -408,7 +416,7 @@
             },
             "resources": [
                 {
-                    "apiVersion": "2017-03-01-preview",
+                    "apiVersion": "2021-08-01-preview",
                     "dependsOn": [
                         "[variables('serviceName')]"
                     ],
@@ -428,11 +436,11 @@
                     "type": "databases"
                 },
                 {
-                    "apiVersion": "2014-04-01",
+                    "apiVersion": "2021-08-01-preview",
                     "dependsOn": [
                         "[variables('serviceName')]"
                     ],
-                    "location": "[resourceGroup().location]",
+                    "location": "[parameters('sqlLocation')]",
                     "name": "AllowAllWindowsAzureIps",
                     "properties": {
                         "endIpAddress": "0.0.0.0",
@@ -445,11 +453,11 @@
         {
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[variables('storageAccountName')]",
-            "apiVersion": "2019-04-01",
+            "apiVersion": "2021-09-01",
             "tags": {
                 "DicomServerSolution": "[parameters('solutionType')]"
             },
-            "location": "[resourceGroup().location]",
+            "location": "[parameters('storageAccountLocation')]",
             "kind": "StorageV2",
             "sku": {
                 "name": "[parameters('storageAccountSku')]"
@@ -462,8 +470,8 @@
         {
             "type": "Microsoft.KeyVault/vaults",
             "name": "[variables('serviceName')]",
-            "apiVersion": "2015-06-01",
-            "location": "[resourceGroup().location]",
+            "apiVersion": "2021-10-01",
+            "location": "[parameters('keyVaultLocation')]",
             "tags": {
                 "DicomServerSolution": "[parameters('solutionType')]"
             },
@@ -499,7 +507,7 @@
                 {
                     "type": "secrets",
                     "name": "[variables('sqlServerConnectionStringName')]",
-                    "apiVersion": "2015-06-01",
+                    "apiVersion": "2021-10-01",
                     "properties": {
                         "contentType": "text/plain",
                         "value": "[concat('Server=tcp:', reference(variables('sqlServerResourceId'), '2015-05-01-preview').fullyQualifiedDomainName,',1433;Initial Catalog=', variables('dicomDatabaseName'), ';Persist Security Info=False;User ID=', reference(variables('sqlServerResourceId'), '2015-05-01-preview').administratorLogin,';Password=',parameters('sqlAdminPassword'),';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]"
@@ -512,10 +520,10 @@
                 {
                     "type": "secrets",
                     "name": "[variables('azureStorageConnectionStringName')]",
-                    "apiVersion": "2015-06-01",
+                    "apiVersion": "2021-10-01",
                     "properties": {
                         "contentType": "text/plain",
-                        "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ';')]"
+                        "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageResourceId'), '2021-09-01').keys[0].value, ';')]"
                     },
                     "dependsOn": [
                         "[variables('keyVaultResourceId')]",
@@ -525,12 +533,12 @@
                 {
                     "type": "secrets",
                     "name": "[variables('appInsightsInstrumentationKeyName')]",
-                    "apiVersion": "2015-06-01",
+                    "apiVersion": "2021-10-01",
                     "properties": {
                         "contentType": "text/plain",
                         "value": "[reference(resourceId('Microsoft.Insights/components/', variables('appInsightsName'))).instrumentationKey]"
                     },
-                    "condition": "[variables('deployAppInsights')]",
+                    "condition": "[parameters('deployApplicationInsights')]",
                     "dependsOn": [
                         "[variables('keyVaultResourceId')]",
                         "[resourceId('Microsoft.Insights/components/', variables('appInsightsName'))]"
@@ -539,12 +547,12 @@
                 {
                     "type": "secrets",
                     "name": "[variables('appInsightsConnectionStringName')]",
-                    "apiVersion": "2015-06-01",
+                    "apiVersion": "2021-10-01",
                     "properties": {
                         "contentType": "text/plain",
                         "value": "[reference(resourceId('Microsoft.Insights/components/', variables('appInsightsName'))).ConnectionString]"
                     },
-                    "condition": "[variables('deployAppInsights')]",
+                    "condition": "[parameters('deployApplicationInsights')]",
                     "dependsOn": [
                         "[variables('keyVaultResourceId')]",
                         "[resourceId('Microsoft.Insights/components/', variables('appInsightsName'))]"
