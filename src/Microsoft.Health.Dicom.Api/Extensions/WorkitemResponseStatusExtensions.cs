@@ -29,6 +29,14 @@ public static class WorkitemResponseStatusExtensions
             { WorkitemResponseStatus.Conflict, HttpStatusCode.Conflict }
         };
 
+    private static readonly IReadOnlyDictionary<WorkitemResponseStatus, HttpStatusCode> QueryResponseStatusToHttpStatusCodeMapping =
+        new Dictionary<WorkitemResponseStatus, HttpStatusCode>()
+        {
+            { WorkitemResponseStatus.Success, HttpStatusCode.OK },
+            { WorkitemResponseStatus.NoContent, HttpStatusCode.NoContent },
+            { WorkitemResponseStatus.PartialContent, HttpStatusCode.PartialContent },
+        };
+
     /// <summary>
     /// Converts from <see cref="WorkitemResponseStatus"/> to <see cref="HttpStatusCode"/>.
     /// </summary>
@@ -44,4 +52,12 @@ public static class WorkitemResponseStatusExtensions
     /// <returns>The converted <see cref="HttpStatusCode"/>.</returns>
     public static HttpStatusCode CancelResponseToHttpStatusCode(this WorkitemResponseStatus status)
         => CancelResponseStatusToHttpStatusCodeMapping[status];
+
+    /// <summary>
+    /// Converts from <see cref="WorkitemResponseStatus"/> to <see cref="HttpStatusCode"/>.
+    /// </summary>
+    /// <param name="status">The status to convert.</param>
+    /// <returns>The converted <see cref="HttpStatusCode"/>.</returns>
+    public static HttpStatusCode QueryResponseToHttpStatusCode(this WorkitemResponseStatus status)
+        => QueryResponseStatusToHttpStatusCodeMapping[status];
 }
