@@ -1991,7 +1991,7 @@ BEGIN
     FROM   dbo.Instance WITH (UPDLOCK)
     WHERE  Watermark = @watermark;
     IF @@ROWCOUNT = 0
-        THROW 50404, 'Instance does not exists', 1;
+        THROW 50404, 'Instance does not exist', 1;
     IF @status <> 1
         THROW 50409, 'Instance has not yet been stored succssfully', 1;
     DECLARE @maxTagLevel AS TINYINT;
@@ -2012,20 +2012,18 @@ BEGIN
             FROM   @personNameExtendedQueryTags) AS AllEntries;
     IF @maxTagLevel > 1
         BEGIN
-            IF NOT EXISTS (SELECT 1
-                           FROM   dbo.Study WITH (UPDLOCK)
-                           WHERE  PartitionKey = @partitionKey
-                                  AND StudyKey = @studyKey)
-                THROW 50404, 'Study does not exists', 1;
+            SELECT 1
+            FROM   dbo.Study WITH (UPDLOCK)
+            WHERE  PartitionKey = @partitionKey
+                   AND StudyKey = @studyKey;
         END
     IF @maxTagLevel > 0
         BEGIN
-            IF NOT EXISTS (SELECT 1
-                           FROM   dbo.Series WITH (UPDLOCK)
-                           WHERE  PartitionKey = @partitionKey
-                                  AND StudyKey = @studyKey
-                                  AND SeriesKey = @seriesKey)
-                THROW 50404, 'Series does not exists', 1;
+            SELECT 1
+            FROM   dbo.Series WITH (UPDLOCK)
+            WHERE  PartitionKey = @partitionKey
+                   AND StudyKey = @studyKey
+                   AND SeriesKey = @seriesKey;
         END
     BEGIN TRY
         EXECUTE dbo.IIndexInstanceCoreV9 @partitionKey, @studyKey, @seriesKey, @instanceKey, @watermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
