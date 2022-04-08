@@ -20,7 +20,7 @@ jobs:
           Set-Location $env:GITHUB_WORKSPACE\.github\workflows
           .\CreateRelease.ps1
       - name: Upload generated log file
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with: # Upload generated log file
           name: log
           path: log.txt
