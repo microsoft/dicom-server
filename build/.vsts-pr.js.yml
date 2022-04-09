@@ -1,0 +1,32 @@
+# DESCRIPTION:
+# Builds the JavaScript tools
+
+pr:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - tools/dicom-web-electron
+
+trigger: none
+
+steps:
+  - task: NodeTool@0
+    displayName: 'Install Node.js'
+    inputs:
+      versionSpec: '17.x'
+
+  - script: |
+      npm install
+      npm run pack
+    displayName: 'npm install and pack'
+    workingDirectory: '$(Build.Repository.LocalPath)/tools/dicom-web-electron'
+
+  - task: ComponentGovernanceComponentDetection@0
+    displayName: 'Component Governance'
+    inputs:
+      scanType: 'Register'
+      verbosity: 'Verbose'
+      alertWarningLevel: 'High'
+      failOnAlert: true
