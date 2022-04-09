@@ -32,4 +32,17 @@ steps:
             throw 'There were 1 or more errors in the ARM template.'
       pwsh: true
 
-# TODO: Deployment dry-run to ensure it the template would run
+  - task: AzureResourceManagerTemplateDeployment@3
+    displayName: 'Validate ARM Template'
+    inputs:
+      deploymentScope: 'Resource Group'
+      azureResourceManagerConnection: 'Dicom OSS'
+      subscriptionId: 'a1766500-6fd5-4f5c-8515-607798271014'
+      action: 'Create Or Update Resource Group'
+      resourceGroupName: 'msh-dicom-pr'
+      location: 'West US 2'
+      templateLocation: 'Linked artifact'
+      csmFile: '$(Build.Repository.LocalPath)/samples/templates/default-azuredeploy.json'
+      overrideParameters: '-serviceName msh-pr-$(System.PullRequest.PullRequestNumber) -location southcentralus -sqlAdminPassword "T3stP@ssw0rd"'
+      deploymentMode: 'Validation'
+      deploymentName: 'ValidateDicom$(System.PullRequest.PullRequestNumber)'

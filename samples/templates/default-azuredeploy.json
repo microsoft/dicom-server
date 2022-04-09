@@ -19,18 +19,39 @@
                 "description": "Name of the DICOM Function App used for long-running operations."
             }
         },
-        "appServicePlanResourceGroup": {
+        "location": {
             "type": "string",
-            "defaultValue": "",
+            "allowedValues": [
+                "australiaeast",
+                "brazilsouth",
+                "canadacentral",
+                "canadaeast",
+                "centralindia",
+                "centralus",
+                "eastasia",
+                "eastus",
+                "eastus2",
+                "francecentral",
+                "germanywestcentral",
+                "japaneast",
+                "koreacentral",
+                "koreasouth",
+                "northcentralus",
+                "northeurope",
+                "norwayeast",
+                "southafricanorth",
+                "southcentralus",
+                "southeastasia",
+                "uaenorth",
+                "uksouth",
+                "ukwest",
+                "westeurope",
+                "westindia",
+                "westus"
+            ],
+            "defaultValue": "[resourceGroup().location]",
             "metadata": {
-                "description": "Name of the resource group containing App Service Plan. If empty, your deployment resource group is used."
-            }
-        },
-        "appServicePlanName": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Name of App Service Plan (existing or new). If empty, a name will be generated."
+                "description": "The location of the Azure services used by the DICOM server."
             }
         },
         "appServicePlanSku": {
@@ -71,33 +92,31 @@
                 "description": "Choose a SKU for your storage account. By default, Standard Locally Redundant Storage is selected."
             }
         },
-        "storageAccountLocation": {
-            "type": "string",
-            "defaultValue": "[resourceGroup().location]",
+        "sqlAdminPassword": {
+            "type": "securestring",
             "metadata": {
-                "description": "Set an override location for the Azure storage account."
+                "description": "Set a password for the sql admin."
+            }
+        },
+        "appServicePlanName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of App Service Plan (existing or new). If empty, a name will be generated."
+            }
+        },
+        "createAppServicePlan": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Indicates whether a new app service plan should be created."
             }
         },
         "deployApplicationInsights": {
             "type": "bool",
             "defaultValue": true,
             "metadata": {
-                "description": "Deploy Application Insights for the DICOM server. Disabled for Microsoft Azure Government (MAG)"
-            }
-        },
-        "applicationInsightsLocation": {
-            "type": "string",
-            "defaultValue": "[resourceGroup().location]",
-            "allowedValues": [
-                "southeastasia",
-                "northeurope",
-                "westeurope",
-                "eastus",
-                "southcentralus",
-                "westus2"
-            ],
-            "metadata": {
-                "description": "Select a location for Application Insights. If empty, the region closet to your deployment location is used."
+                "description": "Deploy Application Insights for the DICOM server."
             }
         },
         "additionalDicomServerConfigProperties": {
@@ -112,26 +131,6 @@
             "defaultValue": {},
             "metadata": {
                 "description": "Additional configuration properties for the DICOM operations. These properties can be modified after deployment. In the form {\"path1\":\"value1\",\"path2\":\"value2\"}"
-            }
-        },
-        "sqlAdminPassword": {
-            "type": "securestring",
-            "metadata": {
-                "description": "Set a password for the sql admin."
-            }
-        },
-        "sqlLocation": {
-            "type": "string",
-            "defaultValue": "[resourceGroup().location]",
-            "metadata": {
-                "description": "Set an override location for the default sql server database location."
-            }
-        },
-        "keyVaultLocation": {
-            "type": "string",
-            "defaultValue": "[resourceGroup().location]",
-            "metadata": {
-                "description": "Set an override location for the Azure key vault."
             }
         },
         "deployOhifViewer": {
@@ -187,9 +186,8 @@
     "variables": {
         "serviceName": "[toLower(parameters('serviceName'))]",
         "functionAppName": "[if(empty(parameters('functionAppName')), concat(variables('serviceName'),'-functions'), toLower(parameters('functionAppName')))]",
-        "appServicePlanResourceGroup": "[if(empty(parameters('appServicePlanResourceGroup')), resourceGroup().name, parameters('appServicePlanResourceGroup'))]",
         "appServicePlanName": "[if(empty(parameters('appServicePlanName')), concat(variables('serviceName'),'-asp'), parameters('appServicePlanName'))]",
-        "appServicePlanResourceId": "[resourceId(variables('appServicePlanResourceGroup'), 'Microsoft.Web/serverfarms/', variables('appServicePlanName'))]",
+        "appServicePlanResourceId": "[resourceId('Microsoft.Web/serverfarms/', variables('appServicePlanName'))]",
         "appServiceResourceId": "[resourceId('Microsoft.Web/sites', variables('serviceName'))]",
         "functionAppServiceResourceId": "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
         "appInsightsName": "[concat('AppInsights-', variables('serviceName'))]",
@@ -233,14 +231,14 @@
     },
     "resources": [
         {
-            "condition": "[empty(parameters('appServicePlanResourceGroup'))]",
+            "condition": "[parameters('createAppServicePlan')]",
             "apiVersion": "2020-12-01",
             "name": "[variables('appServicePlanName')]",
             "type": "Microsoft.Web/serverfarms",
             "tags": {
                 "DicomServerSolution": "[parameters('solutionType')]"
             },
-            "location": "[reference(resourceId('Microsoft.Resources/resourceGroups', variables('appServicePlanResourceGroup')), '2021-01-01').location]",
+            "location": "[parameters('location')]",
             "sku": {
                 "name": "[parameters('appServicePlanSku')]"
             },
@@ -255,15 +253,15 @@
             "tags": {
                 "DicomServerSolution": "[parameters('solutionType')]"
             },
-            "location": "[reference(resourceId('Microsoft.Resources/resourceGroups', variables('appServicePlanResourceGroup')), '2021-01-01').location]",
+            "location": "[parameters('location')]",
             "identity": {
                 "type": "SystemAssigned"
             },
             "properties": {
                 "clientAffinityEnabled": false,
                 "serverFarmId": "[variables('appServicePlanResourceId')]",
-                 "siteConfig":{
-                    "location": "[reference(resourceId('Microsoft.Resources/resourceGroups', variables('appServicePlanResourceGroup')), '2021-01-01').location]",
+                "siteConfig":{
+                    "location": "[parameters('location')]",
                     "use32BitWorkerProcess": false
                 }
             },
@@ -303,7 +301,7 @@
                     "dependsOn": [
                         "[variables('appServiceResourceId')]",
                         "[resourceId('Microsoft.Web/sites/config', variables('serviceName'), 'appsettings')]",
-                        "[resourceId('Microsoft.Web/sites', variables('serviceName'), '/siteextensions/AspNetCoreRuntime.6.0.x64')]"
+                        "[resourceId('Microsoft.Web/sites/siteextensions', variables('serviceName'), 'AspNetCoreRuntime.6.0.x64')]"
                     ],
                   "properties": {
                     "packageUri": "[parameters('deployWebPackageUrl')]"
@@ -319,7 +317,7 @@
             "tags": {
                 "DicomServerSolution": "[parameters('solutionType')]"
             },
-            "location": "[reference(resourceId('Microsoft.Resources/resourceGroups', variables('appServicePlanResourceGroup')), '2021-01-01').location]",
+            "location": "[parameters('location')]",
             "identity": {
                 "type": "SystemAssigned"
             },
@@ -347,7 +345,7 @@
                         }
                     ],
                     "alwaysOn": true,
-                    "location": "[reference(resourceId('Microsoft.Resources/resourceGroups', variables('appServicePlanResourceGroup')), '2021-01-01').location]",
+                    "location": "[parameters('location')]",
                     "use32BitWorkerProcess": false
                 }
             },
@@ -388,7 +386,7 @@
             "apiVersion": "2020-02-02",
             "name": "[variables('appInsightsName')]",
             "type": "Microsoft.Insights/components",
-            "location": "[parameters('applicationInsightsLocation')]",
+            "location": "[parameters('location')]",
             "condition": "[parameters('deployApplicationInsights')]",
             "kind": "web",
             "tags": {
@@ -405,7 +403,7 @@
             "name": "[variables('serviceName')]",
             "type": "Microsoft.Sql/servers",
             "apiVersion": "2021-08-01-preview",
-            "location": "[parameters('sqlLocation')]",
+            "location": "[parameters('location')]",
             "tags": {
                 "DicomServerSolution": "[parameters('solutionType')]"
             },
@@ -420,7 +418,7 @@
                     "dependsOn": [
                         "[variables('serviceName')]"
                     ],
-                    "location": "[parameters('sqlLocation')]",
+                    "location": "[parameters('location')]",
                     "tags": {
                         "DicomServerSolution": "[parameters('solutionType')]"
                     },
@@ -440,7 +438,7 @@
                     "dependsOn": [
                         "[variables('serviceName')]"
                     ],
-                    "location": "[parameters('sqlLocation')]",
+                    "location": "[parameters('location')]",
                     "name": "AllowAllWindowsAzureIps",
                     "properties": {
                         "endIpAddress": "0.0.0.0",
@@ -457,7 +455,7 @@
             "tags": {
                 "DicomServerSolution": "[parameters('solutionType')]"
             },
-            "location": "[parameters('storageAccountLocation')]",
+            "location": "[parameters('location')]",
             "kind": "StorageV2",
             "sku": {
                 "name": "[parameters('storageAccountSku')]"
@@ -471,7 +469,7 @@
             "type": "Microsoft.KeyVault/vaults",
             "name": "[variables('serviceName')]",
             "apiVersion": "2021-10-01",
-            "location": "[parameters('keyVaultLocation')]",
+            "location": "[parameters('location')]",
             "tags": {
                 "DicomServerSolution": "[parameters('solutionType')]"
             },
