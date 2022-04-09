@@ -572,14 +572,14 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
     }
 
     private static void ValidateStudyMetadata(
-    string expectedStudyInstanceUid,
-    string expectedPatientId,
-    string expectedPatientName,
-    string expectedReferringPhysicianName,
-    DateTime? expectedStudyDate,
-    string expectedStudyDescription,
-    string expectedAccessionNumber,
-    StudyMetadata actual)
+        string expectedStudyInstanceUid,
+        string expectedPatientId,
+        string expectedPatientName,
+        string expectedReferringPhysicianName,
+        DateTime? expectedStudyDate,
+        string expectedStudyDescription,
+        string expectedAccessionNumber,
+        StudyMetadata actual)
     {
         Assert.NotNull(actual);
         Assert.Equal(expectedStudyInstanceUid, actual.StudyInstanceUid);
