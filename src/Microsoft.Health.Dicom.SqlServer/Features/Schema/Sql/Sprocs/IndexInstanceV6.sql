@@ -18,6 +18,7 @@
 --         * DateTime extended query tag data
 --     @personNameExtendedQueryTags
 --         * PersonName extended query tag data
+--
 -- RETURN VALUE
 --     None
 /***************************************************************************************/
@@ -34,30 +35,65 @@ BEGIN
     SET XACT_ABORT ON
     BEGIN TRANSACTION
 
+        -- Fetch the instance with the given watermark and lock the row to prevent deletion
+        -- Note that re-indexing only affect instances that have been completed added and as
+        -- such cannot have their status changed during re-indexing.
         DECLARE @partitionKey BIGINT
         DECLARE @studyKey BIGINT
         DECLARE @seriesKey BIGINT
         DECLARE @instanceKey BIGINT
-
-        -- Add lock so that the instance cannot be removed
         DECLARE @status TINYINT
+
         SELECT
             @partitionKey = PartitionKey,
             @studyKey = StudyKey,
             @seriesKey = SeriesKey,
             @instanceKey = InstanceKey,
             @status = Status
-        FROM dbo.Instance WITH (HOLDLOCK)
+        FROM dbo.Instance WITH (UPDLOCK)
         WHERE Watermark = @watermark
 
         IF @@ROWCOUNT = 0
-            THROW 50404, 'Instance does not exists', 1
+            THROW 50404, 'Instance does not exist', 1
         IF @status <> 1 -- Created
             THROW 50409, 'Instance has not yet been stored succssfully', 1
 
-        -- Insert Extended Query Tags
+        -- Optionally lock the study and/or series tables if the one or more tag levels
+        -- are more coarse grain than instance, as we need to ensure we can safely update.
+        DECLARE @maxTagLevel TINYINT
 
-        -- String Key tags
+        SELECT @maxTagLevel = MAX(TagLevel)
+        FROM
+        (
+            SELECT TagLevel FROM @stringExtendedQueryTags
+            UNION ALL
+            SELECT TagLevel FROM @longExtendedQueryTags
+            UNION ALL
+            SELECT TagLevel FROM @doubleExtendedQueryTags
+            UNION ALL
+            SELECT TagLevel FROM @dateTimeExtendedQueryTags
+            UNION ALL
+            SELECT TagLevel FROM @personNameExtendedQueryTags
+        ) AS AllEntries
+
+        IF @maxTagLevel > 1
+        BEGIN
+            SELECT 1
+            FROM dbo.Study WITH (UPDLOCK)
+            WHERE PartitionKey = @partitionKey
+                AND StudyKey = @studyKey
+        END
+
+        IF @maxTagLevel > 0
+        BEGIN
+            SELECT 1
+            FROM dbo.Series WITH (UPDLOCK)
+            WHERE PartitionKey = @partitionKey
+                AND StudyKey = @studyKey
+                AND SeriesKey = @seriesKey
+        END
+
+        -- Insert Extended Query Tags
         BEGIN TRY
 
             EXEC dbo.IIndexInstanceCoreV9

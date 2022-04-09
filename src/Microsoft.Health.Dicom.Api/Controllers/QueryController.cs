@@ -46,7 +46,7 @@ public class QueryController : ControllerBase
     }
 
     [HttpGet]
-    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson })]
     [Produces(KnownContentTypes.ApplicationDicomJson)]
     [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
@@ -69,7 +69,7 @@ public class QueryController : ControllerBase
     }
 
     [HttpGet]
-    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson })]
     [Produces(KnownContentTypes.ApplicationDicomJson)]
     [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
@@ -92,7 +92,7 @@ public class QueryController : ControllerBase
     }
 
     [HttpGet]
-    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson })]
     [Produces(KnownContentTypes.ApplicationDicomJson)]
     [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
@@ -115,7 +115,7 @@ public class QueryController : ControllerBase
     }
 
     [HttpGet]
-    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson })]
     [Produces(KnownContentTypes.ApplicationDicomJson)]
     [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
@@ -138,7 +138,7 @@ public class QueryController : ControllerBase
     }
 
     [HttpGet]
-    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson })]
     [Produces(KnownContentTypes.ApplicationDicomJson)]
     [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
@@ -161,7 +161,7 @@ public class QueryController : ControllerBase
     }
 
     [HttpGet]
-    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson })]
     [Produces(KnownContentTypes.ApplicationDicomJson)]
     [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
