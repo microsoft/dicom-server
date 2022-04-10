@@ -36,14 +36,7 @@ internal class DicomTagsManager : IAsyncDisposable
     {
         foreach (var tag in _tags)
         {
-            try
-            {
-                await _dicomWebClient.DeleteExtendedQueryTagAsync(tag);
-            }
-            catch (DicomWebException)
-            {
-
-            }
+            await _dicomWebClient.DeleteExtendedQueryTagAsync(tag);
         }
     }
 
@@ -114,8 +107,16 @@ internal class DicomTagsManager : IAsyncDisposable
     public async Task<bool> DeleteExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(tagPath, nameof(tagPath));
+        _tags.Remove(tagPath);
 
-        var response = await _dicomWebClient.DeleteExtendedQueryTagAsync(tagPath, cancellationToken);
-        return response.StatusCode == System.Net.HttpStatusCode.NoContent;
+        try
+        {
+            var response = await _dicomWebClient.DeleteExtendedQueryTagAsync(tagPath, cancellationToken);
+            return response.StatusCode == System.Net.HttpStatusCode.NoContent;
+        }
+        catch (DicomWebException dwe) when (dwe.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return false;
+        }
     }
 }

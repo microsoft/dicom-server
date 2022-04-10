@@ -557,6 +557,20 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
             () => _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, watermark, queryTags));
     }
 
+    [Fact]
+    public void GivenMultipleNewInstancesInSameStudy_WhenAddedInParallel_ThenItShouldBeAdded()
+    {
+        string studyInstanceUid = TestUidGenerator.Generate();
+        string seriesInstanceUid = TestUidGenerator.Generate();
+
+        DicomDataset instance1 = CreateTestDicomDataset(studyInstanceUid, seriesInstanceUid);
+        DicomDataset instance2 = CreateTestDicomDataset(studyInstanceUid, seriesInstanceUid);
+
+        Task.WaitAll(
+                _indexDataStore.BeginCreateInstanceIndexAsync(1, instance1),
+                _indexDataStore.BeginCreateInstanceIndexAsync(1, instance2));
+    }
+
     private static void ValidateStudyMetadata(
         string expectedStudyInstanceUid,
         string expectedPatientId,

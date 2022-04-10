@@ -28,4 +28,6 @@ public enum SchemaVersion
     V15 = 15,
     V16 = 16,
     V17 = 17,
+    V18 = 18,
+    V19 = 19,
 }
