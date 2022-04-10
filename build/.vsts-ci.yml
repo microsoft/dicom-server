@@ -15,13 +15,21 @@ pr: none
 stages:
 - stage: UpdateVersion
   displayName: 'Determine Semantic Version'
-  dependsOn: []
   jobs:
   - job: Semver
     pool:
       vmImage: 'windows-latest'
     steps:
     - template: ./update-semver.yml
+
+- stage: BuildElectron
+  displayName: 'Build Electron Tool'
+  jobs:
+  - job: Linux
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+    - template: build-electron.yml
 
 - stage: BuildRunUnitTests
   displayName: 'Build and Run Unit Tests'
@@ -38,7 +46,7 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
     steps:
-    - template: build.yml
+    - template: build-dotnet.yml
 
 - stage: AnalyzeSecurity
   displayName: 'Run Security Analysis'
@@ -78,6 +86,8 @@ stages:
   - DeployTestEnvironment
   jobs:
   - template: run-integration-tests.yml
+    parameters:
+      runLocally: false
 
 - stage: RunE2ETests
   displayName: 'Run E2E Tests'
@@ -85,6 +95,8 @@ stages:
   - DeployTestEnvironment
   jobs:
   - template: run-e2e-tests.yml
+    parameters:
+      runLocally: false
 
 - stage: RunE2EFeaturesEnabledTests
   displayName: 'Run E2E features-enabled tests'
@@ -92,6 +104,8 @@ stages:
   - DeployFeaturesEnabledWebapp
   jobs:
   - template: run-e2e-features-enabled-tests.yml
+    parameters:
+      runLocally: false
 
 - stage: PublishNuget
   displayName: 'Publish NuGet Packages'

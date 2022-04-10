@@ -22,7 +22,6 @@ variables:
 stages:
 - stage: UpdateVersion
   displayName: 'Determine Semantic Version'
-  dependsOn: []
   jobs:
   - job: Semver
     pool:
