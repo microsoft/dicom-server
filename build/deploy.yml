@@ -1,7 +1,7 @@
 jobs:
 - job: provision
   pool:
-    vmImage: $(windowsVmImage)
+    vmImage: 'windows-latest'
   steps:
   - task: AzurePowerShell@4
     displayName: 'New Resource Group'

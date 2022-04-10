@@ -1,0 +1,6 @@
+version: "3.4"
+
+services:
+  microsoft.health.dicom.web:
+    volumes:
+      - ~/.aspnet/https:/root/.aspnet/https:r

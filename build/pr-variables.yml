@@ -11,7 +11,6 @@ variables:
   appServicePlanName: $(appServicePlanResourceGroup)-$(resourceGroupRegion)
   azureServiceConnectionOid: '44b9da1a-ae16-4c0e-90e1-a96745ea86c9'
   azureSubscriptionName: 'Dicom OSS'
-  windowsVmImage: 'windows-latest'
   buildConfiguration: 'Release'
   deleteDataOnStartup: 'true'
   skipNugetSecurityAnalysis: 'true' # NuGet config contains multiple feeds but meets exception criteria

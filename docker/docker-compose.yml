@@ -5,3 +5,9 @@ services:
     build:
       context: ./..
       dockerfile: src/Microsoft.Health.Dicom.Web/Dockerfile
+    platform: linux/amd64
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:8080"
+    ports:
+      - "63839:8080"

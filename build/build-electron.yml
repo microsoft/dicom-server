@@ -1,16 +1,3 @@
-# DESCRIPTION:
-# Builds the JavaScript tools
-
-pr:
-  branches:
-    include:
-    - main
-  paths:
-    include:
-    - tools/dicom-web-electron
-
-trigger: none
-
 steps:
   - task: NodeTool@0
     displayName: 'Install Node.js'

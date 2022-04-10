@@ -47,7 +47,7 @@ stages:
   jobs:
   - job: Windows
     pool:
-      vmImage: $(windowsVmImage)
+      vmImage: 'windows-latest'
     steps:
     - template: analyze.yml
 
@@ -67,7 +67,7 @@ stages:
 
 - stage: DeployFeaturesEnabledWebapp
   displayName: 'Deploy features-enabled webapp'
-  dependsOn: 
+  dependsOn:
   - DeployTestEnvironment
   jobs:
   - template: deploy-features-enabled-webapp.yml
@@ -104,7 +104,7 @@ stages:
   jobs:
   - job: PublishNugets
     pool:
-      vmImage: $(windowsVmImage)
+      vmImage: 'windows-latest'
     steps:
     - template: publish-nuget.yml
 

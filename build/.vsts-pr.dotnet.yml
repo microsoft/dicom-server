@@ -1,7 +1,19 @@
 # DESCRIPTION:
-# Builds, tests and packages the solution for all PR requests.
+# Builds, tests and packages the .NET solutions
 
-name: pr$(system.pullRequest.pullRequestNumber)-$(Date:yyyyMMdd)$(Rev:-r)
+pr:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - '*'
+    exclude:
+    - *.md
+    - docs
+    - samples/templates
+    - tools/dicom-web-electron
+
 trigger: none
 
 variables:
@@ -14,7 +26,7 @@ stages:
   jobs:
   - job: Semver
     pool:
-      vmImage: $(WindowsVmImage)
+      vmImage: 'ubuntu-latest'
     steps:
     - template: ./update-semver.yml
     - powershell: |
@@ -38,7 +50,7 @@ stages:
     pool:
      vmImage: 'ubuntu-latest'
     steps:
-    - template: build.yml
+    - template: build-dotnet.yml
       parameters:
         packageArtifacts: true
         packageNugets: false
@@ -50,7 +62,7 @@ stages:
   jobs:
   - job: Windows
     pool:
-      vmImage: $(windowsVmImage)
+      vmImage: 'windows-latest'
     steps:
     - template: analyze.yml
       parameters:
@@ -70,30 +82,23 @@ stages:
   jobs:
   - template: versioning.yml
 
-- stage: DeployFeaturesEnabledWebapp
-  displayName: 'Deploy features-enabled webapp'
-  dependsOn: 
-  - DeployTestEnvironment
-  jobs:
-  - template: deploy-features-enabled-webapp.yml
-
 - stage: RunIntegrationTests
   displayName: 'Run Integration tests'
   dependsOn:
-  - DeployTestEnvironment
+  - BuildRunUnitTests
   jobs:
   - template: run-integration-tests.yml
 
 - stage: RunE2ETests
   displayName: 'Run E2E tests'
   dependsOn:
-  - DeployTestEnvironment
+  - BuildRunUnitTests
   jobs:
   - template: run-e2e-tests.yml
 
 - stage: RunE2EFeaturesEnabledTests
   displayName: 'Run E2E features-enabled tests'
   dependsOn:
-  - DeployFeaturesEnabledWebapp
+  - BuildRunUnitTests
   jobs:
   - template: run-e2e-features-enabled-tests.yml

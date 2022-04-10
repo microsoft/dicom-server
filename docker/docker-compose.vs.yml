@@ -4,9 +4,7 @@ services:
   microsoft.health.dicom.web:
     image: ${DOCKER_REGISTRY-}microsofthealthdicomweb
     environment:
-      ASPNETCORE_ENVIRONMENT: "Development"
       ASPNETCORE_URLS: "https://+:8080"
-      DicomServer__Security__Enabled: "false"
     user: root
     ports:
       - "63839:8080"

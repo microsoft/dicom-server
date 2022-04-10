@@ -7,9 +7,13 @@ pr:
     - main
   paths:
     include:
+    - build/*
     - samples/templates
 
 trigger: none
+
+pool:
+  vmImage: 'ubuntu-latest'
 
 steps:
   - task: PowerShell@2
@@ -46,3 +50,10 @@ steps:
       overrideParameters: '-serviceName msh-pr-$(System.PullRequest.PullRequestNumber) -location southcentralus -sqlAdminPassword "T3stP@ssw0rd"'
       deploymentMode: 'Validation'
       deploymentName: 'ValidateDicom$(System.PullRequest.PullRequestNumber)'
+
+  - template: analyze.yml
+    parameters:
+      analyzeBinaries: false
+      analyzePackages: false
+      runAntiMalware: false
+      credScanDirectory: '$(Build.Repository.LocalPath)/samples/templates'

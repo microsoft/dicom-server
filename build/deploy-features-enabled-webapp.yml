@@ -1,12 +1,12 @@
 jobs:
 - job: provision
   pool:
-    vmImage: $(windowsVmImage)
+    vmImage: 'windows-latest'
   variables:
     - name: sqlAdminPassword
       value: $[ stageDependencies.DeployTestEnvironment.provision.outputs['deploy.sqlAdminPassword'] ]
   steps:
-  
+
   - task: AzureKeyVault@1
     displayName: 'Azure Key Vault: resolute-oss-tenant-info'
     inputs:

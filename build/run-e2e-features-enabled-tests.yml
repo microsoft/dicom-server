@@ -1,7 +1,12 @@
+parameters:
+- name: runLocally
+  type: boolean
+  default: true
+
 jobs:
 - job: SetupAndRun
   pool:
-    vmImage: $(windowsVmImage)
+    vmImage: 'windows-latest'
   steps:
 
   - task: UseDotNet@2

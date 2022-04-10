@@ -1,9 +1,0 @@
-steps:
-  - task: DotNetCoreCLI@2
-    displayName: 'dotnet publish web'
-    inputs:
-      command: publish
-      projects: '**/Microsoft.Health.Dicom.Web.csproj'
-      arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)/web --no-build'
-      publishWebProjects: false
-
