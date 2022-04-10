@@ -7,7 +7,7 @@ pr:
     - main
   paths:
     include:
-    - build/*
+    - build
     - samples/templates
 
 trigger: none
@@ -33,7 +33,9 @@ steps:
         echo $TestResults
 
         if ($Errors.Length > 0)
+        {
             throw 'There were 1 or more errors in the ARM template.'
+        }
       pwsh: true
 
   - task: AzureResourceManagerTemplateDeployment@3

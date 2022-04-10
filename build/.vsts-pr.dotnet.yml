@@ -9,7 +9,7 @@ pr:
     include:
     - '*'
     exclude:
-    - *.md
+    - '*.md'
     - docs
     - samples/templates
     - tools/dicom-web-electron

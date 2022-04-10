@@ -7,7 +7,7 @@ pr:
     - main
   paths:
     include:
-    - build/*
+    - build
     - tools/dicom-web-electron
 
 trigger: none
