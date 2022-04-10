@@ -21,9 +21,9 @@ steps:
     inputs:
       targetType: 'inline'
       script: |
+        # Note: If running on Windows, files must be unblocked before usage
         Invoke-WebRequest -URI "https://aka.ms/arm-ttk-latest" -OutFile "$(Agent.TempDirectory)/arm-ttk-latest.zip"
         Expand-Archive -Path "$(Agent.TempDirectory)/arm-ttk-latest.zip" -DestinationPath "$(Agent.TempDirectory)/arm-ttk-latest"
-        Get-ChildItem -Path "$(Agent.TempDirectory)/arm-ttk-latest/*" -Recurse | Unblock-File
         Import-Module "$(Agent.TempDirectory)/arm-ttk-latest/arm-ttk/arm-ttk.psd1"
 
         # Test 'default-azuredeploy.json'
