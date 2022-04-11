@@ -56,6 +56,9 @@ jobs:
   - script: dotnet test "Microsoft.Health.Dicom.Tests.Integration.dll" --logger trx --results-directory "$(Agent.TempDirectory)/TestResults"
     displayName: 'dotnet test Microsoft.Health.Dicom.Tests.Integration.dll'
     workingDirectory: '$(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Tests.Integration'
+    env:
+      BlobStore__ConnectionString: '$(BlobStore__ConnectionString)'
+      SqlServer__ConnectionString: '$(SqlServer__ConnectionString)'
 
   - task: PublishTestResults@2
     displayName: 'Publish Test Results'

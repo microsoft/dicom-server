@@ -51,6 +51,8 @@ jobs:
   - script: dotnet test "Microsoft.Health.Dicom.Web.Tests.E2E.dll" --filter "FullyQualifiedName!~Microsoft.Health.Dicom.Web.Tests.E2E.Rest.DataPartitionEnabledTests" --logger trx --results-directory "$(Agent.TempDirectory)/TestResults"
     displayName: 'dotnet test Microsoft.Health.Dicom.Web.Tests.E2E.dll'
     workingDirectory: '$(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Web.Tests.E2E'
+    env:
+      TestEnvironmentUrl: '$(testEnvironmentUrl)'
 
   - task: PublishTestResults@2
     displayName: 'Publish Test Results'
