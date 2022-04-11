@@ -15,9 +15,7 @@ jobs:
       useGlobalJson: true
 
   - ${{ if eq(parameters.runLocally, true) }}:
-    - bash: |
-        echo "##vso[task.setvariable variable=TestEnvironmentUrl]http://localhost:63839/"
-        docker-compose -f ./docker/docker-compose.yml -f ./docker/docker-compose.dependencies.yml up --build -d
+    - bash: docker-compose -f ./docker/docker-compose.yml -f ./docker/docker-compose.dependencies.yml up --build -d
       displayName: 'Run docker-compose'
   - ${{ else }}:
     - task: AzurePowerShell@4

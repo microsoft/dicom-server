@@ -20,7 +20,11 @@ public class HttpIntegrationTestFixture<TStartup> : IDisposable
 {
     private readonly Dictionary<(string, string), AuthenticationHttpMessageHandler> _authenticationHandlers = new Dictionary<(string, string), AuthenticationHttpMessageHandler>();
 
-    protected HttpIntegrationTestFixture(bool enableDataPartitions = false)
+    public HttpIntegrationTestFixture()
+        : this(enableDataPartitions: false)
+    { }
+
+    protected HttpIntegrationTestFixture(bool enableDataPartitions)
     {
         TestDicomWebServer = TestDicomWebServerFactory.GetTestDicomWebServer(typeof(TStartup), enableDataPartitions);
     }

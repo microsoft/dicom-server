@@ -21,7 +21,6 @@ steps:
       command: test
       projects: '**/*UnitTests/*.csproj'
       arguments: '--configuration $(buildConfiguration) --no-build'
-      testRunTitle: 'Unit Tests'
 
   - task: ComponentGovernanceComponentDetection@0
     inputs:

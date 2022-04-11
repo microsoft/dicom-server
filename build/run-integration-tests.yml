@@ -64,7 +64,6 @@ jobs:
       testResultsFormat: 'VSTest'
       testResultsFiles: '*.trx'
       searchFolder: '$(Agent.TempDirectory)/TestResults'
-      testRunTitle: 'Integration Tests'
       buildConfiguration: '$(buildConfiguration)'
 
   - ${{ if eq(parameters.runLocally, true) }}:
