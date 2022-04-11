@@ -50,13 +50,19 @@ jobs:
       downloadPath: '$(System.ArtifactsDirectory)'
       artifactName: 'IntegrationTests'
 
-  - task: DotNetCoreCLI@2
+  - script: dotnet test "Microsoft.Health.Dicom.Web.Tests.E2E.dll" --filter "FullyQualifiedName~Microsoft.Health.Dicom.Web.Tests.E2E.Rest.DataPartitionEnabledTests" --logger trx --results-directory "$(Agent.TempDirectory)/TestResults"
+    displayName: 'dotnet test Microsoft.Health.Dicom.Web.Tests.E2E.dll'
+    workingDirectory: '$(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Web.Tests.E2E'
+
+  - task: PublishTestResults@2
+    displayName: 'Publish Test Results'
+    condition: succeededOrFailed()
     inputs:
-      command: 'test'
-      projects: '**\*Tests.E2E*.dll'
-      arguments: '--filter "FullyQualifiedName~Microsoft.Health.Dicom.Web.Tests.E2E.Rest.DataPartitionEnabledTests"'
+      testResultsFormat: 'XUnit'
+      testResultsFiles: '*.trx'
+      searchFolder: '$(Agent.TempDirectory)/TestResults'
       testRunTitle: 'Partitioned E2E Tests'
-      workingDirectory: '$(System.ArtifactsDirectory)'
+      buildConfiguration: '$(buildConfiguration)'
 
   - ${{ if eq(parameters.runLocally, true) }}:
     - script: docker-compose -f ./docker/docker-compose.yml -f ./docker/docker-compose.dependencies.yml -f ./docker/docker-compose.features.yml rm -s -f

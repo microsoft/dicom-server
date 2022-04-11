@@ -53,12 +53,19 @@ jobs:
       downloadPath: '$(System.ArtifactsDirectory)'
       artifactName: 'IntegrationTests'
 
-  - task: DotNetCoreCLI@2
+  - script: dotnet test "Microsoft.Health.Dicom.Tests.Integration.dll" --logger trx --results-directory "$(Agent.TempDirectory)/TestResults"
+    displayName: 'dotnet test Microsoft.Health.Dicom.Tests.Integration.dll'
+    workingDirectory: '$(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Tests.Integration'
+
+  - task: PublishTestResults@2
+    displayName: 'Publish Test Results'
+    condition: succeededOrFailed()
     inputs:
-      command: 'test'
-      projects: '**\*Tests.Integration.dll'
+      testResultsFormat: 'XUnit'
+      testResultsFiles: '*.trx'
+      searchFolder: '$(Agent.TempDirectory)/TestResults'
       testRunTitle: 'Integration Tests'
-      workingDirectory: '$(System.ArtifactsDirectory)'
+      buildConfiguration: '$(buildConfiguration)'
 
   - ${{ if eq(parameters.runLocally, true) }}:
     - script: |

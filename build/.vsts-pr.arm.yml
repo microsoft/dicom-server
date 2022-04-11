@@ -43,14 +43,14 @@ steps:
     displayName: 'Validate ARM Template'
     inputs:
       deploymentScope: 'Resource Group'
-      azureResourceManagerConnection: 'Dicom OSS'
+      azureResourceManagerConnection: '$(azureSubscriptionName)'
       subscriptionId: 'a1766500-6fd5-4f5c-8515-607798271014'
       action: 'Create Or Update Resource Group'
-      resourceGroupName: 'msh-dicom-pr'
+      resourceGroupName: '$(appServicePlanResourceGroup)'
       location: 'West US 2'
       templateLocation: 'Linked artifact'
       csmFile: '$(Build.Repository.LocalPath)/samples/templates/default-azuredeploy.json'
-      overrideParameters: '-serviceName msh-pr-$(System.PullRequest.PullRequestNumber) -location southcentralus -sqlAdminPassword "T3stP@ssw0rd"'
+      overrideParameters: '-serviceName "$(deploymentName)" -location "$(resourceGroupRegion)" -sqlAdminPassword "T3stP@ssw0rd"'
       deploymentMode: 'Validation'
       deploymentName: 'ValidateDicom$(System.PullRequest.PullRequestNumber)'
 
