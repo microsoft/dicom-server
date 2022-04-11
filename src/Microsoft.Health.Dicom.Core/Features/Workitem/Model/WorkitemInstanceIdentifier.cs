@@ -51,5 +51,5 @@ public class WorkitemInstanceIdentifier
         => (PartitionKey + WorkitemUid + WorkitemKey.ToString() + Watermark.ToString()).GetHashCode(EqualsStringComparison);
 
     public override string ToString()
-        => $"PartitionKey: {PartitionKey}, WorkitemUID: {WorkitemUid}, WorkitemKey: {WorkitemKey}, Watermark: {Watermark}";
+        => $"PartitionKey: {PartitionKey}, WorkitemKey: {WorkitemKey}, Watermark: {Watermark}";
 }
