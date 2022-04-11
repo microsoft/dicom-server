@@ -50,18 +50,13 @@ jobs:
       downloadPath: '$(System.ArtifactsDirectory)'
       artifactName: 'IntegrationTests'
 
-  - task: VisualStudioTestPlatformInstaller@1
-    displayName: 'Install Microsoft Test Platform'
+  - task: DotNetCoreCLI@2
     inputs:
-      packageFeedSelector: 'nugetOrg'
-      versionSelector: 'latestPreRelease'
-
-  - task: VSTest@2
-    displayName: 'Features-enabled E2E Tests'
-    inputs:
-      testAssemblyVer2: '**\*Tests.E2E*.dll'
-      searchFolder: '$(System.ArtifactsDirectory)'
-      testFiltercriteria: 'FullyQualifiedName~Microsoft.Health.Dicom.Web.Tests.E2E.Rest.DataPartitionEnabledTests'
+      command: 'test'
+      projects: '**\*Tests.E2E*.dll'
+      arguments: '--filter "FullyQualifiedName~Microsoft.Health.Dicom.Web.Tests.E2E.Rest.DataPartitionEnabledTests"'
+      testRunTitle: 'Partitioned E2E Tests'
+      workingDirectory: '$(System.ArtifactsDirectory)'
 
   - ${{ if eq(parameters.runLocally, true) }}:
     - script: docker-compose -f ./docker/docker-compose.yml -f ./docker/docker-compose.dependencies.yml -f ./docker/docker-compose.features.yml rm -s -f

@@ -4,10 +4,9 @@ steps:
     inputs:
       versionSpec: '17.x'
 
-  - script: |
-      npm install
-      npm run pack
-    displayName: 'npm install and pack'
+  # TODO: Add validation
+  - script: npm ci
+    displayName: 'npm ci'
     workingDirectory: '$(Build.Repository.LocalPath)/tools/dicom-web-electron'
 
   - task: ComponentGovernanceComponentDetection@0

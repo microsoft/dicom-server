@@ -53,17 +53,12 @@ jobs:
       downloadPath: '$(System.ArtifactsDirectory)'
       artifactName: 'IntegrationTests'
 
-  - task: VisualStudioTestPlatformInstaller@1
+  - task: DotNetCoreCLI@2
     inputs:
-      packageFeedSelector: 'nugetOrg'
-      versionSelector: 'latestPreRelease'
-
-  - task: VSTest@2
-    displayName: 'Integration Tests'
-    inputs:
-      testAssemblyVer2: '**\*Tests.Integration.dll'
-      searchFolder: '$(System.ArtifactsDirectory)'
-      runInParallel: true
+      command: 'test'
+      projects: '**\*Tests.Integration.dll'
+      testRunTitle: 'Integration Tests'
+      workingDirectory: '$(System.ArtifactsDirectory)'
 
   - ${{ if eq(parameters.runLocally, true) }}:
     - script: |
