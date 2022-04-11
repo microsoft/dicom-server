@@ -24,9 +24,9 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features;
 public class TranscoderTests
 {
     private const string TestDataRootFolder = "TranscoderTestsFiles";
-    private const string TestDataRootFolderForDecode = TestDataRootFolder + @"\Decode";
-    private const string TestDataRootFolderForEncode = TestDataRootFolder + @"\Encode";
-    private const string TestDataRootFolderForUncompressed = TestDataRootFolder + @"\Uncompressed";
+    private const string DecodeFolder = "Decode";
+    private const string EncodeFolder = "Encode";
+    private const string UncompressedFolder = "Uncompressed";
     private readonly ITranscoder _transcoder;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
@@ -41,31 +41,28 @@ public class TranscoderTests
     }
 
     [Theory]
-    [MemberData(nameof(GetTestDatas), TestDataRootFolderForEncode)]
+    [MemberData(nameof(GetTestDatas), EncodeFolder)]
     public async Task GivenUncompressedDicomFile_WhenRequestEncoding_ThenTranscodingShouldSucceed(string testDataFolder)
     {
         await VerifyTranscoding(testDataFolder);
     }
 
     [Theory]
-    [MemberData(nameof(GetTestDatas), TestDataRootFolderForDecode)]
+    [MemberData(nameof(GetTestDatas), DecodeFolder)]
     public async Task GivenCompressedDicomFile_WhenRequestDecoding_ThenTranscodingShouldSucceed(string testDataFolder)
     {
         await VerifyTranscoding(testDataFolder);
     }
 
     [Theory]
-    [MemberData(nameof(GetTestDatas), TestDataRootFolderForUncompressed)]
+    [MemberData(nameof(GetTestDatas), UncompressedFolder)]
     public async Task GivenUncompressedDicomFile_WhenRequestAnotherUncompressedTransferSyntax_ThenTranscodingShouldSucceed(string testDataFolder)
     {
         await VerifyTranscoding(testDataFolder);
     }
 
-    public static IEnumerable<object[]> GetTestDatas(string testDataRootFolder)
-    {
-        return TranscoderTestDataHelper.GetTestDataFolders(testDataRootFolder)
-            .Select(item => new object[] { item });
-    }
+    public static IEnumerable<object[]> GetTestDatas(string subFolder)
+        => TranscoderTestDataHelper.GetTestDataFolders(Path.Combine(TestDataRootFolder, subFolder)).Select(item => new object[] { item });
 
     private async Task<DicomFile> VerifyTranscoding(string testDataFolder)
     {
