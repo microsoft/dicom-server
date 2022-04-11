@@ -22,6 +22,8 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
+    DECLARE @deletedRows INT
+
     BEGIN TRANSACTION
 
         DECLARE @tagKey INT
@@ -43,33 +45,45 @@ BEGIN
     COMMIT TRANSACTION
 
     -- Delete index data
-    WHILE (1 = 1)
+    SET @deletedRows = @batchSize
+    WHILE (@deletedRows = @batchSize)
     BEGIN
-        IF @dataType = 0
-            DELETE TOP (@batchSize) FROM dbo.ExtendedQueryTagString WHERE TagKey = @tagKey AND ResourceType = @imageResourceType
-        ELSE IF @dataType = 1
-            DELETE TOP (@batchSize) FROM dbo.ExtendedQueryTagLong WHERE TagKey = @tagKey AND ResourceType = @imageResourceType
-        ELSE IF @dataType = 2
-            DELETE TOP (@batchSize) FROM dbo.ExtendedQueryTagDouble WHERE TagKey = @tagKey AND ResourceType = @imageResourceType
-        ELSE IF @dataType = 3
-            DELETE TOP (@batchSize) FROM dbo.ExtendedQueryTagDateTime WHERE TagKey = @tagKey AND ResourceType = @imageResourceType
-        ELSE
-            DELETE TOP (@batchSize) FROM dbo.ExtendedQueryTagPersonName WHERE TagKey = @tagKey AND ResourceType = @imageResourceType
 
-        IF (@@ROWCOUNT <> @batchSize)
-            BREAK
+        BEGIN TRANSACTION
+
+            IF @dataType = 0
+                DELETE TOP (@batchSize) FROM dbo.ExtendedQueryTagString WHERE TagKey = @tagKey AND ResourceType = @imageResourceType
+            ELSE IF @dataType = 1
+                DELETE TOP (@batchSize) FROM dbo.ExtendedQueryTagLong WHERE TagKey = @tagKey AND ResourceType = @imageResourceType
+            ELSE IF @dataType = 2
+                DELETE TOP (@batchSize) FROM dbo.ExtendedQueryTagDouble WHERE TagKey = @tagKey AND ResourceType = @imageResourceType
+            ELSE IF @dataType = 3
+                DELETE TOP (@batchSize) FROM dbo.ExtendedQueryTagDateTime WHERE TagKey = @tagKey AND ResourceType = @imageResourceType
+            ELSE
+                DELETE TOP (@batchSize) FROM dbo.ExtendedQueryTagPersonName WHERE TagKey = @tagKey AND ResourceType = @imageResourceType
+
+            SET @deletedRows = @@ROWCOUNT
+
+        COMMIT TRANSACTION
+        CHECKPOINT
 
         EXEC dbo.ISleepIfBusy
     END
 
     -- Delete errors
-    WHILE (1 = 1)
+    SET @deletedRows = @batchSize
+    WHILE (@deletedRows = @batchSize)
     BEGIN
-        DELETE TOP (@batchSize) FROM dbo.ExtendedQueryTagError
-        WHERE TagKey = @tagKey
 
-        IF (@@ROWCOUNT <> @batchSize)
-            BREAK
+        BEGIN TRANSACTION
+
+            DELETE TOP (@batchSize) FROM dbo.ExtendedQueryTagError
+            WHERE TagKey = @tagKey
+
+            SET @deletedRows = @@ROWCOUNT
+
+        COMMIT TRANSACTION
+        CHECKPOINT
 
         EXEC dbo.ISleepIfBusy
     END
