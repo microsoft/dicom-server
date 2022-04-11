@@ -10,6 +10,9 @@ pr:
     - build
     - tools/dicom-web-electron
 
+variables:
+- template: pr-variables.yml
+
 trigger: none
 
 pool:

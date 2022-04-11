@@ -12,6 +12,9 @@ pr:
 
 trigger: none
 
+variables:
+- template: pr-variables.yml
+
 # Note: ARMory currently only works on Windows
 pool:
   vmImage: 'windows-latest'
