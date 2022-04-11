@@ -16,8 +16,8 @@ jobs:
 
   - ${{ if eq(parameters.runLocally, true) }}:
     - bash: |
-        docker-compose -f ./docker/docker-compose.yml -f ./docker/docker-compose.dependencies.yml up --build -d
         echo "##vso[task.setvariable variable=TestEnvironmentUrl]http://localhost:63839/"
+        docker-compose -f ./docker/docker-compose.yml -f ./docker/docker-compose.dependencies.yml up --build -d
       displayName: 'Run docker-compose'
   - ${{ else }}:
     - task: AzurePowerShell@4
@@ -58,7 +58,7 @@ jobs:
     displayName: 'Publish Test Results'
     condition: succeededOrFailed()
     inputs:
-      testResultsFormat: 'XUnit'
+      testResultsFormat: 'VSTest'
       testResultsFiles: '*.trx'
       searchFolder: '$(Agent.TempDirectory)/TestResults'
       testRunTitle: 'E2E Tests'

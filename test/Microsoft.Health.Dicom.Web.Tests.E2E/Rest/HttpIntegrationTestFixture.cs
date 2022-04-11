@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using EnsureThat;
 using Microsoft.Extensions.Options;
@@ -21,12 +20,7 @@ public class HttpIntegrationTestFixture<TStartup> : IDisposable
 {
     private readonly Dictionary<(string, string), AuthenticationHttpMessageHandler> _authenticationHandlers = new Dictionary<(string, string), AuthenticationHttpMessageHandler>();
 
-    public HttpIntegrationTestFixture()
-        : this(Path.Combine("src"))
-    {
-    }
-
-    protected HttpIntegrationTestFixture(string targetProjectParentDirectory, bool enableDataPartitions = false)
+    protected HttpIntegrationTestFixture(bool enableDataPartitions = false)
     {
         TestDicomWebServer = TestDicomWebServerFactory.GetTestDicomWebServer(typeof(TStartup), enableDataPartitions);
     }
