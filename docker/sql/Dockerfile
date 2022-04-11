@@ -14,11 +14,14 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     # Get official Microsoft repository configuration
     curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
     curl https://packages.microsoft.com/config/ubuntu/20.04/mssql-server-2019.list | tee /etc/apt/sources.list.d/mssql-server.list && \
+    curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list | tee /etc/apt/sources.list.d/msprod.list && \
     # Install SQL Server
     apt-get update && \
     apt-get install -y mssql-server && \
     # Install Full Text Search (FTS)
     apt-get install -y mssql-server-fts && \
+    # Install SQL Tools
+    ACCEPT_EULA=Y apt-get install -y mssql-tools unixodbc-dev && \
     # Clean up the Dockerfile
     apt-get clean && \
     rm -rf /var/lib/apt/lists

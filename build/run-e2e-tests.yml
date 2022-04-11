@@ -16,7 +16,7 @@ jobs:
 
   - ${{ if eq(parameters.runLocally, true) }}:
     - bash: |
-        docker-compose -f .\docker\docker-compose.yml -f .\docker\docker-compose.dependencies.yml up --build -d
+        docker-compose -f ./docker/docker-compose.yml -f ./docker/docker-compose.dependencies.yml up --build -d
         echo "##vso[task.setvariable variable=TestEnvironmentUrl]http://localhost:63839/"
       displayName: 'Run docker-compose'
   - ${{ else }}:
@@ -64,6 +64,6 @@ jobs:
       testFiltercriteria: 'FullyQualifiedName!~Microsoft.Health.Dicom.Web.Tests.E2E.Rest.DataPartitionEnabledTests'
 
   - ${{ if eq(parameters.runLocally, true) }}:
-    - script: docker-compose -f .\docker\docker-compose.yml -f .\docker\docker-compose.dependencies.yml rm -s -f
+    - script: docker-compose -f ./docker/docker-compose.yml -f ./docker/docker-compose.dependencies.yml rm -s -f
       displayName: 'Stop docker-compose'
       condition: always()
