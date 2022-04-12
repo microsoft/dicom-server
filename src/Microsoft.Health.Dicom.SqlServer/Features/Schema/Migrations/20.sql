@@ -1029,6 +1029,7 @@ BEGIN
     SET @deletedRows = @batchSize;
     WHILE (@deletedRows = @batchSize)
         BEGIN
+            EXECUTE dbo.ISleepIfBusy ;
             BEGIN TRANSACTION;
             IF @dataType = 0
                 DELETE TOP (@batchSize)
@@ -1061,11 +1062,11 @@ BEGIN
             SET @deletedRows = @@ROWCOUNT;
             COMMIT TRANSACTION;
             CHECKPOINT;
-            EXECUTE dbo.ISleepIfBusy ;
         END
     SET @deletedRows = @batchSize;
     WHILE (@deletedRows = @batchSize)
         BEGIN
+            EXECUTE dbo.ISleepIfBusy ;
             BEGIN TRANSACTION;
             DELETE TOP (@batchSize)
                    dbo.ExtendedQueryTagError
@@ -1073,7 +1074,6 @@ BEGIN
             SET @deletedRows = @@ROWCOUNT;
             COMMIT TRANSACTION;
             CHECKPOINT;
-            EXECUTE dbo.ISleepIfBusy ;
         END
     DELETE dbo.ExtendedQueryTag
     WHERE  TagKey = @tagKey;

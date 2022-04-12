@@ -30,11 +30,11 @@ BEGIN
                                 ELSE 0
                             END), 0),
                 @activeRequestCount = COUNT(*)
-        FROM    sys.dm_exec_requests r WITH (NOLOCK)
-        JOIN    sys.dm_exec_sessions s WITH (NOLOCK)
-        ON      s.session_id = r.session_id
-        WHERE   r.session_id <> @@spid
-                AND s.is_user_process = 1 -- user sessions only
+        FROM        sys.dm_exec_requests r WITH (NOLOCK)
+        INNER JOIN  sys.dm_exec_sessions s WITH (NOLOCK)
+        ON          s.session_id = r.session_id
+        WHERE       r.session_id <> @@spid
+                    AND s.is_user_process = 1 -- user sessions only
 
         SET @activeRequestCount = @activeRequestCount - @sleepersCount
 

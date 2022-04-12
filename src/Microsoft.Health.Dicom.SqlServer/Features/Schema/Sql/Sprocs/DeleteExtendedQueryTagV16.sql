@@ -49,6 +49,8 @@ BEGIN
     WHILE (@deletedRows = @batchSize)
     BEGIN
 
+        EXEC dbo.ISleepIfBusy
+
         BEGIN TRANSACTION
 
             IF @dataType = 0
@@ -67,13 +69,14 @@ BEGIN
         COMMIT TRANSACTION
         CHECKPOINT
 
-        EXEC dbo.ISleepIfBusy
     END
 
     -- Delete errors
     SET @deletedRows = @batchSize
     WHILE (@deletedRows = @batchSize)
     BEGIN
+
+        EXEC dbo.ISleepIfBusy
 
         BEGIN TRANSACTION
 
@@ -85,7 +88,6 @@ BEGIN
         COMMIT TRANSACTION
         CHECKPOINT
 
-        EXEC dbo.ISleepIfBusy
     END
 
     -- Delete tag
