@@ -15,7 +15,7 @@ jobs:
       useGlobalJson: true
 
   - ${{ if eq(parameters.runLocally, true) }}:
-    - bash: docker-compose -f ./docker/docker-compose.yml -f ./docker/docker-compose.dependencies.yml up --build -d
+    - script: docker-compose -f ./docker/docker-compose.yml -f ./docker/docker-compose.dependencies.yml up --build -d
       displayName: 'Run docker-compose'
   - ${{ else }}:
     - task: AzurePowerShell@4
@@ -65,8 +65,9 @@ jobs:
       buildConfiguration: '$(buildConfiguration)'
 
   - ${{ if eq(parameters.runLocally, true) }}:
-    - bash: docker-compose -f ./docker/docker-compose.yml -f ./docker/docker-compose.dependencies.yml logs
+    - script: docker-compose -f ./docker/docker-compose.yml -f ./docker/docker-compose.dependencies.yml logs
       displayName: 'docker-compose logs'
+      condition: always()
 
   - ${{ if eq(parameters.runLocally, true) }}:
     - script: docker-compose -f ./docker/docker-compose.yml -f ./docker/docker-compose.dependencies.yml rm -s -f
