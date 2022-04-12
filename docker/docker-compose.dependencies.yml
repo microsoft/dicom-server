@@ -10,13 +10,11 @@ services:
       SqlServer__AllowDatabaseCreation: "true"
       SqlServer__ConnectionString: "Server=tcp:sql,1433;Initial Catalog=DICOM;Persist Security Info=False;User ID=sa;Password=${SAPASSWORD:-L0ca1P@ssw0rd};MultipleActiveResultSets=False;Connection Timeout=30;TrustServerCertificate=true"
       SqlServer__Initialize: "true"
+    restart: on-failure
     depends_on:
-      functions:
-        condition: service_started
-      azurite:
-        condition: service_started
-      sql:
-        condition: service_healthy
+      - functions
+      - azurite
+      - sql
   functions:
     build:
       # VS Container Tools does not currently support automatically attaching a debugger to Azure Functions
@@ -32,6 +30,7 @@ services:
       WEBSITE_HOSTNAME: "localhost:80"
     ports:
       - "7072:80" # This is typically set by Visual Studio automatically
+    restart: on-failure
     depends_on:
       - azurite
   azurite:
