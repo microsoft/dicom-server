@@ -62,6 +62,7 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
 
         var config = new SqlServerDataStoreConfiguration
         {
+            CommandTimeout = TimeSpan.FromSeconds(30),
             ConnectionString = TestConnectionString,
             Initialize = true,
             SchemaOptions = new SqlServerSchemaOptions
@@ -95,7 +96,7 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
 
         SqlTransactionHandler = new SqlTransactionHandler();
 
-        SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(SqlTransactionHandler, sqlConnectionFactory, SqlRetryLogicBaseProvider);
+        SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(SqlTransactionHandler, sqlConnectionFactory, SqlRetryLogicBaseProvider, configOptions);
 
         var schemaResolver = new PassthroughSchemaVersionResolver(SchemaInformation);
 
