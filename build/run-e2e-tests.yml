@@ -65,6 +65,10 @@ jobs:
       buildConfiguration: '$(buildConfiguration)'
 
   - ${{ if eq(parameters.runLocally, true) }}:
+    - bash: docker-compose -f ./docker/docker-compose.yml -f ./docker/docker-compose.dependencies.yml logs
+      displayName: 'docker-compose logs'
+
+  - ${{ if eq(parameters.runLocally, true) }}:
     - script: docker-compose -f ./docker/docker-compose.yml -f ./docker/docker-compose.dependencies.yml rm -s -f
       displayName: 'Stop docker-compose'
       condition: always()
