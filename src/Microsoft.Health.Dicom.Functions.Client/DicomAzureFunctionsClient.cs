@@ -13,6 +13,7 @@ using EnsureThat;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask.ContextImplementations;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Operations;
@@ -35,6 +36,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     private readonly IExtendedQueryTagStore _extendedQueryTagStore;
     private readonly IUrlResolver _urlResolver;
     private readonly IGuidFactory _guidFactory;
+    private readonly DicomFunctionOptions _options;
     private readonly ILogger _logger;
 
     /// <summary>
@@ -44,6 +46,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     /// <param name="urlResolver">A helper for building URLs for other APIs.</param>
     /// <param name="extendedQueryTagStore">An extended query tag store for resolving the query tag IDs.</param>
     /// <param name="guidFactory">A factory for creating instances of <see cref="Guid"/>.</param>
+    /// <param name="options">Options for configuring the functions.</param>
     /// <param name="logger">A logger for diagnostic information.</param>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="durableClientFactory"/>, <paramref name="urlResolver"/>,
@@ -54,12 +57,14 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         IExtendedQueryTagStore extendedQueryTagStore,
         IUrlResolver urlResolver,
         IGuidFactory guidFactory,
+        IOptions<DicomFunctionOptions> options,
         ILogger<DicomAzureFunctionsClient> logger)
     {
         _durableClient = EnsureArg.IsNotNull(durableClientFactory, nameof(durableClientFactory)).CreateClient();
         _urlResolver = EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
         _extendedQueryTagStore = EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
         _guidFactory = EnsureArg.IsNotNull(guidFactory, nameof(guidFactory));
+        _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
@@ -94,7 +99,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             CreatedTime = checkpoint.CreatedTime ?? state.CreatedTime,
             LastUpdatedTime = state.LastUpdatedTime,
             OperationId = operationId,
-            PercentComplete = status == OperationStatus.Completed ? 100 : checkpoint.PercentComplete,
+            PercentComplete = checkpoint.PercentComplete.HasValue && status == OperationStatus.Completed ? 100 : checkpoint.PercentComplete,
             Resources = await GetResourceUrlsAsync(type, checkpoint.ResourceIds, cancellationToken),
             Status = status,
             Type = type,
@@ -112,9 +117,13 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
 
         // TODO: Pass token when supported
         string instanceId = await _durableClient.StartNewAsync(
-            FunctionNames.ReindexInstances,
+            _options.Indexing.Name,
             operationId.ToString(OperationId.FormatSpecifier),
-            new ReindexInput { QueryTagKeys = tagKeys });
+            new ReindexInput
+            {
+                Batching = _options.Indexing.Batching,
+                QueryTagKeys = tagKeys
+            });
 
         _logger.LogInformation("Successfully started new orchestration instance with ID '{InstanceId}'.", instanceId);
 
@@ -134,7 +143,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     private static IOperationCheckpoint ParseCheckpoint(DicomOperation type, DurableOrchestrationStatus status)
         => type switch
         {
-            DicomOperation.Reindex => status.Input?.ToObject<ReindexInput>() ?? new ReindexInput(),
+            DicomOperation.Reindex => status.Input?.ToObject<ReindexCheckpoint>() ?? new ReindexCheckpoint(),
             _ => NullOperationCheckpoint.Value,
         };
 

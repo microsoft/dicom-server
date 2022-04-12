@@ -23,8 +23,6 @@ namespace Microsoft.Health.Dicom.Functions.Client;
 /// </summary>
 public static class DicomServerBuilderFunctionClientRegistrationExtensions
 {
-    private const string ConfigSectionName = "DicomFunctions";
-
     /// <summary>
     /// Adds the necessary services to support the usage of <see cref="IDicomOperationsClient"/>.
     /// </summary>
@@ -49,7 +47,13 @@ public static class DicomServerBuilderFunctionClientRegistrationExtensions
 
         IServiceCollection services = dicomServerBuilder.Services;
         services.TryAddSingleton(GuidFactory.Default);
-        services.AddDurableClientFactory(x => configuration.GetSection(ConfigSectionName).Bind(x));
+        services.AddOptions<DicomFunctionOptions>()
+            .Bind(configuration.GetSection(DicomFunctionOptions.SectionName))
+            .ValidateDataAnnotations();
+        services.AddDurableClientFactory(x => configuration
+            .GetSection(DicomFunctionOptions.SectionName)
+            .GetSection(nameof(DicomFunctionOptions.DurableTask))
+            .Bind(x));
         services.Replace(ServiceDescriptor.Singleton<IMessageSerializerSettingsFactory, DurableTaskSerializerSettingsFactory>());
         services.TryAddScoped<IDicomOperationsClient, DicomAzureFunctionsClient>();
 

@@ -3,14 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 
-namespace Microsoft.Health.Dicom.Core.Models.Indexing;
+namespace Microsoft.Health.Dicom.Functions.Client;
 
-internal class ReindexInput
+internal class FanOutFunctionOptions : FunctionOptions
 {
-    public IReadOnlyCollection<int> QueryTagKeys { get; set; }
-
+    [Required]
     public BatchingOptions Batching { get; set; }
 }
