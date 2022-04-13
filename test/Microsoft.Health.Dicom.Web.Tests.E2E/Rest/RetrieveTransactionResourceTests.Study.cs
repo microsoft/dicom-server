@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -30,7 +31,7 @@ public partial class RetrieveTransactionResourceTests
     [InlineData(FromExplicitVRLittleEndianToJPEG2000LosslessTestFolder, "1.2.840.10008.1.2.4.90")]
     public async Task GivenSupportedAcceptHeaders_WhenRetrieveStudy_ThenServerShouldReturnExpectedContent(string testDataFolder, string transferSyntax)
     {
-        TranscoderTestData transcoderTestData = TranscoderTestDataHelper.GetTestData(testDataFolder);
+        TranscoderTestData transcoderTestData = TranscoderTestDataHelper.GetTestData(Path.Combine(TestFileFolder, testDataFolder));
         DicomFile inputDicomFile = DicomFile.Open(transcoderTestData.InputDicomFile);
         var instanceId = RandomizeInstanceIdentifier(inputDicomFile.Dataset);
 

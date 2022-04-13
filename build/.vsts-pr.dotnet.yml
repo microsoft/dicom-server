@@ -61,7 +61,6 @@ stages:
   - BuildDotNet
   jobs:
   - job: Guardian
-    displayName: 'Run Guardian Tools'
     pool:
       vmImage: 'windows-latest'
     steps:
@@ -70,7 +69,7 @@ stages:
         analyzePackages: false
 
 - stage: ValidateAPIVersioning
-  displayName: 'Detect Breaking Changes in REST API'
+  displayName: 'Detect Breaking REST API Changes'
   dependsOn:
   - BuildDotNet
   jobs:

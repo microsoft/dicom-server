@@ -1,6 +1,6 @@
 jobs:
 - job: provision
-  displayName: 'Provision DICOM Service with Optional Features'
+  displayName: 'Provision DICOM'
   pool:
     vmImage: 'windows-latest'
   variables:

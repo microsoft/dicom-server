@@ -1,6 +1,6 @@
 jobs:
-- job: provision
-  displayName: 'Provision DICOM Service'
+- job: Provision
+  displayName: 'Provision DICOM'
   pool:
     vmImage: 'windows-latest'
   steps:

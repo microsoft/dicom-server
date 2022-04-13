@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
@@ -21,10 +22,10 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 /// </summary>
 public partial class RetrieveTransactionResourceTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
 {
-    private const string TestFileFolder = @"TestFiles\RetrieveTransactionResourceTests\";
-    private const string FromExplicitVRLittleEndianToJPEG2000LosslessTestFolder = TestFileFolder + "FromExplicitVRLittleEndianToJPEG2000Lossless";
-    private const string FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder = TestFileFolder + "FromJPEG2000LosslessToExplicitVRLittleEndian";
-    private const string RequestOriginalContentTestFolder = TestFileFolder + "RequestOriginalContent";
+    private static readonly string TestFileFolder = Path.Combine(@"TestFiles", "RetrieveTransactionResourceTests");
+    private const string FromExplicitVRLittleEndianToJPEG2000LosslessTestFolder = "FromExplicitVRLittleEndianToJPEG2000Lossless";
+    private const string FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder = "FromJPEG2000LosslessToExplicitVRLittleEndian";
+    private const string RequestOriginalContentTestFolder = "RequestOriginalContent";
 
     private readonly IDicomWebClient _client;
     private readonly DicomInstancesManager _instancesManager;

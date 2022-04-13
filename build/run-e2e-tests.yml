@@ -5,7 +5,7 @@ parameters:
 
 jobs:
 - job: SetupAndRun
-  displayName: 'Setup and Run E2E Tests'
+  displayName: 'E2E Tests'
   pool:
     vmImage: 'ubuntu-latest'
   steps:
