@@ -31,4 +31,6 @@ public class FeatureConfiguration
     /// Enable UPS-RS feature
     /// </summary>
     public bool EnableUpsRs { get; set; }
+
+    public bool EnableDualWrite { get; set; }
 }
