@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -33,6 +33,12 @@
   <ItemGroup>
     <None Include="Indexing\ReindexDurableFunction.*.cs">
       <DependentUpon>ReindexDurableFunction.cs</DependentUpon>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Duplicate\DuplicationDurableFunction.*.cs">
+      <DependentUpon>DuplicationDurableFunction.cs</DependentUpon>
     </None>
   </ItemGroup>
 

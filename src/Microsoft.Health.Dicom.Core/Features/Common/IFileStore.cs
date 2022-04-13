@@ -25,6 +25,8 @@ public interface IFileStore
     /// <returns>A task that represents the asynchronous add operation.</returns>
     Task<Uri> StoreFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, Stream stream, CancellationToken cancellationToken = default);
 
+    Task DuplicateFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Asynchronously gets a file from the file store.
     /// </summary>

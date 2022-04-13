@@ -15,6 +15,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Common;
 /// </summary>
 public interface IMetadataStore
 {
+    Task DuplicateInstanceMetadataAsync(VersionedInstanceIdentifier identifier, CancellationToken cancellationToken);
+
     /// <summary>
     /// Asynchronously stores a DICOM instance metadata.
     /// </summary>
