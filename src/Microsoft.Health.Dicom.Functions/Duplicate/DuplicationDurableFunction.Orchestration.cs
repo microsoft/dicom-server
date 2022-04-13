@@ -10,10 +10,10 @@ using EnsureThat;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Dicom.Functions.Duplicate.Models;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
@@ -40,7 +40,7 @@ public partial class DuplicationDurableFunction
         EnsureArg.IsNotNull(context, nameof(context)).ThrowIfInvalidOperationId();
 
         logger = context.CreateReplaySafeLogger(logger);
-        ReindexCheckpoint input = context.GetInput<ReindexCheckpoint>();
+        DuplicateCheckpoint input = context.GetInput<DuplicateCheckpoint>();
 
         // Backfill batching options
         input.Batching ??= new BatchingOptions
@@ -51,7 +51,7 @@ public partial class DuplicationDurableFunction
 
 
         IReadOnlyList<WatermarkRange> batches = await context.CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-            nameof(GetInstanceBatchesV2Async),
+            nameof(GetDuplicateInstanceBatchesAsync),
             _options.RetryOptions,
             new BatchCreationArguments(input.Completed?.Start - 1, input.Batching.Size, input.Batching.MaxParallelCount));
 
@@ -60,53 +60,35 @@ public partial class DuplicationDurableFunction
             // Note that batches are in reverse order because we start from the highest watermark
             var batchRange = new WatermarkRange(batches[^1].Start, batches[0].End);
 
-            logger.LogInformation("Beginning to re-index the range {Range}.", batchRange);
+            logger.LogInformation("Beginning to duplicate the range {Range}.", batchRange);
             await Task.WhenAll(batches
                 .Select(x => context.CallActivityWithRetryAsync(
                     nameof(DuplicateBatchAsync),
                     _options.RetryOptions,
-                    ReindexBatchArguments.FromOptions(queryTags, x, _options))));
+                    DuplicateBatchArguments.FromOptions(x, _options))));
 
             // Create a new orchestration with the same instance ID to process the remaining data
-            logger.LogInformation("Completed re-indexing the range {Range}. Continuing with new execution...", batchRange);
+            logger.LogInformation("Completed duplicate the range {Range}. Continuing with new execution...", batchRange);
 
             WatermarkRange completed = input.Completed.HasValue
                 ? new WatermarkRange(batchRange.Start, input.Completed.Value.End)
                 : batchRange;
 
             context.ContinueAsNew(
-                new ReindexCheckpoint
+                new DuplicateCheckpoint
                 {
                     Completed = completed,
                     CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
-                    QueryTagKeys = queryTagKeys,
                 });
         }
         else
         {
-            IReadOnlyList<int> completed = await context.CallActivityWithRetryAsync<IReadOnlyList<int>>(
-                nameof(CompleteReindexingAsync),
-                _options.RetryOptions,
-                queryTagKeys);
+            await context.CallActivityWithRetryAsync(nameof(CompleteDuplicateAsync), _options.RetryOptions, null);
 
-            logger.LogInformation(
-                "Completed re-indexing for the following extended query tags {{{QueryTagKeys}}}.",
-                string.Join(", ", completed));
+            logger.LogInformation("Completed duplication.");
         }
 
     }
 
-    // Determine the set of query tags that should be indexed and only continue if there is at least 1.
-    // For the first time this orchestration executes, assign all of the tags in the input to the operation,
-    // otherwise simply fetch the tags from the database for this operation.
-    private Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetOperationQueryTagsAsync(IDurableOrchestrationContext context, ReindexCheckpoint input)
-        => input.Completed.HasValue
-            ? context.CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
-                nameof(GetQueryTagsAsync),
-                _options.RetryOptions,
-                null)
-            : context.CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
-                nameof(AssignReindexingOperationAsync),
-                _options.RetryOptions,
-                input.QueryTagKeys);
+
 }

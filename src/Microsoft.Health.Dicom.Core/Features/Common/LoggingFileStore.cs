@@ -34,6 +34,12 @@ public class LoggingFileStore : IFileStore
             default,
             "Getting the DICOM instance file with '{DicomInstanceIdentifier}'.");
 
+    private static readonly Action<ILogger, string, Exception> LogDuplicateFileDelegate =
+       LoggerMessage.Define<string>(
+           LogLevel.Debug,
+           default,
+           "Duplicating DICOM instance file with '{DicomInstanceIdentifier}'.");
+
     private static readonly Action<ILogger, Exception> LogOperationSucceededDelegate =
         LoggerMessage.Define(
             LogLevel.Debug,
@@ -160,6 +166,26 @@ public class LoggingFileStore : IFileStore
             LogFileDoesNotExistDelegate(_logger, instanceIdentifierInString, ex);
 
             throw;
+        }
+        catch (Exception ex)
+        {
+            LogOperationFailedDelegate(_logger, ex);
+
+            throw;
+        }
+    }
+
+    public async Task DuplicateFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+
+        LogDuplicateFileDelegate(_logger, versionedInstanceIdentifier.ToString(), null);
+
+        try
+        {
+            await _fileStore.DuplicateFileAsync(versionedInstanceIdentifier, cancellationToken);
+
+            LogOperationSucceededDelegate(_logger, null);
         }
         catch (Exception ex)
         {

@@ -29,6 +29,12 @@ public class LoggingMetadataStore : IMetadataStore
             default,
             "Deleting DICOM instance metadata file with '{DicomInstanceIdentifier}'.");
 
+    private static readonly Action<ILogger, string, Exception> LogDuplicateInstanceMetadataDelegate =
+       LoggerMessage.Define<string>(
+           LogLevel.Debug,
+           default,
+           "Duplicating DICOM instance metadata file with '{DicomInstanceIdentifier}'.");
+
     private static readonly Action<ILogger, string, Exception> LogGetInstanceMetadataDelegate =
         LoggerMessage.Define<string>(
             LogLevel.Debug,
@@ -126,6 +132,25 @@ public class LoggingMetadataStore : IMetadataStore
             LogMetadataDoesNotExistDelegate(_logger, instanceIdentifierInString, ex);
 
             throw;
+        }
+        catch (Exception ex)
+        {
+            LogOperationFailedDelegate(_logger, ex);
+
+            throw;
+        }
+    }
+
+    public async Task DuplicateInstanceMetadataAsync(VersionedInstanceIdentifier identifier, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(identifier, nameof(identifier));
+        LogDuplicateInstanceMetadataDelegate(_logger, identifier.ToString(), null);
+
+        try
+        {
+            await _metadataStore.DuplicateInstanceMetadataAsync(identifier, cancellationToken);
+
+            LogOperationSucceededDelegate(_logger, null);
         }
         catch (Exception ex)
         {

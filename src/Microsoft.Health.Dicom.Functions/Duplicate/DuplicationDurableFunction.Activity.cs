@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -14,6 +13,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.Functions.Duplicate.Models;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 
 namespace Microsoft.Health.Dicom.Functions.Duplicate;
@@ -93,24 +93,21 @@ public partial class DuplicationDurableFunction
     /// <param name="context">The context for the activity.</param>
     /// <param name="logger">A diagnostic logger.</param>
     /// <returns>
-    /// A task representing the <see cref="CompleteReindexingAsync"/> operation.
+    /// A task representing the <see cref="CompleteDuplicateAsync"/> operation.
     /// The value of its <see cref="Task{TResult}.Result"/> property contains the set of extended query tags
     /// whose re-indexing should be considered completed.
     /// </returns>
-    [FunctionName(nameof(CompleteReindexingAsync))]
-    public Task<IReadOnlyList<int>> CompleteReindexingAsync(
+    [FunctionName(nameof(CompleteDuplicateAsync))]
+    public Task CompleteDuplicateAsync(
         [ActivityTrigger] IDurableActivityContext context,
         ILogger logger)
     {
         EnsureArg.IsNotNull(context, nameof(context));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        IReadOnlyList<int> tagKeys = context.GetInput<IReadOnlyList<int>>();
-        logger.LogInformation("Completing the re-indexing operation {OperationId} for {Count} query tags {{{TagKeys}}}",
-            context.InstanceId,
-            tagKeys.Count,
-            string.Join(", ", tagKeys));
+        logger.LogInformation("Completing the duplicate operation {OperationId}", context.InstanceId);
 
-        return _extendedQueryTagStore.CompleteReindexingAsync(tagKeys, CancellationToken.None);
+        // TODO: maybe need to update database
+        return Task.CompletedTask;
     }
 }
