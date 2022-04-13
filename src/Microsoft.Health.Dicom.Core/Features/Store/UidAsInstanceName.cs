@@ -7,17 +7,17 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
-internal class InstanceNameFromWatermark : IInstanceNameBuilder
+public class InstanceNameFromUid : IInstanceNameBuilder
 {
     public string GetInstanceFileName(VersionedInstanceIdentifier instanceIdentifier)
     {
         EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
-        return $"{instanceIdentifier.Version}.dcm";
+        return $"{instanceIdentifier.StudyInstanceUid}/{instanceIdentifier.SeriesInstanceUid}/{instanceIdentifier.SopInstanceUid}_{instanceIdentifier.Version}.dcm";
     }
 
     public string GetInstanceMetadataFileName(VersionedInstanceIdentifier instanceIdentifier)
     {
         EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
-        return $"{instanceIdentifier.Version}_metadata.json";
+        return $"{instanceIdentifier.StudyInstanceUid}/{instanceIdentifier.SeriesInstanceUid}/{instanceIdentifier.SopInstanceUid}_{instanceIdentifier.Version}_metadata.json";
     }
 }

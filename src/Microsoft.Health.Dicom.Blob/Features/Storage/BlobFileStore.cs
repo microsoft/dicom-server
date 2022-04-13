@@ -4,7 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
@@ -14,9 +16,11 @@ using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 
@@ -27,21 +31,30 @@ public class BlobFileStore : IFileStore
 {
     private readonly BlobContainerClient _container;
     private readonly BlobOperationOptions _options;
+    private readonly bool _dualWrite;
+    private readonly InstanceNameFromUid _instanceNameFromUid;
+    private readonly InstanceNameFromWatermark _instanceNameFromWatermark;
 
     public BlobFileStore(
-        BlobServiceClient client,
+        BlobServiceClient client,        
+        InstanceNameFromUid instanceNameFromUid,
+        InstanceNameFromWatermark instanceNameFromWatermark,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
-        IOptions<BlobOperationOptions> options)
+        IOptions<BlobOperationOptions> options,
+        IOptions<FeatureConfiguration> featureConfiguration)
     {
         EnsureArg.IsNotNull(client, nameof(client));
         EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
         EnsureArg.IsNotNull(options?.Value, nameof(options));
+        EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
+        EnsureArg.IsNotNull(blobUploader, nameof(blobUploader));
 
         BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
             .Get(Constants.BlobContainerConfigurationName);
 
         _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
         _options = options.Value;
+        _dualWrite = featureConfiguration.Value.EnableDualWrite;
     }
 
     /// <inheritdoc />
@@ -53,19 +66,15 @@ public class BlobFileStore : IFileStore
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
         EnsureArg.IsNotNull(stream, nameof(stream));
 
-        BlockBlobClient blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
+        BlockBlobClient[] blobs = GetInstanceBlockBlobs(versionedInstanceIdentifier);
         stream.Seek(0, SeekOrigin.Begin);
 
         var blobUploadOptions = new BlobUploadOptions { TransferOptions = _options.Upload };
 
         try
         {
-            await blob.UploadAsync(
-                stream,
-                blobUploadOptions,
-                cancellationToken);
-
-            return blob.Uri;
+            await Task.WhenAll(blobs.Select(blob => blob.UploadAsync(stream, blobUploadOptions, cancellationToken)));
+            return blobs[0].Uri;
         }
         catch (Exception ex)
         {
@@ -123,11 +132,27 @@ public class BlobFileStore : IFileStore
         return fileProperties;
     }
 
+    // TODO: get rid of this
     private BlockBlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
     {
-        string blobName = $"{versionedInstanceIdentifier.StudyInstanceUid}/{versionedInstanceIdentifier.SeriesInstanceUid}/{versionedInstanceIdentifier.SopInstanceUid}_{versionedInstanceIdentifier.Version}.dcm";
+        return GetInstanceBlockBlobs(versionedInstanceIdentifier)[0];
+    }
 
-        return _container.GetBlockBlobClient(blobName);
+    private BlockBlobClient[] GetInstanceBlockBlobs(VersionedInstanceIdentifier versionedInstanceIdentifier)
+    {
+        List<string> blobNames = new List<string>();
+        blobNames.Add(_instanceNameFromUid.GetInstanceFileName(versionedInstanceIdentifier));
+        if (_dualWrite)
+        {
+            blobNames.Add(_instanceNameFromWatermark.GetInstanceFileName(versionedInstanceIdentifier));
+        }
+        BlockBlobClient[] clients = new BlockBlobClient[blobNames.Count];
+        for (int i = 0; i < clients.Length; i++)
+        {
+            clients[i] = _container.GetBlockBlobClient(blobNames[i]);
+        }
+
+        return clients;
     }
 
     private static async Task ExecuteAsync(Func<Task> action)

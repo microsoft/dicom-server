@@ -6,7 +6,7 @@
 using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
-internal interface IInstanceNameBuilder
+public interface IInstanceNameBuilder
 {
     string GetInstanceFileName(VersionedInstanceIdentifier instanceIdentifier);
 
