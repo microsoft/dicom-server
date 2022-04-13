@@ -15,13 +15,13 @@ jobs:
       useGlobalJson: true
 
   - ${{ if eq(parameters.runLocally, true) }}:
-    - bash: |
-        # Start DICOM services
-        docker-compose -f ./docker/docker-compose.yml -f ./docker/docker-compose.dependencies.yml up --build -d
-
-        # Wait for web server to be ready
-        for i in {1..6}; do curl -fsS "$(testEnvironmentUrl)health/checks" > /dev/null && exit 0 || sleep 5; done; exit 1
+    - script: docker-compose -f ./docker/docker-compose.yml -f ./docker/docker-compose.dependencies.yml up --build -d
       displayName: 'Run docker-compose'
+      workingDirectory: 'docker'
+
+    - bash: for i in {1..12}; do curl -fsS "$(testEnvironmentUrl)health/check" > /dev/null && exit 0 || sleep 5; done; exit 1
+      displayName: 'Wait for the DICOM Server to Start'
+
   - ${{ else }}:
     - task: AzurePowerShell@4
       displayName: 'Set Variables'
