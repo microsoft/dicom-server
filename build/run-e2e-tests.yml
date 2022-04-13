@@ -5,6 +5,7 @@ parameters:
 
 jobs:
 - job: SetupAndRun
+  displayName: 'Setup and Run E2E Tests'
   pool:
     vmImage: 'ubuntu-latest'
   steps:
@@ -15,7 +16,7 @@ jobs:
       useGlobalJson: true
 
   - ${{ if eq(parameters.runLocally, true) }}:
-    - script: docker-compose -f ./docker/docker-compose.yml -f ./docker/docker-compose.dependencies.yml up --build -d
+    - script: docker-compose -p dicom -f docker-compose.yml -f docker-compose.dependencies.yml up --build -d
       displayName: 'Run docker-compose'
       workingDirectory: 'docker'
 
@@ -70,11 +71,13 @@ jobs:
       buildConfiguration: '$(buildConfiguration)'
 
   - ${{ if eq(parameters.runLocally, true) }}:
-    - script: docker-compose -f ./docker/docker-compose.yml -f ./docker/docker-compose.dependencies.yml logs
+    - script: docker-compose -p dicom -f docker-compose.yml -f docker-compose.dependencies.yml logs
       displayName: 'docker-compose logs'
+      workingDirectory: 'docker'
       condition: always()
 
   - ${{ if eq(parameters.runLocally, true) }}:
-    - script: docker-compose -f ./docker/docker-compose.yml -f ./docker/docker-compose.dependencies.yml rm -s -f
+    - script: docker-compose -p dicom -f docker-compose.yml -f docker-compose.dependencies.yml rm -s -f
       displayName: 'Stop docker-compose'
+      workingDirectory: 'docker'
       condition: always()

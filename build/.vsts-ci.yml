@@ -16,7 +16,7 @@ stages:
 - stage: UpdateVersion
   displayName: 'Determine Semantic Version'
   jobs:
-  - job: Semver
+  - job: GitVersion
     pool:
       vmImage: 'windows-latest'
     steps:
@@ -25,13 +25,13 @@ stages:
 - stage: BuildElectron
   displayName: 'Build Electron Tool'
   jobs:
-  - job: Linux
+  - job: NodeJs
     pool:
-      vmImage: 'windows-latest'
+      vmImage: 'ubuntu-latest'
     steps:
     - template: build-electron.yml
 
-- stage: BuildRunUnitTests
+- stage: BuildDotNet
   displayName: 'Build and Run Unit Tests'
   dependsOn:
   - UpdateVersion
@@ -42,7 +42,8 @@ stages:
     majorMinorPatch: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.MajorMinorPatch']]
     nuGetVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.SemVer']]
   jobs:
-  - job: Linux
+  - job: DotNet
+    displayName: 'Build DICOM Projects'
     pool:
       vmImage: 'ubuntu-latest'
     steps:
@@ -51,9 +52,10 @@ stages:
 - stage: AnalyzeSecurity
   displayName: 'Run Security Analysis'
   dependsOn:
-  - BuildRunUnitTests
+  - BuildDotNet
   jobs:
-  - job: Windows
+  - job: Guardian
+    displayName: 'Run Guardian Tools'
     pool:
       vmImage: 'windows-latest'
     steps:
@@ -62,14 +64,14 @@ stages:
 - stage: DeployTestEnvironment
   displayName: 'Deploy Test Environment'
   dependsOn:
-  - BuildRunUnitTests
+  - BuildDotNet
   jobs:
   - template: deploy.yml
 
 - stage: ValidateAPIVersioning
   displayName: 'Detect Breaking Changes In API'
   dependsOn:
-  - BuildRunUnitTests
+  - BuildDotNet
   jobs:
   - template: versioning.yml
 
@@ -132,6 +134,7 @@ stages:
   - RunE2EFeaturesEnabledTests
   jobs:
   - job: 'Docker'
+    displayName: 'Build and Push Docker Images'
     pool:
       vmImage: 'ubuntu-latest'
     steps:

@@ -5,6 +5,7 @@ parameters:
 
 jobs:
 - job: SetupAndRun
+  displayName: 'Setup and Run Integration Tests'
   pool:
     vmImage: 'ubuntu-latest'
   steps:

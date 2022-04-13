@@ -1,5 +1,6 @@
 jobs:
 - job: provision
+  displayName: 'Provision DICOM Service'
   pool:
     vmImage: 'windows-latest'
   steps:
@@ -52,6 +53,7 @@ jobs:
         Set-AzKeyVaultAccessPolicy -VaultName "$(deploymentName)" -ObjectId $(azureServiceConnectionOid) -PermissionsToSecrets list,get
 
   - task: DownloadBuildArtifacts@0
+    displayName: 'Download Deployment Binaries'
     inputs:
       buildType: 'current'
       downloadType: 'single'

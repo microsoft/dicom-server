@@ -23,7 +23,7 @@ stages:
 - stage: UpdateVersion
   displayName: 'Determine Semantic Version'
   jobs:
-  - job: Semver
+  - job: GitVersion
     pool:
       vmImage: 'ubuntu-latest'
     steps:
@@ -34,7 +34,7 @@ stages:
         Write-Host "Updated build number to '$buildNumber'"
       name: SetBuildVersion
 
-- stage: BuildRunUnitTests
+- stage: BuildDotNet
   displayName: 'Build and Run Unit Tests'
   dependsOn:
   - UpdateVersion
@@ -45,7 +45,8 @@ stages:
     majorMinorPatch: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.MajorMinorPatch']]
     nuGetVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.SemVer']]
   jobs:
-  - job: Linux
+  - job: DotNet
+    displayName: 'Build DICOM Projects'
     pool:
      vmImage: 'ubuntu-latest'
     steps:
@@ -57,9 +58,10 @@ stages:
 - stage: AnalyzeSecurity
   displayName: 'Run Security Analysis'
   dependsOn:
-  - BuildRunUnitTests
+  - BuildDotNet
   jobs:
-  - job: Windows
+  - job: Guardian
+    displayName: 'Run Guardian Tools'
     pool:
       vmImage: 'windows-latest'
     steps:
@@ -70,27 +72,27 @@ stages:
 - stage: ValidateAPIVersioning
   displayName: 'Detect Breaking Changes in REST API'
   dependsOn:
-  - BuildRunUnitTests
+  - BuildDotNet
   jobs:
   - template: versioning.yml
 
 - stage: RunIntegrationTests
   displayName: 'Run Integration tests'
   dependsOn:
-  - BuildRunUnitTests
+  - BuildDotNet
   jobs:
   - template: run-integration-tests.yml
 
 - stage: RunE2ETests
   displayName: 'Run E2E tests'
   dependsOn:
-  - BuildRunUnitTests
+  - BuildDotNet
   jobs:
   - template: run-e2e-tests.yml
 
 - stage: RunE2EFeaturesEnabledTests
   displayName: 'Run E2E features-enabled tests'
   dependsOn:
-  - BuildRunUnitTests
+  - BuildDotNet
   jobs:
   - template: run-e2e-features-enabled-tests.yml
