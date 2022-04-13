@@ -45,8 +45,7 @@
     </When>
     <Otherwise>
       <PropertyGroup>
-        <AnalysisLevel>6.0</AnalysisLevel>
-        <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+        <AnalysisLevel>latest-All</AnalysisLevel>
         <IsPackable>true</IsPackable>
       </PropertyGroup>
     </Otherwise>

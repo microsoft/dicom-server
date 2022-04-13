@@ -8,8 +8,8 @@
     <DockerComposeProjectName>Dicom</DockerComposeProjectName>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
     <DockerServiceUrl>{Scheme}://localhost:{ServicePort}</DockerServiceUrl>
-    <DockerServiceName>microsoft.health.dicom.web</DockerServiceName>
-    <AdditionalComposeFilePaths>docker-compose.dependencies.yml;docker-compose.vs.yml</AdditionalComposeFilePaths>
+    <DockerServiceName>web</DockerServiceName>
+    <AdditionalComposeFilePaths>vs\docker-compose.vs.yml</AdditionalComposeFilePaths>
     <Platforms>x64</Platforms>
   </PropertyGroup>
 
@@ -17,12 +17,12 @@
   <Choose>
     <When Condition="$([MSBuild]::IsOSPlatform('Windows'))">
       <PropertyGroup>
-        <AdditionalComposeFilePaths>$(AdditionalComposeFilePaths);docker-compose.vs.windows.yml</AdditionalComposeFilePaths>
+        <AdditionalComposeFilePaths>$(AdditionalComposeFilePaths);vs\docker-compose.vs.windows.yml</AdditionalComposeFilePaths>
       </PropertyGroup>
     </When>
     <Otherwise>
       <PropertyGroup>
-        <AdditionalComposeFilePaths>$(AdditionalComposeFilePaths);docker-compose.vs.linux.yml</AdditionalComposeFilePaths>
+        <AdditionalComposeFilePaths>$(AdditionalComposeFilePaths);vs\docker-compose.vs.linux.yml</AdditionalComposeFilePaths>
       </PropertyGroup>
     </Otherwise>
   </Choose>
@@ -32,24 +32,10 @@
     and are automatically included in the docker-compose command
   -->
   <ItemGroup>
-    <None Include="docker-compose.dependencies.yml">
-      <DependentUpon>docker-compose.yml</DependentUpon>
-    </None>
-    <None Include="docker-compose.vs.debug.yml">
-      <DependentUpon>docker-compose.yml</DependentUpon>
-    </None>
-    <None Include="docker-compose.vs.linux.yml">
-      <DependentUpon>docker-compose.yml</DependentUpon>
-    </None>
-    <None Include="docker-compose.vs.release.yml">
-      <DependentUpon>docker-compose.yml</DependentUpon>
-    </None>
-    <None Include="docker-compose.vs.windows.yml">
-      <DependentUpon>docker-compose.yml</DependentUpon>
-    </None>
     <None Include="docker-compose.yml" />
     <None Include="functions\Dockerfile" />
     <None Include="sql\Dockerfile" />
+    <None Include="vs\*.yml" />
   </ItemGroup>
 
 </Project>
