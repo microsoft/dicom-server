@@ -82,6 +82,8 @@ stages:
   - BuildDotNet
   jobs:
   - template: run-integration-tests.yml
+    parameters:
+      runLocally: true
 
 - stage: RunE2ETests
   displayName: 'Run E2E tests'
@@ -89,6 +91,8 @@ stages:
   - BuildDotNet
   jobs:
   - template: run-e2e-tests.yml
+    parameters:
+      runLocally: true
 
 - stage: RunE2EFeaturesEnabledTests
   displayName: 'Run E2E features-enabled tests'
@@ -96,3 +100,5 @@ stages:
   - BuildDotNet
   jobs:
   - template: run-e2e-features-enabled-tests.yml
+    parameters:
+      runLocally: true

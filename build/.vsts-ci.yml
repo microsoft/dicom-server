@@ -88,8 +88,6 @@ stages:
   - DeployTestEnvironment
   jobs:
   - template: run-integration-tests.yml
-    parameters:
-      runLocally: false
 
 - stage: RunE2ETests
   displayName: 'Run E2E Tests'
@@ -97,8 +95,6 @@ stages:
   - DeployTestEnvironment
   jobs:
   - template: run-e2e-tests.yml
-    parameters:
-      runLocally: false
 
 - stage: RunE2EFeaturesEnabledTests
   displayName: 'Run E2E features-enabled tests'
@@ -106,8 +102,6 @@ stages:
   - DeployFeaturesEnabledWebapp
   jobs:
   - template: run-e2e-features-enabled-tests.yml
-    parameters:
-      runLocally: false
 
 - stage: PublishNuget
   displayName: 'Publish NuGet Packages'

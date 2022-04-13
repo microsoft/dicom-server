@@ -1,7 +1,7 @@
 parameters:
 - name: runLocally
   type: boolean
-  default: true
+  default: false
 
 jobs:
 - job: SetupAndRun
