@@ -20,6 +20,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.IO;
 
@@ -36,9 +37,13 @@ public class BlobMetadataStore : IMetadataStore
     private readonly BlobContainerClient _container;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+    private readonly UidAsInstanceName _uidAsInstanceName;
+    private readonly WatermarkAsInstanceName _watermarkAsInstanceName;
 
     public BlobMetadataStore(
         BlobServiceClient client,
+         UidAsInstanceName uidAsInstanceName,
+        WatermarkAsInstanceName watermarkAsInstanceName,
         RecyclableMemoryStreamManager recyclableMemoryStreamManager,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         IOptions<JsonSerializerOptions> jsonSerializerOptions)
@@ -54,6 +59,8 @@ public class BlobMetadataStore : IMetadataStore
         _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
         _jsonSerializerOptions = jsonSerializerOptions.Value;
         _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
+        _uidAsInstanceName = EnsureArg.IsNotNull(uidAsInstanceName, nameof(uidAsInstanceName));
+        _watermarkAsInstanceName = EnsureArg.IsNotNull(watermarkAsInstanceName, nameof(watermarkAsInstanceName));
     }
 
     /// <inheritdoc />
@@ -122,10 +129,10 @@ public class BlobMetadataStore : IMetadataStore
         }, cancellationToken);
     }
 
-    private BlockBlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
+    private BlockBlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier, bool duplicated = false)
     {
-        var blobName = $"{versionedInstanceIdentifier.StudyInstanceUid}/{versionedInstanceIdentifier.SeriesInstanceUid}/{versionedInstanceIdentifier.SopInstanceUid}_{versionedInstanceIdentifier.Version}_metadata.json";
-
+        IInstanceNameBuilder nameBuilder = duplicated ? _watermarkAsInstanceName : _uidAsInstanceName;
+        string blobName = nameBuilder.GetInstanceMetadataFileName(versionedInstanceIdentifier);
         return _container.GetBlockBlobClient(blobName);
     }
 
@@ -145,8 +152,14 @@ public class BlobMetadataStore : IMetadataStore
         }
     }
 
-    public Task DuplicateInstanceMetadataAsync(VersionedInstanceIdentifier identifier, CancellationToken cancellationToken)
+    public async Task DuplicateInstanceMetadataAsync(VersionedInstanceIdentifier identifier, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var blob = GetInstanceBlockBlob(identifier, duplicated: false);
+        var duplicatedBlob = GetInstanceBlockBlob(identifier, duplicated: true);
+        if (!await duplicatedBlob.ExistsAsync(cancellationToken))
+        {
+            var operation = await duplicatedBlob.StartCopyFromUriAsync(blob.Uri, options: null, cancellationToken);
+            await operation.WaitForCompletionAsync(cancellationToken);
+        }
     }
 }

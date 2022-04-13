@@ -17,6 +17,7 @@ using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 
@@ -27,9 +28,13 @@ public class BlobFileStore : IFileStore
 {
     private readonly BlobContainerClient _container;
     private readonly BlobOperationOptions _options;
+    private readonly UidAsInstanceName _uidAsInstanceName;
+    private readonly WatermarkAsInstanceName _watermarkAsInstanceName;
 
     public BlobFileStore(
         BlobServiceClient client,
+        UidAsInstanceName uidAsInstanceName,
+        WatermarkAsInstanceName watermarkAsInstanceName,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         IOptions<BlobOperationOptions> options)
     {
@@ -42,6 +47,8 @@ public class BlobFileStore : IFileStore
 
         _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
         _options = options.Value;
+        _uidAsInstanceName = EnsureArg.IsNotNull(uidAsInstanceName, nameof(uidAsInstanceName));
+        _watermarkAsInstanceName = EnsureArg.IsNotNull(watermarkAsInstanceName, nameof(watermarkAsInstanceName));
     }
 
     /// <inheritdoc />
@@ -123,10 +130,10 @@ public class BlobFileStore : IFileStore
         return fileProperties;
     }
 
-    private BlockBlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
+    private BlockBlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier, bool duplicated = false)
     {
-        string blobName = $"{versionedInstanceIdentifier.StudyInstanceUid}/{versionedInstanceIdentifier.SeriesInstanceUid}/{versionedInstanceIdentifier.SopInstanceUid}_{versionedInstanceIdentifier.Version}.dcm";
-
+        IInstanceNameBuilder nameBuilder = duplicated ? _watermarkAsInstanceName : _uidAsInstanceName;
+        string blobName = nameBuilder.GetInstanceFileName(versionedInstanceIdentifier);
         return _container.GetBlockBlobClient(blobName);
     }
 
@@ -143,6 +150,17 @@ public class BlobFileStore : IFileStore
         catch (Exception ex)
         {
             throw new DataStoreException(ex);
+        }
+    }
+
+    public async Task DuplicateFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
+    {
+        var blob = GetInstanceBlockBlob(versionedInstanceIdentifier, duplicated: false);
+        var duplicatedBlob = GetInstanceBlockBlob(versionedInstanceIdentifier, duplicated: true);
+        if (!await duplicatedBlob.ExistsAsync(cancellationToken))
+        {
+            var operation = await duplicatedBlob.StartCopyFromUriAsync(blob.Uri, options: null, cancellationToken);
+            await operation.WaitForCompletionAsync(cancellationToken);
         }
     }
 }
