@@ -75,7 +75,7 @@ public class DicomRequestContext : IDicomRequestContext
 
     public long ResponseSize { get; set; }
 
-    public int RequestParts { get; set; }
+    public int InstanceCount { get; set; }
 
     public ClaimsPrincipal Principal { get; set; }
 

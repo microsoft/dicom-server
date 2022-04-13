@@ -28,7 +28,7 @@ public class DefaultDicomRequestContext : IDicomRequestContext
 
     public long ResponseSize { get; set; }
 
-    public int RequestParts { get; set; }
+    public int InstanceCount { get; set; }
 
     public string Method { get; set; }
 

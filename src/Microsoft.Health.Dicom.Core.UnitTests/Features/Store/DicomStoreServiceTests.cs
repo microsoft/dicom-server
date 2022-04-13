@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Validation;
@@ -42,6 +43,7 @@ public class DicomStoreServiceTests
     private readonly IStoreDatasetValidator _dicomDatasetValidator = Substitute.For<IStoreDatasetValidator>();
     private readonly IStoreOrchestrator _storeOrchestrator = Substitute.For<IStoreOrchestrator>();
     private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
+    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
     private readonly StoreService _storeService;
 
     public DicomStoreServiceTests()
@@ -52,6 +54,7 @@ public class DicomStoreServiceTests
             _storeResponseBuilder,
             _dicomDatasetValidator,
             _storeOrchestrator,
+            _dicomRequestContextAccessor,
             NullLogger<StoreService>.Instance);
     }
 

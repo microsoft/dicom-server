@@ -180,7 +180,7 @@ public class AspNetCoreMultipartReaderTests
             MultipartBodyPart result = await aspNetCoreMultipartReader.ReadNextBodyPartAsync(cancellationToken: default);
 
             Assert.Null(result);
-            Assert.Equal(0, _dicomRequestContextAccessor.RequestContext.RequestParts);
+            Assert.Equal(0, _dicomRequestContextAccessor.RequestContext.InstanceCount);
         }
     }
 
@@ -237,7 +237,7 @@ public class AspNetCoreMultipartReaderTests
     }
 
 
-    private AspNetCoreMultipartReader Create(string contentType, Stream body = null, ISeekableStreamConverter seekableStreamConverter = null, IDicomRequestContextAccessor dicomRequestContextAccessor = null)
+    private AspNetCoreMultipartReader Create(string contentType, Stream body = null, ISeekableStreamConverter seekableStreamConverter = null)
     {
         if (body == null)
         {
@@ -249,16 +249,10 @@ public class AspNetCoreMultipartReaderTests
             seekableStreamConverter = _seekableStreamConverter;
         }
 
-        if (dicomRequestContextAccessor == null)
-        {
-            dicomRequestContextAccessor = _dicomRequestContextAccessor;
-        }
-
         return new AspNetCoreMultipartReader(
             contentType,
             body,
             seekableStreamConverter,
-            dicomRequestContextAccessor,
             CreateStoreConfiguration());
     }
 
@@ -310,7 +304,7 @@ public class AspNetCoreMultipartReaderTests
             result = await aspNetCoreMultipartReader.ReadNextBodyPartAsync(cancellationToken: default);
 
             Assert.Null(result);
-            Assert.Equal(numberOfParts, _dicomRequestContextAccessor.RequestContext.RequestParts);
+            Assert.Equal(numberOfParts, _dicomRequestContextAccessor.RequestContext.InstanceCount);
         }
     }
 

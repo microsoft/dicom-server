@@ -14,7 +14,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Net.Http.Headers;
 using NotSupportedException = Microsoft.Health.Dicom.Core.Exceptions.NotSupportedException;
@@ -29,7 +28,6 @@ internal class AspNetCoreMultipartReader : IMultipartReader
     private const string TypeParameterName = "type";
     private const string StartParameterName = "start";
     private readonly ISeekableStreamConverter _seekableStreamConverter;
-    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
     private readonly IOptions<StoreConfiguration> _storeConfiguration;
     private readonly string _rootContentType;
     private readonly MultipartReader _multipartReader;
@@ -40,7 +38,6 @@ internal class AspNetCoreMultipartReader : IMultipartReader
         string contentType,
         Stream body,
         ISeekableStreamConverter seekableStreamConverter,
-        IDicomRequestContextAccessor dicomRequestContextAccessor,
         IOptions<StoreConfiguration> storeConfiguration)
     {
         EnsureArg.IsNotNull(contentType, nameof(contentType));
@@ -49,7 +46,6 @@ internal class AspNetCoreMultipartReader : IMultipartReader
         EnsureArg.IsNotNull(storeConfiguration?.Value, nameof(storeConfiguration));
 
         _seekableStreamConverter = seekableStreamConverter;
-        _dicomRequestContextAccessor = dicomRequestContextAccessor;
         _storeConfiguration = storeConfiguration;
 
         if (!MediaTypeHeaderValue.TryParse(contentType, out MediaTypeHeaderValue media) ||
@@ -132,8 +128,6 @@ internal class AspNetCoreMultipartReader : IMultipartReader
             MultipartBodyPart part = new MultipartBodyPart(
                 contentType,
                 await _seekableStreamConverter.ConvertAsync(section.Body, cancellationToken));
-
-            _dicomRequestContextAccessor.RequestContext.RequestParts++;
 
             return part;
         }
