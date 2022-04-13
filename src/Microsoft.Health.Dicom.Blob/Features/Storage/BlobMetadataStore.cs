@@ -144,4 +144,9 @@ public class BlobMetadataStore : IMetadataStore
             throw new DataStoreException(ex);
         }
     }
+
+    public Task DuplicateInstanceMetadataAsync(VersionedInstanceIdentifier identifier, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
 }
